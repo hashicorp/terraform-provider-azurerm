@@ -279,8 +279,11 @@ func (page ConfigurationListResultPage) Values() []ConfigData {
 }
 
 // Creates a new instance of the ConfigurationListResultPage type.
-func NewConfigurationListResultPage(getNextPage func(context.Context, ConfigurationListResult) (ConfigurationListResult, error)) ConfigurationListResultPage {
-	return ConfigurationListResultPage{fn: getNextPage}
+func NewConfigurationListResultPage(cur ConfigurationListResult, getNextPage func(context.Context, ConfigurationListResult) (ConfigurationListResult, error)) ConfigurationListResultPage {
+	return ConfigurationListResultPage{
+		fn:  getNextPage,
+		clr: cur,
+	}
 }
 
 // DigestConfig advisor Digest configuration entity
@@ -532,8 +535,11 @@ func (page MetadataEntityListResultPage) Values() []MetadataEntity {
 }
 
 // Creates a new instance of the MetadataEntityListResultPage type.
-func NewMetadataEntityListResultPage(getNextPage func(context.Context, MetadataEntityListResult) (MetadataEntityListResult, error)) MetadataEntityListResultPage {
-	return MetadataEntityListResultPage{fn: getNextPage}
+func NewMetadataEntityListResultPage(cur MetadataEntityListResult, getNextPage func(context.Context, MetadataEntityListResult) (MetadataEntityListResult, error)) MetadataEntityListResultPage {
+	return MetadataEntityListResultPage{
+		fn:   getNextPage,
+		melr: cur,
+	}
 }
 
 // MetadataEntityProperties the metadata entity properties
@@ -728,8 +734,11 @@ func (page OperationEntityListResultPage) Values() []OperationEntity {
 }
 
 // Creates a new instance of the OperationEntityListResultPage type.
-func NewOperationEntityListResultPage(getNextPage func(context.Context, OperationEntityListResult) (OperationEntityListResult, error)) OperationEntityListResultPage {
-	return OperationEntityListResultPage{fn: getNextPage}
+func NewOperationEntityListResultPage(cur OperationEntityListResult, getNextPage func(context.Context, OperationEntityListResult) (OperationEntityListResult, error)) OperationEntityListResultPage {
+	return OperationEntityListResultPage{
+		fn:   getNextPage,
+		oelr: cur,
+	}
 }
 
 // RecommendationProperties the properties of the recommendation.
@@ -1046,8 +1055,11 @@ func (page ResourceRecommendationBaseListResultPage) Values() []ResourceRecommen
 }
 
 // Creates a new instance of the ResourceRecommendationBaseListResultPage type.
-func NewResourceRecommendationBaseListResultPage(getNextPage func(context.Context, ResourceRecommendationBaseListResult) (ResourceRecommendationBaseListResult, error)) ResourceRecommendationBaseListResultPage {
-	return ResourceRecommendationBaseListResultPage{fn: getNextPage}
+func NewResourceRecommendationBaseListResultPage(cur ResourceRecommendationBaseListResult, getNextPage func(context.Context, ResourceRecommendationBaseListResult) (ResourceRecommendationBaseListResult, error)) ResourceRecommendationBaseListResultPage {
+	return ResourceRecommendationBaseListResultPage{
+		fn:    getNextPage,
+		rrblr: cur,
+	}
 }
 
 // SetObject ...
@@ -1064,8 +1076,8 @@ type ShortDescription struct {
 	Solution *string `json:"solution,omitempty"`
 }
 
-// SuppressionContract the details of the snoozed or dismissed rule; for example, the duration, name, and GUID
-// associated with the rule.
+// SuppressionContract the details of the snoozed or dismissed rule; for example, the duration, name, and
+// GUID associated with the rule.
 type SuppressionContract struct {
 	autorest.Response `json:"-"`
 	// SuppressionProperties - The properties of the suppression.
@@ -1147,7 +1159,8 @@ type SuppressionContractListResult struct {
 	Value *[]SuppressionContract `json:"value,omitempty"`
 }
 
-// SuppressionContractListResultIterator provides access to a complete listing of SuppressionContract values.
+// SuppressionContractListResultIterator provides access to a complete listing of SuppressionContract
+// values.
 type SuppressionContractListResultIterator struct {
 	i    int
 	page SuppressionContractListResultPage
@@ -1290,8 +1303,11 @@ func (page SuppressionContractListResultPage) Values() []SuppressionContract {
 }
 
 // Creates a new instance of the SuppressionContractListResultPage type.
-func NewSuppressionContractListResultPage(getNextPage func(context.Context, SuppressionContractListResult) (SuppressionContractListResult, error)) SuppressionContractListResultPage {
-	return SuppressionContractListResultPage{fn: getNextPage}
+func NewSuppressionContractListResultPage(cur SuppressionContractListResult, getNextPage func(context.Context, SuppressionContractListResult) (SuppressionContractListResult, error)) SuppressionContractListResultPage {
+	return SuppressionContractListResultPage{
+		fn:   getNextPage,
+		sclr: cur,
+	}
 }
 
 // SuppressionProperties the properties of the suppression.
@@ -1300,4 +1316,18 @@ type SuppressionProperties struct {
 	SuppressionID *string `json:"suppressionId,omitempty"`
 	// TTL - The duration for which the suppression is valid.
 	TTL *string `json:"ttl,omitempty"`
+	// ExpirationTimeStamp - READ-ONLY; Gets or sets the expiration time stamp.
+	ExpirationTimeStamp *date.Time `json:"expirationTimeStamp,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SuppressionProperties.
+func (sp SuppressionProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sp.SuppressionID != nil {
+		objectMap["suppressionId"] = sp.SuppressionID
+	}
+	if sp.TTL != nil {
+		objectMap["ttl"] = sp.TTL
+	}
+	return json.Marshal(objectMap)
 }

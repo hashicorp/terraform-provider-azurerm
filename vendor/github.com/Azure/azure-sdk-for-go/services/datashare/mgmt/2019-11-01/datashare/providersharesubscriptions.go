@@ -75,6 +75,7 @@ func (client ProviderShareSubscriptionsClient) GetByShare(ctx context.Context, r
 	result, err = client.GetByShareResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.ProviderShareSubscriptionsClient", "GetByShare", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -155,9 +156,11 @@ func (client ProviderShareSubscriptionsClient) ListByShare(ctx context.Context, 
 	result.pssl, err = client.ListByShareResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.ProviderShareSubscriptionsClient", "ListByShare", resp, "Failure responding to request")
+		return
 	}
 	if result.pssl.hasNextLink() && result.pssl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -276,6 +279,7 @@ func (client ProviderShareSubscriptionsClient) Reinstate(ctx context.Context, re
 	result, err = client.ReinstateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.ProviderShareSubscriptionsClient", "Reinstate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -347,7 +351,7 @@ func (client ProviderShareSubscriptionsClient) Revoke(ctx context.Context, resou
 
 	result, err = client.RevokeSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "datashare.ProviderShareSubscriptionsClient", "Revoke", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "datashare.ProviderShareSubscriptionsClient", "Revoke", nil, "Failure sending request")
 		return
 	}
 
@@ -385,7 +389,33 @@ func (client ProviderShareSubscriptionsClient) RevokeSender(req *http.Request) (
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ProviderShareSubscriptionsClient) (pss ProviderShareSubscription, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "datashare.ProviderShareSubscriptionsRevokeFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("datashare.ProviderShareSubscriptionsRevokeFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		pss.Response.Response, err = future.GetResult(sender)
+		if pss.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "datashare.ProviderShareSubscriptionsRevokeFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && pss.Response.Response.StatusCode != http.StatusNoContent {
+			pss, err = client.RevokeResponder(pss.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "datashare.ProviderShareSubscriptionsRevokeFuture", "Result", pss.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

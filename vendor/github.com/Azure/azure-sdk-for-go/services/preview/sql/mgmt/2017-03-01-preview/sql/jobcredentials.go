@@ -88,6 +88,7 @@ func (client JobCredentialsClient) CreateOrUpdate(ctx context.Context, resourceG
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobCredentialsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -170,6 +171,7 @@ func (client JobCredentialsClient) Delete(ctx context.Context, resourceGroupName
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobCredentialsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -249,6 +251,7 @@ func (client JobCredentialsClient) Get(ctx context.Context, resourceGroupName st
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobCredentialsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -329,9 +332,11 @@ func (client JobCredentialsClient) ListByAgent(ctx context.Context, resourceGrou
 	result.jclr, err = client.ListByAgentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobCredentialsClient", "ListByAgent", resp, "Failure responding to request")
+		return
 	}
 	if result.jclr.hasNextLink() && result.jclr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

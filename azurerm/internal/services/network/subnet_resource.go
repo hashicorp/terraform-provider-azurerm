@@ -1,13 +1,16 @@
 package network
 
 import (
-	"context"
 	"fmt"
+	"log"
+	"strings"
+	"time"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/Azure/go-autorest/autorest"
-	autorestAzure "github.com/Azure/go-autorest/autorest/azure"
-	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -16,23 +19,20 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"log"
-	"reflect"
-	"strings"
-	"time"
 )
 
 var SubnetResourceName = "azurerm_subnet"
 
-func resourceArmSubnet() *schema.Resource {
+func resourceSubnet() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSubnetCreate,
-		Read:   resourceArmSubnetRead,
-		Update: resourceArmSubnetUpdate,
-		Delete: resourceArmSubnetDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Create: resourceSubnetCreate,
+		Read:   resourceSubnetRead,
+		Update: resourceSubnetUpdate,
+		Delete: resourceSubnetDelete,
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.SubnetID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -80,6 +80,16 @@ func resourceArmSubnet() *schema.Resource {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+
+			"service_endpoint_policy_ids": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				MinItems: 1,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validate.SubnetServiceEndpointStoragePolicyID,
+				},
 			},
 
 			"delegation": {
@@ -168,30 +178,28 @@ func resourceArmSubnet() *schema.Resource {
 }
 
 // TODO: refactor the create/flatten functions
-func resourceArmSubnetCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SubnetsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Subnet creation.")
 
-	name := d.Get("name").(string)
-	vnetName := d.Get("virtual_network_name").(string)
-	resGroup := d.Get("resource_group_name").(string)
-
-	existing, err := client.Get(ctx, resGroup, vnetName, name, "")
+	id := parse.NewSubnetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("virtual_network_name").(string), d.Get("name").(string))
+	existing, err := client.Get(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name, "")
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("Error checking for presence of existing Subnet %q (Virtual Network %q / Resource Group %q): %s", name, vnetName, resGroup, err)
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
 
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_subnet", *existing.ID)
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_subnet", id.ID())
 	}
 
-	locks.ByName(vnetName, VirtualNetworkResourceName)
-	defer locks.UnlockByName(vnetName, VirtualNetworkResourceName)
+	locks.ByName(id.VirtualNetworkName, VirtualNetworkResourceName)
+	defer locks.UnlockByName(id.VirtualNetworkName, VirtualNetworkResourceName)
 
 	properties := network.SubnetPropertiesFormat{}
 	if value, ok := d.GetOk("address_prefixes"); ok {
@@ -220,56 +228,47 @@ func resourceArmSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 	serviceEndpointsRaw := d.Get("service_endpoints").([]interface{})
 	properties.ServiceEndpoints = expandSubnetServiceEndpoints(serviceEndpointsRaw)
 
+	serviceEndpointPoliciesRaw := d.Get("service_endpoint_policy_ids").(*schema.Set).List()
+	properties.ServiceEndpointPolicies = expandSubnetServiceEndpointPolicies(serviceEndpointPoliciesRaw)
+
 	delegationsRaw := d.Get("delegation").([]interface{})
 	properties.Delegations = expandSubnetDelegation(delegationsRaw)
 
 	subnet := network.Subnet{
-		Name:                   &name,
+		Name:                   utils.String(id.Name),
 		SubnetPropertiesFormat: &properties,
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resGroup, vnetName, name, subnet)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name, subnet)
 	if err != nil {
-		return fmt.Errorf("Error Creating/Updating Subnet %q (Virtual Network %q / Resource Group %q): %+v", name, vnetName, resGroup, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for completion of Subnet %q (Virtual Network %q / Resource Group %q): %+v", name, vnetName, resGroup, err)
+		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resGroup, vnetName, name, "")
-	if err != nil {
-		return err
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read ID of Subnet %q (Virtual Network %q / Resource Group %q)", vnetName, name, resGroup)
-	}
-
-	d.SetId(*read.ID)
-
-	return resourceArmSubnetRead(d, meta)
+	d.SetId(id.ID())
+	return resourceSubnetRead(d, meta)
 }
 
-func resourceArmSubnetUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSubnetUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SubnetsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.SubnetID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	networkName := id.Path["virtualNetworks"]
-	name := id.Path["subnets"]
 
-	existing, err := client.Get(ctx, resourceGroup, networkName, name, "")
+	existing, err := client.Get(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name, "")
 	if err != nil {
-		return fmt.Errorf("Error retrieving existing Subnet %q (Virtual Network %q / Resource Group %q): %+v", name, networkName, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	if existing.SubnetPropertiesFormat == nil {
-		return fmt.Errorf("Error retrieving existing Subnet %q (Virtual Network %q / Resource Group %q): `properties` was nil", name, networkName, resourceGroup)
+		return fmt.Errorf("retrieving %s: `properties` was nil", *id)
 	}
 
 	// TODO: locking on the NSG/Route Table if applicable
@@ -309,49 +308,50 @@ func resourceArmSubnetUpdate(d *schema.ResourceData, meta interface{}) error {
 		props.ServiceEndpoints = expandSubnetServiceEndpoints(serviceEndpointsRaw)
 	}
 
+	if d.HasChange("service_endpoint_policy_ids") {
+		serviceEndpointPoliciesRaw := d.Get("service_endpoint_policy_ids").(*schema.Set).List()
+		props.ServiceEndpointPolicies = expandSubnetServiceEndpointPolicies(serviceEndpointPoliciesRaw)
+	}
+
 	subnet := network.Subnet{
-		Name:                   utils.String(name),
+		Name:                   utils.String(id.Name),
 		SubnetPropertiesFormat: &props,
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, networkName, name, subnet)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name, subnet)
 	if err != nil {
-		return fmt.Errorf("Error updating Subnet %q (Virtual Network %q / Resource Group %q): %+v", name, networkName, resourceGroup, err)
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for update of Subnet %q (Virtual Network %q / Resource Group %q): %+v", name, networkName, resourceGroup, err)
+		return fmt.Errorf("waiting for update of %s: %+v", *id, err)
 	}
 
-	return resourceArmSubnetRead(d, meta)
+	return resourceSubnetRead(d, meta)
 }
 
-func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSubnetRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SubnetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.SubnetID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	networkName := id.Path["virtualNetworks"]
-	name := id.Path["subnets"]
 
-	resp, err := client.Get(ctx, resourceGroup, networkName, name, "")
-
+	resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving Subnet %q (Virtual Network %q / Resource Group %q): %+v", name, networkName, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("virtual_network_name", networkName)
+	d.Set("name", id.Name)
+	d.Set("virtual_network_name", id.VirtualNetworkName)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if props := resp.SubnetPropertiesFormat; props != nil {
 		d.Set("address_prefix", props.AddressPrefix)
@@ -377,81 +377,42 @@ func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 		if err := d.Set("service_endpoints", serviceEndpoints); err != nil {
 			return fmt.Errorf("Error setting `service_endpoints`: %+v", err)
 		}
+
+		serviceEndpointPolicies := flattenSubnetServiceEndpointPolicies(props.ServiceEndpointPolicies)
+		if err := d.Set("service_endpoint_policy_ids", serviceEndpointPolicies); err != nil {
+			return fmt.Errorf("Error setting `service_endpoint_policy_ids`: %+v", err)
+		}
 	}
 
 	return nil
 }
 
-func resourceArmSubnetDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSubnetDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SubnetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.SubnetID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["subnets"]
-	networkName := id.Path["virtualNetworks"]
 
-	locks.ByName(networkName, VirtualNetworkResourceName)
-	defer locks.UnlockByName(networkName, VirtualNetworkResourceName)
+	locks.ByName(id.VirtualNetworkName, VirtualNetworkResourceName)
+	defer locks.UnlockByName(id.VirtualNetworkName, VirtualNetworkResourceName)
 
-	locks.ByName(name, SubnetResourceName)
-	defer locks.UnlockByName(name, SubnetResourceName)
+	locks.ByName(id.Name, SubnetResourceName)
+	defer locks.UnlockByName(id.Name, SubnetResourceName)
 
-	log.Printf("[DEBUG] Waiting for Subnet %q (Virtual Network %q / Resource Group %q)", name, networkName, resourceGroup)
-	stateConf := &resource.StateChangeConf{
-		ContinuousTargetOccurence: 5,
-		Delay:                     10 * time.Second,
-		MinTimeout:                10 * time.Second,
-		Pending:                   []string{"InUse"},
-		Target:                    []string{"Deleted"},
-		Refresh:                   subnetDeleteStateRefreshFunc(ctx, client, resourceGroup, networkName, name),
-		Timeout:                   d.Timeout(schema.TimeoutDelete),
+	future, err := client.Delete(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name)
+	if err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("waiting for deletion of Subnet %q (Virtual Network %q / Resource Group %q):%+v", name, networkName, resourceGroup, err)
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
+
 	return nil
-}
-
-func subnetDeleteStateRefreshFunc(ctx context.Context, client *network.SubnetsClient, resourceGroup, networkName, name string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		future, err := client.Delete(ctx, resourceGroup, networkName, name)
-		if err != nil {
-			if e, ok := err.(autorest.DetailedError); ok {
-				serviceError, ok := e.Original.(autorestAzure.ServiceError)
-				log.Printf("Original %s", e.Original)
-				log.Printf("Original Type %s", reflect.TypeOf(e.Original))
-				log.Printf("case value %s,bool %s", serviceError, ok)
-
-				var se autorestAzure.ServiceError
-				if parseErr := se.UnmarshalJSON([]byte(e.Original.Error())); parseErr != nil {
-					return nil, "", fmt.Errorf("can not parse %q", e.Original.Error())
-				}
-				if se.Code == "InUseSubnetCannotBeDeleted" {
-					return nil, "InUse", nil
-				}
-				if serviceError, ok := e.Original.(autorestAzure.ServiceError); ok {
-					if serviceError.Code == "InUseSubnetCannotBeDeleted" {
-						return nil, "InUse", nil
-					}
-				}
-			}
-			if response.WasNotFound(future.Response()) {
-				return nil, "Deleted", nil
-			}
-			return nil, "", err
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return nil, "", err
-		}
-		return nil, "Deleted", nil
-	}
 }
 
 func expandSubnetServiceEndpoints(input []interface{}) *[]network.ServiceEndpointPropertiesFormat {
@@ -573,4 +534,29 @@ func flattenSubnetPrivateLinkNetworkPolicy(input *string) bool {
 	}
 
 	return strings.EqualFold(*input, "Disabled")
+}
+
+func expandSubnetServiceEndpointPolicies(input []interface{}) *[]network.ServiceEndpointPolicy {
+	output := make([]network.ServiceEndpointPolicy, 0)
+	for _, policy := range input {
+		policy := policy.(string)
+		output = append(output, network.ServiceEndpointPolicy{ID: &policy})
+	}
+	return &output
+}
+
+func flattenSubnetServiceEndpointPolicies(input *[]network.ServiceEndpointPolicy) []interface{} {
+	if input == nil {
+		return nil
+	}
+
+	var output []interface{}
+	for _, policy := range *input {
+		id := ""
+		if policy.ID != nil {
+			id = *policy.ID
+		}
+		output = append(output, id)
+	}
+	return output
 }

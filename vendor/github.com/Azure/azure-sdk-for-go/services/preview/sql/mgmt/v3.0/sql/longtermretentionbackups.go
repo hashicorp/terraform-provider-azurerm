@@ -69,7 +69,7 @@ func (client LongTermRetentionBackupsClient) Delete(ctx context.Context, locatio
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionBackupsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionBackupsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -107,7 +107,23 @@ func (client LongTermRetentionBackupsClient) DeleteSender(req *http.Request) (fu
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client LongTermRetentionBackupsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.LongTermRetentionBackupsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.LongTermRetentionBackupsDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -149,7 +165,7 @@ func (client LongTermRetentionBackupsClient) DeleteByResourceGroup(ctx context.C
 
 	result, err = client.DeleteByResourceGroupSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionBackupsClient", "DeleteByResourceGroup", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionBackupsClient", "DeleteByResourceGroup", nil, "Failure sending request")
 		return
 	}
 
@@ -188,7 +204,23 @@ func (client LongTermRetentionBackupsClient) DeleteByResourceGroupSender(req *ht
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client LongTermRetentionBackupsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.LongTermRetentionBackupsDeleteByResourceGroupFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.LongTermRetentionBackupsDeleteByResourceGroupFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -236,6 +268,7 @@ func (client LongTermRetentionBackupsClient) Get(ctx context.Context, locationNa
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionBackupsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -317,6 +350,7 @@ func (client LongTermRetentionBackupsClient) GetByResourceGroup(ctx context.Cont
 	result, err = client.GetByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionBackupsClient", "GetByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -399,9 +433,11 @@ func (client LongTermRetentionBackupsClient) ListByDatabase(ctx context.Context,
 	result.ltrblr, err = client.ListByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionBackupsClient", "ListByDatabase", resp, "Failure responding to request")
+		return
 	}
 	if result.ltrblr.hasNextLink() && result.ltrblr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -523,9 +559,11 @@ func (client LongTermRetentionBackupsClient) ListByLocation(ctx context.Context,
 	result.ltrblr, err = client.ListByLocationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionBackupsClient", "ListByLocation", resp, "Failure responding to request")
+		return
 	}
 	if result.ltrblr.hasNextLink() && result.ltrblr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -649,9 +687,11 @@ func (client LongTermRetentionBackupsClient) ListByResourceGroupDatabase(ctx con
 	result.ltrblr, err = client.ListByResourceGroupDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionBackupsClient", "ListByResourceGroupDatabase", resp, "Failure responding to request")
+		return
 	}
 	if result.ltrblr.hasNextLink() && result.ltrblr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -776,9 +816,11 @@ func (client LongTermRetentionBackupsClient) ListByResourceGroupLocation(ctx con
 	result.ltrblr, err = client.ListByResourceGroupLocationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionBackupsClient", "ListByResourceGroupLocation", resp, "Failure responding to request")
+		return
 	}
 	if result.ltrblr.hasNextLink() && result.ltrblr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -902,9 +944,11 @@ func (client LongTermRetentionBackupsClient) ListByResourceGroupServer(ctx conte
 	result.ltrblr, err = client.ListByResourceGroupServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionBackupsClient", "ListByResourceGroupServer", resp, "Failure responding to request")
+		return
 	}
 	if result.ltrblr.hasNextLink() && result.ltrblr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -1027,9 +1071,11 @@ func (client LongTermRetentionBackupsClient) ListByServer(ctx context.Context, l
 	result.ltrblr, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionBackupsClient", "ListByServer", resp, "Failure responding to request")
+		return
 	}
 	if result.ltrblr.hasNextLink() && result.ltrblr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

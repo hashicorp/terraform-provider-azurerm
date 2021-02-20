@@ -12,9 +12,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmVirtualHub() *schema.Resource {
+func dataSourceVirtualHub() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmVirtualHubRead,
+		Read: dataSourceVirtualHubRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -46,7 +46,7 @@ func dataSourceArmVirtualHub() *schema.Resource {
 	}
 }
 
-func dataSourceArmVirtualHubRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceVirtualHubRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualHubClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

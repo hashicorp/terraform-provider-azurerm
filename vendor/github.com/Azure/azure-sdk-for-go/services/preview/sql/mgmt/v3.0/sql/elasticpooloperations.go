@@ -78,6 +78,7 @@ func (client ElasticPoolOperationsClient) Cancel(ctx context.Context, resourceGr
 	result, err = client.CancelResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ElasticPoolOperationsClient", "Cancel", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -156,9 +157,11 @@ func (client ElasticPoolOperationsClient) ListByElasticPool(ctx context.Context,
 	result.epolr, err = client.ListByElasticPoolResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ElasticPoolOperationsClient", "ListByElasticPool", resp, "Failure responding to request")
+		return
 	}
 	if result.epolr.hasNextLink() && result.epolr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

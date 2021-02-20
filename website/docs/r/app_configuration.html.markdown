@@ -38,9 +38,17 @@ The following arguments are supported:
 
 * `sku` - (Optional) The SKU name of the the App Configuration. Possible values are `free` and `standard`.
 
+* `identity` - (Optional) An `identity` block as defined below.
+
 ~> **NOTE:** Azure does not allow a downgrade from `standard` to `free`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) Specifies the identity type of the App Configuration. At this time the only allowed value is `SystemAssigned`.
 
 ---
 ## Attributes Reference
@@ -58,6 +66,16 @@ The following attributes are exported:
 * `secondary_read_key` - A `secondary_read_key` block as defined below containing the secondary read access key.
 
 * `secondary_write_key` - A `secondary_write_key` block as defined below containing the secondary write access key.
+
+* `identity` - An `identity` block as defined below.
+
+---
+
+An `identity` block exports the following:
+
+* `principal_id` - The ID of the Principal (Client) in Azure Active Directory.
+
+* `tenant_id` - The ID of the Azure Active Directory Tenant.
 
 ---
 

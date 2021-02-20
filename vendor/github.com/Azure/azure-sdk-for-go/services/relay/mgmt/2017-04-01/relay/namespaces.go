@@ -78,6 +78,7 @@ func (client NamespacesClient) CheckNameAvailabilityMethod(ctx context.Context, 
 	result, err = client.CheckNameAvailabilityMethodResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.NamespacesClient", "CheckNameAvailabilityMethod", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -159,7 +160,7 @@ func (client NamespacesClient) CreateOrUpdate(ctx context.Context, resourceGroup
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "relay.NamespacesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "relay.NamespacesClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -197,7 +198,33 @@ func (client NamespacesClient) CreateOrUpdateSender(req *http.Request) (future N
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client NamespacesClient) (n Namespace, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "relay.NamespacesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("relay.NamespacesCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		n.Response.Response, err = future.GetResult(sender)
+		if n.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "relay.NamespacesCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && n.Response.Response.StatusCode != http.StatusNoContent {
+			n, err = client.CreateOrUpdateResponder(n.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "relay.NamespacesCreateOrUpdateFuture", "Result", n.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -263,6 +290,7 @@ func (client NamespacesClient) CreateOrUpdateAuthorizationRule(ctx context.Conte
 	result, err = client.CreateOrUpdateAuthorizationRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.NamespacesClient", "CreateOrUpdateAuthorizationRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -343,7 +371,7 @@ func (client NamespacesClient) Delete(ctx context.Context, resourceGroupName str
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "relay.NamespacesClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "relay.NamespacesClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -379,7 +407,23 @@ func (client NamespacesClient) DeleteSender(req *http.Request) (future Namespace
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client NamespacesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "relay.NamespacesDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("relay.NamespacesDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -438,6 +482,7 @@ func (client NamespacesClient) DeleteAuthorizationRule(ctx context.Context, reso
 	result, err = client.DeleteAuthorizationRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.NamespacesClient", "DeleteAuthorizationRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -523,6 +568,7 @@ func (client NamespacesClient) Get(ctx context.Context, resourceGroupName string
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.NamespacesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -611,6 +657,7 @@ func (client NamespacesClient) GetAuthorizationRule(ctx context.Context, resourc
 	result, err = client.GetAuthorizationRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.NamespacesClient", "GetAuthorizationRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -685,9 +732,11 @@ func (client NamespacesClient) List(ctx context.Context) (result NamespaceListRe
 	result.nlr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.NamespacesClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.nlr.hasNextLink() && result.nlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -809,9 +858,11 @@ func (client NamespacesClient) ListAuthorizationRules(ctx context.Context, resou
 	result.arlr, err = client.ListAuthorizationRulesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.NamespacesClient", "ListAuthorizationRules", resp, "Failure responding to request")
+		return
 	}
 	if result.arlr.hasNextLink() && result.arlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -931,9 +982,11 @@ func (client NamespacesClient) ListByResourceGroup(ctx context.Context, resource
 	result.nlr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.NamespacesClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.nlr.hasNextLink() && result.nlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -1058,6 +1111,7 @@ func (client NamespacesClient) ListKeys(ctx context.Context, resourceGroupName s
 	result, err = client.ListKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.NamespacesClient", "ListKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1148,6 +1202,7 @@ func (client NamespacesClient) RegenerateKeys(ctx context.Context, resourceGroup
 	result, err = client.RegenerateKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.NamespacesClient", "RegenerateKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1238,6 +1293,7 @@ func (client NamespacesClient) Update(ctx context.Context, resourceGroupName str
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.NamespacesClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -14,9 +14,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmRouteTable() *schema.Resource {
+func dataSourceRouteTable() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmRouteTableRead,
+		Read: dataSourceRouteTableRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -73,7 +73,7 @@ func dataSourceArmRouteTable() *schema.Resource {
 	}
 }
 
-func dataSourceArmRouteTableRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceRouteTableRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.RouteTablesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -7,9 +7,11 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
+	msiparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
+	msivalidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -86,8 +88,8 @@ func virtualMachineIdentitySchema() *schema.Schema {
 					Type:     schema.TypeSet,
 					Optional: true,
 					Elem: &schema.Schema{
-						Type: schema.TypeString,
-						// TODO: validation for a UAI which requires an ID Parser/Validator
+						Type:         schema.TypeString,
+						ValidateFunc: msivalidate.UserAssignedIdentityID,
 					},
 				},
 
@@ -136,15 +138,19 @@ func expandVirtualMachineIdentity(input []interface{}) (*compute.VirtualMachineI
 	return &identity, nil
 }
 
-func flattenVirtualMachineIdentity(input *compute.VirtualMachineIdentity) []interface{} {
+func flattenVirtualMachineIdentity(input *compute.VirtualMachineIdentity) ([]interface{}, error) {
 	if input == nil || input.Type == compute.ResourceIdentityTypeNone {
-		return []interface{}{}
+		return []interface{}{}, nil
 	}
 
 	identityIds := make([]string, 0)
 	if input.UserAssignedIdentities != nil {
-		for k := range input.UserAssignedIdentities {
-			identityIds = append(identityIds, k)
+		for key := range input.UserAssignedIdentities {
+			parsedId, err := msiparse.UserAssignedIdentityID(key)
+			if err != nil {
+				return nil, err
+			}
+			identityIds = append(identityIds, parsedId.ID())
 		}
 	}
 
@@ -165,7 +171,7 @@ func flattenVirtualMachineIdentity(input *compute.VirtualMachineIdentity) []inte
 			"principal_id": principalId,
 			"tenant_id":    tenantId,
 		},
-	}
+	}, nil
 }
 
 func expandVirtualMachineNetworkInterfaceIDs(input []interface{}) []compute.NetworkInterfaceReference {
@@ -263,7 +269,7 @@ func virtualMachineOSDiskSchema() *schema.Schema {
 					Type:         schema.TypeInt,
 					Optional:     true,
 					Computed:     true,
-					ValidateFunc: validation.IntBetween(0, 2048),
+					ValidateFunc: validation.IntBetween(0, 4095),
 				},
 
 				"name": {
@@ -358,7 +364,7 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *compute.Disks
 				return nil, err
 			}
 
-			disk, err := disksClient.Get(ctx, id.ResourceGroup, id.Name)
+			disk, err := disksClient.Get(ctx, id.ResourceGroup, id.DiskName)
 			if err != nil {
 				// turns out ephemeral disks aren't returned/available here
 				if !utils.ResponseWasNotFound(disk.Response) {

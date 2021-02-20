@@ -31,8 +31,8 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2016-03-01/streamanalytics"
 
-// AvroSerialization describes how data from an input is serialized or how data is serialized when written to
-// an output in Avro format.
+// AvroSerialization describes how data from an input is serialized or how data is serialized when written
+// to an output in Avro format.
 type AvroSerialization struct {
 	// Properties - The properties that are associated with the Avro serialization type. Required on PUT (CreateOrReplace) requests.
 	Properties interface{} `json:"properties,omitempty"`
@@ -297,8 +297,8 @@ type AzureMachineLearningWebServiceFunctionBindingProperties struct {
 	BatchSize *int32 `json:"batchSize,omitempty"`
 }
 
-// AzureMachineLearningWebServiceFunctionBindingRetrievalProperties the binding retrieval properties associated
-// with an Azure Machine learning web service.
+// AzureMachineLearningWebServiceFunctionBindingRetrievalProperties the binding retrieval properties
+// associated with an Azure Machine learning web service.
 type AzureMachineLearningWebServiceFunctionBindingRetrievalProperties struct {
 	// ExecuteEndpoint - The Request-Response execute endpoint of the Azure Machine Learning web service. Find out more here: https://docs.microsoft.com/en-us/azure/machine-learning/machine-learning-consume-web-services#request-response-service-rrs
 	ExecuteEndpoint *string `json:"executeEndpoint,omitempty"`
@@ -306,8 +306,8 @@ type AzureMachineLearningWebServiceFunctionBindingRetrievalProperties struct {
 	UdfType UdfType `json:"udfType,omitempty"`
 }
 
-// AzureMachineLearningWebServiceFunctionRetrieveDefaultDefinitionParameters the parameters needed to retrieve
-// the default function definition for an Azure Machine Learning web service function.
+// AzureMachineLearningWebServiceFunctionRetrieveDefaultDefinitionParameters the parameters needed to
+// retrieve the default function definition for an Azure Machine Learning web service function.
 type AzureMachineLearningWebServiceFunctionRetrieveDefaultDefinitionParameters struct {
 	// AzureMachineLearningWebServiceFunctionBindingRetrievalProperties - The binding retrieval properties associated with an Azure Machine learning web service.
 	*AzureMachineLearningWebServiceFunctionBindingRetrievalProperties `json:"bindingRetrievalProperties,omitempty"`
@@ -975,8 +975,8 @@ func (bsids *BlobStreamInputDataSource) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// BlobStreamInputDataSourceProperties the properties that are associated with a blob input containing stream
-// data.
+// BlobStreamInputDataSourceProperties the properties that are associated with a blob input containing
+// stream data.
 type BlobStreamInputDataSourceProperties struct {
 	// SourcePartitionCount - The partition count of the blob input data source. Range 1 - 256.
 	SourcePartitionCount *int32 `json:"sourcePartitionCount,omitempty"`
@@ -992,8 +992,8 @@ type BlobStreamInputDataSourceProperties struct {
 	TimeFormat *string `json:"timeFormat,omitempty"`
 }
 
-// CsvSerialization describes how data from an input is serialized or how data is serialized when written to an
-// output in CSV format.
+// CsvSerialization describes how data from an input is serialized or how data is serialized when written
+// to an output in CSV format.
 type CsvSerialization struct {
 	// CsvSerializationProperties - The properties that are associated with the CSV serialization type. Required on PUT (CreateOrReplace) requests.
 	*CsvSerializationProperties `json:"properties,omitempty"`
@@ -1091,8 +1091,8 @@ type DiagnosticCondition struct {
 	Message *string `json:"message,omitempty"`
 }
 
-// Diagnostics describes conditions applicable to the Input, Output, or the job overall, that warrant customer
-// attention.
+// Diagnostics describes conditions applicable to the Input, Output, or the job overall, that warrant
+// customer attention.
 type Diagnostics struct {
 	// Conditions - READ-ONLY; A collection of zero or more conditions applicable to the resource, or to the job overall, that warrant customer attention.
 	Conditions *[]DiagnosticCondition `json:"conditions,omitempty"`
@@ -1445,8 +1445,8 @@ func (ehsids *EventHubStreamInputDataSource) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// EventHubStreamInputDataSourceProperties the properties that are associated with a Event Hub input containing
-// stream data.
+// EventHubStreamInputDataSourceProperties the properties that are associated with a Event Hub input
+// containing stream data.
 type EventHubStreamInputDataSourceProperties struct {
 	// ConsumerGroupName - The name of an Event Hub Consumer Group that should be used to read events from the Event Hub. Specifying distinct consumer group names for multiple inputs allows each of those inputs to receive the same events from the Event Hub. If not specified, the input uses the Event Hub’s default consumer group.
 	ConsumerGroupName *string `json:"consumerGroupName,omitempty"`
@@ -1460,8 +1460,8 @@ type EventHubStreamInputDataSourceProperties struct {
 	SharedAccessPolicyKey *string `json:"sharedAccessPolicyKey,omitempty"`
 }
 
-// Function a function object, containing all information associated with the named function. All functions are
-// contained under a streaming job.
+// Function a function object, containing all information associated with the named function. All functions
+// are contained under a streaming job.
 type Function struct {
 	autorest.Response `json:"-"`
 	// Properties - The properties that are associated with a function.
@@ -1780,8 +1780,11 @@ func (page FunctionListResultPage) Values() []Function {
 }
 
 // Creates a new instance of the FunctionListResultPage type.
-func NewFunctionListResultPage(getNextPage func(context.Context, FunctionListResult) (FunctionListResult, error)) FunctionListResultPage {
-	return FunctionListResultPage{fn: getNextPage}
+func NewFunctionListResultPage(cur FunctionListResult, getNextPage func(context.Context, FunctionListResult) (FunctionListResult, error)) FunctionListResultPage {
+	return FunctionListResultPage{
+		fn:  getNextPage,
+		flr: cur,
+	}
 }
 
 // FunctionOutput describes the output of a function.
@@ -1952,36 +1955,17 @@ func (frddp FunctionRetrieveDefaultDefinitionParameters) AsBasicFunctionRetrieve
 	return &frddp, true
 }
 
-// FunctionsTestFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// FunctionsTestFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type FunctionsTestFuture struct {
-	azure.Future
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(FunctionsClient) (ResourceTestStatus, error)
 }
 
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *FunctionsTestFuture) Result(client FunctionsClient) (rts ResourceTestStatus, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "streamanalytics.FunctionsTestFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("streamanalytics.FunctionsTestFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if rts.Response.Response, err = future.GetResult(sender); err == nil && rts.Response.Response.StatusCode != http.StatusNoContent {
-		rts, err = client.TestResponder(rts.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "streamanalytics.FunctionsTestFuture", "Result", rts.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// Input an input object, containing all information associated with the named input. All inputs are contained
-// under a streaming job.
+// Input an input object, containing all information associated with the named input. All inputs are
+// contained under a streaming job.
 type Input struct {
 	autorest.Response `json:"-"`
 	// Properties - The properties that are associated with an input. Required on PUT (CreateOrReplace) requests.
@@ -2206,8 +2190,11 @@ func (page InputListResultPage) Values() []Input {
 }
 
 // Creates a new instance of the InputListResultPage type.
-func NewInputListResultPage(getNextPage func(context.Context, InputListResult) (InputListResult, error)) InputListResultPage {
-	return InputListResultPage{fn: getNextPage}
+func NewInputListResultPage(cur InputListResult, getNextPage func(context.Context, InputListResult) (InputListResult, error)) InputListResultPage {
+	return InputListResultPage{
+		fn:  getNextPage,
+		ilr: cur,
+	}
 }
 
 // BasicInputProperties the properties that are associated with an input.
@@ -2353,30 +2340,10 @@ func (IP *InputProperties) UnmarshalJSON(body []byte) error {
 
 // InputsTestFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type InputsTestFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *InputsTestFuture) Result(client InputsClient) (rts ResourceTestStatus, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "streamanalytics.InputsTestFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("streamanalytics.InputsTestFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if rts.Response.Response, err = future.GetResult(sender); err == nil && rts.Response.Response.StatusCode != http.StatusNoContent {
-		rts, err = client.TestResponder(rts.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "streamanalytics.InputsTestFuture", "Result", rts.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(InputsClient) (ResourceTestStatus, error)
 }
 
 // IoTHubStreamInputDataSource describes an IoT Hub input data source that contains stream data.
@@ -2553,8 +2520,8 @@ type JavaScriptFunctionBindingProperties struct {
 	Script *string `json:"script,omitempty"`
 }
 
-// JavaScriptFunctionBindingRetrievalProperties the binding retrieval properties associated with a JavaScript
-// function.
+// JavaScriptFunctionBindingRetrievalProperties the binding retrieval properties associated with a
+// JavaScript function.
 type JavaScriptFunctionBindingRetrievalProperties struct {
 	// Script - The JavaScript code containing a single function definition. For example: 'function (x, y) { return x + y; }'.
 	Script *string `json:"script,omitempty"`
@@ -2562,8 +2529,8 @@ type JavaScriptFunctionBindingRetrievalProperties struct {
 	UdfType UdfType `json:"udfType,omitempty"`
 }
 
-// JavaScriptFunctionRetrieveDefaultDefinitionParameters the parameters needed to retrieve the default function
-// definition for a JavaScript function.
+// JavaScriptFunctionRetrieveDefaultDefinitionParameters the parameters needed to retrieve the default
+// function definition for a JavaScript function.
 type JavaScriptFunctionRetrieveDefaultDefinitionParameters struct {
 	// JavaScriptFunctionBindingRetrievalProperties - The binding retrieval properties associated with a JavaScript function.
 	*JavaScriptFunctionBindingRetrievalProperties `json:"bindingRetrievalProperties,omitempty"`
@@ -2637,8 +2604,8 @@ func (jsfrddp *JavaScriptFunctionRetrieveDefaultDefinitionParameters) UnmarshalJ
 	return nil
 }
 
-// JSONSerialization describes how data from an input is serialized or how data is serialized when written to
-// an output in JSON format.
+// JSONSerialization describes how data from an input is serialized or how data is serialized when written
+// to an output in JSON format.
 type JSONSerialization struct {
 	// JSONSerializationProperties - The properties that are associated with the JSON serialization type. Required on PUT (CreateOrReplace) requests.
 	*JSONSerializationProperties `json:"properties,omitempty"`
@@ -2725,8 +2692,8 @@ type JSONSerializationProperties struct {
 	Format JSONOutputSerializationFormat `json:"format,omitempty"`
 }
 
-// OAuthBasedDataSourceProperties the properties that are associated with data sources that use OAuth as their
-// authentication model.
+// OAuthBasedDataSourceProperties the properties that are associated with data sources that use OAuth as
+// their authentication model.
 type OAuthBasedDataSourceProperties struct {
 	// RefreshToken - A refresh token that can be used to obtain a valid access token that can then be used to authenticate with the data source. A valid refresh token is currently only obtainable via the Azure Portal. It is recommended to put a dummy string value here when creating the data source and then going to the Azure Portal to authenticate the data source which will update this property with a valid refresh token. Required on PUT (CreateOrReplace) requests.
 	RefreshToken *string `json:"refreshToken,omitempty"`
@@ -2909,8 +2876,11 @@ func (page OperationListResultPage) Values() []Operation {
 }
 
 // Creates a new instance of the OperationListResultPage type.
-func NewOperationListResultPage(getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
-	return OperationListResultPage{fn: getNextPage}
+func NewOperationListResultPage(cur OperationListResult, getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
+	return OperationListResultPage{
+		fn:  getNextPage,
+		olr: cur,
+	}
 }
 
 // Output an output object, containing all information associated with the named output. All outputs are
@@ -3296,8 +3266,11 @@ func (page OutputListResultPage) Values() []Output {
 }
 
 // Creates a new instance of the OutputListResultPage type.
-func NewOutputListResultPage(getNextPage func(context.Context, OutputListResult) (OutputListResult, error)) OutputListResultPage {
-	return OutputListResultPage{fn: getNextPage}
+func NewOutputListResultPage(cur OutputListResult, getNextPage func(context.Context, OutputListResult) (OutputListResult, error)) OutputListResultPage {
+	return OutputListResultPage{
+		fn:  getNextPage,
+		olr: cur,
+	}
 }
 
 // OutputProperties the properties that are associated with an output.
@@ -3371,30 +3344,10 @@ func (op *OutputProperties) UnmarshalJSON(body []byte) error {
 
 // OutputsTestFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type OutputsTestFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *OutputsTestFuture) Result(client OutputsClient) (rts ResourceTestStatus, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "streamanalytics.OutputsTestFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("streamanalytics.OutputsTestFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if rts.Response.Response, err = future.GetResult(sender); err == nil && rts.Response.Response.StatusCode != http.StatusNoContent {
-		rts, err = client.TestResponder(rts.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "streamanalytics.OutputsTestFuture", "Result", rts.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(OutputsClient) (ResourceTestStatus, error)
 }
 
 // PowerBIOutputDataSource describes a Power BI output data source.
@@ -3728,7 +3681,8 @@ func (r Resource) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// ResourceTestStatus describes the status of the test operation along with error information, if applicable.
+// ResourceTestStatus describes the status of the test operation along with error information, if
+// applicable.
 type ResourceTestStatus struct {
 	autorest.Response `json:"-"`
 	// Status - READ-ONLY; The status of the test operation.
@@ -4498,8 +4452,11 @@ func (page StreamingJobListResultPage) Values() []StreamingJob {
 }
 
 // Creates a new instance of the StreamingJobListResultPage type.
-func NewStreamingJobListResultPage(getNextPage func(context.Context, StreamingJobListResult) (StreamingJobListResult, error)) StreamingJobListResultPage {
-	return StreamingJobListResultPage{fn: getNextPage}
+func NewStreamingJobListResultPage(cur StreamingJobListResult, getNextPage func(context.Context, StreamingJobListResult) (StreamingJobListResult, error)) StreamingJobListResultPage {
+	return StreamingJobListResultPage{
+		fn:   getNextPage,
+		sjlr: cur,
+	}
 }
 
 // StreamingJobProperties the properties that are associated with a streaming job.
@@ -4592,99 +4549,37 @@ func (sjp StreamingJobProperties) MarshalJSON() ([]byte, error) {
 // StreamingJobsCreateOrReplaceFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type StreamingJobsCreateOrReplaceFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *StreamingJobsCreateOrReplaceFuture) Result(client StreamingJobsClient) (sj StreamingJob, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "streamanalytics.StreamingJobsCreateOrReplaceFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("streamanalytics.StreamingJobsCreateOrReplaceFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if sj.Response.Response, err = future.GetResult(sender); err == nil && sj.Response.Response.StatusCode != http.StatusNoContent {
-		sj, err = client.CreateOrReplaceResponder(sj.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "streamanalytics.StreamingJobsCreateOrReplaceFuture", "Result", sj.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(StreamingJobsClient) (StreamingJob, error)
 }
 
 // StreamingJobsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type StreamingJobsDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *StreamingJobsDeleteFuture) Result(client StreamingJobsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "streamanalytics.StreamingJobsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("streamanalytics.StreamingJobsDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(StreamingJobsClient) (autorest.Response, error)
 }
 
 // StreamingJobsStartFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type StreamingJobsStartFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *StreamingJobsStartFuture) Result(client StreamingJobsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "streamanalytics.StreamingJobsStartFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("streamanalytics.StreamingJobsStartFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(StreamingJobsClient) (autorest.Response, error)
 }
 
 // StreamingJobsStopFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type StreamingJobsStopFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *StreamingJobsStopFuture) Result(client StreamingJobsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "streamanalytics.StreamingJobsStopFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("streamanalytics.StreamingJobsStopFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(StreamingJobsClient) (autorest.Response, error)
 }
 
 // BasicStreamInputDataSource describes an input data source that contains stream data.
@@ -4992,8 +4887,8 @@ type SubscriptionQuotasListResult struct {
 	Value *[]SubscriptionQuota `json:"value,omitempty"`
 }
 
-// Transformation a transformation object, containing all information associated with the named transformation.
-// All transformations are contained under a streaming job.
+// Transformation a transformation object, containing all information associated with the named
+// transformation. All transformations are contained under a streaming job.
 type Transformation struct {
 	autorest.Response `json:"-"`
 	// TransformationProperties - The properties that are associated with a transformation. Required on PUT (CreateOrReplace) requests.

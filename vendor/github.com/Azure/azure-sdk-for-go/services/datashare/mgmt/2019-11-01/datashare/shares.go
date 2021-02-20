@@ -74,6 +74,7 @@ func (client SharesClient) Create(ctx context.Context, resourceGroupName string,
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.SharesClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -145,7 +146,7 @@ func (client SharesClient) Delete(ctx context.Context, resourceGroupName string,
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "datashare.SharesClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "datashare.SharesClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -182,7 +183,33 @@ func (client SharesClient) DeleteSender(req *http.Request) (future SharesDeleteF
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client SharesClient) (or OperationResponse, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "datashare.SharesDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("datashare.SharesDeleteFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		or.Response.Response, err = future.GetResult(sender)
+		if or.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "datashare.SharesDeleteFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && or.Response.Response.StatusCode != http.StatusNoContent {
+			or, err = client.DeleteResponder(or.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "datashare.SharesDeleteFuture", "Result", or.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -230,6 +257,7 @@ func (client SharesClient) Get(ctx context.Context, resourceGroupName string, ac
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.SharesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -310,9 +338,11 @@ func (client SharesClient) ListByAccount(ctx context.Context, resourceGroupName 
 	result.sl, err = client.ListByAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.SharesClient", "ListByAccount", resp, "Failure responding to request")
+		return
 	}
 	if result.sl.hasNextLink() && result.sl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -440,9 +470,11 @@ func (client SharesClient) ListSynchronizationDetails(ctx context.Context, resou
 	result.sdl, err = client.ListSynchronizationDetailsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.SharesClient", "ListSynchronizationDetails", resp, "Failure responding to request")
+		return
 	}
 	if result.sdl.hasNextLink() && result.sdl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -573,9 +605,11 @@ func (client SharesClient) ListSynchronizations(ctx context.Context, resourceGro
 	result.ssl, err = client.ListSynchronizationsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.SharesClient", "ListSynchronizations", resp, "Failure responding to request")
+		return
 	}
 	if result.ssl.hasNextLink() && result.ssl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

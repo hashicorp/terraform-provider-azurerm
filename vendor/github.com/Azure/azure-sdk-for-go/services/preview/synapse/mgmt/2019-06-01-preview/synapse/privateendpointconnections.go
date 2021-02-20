@@ -45,10 +45,11 @@ func NewPrivateEndpointConnectionsClientWithBaseURI(baseURI string, subscription
 
 // Create approve or reject a private endpoint connection.
 // Parameters:
+// request - request body of private endpoint connection to create.
 // resourceGroupName - the name of the resource group. The name is case insensitive.
-// workspaceName - the name of the workspace
+// workspaceName - the name of the workspace.
 // privateEndpointConnectionName - the name of the private endpoint connection.
-func (client PrivateEndpointConnectionsClient) Create(ctx context.Context, resourceGroupName string, workspaceName string, privateEndpointConnectionName string) (result PrivateEndpointConnectionsCreateFuture, err error) {
+func (client PrivateEndpointConnectionsClient) Create(ctx context.Context, request PrivateEndpointConnection, resourceGroupName string, workspaceName string, privateEndpointConnectionName string) (result PrivateEndpointConnectionsCreateFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/PrivateEndpointConnectionsClient.Create")
 		defer func() {
@@ -69,7 +70,7 @@ func (client PrivateEndpointConnectionsClient) Create(ctx context.Context, resou
 		return result, validation.NewError("synapse.PrivateEndpointConnectionsClient", "Create", err.Error())
 	}
 
-	req, err := client.CreatePreparer(ctx, resourceGroupName, workspaceName, privateEndpointConnectionName)
+	req, err := client.CreatePreparer(ctx, request, resourceGroupName, workspaceName, privateEndpointConnectionName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.PrivateEndpointConnectionsClient", "Create", nil, "Failure preparing request")
 		return
@@ -77,7 +78,7 @@ func (client PrivateEndpointConnectionsClient) Create(ctx context.Context, resou
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.PrivateEndpointConnectionsClient", "Create", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.PrivateEndpointConnectionsClient", "Create", nil, "Failure sending request")
 		return
 	}
 
@@ -85,7 +86,7 @@ func (client PrivateEndpointConnectionsClient) Create(ctx context.Context, resou
 }
 
 // CreatePreparer prepares the Create request.
-func (client PrivateEndpointConnectionsClient) CreatePreparer(ctx context.Context, resourceGroupName string, workspaceName string, privateEndpointConnectionName string) (*http.Request, error) {
+func (client PrivateEndpointConnectionsClient) CreatePreparer(ctx context.Context, request PrivateEndpointConnection, resourceGroupName string, workspaceName string, privateEndpointConnectionName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"privateEndpointConnectionName": autorest.Encode("path", privateEndpointConnectionName),
 		"resourceGroupName":             autorest.Encode("path", resourceGroupName),
@@ -99,9 +100,11 @@ func (client PrivateEndpointConnectionsClient) CreatePreparer(ctx context.Contex
 	}
 
 	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Synapse/workspaces/{workspaceName}/privateEndpointConnections/{privateEndpointConnectionName}", pathParameters),
+		autorest.WithJSON(request),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -114,7 +117,33 @@ func (client PrivateEndpointConnectionsClient) CreateSender(req *http.Request) (
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client PrivateEndpointConnectionsClient) (pec PrivateEndpointConnection, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "synapse.PrivateEndpointConnectionsCreateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("synapse.PrivateEndpointConnectionsCreateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		pec.Response.Response, err = future.GetResult(sender)
+		if pec.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "synapse.PrivateEndpointConnectionsCreateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && pec.Response.Response.StatusCode != http.StatusNoContent {
+			pec, err = client.CreateResponder(pec.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "synapse.PrivateEndpointConnectionsCreateFuture", "Result", pec.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -133,7 +162,7 @@ func (client PrivateEndpointConnectionsClient) CreateResponder(resp *http.Respon
 // Delete delete a private endpoint connection.
 // Parameters:
 // resourceGroupName - the name of the resource group. The name is case insensitive.
-// workspaceName - the name of the workspace
+// workspaceName - the name of the workspace.
 // privateEndpointConnectionName - the name of the private endpoint connection.
 func (client PrivateEndpointConnectionsClient) Delete(ctx context.Context, resourceGroupName string, workspaceName string, privateEndpointConnectionName string) (result PrivateEndpointConnectionsDeleteFuture, err error) {
 	if tracing.IsEnabled() {
@@ -164,7 +193,7 @@ func (client PrivateEndpointConnectionsClient) Delete(ctx context.Context, resou
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.PrivateEndpointConnectionsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.PrivateEndpointConnectionsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -201,7 +230,33 @@ func (client PrivateEndpointConnectionsClient) DeleteSender(req *http.Request) (
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client PrivateEndpointConnectionsClient) (or OperationResource, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "synapse.PrivateEndpointConnectionsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("synapse.PrivateEndpointConnectionsDeleteFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		or.Response.Response, err = future.GetResult(sender)
+		if or.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "synapse.PrivateEndpointConnectionsDeleteFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && or.Response.Response.StatusCode != http.StatusNoContent {
+			or, err = client.DeleteResponder(or.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "synapse.PrivateEndpointConnectionsDeleteFuture", "Result", or.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -220,7 +275,7 @@ func (client PrivateEndpointConnectionsClient) DeleteResponder(resp *http.Respon
 // Get gets a private endpoint connection.
 // Parameters:
 // resourceGroupName - the name of the resource group. The name is case insensitive.
-// workspaceName - the name of the workspace
+// workspaceName - the name of the workspace.
 // privateEndpointConnectionName - the name of the private endpoint connection.
 func (client PrivateEndpointConnectionsClient) Get(ctx context.Context, resourceGroupName string, workspaceName string, privateEndpointConnectionName string) (result PrivateEndpointConnection, err error) {
 	if tracing.IsEnabled() {
@@ -259,6 +314,7 @@ func (client PrivateEndpointConnectionsClient) Get(ctx context.Context, resource
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.PrivateEndpointConnectionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -307,7 +363,7 @@ func (client PrivateEndpointConnectionsClient) GetResponder(resp *http.Response)
 // List lists private endpoint connection in workspace.
 // Parameters:
 // resourceGroupName - the name of the resource group. The name is case insensitive.
-// workspaceName - the name of the workspace
+// workspaceName - the name of the workspace.
 func (client PrivateEndpointConnectionsClient) List(ctx context.Context, resourceGroupName string, workspaceName string) (result PrivateEndpointConnectionListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/PrivateEndpointConnectionsClient.List")
@@ -346,9 +402,11 @@ func (client PrivateEndpointConnectionsClient) List(ctx context.Context, resourc
 	result.pecl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.PrivateEndpointConnectionsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.pecl.hasNextLink() && result.pecl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

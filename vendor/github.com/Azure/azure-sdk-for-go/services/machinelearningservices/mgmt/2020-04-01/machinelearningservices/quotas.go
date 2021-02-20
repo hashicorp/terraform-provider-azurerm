@@ -79,9 +79,11 @@ func (client QuotasClient) List(ctx context.Context, location string) (result Li
 	result.lwq, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "machinelearningservices.QuotasClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.lwq.hasNextLink() && result.lwq.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -199,6 +201,7 @@ func (client QuotasClient) Update(ctx context.Context, location string, paramete
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "machinelearningservices.QuotasClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

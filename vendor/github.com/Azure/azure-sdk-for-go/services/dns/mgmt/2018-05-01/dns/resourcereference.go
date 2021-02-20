@@ -72,6 +72,7 @@ func (client ResourceReferenceClient) GetByTargetResources(ctx context.Context, 
 	result, err = client.GetByTargetResourcesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dns.ResourceReferenceClient", "GetByTargetResources", resp, "Failure responding to request")
+		return
 	}
 
 	return

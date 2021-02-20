@@ -30,7 +30,7 @@ resource "azurerm_subnet" "example" {
   name                 = "AzureFirewallSubnet"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_public_ip" "example" {
@@ -118,7 +118,11 @@ A `rule` block supports the following:
 
 * `destination_ip_groups` - (Optional) A list of destination IP Group IDs for the rule.
 
--> **NOTE** At least one of `destination_addresses` and `destination_ip_groups` must be specified for a rule.
+* `destination_fqdns` - (Optional) A list of destination FQDNS for the rule.
+
+-> **NOTE** [You must enable DNS Proxy to use FQDNs in your network rules](https://docs.microsoft.com/en-us/azure/firewall/fqdn-filtering-network-rules).
+
+-> **NOTE** At least one of `destination_addresses`, `destination_ip_groups` and `destination_fqdns` must be specified for a rule.
 
 * `destination_ports` - (Required) A list of destination ports.
 

@@ -84,6 +84,7 @@ func (client DscCompilationJobStreamClient) ListByJob(ctx context.Context, resou
 	result, err = client.ListByJobResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.DscCompilationJobStreamClient", "ListByJob", resp, "Failure responding to request")
+		return
 	}
 
 	return

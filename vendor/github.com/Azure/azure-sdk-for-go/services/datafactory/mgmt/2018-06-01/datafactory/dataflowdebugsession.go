@@ -70,14 +70,12 @@ func (client DataFlowDebugSessionClient) AddDataFlow(ctx context.Context, resour
 				{Target: "factoryName", Name: validation.MinLength, Rule: 3, Chain: nil},
 				{Target: "factoryName", Name: validation.Pattern, Rule: `^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$`, Chain: nil}}},
 		{TargetValue: request,
-			Constraints: []validation.Constraint{{Target: "request.DataFlow", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "request.DataFlow.Properties", Name: validation.Null, Rule: true, Chain: nil}}},
-				{Target: "request.Staging", Name: validation.Null, Rule: false,
-					Chain: []validation.Constraint{{Target: "request.Staging.LinkedService", Name: validation.Null, Rule: false,
-						Chain: []validation.Constraint{{Target: "request.Staging.LinkedService.Type", Name: validation.Null, Rule: true, Chain: nil},
-							{Target: "request.Staging.LinkedService.ReferenceName", Name: validation.Null, Rule: true, Chain: nil},
-						}},
-					}}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "request.Staging", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "request.Staging.LinkedService", Name: validation.Null, Rule: false,
+					Chain: []validation.Constraint{{Target: "request.Staging.LinkedService.Type", Name: validation.Null, Rule: true, Chain: nil},
+						{Target: "request.Staging.LinkedService.ReferenceName", Name: validation.Null, Rule: true, Chain: nil},
+					}},
+				}}}}}); err != nil {
 		return result, validation.NewError("datafactory.DataFlowDebugSessionClient", "AddDataFlow", err.Error())
 	}
 
@@ -97,6 +95,7 @@ func (client DataFlowDebugSessionClient) AddDataFlow(ctx context.Context, resour
 	result, err = client.AddDataFlowResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.DataFlowDebugSessionClient", "AddDataFlow", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -167,10 +166,7 @@ func (client DataFlowDebugSessionClient) Create(ctx context.Context, resourceGro
 		{TargetValue: factoryName,
 			Constraints: []validation.Constraint{{Target: "factoryName", Name: validation.MaxLength, Rule: 63, Chain: nil},
 				{Target: "factoryName", Name: validation.MinLength, Rule: 3, Chain: nil},
-				{Target: "factoryName", Name: validation.Pattern, Rule: `^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$`, Chain: nil}}},
-		{TargetValue: request,
-			Constraints: []validation.Constraint{{Target: "request.IntegrationRuntime", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "request.IntegrationRuntime.Properties", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
+				{Target: "factoryName", Name: validation.Pattern, Rule: `^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("datafactory.DataFlowDebugSessionClient", "Create", err.Error())
 	}
 
@@ -182,7 +178,7 @@ func (client DataFlowDebugSessionClient) Create(ctx context.Context, resourceGro
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "datafactory.DataFlowDebugSessionClient", "Create", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "datafactory.DataFlowDebugSessionClient", "Create", nil, "Failure sending request")
 		return
 	}
 
@@ -220,7 +216,33 @@ func (client DataFlowDebugSessionClient) CreateSender(req *http.Request) (future
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client DataFlowDebugSessionClient) (cdfdsr CreateDataFlowDebugSessionResponse, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "datafactory.DataFlowDebugSessionCreateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("datafactory.DataFlowDebugSessionCreateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		cdfdsr.Response.Response, err = future.GetResult(sender)
+		if cdfdsr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "datafactory.DataFlowDebugSessionCreateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && cdfdsr.Response.Response.StatusCode != http.StatusNoContent {
+			cdfdsr, err = client.CreateResponder(cdfdsr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "datafactory.DataFlowDebugSessionCreateFuture", "Result", cdfdsr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -280,6 +302,7 @@ func (client DataFlowDebugSessionClient) Delete(ctx context.Context, resourceGro
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.DataFlowDebugSessionClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -364,7 +387,7 @@ func (client DataFlowDebugSessionClient) ExecuteCommand(ctx context.Context, res
 
 	result, err = client.ExecuteCommandSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "datafactory.DataFlowDebugSessionClient", "ExecuteCommand", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "datafactory.DataFlowDebugSessionClient", "ExecuteCommand", nil, "Failure sending request")
 		return
 	}
 
@@ -402,7 +425,33 @@ func (client DataFlowDebugSessionClient) ExecuteCommandSender(req *http.Request)
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client DataFlowDebugSessionClient) (dfdcr DataFlowDebugCommandResponse, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "datafactory.DataFlowDebugSessionExecuteCommandFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("datafactory.DataFlowDebugSessionExecuteCommandFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		dfdcr.Response.Response, err = future.GetResult(sender)
+		if dfdcr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "datafactory.DataFlowDebugSessionExecuteCommandFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && dfdcr.Response.Response.StatusCode != http.StatusNoContent {
+			dfdcr, err = client.ExecuteCommandResponder(dfdcr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "datafactory.DataFlowDebugSessionExecuteCommandFuture", "Result", dfdcr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -462,9 +511,11 @@ func (client DataFlowDebugSessionClient) QueryByFactory(ctx context.Context, res
 	result.qdfdsr, err = client.QueryByFactoryResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.DataFlowDebugSessionClient", "QueryByFactory", resp, "Failure responding to request")
+		return
 	}
 	if result.qdfdsr.hasNextLink() && result.qdfdsr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

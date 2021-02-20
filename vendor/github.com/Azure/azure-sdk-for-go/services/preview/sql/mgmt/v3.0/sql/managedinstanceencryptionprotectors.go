@@ -70,7 +70,7 @@ func (client ManagedInstanceEncryptionProtectorsClient) CreateOrUpdate(ctx conte
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceEncryptionProtectorsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceEncryptionProtectorsClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -110,7 +110,33 @@ func (client ManagedInstanceEncryptionProtectorsClient) CreateOrUpdateSender(req
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ManagedInstanceEncryptionProtectorsClient) (miep ManagedInstanceEncryptionProtector, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ManagedInstanceEncryptionProtectorsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.ManagedInstanceEncryptionProtectorsCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		miep.Response.Response, err = future.GetResult(sender)
+		if miep.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "sql.ManagedInstanceEncryptionProtectorsCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && miep.Response.Response.StatusCode != http.StatusNoContent {
+			miep, err = client.CreateOrUpdateResponder(miep.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "sql.ManagedInstanceEncryptionProtectorsCreateOrUpdateFuture", "Result", miep.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -158,6 +184,7 @@ func (client ManagedInstanceEncryptionProtectorsClient) Get(ctx context.Context,
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceEncryptionProtectorsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -236,9 +263,11 @@ func (client ManagedInstanceEncryptionProtectorsClient) ListByInstance(ctx conte
 	result.mieplr, err = client.ListByInstanceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceEncryptionProtectorsClient", "ListByInstance", resp, "Failure responding to request")
+		return
 	}
 	if result.mieplr.hasNextLink() && result.mieplr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -344,7 +373,7 @@ func (client ManagedInstanceEncryptionProtectorsClient) Revalidate(ctx context.C
 
 	result, err = client.RevalidateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceEncryptionProtectorsClient", "Revalidate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceEncryptionProtectorsClient", "Revalidate", nil, "Failure sending request")
 		return
 	}
 
@@ -381,7 +410,23 @@ func (client ManagedInstanceEncryptionProtectorsClient) RevalidateSender(req *ht
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ManagedInstanceEncryptionProtectorsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ManagedInstanceEncryptionProtectorsRevalidateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.ManagedInstanceEncryptionProtectorsRevalidateFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 

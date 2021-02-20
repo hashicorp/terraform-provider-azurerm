@@ -79,6 +79,7 @@ func (client NamespacesClient) CheckAvailability(ctx context.Context, parameters
 	result, err = client.CheckAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "notificationhubs.NamespacesClient", "CheckAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -158,6 +159,7 @@ func (client NamespacesClient) CreateOrUpdate(ctx context.Context, resourceGroup
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "notificationhubs.NamespacesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -243,6 +245,7 @@ func (client NamespacesClient) CreateOrUpdateAuthorizationRule(ctx context.Conte
 	result, err = client.CreateOrUpdateAuthorizationRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "notificationhubs.NamespacesClient", "CreateOrUpdateAuthorizationRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -314,7 +317,7 @@ func (client NamespacesClient) Delete(ctx context.Context, resourceGroupName str
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "notificationhubs.NamespacesClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "notificationhubs.NamespacesClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -350,7 +353,23 @@ func (client NamespacesClient) DeleteSender(req *http.Request) (future Namespace
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client NamespacesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "notificationhubs.NamespacesDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("notificationhubs.NamespacesDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -397,6 +416,7 @@ func (client NamespacesClient) DeleteAuthorizationRule(ctx context.Context, reso
 	result, err = client.DeleteAuthorizationRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "notificationhubs.NamespacesClient", "DeleteAuthorizationRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -472,6 +492,7 @@ func (client NamespacesClient) Get(ctx context.Context, resourceGroupName string
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "notificationhubs.NamespacesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -548,6 +569,7 @@ func (client NamespacesClient) GetAuthorizationRule(ctx context.Context, resourc
 	result, err = client.GetAuthorizationRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "notificationhubs.NamespacesClient", "GetAuthorizationRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -625,9 +647,11 @@ func (client NamespacesClient) List(ctx context.Context, resourceGroupName strin
 	result.nlr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "notificationhubs.NamespacesClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.nlr.hasNextLink() && result.nlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -737,9 +761,11 @@ func (client NamespacesClient) ListAll(ctx context.Context) (result NamespaceLis
 	result.nlr, err = client.ListAllResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "notificationhubs.NamespacesClient", "ListAll", resp, "Failure responding to request")
+		return
 	}
 	if result.nlr.hasNextLink() && result.nlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -851,9 +877,11 @@ func (client NamespacesClient) ListAuthorizationRules(ctx context.Context, resou
 	result.saarlr, err = client.ListAuthorizationRulesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "notificationhubs.NamespacesClient", "ListAuthorizationRules", resp, "Failure responding to request")
+		return
 	}
 	if result.saarlr.hasNextLink() && result.saarlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -967,6 +995,7 @@ func (client NamespacesClient) ListKeys(ctx context.Context, resourceGroupName s
 	result, err = client.ListKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "notificationhubs.NamespacesClient", "ListKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1044,6 +1073,7 @@ func (client NamespacesClient) Patch(ctx context.Context, resourceGroupName stri
 	result, err = client.PatchResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "notificationhubs.NamespacesClient", "Patch", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1123,6 +1153,7 @@ func (client NamespacesClient) RegenerateKeys(ctx context.Context, resourceGroup
 	result, err = client.RegenerateKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "notificationhubs.NamespacesClient", "RegenerateKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return

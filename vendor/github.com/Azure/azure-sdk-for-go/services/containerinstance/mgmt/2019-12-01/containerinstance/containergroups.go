@@ -91,7 +91,7 @@ func (client ContainerGroupsClient) CreateOrUpdate(ctx context.Context, resource
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -129,7 +129,33 @@ func (client ContainerGroupsClient) CreateOrUpdateSender(req *http.Request) (fut
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ContainerGroupsClient) (cg ContainerGroup, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("containerinstance.ContainerGroupsCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		cg.Response.Response, err = future.GetResult(sender)
+		if cg.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && cg.Response.Response.StatusCode != http.StatusNoContent {
+			cg, err = client.CreateOrUpdateResponder(cg.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsCreateOrUpdateFuture", "Result", cg.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -169,7 +195,7 @@ func (client ContainerGroupsClient) Delete(ctx context.Context, resourceGroupNam
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -205,7 +231,33 @@ func (client ContainerGroupsClient) DeleteSender(req *http.Request) (future Cont
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ContainerGroupsClient) (cg ContainerGroup, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("containerinstance.ContainerGroupsDeleteFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		cg.Response.Response, err = future.GetResult(sender)
+		if cg.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsDeleteFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && cg.Response.Response.StatusCode != http.StatusNoContent {
+			cg, err = client.DeleteResponder(cg.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsDeleteFuture", "Result", cg.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -254,6 +306,7 @@ func (client ContainerGroupsClient) Get(ctx context.Context, resourceGroupName s
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -329,9 +382,11 @@ func (client ContainerGroupsClient) List(ctx context.Context) (result ContainerG
 	result.cglr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.cglr.hasNextLink() && result.cglr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -444,9 +499,11 @@ func (client ContainerGroupsClient) ListByResourceGroup(ctx context.Context, res
 	result.cglr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.cglr.hasNextLink() && result.cglr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -551,7 +608,7 @@ func (client ContainerGroupsClient) Restart(ctx context.Context, resourceGroupNa
 
 	result, err = client.RestartSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsClient", "Restart", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsClient", "Restart", nil, "Failure sending request")
 		return
 	}
 
@@ -587,7 +644,23 @@ func (client ContainerGroupsClient) RestartSender(req *http.Request) (future Con
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ContainerGroupsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsRestartFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("containerinstance.ContainerGroupsRestartFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -625,7 +698,7 @@ func (client ContainerGroupsClient) Start(ctx context.Context, resourceGroupName
 
 	result, err = client.StartSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsClient", "Start", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsClient", "Start", nil, "Failure sending request")
 		return
 	}
 
@@ -661,7 +734,23 @@ func (client ContainerGroupsClient) StartSender(req *http.Request) (future Conta
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ContainerGroupsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsStartFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("containerinstance.ContainerGroupsStartFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -707,6 +796,7 @@ func (client ContainerGroupsClient) Stop(ctx context.Context, resourceGroupName 
 	result, err = client.StopResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsClient", "Stop", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -782,6 +872,7 @@ func (client ContainerGroupsClient) Update(ctx context.Context, resourceGroupNam
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

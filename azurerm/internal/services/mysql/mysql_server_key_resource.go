@@ -6,30 +6,31 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2019-09-01/keyvault"
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2020-01-01/mysql"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/client"
 	keyVaultParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
+	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql/validate"
+	resourcesClient "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/client"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMySQLServerKey() *schema.Resource {
+func resourceMySQLServerKey() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMySQLServerKeyCreateUpdate,
-		Read:   resourceArmMySQLServerKeyRead,
-		Update: resourceArmMySQLServerKeyCreateUpdate,
-		Delete: resourceArmMySQLServerKeyDelete,
+		Create: resourceMySQLServerKeyCreateUpdate,
+		Read:   resourceMySQLServerKeyRead,
+		Update: resourceMySQLServerKeyCreateUpdate,
+		Delete: resourceMySQLServerKeyDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.MySQLServerKeyID(id)
+			_, err := parse.KeyID(id)
 			return err
 		}),
 
@@ -45,46 +46,47 @@ func resourceArmMySQLServerKey() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.MySQLServerID,
+				ValidateFunc: validate.ServerID,
 			},
 
 			"key_vault_key_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: azure.ValidateKeyVaultChildId,
+				ValidateFunc: keyVaultValidate.NestedItemId,
 			},
 		},
 	}
 }
 
-func getMySQLServerKeyName(ctx context.Context, vaultsClient *keyvault.VaultsClient, keyVaultKeyURI string) (*string, error) {
-	keyVaultKeyID, err := azure.ParseKeyVaultChildID(keyVaultKeyURI)
+func getMySQLServerKeyName(ctx context.Context, keyVaultsClient *client.Client, resourcesClient *resourcesClient.Client, keyVaultKeyURI string) (*string, error) {
+	keyVaultKeyID, err := keyVaultParse.ParseNestedItemID(keyVaultKeyURI)
 	if err != nil {
 		return nil, err
 	}
-	keyVaultIDRaw, err := azure.GetKeyVaultIDFromBaseUrl(ctx, vaultsClient, keyVaultKeyID.KeyVaultBaseUrl)
+	keyVaultIDRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, keyVaultKeyID.KeyVaultBaseUrl)
 	if err != nil {
 		return nil, err
 	}
-	keyVaultID, err := keyVaultParse.KeyVaultID(*keyVaultIDRaw)
+	keyVaultID, err := keyVaultParse.VaultID(*keyVaultIDRaw)
 	if err != nil {
 		return nil, err
 	}
 	return utils.String(fmt.Sprintf("%s_%s_%s", keyVaultID.Name, keyVaultKeyID.Name, keyVaultKeyID.Version)), nil
 }
 
-func resourceArmMySQLServerKeyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMySQLServerKeyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	keysClient := meta.(*clients.Client).MySQL.ServerKeysClient
-	vaultsClient := meta.(*clients.Client).KeyVault.VaultsClient
+	keyVaultsClient := meta.(*clients.Client).KeyVault
+	resourcesClient := meta.(*clients.Client).Resource
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	serverID, err := parse.MySQLServerID(d.Get("server_id").(string))
+	serverID, err := parse.ServerID(d.Get("server_id").(string))
 	if err != nil {
 		return err
 	}
 	keyVaultKeyURI := d.Get("key_vault_key_id").(string)
-	name, err := getMySQLServerKeyName(ctx, vaultsClient, keyVaultKeyURI)
+	name, err := getMySQLServerKeyName(ctx, keyVaultsClient, resourcesClient, keyVaultKeyURI)
 	if err != nil {
 		return fmt.Errorf("cannot compose name for MySQL Server Key (Resource Group %q / Server %q): %+v", serverID.ResourceGroup, serverID.Name, err)
 	}
@@ -134,16 +136,16 @@ func resourceArmMySQLServerKeyCreateUpdate(d *schema.ResourceData, meta interfac
 
 	d.SetId(*resp.ID)
 
-	return resourceArmMySQLServerKeyRead(d, meta)
+	return resourceMySQLServerKeyRead(d, meta)
 }
 
-func resourceArmMySQLServerKeyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMySQLServerKeyRead(d *schema.ResourceData, meta interface{}) error {
 	serversClient := meta.(*clients.Client).MySQL.ServersClient
 	keysClient := meta.(*clients.Client).MySQL.ServerKeysClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MySQLServerKeyID(d.Id())
+	id, err := parse.KeyID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -172,12 +174,12 @@ func resourceArmMySQLServerKeyRead(d *schema.ResourceData, meta interface{}) err
 	return nil
 }
 
-func resourceArmMySQLServerKeyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMySQLServerKeyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MySQL.ServerKeysClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MySQLServerKeyID(d.Id())
+	id, err := parse.KeyID(d.Id())
 	if err != nil {
 		return err
 	}

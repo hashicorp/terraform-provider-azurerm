@@ -93,6 +93,7 @@ func (client EmailTemplateClient) CreateOrUpdate(ctx context.Context, resourceGr
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.EmailTemplateClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -186,6 +187,7 @@ func (client EmailTemplateClient) Delete(ctx context.Context, resourceGroupName 
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.EmailTemplateClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -271,6 +273,7 @@ func (client EmailTemplateClient) Get(ctx context.Context, resourceGroupName str
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.EmailTemplateClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -356,6 +359,7 @@ func (client EmailTemplateClient) GetEntityTag(ctx context.Context, resourceGrou
 	result, err = client.GetEntityTagResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.EmailTemplateClient", "GetEntityTag", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -451,9 +455,11 @@ func (client EmailTemplateClient) ListByService(ctx context.Context, resourceGro
 	result.etc, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.EmailTemplateClient", "ListByService", resp, "Failure responding to request")
+		return
 	}
 	if result.etc.hasNextLink() && result.etc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -587,6 +593,7 @@ func (client EmailTemplateClient) Update(ctx context.Context, resourceGroupName 
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.EmailTemplateClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

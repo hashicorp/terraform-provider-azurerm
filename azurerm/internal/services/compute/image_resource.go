@@ -9,20 +9,20 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmImage() *schema.Resource {
+func resourceImage() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmImageCreateUpdate,
-		Read:   resourceArmImageRead,
-		Update: resourceArmImageCreateUpdate,
-		Delete: resourceArmImageDelete,
+		Create: resourceImageCreateUpdate,
+		Read:   resourceImageRead,
+		Update: resourceImageCreateUpdate,
+		Delete: resourceImageDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -186,7 +186,7 @@ func resourceArmImage() *schema.Resource {
 	}
 }
 
-func resourceArmImageCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceImageCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.ImagesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -271,10 +271,10 @@ func resourceArmImageCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 
 	d.SetId(*read.ID)
 
-	return resourceArmImageRead(d, meta)
+	return resourceImageRead(d, meta)
 }
 
-func resourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
+func resourceImageRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.ImagesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -323,7 +323,7 @@ func resourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmImageDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceImageDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.ImagesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

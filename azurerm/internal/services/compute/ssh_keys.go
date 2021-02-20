@@ -1,18 +1,19 @@
 package compute
 
 import (
+	"bytes"
 	"crypto/rsa"
 	"encoding/base64"
 	"fmt"
+	"log"
 	"regexp"
 	"strings"
-
-	"golang.org/x/crypto/ssh"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"golang.org/x/crypto/ssh"
 )
 
 func SSHKeysSchema(isVirtualMachine bool) *schema.Schema {
@@ -23,13 +24,15 @@ func SSHKeysSchema(isVirtualMachine bool) *schema.Schema {
 		Type:     schema.TypeSet,
 		Optional: true,
 		ForceNew: isVirtualMachine,
+		Set:      SSHKeySchemaHash,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"public_key": {
-					Type:         schema.TypeString,
-					Required:     true,
-					ForceNew:     isVirtualMachine,
-					ValidateFunc: ValidateSSHKey,
+					Type:             schema.TypeString,
+					Required:         true,
+					ForceNew:         isVirtualMachine,
+					ValidateFunc:     ValidateSSHKey,
+					DiffSuppressFunc: SSHKeyDiffSuppress,
 				},
 
 				"username": {
@@ -154,4 +157,39 @@ func ValidateSSHKey(i interface{}, k string) (warnings []string, errors []error)
 	}
 
 	return warnings, errors
+}
+
+func SSHKeyDiffSuppress(_, old, new string, _ *schema.ResourceData) bool {
+	oldNormalised, err := NormaliseSSHKey(old)
+	if err != nil {
+		log.Printf("[DEBUG] error normalising ssh key %q: %+v", old, err)
+		return false
+	}
+
+	newNormalised, err := NormaliseSSHKey(new)
+	if err != nil {
+		log.Printf("[DEBUG] error normalising ssh key %q: %+v", new, err)
+		return false
+	}
+
+	if *oldNormalised == *newNormalised {
+		return true
+	}
+
+	return false
+}
+
+func SSHKeySchemaHash(v interface{}) int {
+	var buf bytes.Buffer
+
+	if m, ok := v.(map[string]interface{}); ok {
+		normalisedKey, err := NormaliseSSHKey(m["public_key"].(string))
+		if err != nil {
+			log.Printf("[DEBUG] error normalising ssh key %q: %+v", m["public_key"].(string), err)
+		}
+		buf.WriteString(fmt.Sprintf("%s-", *normalisedKey))
+		buf.WriteString(fmt.Sprintf("%s", m["username"]))
+	}
+
+	return schema.HashString(buf.String())
 }

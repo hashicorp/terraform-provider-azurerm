@@ -68,7 +68,7 @@ func (client DisksClient) Attach(ctx context.Context, resourceGroupName string, 
 
 	result, err = client.AttachSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.DisksClient", "Attach", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dtl.DisksClient", "Attach", nil, "Failure sending request")
 		return
 	}
 
@@ -108,7 +108,23 @@ func (client DisksClient) AttachSender(req *http.Request) (future DisksAttachFut
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client DisksClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "dtl.DisksAttachFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("dtl.DisksAttachFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -155,7 +171,7 @@ func (client DisksClient) CreateOrUpdate(ctx context.Context, resourceGroupName 
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.DisksClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dtl.DisksClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -195,7 +211,33 @@ func (client DisksClient) CreateOrUpdateSender(req *http.Request) (future DisksC
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client DisksClient) (d Disk, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "dtl.DisksCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("dtl.DisksCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		d.Response.Response, err = future.GetResult(sender)
+		if d.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "dtl.DisksCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && d.Response.Response.StatusCode != http.StatusNoContent {
+			d, err = client.CreateOrUpdateResponder(d.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "dtl.DisksCreateOrUpdateFuture", "Result", d.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -236,7 +278,7 @@ func (client DisksClient) Delete(ctx context.Context, resourceGroupName string, 
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.DisksClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dtl.DisksClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -274,7 +316,23 @@ func (client DisksClient) DeleteSender(req *http.Request) (future DisksDeleteFut
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client DisksClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "dtl.DisksDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("dtl.DisksDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -316,7 +374,7 @@ func (client DisksClient) Detach(ctx context.Context, resourceGroupName string, 
 
 	result, err = client.DetachSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.DisksClient", "Detach", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dtl.DisksClient", "Detach", nil, "Failure sending request")
 		return
 	}
 
@@ -356,7 +414,23 @@ func (client DisksClient) DetachSender(req *http.Request) (future DisksDetachFut
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client DisksClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "dtl.DisksDetachFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("dtl.DisksDetachFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -405,6 +479,7 @@ func (client DisksClient) Get(ctx context.Context, resourceGroupName string, lab
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.DisksClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -491,9 +566,11 @@ func (client DisksClient) List(ctx context.Context, resourceGroupName string, la
 	result.rwcd, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.DisksClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.rwcd.hasNextLink() && result.rwcd.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

@@ -13,15 +13,15 @@ Manages a Key Vault Certificate Issuer.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "example" {
-  name     = "example-resources"
-  location = "West US"
-}
-
 data "azurerm_client_config" "current" {}
 
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
 resource "azurerm_key_vault" "example" {
-  name                = "example-key-vault"
+  name                = "examplekeyvault"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   sku_name            = "standard"
@@ -46,13 +46,13 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Key Vault Certificate Issuer. Changing this forces a new Key Vault Certificate Issuer to be created.
 
-* `org_id` - (Required) The ID of the organization as provided to the issuer. 
+* `provider_name` - (Required) The name of the third-party Certificate Issuer. Possible values are: `DigiCert`, `GlobalSign`, `OneCertV2-PrivateCA`, `OneCertV2-PublicCA` and `SslAdminV2`.
+
+* `org_id` - (Optional) The ID of the organization as provided to the issuer. 
 
 * `account_id` - (Optional) The account number with the third-party Certificate Issuer.
 
 * `admin` - (Optional) One or more `admin` blocks as defined below.
-
-* `provider_name` - (Required) The name of the third-party Certificate Issuer. Possible values are: `DigiCert`, `GlobalSign`.
 
 * `password` - (Optional) The password associated with the account and organization ID at the third-party Certificate Issuer. If not specified, will not overwrite any previous value.
 
@@ -73,8 +73,6 @@ An `admin` block supports the following:
 In addition to the Arguments listed above - the following Attributes are exported: 
 
 * `id` - The ID of the Key Vault Certificate Issuer.
-
-
 
 ## Import
 

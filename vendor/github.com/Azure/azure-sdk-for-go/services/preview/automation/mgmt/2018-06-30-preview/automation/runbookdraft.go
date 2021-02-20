@@ -83,6 +83,7 @@ func (client RunbookDraftClient) Get(ctx context.Context, resourceGroupName stri
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.RunbookDraftClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -168,6 +169,7 @@ func (client RunbookDraftClient) GetContent(ctx context.Context, resourceGroupNa
 	result, err = client.GetContentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.RunbookDraftClient", "GetContent", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -245,7 +247,7 @@ func (client RunbookDraftClient) ReplaceContent(ctx context.Context, resourceGro
 
 	result, err = client.ReplaceContentSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "automation.RunbookDraftClient", "ReplaceContent", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "automation.RunbookDraftClient", "ReplaceContent", nil, "Failure sending request")
 		return
 	}
 
@@ -284,7 +286,33 @@ func (client RunbookDraftClient) ReplaceContentSender(req *http.Request) (future
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client RunbookDraftClient) (rc ReadCloser, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "automation.RunbookDraftReplaceContentFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("automation.RunbookDraftReplaceContentFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		rc.Response.Response, err = future.GetResult(sender)
+		if rc.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "automation.RunbookDraftReplaceContentFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && rc.Response.Response.StatusCode != http.StatusNoContent {
+			rc, err = client.ReplaceContentResponder(rc.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "automation.RunbookDraftReplaceContentFuture", "Result", rc.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -340,6 +368,7 @@ func (client RunbookDraftClient) UndoEdit(ctx context.Context, resourceGroupName
 	result, err = client.UndoEditResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.RunbookDraftClient", "UndoEdit", resp, "Failure responding to request")
+		return
 	}
 
 	return

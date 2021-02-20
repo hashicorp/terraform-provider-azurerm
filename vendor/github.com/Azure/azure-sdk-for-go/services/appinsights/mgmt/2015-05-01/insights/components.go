@@ -87,6 +87,7 @@ func (client ComponentsClient) CreateOrUpdate(ctx context.Context, resourceGroup
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ComponentsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -174,6 +175,7 @@ func (client ComponentsClient) Delete(ctx context.Context, resourceGroupName str
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ComponentsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -258,6 +260,7 @@ func (client ComponentsClient) Get(ctx context.Context, resourceGroupName string
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ComponentsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -344,6 +347,7 @@ func (client ComponentsClient) GetPurgeStatus(ctx context.Context, resourceGroup
 	result, err = client.GetPurgeStatusResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ComponentsClient", "GetPurgeStatus", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -424,9 +428,11 @@ func (client ComponentsClient) List(ctx context.Context) (result ApplicationInsi
 	result.aiclr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ComponentsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.aiclr.hasNextLink() && result.aiclr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -547,9 +553,11 @@ func (client ComponentsClient) ListByResourceGroup(ctx context.Context, resource
 	result.aiclr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ComponentsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.aiclr.hasNextLink() && result.aiclr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -680,6 +688,7 @@ func (client ComponentsClient) Purge(ctx context.Context, resourceGroupName stri
 	result, err = client.PurgeResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ComponentsClient", "Purge", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -768,6 +777,7 @@ func (client ComponentsClient) UpdateTags(ctx context.Context, resourceGroupName
 	result, err = client.UpdateTagsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ComponentsClient", "UpdateTags", resp, "Failure responding to request")
+		return
 	}
 
 	return

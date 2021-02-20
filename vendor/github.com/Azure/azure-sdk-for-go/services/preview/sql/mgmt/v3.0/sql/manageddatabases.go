@@ -80,7 +80,7 @@ func (client ManagedDatabasesClient) CompleteRestore(ctx context.Context, resour
 
 	result, err = client.CompleteRestoreSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ManagedDatabasesClient", "CompleteRestore", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ManagedDatabasesClient", "CompleteRestore", nil, "Failure sending request")
 		return
 	}
 
@@ -119,7 +119,23 @@ func (client ManagedDatabasesClient) CompleteRestoreSender(req *http.Request) (f
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ManagedDatabasesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ManagedDatabasesCompleteRestoreFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.ManagedDatabasesCompleteRestoreFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -167,7 +183,7 @@ func (client ManagedDatabasesClient) CreateOrUpdate(ctx context.Context, resourc
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ManagedDatabasesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ManagedDatabasesClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -206,7 +222,33 @@ func (client ManagedDatabasesClient) CreateOrUpdateSender(req *http.Request) (fu
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ManagedDatabasesClient) (md ManagedDatabase, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ManagedDatabasesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.ManagedDatabasesCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		md.Response.Response, err = future.GetResult(sender)
+		if md.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "sql.ManagedDatabasesCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && md.Response.Response.StatusCode != http.StatusNoContent {
+			md, err = client.CreateOrUpdateResponder(md.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "sql.ManagedDatabasesCreateOrUpdateFuture", "Result", md.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -254,7 +296,7 @@ func (client ManagedDatabasesClient) Delete(ctx context.Context, resourceGroupNa
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ManagedDatabasesClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ManagedDatabasesClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -291,7 +333,23 @@ func (client ManagedDatabasesClient) DeleteSender(req *http.Request) (future Man
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ManagedDatabasesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ManagedDatabasesDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.ManagedDatabasesDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -346,6 +404,7 @@ func (client ManagedDatabasesClient) Get(ctx context.Context, resourceGroupName 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedDatabasesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -431,9 +490,11 @@ func (client ManagedDatabasesClient) ListByInstance(ctx context.Context, resourc
 	result.mdlr, err = client.ListByInstanceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedDatabasesClient", "ListByInstance", resp, "Failure responding to request")
+		return
 	}
 	if result.mdlr.hasNextLink() && result.mdlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -555,9 +616,11 @@ func (client ManagedDatabasesClient) ListInaccessibleByInstance(ctx context.Cont
 	result.mdlr, err = client.ListInaccessibleByInstanceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedDatabasesClient", "ListInaccessibleByInstance", resp, "Failure responding to request")
+		return
 	}
 	if result.mdlr.hasNextLink() && result.mdlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -672,7 +735,7 @@ func (client ManagedDatabasesClient) Update(ctx context.Context, resourceGroupNa
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ManagedDatabasesClient", "Update", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ManagedDatabasesClient", "Update", nil, "Failure sending request")
 		return
 	}
 
@@ -711,7 +774,33 @@ func (client ManagedDatabasesClient) UpdateSender(req *http.Request) (future Man
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ManagedDatabasesClient) (md ManagedDatabase, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ManagedDatabasesUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.ManagedDatabasesUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		md.Response.Response, err = future.GetResult(sender)
+		if md.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "sql.ManagedDatabasesUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && md.Response.Response.StatusCode != http.StatusNoContent {
+			md, err = client.UpdateResponder(md.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "sql.ManagedDatabasesUpdateFuture", "Result", md.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

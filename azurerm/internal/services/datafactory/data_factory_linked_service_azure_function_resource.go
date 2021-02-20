@@ -9,18 +9,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataFactoryLinkedServiceAzureFunction() *schema.Resource {
+func resourceDataFactoryLinkedServiceAzureFunction() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryLinkedServiceAzureFunctionCreateUpdate,
-		Read:   resourceArmDataFactoryLinkedServiceAzureFunctionRead,
-		Update: resourceArmDataFactoryLinkedServiceAzureFunctionCreateUpdate,
-		Delete: resourceArmDataFactoryLinkedServiceAzureFunctionDelete,
+		Create: resourceDataFactoryLinkedServiceAzureFunctionCreateUpdate,
+		Read:   resourceDataFactoryLinkedServiceAzureFunctionRead,
+		Update: resourceDataFactoryLinkedServiceAzureFunctionCreateUpdate,
+		Delete: resourceDataFactoryLinkedServiceAzureFunctionDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -104,7 +104,7 @@ func resourceArmDataFactoryLinkedServiceAzureFunction() *schema.Resource {
 	}
 }
 
-func resourceArmDataFactoryLinkedServiceAzureFunctionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceAzureFunctionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -174,10 +174,10 @@ func resourceArmDataFactoryLinkedServiceAzureFunctionCreateUpdate(d *schema.Reso
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDataFactoryLinkedServiceAzureFunctionRead(d, meta)
+	return resourceDataFactoryLinkedServiceAzureFunctionRead(d, meta)
 }
 
-func resourceArmDataFactoryLinkedServiceAzureFunctionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceAzureFunctionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -233,7 +233,7 @@ func resourceArmDataFactoryLinkedServiceAzureFunctionRead(d *schema.ResourceData
 	return nil
 }
 
-func resourceArmDataFactoryLinkedServiceAzureFunctionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceAzureFunctionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

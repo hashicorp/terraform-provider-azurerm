@@ -75,6 +75,16 @@ A `bgp_settings` block supports the following:
 
 * `peer_weight` - (Required) The weight added to Routes learned from this BGP Speaker. Changing this forces a new resource to be created.
 
+* `instance_0_bgp_peering_address` - (Optional) An `instance_bgp_peering_address` block as defined below.
+
+* `instance_1_bgp_peering_address` - (Optional) An `instance_bgp_peering_address` block as defined below.
+
+---
+
+A `instance_bgp_peering_address` block supports the following:
+
+* `custom_ips` - (Required) A list of custom BGP peering addresses to assign to this instance.
+
 ## Attributes Reference
 
 In addition to the arguments above, the following attributes are exported:
@@ -88,6 +98,20 @@ In addition to the arguments above, the following attributes are exported:
 A `bgp_settings` block exports the following:
 
 * `bgp_peering_address` - The Address which should be used for the BGP Peering.
+
+* `instance_0_bgp_peering_address` - an `instance_bgp_peering_address` block as defined below.
+
+* `instance_1_bgp_peering_address` - an `instance_bgp_peering_address` block as defined below.
+
+---
+
+A `instance_bgp_peering_address` block exports the following:
+
+* `ip_configuration_id` - The pre-defined id of VPN Gateway Ip Configuration.
+
+* `default_ips` - The list of default BGP peering addresses which belong to the pre-defined VPN Gateway IP configuration.
+
+* `tunnel_ips` - The list of tunnel public IP addresses which belong to the pre-defined VPN Gateway IP configuration.
 
 ## Timeouts
 

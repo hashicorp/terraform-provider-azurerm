@@ -84,6 +84,7 @@ func (client VolumesClient) AuthorizeReplication(ctx context.Context, resourceGr
 	result, err = client.AuthorizeReplicationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "netapp.VolumesClient", "AuthorizeReplication", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -172,6 +173,7 @@ func (client VolumesClient) BreakReplication(ctx context.Context, resourceGroupN
 	result, err = client.BreakReplicationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "netapp.VolumesClient", "BreakReplication", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -280,7 +282,7 @@ func (client VolumesClient) CreateOrUpdate(ctx context.Context, body Volume, res
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "netapp.VolumesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "netapp.VolumesClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -323,7 +325,33 @@ func (client VolumesClient) CreateOrUpdateSender(req *http.Request) (future Volu
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client VolumesClient) (vVar Volume, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "netapp.VolumesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("netapp.VolumesCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		vVar.Response.Response, err = future.GetResult(sender)
+		if vVar.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "netapp.VolumesCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && vVar.Response.Response.StatusCode != http.StatusNoContent {
+			vVar, err = client.CreateOrUpdateResponder(vVar.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "netapp.VolumesCreateOrUpdateFuture", "Result", vVar.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -372,7 +400,7 @@ func (client VolumesClient) Delete(ctx context.Context, resourceGroupName string
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "netapp.VolumesClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "netapp.VolumesClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -410,7 +438,23 @@ func (client VolumesClient) DeleteSender(req *http.Request) (future VolumesDelet
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client VolumesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "netapp.VolumesDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("netapp.VolumesDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -467,6 +511,7 @@ func (client VolumesClient) DeleteReplication(ctx context.Context, resourceGroup
 	result, err = client.DeleteReplicationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "netapp.VolumesClient", "DeleteReplication", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -553,6 +598,7 @@ func (client VolumesClient) Get(ctx context.Context, resourceGroupName string, a
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "netapp.VolumesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -639,6 +685,7 @@ func (client VolumesClient) List(ctx context.Context, resourceGroupName string, 
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "netapp.VolumesClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -725,6 +772,7 @@ func (client VolumesClient) ReplicationStatusMethod(ctx context.Context, resourc
 	result, err = client.ReplicationStatusMethodResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "netapp.VolumesClient", "ReplicationStatusMethod", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -813,6 +861,7 @@ func (client VolumesClient) ResyncReplication(ctx context.Context, resourceGroup
 	result, err = client.ResyncReplicationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "netapp.VolumesClient", "ResyncReplication", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -900,6 +949,7 @@ func (client VolumesClient) Update(ctx context.Context, body VolumePatch, resour
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "netapp.VolumesClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

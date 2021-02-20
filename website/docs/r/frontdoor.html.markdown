@@ -75,7 +75,7 @@ resource "azurerm_frontdoor" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Front Door service. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Front Door service. Must be globally unique. Changing this forces a new resource to be created. 
 
 * `location` -  (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created
 
@@ -113,7 +113,7 @@ The `backend_pool` block supports the following:
 
 * `load_balancing_name` - (Required) Specifies the name of the `backend_pool_load_balancing` block within this resource to use for this `Backend Pool`.
 
-* `health_probe_name` - (Required) Specifies the name of the `backend_pool_health_probe` block whithin this resource to use for this `Backend Pool`.
+* `health_probe_name` - (Required) Specifies the name of the `backend_pool_health_probe` block within this resource to use for this `Backend Pool`.
 
 ---
 
@@ -139,7 +139,7 @@ The `frontend_endpoint` block supports the following:
 
 * `name` - (Required) Specifies the name of the `frontend_endpoint`.
 
-* `host_name` - (Required) Specifies the host name of the `frontend_endpoint`. Must be a domain name.
+* `host_name` - (Required) Specifies the host name of the `frontend_endpoint`. Must be a domain name. In order to use a name.azurefd.net domain, the name value must match the Front Door name.
 
 * `session_affinity_enabled` - (Optional) Whether to allow session affinity on this host. Valid options are `true` or `false` Defaults to `false`.
 
@@ -189,7 +189,7 @@ The `routing_rule` block supports the following:
 
 * `name` - (Required) Specifies the name of the Routing Rule.
 
-* `frontend_endpoints` - (Required) The names of the `frontend_endpoint` blocks whithin this resource to associate with this `routing_rule`.
+* `frontend_endpoints` - (Required) The names of the `frontend_endpoint` blocks within this resource to associate with this `routing_rule`.
 
 * `accepted_protocols` - (Optional) Protocol schemes to match for the Backend Routing Rule. Defaults to `Http`.
 
@@ -211,9 +211,9 @@ The `forwarding_configuration` block supports the following:
 
 * `cache_use_dynamic_compression` - (Optional) Whether to use dynamic compression when caching. Valid options are `true` or `false`. Defaults to `false`.
 
-* `cache_query_parameter_strip_directive` - (Optional) Defines cache behavior in releation to query string parameters. Valid options are `StripAll` or `StripNone`. Defaults to `StripAll`.
+* `cache_query_parameter_strip_directive` - (Optional) Defines cache behaviour in relation to query string parameters. Valid options are `StripAll` or `StripNone`. Defaults to `StripAll`.
 
-* `custom_forwarding_path` - (Optional) Path to use when constructing the request to forward to the backend. This functions as a URL Rewrite. Default behavior preserves the URL path.
+* `custom_forwarding_path` - (Optional) Path to use when constructing the request to forward to the backend. This functions as a URL Rewrite. Default behaviour preserves the URL path.
 
 * `forwarding_protocol` - (Optional) Protocol to use when redirecting. Valid options are `HttpOnly`, `HttpsOnly`, or `MatchRequest`. Defaults to `HttpsOnly`.
 
@@ -255,9 +255,13 @@ The following attributes are only valid if `certificate_source` is set to `Azure
 
 ## Attributes Reference
 
-`backend_pool` exports the following:
+-> **NOTE:** UPCOMING BREAKING CHANGE: In order to address the ordering issue we have changed the design on how to retrieve existing sub resources such as backend pool health probes, backend pool loadbalancer settings, backend pools, frontend endpoints and routing rules. Existing design will be deprecated and will result in an incorrect configuration. Please refer to the updated documentation below for more information.
 
-* `id` - The ID of the Azure Front Door Backend Pool.
+* `backend_pool_health_probes` - A map/dictionary of Backend Pool Health Probe Names (key) to the Backend Pool Health Probe ID (value)
+* `backend_pool_load_balancing_settings` - A map/dictionary of Backend Pool Load Balancing Setting Names (key) to the Backend Pool Load Balancing Setting ID (value)
+* `backend_pools` - A map/dictionary of Backend Pool Names (key) to the Backend Pool ID (value)
+* `frontend_endpoints` - A map/dictionary of Frontend Endpoint Names (key) to the Frontend Endpoint ID (value)
+* `routing_rules` - A map/dictionary of Routing Rule Names (key) to the Routing Rule ID (value)
 
 ---
 
@@ -267,15 +271,9 @@ The following attributes are only valid if `certificate_source` is set to `Azure
 
 ---
 
-`frontend_endpoint` exports the following:
+`backend_pool` exports the following:
 
-* `id` - The ID of the Azure Front Door Frontend Endpoint.
-
-* `provisioning_state` - Provisioning state of the Front Door.
-
-* `provisioning_substate` - Provisioning substate of the Front Door
-
-[//]: * "* `web_application_firewall_policy_link_id` - (Optional) The `id` of the `web_application_firewall_policy_link` to use for this Frontend Endpoint."
+* `id` - The ID of the Azure Front Door Backend Pool.
 
 ---
 
@@ -291,15 +289,27 @@ The following attributes are only valid if `certificate_source` is set to `Azure
 
 ---
 
-`routing_rule` exports the following:
-
-* `id` - The ID of the Azure Front Door Backend Routing Rule.
-
----
-
 `custom_https_configuration` exports the following:
 
 * `minimum_tls_version` - Minimum client TLS version supported.
+
+---
+
+`frontend_endpoint` exports the following:
+
+* `id` - The ID of the Azure Front Door Frontend Endpoint.
+
+* `provisioning_state` - Provisioning state of the Front Door.
+
+* `provisioning_substate` - Provisioning substate of the Front Door
+
+[//]: * "* `web_application_firewall_policy_link_id` - (Optional) The `id` of the `web_application_firewall_policy_link` to use for this Frontend Endpoint."
+
+---
+
+`routing_rule` exports the following:
+
+* `id` - The ID of the Azure Front Door Backend Routing Rule.
 
 ---
 
@@ -325,5 +335,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Front Doors can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_frontdoor.example /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/mygroup1/providers/Microsoft.Network/frontdoors/frontdoor1
+terraform import azurerm_frontdoor.example /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/mygroup1/providers/Microsoft.Network/frontDoors/frontdoor1
 ```

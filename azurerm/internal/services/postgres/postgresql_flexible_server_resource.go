@@ -21,12 +21,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmPostgresqlFlexibleServer() *schema.Resource {
+func resourcePostgresqlFlexibleServer() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmPostgresqlFlexibleServerCreate,
-		Read:   resourceArmPostgresqlFlexibleServerRead,
-		Update: resourceArmPostgresqlFlexibleServerUpdate,
-		Delete: resourceArmPostgresqlFlexibleServerDelete,
+		Create: resourcePostgresqlFlexibleServerCreate,
+		Read:   resourcePostgresqlFlexibleServerRead,
+		Update: resourcePostgresqlFlexibleServerUpdate,
+		Delete: resourcePostgresqlFlexibleServerDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(1 * time.Hour),
@@ -45,7 +45,7 @@ func resourceArmPostgresqlFlexibleServer() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.FlexibleServerName(),
+				ValidateFunc: validate.FlexibleServerName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -77,7 +77,7 @@ func resourceArmPostgresqlFlexibleServer() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.FlexibleServerSkuName(),
+							ValidateFunc: validate.FlexibleServerSkuName,
 						},
 
 						"tier": {
@@ -181,7 +181,7 @@ func resourceArmPostgresqlFlexibleServer() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.FlexibleServerName(),
+				ValidateFunc: validate.FlexibleServerName,
 			},
 
 			"ha_enabled": {
@@ -256,7 +256,8 @@ func resourceArmPostgresqlFlexibleServer() *schema.Resource {
 		},
 	}
 }
-func resourceArmPostgresqlFlexibleServerCreate(d *schema.ResourceData, meta interface{}) error {
+func resourcePostgresqlFlexibleServerCreate(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Postgres.FlexibleServersClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -264,14 +265,16 @@ func resourceArmPostgresqlFlexibleServerCreate(d *schema.ResourceData, meta inte
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
+	id := parse.NewFlexibleServerID(subscriptionId, resourceGroup, name).ID()
+
 	existing, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
 			return fmt.Errorf("checking for present of existing Postgresql Flexible Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_postgresql_flexible_server", *existing.ID)
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_postgresql_flexible_server", id)
 	}
 
 	createMode := d.Get("create_mode").(string)
@@ -344,7 +347,7 @@ func resourceArmPostgresqlFlexibleServerCreate(d *schema.ResourceData, meta inte
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on creating future for Postgresql Flexible Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of the Postgresql Flexible Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	// `maintenance_window` could only be updated with, could not be created with
@@ -360,24 +363,20 @@ func resourceArmPostgresqlFlexibleServerCreate(d *schema.ResourceData, meta inte
 		}
 
 		if err := mwFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting on updating future for Postgresql Flexible Server %q maintenance window (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("waiting for the update of the Postgresql Flexible Server %q maintenance window (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
+	if _, err := client.Get(ctx, resourceGroup, name); err != nil {
 		return fmt.Errorf("retrieving Postgresql Flexible Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for Postgresql Flexible Server %q (Resource Group %q) ID", name, resourceGroup)
-	}
+	d.SetId(id)
 
-	d.SetId(*resp.ID)
-	return resourceArmPostgresqlFlexibleServerRead(d, meta)
+	return resourcePostgresqlFlexibleServerRead(d, meta)
 }
 
-func resourceArmPostgresqlFlexibleServerRead(d *schema.ResourceData, meta interface{}) error {
+func resourcePostgresqlFlexibleServerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Postgres.FlexibleServersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -397,23 +396,17 @@ func resourceArmPostgresqlFlexibleServerRead(d *schema.ResourceData, meta interf
 		return fmt.Errorf("retrieving Postgresql Flexible Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	name := id.Name
-	resourceGroup := id.ResourceGroup
-
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 	if err := d.Set("identity", flattenArmServerIdentity(resp.Identity)); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 	if props := resp.ServerProperties; props != nil {
 		d.Set("administrator_login", props.AdministratorLogin)
+		d.Set("availability_zone", props.AvailabilityZone)
 
-		if props.AvailabilityZone != nil && *props.AvailabilityZone != "" {
-			d.Set("availability_zone", props.AvailabilityZone)
-		}
-
-		if props.DelegatedSubnetArguments != nil && props.DelegatedSubnetArguments.SubnetArmResourceID != nil {
+		if props.DelegatedSubnetArguments != nil {
 			d.Set("delegated_subnet_id", props.DelegatedSubnetArguments.SubnetArmResourceID)
 		}
 
@@ -423,22 +416,12 @@ func resourceArmPostgresqlFlexibleServerRead(d *schema.ResourceData, meta interf
 			return fmt.Errorf("setting `maintenance_window`: %+v", err)
 		}
 
-		if props.PointInTimeUTC != nil {
-			d.Set("point_in_time_utc", props.PointInTimeUTC.Format(time.RFC3339))
-		}
-
-		if props.SourceServerName != nil {
-			d.Set("source_server_name", props.SourceServerName)
-		}
+		d.Set("point_in_time_utc", props.PointInTimeUTC)
+		d.Set("source_server_name", props.SourceServerName)
 
 		if storage := props.StorageProfile; storage != nil {
-			if storage.StorageMB != nil {
-				d.Set("storage_mb", storage.StorageMB)
-			}
-
-			if storage.BackupRetentionDays != nil {
-				d.Set("backup_retention_days", storage.BackupRetentionDays)
-			}
+			d.Set("storage_mb", storage.StorageMB)
+			d.Set("backup_retention_days", storage.BackupRetentionDays)
 		}
 
 		d.Set("version", props.Version)
@@ -448,10 +431,7 @@ func resourceArmPostgresqlFlexibleServerRead(d *schema.ResourceData, meta interf
 		d.Set("fqdn", *props.FullyQualifiedDomainName)
 		d.Set("public_network_access", props.PublicNetworkAccess == postgresqlflexibleservers.ServerPublicNetworkAccessStateEnabled)
 		d.Set("ha_state", string(props.HaState))
-
-		if props.StandbyAvailabilityZone != nil {
-			d.Set("standby_availability_zone", *props.StandbyAvailabilityZone)
-		}
+		d.Set("standby_availability_zone", *props.StandbyAvailabilityZone)
 	}
 
 	if err := d.Set("sku", flattenArmServerSku(resp.Sku)); err != nil {
@@ -461,7 +441,7 @@ func resourceArmPostgresqlFlexibleServerRead(d *schema.ResourceData, meta interf
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmPostgresqlFlexibleServerUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourcePostgresqlFlexibleServerUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Postgres.FlexibleServersClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -510,12 +490,12 @@ func resourceArmPostgresqlFlexibleServerUpdate(d *schema.ResourceData, meta inte
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on updating future for Postgresql Flexible Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for the update of the Postgresql Flexible Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
-	return resourceArmPostgresqlFlexibleServerRead(d, meta)
+	return resourcePostgresqlFlexibleServerRead(d, meta)
 }
 
-func resourceArmPostgresqlFlexibleServerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourcePostgresqlFlexibleServerDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Postgres.FlexibleServersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -531,7 +511,7 @@ func resourceArmPostgresqlFlexibleServerDelete(d *schema.ResourceData, meta inte
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on deleting future for Postgresql Flexible Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for the deletion of the Postgresql Flexible Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil

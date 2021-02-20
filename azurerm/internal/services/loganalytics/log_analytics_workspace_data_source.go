@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -38,6 +40,11 @@ func dataSourceLogAnalyticsWorkspace() *schema.Resource {
 
 			"retention_in_days": {
 				Type:     schema.TypeInt,
+				Computed: true,
+			},
+
+			"daily_quota_gb": {
+				Type:     schema.TypeFloat,
 				Computed: true,
 			},
 
@@ -86,7 +93,11 @@ func dataSourceLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Error making Read request on AzureRM Log Analytics workspaces '%s': %+v", name, err)
 	}
 
-	d.SetId(*resp.ID)
+	id, err := parse.LogAnalyticsWorkspaceID(*resp.ID)
+	if err != nil {
+		return fmt.Errorf("Error parsing Log Analytics Workspace ID %q", *resp.ID)
+	}
+	d.SetId(id.ID())
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
@@ -100,6 +111,12 @@ func dataSourceLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface{
 		d.Set("sku", sku.Name)
 	}
 	d.Set("retention_in_days", resp.RetentionInDays)
+
+	if workspaceCapping := resp.WorkspaceCapping; workspaceCapping != nil {
+		d.Set("daily_quota_gb", resp.WorkspaceCapping.DailyQuotaGb)
+	} else {
+		d.Set("daily_quota_gb", utils.Float(-1))
+	}
 
 	sharedKeys, err := sharedKeysClient.GetSharedKeys(ctx, resGroup, name)
 	if err != nil {

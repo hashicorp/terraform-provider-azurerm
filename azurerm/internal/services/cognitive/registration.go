@@ -20,12 +20,14 @@ func (r Registration) WebsiteCategories() []string {
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
-	return map[string]*schema.Resource{}
+	return map[string]*schema.Resource{
+		"azurerm_cognitive_account": dataSourceCognitiveAccount(),
+	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_cognitive_account": resourceArmCognitiveAccount(),
+		"azurerm_cognitive_account": resourceCognitiveAccount(),
 	}
 }

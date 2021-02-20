@@ -83,7 +83,7 @@ func (client RegistrationAssignmentsClient) CreateOrUpdate(ctx context.Context, 
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "managedservices.RegistrationAssignmentsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "managedservices.RegistrationAssignmentsClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -123,7 +123,33 @@ func (client RegistrationAssignmentsClient) CreateOrUpdateSender(req *http.Reque
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client RegistrationAssignmentsClient) (ra RegistrationAssignment, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "managedservices.RegistrationAssignmentsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("managedservices.RegistrationAssignmentsCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		ra.Response.Response, err = future.GetResult(sender)
+		if ra.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "managedservices.RegistrationAssignmentsCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && ra.Response.Response.StatusCode != http.StatusNoContent {
+			ra, err = client.CreateOrUpdateResponder(ra.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "managedservices.RegistrationAssignmentsCreateOrUpdateFuture", "Result", ra.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -162,7 +188,7 @@ func (client RegistrationAssignmentsClient) Delete(ctx context.Context, scope st
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "managedservices.RegistrationAssignmentsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "managedservices.RegistrationAssignmentsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -197,7 +223,23 @@ func (client RegistrationAssignmentsClient) DeleteSender(req *http.Request) (fut
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client RegistrationAssignmentsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "managedservices.RegistrationAssignmentsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("managedservices.RegistrationAssignmentsDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -245,6 +287,7 @@ func (client RegistrationAssignmentsClient) Get(ctx context.Context, scope strin
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managedservices.RegistrationAssignmentsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -324,9 +367,11 @@ func (client RegistrationAssignmentsClient) List(ctx context.Context, scope stri
 	result.ral, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managedservices.RegistrationAssignmentsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.ral.hasNextLink() && result.ral.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

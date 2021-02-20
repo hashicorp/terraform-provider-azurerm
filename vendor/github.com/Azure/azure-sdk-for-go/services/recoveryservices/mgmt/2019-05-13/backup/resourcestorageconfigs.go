@@ -73,6 +73,7 @@ func (client ResourceStorageConfigsClient) Get(ctx context.Context, vaultName st
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ResourceStorageConfigsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -149,6 +150,7 @@ func (client ResourceStorageConfigsClient) Patch(ctx context.Context, vaultName 
 	result, err = client.PatchResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ResourceStorageConfigsClient", "Patch", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -226,6 +228,7 @@ func (client ResourceStorageConfigsClient) Update(ctx context.Context, vaultName
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ResourceStorageConfigsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

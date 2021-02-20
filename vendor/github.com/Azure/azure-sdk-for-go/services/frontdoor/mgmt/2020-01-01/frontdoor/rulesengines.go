@@ -84,7 +84,7 @@ func (client RulesEnginesClient) CreateOrUpdate(ctx context.Context, resourceGro
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "frontdoor.RulesEnginesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "frontdoor.RulesEnginesClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -126,7 +126,33 @@ func (client RulesEnginesClient) CreateOrUpdateSender(req *http.Request) (future
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client RulesEnginesClient) (re RulesEngine, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "frontdoor.RulesEnginesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("frontdoor.RulesEnginesCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		re.Response.Response, err = future.GetResult(sender)
+		if re.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "frontdoor.RulesEnginesCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && re.Response.Response.StatusCode != http.StatusNoContent {
+			re, err = client.CreateOrUpdateResponder(re.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "frontdoor.RulesEnginesCreateOrUpdateFuture", "Result", re.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -182,7 +208,7 @@ func (client RulesEnginesClient) Delete(ctx context.Context, resourceGroupName s
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "frontdoor.RulesEnginesClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "frontdoor.RulesEnginesClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -219,7 +245,23 @@ func (client RulesEnginesClient) DeleteSender(req *http.Request) (future RulesEn
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client RulesEnginesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "frontdoor.RulesEnginesDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("frontdoor.RulesEnginesDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -282,6 +324,7 @@ func (client RulesEnginesClient) Get(ctx context.Context, resourceGroupName stri
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.RulesEnginesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -371,9 +414,11 @@ func (client RulesEnginesClient) ListByFrontDoor(ctx context.Context, resourceGr
 	result.relr, err = client.ListByFrontDoorResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.RulesEnginesClient", "ListByFrontDoor", resp, "Failure responding to request")
+		return
 	}
 	if result.relr.hasNextLink() && result.relr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

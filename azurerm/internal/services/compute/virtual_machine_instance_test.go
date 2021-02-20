@@ -8,7 +8,7 @@ import (
 )
 
 func TestVirtualMachineShouldBeStarted(t *testing.T) {
-	var buildInstanceViewStatus = func(statuses ...string) *[]compute.InstanceViewStatus {
+	buildInstanceViewStatus := func(statuses ...string) *[]compute.InstanceViewStatus {
 		results := make([]compute.InstanceViewStatus, 0)
 
 		for _, v := range statuses {

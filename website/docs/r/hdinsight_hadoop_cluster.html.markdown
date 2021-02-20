@@ -335,5 +335,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 HDInsight Hadoop Clusters can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_hdinsight_hadoop_cluster.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.HDInsight/clusters/cluster1}
+terraform import azurerm_hdinsight_hadoop_cluster.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.HDInsight/clusters/cluster1
 ```

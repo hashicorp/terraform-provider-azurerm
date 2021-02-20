@@ -76,6 +76,7 @@ func (client DataLakeStoreAccountsClient) Add(ctx context.Context, resourceGroup
 	result, err = client.AddResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.DataLakeStoreAccountsClient", "Add", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -157,6 +158,7 @@ func (client DataLakeStoreAccountsClient) Delete(ctx context.Context, resourceGr
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.DataLakeStoreAccountsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -233,6 +235,7 @@ func (client DataLakeStoreAccountsClient) Get(ctx context.Context, resourceGroup
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.DataLakeStoreAccountsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -331,9 +334,11 @@ func (client DataLakeStoreAccountsClient) ListByAccount(ctx context.Context, res
 	result.dlsailr, err = client.ListByAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.DataLakeStoreAccountsClient", "ListByAccount", resp, "Failure responding to request")
+		return
 	}
 	if result.dlsailr.hasNextLink() && result.dlsailr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

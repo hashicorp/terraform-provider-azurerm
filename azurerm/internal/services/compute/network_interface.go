@@ -126,7 +126,7 @@ func retrieveIPAddressesForNIC(ctx context.Context, nicClient *network.Interface
 // retrievePublicIPAddress returns the Public IP Address associated with an Azure Public IP
 // nolint: deadcode unused
 func retrievePublicIPAddress(ctx context.Context, client *network.PublicIPAddressesClient, publicIPAddressID string) (*string, error) {
-	id, err := parse.PublicIPAddressID(publicIPAddressID)
+	id, err := parse.PublicIpAddressID(publicIPAddressID)
 	if err != nil {
 		return nil, err
 	}

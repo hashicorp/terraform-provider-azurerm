@@ -84,6 +84,7 @@ func (client WebTestLocationsClient) List(ctx context.Context, resourceGroupName
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.WebTestLocationsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return

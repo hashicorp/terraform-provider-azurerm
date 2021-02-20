@@ -12,21 +12,21 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSharedImage() *schema.Resource {
+func resourceSharedImage() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSharedImageCreateUpdate,
-		Read:   resourceArmSharedImageRead,
-		Update: resourceArmSharedImageCreateUpdate,
-		Delete: resourceArmSharedImageDelete,
+		Create: resourceSharedImageCreateUpdate,
+		Read:   resourceSharedImageRead,
+		Update: resourceSharedImageCreateUpdate,
+		Delete: resourceSharedImageDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.SharedImageID(id)
@@ -161,7 +161,7 @@ func resourceArmSharedImage() *schema.Resource {
 	}
 }
 
-func resourceArmSharedImageCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSharedImageCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.GalleryImagesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -226,10 +226,10 @@ func resourceArmSharedImageCreateUpdate(d *schema.ResourceData, meta interface{}
 
 	d.SetId(*read.ID)
 
-	return resourceArmSharedImageRead(d, meta)
+	return resourceSharedImageRead(d, meta)
 }
 
-func resourceArmSharedImageRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSharedImageRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.GalleryImagesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -239,19 +239,19 @@ func resourceArmSharedImageRead(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Gallery, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.GalleryName, id.ImageName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Shared Image %q (Gallery %q / Resource Group %q) was not found - removing from state", id.Name, id.Gallery, id.ResourceGroup)
+			log.Printf("[DEBUG] Shared Image %q (Gallery %q / Resource Group %q) was not found - removing from state", id.ImageName, id.GalleryName, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Shared Image %q (Gallery %q / Resource Group %q): %+v", id.Name, id.Gallery, id.ResourceGroup, err)
+		return fmt.Errorf("Error making Read request on Shared Image %q (Gallery %q / Resource Group %q): %+v", id.ImageName, id.GalleryName, id.ResourceGroup, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("gallery_name", id.Gallery)
+	d.Set("name", id.ImageName)
+	d.Set("gallery_name", id.GalleryName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -278,7 +278,7 @@ func resourceArmSharedImageRead(d *schema.ResourceData, meta interface{}) error 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmSharedImageDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSharedImageDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.GalleryImagesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -288,27 +288,26 @@ func resourceArmSharedImageDelete(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Gallery, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.GalleryName, id.ImageName)
 	if err != nil {
-		return fmt.Errorf("deleting Shared Image %q (Gallery %q / Resource Group %q): %+v", id.Name, id.Gallery, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
-
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("failed to wait for deleting Shared Image %q (Gallery %q / Resource Group %q): %+v", id.Name, id.Gallery, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for deletion of: %s: %+v", *id, err)
 	}
 
-	log.Printf("[DEBUG] Waiting for Shared Image %q (Gallery %q / Resource Group %q) to be eventually deleted", id.Name, id.Gallery, id.ResourceGroup)
+	log.Printf("[DEBUG] Waiting for %s to be eventually deleted", *id)
 	stateConf := &resource.StateChangeConf{
 		Pending:                   []string{"Exists"},
 		Target:                    []string{"NotFound"},
-		Refresh:                   sharedImageDeleteStateRefreshFunc(ctx, client, id.ResourceGroup, id.Gallery, id.Name),
+		Refresh:                   sharedImageDeleteStateRefreshFunc(ctx, client, id.ResourceGroup, id.GalleryName, id.ImageName),
 		MinTimeout:                10 * time.Second,
 		ContinuousTargetOccurence: 10,
 		Timeout:                   d.Timeout(schema.TimeoutDelete),
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("failed to wait for Shared Image %q (Gallery %q / Resource Group %q) to be deleted: %+v", id.Name, id.Gallery, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for %s to be deleted: %+v", *id, err)
 	}
 
 	return nil

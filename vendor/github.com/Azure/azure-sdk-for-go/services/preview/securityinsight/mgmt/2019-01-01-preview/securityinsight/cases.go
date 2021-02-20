@@ -74,9 +74,7 @@ func (client CasesClient) CreateOrUpdate(ctx context.Context, resourceGroupName 
 				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: caseParameter,
 			Constraints: []validation.Constraint{{Target: "caseParameter.CaseProperties", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "caseParameter.CaseProperties.StartTimeUtc", Name: validation.Null, Rule: true, Chain: nil},
-					{Target: "caseParameter.CaseProperties.Title", Name: validation.Null, Rule: true, Chain: nil},
-				}}}}}); err != nil {
+				Chain: []validation.Constraint{{Target: "caseParameter.CaseProperties.Title", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
 		return result, validation.NewError("securityinsight.CasesClient", "CreateOrUpdate", err.Error())
 	}
 
@@ -96,6 +94,7 @@ func (client CasesClient) CreateOrUpdate(ctx context.Context, resourceGroupName 
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.CasesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -192,6 +191,7 @@ func (client CasesClient) Delete(ctx context.Context, resourceGroupName string, 
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.CasesClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -285,6 +285,7 @@ func (client CasesClient) Get(ctx context.Context, resourceGroupName string, ope
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.CasesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -380,6 +381,7 @@ func (client CasesClient) GetComment(ctx context.Context, resourceGroupName stri
 	result, err = client.GetCommentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.CasesClient", "GetComment", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -481,9 +483,11 @@ func (client CasesClient) List(ctx context.Context, resourceGroupName string, op
 	result.cl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.CasesClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.cl.hasNextLink() && result.cl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

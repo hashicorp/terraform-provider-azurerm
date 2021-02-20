@@ -6,23 +6,24 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-02-15/kusto"
+	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-09-18/kusto"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmKustoEventHubDataConnection() *schema.Resource {
+func resourceKustoEventHubDataConnection() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmKustoEventHubDataConnectionCreateUpdate,
-		Read:   resourceArmKustoEventHubDataConnectionRead,
-		Update: resourceArmKustoEventHubDataConnectionCreateUpdate,
-		Delete: resourceArmKustoEventHubDataConnectionDelete,
+		Create: resourceKustoEventHubDataConnectionCreateUpdate,
+		Read:   resourceKustoEventHubDataConnectionRead,
+		Update: resourceKustoEventHubDataConnectionCreateUpdate,
+		Delete: resourceKustoEventHubDataConnectionDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -55,6 +56,17 @@ func resourceArmKustoEventHubDataConnection() *schema.Resource {
 				ValidateFunc: validateAzureRMKustoClusterName,
 			},
 
+			"compression": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  kusto.CompressionNone,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(kusto.CompressionGZip),
+					string(kusto.CompressionNone),
+				}, false),
+			},
+
 			"database_name": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -73,7 +85,7 @@ func resourceArmKustoEventHubDataConnection() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateEventHubConsumerName(),
+				ValidateFunc: validate.ValidateEventHubConsumerName(),
 			},
 
 			"table_name": {
@@ -120,7 +132,7 @@ func resourceArmKustoEventHubDataConnection() *schema.Resource {
 	}
 }
 
-func resourceArmKustoEventHubDataConnectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoEventHubDataConnectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DataConnectionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -180,33 +192,32 @@ func resourceArmKustoEventHubDataConnectionCreateUpdate(d *schema.ResourceData, 
 		d.SetId(*dataConnection.ID)
 	}
 
-	return resourceArmKustoEventHubDataConnectionRead(d, meta)
+	return resourceKustoEventHubDataConnectionRead(d, meta)
 }
 
-func resourceArmKustoEventHubDataConnectionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoEventHubDataConnectionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DataConnectionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.KustoEventHubDataConnectionID(d.Id())
+	id, err := parse.DataConnectionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	connectionModel, err := client.Get(ctx, id.ResourceGroup, id.Cluster, id.Database, id.Name)
-
+	connectionModel, err := client.Get(ctx, id.ResourceGroup, id.ClusterName, id.DatabaseName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(connectionModel.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving Kusto Event Hub Data Connection %q (Resource Group %q, Cluster %q, Database %q): %+v", id.Name, id.ResourceGroup, id.Cluster, id.Database, err)
+		return fmt.Errorf("Error retrieving Kusto Event Hub Data Connection %q (Resource Group %q, Cluster %q, Database %q): %+v", id.Name, id.ResourceGroup, id.ClusterName, id.DatabaseName, err)
 	}
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("cluster_name", id.Cluster)
-	d.Set("database_name", id.Database)
+	d.Set("cluster_name", id.ClusterName)
+	d.Set("database_name", id.DatabaseName)
 
 	if dataConnection, ok := connectionModel.Value.(kusto.EventHubDataConnection); ok {
 		if location := dataConnection.Location; location != nil {
@@ -219,29 +230,30 @@ func resourceArmKustoEventHubDataConnectionRead(d *schema.ResourceData, meta int
 			d.Set("table_name", props.TableName)
 			d.Set("mapping_rule_name", props.MappingRuleName)
 			d.Set("data_format", props.DataFormat)
+			d.Set("compression", props.Compression)
 		}
 	}
 
 	return nil
 }
 
-func resourceArmKustoEventHubDataConnectionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoEventHubDataConnectionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DataConnectionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.KustoEventHubDataConnectionID(d.Id())
+	id, err := parse.DataConnectionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Cluster, id.Database, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.ClusterName, id.DatabaseName, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Kusto Event Hub Data Connection %q (Resource Group %q, Cluster %q, Database %q): %+v", id.Name, id.ResourceGroup, id.Cluster, id.Database, err)
+		return fmt.Errorf("Error deleting Kusto Event Hub Data Connection %q (Resource Group %q, Cluster %q, Database %q): %+v", id.Name, id.ResourceGroup, id.ClusterName, id.DatabaseName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of Kusto Event Hub Data Connection %q (Resource Group %q, Cluster %q, Database %q): %+v", id.Name, id.ResourceGroup, id.Cluster, id.Database, err)
+		return fmt.Errorf("Error waiting for deletion of Kusto Event Hub Data Connection %q (Resource Group %q, Cluster %q, Database %q): %+v", id.Name, id.ResourceGroup, id.ClusterName, id.DatabaseName, err)
 	}
 
 	return nil
@@ -304,6 +316,10 @@ func expandKustoEventHubDataConnectionProperties(d *schema.ResourceData) *kusto.
 
 	if df, ok := d.GetOk("data_format"); ok {
 		eventHubConnectionProperties.DataFormat = kusto.EventHubDataFormat(df.(string))
+	}
+
+	if compression, ok := d.GetOk("compression"); ok {
+		eventHubConnectionProperties.Compression = kusto.Compression(compression.(string))
 	}
 
 	return eventHubConnectionProperties

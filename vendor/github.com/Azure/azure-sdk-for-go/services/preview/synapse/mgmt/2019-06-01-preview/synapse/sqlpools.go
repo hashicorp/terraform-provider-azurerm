@@ -77,7 +77,7 @@ func (client SQLPoolsClient) Create(ctx context.Context, resourceGroupName strin
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.SQLPoolsClient", "Create", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.SQLPoolsClient", "Create", nil, "Failure sending request")
 		return
 	}
 
@@ -116,7 +116,33 @@ func (client SQLPoolsClient) CreateSender(req *http.Request) (future SQLPoolsCre
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client SQLPoolsClient) (sp SQLPool, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "synapse.SQLPoolsCreateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("synapse.SQLPoolsCreateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		sp.Response.Response, err = future.GetResult(sender)
+		if sp.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "synapse.SQLPoolsCreateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && sp.Response.Response.StatusCode != http.StatusNoContent {
+			sp, err = client.CreateResponder(sp.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "synapse.SQLPoolsCreateFuture", "Result", sp.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -166,7 +192,7 @@ func (client SQLPoolsClient) Delete(ctx context.Context, resourceGroupName strin
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.SQLPoolsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.SQLPoolsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -203,7 +229,33 @@ func (client SQLPoolsClient) DeleteSender(req *http.Request) (future SQLPoolsDel
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client SQLPoolsClient) (so SetObject, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "synapse.SQLPoolsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("synapse.SQLPoolsDeleteFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		so.Response.Response, err = future.GetResult(sender)
+		if so.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "synapse.SQLPoolsDeleteFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && so.Response.Response.StatusCode != http.StatusNoContent {
+			so, err = client.DeleteResponder(so.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "synapse.SQLPoolsDeleteFuture", "Result", so.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -261,6 +313,7 @@ func (client SQLPoolsClient) Get(ctx context.Context, resourceGroupName string, 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.SQLPoolsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -348,9 +401,11 @@ func (client SQLPoolsClient) ListByWorkspace(ctx context.Context, resourceGroupN
 	result.spilr, err = client.ListByWorkspaceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.SQLPoolsClient", "ListByWorkspace", resp, "Failure responding to request")
+		return
 	}
 	if result.spilr.hasNextLink() && result.spilr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -466,7 +521,7 @@ func (client SQLPoolsClient) Pause(ctx context.Context, resourceGroupName string
 
 	result, err = client.PauseSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.SQLPoolsClient", "Pause", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.SQLPoolsClient", "Pause", nil, "Failure sending request")
 		return
 	}
 
@@ -503,7 +558,33 @@ func (client SQLPoolsClient) PauseSender(req *http.Request) (future SQLPoolsPaus
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client SQLPoolsClient) (so SetObject, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "synapse.SQLPoolsPauseFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("synapse.SQLPoolsPauseFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		so.Response.Response, err = future.GetResult(sender)
+		if so.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "synapse.SQLPoolsPauseFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && so.Response.Response.StatusCode != http.StatusNoContent {
+			so, err = client.PauseResponder(so.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "synapse.SQLPoolsPauseFuture", "Result", so.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -516,97 +597,6 @@ func (client SQLPoolsClient) PauseResponder(resp *http.Response) (result SetObje
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
-	return
-}
-
-// Rename rename a SQL pool.
-// Parameters:
-// resourceGroupName - the name of the resource group. The name is case insensitive.
-// workspaceName - the name of the workspace
-// SQLPoolName - SQL pool name
-// parameters - the resource move definition for renaming this Sql pool.
-func (client SQLPoolsClient) Rename(ctx context.Context, resourceGroupName string, workspaceName string, SQLPoolName string, parameters ResourceMoveDefinition) (result autorest.Response, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/SQLPoolsClient.Rename")
-		defer func() {
-			sc := -1
-			if result.Response != nil {
-				sc = result.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: client.SubscriptionID,
-			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
-		{TargetValue: parameters,
-			Constraints: []validation.Constraint{{Target: "parameters.ID", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("synapse.SQLPoolsClient", "Rename", err.Error())
-	}
-
-	req, err := client.RenamePreparer(ctx, resourceGroupName, workspaceName, SQLPoolName, parameters)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.SQLPoolsClient", "Rename", nil, "Failure preparing request")
-		return
-	}
-
-	resp, err := client.RenameSender(req)
-	if err != nil {
-		result.Response = resp
-		err = autorest.NewErrorWithError(err, "synapse.SQLPoolsClient", "Rename", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.RenameResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.SQLPoolsClient", "Rename", resp, "Failure responding to request")
-	}
-
-	return
-}
-
-// RenamePreparer prepares the Rename request.
-func (client SQLPoolsClient) RenamePreparer(ctx context.Context, resourceGroupName string, workspaceName string, SQLPoolName string, parameters ResourceMoveDefinition) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"sqlPoolName":       autorest.Encode("path", SQLPoolName),
-		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-		"workspaceName":     autorest.Encode("path", workspaceName),
-	}
-
-	const APIVersion = "2019-06-01-preview"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsContentType("application/json; charset=utf-8"),
-		autorest.AsPost(),
-		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Synapse/workspaces/{workspaceName}/sqlPools/{sqlPoolName}/move", pathParameters),
-		autorest.WithJSON(parameters),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// RenameSender sends the Rename request. The method will close the
-// http.Response Body if it receives an error.
-func (client SQLPoolsClient) RenameSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
-}
-
-// RenameResponder handles the response to the Rename request. The method always
-// closes the http.Response Body.
-func (client SQLPoolsClient) RenameResponder(resp *http.Response) (result autorest.Response, err error) {
-	err = autorest.Respond(
-		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByClosing())
-	result.Response = resp
 	return
 }
 
@@ -644,7 +634,7 @@ func (client SQLPoolsClient) Resume(ctx context.Context, resourceGroupName strin
 
 	result, err = client.ResumeSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.SQLPoolsClient", "Resume", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.SQLPoolsClient", "Resume", nil, "Failure sending request")
 		return
 	}
 
@@ -681,7 +671,33 @@ func (client SQLPoolsClient) ResumeSender(req *http.Request) (future SQLPoolsRes
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client SQLPoolsClient) (so SetObject, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "synapse.SQLPoolsResumeFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("synapse.SQLPoolsResumeFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		so.Response.Response, err = future.GetResult(sender)
+		if so.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "synapse.SQLPoolsResumeFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && so.Response.Response.StatusCode != http.StatusNoContent {
+			so, err = client.ResumeResponder(so.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "synapse.SQLPoolsResumeFuture", "Result", so.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -740,6 +756,7 @@ func (client SQLPoolsClient) Update(ctx context.Context, resourceGroupName strin
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.SQLPoolsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

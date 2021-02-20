@@ -84,6 +84,7 @@ func (client WorkflowsClient) Abort(ctx context.Context, resourceGroupName strin
 	result, err = client.AbortResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storagesync.WorkflowsClient", "Abort", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -170,6 +171,7 @@ func (client WorkflowsClient) Get(ctx context.Context, resourceGroupName string,
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storagesync.WorkflowsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -256,6 +258,7 @@ func (client WorkflowsClient) ListByStorageSyncService(ctx context.Context, reso
 	result, err = client.ListByStorageSyncServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storagesync.WorkflowsClient", "ListByStorageSyncService", resp, "Failure responding to request")
+		return
 	}
 
 	return

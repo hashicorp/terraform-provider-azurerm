@@ -6,15 +6,16 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"time"
 )
 
-func dataSourcePostgresqlflexibleServer() *schema.Resource {
+func dataSourcePostgresqlFlexibleServer() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmPostgresqlflexibleServerRead,
+		Read: dataSourceArmPostgresqlFlexibleServerRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -91,13 +92,16 @@ func dataSourcePostgresqlflexibleServer() *schema.Resource {
 	}
 }
 
-func dataSourceArmPostgresqlflexibleServerRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceArmPostgresqlFlexibleServerRead(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Postgres.FlexibleServersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+
+	id := parse.NewFlexibleServerID(subscriptionId, resourceGroup, name).ID()
 
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
@@ -106,11 +110,8 @@ func dataSourceArmPostgresqlflexibleServerRead(d *schema.ResourceData, meta inte
 		}
 		return fmt.Errorf("retrieving Postgresqlflexibleservers Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for Postgresqlflexibleservers Server %q (Resource Group %q) ID", name, resourceGroup)
-	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id)
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))

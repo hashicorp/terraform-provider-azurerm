@@ -77,7 +77,7 @@ func (client ServiceClient) ApplyNetworkConfigurationUpdates(ctx context.Context
 
 	result, err = client.ApplyNetworkConfigurationUpdatesSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "apimanagement.ServiceClient", "ApplyNetworkConfigurationUpdates", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "apimanagement.ServiceClient", "ApplyNetworkConfigurationUpdates", nil, "Failure sending request")
 		return
 	}
 
@@ -118,7 +118,33 @@ func (client ServiceClient) ApplyNetworkConfigurationUpdatesSender(req *http.Req
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ServiceClient) (sr ServiceResource, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "apimanagement.ServiceApplyNetworkConfigurationUpdatesFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("apimanagement.ServiceApplyNetworkConfigurationUpdatesFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		sr.Response.Response, err = future.GetResult(sender)
+		if sr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "apimanagement.ServiceApplyNetworkConfigurationUpdatesFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && sr.Response.Response.StatusCode != http.StatusNoContent {
+			sr, err = client.ApplyNetworkConfigurationUpdatesResponder(sr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "apimanagement.ServiceApplyNetworkConfigurationUpdatesFuture", "Result", sr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -172,7 +198,7 @@ func (client ServiceClient) Backup(ctx context.Context, resourceGroupName string
 
 	result, err = client.BackupSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "apimanagement.ServiceClient", "Backup", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "apimanagement.ServiceClient", "Backup", nil, "Failure sending request")
 		return
 	}
 
@@ -210,7 +236,33 @@ func (client ServiceClient) BackupSender(req *http.Request) (future ServiceBacku
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ServiceClient) (sr ServiceResource, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "apimanagement.ServiceBackupFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("apimanagement.ServiceBackupFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		sr.Response.Response, err = future.GetResult(sender)
+		if sr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "apimanagement.ServiceBackupFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && sr.Response.Response.StatusCode != http.StatusNoContent {
+			sr, err = client.BackupResponder(sr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "apimanagement.ServiceBackupFuture", "Result", sr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -262,6 +314,7 @@ func (client ServiceClient) CheckNameAvailability(ctx context.Context, parameter
 	result, err = client.CheckNameAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.ServiceClient", "CheckNameAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -349,7 +402,7 @@ func (client ServiceClient) CreateOrUpdate(ctx context.Context, resourceGroupNam
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "apimanagement.ServiceClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "apimanagement.ServiceClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -388,7 +441,33 @@ func (client ServiceClient) CreateOrUpdateSender(req *http.Request) (future Serv
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ServiceClient) (sr ServiceResource, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "apimanagement.ServiceCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("apimanagement.ServiceCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		sr.Response.Response, err = future.GetResult(sender)
+		if sr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "apimanagement.ServiceCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && sr.Response.Response.StatusCode != http.StatusNoContent {
+			sr, err = client.CreateOrUpdateResponder(sr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "apimanagement.ServiceCreateOrUpdateFuture", "Result", sr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -435,7 +514,7 @@ func (client ServiceClient) Delete(ctx context.Context, resourceGroupName string
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "apimanagement.ServiceClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "apimanagement.ServiceClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -471,7 +550,33 @@ func (client ServiceClient) DeleteSender(req *http.Request) (future ServiceDelet
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ServiceClient) (sr ServiceResource, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "apimanagement.ServiceDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("apimanagement.ServiceDeleteFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		sr.Response.Response, err = future.GetResult(sender)
+		if sr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "apimanagement.ServiceDeleteFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && sr.Response.Response.StatusCode != http.StatusNoContent {
+			sr, err = client.DeleteResponder(sr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "apimanagement.ServiceDeleteFuture", "Result", sr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -526,6 +631,7 @@ func (client ServiceClient) Get(ctx context.Context, resourceGroupName string, s
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.ServiceClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -609,6 +715,7 @@ func (client ServiceClient) GetSsoToken(ctx context.Context, resourceGroupName s
 	result, err = client.GetSsoTokenResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.ServiceClient", "GetSsoToken", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -682,9 +789,11 @@ func (client ServiceClient) List(ctx context.Context) (result ServiceListResultP
 	result.slr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.ServiceClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.slr.hasNextLink() && result.slr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -795,9 +904,11 @@ func (client ServiceClient) ListByResourceGroup(ctx context.Context, resourceGro
 	result.slr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.ServiceClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.slr.hasNextLink() && result.slr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -916,7 +1027,7 @@ func (client ServiceClient) Restore(ctx context.Context, resourceGroupName strin
 
 	result, err = client.RestoreSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "apimanagement.ServiceClient", "Restore", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "apimanagement.ServiceClient", "Restore", nil, "Failure sending request")
 		return
 	}
 
@@ -954,7 +1065,33 @@ func (client ServiceClient) RestoreSender(req *http.Request) (future ServiceRest
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ServiceClient) (sr ServiceResource, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "apimanagement.ServiceRestoreFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("apimanagement.ServiceRestoreFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		sr.Response.Response, err = future.GetResult(sender)
+		if sr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "apimanagement.ServiceRestoreFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && sr.Response.Response.StatusCode != http.StatusNoContent {
+			sr, err = client.RestoreResponder(sr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "apimanagement.ServiceRestoreFuture", "Result", sr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -1002,7 +1139,7 @@ func (client ServiceClient) Update(ctx context.Context, resourceGroupName string
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "apimanagement.ServiceClient", "Update", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "apimanagement.ServiceClient", "Update", nil, "Failure sending request")
 		return
 	}
 
@@ -1041,7 +1178,33 @@ func (client ServiceClient) UpdateSender(req *http.Request) (future ServiceUpdat
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ServiceClient) (sr ServiceResource, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "apimanagement.ServiceUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("apimanagement.ServiceUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		sr.Response.Response, err = future.GetResult(sender)
+		if sr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "apimanagement.ServiceUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && sr.Response.Response.StatusCode != http.StatusNoContent {
+			sr, err = client.UpdateResponder(sr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "apimanagement.ServiceUpdateFuture", "Result", sr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

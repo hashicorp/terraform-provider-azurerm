@@ -91,6 +91,7 @@ func (client ActivityRunsClient) QueryByPipelineRun(ctx context.Context, resourc
 	result, err = client.QueryByPipelineRunResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.ActivityRunsClient", "QueryByPipelineRun", resp, "Failure responding to request")
+		return
 	}
 
 	return

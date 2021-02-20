@@ -70,7 +70,7 @@ func (client ManagedServerSecurityAlertPoliciesClient) CreateOrUpdate(ctx contex
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ManagedServerSecurityAlertPoliciesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ManagedServerSecurityAlertPoliciesClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -109,7 +109,33 @@ func (client ManagedServerSecurityAlertPoliciesClient) CreateOrUpdateSender(req 
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ManagedServerSecurityAlertPoliciesClient) (mssap ManagedServerSecurityAlertPolicy, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ManagedServerSecurityAlertPoliciesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.ManagedServerSecurityAlertPoliciesCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		mssap.Response.Response, err = future.GetResult(sender)
+		if mssap.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "sql.ManagedServerSecurityAlertPoliciesCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && mssap.Response.Response.StatusCode != http.StatusNoContent {
+			mssap, err = client.CreateOrUpdateResponder(mssap.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "sql.ManagedServerSecurityAlertPoliciesCreateOrUpdateFuture", "Result", mssap.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -157,6 +183,7 @@ func (client ManagedServerSecurityAlertPoliciesClient) Get(ctx context.Context, 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedServerSecurityAlertPoliciesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -235,9 +262,11 @@ func (client ManagedServerSecurityAlertPoliciesClient) ListByInstance(ctx contex
 	result.mssaplr, err = client.ListByInstanceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedServerSecurityAlertPoliciesClient", "ListByInstance", resp, "Failure responding to request")
+		return
 	}
 	if result.mssaplr.hasNextLink() && result.mssaplr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

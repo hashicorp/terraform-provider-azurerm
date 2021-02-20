@@ -32,8 +32,8 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/databricks/mgmt/2018-04-01/databricks"
 
-// AddressSpace addressSpace contains an array of IP address ranges that can be used by subnets of the virtual
-// network.
+// AddressSpace addressSpace contains an array of IP address ranges that can be used by subnets of the
+// virtual network.
 type AddressSpace struct {
 	// AddressPrefixes - A list of address blocks reserved for this virtual network in CIDR notation.
 	AddressPrefixes *[]string `json:"addressPrefixes,omitempty"`
@@ -270,8 +270,11 @@ func (page OperationListResultPage) Values() []Operation {
 }
 
 // Creates a new instance of the OperationListResultPage type.
-func NewOperationListResultPage(getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
-	return OperationListResultPage{fn: getNextPage}
+func NewOperationListResultPage(cur OperationListResult, getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
+	return OperationListResultPage{
+		fn:  getNextPage,
+		olr: cur,
+	}
 }
 
 // Resource the core properties of ARM resources
@@ -543,8 +546,11 @@ func (page VirtualNetworkPeeringListPage) Values() []VirtualNetworkPeering {
 }
 
 // Creates a new instance of the VirtualNetworkPeeringListPage type.
-func NewVirtualNetworkPeeringListPage(getNextPage func(context.Context, VirtualNetworkPeeringList) (VirtualNetworkPeeringList, error)) VirtualNetworkPeeringListPage {
-	return VirtualNetworkPeeringListPage{fn: getNextPage}
+func NewVirtualNetworkPeeringListPage(cur VirtualNetworkPeeringList, getNextPage func(context.Context, VirtualNetworkPeeringList) (VirtualNetworkPeeringList, error)) VirtualNetworkPeeringListPage {
+	return VirtualNetworkPeeringListPage{
+		fn:   getNextPage,
+		vnpl: cur,
+	}
 }
 
 // VirtualNetworkPeeringPropertiesFormat properties of the virtual network peering.
@@ -601,72 +607,38 @@ func (vnppf VirtualNetworkPeeringPropertiesFormat) MarshalJSON() ([]byte, error)
 	return json.Marshal(objectMap)
 }
 
-// VirtualNetworkPeeringPropertiesFormatDatabricksVirtualNetwork the remote virtual network should be in the
-// same region. See here to learn more
+// VirtualNetworkPeeringPropertiesFormatDatabricksVirtualNetwork the remote virtual network should be in
+// the same region. See here to learn more
 // (https://docs.microsoft.com/en-us/azure/databricks/administration-guide/cloud-configurations/azure/vnet-peering).
 type VirtualNetworkPeeringPropertiesFormatDatabricksVirtualNetwork struct {
 	// ID - The Id of the databricks virtual network.
 	ID *string `json:"id,omitempty"`
 }
 
-// VirtualNetworkPeeringPropertiesFormatRemoteVirtualNetwork the remote virtual network should be in the same
-// region. See here to learn more
+// VirtualNetworkPeeringPropertiesFormatRemoteVirtualNetwork the remote virtual network should be in the
+// same region. See here to learn more
 // (https://docs.microsoft.com/en-us/azure/databricks/administration-guide/cloud-configurations/azure/vnet-peering).
 type VirtualNetworkPeeringPropertiesFormatRemoteVirtualNetwork struct {
 	// ID - The Id of the remote virtual network.
 	ID *string `json:"id,omitempty"`
 }
 
-// VNetPeeringCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// VNetPeeringCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type VNetPeeringCreateOrUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *VNetPeeringCreateOrUpdateFuture) Result(client VNetPeeringClient) (vnp VirtualNetworkPeering, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "databricks.VNetPeeringCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("databricks.VNetPeeringCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if vnp.Response.Response, err = future.GetResult(sender); err == nil && vnp.Response.Response.StatusCode != http.StatusNoContent {
-		vnp, err = client.CreateOrUpdateResponder(vnp.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "databricks.VNetPeeringCreateOrUpdateFuture", "Result", vnp.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(VNetPeeringClient) (VirtualNetworkPeering, error)
 }
 
 // VNetPeeringDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type VNetPeeringDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *VNetPeeringDeleteFuture) Result(client VNetPeeringClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "databricks.VNetPeeringDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("databricks.VNetPeeringDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(VNetPeeringClient) (autorest.Response, error)
 }
 
 // Workspace information about workspace.
@@ -988,8 +960,11 @@ func (page WorkspaceListResultPage) Values() []Workspace {
 }
 
 // Creates a new instance of the WorkspaceListResultPage type.
-func NewWorkspaceListResultPage(getNextPage func(context.Context, WorkspaceListResult) (WorkspaceListResult, error)) WorkspaceListResultPage {
-	return WorkspaceListResultPage{fn: getNextPage}
+func NewWorkspaceListResultPage(cur WorkspaceListResult, getNextPage func(context.Context, WorkspaceListResult) (WorkspaceListResult, error)) WorkspaceListResultPage {
+	return WorkspaceListResultPage{
+		fn:  getNextPage,
+		wlr: cur,
+	}
 }
 
 // WorkspaceProperties the workspace properties.
@@ -1056,83 +1031,31 @@ type WorkspaceProviderAuthorization struct {
 	RoleDefinitionID *uuid.UUID `json:"roleDefinitionId,omitempty"`
 }
 
-// WorkspacesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// WorkspacesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type WorkspacesCreateOrUpdateFuture struct {
-	azure.Future
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(WorkspacesClient) (Workspace, error)
 }
 
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *WorkspacesCreateOrUpdateFuture) Result(client WorkspacesClient) (w Workspace, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "databricks.WorkspacesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("databricks.WorkspacesCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if w.Response.Response, err = future.GetResult(sender); err == nil && w.Response.Response.StatusCode != http.StatusNoContent {
-		w, err = client.CreateOrUpdateResponder(w.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "databricks.WorkspacesCreateOrUpdateFuture", "Result", w.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// WorkspacesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// WorkspacesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type WorkspacesDeleteFuture struct {
-	azure.Future
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(WorkspacesClient) (autorest.Response, error)
 }
 
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *WorkspacesDeleteFuture) Result(client WorkspacesClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "databricks.WorkspacesDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("databricks.WorkspacesDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
-}
-
-// WorkspacesUpdateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// WorkspacesUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type WorkspacesUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *WorkspacesUpdateFuture) Result(client WorkspacesClient) (w Workspace, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "databricks.WorkspacesUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("databricks.WorkspacesUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if w.Response.Response, err = future.GetResult(sender); err == nil && w.Response.Response.StatusCode != http.StatusNoContent {
-		w, err = client.UpdateResponder(w.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "databricks.WorkspacesUpdateFuture", "Result", w.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(WorkspacesClient) (Workspace, error)
 }
 
 // WorkspaceUpdate an update to a workspace.

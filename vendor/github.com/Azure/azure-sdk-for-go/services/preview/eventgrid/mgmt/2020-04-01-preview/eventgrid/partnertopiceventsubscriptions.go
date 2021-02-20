@@ -69,7 +69,7 @@ func (client PartnerTopicEventSubscriptionsClient) CreateOrUpdate(ctx context.Co
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -108,7 +108,33 @@ func (client PartnerTopicEventSubscriptionsClient) CreateOrUpdateSender(req *htt
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client PartnerTopicEventSubscriptionsClient) (es EventSubscription, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("eventgrid.PartnerTopicEventSubscriptionsCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		es.Response.Response, err = future.GetResult(sender)
+		if es.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && es.Response.Response.StatusCode != http.StatusNoContent {
+			es, err = client.CreateOrUpdateResponder(es.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsCreateOrUpdateFuture", "Result", es.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -149,7 +175,7 @@ func (client PartnerTopicEventSubscriptionsClient) Delete(ctx context.Context, r
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -186,7 +212,23 @@ func (client PartnerTopicEventSubscriptionsClient) DeleteSender(req *http.Reques
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client PartnerTopicEventSubscriptionsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("eventgrid.PartnerTopicEventSubscriptionsDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -234,6 +276,7 @@ func (client PartnerTopicEventSubscriptionsClient) Get(ctx context.Context, reso
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -312,6 +355,7 @@ func (client PartnerTopicEventSubscriptionsClient) GetFullURL(ctx context.Contex
 	result, err = client.GetFullURLResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsClient", "GetFullURL", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -397,9 +441,11 @@ func (client PartnerTopicEventSubscriptionsClient) ListByPartnerTopic(ctx contex
 	result.eslr, err = client.ListByPartnerTopicResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsClient", "ListByPartnerTopic", resp, "Failure responding to request")
+		return
 	}
 	if result.eslr.hasNextLink() && result.eslr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -513,7 +559,7 @@ func (client PartnerTopicEventSubscriptionsClient) Update(ctx context.Context, r
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsClient", "Update", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsClient", "Update", nil, "Failure sending request")
 		return
 	}
 
@@ -552,7 +598,33 @@ func (client PartnerTopicEventSubscriptionsClient) UpdateSender(req *http.Reques
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client PartnerTopicEventSubscriptionsClient) (es EventSubscription, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("eventgrid.PartnerTopicEventSubscriptionsUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		es.Response.Response, err = future.GetResult(sender)
+		if es.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && es.Response.Response.StatusCode != http.StatusNoContent {
+			es, err = client.UpdateResponder(es.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsUpdateFuture", "Result", es.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

@@ -89,7 +89,7 @@ func (client ServerEndpointsClient) Create(ctx context.Context, resourceGroupNam
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storagesync.ServerEndpointsClient", "Create", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storagesync.ServerEndpointsClient", "Create", nil, "Failure sending request")
 		return
 	}
 
@@ -129,7 +129,33 @@ func (client ServerEndpointsClient) CreateSender(req *http.Request) (future Serv
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ServerEndpointsClient) (se ServerEndpoint, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "storagesync.ServerEndpointsCreateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("storagesync.ServerEndpointsCreateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		se.Response.Response, err = future.GetResult(sender)
+		if se.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "storagesync.ServerEndpointsCreateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && se.Response.Response.StatusCode != http.StatusNoContent {
+			se, err = client.CreateResponder(se.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "storagesync.ServerEndpointsCreateFuture", "Result", se.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -180,7 +206,7 @@ func (client ServerEndpointsClient) Delete(ctx context.Context, resourceGroupNam
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storagesync.ServerEndpointsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storagesync.ServerEndpointsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -218,7 +244,23 @@ func (client ServerEndpointsClient) DeleteSender(req *http.Request) (future Serv
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ServerEndpointsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "storagesync.ServerEndpointsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("storagesync.ServerEndpointsDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -276,6 +318,7 @@ func (client ServerEndpointsClient) Get(ctx context.Context, resourceGroupName s
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storagesync.ServerEndpointsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -364,6 +407,7 @@ func (client ServerEndpointsClient) ListBySyncGroup(ctx context.Context, resourc
 	result, err = client.ListBySyncGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storagesync.ServerEndpointsClient", "ListBySyncGroup", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -445,7 +489,7 @@ func (client ServerEndpointsClient) RecallAction(ctx context.Context, resourceGr
 
 	result, err = client.RecallActionSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storagesync.ServerEndpointsClient", "RecallAction", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storagesync.ServerEndpointsClient", "RecallAction", nil, "Failure sending request")
 		return
 	}
 
@@ -485,7 +529,23 @@ func (client ServerEndpointsClient) RecallActionSender(req *http.Request) (futur
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ServerEndpointsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "storagesync.ServerEndpointsRecallActionFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("storagesync.ServerEndpointsRecallActionFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -536,7 +596,7 @@ func (client ServerEndpointsClient) Update(ctx context.Context, resourceGroupNam
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storagesync.ServerEndpointsClient", "Update", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storagesync.ServerEndpointsClient", "Update", nil, "Failure sending request")
 		return
 	}
 
@@ -579,7 +639,33 @@ func (client ServerEndpointsClient) UpdateSender(req *http.Request) (future Serv
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ServerEndpointsClient) (se ServerEndpoint, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "storagesync.ServerEndpointsUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("storagesync.ServerEndpointsUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		se.Response.Response, err = future.GetResult(sender)
+		if se.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "storagesync.ServerEndpointsUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && se.Response.Response.StatusCode != http.StatusNoContent {
+			se, err = client.UpdateResponder(se.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "storagesync.ServerEndpointsUpdateFuture", "Result", se.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

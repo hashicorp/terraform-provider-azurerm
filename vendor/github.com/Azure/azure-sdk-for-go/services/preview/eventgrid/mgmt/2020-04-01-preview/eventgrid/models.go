@@ -869,52 +869,19 @@ type DomainRegenerateKeyRequest struct {
 // DomainsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type DomainsCreateOrUpdateFuture struct {
-	azure.Future
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(DomainsClient) (Domain, error)
 }
 
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *DomainsCreateOrUpdateFuture) Result(client DomainsClient) (d Domain, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.DomainsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("eventgrid.DomainsCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if d.Response.Response, err = future.GetResult(sender); err == nil && d.Response.Response.StatusCode != http.StatusNoContent {
-		d, err = client.CreateOrUpdateResponder(d.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "eventgrid.DomainsCreateOrUpdateFuture", "Result", d.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// DomainsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// DomainsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type DomainsDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *DomainsDeleteFuture) Result(client DomainsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.DomainsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("eventgrid.DomainsDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(DomainsClient) (autorest.Response, error)
 }
 
 // DomainSharedAccessKeys shared access keys of the Domain.
@@ -1078,36 +1045,20 @@ func (page DomainsListResultPage) Values() []Domain {
 }
 
 // Creates a new instance of the DomainsListResultPage type.
-func NewDomainsListResultPage(getNextPage func(context.Context, DomainsListResult) (DomainsListResult, error)) DomainsListResultPage {
-	return DomainsListResultPage{fn: getNextPage}
+func NewDomainsListResultPage(cur DomainsListResult, getNextPage func(context.Context, DomainsListResult) (DomainsListResult, error)) DomainsListResultPage {
+	return DomainsListResultPage{
+		fn:  getNextPage,
+		dlr: cur,
+	}
 }
 
-// DomainsUpdateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// DomainsUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type DomainsUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *DomainsUpdateFuture) Result(client DomainsClient) (d Domain, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.DomainsUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("eventgrid.DomainsUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if d.Response.Response, err = future.GetResult(sender); err == nil && d.Response.Response.StatusCode != http.StatusNoContent {
-		d, err = client.UpdateResponder(d.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "eventgrid.DomainsUpdateFuture", "Result", d.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(DomainsClient) (Domain, error)
 }
 
 // DomainTopic domain Topic.
@@ -1189,56 +1140,22 @@ type DomainTopicProperties struct {
 	ProvisioningState DomainTopicProvisioningState `json:"provisioningState,omitempty"`
 }
 
-// DomainTopicsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// DomainTopicsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type DomainTopicsCreateOrUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *DomainTopicsCreateOrUpdateFuture) Result(client DomainTopicsClient) (dt DomainTopic, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.DomainTopicsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("eventgrid.DomainTopicsCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if dt.Response.Response, err = future.GetResult(sender); err == nil && dt.Response.Response.StatusCode != http.StatusNoContent {
-		dt, err = client.CreateOrUpdateResponder(dt.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "eventgrid.DomainTopicsCreateOrUpdateFuture", "Result", dt.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(DomainTopicsClient) (DomainTopic, error)
 }
 
 // DomainTopicsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type DomainTopicsDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *DomainTopicsDeleteFuture) Result(client DomainTopicsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.DomainTopicsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("eventgrid.DomainTopicsDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(DomainTopicsClient) (autorest.Response, error)
 }
 
 // DomainTopicsListResult result of the List Domain Topics operation
@@ -1393,8 +1310,11 @@ func (page DomainTopicsListResultPage) Values() []DomainTopic {
 }
 
 // Creates a new instance of the DomainTopicsListResultPage type.
-func NewDomainTopicsListResultPage(getNextPage func(context.Context, DomainTopicsListResult) (DomainTopicsListResult, error)) DomainTopicsListResultPage {
-	return DomainTopicsListResultPage{fn: getNextPage}
+func NewDomainTopicsListResultPage(cur DomainTopicsListResult, getNextPage func(context.Context, DomainTopicsListResult) (DomainTopicsListResult, error)) DomainTopicsListResultPage {
+	return DomainTopicsListResultPage{
+		fn:   getNextPage,
+		dtlr: cur,
+	}
 }
 
 // DomainUpdateParameterProperties information of domain update parameter properties.
@@ -1645,24 +1565,10 @@ func (ecp EventChannelProperties) MarshalJSON() ([]byte, error) {
 // EventChannelsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type EventChannelsDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *EventChannelsDeleteFuture) Result(client EventChannelsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.EventChannelsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("eventgrid.EventChannelsDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(EventChannelsClient) (autorest.Response, error)
 }
 
 // EventChannelsListResult result of the List Event Channels operation
@@ -1817,8 +1723,11 @@ func (page EventChannelsListResultPage) Values() []EventChannel {
 }
 
 // Creates a new instance of the EventChannelsListResultPage type.
-func NewEventChannelsListResultPage(getNextPage func(context.Context, EventChannelsListResult) (EventChannelsListResult, error)) EventChannelsListResultPage {
-	return EventChannelsListResultPage{fn: getNextPage}
+func NewEventChannelsListResultPage(cur EventChannelsListResult, getNextPage func(context.Context, EventChannelsListResult) (EventChannelsListResult, error)) EventChannelsListResultPage {
+	return EventChannelsListResultPage{
+		fn:   getNextPage,
+		eclr: cur,
+	}
 }
 
 // EventChannelSource properties of the source of an event channel.
@@ -1828,7 +1737,8 @@ type EventChannelSource struct {
 	Source *string `json:"source,omitempty"`
 }
 
-// EventHubEventSubscriptionDestination information about the event hub destination for an event subscription.
+// EventHubEventSubscriptionDestination information about the event hub destination for an event
+// subscription.
 type EventHubEventSubscriptionDestination struct {
 	// EventHubEventSubscriptionDestinationProperties - Event Hub Properties of the event subscription destination.
 	*EventHubEventSubscriptionDestinationProperties `json:"properties,omitempty"`
@@ -2406,53 +2316,19 @@ func (esp *EventSubscriptionProperties) UnmarshalJSON(body []byte) error {
 // EventSubscriptionsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type EventSubscriptionsCreateOrUpdateFuture struct {
-	azure.Future
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(EventSubscriptionsClient) (EventSubscription, error)
 }
 
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *EventSubscriptionsCreateOrUpdateFuture) Result(client EventSubscriptionsClient) (es EventSubscription, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("eventgrid.EventSubscriptionsCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if es.Response.Response, err = future.GetResult(sender); err == nil && es.Response.Response.StatusCode != http.StatusNoContent {
-		es, err = client.CreateOrUpdateResponder(es.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsCreateOrUpdateFuture", "Result", es.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// EventSubscriptionsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// EventSubscriptionsDeleteFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type EventSubscriptionsDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *EventSubscriptionsDeleteFuture) Result(client EventSubscriptionsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("eventgrid.EventSubscriptionsDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(EventSubscriptionsClient) (autorest.Response, error)
 }
 
 // EventSubscriptionsListResult result of the List EventSubscriptions operation
@@ -2607,37 +2483,20 @@ func (page EventSubscriptionsListResultPage) Values() []EventSubscription {
 }
 
 // Creates a new instance of the EventSubscriptionsListResultPage type.
-func NewEventSubscriptionsListResultPage(getNextPage func(context.Context, EventSubscriptionsListResult) (EventSubscriptionsListResult, error)) EventSubscriptionsListResultPage {
-	return EventSubscriptionsListResultPage{fn: getNextPage}
+func NewEventSubscriptionsListResultPage(cur EventSubscriptionsListResult, getNextPage func(context.Context, EventSubscriptionsListResult) (EventSubscriptionsListResult, error)) EventSubscriptionsListResultPage {
+	return EventSubscriptionsListResultPage{
+		fn:   getNextPage,
+		eslr: cur,
+	}
 }
 
-// EventSubscriptionsUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// EventSubscriptionsUpdateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type EventSubscriptionsUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *EventSubscriptionsUpdateFuture) Result(client EventSubscriptionsClient) (es EventSubscription, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("eventgrid.EventSubscriptionsUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if es.Response.Response, err = future.GetResult(sender); err == nil && es.Response.Response.StatusCode != http.StatusNoContent {
-		es, err = client.UpdateResponder(es.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsUpdateFuture", "Result", es.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(EventSubscriptionsClient) (EventSubscription, error)
 }
 
 // EventSubscriptionUpdateParameters properties of the Event Subscription update.
@@ -2933,8 +2792,8 @@ type ExtensionTopicProperties struct {
 	SystemTopic *string `json:"systemTopic,omitempty"`
 }
 
-// HybridConnectionEventSubscriptionDestination information about the HybridConnection destination for an event
-// subscription.
+// HybridConnectionEventSubscriptionDestination information about the HybridConnection destination for an
+// event subscription.
 type HybridConnectionEventSubscriptionDestination struct {
 	// HybridConnectionEventSubscriptionDestinationProperties - Hybrid connection Properties of the event subscription destination.
 	*HybridConnectionEventSubscriptionDestinationProperties `json:"properties,omitempty"`
@@ -3033,7 +2892,8 @@ func (hcesd *HybridConnectionEventSubscriptionDestination) UnmarshalJSON(body []
 	return nil
 }
 
-// HybridConnectionEventSubscriptionDestinationProperties the properties for a hybrid connection destination.
+// HybridConnectionEventSubscriptionDestinationProperties the properties for a hybrid connection
+// destination.
 type HybridConnectionEventSubscriptionDestinationProperties struct {
 	// ResourceID - The Azure Resource ID of an hybrid connection that is the destination of an event subscription.
 	ResourceID *string `json:"resourceId,omitempty"`
@@ -3165,7 +3025,8 @@ type JSONField struct {
 	SourceField *string `json:"sourceField,omitempty"`
 }
 
-// JSONFieldWithDefault this is used to express the source of an input schema mapping for a single target field
+// JSONFieldWithDefault this is used to express the source of an input schema mapping for a single target
+// field
 // in the Event Grid Event schema. This is currently used in the mappings for the 'subject',
 // 'eventtype' and 'dataversion' properties. This represents a field in the input event schema
 // along with a default value to be used, and at least one of these two properties should be provided.
@@ -3176,8 +3037,8 @@ type JSONFieldWithDefault struct {
 	DefaultValue *string `json:"defaultValue,omitempty"`
 }
 
-// JSONInputSchemaMapping this enables publishing to Event Grid using a custom input schema. This can be used
-// to map properties from a custom input JSON schema to the Event Grid event schema.
+// JSONInputSchemaMapping this enables publishing to Event Grid using a custom input schema. This can be
+// used to map properties from a custom input JSON schema to the Event Grid event schema.
 type JSONInputSchemaMapping struct {
 	// JSONInputSchemaMappingProperties - JSON Properties of the input schema mapping
 	*JSONInputSchemaMappingProperties `json:"properties,omitempty"`
@@ -3246,8 +3107,8 @@ func (jism *JSONInputSchemaMapping) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// JSONInputSchemaMappingProperties this can be used to map properties of a source schema (or default values,
-// for certain supported properties) to properties of the EventGridEvent schema.
+// JSONInputSchemaMappingProperties this can be used to map properties of a source schema (or default
+// values, for certain supported properties) to properties of the EventGridEvent schema.
 type JSONInputSchemaMappingProperties struct {
 	// ID - The mapping information for the Id property of the Event Grid Event.
 	ID *JSONField `json:"id,omitempty"`
@@ -4000,53 +3861,19 @@ type PartnerNamespaceRegenerateKeyRequest struct {
 // PartnerNamespacesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type PartnerNamespacesCreateOrUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *PartnerNamespacesCreateOrUpdateFuture) Result(client PartnerNamespacesClient) (pn PartnerNamespace, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("eventgrid.PartnerNamespacesCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if pn.Response.Response, err = future.GetResult(sender); err == nil && pn.Response.Response.StatusCode != http.StatusNoContent {
-		pn, err = client.CreateOrUpdateResponder(pn.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesCreateOrUpdateFuture", "Result", pn.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(PartnerNamespacesClient) (PartnerNamespace, error)
 }
 
 // PartnerNamespacesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type PartnerNamespacesDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *PartnerNamespacesDeleteFuture) Result(client PartnerNamespacesClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("eventgrid.PartnerNamespacesDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(PartnerNamespacesClient) (autorest.Response, error)
 }
 
 // PartnerNamespaceSharedAccessKeys shared access keys of the partner namespace.
@@ -4210,37 +4037,20 @@ func (page PartnerNamespacesListResultPage) Values() []PartnerNamespace {
 }
 
 // Creates a new instance of the PartnerNamespacesListResultPage type.
-func NewPartnerNamespacesListResultPage(getNextPage func(context.Context, PartnerNamespacesListResult) (PartnerNamespacesListResult, error)) PartnerNamespacesListResultPage {
-	return PartnerNamespacesListResultPage{fn: getNextPage}
+func NewPartnerNamespacesListResultPage(cur PartnerNamespacesListResult, getNextPage func(context.Context, PartnerNamespacesListResult) (PartnerNamespacesListResult, error)) PartnerNamespacesListResultPage {
+	return PartnerNamespacesListResultPage{
+		fn:   getNextPage,
+		pnlr: cur,
+	}
 }
 
 // PartnerNamespacesUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type PartnerNamespacesUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *PartnerNamespacesUpdateFuture) Result(client PartnerNamespacesClient) (pn PartnerNamespace, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("eventgrid.PartnerNamespacesUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if pn.Response.Response, err = future.GetResult(sender); err == nil && pn.Response.Response.StatusCode != http.StatusNoContent {
-		pn, err = client.UpdateResponder(pn.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesUpdateFuture", "Result", pn.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(PartnerNamespacesClient) (PartnerNamespace, error)
 }
 
 // PartnerNamespaceUpdateParameters properties of the PartnerNamespace update.
@@ -4456,7 +4266,8 @@ type PartnerRegistrationsListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// PartnerRegistrationsListResultIterator provides access to a complete listing of PartnerRegistration values.
+// PartnerRegistrationsListResultIterator provides access to a complete listing of PartnerRegistration
+// values.
 type PartnerRegistrationsListResultIterator struct {
 	i    int
 	page PartnerRegistrationsListResultPage
@@ -4599,8 +4410,11 @@ func (page PartnerRegistrationsListResultPage) Values() []PartnerRegistration {
 }
 
 // Creates a new instance of the PartnerRegistrationsListResultPage type.
-func NewPartnerRegistrationsListResultPage(getNextPage func(context.Context, PartnerRegistrationsListResult) (PartnerRegistrationsListResult, error)) PartnerRegistrationsListResultPage {
-	return PartnerRegistrationsListResultPage{fn: getNextPage}
+func NewPartnerRegistrationsListResultPage(cur PartnerRegistrationsListResult, getNextPage func(context.Context, PartnerRegistrationsListResult) (PartnerRegistrationsListResult, error)) PartnerRegistrationsListResultPage {
+	return PartnerRegistrationsListResultPage{
+		fn:   getNextPage,
+		prlr: cur,
+	}
 }
 
 // PartnerRegistrationUpdateParameters properties of the Partner Registration update.
@@ -4753,85 +4567,31 @@ func (pt *PartnerTopic) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// PartnerTopicEventSubscriptionsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results
-// of a long-running operation.
+// PartnerTopicEventSubscriptionsCreateOrUpdateFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
 type PartnerTopicEventSubscriptionsCreateOrUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *PartnerTopicEventSubscriptionsCreateOrUpdateFuture) Result(client PartnerTopicEventSubscriptionsClient) (es EventSubscription, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("eventgrid.PartnerTopicEventSubscriptionsCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if es.Response.Response, err = future.GetResult(sender); err == nil && es.Response.Response.StatusCode != http.StatusNoContent {
-		es, err = client.CreateOrUpdateResponder(es.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsCreateOrUpdateFuture", "Result", es.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(PartnerTopicEventSubscriptionsClient) (EventSubscription, error)
 }
 
 // PartnerTopicEventSubscriptionsDeleteFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type PartnerTopicEventSubscriptionsDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *PartnerTopicEventSubscriptionsDeleteFuture) Result(client PartnerTopicEventSubscriptionsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("eventgrid.PartnerTopicEventSubscriptionsDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(PartnerTopicEventSubscriptionsClient) (autorest.Response, error)
 }
 
 // PartnerTopicEventSubscriptionsUpdateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type PartnerTopicEventSubscriptionsUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *PartnerTopicEventSubscriptionsUpdateFuture) Result(client PartnerTopicEventSubscriptionsClient) (es EventSubscription, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("eventgrid.PartnerTopicEventSubscriptionsUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if es.Response.Response, err = future.GetResult(sender); err == nil && es.Response.Response.StatusCode != http.StatusNoContent {
-		es, err = client.UpdateResponder(es.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicEventSubscriptionsUpdateFuture", "Result", es.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(PartnerTopicEventSubscriptionsClient) (EventSubscription, error)
 }
 
 // PartnerTopicProperties properties of the Partner Topic.
@@ -4871,24 +4631,10 @@ func (ptp PartnerTopicProperties) MarshalJSON() ([]byte, error) {
 // PartnerTopicsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type PartnerTopicsDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *PartnerTopicsDeleteFuture) Result(client PartnerTopicsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("eventgrid.PartnerTopicsDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(PartnerTopicsClient) (autorest.Response, error)
 }
 
 // PartnerTopicsListResult result of the List Partner Topics operation.
@@ -5043,8 +4789,11 @@ func (page PartnerTopicsListResultPage) Values() []PartnerTopic {
 }
 
 // Creates a new instance of the PartnerTopicsListResultPage type.
-func NewPartnerTopicsListResultPage(getNextPage func(context.Context, PartnerTopicsListResult) (PartnerTopicsListResult, error)) PartnerTopicsListResultPage {
-	return PartnerTopicsListResultPage{fn: getNextPage}
+func NewPartnerTopicsListResultPage(cur PartnerTopicsListResult, getNextPage func(context.Context, PartnerTopicsListResult) (PartnerTopicsListResult, error)) PartnerTopicsListResultPage {
+	return PartnerTopicsListResultPage{
+		fn:   getNextPage,
+		ptlr: cur,
+	}
 }
 
 // PartnerTopicType properties of a partner topic type.
@@ -5390,8 +5139,11 @@ func (page PrivateEndpointConnectionListResultPage) Values() []PrivateEndpointCo
 }
 
 // Creates a new instance of the PrivateEndpointConnectionListResultPage type.
-func NewPrivateEndpointConnectionListResultPage(getNextPage func(context.Context, PrivateEndpointConnectionListResult) (PrivateEndpointConnectionListResult, error)) PrivateEndpointConnectionListResultPage {
-	return PrivateEndpointConnectionListResultPage{fn: getNextPage}
+func NewPrivateEndpointConnectionListResultPage(cur PrivateEndpointConnectionListResult, getNextPage func(context.Context, PrivateEndpointConnectionListResult) (PrivateEndpointConnectionListResult, error)) PrivateEndpointConnectionListResultPage {
+	return PrivateEndpointConnectionListResultPage{
+		fn:    getNextPage,
+		peclr: cur,
+	}
 }
 
 // PrivateEndpointConnectionProperties properties of the private endpoint connection resource.
@@ -5409,53 +5161,19 @@ type PrivateEndpointConnectionProperties struct {
 // PrivateEndpointConnectionsDeleteFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type PrivateEndpointConnectionsDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *PrivateEndpointConnectionsDeleteFuture) Result(client PrivateEndpointConnectionsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PrivateEndpointConnectionsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("eventgrid.PrivateEndpointConnectionsDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(PrivateEndpointConnectionsClient) (autorest.Response, error)
 }
 
 // PrivateEndpointConnectionsUpdateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type PrivateEndpointConnectionsUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *PrivateEndpointConnectionsUpdateFuture) Result(client PrivateEndpointConnectionsClient) (pec PrivateEndpointConnection, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PrivateEndpointConnectionsUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("eventgrid.PrivateEndpointConnectionsUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if pec.Response.Response, err = future.GetResult(sender); err == nil && pec.Response.Response.StatusCode != http.StatusNoContent {
-		pec, err = client.UpdateResponder(pec.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "eventgrid.PrivateEndpointConnectionsUpdateFuture", "Result", pec.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(PrivateEndpointConnectionsClient) (PrivateEndpointConnection, error)
 }
 
 // PrivateLinkResource information of the private link resource.
@@ -5557,7 +5275,8 @@ type PrivateLinkResourcesListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// PrivateLinkResourcesListResultIterator provides access to a complete listing of PrivateLinkResource values.
+// PrivateLinkResourcesListResultIterator provides access to a complete listing of PrivateLinkResource
+// values.
 type PrivateLinkResourcesListResultIterator struct {
 	i    int
 	page PrivateLinkResourcesListResultPage
@@ -5700,8 +5419,11 @@ func (page PrivateLinkResourcesListResultPage) Values() []PrivateLinkResource {
 }
 
 // Creates a new instance of the PrivateLinkResourcesListResultPage type.
-func NewPrivateLinkResourcesListResultPage(getNextPage func(context.Context, PrivateLinkResourcesListResult) (PrivateLinkResourcesListResult, error)) PrivateLinkResourcesListResultPage {
-	return PrivateLinkResourcesListResultPage{fn: getNextPage}
+func NewPrivateLinkResourcesListResultPage(cur PrivateLinkResourcesListResult, getNextPage func(context.Context, PrivateLinkResourcesListResult) (PrivateLinkResourcesListResult, error)) PrivateLinkResourcesListResultPage {
+	return PrivateLinkResourcesListResultPage{
+		fn:    getNextPage,
+		plrlr: cur,
+	}
 }
 
 // Resource definition of a Resource
@@ -5835,8 +5557,8 @@ type ServiceBusQueueEventSubscriptionDestinationProperties struct {
 	ResourceID *string `json:"resourceId,omitempty"`
 }
 
-// ServiceBusTopicEventSubscriptionDestination information about the service bus topic destination for an event
-// subscription.
+// ServiceBusTopicEventSubscriptionDestination information about the service bus topic destination for an
+// event subscription.
 type ServiceBusTopicEventSubscriptionDestination struct {
 	// ServiceBusTopicEventSubscriptionDestinationProperties - Service Bus Topic Properties of the event subscription destination.
 	*ServiceBusTopicEventSubscriptionDestinationProperties `json:"properties,omitempty"`
@@ -5935,8 +5657,8 @@ func (sbtesd *ServiceBusTopicEventSubscriptionDestination) UnmarshalJSON(body []
 	return nil
 }
 
-// ServiceBusTopicEventSubscriptionDestinationProperties the properties that represent the Service Bus Topic
-// destination of an event subscription.
+// ServiceBusTopicEventSubscriptionDestinationProperties the properties that represent the Service Bus
+// Topic destination of an event subscription.
 type ServiceBusTopicEventSubscriptionDestinationProperties struct {
 	// ResourceID - The Azure Resource Id that represents the endpoint of the Service Bus Topic destination of an event subscription.
 	ResourceID *string `json:"resourceId,omitempty"`
@@ -6708,85 +6430,31 @@ func (st *SystemTopic) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// SystemTopicEventSubscriptionsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results
-// of a long-running operation.
+// SystemTopicEventSubscriptionsCreateOrUpdateFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
 type SystemTopicEventSubscriptionsCreateOrUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *SystemTopicEventSubscriptionsCreateOrUpdateFuture) Result(client SystemTopicEventSubscriptionsClient) (es EventSubscription, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.SystemTopicEventSubscriptionsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("eventgrid.SystemTopicEventSubscriptionsCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if es.Response.Response, err = future.GetResult(sender); err == nil && es.Response.Response.StatusCode != http.StatusNoContent {
-		es, err = client.CreateOrUpdateResponder(es.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "eventgrid.SystemTopicEventSubscriptionsCreateOrUpdateFuture", "Result", es.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(SystemTopicEventSubscriptionsClient) (EventSubscription, error)
 }
 
 // SystemTopicEventSubscriptionsDeleteFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type SystemTopicEventSubscriptionsDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *SystemTopicEventSubscriptionsDeleteFuture) Result(client SystemTopicEventSubscriptionsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.SystemTopicEventSubscriptionsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("eventgrid.SystemTopicEventSubscriptionsDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(SystemTopicEventSubscriptionsClient) (autorest.Response, error)
 }
 
 // SystemTopicEventSubscriptionsUpdateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type SystemTopicEventSubscriptionsUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *SystemTopicEventSubscriptionsUpdateFuture) Result(client SystemTopicEventSubscriptionsClient) (es EventSubscription, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.SystemTopicEventSubscriptionsUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("eventgrid.SystemTopicEventSubscriptionsUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if es.Response.Response, err = future.GetResult(sender); err == nil && es.Response.Response.StatusCode != http.StatusNoContent {
-		es, err = client.UpdateResponder(es.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "eventgrid.SystemTopicEventSubscriptionsUpdateFuture", "Result", es.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(SystemTopicEventSubscriptionsClient) (EventSubscription, error)
 }
 
 // SystemTopicProperties properties of the System Topic.
@@ -6813,56 +6481,22 @@ func (stp SystemTopicProperties) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// SystemTopicsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// SystemTopicsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type SystemTopicsCreateOrUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *SystemTopicsCreateOrUpdateFuture) Result(client SystemTopicsClient) (st SystemTopic, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.SystemTopicsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("eventgrid.SystemTopicsCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if st.Response.Response, err = future.GetResult(sender); err == nil && st.Response.Response.StatusCode != http.StatusNoContent {
-		st, err = client.CreateOrUpdateResponder(st.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "eventgrid.SystemTopicsCreateOrUpdateFuture", "Result", st.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(SystemTopicsClient) (SystemTopic, error)
 }
 
 // SystemTopicsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type SystemTopicsDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *SystemTopicsDeleteFuture) Result(client SystemTopicsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.SystemTopicsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("eventgrid.SystemTopicsDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(SystemTopicsClient) (autorest.Response, error)
 }
 
 // SystemTopicsListResult result of the List System topics operation.
@@ -7017,37 +6651,20 @@ func (page SystemTopicsListResultPage) Values() []SystemTopic {
 }
 
 // Creates a new instance of the SystemTopicsListResultPage type.
-func NewSystemTopicsListResultPage(getNextPage func(context.Context, SystemTopicsListResult) (SystemTopicsListResult, error)) SystemTopicsListResultPage {
-	return SystemTopicsListResultPage{fn: getNextPage}
+func NewSystemTopicsListResultPage(cur SystemTopicsListResult, getNextPage func(context.Context, SystemTopicsListResult) (SystemTopicsListResult, error)) SystemTopicsListResultPage {
+	return SystemTopicsListResultPage{
+		fn:   getNextPage,
+		stlr: cur,
+	}
 }
 
 // SystemTopicsUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type SystemTopicsUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *SystemTopicsUpdateFuture) Result(client SystemTopicsClient) (st SystemTopic, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.SystemTopicsUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("eventgrid.SystemTopicsUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if st.Response.Response, err = future.GetResult(sender); err == nil && st.Response.Response.StatusCode != http.StatusNoContent {
-		st, err = client.UpdateResponder(st.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "eventgrid.SystemTopicsUpdateFuture", "Result", st.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(SystemTopicsClient) (SystemTopic, error)
 }
 
 // SystemTopicUpdateParameters properties of the System Topic update.
@@ -7328,52 +6945,18 @@ type TopicRegenerateKeyRequest struct {
 // TopicsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type TopicsCreateOrUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *TopicsCreateOrUpdateFuture) Result(client TopicsClient) (t Topic, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.TopicsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("eventgrid.TopicsCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if t.Response.Response, err = future.GetResult(sender); err == nil && t.Response.Response.StatusCode != http.StatusNoContent {
-		t, err = client.CreateOrUpdateResponder(t.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "eventgrid.TopicsCreateOrUpdateFuture", "Result", t.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(TopicsClient) (Topic, error)
 }
 
 // TopicsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type TopicsDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *TopicsDeleteFuture) Result(client TopicsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.TopicsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("eventgrid.TopicsDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(TopicsClient) (autorest.Response, error)
 }
 
 // TopicSharedAccessKeys shared access keys of the Topic
@@ -7537,36 +7120,19 @@ func (page TopicsListResultPage) Values() []Topic {
 }
 
 // Creates a new instance of the TopicsListResultPage type.
-func NewTopicsListResultPage(getNextPage func(context.Context, TopicsListResult) (TopicsListResult, error)) TopicsListResultPage {
-	return TopicsListResultPage{fn: getNextPage}
+func NewTopicsListResultPage(cur TopicsListResult, getNextPage func(context.Context, TopicsListResult) (TopicsListResult, error)) TopicsListResultPage {
+	return TopicsListResultPage{
+		fn:  getNextPage,
+		tlr: cur,
+	}
 }
 
 // TopicsUpdateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type TopicsUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *TopicsUpdateFuture) Result(client TopicsClient) (t Topic, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.TopicsUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("eventgrid.TopicsUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if t.Response.Response, err = future.GetResult(sender); err == nil && t.Response.Response.StatusCode != http.StatusNoContent {
-		t, err = client.UpdateResponder(t.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "eventgrid.TopicsUpdateFuture", "Result", t.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(TopicsClient) (Topic, error)
 }
 
 // TopicTypeInfo properties of a topic type info.
@@ -7890,8 +7456,8 @@ func (whesd *WebHookEventSubscriptionDestination) UnmarshalJSON(body []byte) err
 	return nil
 }
 
-// WebHookEventSubscriptionDestinationProperties information about the webhook destination properties for an
-// event subscription.
+// WebHookEventSubscriptionDestinationProperties information about the webhook destination properties for
+// an event subscription.
 type WebHookEventSubscriptionDestinationProperties struct {
 	// EndpointURL - The URL that represents the endpoint of the destination of an event subscription.
 	EndpointURL *string `json:"endpointUrl,omitempty"`

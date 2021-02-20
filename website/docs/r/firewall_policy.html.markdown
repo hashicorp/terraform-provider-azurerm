@@ -32,6 +32,8 @@ The following arguments are supported:
 
 ---
 
+* `sku` - (Optional) The SKU Tier of the Firewall Policy. Possible values are `Standard`, `Premium`.
+
 * `base_policy_id` - (Optional) The ID of the base Firewall Policy.
 
 * `dns` - (Optional) A `dns` block as defined below.
@@ -49,8 +51,6 @@ A `dns` block supports the following:
 * `servers` - (Optional) A list of custom DNS servers' IP addresses.
 
 * `proxy_enabled` - (Optional) Whether to enable DNS proxy on Firewalls attached to this Firewall Policy? Defaults to `false`.
-
-* `network_rule_fqdn_enabled` - (Optional) Whether FQDNS in Network Rules belongs to this Firewall Policy are supported? Defaults to `false`.
 
 ---
 

@@ -70,7 +70,7 @@ func (client BackupShortTermRetentionPoliciesClient) CreateOrUpdate(ctx context.
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.BackupShortTermRetentionPoliciesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.BackupShortTermRetentionPoliciesClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -110,7 +110,33 @@ func (client BackupShortTermRetentionPoliciesClient) CreateOrUpdateSender(req *h
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client BackupShortTermRetentionPoliciesClient) (bstrp BackupShortTermRetentionPolicy, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.BackupShortTermRetentionPoliciesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.BackupShortTermRetentionPoliciesCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		bstrp.Response.Response, err = future.GetResult(sender)
+		if bstrp.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "sql.BackupShortTermRetentionPoliciesCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && bstrp.Response.Response.StatusCode != http.StatusNoContent {
+			bstrp, err = client.CreateOrUpdateResponder(bstrp.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "sql.BackupShortTermRetentionPoliciesCreateOrUpdateFuture", "Result", bstrp.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -159,6 +185,7 @@ func (client BackupShortTermRetentionPoliciesClient) Get(ctx context.Context, re
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.BackupShortTermRetentionPoliciesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -239,9 +266,11 @@ func (client BackupShortTermRetentionPoliciesClient) ListByDatabase(ctx context.
 	result.bstrplr, err = client.ListByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.BackupShortTermRetentionPoliciesClient", "ListByDatabase", resp, "Failure responding to request")
+		return
 	}
 	if result.bstrplr.hasNextLink() && result.bstrplr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -350,7 +379,7 @@ func (client BackupShortTermRetentionPoliciesClient) Update(ctx context.Context,
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.BackupShortTermRetentionPoliciesClient", "Update", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.BackupShortTermRetentionPoliciesClient", "Update", nil, "Failure sending request")
 		return
 	}
 
@@ -390,7 +419,33 @@ func (client BackupShortTermRetentionPoliciesClient) UpdateSender(req *http.Requ
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client BackupShortTermRetentionPoliciesClient) (bstrp BackupShortTermRetentionPolicy, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.BackupShortTermRetentionPoliciesUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.BackupShortTermRetentionPoliciesUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		bstrp.Response.Response, err = future.GetResult(sender)
+		if bstrp.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "sql.BackupShortTermRetentionPoliciesUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && bstrp.Response.Response.StatusCode != http.StatusNoContent {
+			bstrp, err = client.UpdateResponder(bstrp.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "sql.BackupShortTermRetentionPoliciesUpdateFuture", "Result", bstrp.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

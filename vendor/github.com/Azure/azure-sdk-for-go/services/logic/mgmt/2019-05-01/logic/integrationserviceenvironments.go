@@ -66,7 +66,7 @@ func (client IntegrationServiceEnvironmentsClient) CreateOrUpdate(ctx context.Co
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentsClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -104,7 +104,33 @@ func (client IntegrationServiceEnvironmentsClient) CreateOrUpdateSender(req *htt
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client IntegrationServiceEnvironmentsClient) (ise IntegrationServiceEnvironment, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("logic.IntegrationServiceEnvironmentsCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		ise.Response.Response, err = future.GetResult(sender)
+		if ise.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentsCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && ise.Response.Response.StatusCode != http.StatusNoContent {
+			ise, err = client.CreateOrUpdateResponder(ise.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentsCreateOrUpdateFuture", "Result", ise.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -151,6 +177,7 @@ func (client IntegrationServiceEnvironmentsClient) Delete(ctx context.Context, r
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -225,6 +252,7 @@ func (client IntegrationServiceEnvironmentsClient) Get(ctx context.Context, reso
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -301,9 +329,11 @@ func (client IntegrationServiceEnvironmentsClient) ListByResourceGroup(ctx conte
 	result.iselr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.iselr.hasNextLink() && result.iselr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -418,9 +448,11 @@ func (client IntegrationServiceEnvironmentsClient) ListBySubscription(ctx contex
 	result.iselr, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentsClient", "ListBySubscription", resp, "Failure responding to request")
+		return
 	}
 	if result.iselr.hasNextLink() && result.iselr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -534,6 +566,7 @@ func (client IntegrationServiceEnvironmentsClient) Restart(ctx context.Context, 
 	result, err = client.RestartResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentsClient", "Restart", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -601,7 +634,7 @@ func (client IntegrationServiceEnvironmentsClient) Update(ctx context.Context, r
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentsClient", "Update", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentsClient", "Update", nil, "Failure sending request")
 		return
 	}
 
@@ -639,7 +672,33 @@ func (client IntegrationServiceEnvironmentsClient) UpdateSender(req *http.Reques
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client IntegrationServiceEnvironmentsClient) (ise IntegrationServiceEnvironment, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentsUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("logic.IntegrationServiceEnvironmentsUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		ise.Response.Response, err = future.GetResult(sender)
+		if ise.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentsUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && ise.Response.Response.StatusCode != http.StatusNoContent {
+			ise, err = client.UpdateResponder(ise.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentsUpdateFuture", "Result", ise.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

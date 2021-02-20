@@ -83,6 +83,7 @@ func (client ActivityClient) Get(ctx context.Context, resourceGroupName string, 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.ActivityClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -170,9 +171,11 @@ func (client ActivityClient) ListByModule(ctx context.Context, resourceGroupName
 	result.alr, err = client.ListByModuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.ActivityClient", "ListByModule", resp, "Failure responding to request")
+		return
 	}
 	if result.alr.hasNextLink() && result.alr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

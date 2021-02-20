@@ -75,6 +75,7 @@ func (client DataSetsClient) Create(ctx context.Context, resourceGroupName strin
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.DataSetsClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -148,7 +149,7 @@ func (client DataSetsClient) Delete(ctx context.Context, resourceGroupName strin
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "datashare.DataSetsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "datashare.DataSetsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -186,7 +187,23 @@ func (client DataSetsClient) DeleteSender(req *http.Request) (future DataSetsDel
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client DataSetsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "datashare.DataSetsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("datashare.DataSetsDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -234,6 +251,7 @@ func (client DataSetsClient) Get(ctx context.Context, resourceGroupName string, 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.DataSetsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -316,9 +334,11 @@ func (client DataSetsClient) ListByShare(ctx context.Context, resourceGroupName 
 	result.dsl, err = client.ListByShareResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.DataSetsClient", "ListByShare", resp, "Failure responding to request")
+		return
 	}
 	if result.dsl.hasNextLink() && result.dsl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

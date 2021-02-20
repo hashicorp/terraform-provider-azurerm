@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2018-06-30-preview/automation"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	uuid "github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation/validate"
@@ -24,7 +23,7 @@ func JobScheduleSchema() *schema.Schema {
 				"schedule_name": {
 					Type:         schema.TypeString,
 					Required:     true,
-					ValidateFunc: validate.AutomationScheduleName(),
+					ValidateFunc: validate.ScheduleName(),
 				},
 
 				"parameters": {
@@ -140,5 +139,5 @@ func resourceAutomationJobScheduleHash(v interface{}) int {
 		buf.WriteString(fmt.Sprintf("%s-%s-%s-%s", scheduleName, utils.FlattenMapStringPtrString(m.Parameters), runOn, *m.JobScheduleID))
 	}
 
-	return hashcode.String(buf.String())
+	return schema.HashString(buf.String())
 }

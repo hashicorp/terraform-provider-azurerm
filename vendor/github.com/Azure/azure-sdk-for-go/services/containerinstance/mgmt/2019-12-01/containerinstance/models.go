@@ -203,8 +203,11 @@ func (page CachedImagesListResultPage) Values() []CachedImages {
 }
 
 // Creates a new instance of the CachedImagesListResultPage type.
-func NewCachedImagesListResultPage(getNextPage func(context.Context, CachedImagesListResult) (CachedImagesListResult, error)) CachedImagesListResultPage {
-	return CachedImagesListResultPage{fn: getNextPage}
+func NewCachedImagesListResultPage(cur CachedImagesListResult, getNextPage func(context.Context, CachedImagesListResult) (CachedImagesListResult, error)) CachedImagesListResultPage {
+	return CachedImagesListResultPage{
+		fn:   getNextPage,
+		cilr: cur,
+	}
 }
 
 // Capabilities the regional capabilities.
@@ -385,8 +388,11 @@ func (page CapabilitiesListResultPage) Values() []Capabilities {
 }
 
 // Creates a new instance of the CapabilitiesListResultPage type.
-func NewCapabilitiesListResultPage(getNextPage func(context.Context, CapabilitiesListResult) (CapabilitiesListResult, error)) CapabilitiesListResultPage {
-	return CapabilitiesListResultPage{fn: getNextPage}
+func NewCapabilitiesListResultPage(cur CapabilitiesListResult, getNextPage func(context.Context, CapabilitiesListResult) (CapabilitiesListResult, error)) CapabilitiesListResultPage {
+	return CapabilitiesListResultPage{
+		fn:  getNextPage,
+		clr: cur,
+	}
 }
 
 // CloudError an error response from the Container Instance service.
@@ -795,8 +801,11 @@ func (page ContainerGroupListResultPage) Values() []ContainerGroup {
 }
 
 // Creates a new instance of the ContainerGroupListResultPage type.
-func NewContainerGroupListResultPage(getNextPage func(context.Context, ContainerGroupListResult) (ContainerGroupListResult, error)) ContainerGroupListResultPage {
-	return ContainerGroupListResultPage{fn: getNextPage}
+func NewContainerGroupListResultPage(cur ContainerGroupListResult, getNextPage func(context.Context, ContainerGroupListResult) (ContainerGroupListResult, error)) ContainerGroupListResultPage {
+	return ContainerGroupListResultPage{
+		fn:   getNextPage,
+		cglr: cur,
+	}
 }
 
 // ContainerGroupNetworkProfile container group network profile information.
@@ -894,105 +903,37 @@ type ContainerGroupPropertiesInstanceView struct {
 // ContainerGroupsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ContainerGroupsCreateOrUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ContainerGroupsCreateOrUpdateFuture) Result(client ContainerGroupsClient) (cg ContainerGroup, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("containerinstance.ContainerGroupsCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if cg.Response.Response, err = future.GetResult(sender); err == nil && cg.Response.Response.StatusCode != http.StatusNoContent {
-		cg, err = client.CreateOrUpdateResponder(cg.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsCreateOrUpdateFuture", "Result", cg.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ContainerGroupsClient) (ContainerGroup, error)
 }
 
 // ContainerGroupsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type ContainerGroupsDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ContainerGroupsDeleteFuture) Result(client ContainerGroupsClient) (cg ContainerGroup, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("containerinstance.ContainerGroupsDeleteFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if cg.Response.Response, err = future.GetResult(sender); err == nil && cg.Response.Response.StatusCode != http.StatusNoContent {
-		cg, err = client.DeleteResponder(cg.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsDeleteFuture", "Result", cg.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ContainerGroupsClient) (ContainerGroup, error)
 }
 
 // ContainerGroupsRestartFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type ContainerGroupsRestartFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ContainerGroupsRestartFuture) Result(client ContainerGroupsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsRestartFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("containerinstance.ContainerGroupsRestartFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ContainerGroupsClient) (autorest.Response, error)
 }
 
 // ContainerGroupsStartFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type ContainerGroupsStartFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ContainerGroupsStartFuture) Result(client ContainerGroupsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsStartFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("containerinstance.ContainerGroupsStartFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ContainerGroupsClient) (autorest.Response, error)
 }
 
 // ContainerHTTPGet the container Http Get settings, for liveness or readiness probe
@@ -1374,8 +1315,8 @@ type OperationDisplay struct {
 	Description *string `json:"description,omitempty"`
 }
 
-// OperationListResult the operation list response that contains all operations for Azure Container Instance
-// service.
+// OperationListResult the operation list response that contains all operations for Azure Container
+// Instance service.
 type OperationListResult struct {
 	autorest.Response `json:"-"`
 	// Value - The list of operations.
@@ -1527,8 +1468,11 @@ func (page OperationListResultPage) Values() []Operation {
 }
 
 // Creates a new instance of the OperationListResultPage type.
-func NewOperationListResultPage(getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
-	return OperationListResultPage{fn: getNextPage}
+func NewOperationListResultPage(cur OperationListResult, getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
+	return OperationListResultPage{
+		fn:  getNextPage,
+		olr: cur,
+	}
 }
 
 // Port the port exposed on the container group.

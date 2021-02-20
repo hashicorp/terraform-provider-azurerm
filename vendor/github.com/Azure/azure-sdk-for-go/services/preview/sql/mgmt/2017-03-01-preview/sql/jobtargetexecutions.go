@@ -83,6 +83,7 @@ func (client JobTargetExecutionsClient) Get(ctx context.Context, resourceGroupNa
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobTargetExecutionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -175,9 +176,11 @@ func (client JobTargetExecutionsClient) ListByJobExecution(ctx context.Context, 
 	result.jelr, err = client.ListByJobExecutionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobTargetExecutionsClient", "ListByJobExecution", resp, "Failure responding to request")
+		return
 	}
 	if result.jelr.hasNextLink() && result.jelr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -327,9 +330,11 @@ func (client JobTargetExecutionsClient) ListByStep(ctx context.Context, resource
 	result.jelr, err = client.ListByStepResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobTargetExecutionsClient", "ListByStep", resp, "Failure responding to request")
+		return
 	}
 	if result.jelr.hasNextLink() && result.jelr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

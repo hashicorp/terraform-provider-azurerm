@@ -78,6 +78,7 @@ func (client JobsClient) CreateOrUpdate(ctx context.Context, resourceGroupName s
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -160,6 +161,7 @@ func (client JobsClient) Delete(ctx context.Context, resourceGroupName string, s
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -239,6 +241,7 @@ func (client JobsClient) Get(ctx context.Context, resourceGroupName string, serv
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -319,9 +322,11 @@ func (client JobsClient) ListByAgent(ctx context.Context, resourceGroupName stri
 	result.jlr, err = client.ListByAgentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobsClient", "ListByAgent", resp, "Failure responding to request")
+		return
 	}
 	if result.jlr.hasNextLink() && result.jlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

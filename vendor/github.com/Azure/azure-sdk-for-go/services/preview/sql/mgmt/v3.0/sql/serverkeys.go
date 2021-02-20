@@ -72,7 +72,7 @@ func (client ServerKeysClient) CreateOrUpdate(ctx context.Context, resourceGroup
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ServerKeysClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ServerKeysClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -112,7 +112,33 @@ func (client ServerKeysClient) CreateOrUpdateSender(req *http.Request) (future S
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ServerKeysClient) (sk ServerKey, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ServerKeysCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.ServerKeysCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		sk.Response.Response, err = future.GetResult(sender)
+		if sk.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "sql.ServerKeysCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && sk.Response.Response.StatusCode != http.StatusNoContent {
+			sk, err = client.CreateOrUpdateResponder(sk.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "sql.ServerKeysCreateOrUpdateFuture", "Result", sk.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -153,7 +179,7 @@ func (client ServerKeysClient) Delete(ctx context.Context, resourceGroupName str
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ServerKeysClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ServerKeysClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -190,7 +216,23 @@ func (client ServerKeysClient) DeleteSender(req *http.Request) (future ServerKey
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ServerKeysClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ServerKeysDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.ServerKeysDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -238,6 +280,7 @@ func (client ServerKeysClient) Get(ctx context.Context, resourceGroupName string
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerKeysClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -316,9 +359,11 @@ func (client ServerKeysClient) ListByServer(ctx context.Context, resourceGroupNa
 	result.sklr, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerKeysClient", "ListByServer", resp, "Failure responding to request")
+		return
 	}
 	if result.sklr.hasNextLink() && result.sklr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

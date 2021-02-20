@@ -72,6 +72,7 @@ func (client ConfigurationsClient) CreateInResourceGroup(ctx context.Context, co
 	result, err = client.CreateInResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "advisor.ConfigurationsClient", "CreateInResourceGroup", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -149,6 +150,7 @@ func (client ConfigurationsClient) CreateInSubscription(ctx context.Context, con
 	result, err = client.CreateInSubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "advisor.ConfigurationsClient", "CreateInSubscription", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -224,6 +226,7 @@ func (client ConfigurationsClient) ListByResourceGroup(ctx context.Context, reso
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "advisor.ConfigurationsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -297,9 +300,11 @@ func (client ConfigurationsClient) ListBySubscription(ctx context.Context) (resu
 	result.clr, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "advisor.ConfigurationsClient", "ListBySubscription", resp, "Failure responding to request")
+		return
 	}
 	if result.clr.hasNextLink() && result.clr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

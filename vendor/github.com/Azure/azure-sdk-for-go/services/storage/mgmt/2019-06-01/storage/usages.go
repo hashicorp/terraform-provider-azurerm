@@ -78,6 +78,7 @@ func (client UsagesClient) ListByLocation(ctx context.Context, location string) 
 	result, err = client.ListByLocationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.UsagesClient", "ListByLocation", resp, "Failure responding to request")
+		return
 	}
 
 	return

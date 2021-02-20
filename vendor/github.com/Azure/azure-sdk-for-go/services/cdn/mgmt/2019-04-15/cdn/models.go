@@ -100,8 +100,8 @@ type CookiesMatchConditionParameters struct {
 	Transforms *[]Transform `json:"transforms,omitempty"`
 }
 
-// CustomDomain friendly domain name mapping to the endpoint hostname that the customer provides for branding
-// purposes, e.g. www.contoso.com.
+// CustomDomain friendly domain name mapping to the endpoint hostname that the customer provides for
+// branding purposes, e.g. www.contoso.com.
 type CustomDomain struct {
 	autorest.Response       `json:"-"`
 	*CustomDomainProperties `json:"properties,omitempty"`
@@ -429,8 +429,11 @@ func (page CustomDomainListResultPage) Values() []CustomDomain {
 }
 
 // Creates a new instance of the CustomDomainListResultPage type.
-func NewCustomDomainListResultPage(getNextPage func(context.Context, CustomDomainListResult) (CustomDomainListResult, error)) CustomDomainListResultPage {
-	return CustomDomainListResultPage{fn: getNextPage}
+func NewCustomDomainListResultPage(cur CustomDomainListResult, getNextPage func(context.Context, CustomDomainListResult) (CustomDomainListResult, error)) CustomDomainListResultPage {
+	return CustomDomainListResultPage{
+		fn:   getNextPage,
+		cdlr: cur,
+	}
 }
 
 // CustomDomainParameters the customDomain JSON object required for custom domain creation or update.
@@ -589,59 +592,19 @@ type CustomDomainPropertiesParameters struct {
 // CustomDomainsCreateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type CustomDomainsCreateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *CustomDomainsCreateFuture) Result(client CustomDomainsClient) (cd CustomDomain, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "cdn.CustomDomainsCreateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("cdn.CustomDomainsCreateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if cd.Response.Response, err = future.GetResult(sender); err == nil && cd.Response.Response.StatusCode != http.StatusNoContent {
-		cd, err = client.CreateResponder(cd.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "cdn.CustomDomainsCreateFuture", "Result", cd.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(CustomDomainsClient) (CustomDomain, error)
 }
 
 // CustomDomainsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type CustomDomainsDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *CustomDomainsDeleteFuture) Result(client CustomDomainsClient) (cd CustomDomain, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "cdn.CustomDomainsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("cdn.CustomDomainsDeleteFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if cd.Response.Response, err = future.GetResult(sender); err == nil && cd.Response.Response.StatusCode != http.StatusNoContent {
-		cd, err = client.DeleteResponder(cd.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "cdn.CustomDomainsDeleteFuture", "Result", cd.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(CustomDomainsClient) (CustomDomain, error)
 }
 
 // DeepCreatedOrigin the main origin of CDN content which is added when creating a CDN endpoint.
@@ -2830,8 +2793,8 @@ type EdgeNodeProperties struct {
 	IPAddressGroups *[]IPAddressGroup `json:"ipAddressGroups,omitempty"`
 }
 
-// EdgenodeResult result of the request to list CDN edgenodes. It contains a list of ip address group and a URL
-// link to get the next set of results.
+// EdgenodeResult result of the request to list CDN edgenodes. It contains a list of ip address group and a
+// URL link to get the next set of results.
 type EdgenodeResult struct {
 	autorest.Response `json:"-"`
 	// Value - READ-ONLY; Edge node of CDN service.
@@ -2992,8 +2955,11 @@ func (page EdgenodeResultPage) Values() []EdgeNode {
 }
 
 // Creates a new instance of the EdgenodeResultPage type.
-func NewEdgenodeResultPage(getNextPage func(context.Context, EdgenodeResult) (EdgenodeResult, error)) EdgenodeResultPage {
-	return EdgenodeResultPage{fn: getNextPage}
+func NewEdgenodeResultPage(cur EdgenodeResult, getNextPage func(context.Context, EdgenodeResult) (EdgenodeResult, error)) EdgenodeResultPage {
+	return EdgenodeResultPage{
+		fn: getNextPage,
+		er: cur,
+	}
 }
 
 // Endpoint CDN endpoint is the entity within a CDN profile containing configuration information such as
@@ -3098,8 +3064,8 @@ func (e *Endpoint) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// EndpointListResult result of the request to list endpoints. It contains a list of endpoint objects and a URL
-// link to get the next set of results.
+// EndpointListResult result of the request to list endpoints. It contains a list of endpoint objects and a
+// URL link to get the next set of results.
 type EndpointListResult struct {
 	autorest.Response `json:"-"`
 	// Value - READ-ONLY; List of CDN endpoints within a profile
@@ -3260,8 +3226,11 @@ func (page EndpointListResultPage) Values() []Endpoint {
 }
 
 // Creates a new instance of the EndpointListResultPage type.
-func NewEndpointListResultPage(getNextPage func(context.Context, EndpointListResult) (EndpointListResult, error)) EndpointListResultPage {
-	return EndpointListResultPage{fn: getNextPage}
+func NewEndpointListResultPage(cur EndpointListResult, getNextPage func(context.Context, EndpointListResult) (EndpointListResult, error)) EndpointListResultPage {
+	return EndpointListResultPage{
+		fn:  getNextPage,
+		elr: cur,
+	}
 }
 
 // EndpointProperties the JSON object that contains the properties required to create an endpoint.
@@ -3366,8 +3335,8 @@ type EndpointPropertiesUpdateParameters struct {
 	DeliveryPolicy *EndpointPropertiesUpdateParametersDeliveryPolicy `json:"deliveryPolicy,omitempty"`
 }
 
-// EndpointPropertiesUpdateParametersDeliveryPolicy a policy that specifies the delivery rules to be used for
-// an endpoint.
+// EndpointPropertiesUpdateParametersDeliveryPolicy a policy that specifies the delivery rules to be used
+// for an endpoint.
 type EndpointPropertiesUpdateParametersDeliveryPolicy struct {
 	// Description - User-friendly description of the policy.
 	Description *string `json:"description,omitempty"`
@@ -3375,184 +3344,67 @@ type EndpointPropertiesUpdateParametersDeliveryPolicy struct {
 	Rules *[]DeliveryRule `json:"rules,omitempty"`
 }
 
-// EndpointsCreateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// EndpointsCreateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type EndpointsCreateFuture struct {
-	azure.Future
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(EndpointsClient) (Endpoint, error)
 }
 
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *EndpointsCreateFuture) Result(client EndpointsClient) (e Endpoint, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "cdn.EndpointsCreateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("cdn.EndpointsCreateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if e.Response.Response, err = future.GetResult(sender); err == nil && e.Response.Response.StatusCode != http.StatusNoContent {
-		e, err = client.CreateResponder(e.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "cdn.EndpointsCreateFuture", "Result", e.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// EndpointsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// EndpointsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type EndpointsDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *EndpointsDeleteFuture) Result(client EndpointsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "cdn.EndpointsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("cdn.EndpointsDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(EndpointsClient) (autorest.Response, error)
 }
 
 // EndpointsLoadContentFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type EndpointsLoadContentFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *EndpointsLoadContentFuture) Result(client EndpointsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "cdn.EndpointsLoadContentFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("cdn.EndpointsLoadContentFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(EndpointsClient) (autorest.Response, error)
 }
 
 // EndpointsPurgeContentFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type EndpointsPurgeContentFuture struct {
-	azure.Future
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(EndpointsClient) (autorest.Response, error)
 }
 
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *EndpointsPurgeContentFuture) Result(client EndpointsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "cdn.EndpointsPurgeContentFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("cdn.EndpointsPurgeContentFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
-}
-
-// EndpointsStartFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// EndpointsStartFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type EndpointsStartFuture struct {
-	azure.Future
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(EndpointsClient) (Endpoint, error)
 }
 
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *EndpointsStartFuture) Result(client EndpointsClient) (e Endpoint, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "cdn.EndpointsStartFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("cdn.EndpointsStartFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if e.Response.Response, err = future.GetResult(sender); err == nil && e.Response.Response.StatusCode != http.StatusNoContent {
-		e, err = client.StartResponder(e.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "cdn.EndpointsStartFuture", "Result", e.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// EndpointsStopFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// EndpointsStopFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type EndpointsStopFuture struct {
-	azure.Future
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(EndpointsClient) (Endpoint, error)
 }
 
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *EndpointsStopFuture) Result(client EndpointsClient) (e Endpoint, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "cdn.EndpointsStopFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("cdn.EndpointsStopFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if e.Response.Response, err = future.GetResult(sender); err == nil && e.Response.Response.StatusCode != http.StatusNoContent {
-		e, err = client.StopResponder(e.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "cdn.EndpointsStopFuture", "Result", e.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// EndpointsUpdateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// EndpointsUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type EndpointsUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *EndpointsUpdateFuture) Result(client EndpointsClient) (e Endpoint, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "cdn.EndpointsUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("cdn.EndpointsUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if e.Response.Response, err = future.GetResult(sender); err == nil && e.Response.Response.StatusCode != http.StatusNoContent {
-		e, err = client.UpdateResponder(e.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "cdn.EndpointsUpdateFuture", "Result", e.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(EndpointsClient) (Endpoint, error)
 }
 
 // EndpointUpdateParameters properties required to create or update an endpoint.
@@ -3607,8 +3459,8 @@ func (eup *EndpointUpdateParameters) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// ErrorResponse error response indicates CDN service is not able to process the incoming request. The reason
-// is provided in the error message.
+// ErrorResponse error response indicates CDN service is not able to process the incoming request. The
+// reason is provided in the error message.
 type ErrorResponse struct {
 	// Code - READ-ONLY; Error code.
 	Code *string `json:"code,omitempty"`
@@ -3697,8 +3549,8 @@ type LoadParameters struct {
 	ContentPaths *[]string `json:"contentPaths,omitempty"`
 }
 
-// ManagedHTTPSParameters defines the certificate source parameters using CDN managed certificate for enabling
-// SSL.
+// ManagedHTTPSParameters defines the certificate source parameters using CDN managed certificate for
+// enabling SSL.
 type ManagedHTTPSParameters struct {
 	// CertificateSourceParameters - Defines the certificate source parameters using CDN managed certificate for enabling SSL.
 	CertificateSourceParameters *CertificateSourceParameters `json:"certificateSourceParameters,omitempty"`
@@ -3776,8 +3628,8 @@ type OperationDisplay struct {
 	Operation *string `json:"operation,omitempty"`
 }
 
-// OperationsListResult result of the request to list CDN operations. It contains a list of operations and a
-// URL link to get the next set of results.
+// OperationsListResult result of the request to list CDN operations. It contains a list of operations and
+// a URL link to get the next set of results.
 type OperationsListResult struct {
 	autorest.Response `json:"-"`
 	// Value - READ-ONLY; List of CDN operations supported by the CDN resource provider.
@@ -3938,13 +3790,16 @@ func (page OperationsListResultPage) Values() []Operation {
 }
 
 // Creates a new instance of the OperationsListResultPage type.
-func NewOperationsListResultPage(getNextPage func(context.Context, OperationsListResult) (OperationsListResult, error)) OperationsListResultPage {
-	return OperationsListResultPage{fn: getNextPage}
+func NewOperationsListResultPage(cur OperationsListResult, getNextPage func(context.Context, OperationsListResult) (OperationsListResult, error)) OperationsListResultPage {
+	return OperationsListResultPage{
+		fn:  getNextPage,
+		olr: cur,
+	}
 }
 
-// Origin CDN origin is the source of the content being delivered via CDN. When the edge nodes represented by
-// an endpoint do not have the requested content cached, they attempt to fetch it from one or more of the
-// configured origins.
+// Origin CDN origin is the source of the content being delivered via CDN. When the edge nodes represented
+// by an endpoint do not have the requested content cached, they attempt to fetch it from one or more of
+// the configured origins.
 type Origin struct {
 	autorest.Response `json:"-"`
 	*OriginProperties `json:"properties,omitempty"`
@@ -4044,8 +3899,8 @@ func (o *Origin) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// OriginListResult result of the request to list origins. It contains a list of origin objects and a URL link
-// to get the next set of results.
+// OriginListResult result of the request to list origins. It contains a list of origin objects and a URL
+// link to get the next set of results.
 type OriginListResult struct {
 	autorest.Response `json:"-"`
 	// Value - READ-ONLY; List of CDN origins within an endpoint
@@ -4206,8 +4061,11 @@ func (page OriginListResultPage) Values() []Origin {
 }
 
 // Creates a new instance of the OriginListResultPage type.
-func NewOriginListResultPage(getNextPage func(context.Context, OriginListResult) (OriginListResult, error)) OriginListResultPage {
-	return OriginListResultPage{fn: getNextPage}
+func NewOriginListResultPage(cur OriginListResult, getNextPage func(context.Context, OriginListResult) (OriginListResult, error)) OriginListResultPage {
+	return OriginListResultPage{
+		fn:  getNextPage,
+		olr: cur,
+	}
 }
 
 // OriginProperties the JSON object that contains the properties of the origin.
@@ -4249,32 +4107,13 @@ type OriginPropertiesParameters struct {
 	HTTPSPort *int32 `json:"httpsPort,omitempty"`
 }
 
-// OriginsUpdateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// OriginsUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type OriginsUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *OriginsUpdateFuture) Result(client OriginsClient) (o Origin, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "cdn.OriginsUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("cdn.OriginsUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if o.Response.Response, err = future.GetResult(sender); err == nil && o.Response.Response.StatusCode != http.StatusNoContent {
-		o, err = client.UpdateResponder(o.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "cdn.OriginsUpdateFuture", "Result", o.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(OriginsClient) (Origin, error)
 }
 
 // OriginUpdateParameters origin properties needed for origin creation or update.
@@ -4330,8 +4169,8 @@ type PostArgsMatchConditionParameters struct {
 	Transforms *[]Transform `json:"transforms,omitempty"`
 }
 
-// Profile CDN profile is a logical grouping of endpoints that share the same settings, such as CDN provider
-// and pricing tier.
+// Profile CDN profile is a logical grouping of endpoints that share the same settings, such as CDN
+// provider and pricing tier.
 type Profile struct {
 	autorest.Response `json:"-"`
 	// Sku - The pricing tier (defines a CDN provider, feature list and rate) of the CDN profile.
@@ -4445,8 +4284,8 @@ func (p *Profile) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// ProfileListResult result of the request to list profiles. It contains a list of profile objects and a URL
-// link to get the next set of results.
+// ProfileListResult result of the request to list profiles. It contains a list of profile objects and a
+// URL link to get the next set of results.
 type ProfileListResult struct {
 	autorest.Response `json:"-"`
 	// Value - READ-ONLY; List of CDN profiles within a resource group.
@@ -4607,8 +4446,11 @@ func (page ProfileListResultPage) Values() []Profile {
 }
 
 // Creates a new instance of the ProfileListResultPage type.
-func NewProfileListResultPage(getNextPage func(context.Context, ProfileListResult) (ProfileListResult, error)) ProfileListResultPage {
-	return ProfileListResultPage{fn: getNextPage}
+func NewProfileListResultPage(cur ProfileListResult, getNextPage func(context.Context, ProfileListResult) (ProfileListResult, error)) ProfileListResultPage {
+	return ProfileListResultPage{
+		fn:  getNextPage,
+		plr: cur,
+	}
 }
 
 // ProfileProperties the JSON object that contains the properties required to create a profile.
@@ -4619,82 +4461,31 @@ type ProfileProperties struct {
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 }
 
-// ProfilesCreateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// ProfilesCreateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type ProfilesCreateFuture struct {
-	azure.Future
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ProfilesClient) (Profile, error)
 }
 
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ProfilesCreateFuture) Result(client ProfilesClient) (p Profile, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "cdn.ProfilesCreateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("cdn.ProfilesCreateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if p.Response.Response, err = future.GetResult(sender); err == nil && p.Response.Response.StatusCode != http.StatusNoContent {
-		p, err = client.CreateResponder(p.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "cdn.ProfilesCreateFuture", "Result", p.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// ProfilesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// ProfilesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type ProfilesDeleteFuture struct {
-	azure.Future
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ProfilesClient) (autorest.Response, error)
 }
 
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ProfilesDeleteFuture) Result(client ProfilesClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "cdn.ProfilesDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("cdn.ProfilesDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
-}
-
-// ProfilesUpdateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// ProfilesUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type ProfilesUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ProfilesUpdateFuture) Result(client ProfilesClient) (p Profile, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "cdn.ProfilesUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("cdn.ProfilesUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if p.Response.Response, err = future.GetResult(sender); err == nil && p.Response.Response.StatusCode != http.StatusNoContent {
-		p, err = client.UpdateResponder(p.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "cdn.ProfilesUpdateFuture", "Result", p.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ProfilesClient) (Profile, error)
 }
 
 // ProfileUpdateParameters properties required to update a profile.
@@ -5001,8 +4792,11 @@ func (page ResourceUsageListResultPage) Values() []ResourceUsage {
 }
 
 // Creates a new instance of the ResourceUsageListResultPage type.
-func NewResourceUsageListResultPage(getNextPage func(context.Context, ResourceUsageListResult) (ResourceUsageListResult, error)) ResourceUsageListResultPage {
-	return ResourceUsageListResultPage{fn: getNextPage}
+func NewResourceUsageListResultPage(cur ResourceUsageListResult, getNextPage func(context.Context, ResourceUsageListResult) (ResourceUsageListResult, error)) ResourceUsageListResultPage {
+	return ResourceUsageListResultPage{
+		fn:   getNextPage,
+		rulr: cur,
+	}
 }
 
 // Sku the pricing tier (defines a CDN provider, feature list and rate) of the CDN profile.
@@ -5240,8 +5034,8 @@ type URLRewriteActionParameters struct {
 	PreserveUnmatchedPath *bool `json:"preserveUnmatchedPath,omitempty"`
 }
 
-// UserManagedHTTPSParameters defines the certificate source parameters using user's keyvault certificate for
-// enabling SSL.
+// UserManagedHTTPSParameters defines the certificate source parameters using user's keyvault certificate
+// for enabling SSL.
 type UserManagedHTTPSParameters struct {
 	// CertificateSourceParameters - Defines the certificate source parameters using user's keyvault certificate for enabling SSL.
 	CertificateSourceParameters *KeyVaultCertificateSourceParameters `json:"certificateSourceParameters,omitempty"`

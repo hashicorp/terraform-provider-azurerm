@@ -21,8 +21,8 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_mssql_database":    dataSourceArmMsSqlDatabase(),
-		"azurerm_mssql_elasticpool": dataSourceArmMsSqlElasticpool(),
+		"azurerm_mssql_database":    dataSourceMsSqlDatabase(),
+		"azurerm_mssql_elasticpool": dataSourceMsSqlElasticpool(),
 		"azurerm_mssql_server":      dataSourceMsSqlServer(),
 	}
 }
@@ -30,14 +30,14 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_mssql_database":                                        resourceArmMsSqlDatabase(),
-		"azurerm_mssql_database_extended_auditing_policy":               resourceArmMsSqlDatabaseExtendedAuditingPolicy(),
-		"azurerm_mssql_database_vulnerability_assessment_rule_baseline": resourceArmMssqlDatabaseVulnerabilityAssessmentRuleBaseline(),
-		"azurerm_mssql_elasticpool":                                     resourceArmMsSqlElasticPool(),
-		"azurerm_mssql_server":                                          resourceArmMsSqlServer(),
-		"azurerm_mssql_server_extended_auditing_policy":                 resourceArmMsSqlServerExtendedAuditingPolicy(),
-		"azurerm_mssql_server_security_alert_policy":                    resourceArmMssqlServerSecurityAlertPolicy(),
-		"azurerm_mssql_server_vulnerability_assessment":                 resourceArmMssqlServerVulnerabilityAssessment(),
-		"azurerm_mssql_virtual_machine":                                 resourceArmMsSqlVirtualMachine(),
+		"azurerm_mssql_database":                                        resourceMsSqlDatabase(),
+		"azurerm_mssql_database_extended_auditing_policy":               resourceMsSqlDatabaseExtendedAuditingPolicy(),
+		"azurerm_mssql_database_vulnerability_assessment_rule_baseline": resourceMsSqlDatabaseVulnerabilityAssessmentRuleBaseline(),
+		"azurerm_mssql_elasticpool":                                     resourceMsSqlElasticPool(),
+		"azurerm_mssql_server":                                          resourceMsSqlServer(),
+		"azurerm_mssql_server_extended_auditing_policy":                 resourceMsSqlServerExtendedAuditingPolicy(),
+		"azurerm_mssql_server_security_alert_policy":                    resourceMsSqlServerSecurityAlertPolicy(),
+		"azurerm_mssql_server_vulnerability_assessment":                 resourceMsSqlServerVulnerabilityAssessment(),
+		"azurerm_mssql_virtual_machine":                                 resourceMsSqlVirtualMachine(),
 	}
 }

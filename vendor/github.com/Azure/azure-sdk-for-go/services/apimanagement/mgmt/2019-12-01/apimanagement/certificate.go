@@ -94,6 +94,7 @@ func (client CertificateClient) CreateOrUpdate(ctx context.Context, resourceGrou
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.CertificateClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -192,6 +193,7 @@ func (client CertificateClient) Delete(ctx context.Context, resourceGroupName st
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.CertificateClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -282,6 +284,7 @@ func (client CertificateClient) Get(ctx context.Context, resourceGroupName strin
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.CertificateClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -372,6 +375,7 @@ func (client CertificateClient) GetEntityTag(ctx context.Context, resourceGroupN
 	result, err = client.GetEntityTagResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.CertificateClient", "GetEntityTag", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -470,9 +474,11 @@ func (client CertificateClient) ListByService(ctx context.Context, resourceGroup
 	result.cc, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.CertificateClient", "ListByService", resp, "Failure responding to request")
+		return
 	}
 	if result.cc.hasNextLink() && result.cc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

@@ -74,6 +74,7 @@ func (client ExposureControlClient) GetFeatureValue(ctx context.Context, locatio
 	result, err = client.GetFeatureValueResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.ExposureControlClient", "GetFeatureValue", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -163,6 +164,7 @@ func (client ExposureControlClient) GetFeatureValueByFactory(ctx context.Context
 	result, err = client.GetFeatureValueByFactoryResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.ExposureControlClient", "GetFeatureValueByFactory", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -255,6 +257,7 @@ func (client ExposureControlClient) QueryFeatureValuesByFactory(ctx context.Cont
 	result, err = client.QueryFeatureValuesByFactoryResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.ExposureControlClient", "QueryFeatureValuesByFactory", resp, "Failure responding to request")
+		return
 	}
 
 	return

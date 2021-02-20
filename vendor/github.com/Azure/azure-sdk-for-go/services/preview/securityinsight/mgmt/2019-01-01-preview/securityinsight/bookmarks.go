@@ -101,6 +101,7 @@ func (client BookmarksClient) CreateOrUpdate(ctx context.Context, resourceGroupN
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.BookmarksClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -197,6 +198,7 @@ func (client BookmarksClient) Delete(ctx context.Context, resourceGroupName stri
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.BookmarksClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -290,6 +292,7 @@ func (client BookmarksClient) Get(ctx context.Context, resourceGroupName string,
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.BookmarksClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -384,9 +387,11 @@ func (client BookmarksClient) List(ctx context.Context, resourceGroupName string
 	result.bl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.BookmarksClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.bl.hasNextLink() && result.bl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

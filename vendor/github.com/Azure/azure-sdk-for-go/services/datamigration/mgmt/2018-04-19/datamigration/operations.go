@@ -70,9 +70,11 @@ func (client OperationsClient) List(ctx context.Context) (result ServiceOperatio
 	result.sol, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datamigration.OperationsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.sol.hasNextLink() && result.sol.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

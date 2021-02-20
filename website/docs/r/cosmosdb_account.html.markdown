@@ -86,11 +86,21 @@ The following arguments are supported:
 
 * `enable_free_tier` - (Optional) Enable Free Tier pricing option for this Cosmos DB account. Defaults to `false`. Changing this forces a new resource to be created.
 
+* `analytical_storage_enabled` - (Optional) Enable Analytical Storage option for this Cosmos DB account. Defaults to `false`. Changing this forces a new resource to be created.
+
 * `enable_automatic_failover` - (Optional) Enable automatic fail over for this Cosmos DB account.
+
+* `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this CosmosDB account.
 
 * `capabilities` - (Optional) The capabilities which should be enabled for this Cosmos DB account. Possible values are `EnableAggregationPipeline`, `EnableCassandra`, `EnableGremlin`, `EnableTable`, `MongoDBv3.4`, `EnableServerless`, and `mongoEnableDocLevelTTL`.
 
 * `is_virtual_network_filter_enabled` - (Optional) Enables virtual network filtering for this Cosmos DB account.
+
+* `key_vault_key_id` - (Optional) A versionless Key Vault Key ID for CMK encryption. Changing this forces a new resource to be created.
+
+~> **NOTE:** When referencing an `azurerm_key_vault_key` resource, use `versionless_id` instead of `id`
+
+~> **NOTE:** In order to use a `Custom Key` from Key Vault for encryption you must grant Azure Cosmos DB Service access to your key vault. For instuctions on how to configure your Key Vault correctly please refer to the [product documentation](https://docs.microsoft.com/en-us/azure/cosmos-db/how-to-setup-cmk#add-an-access-policy-to-your-azure-key-vault-instance)
 
 * `virtual_network_rule` - (Optional) Specifies a `virtual_network_rules` resource, used to define which subnets are allowed to access this CosmosDB account.
 
@@ -113,7 +123,7 @@ The following arguments are supported:
 
 `capabilities` Configures the capabilities to enable for this Cosmos DB account:
 
-* `name` - (Required) The capability to enable - Possible values are `AllowSelfServeUpgradeToMongo36`, DisableRateLimitingResponses`, `EnableAggregationPipeline`, `EnableCassandra`, `EnableGremlin`,`EnableMongo`, `EnableTable`, `EnableServerless`, `MongoDBv3.4` and `mongoEnableDocLevelTTL`.
+* `name` - (Required) The capability to enable - Possible values are `AllowSelfServeUpgradeToMongo36`, `DisableRateLimitingResponses`, `EnableAggregationPipeline`, `EnableCassandra`, `EnableGremlin`,`EnableMongo`, `EnableTable`, `EnableServerless`, `MongoDBv3.4` and `mongoEnableDocLevelTTL`.
 
 **NOTE:** The `prefix` and `failover_priority` fields of a location cannot be changed for the location with a failover priority of `0`.
 
@@ -134,13 +144,13 @@ The following attributes are exported:
 
 * `write_endpoints` - A list of write endpoints available for this CosmosDB account.
 
-* `primary_master_key` - The Primary master key for the CosmosDB Account.
+* `primary_key` - The Primary master key for the CosmosDB Account.
 
-* `secondary_master_key` - The Secondary master key for the CosmosDB Account.
+* `secondary_key` - The Secondary master key for the CosmosDB Account.
 
-* `primary_readonly_master_key` - The Primary read-only master Key for the CosmosDB Account.
+* `primary_readonly_key` - The Primary read-only master Key for the CosmosDB Account.
 
-* `secondary_readonly_master_key` - The Secondary read-only master key for the CosmosDB Account.
+* `secondary_readonly_key` - The Secondary read-only master key for the CosmosDB Account.
 
 * `connection_strings` - A list of connection strings available for this CosmosDB account.
 

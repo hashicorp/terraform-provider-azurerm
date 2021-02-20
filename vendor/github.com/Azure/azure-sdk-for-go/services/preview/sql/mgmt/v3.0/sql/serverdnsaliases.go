@@ -69,7 +69,7 @@ func (client ServerDNSAliasesClient) Acquire(ctx context.Context, resourceGroupN
 
 	result, err = client.AcquireSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ServerDNSAliasesClient", "Acquire", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ServerDNSAliasesClient", "Acquire", nil, "Failure sending request")
 		return
 	}
 
@@ -108,7 +108,23 @@ func (client ServerDNSAliasesClient) AcquireSender(req *http.Request) (future Se
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ServerDNSAliasesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ServerDNSAliasesAcquireFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.ServerDNSAliasesAcquireFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -148,7 +164,7 @@ func (client ServerDNSAliasesClient) CreateOrUpdate(ctx context.Context, resourc
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ServerDNSAliasesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ServerDNSAliasesClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -185,7 +201,33 @@ func (client ServerDNSAliasesClient) CreateOrUpdateSender(req *http.Request) (fu
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ServerDNSAliasesClient) (sda ServerDNSAlias, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ServerDNSAliasesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.ServerDNSAliasesCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		sda.Response.Response, err = future.GetResult(sender)
+		if sda.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "sql.ServerDNSAliasesCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && sda.Response.Response.StatusCode != http.StatusNoContent {
+			sda, err = client.CreateOrUpdateResponder(sda.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "sql.ServerDNSAliasesCreateOrUpdateFuture", "Result", sda.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -226,7 +268,7 @@ func (client ServerDNSAliasesClient) Delete(ctx context.Context, resourceGroupNa
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ServerDNSAliasesClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ServerDNSAliasesClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -263,7 +305,23 @@ func (client ServerDNSAliasesClient) DeleteSender(req *http.Request) (future Ser
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ServerDNSAliasesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ServerDNSAliasesDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.ServerDNSAliasesDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -311,6 +369,7 @@ func (client ServerDNSAliasesClient) Get(ctx context.Context, resourceGroupName 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerDNSAliasesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -389,9 +448,11 @@ func (client ServerDNSAliasesClient) ListByServer(ctx context.Context, resourceG
 	result.sdalr, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerDNSAliasesClient", "ListByServer", resp, "Failure responding to request")
+		return
 	}
 	if result.sdalr.hasNextLink() && result.sdalr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

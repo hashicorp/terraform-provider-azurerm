@@ -92,6 +92,7 @@ func (client ModuleClient) CreateOrUpdate(ctx context.Context, resourceGroupName
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.ModuleClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -179,6 +180,7 @@ func (client ModuleClient) Delete(ctx context.Context, resourceGroupName string,
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.ModuleClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -263,6 +265,7 @@ func (client ModuleClient) Get(ctx context.Context, resourceGroupName string, au
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.ModuleClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -348,9 +351,11 @@ func (client ModuleClient) ListByAutomationAccount(ctx context.Context, resource
 	result.mlr, err = client.ListByAutomationAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.ModuleClient", "ListByAutomationAccount", resp, "Failure responding to request")
+		return
 	}
 	if result.mlr.hasNextLink() && result.mlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -473,6 +478,7 @@ func (client ModuleClient) Update(ctx context.Context, resourceGroupName string,
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.ModuleClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

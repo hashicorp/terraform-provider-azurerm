@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `enable_purge` - (Optional) Specifies if the purge operations are enabled.
 
-* `virtual_network_configuration`- (Optional) A `virtual_network_configuration` block as defined below.
+* `virtual_network_configuration`- (Optional) A `virtual_network_configuration` block as defined below. Changing this forces a new resource to be created.
 
 * `language_extensions` - (Optional) An list of `language_extensions` to enable. Valid values are: `PYTHON` and `R`.
 
@@ -66,6 +66,8 @@ The following arguments are supported:
 
 * `zones` - (Optional) A list of Availability Zones in which the cluster instances should be created in. Changing this forces a new resource to be created.
 
+* `engine` - (Optional). The engine type that should be used. Possible values are `V2` and `V3`. Defaults to `V2`.
+
 ---
 
 A `sku` block supports the following:
@@ -75,7 +77,7 @@ A `sku` block supports the following:
 * `capacity` - (Optional) Specifies the node count for the cluster. Boundaries depend on the sku name.
 
 ~> **NOTE:** If no `optimized_auto_scale` block is defined, then the capacity is required.
-~> **NOTE:** If an `optimized_auto_scale` block is defined and no capacity is set, then the capacatiy is initially set to the value of `minimum_instances`.
+~> **NOTE:** If an `optimized_auto_scale` block is defined and no capacity is set, then the capacity is initially set to the value of `minimum_instances`.
 
 ---
 

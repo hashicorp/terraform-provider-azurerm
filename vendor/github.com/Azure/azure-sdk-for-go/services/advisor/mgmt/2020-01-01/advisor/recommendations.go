@@ -71,6 +71,7 @@ func (client RecommendationsClient) Generate(ctx context.Context) (result autore
 	result, err = client.GenerateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "advisor.RecommendationsClient", "Generate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -144,6 +145,7 @@ func (client RecommendationsClient) Get(ctx context.Context, resourceURI string,
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "advisor.RecommendationsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -220,6 +222,7 @@ func (client RecommendationsClient) GetGenerateStatus(ctx context.Context, opera
 	result, err = client.GetGenerateStatusResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "advisor.RecommendationsClient", "GetGenerateStatus", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -298,9 +301,11 @@ func (client RecommendationsClient) List(ctx context.Context, filter string, top
 	result.rrblr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "advisor.RecommendationsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.rrblr.hasNextLink() && result.rrblr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

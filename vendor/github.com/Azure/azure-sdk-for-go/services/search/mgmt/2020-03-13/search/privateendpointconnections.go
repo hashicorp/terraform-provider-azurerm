@@ -81,6 +81,7 @@ func (client PrivateEndpointConnectionsClient) Delete(ctx context.Context, resou
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "search.PrivateEndpointConnectionsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -167,6 +168,7 @@ func (client PrivateEndpointConnectionsClient) Get(ctx context.Context, resource
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "search.PrivateEndpointConnectionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -252,9 +254,11 @@ func (client PrivateEndpointConnectionsClient) ListByService(ctx context.Context
 	result.peclr, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "search.PrivateEndpointConnectionsClient", "ListByService", resp, "Failure responding to request")
+		return
 	}
 	if result.peclr.hasNextLink() && result.peclr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -378,6 +382,7 @@ func (client PrivateEndpointConnectionsClient) Update(ctx context.Context, resou
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "search.PrivateEndpointConnectionsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

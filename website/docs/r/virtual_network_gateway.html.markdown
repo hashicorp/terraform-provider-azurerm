@@ -31,7 +31,7 @@ resource "azurerm_subnet" "example" {
   name                 = "GatewaySubnet"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_public_ip" "example" {
@@ -127,6 +127,8 @@ The following arguments are supported:
     will be created. An active-active gateway requires a `HighPerformance` or an
     `UltraPerformance` sku. If `false`, an active-standby gateway will be created.
     Defaults to `false`.
+
+* `private_ip_address_enabled` - (Optional) Should private IP be enabled on this gateway for connections? Changing this forces a new resource to be created.
 
 * `default_local_network_gateway_id` -  (Optional) The ID of the local network gateway
     through which outbound Internet traffic from the virtual network in which the
@@ -231,6 +233,10 @@ The `bgp_settings` block supports:
 
 * `peer_weight` - (Optional) The weight added to routes which have been learned
     through BGP peering. Valid values can be between `0` and `100`.
+
+A `custom_route` block supports the following:
+
+* `address_prefixes` - (Optional) A list of address blocks reserved for this virtual network in CIDR notation. Changing this forces a new resource to be created.
 
 The `root_certificate` block supports:
 

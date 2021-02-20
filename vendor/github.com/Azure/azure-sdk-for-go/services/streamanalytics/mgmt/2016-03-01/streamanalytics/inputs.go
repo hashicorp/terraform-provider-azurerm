@@ -80,6 +80,7 @@ func (client InputsClient) CreateOrReplace(ctx context.Context, input Input, res
 	result, err = client.CreateOrReplaceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.InputsClient", "CreateOrReplace", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -168,6 +169,7 @@ func (client InputsClient) Delete(ctx context.Context, resourceGroupName string,
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.InputsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -245,6 +247,7 @@ func (client InputsClient) Get(ctx context.Context, resourceGroupName string, jo
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.InputsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -326,9 +329,11 @@ func (client InputsClient) ListByStreamingJob(ctx context.Context, resourceGroup
 	result.ilr, err = client.ListByStreamingJobResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.InputsClient", "ListByStreamingJob", resp, "Failure responding to request")
+		return
 	}
 	if result.ilr.hasNextLink() && result.ilr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -442,7 +447,7 @@ func (client InputsClient) Test(ctx context.Context, resourceGroupName string, j
 
 	result, err = client.TestSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "streamanalytics.InputsClient", "Test", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "streamanalytics.InputsClient", "Test", nil, "Failure sending request")
 		return
 	}
 
@@ -484,7 +489,33 @@ func (client InputsClient) TestSender(req *http.Request) (future InputsTestFutur
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client InputsClient) (rts ResourceTestStatus, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "streamanalytics.InputsTestFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("streamanalytics.InputsTestFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		rts.Response.Response, err = future.GetResult(sender)
+		if rts.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "streamanalytics.InputsTestFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && rts.Response.Response.StatusCode != http.StatusNoContent {
+			rts, err = client.TestResponder(rts.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "streamanalytics.InputsTestFuture", "Result", rts.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -540,6 +571,7 @@ func (client InputsClient) Update(ctx context.Context, input Input, resourceGrou
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.InputsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

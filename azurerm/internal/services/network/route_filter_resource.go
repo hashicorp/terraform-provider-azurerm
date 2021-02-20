@@ -12,21 +12,22 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmRouteFilter() *schema.Resource {
+func resourceRouteFilter() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmRouteFilterCreateUpdate,
-		Read:   resourceArmRouteFilterRead,
-		Update: resourceArmRouteFilterCreateUpdate,
-		Delete: resourceArmRouteFilterDelete,
+		Create: resourceRouteFilterCreateUpdate,
+		Read:   resourceRouteFilterRead,
+		Update: resourceRouteFilterCreateUpdate,
+		Delete: resourceRouteFilterDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := ParseRouteFilterID(id)
+			_, err := parse.RouteFilterID(id)
 			return err
 		}),
 
@@ -96,7 +97,7 @@ func resourceArmRouteFilter() *schema.Resource {
 	}
 }
 
-func resourceArmRouteFilterCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceRouteFilterCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.RouteFiltersClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -150,15 +151,15 @@ func resourceArmRouteFilterCreateUpdate(d *schema.ResourceData, meta interface{}
 
 	d.SetId(*read.ID)
 
-	return resourceArmRouteFilterRead(d, meta)
+	return resourceRouteFilterRead(d, meta)
 }
 
-func resourceArmRouteFilterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceRouteFilterRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.RouteFiltersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseRouteFilterID(d.Id())
+	id, err := parse.RouteFilterID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -187,12 +188,12 @@ func resourceArmRouteFilterRead(d *schema.ResourceData, meta interface{}) error 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmRouteFilterDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceRouteFilterDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.RouteFiltersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseRouteFilterID(d.Id())
+	id, err := parse.RouteFilterID(d.Id())
 	if err != nil {
 		return err
 	}

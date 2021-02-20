@@ -21,12 +21,12 @@ import (
 
 // NOTE (also in the docs): this is not intended to be used with the `azurerm_virtual_machine_scale_set` resource
 
-func resourceArmVirtualMachineScaleSetExtension() *schema.Resource {
+func resourceVirtualMachineScaleSetExtension() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmVirtualMachineScaleSetExtensionCreate,
-		Read:   resourceArmVirtualMachineScaleSetExtensionRead,
-		Update: resourceArmVirtualMachineScaleSetExtensionUpdate,
-		Delete: resourceArmVirtualMachineScaleSetExtensionDelete,
+		Create: resourceVirtualMachineScaleSetExtensionCreate,
+		Read:   resourceVirtualMachineScaleSetExtensionRead,
+		Update: resourceVirtualMachineScaleSetExtensionUpdate,
+		Delete: resourceVirtualMachineScaleSetExtensionDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.VirtualMachineScaleSetExtensionID(id)
@@ -112,7 +112,7 @@ func resourceArmVirtualMachineScaleSetExtension() *schema.Resource {
 	}
 }
 
-func resourceArmVirtualMachineScaleSetExtensionCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualMachineScaleSetExtensionCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMScaleSetExtensionsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -188,10 +188,10 @@ func resourceArmVirtualMachineScaleSetExtensionCreate(d *schema.ResourceData, me
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmVirtualMachineScaleSetExtensionRead(d, meta)
+	return resourceVirtualMachineScaleSetExtensionRead(d, meta)
 }
 
-func resourceArmVirtualMachineScaleSetExtensionUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualMachineScaleSetExtensionUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMScaleSetExtensionsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -255,22 +255,22 @@ func resourceArmVirtualMachineScaleSetExtensionUpdate(d *schema.ResourceData, me
 	}
 
 	extension := compute.VirtualMachineScaleSetExtension{
-		Name: utils.String(id.Name),
+		Name: utils.String(id.ExtensionName),
 		VirtualMachineScaleSetExtensionProperties: &props,
 	}
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.VirtualMachineScaleSetName, id.Name, extension)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.VirtualMachineScaleSetName, id.ExtensionName, extension)
 	if err != nil {
-		return fmt.Errorf("Error updating Extension %q (Virtual Machine Scale Set %q / Resource Group %q): %+v", id.Name, id.VirtualMachineScaleSetName, id.ResourceGroup, err)
+		return fmt.Errorf("Error updating Extension %q (Virtual Machine Scale Set %q / Resource Group %q): %+v", id.ExtensionName, id.VirtualMachineScaleSetName, id.ResourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for update of Extension %q (Virtual Machine Scale Set %q / Resource Group %q): %+v", id.Name, id.VirtualMachineScaleSetName, id.ResourceGroup, err)
+		return fmt.Errorf("Error waiting for update of Extension %q (Virtual Machine Scale Set %q / Resource Group %q): %+v", id.ExtensionName, id.VirtualMachineScaleSetName, id.ResourceGroup, err)
 	}
 
-	return resourceArmVirtualMachineScaleSetExtensionRead(d, meta)
+	return resourceVirtualMachineScaleSetExtensionRead(d, meta)
 }
 
-func resourceArmVirtualMachineScaleSetExtensionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualMachineScaleSetExtensionRead(d *schema.ResourceData, meta interface{}) error {
 	vmssClient := meta.(*clients.Client).Compute.VMScaleSetClient
 	client := meta.(*clients.Client).Compute.VMScaleSetExtensionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -292,18 +292,18 @@ func resourceArmVirtualMachineScaleSetExtensionRead(d *schema.ResourceData, meta
 		return fmt.Errorf("Error retrieving Virtual Machine Scale Set %q (Resource Group %q): %+v", id.VirtualMachineScaleSetName, id.ResourceGroup, err)
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualMachineScaleSetName, id.Name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualMachineScaleSetName, id.ExtensionName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("Extension %q (Virtual Machine Scale Set %q / Resource Group %q) was not found - removing from state!", id.Name, id.VirtualMachineScaleSetName, id.ResourceGroup)
+			log.Printf("Extension %q (Virtual Machine Scale Set %q / Resource Group %q) was not found - removing from state!", id.ExtensionName, id.VirtualMachineScaleSetName, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Extension %q (Virtual Machine Scale Set %q / Resource Group %q): %+v", id.Name, id.VirtualMachineScaleSetName, id.ResourceGroup, err)
+		return fmt.Errorf("Error retrieving Extension %q (Virtual Machine Scale Set %q / Resource Group %q): %+v", id.ExtensionName, id.VirtualMachineScaleSetName, id.ResourceGroup, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.ExtensionName)
 	d.Set("virtual_machine_scale_set_id", vmss.ID)
 
 	if props := resp.VirtualMachineScaleSetExtensionProperties; props != nil {
@@ -331,7 +331,7 @@ func resourceArmVirtualMachineScaleSetExtensionRead(d *schema.ResourceData, meta
 	return nil
 }
 
-func resourceArmVirtualMachineScaleSetExtensionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualMachineScaleSetExtensionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMScaleSetExtensionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -341,17 +341,17 @@ func resourceArmVirtualMachineScaleSetExtensionDelete(d *schema.ResourceData, me
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.VirtualMachineScaleSetName, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.VirtualMachineScaleSetName, id.ExtensionName)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
 
-		return fmt.Errorf("Error deleting Extension %q (Virtual Machine Scale Set %q / Resource Group %q): %+v", id.Name, id.VirtualMachineScaleSetName, id.ResourceGroup, err)
+		return fmt.Errorf("Error deleting Extension %q (Virtual Machine Scale Set %q / Resource Group %q): %+v", id.ExtensionName, id.VirtualMachineScaleSetName, id.ResourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of Extension %q (Virtual Machine Scale Set %q / Resource Group %q): %+v", id.Name, id.VirtualMachineScaleSetName, id.ResourceGroup, err)
+		return fmt.Errorf("Error waiting for deletion of Extension %q (Virtual Machine Scale Set %q / Resource Group %q): %+v", id.ExtensionName, id.VirtualMachineScaleSetName, id.ResourceGroup, err)
 	}
 
 	return nil
