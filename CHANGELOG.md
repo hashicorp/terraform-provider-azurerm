@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 * `azurerm_api_management` - support for the  `tenant_access` block [GH-10475]
+* `azurerm_monitor_smart_detector_alert_rule` - supports for the `tags` property [GH-10646]
 
 BUG FIXES:
 
