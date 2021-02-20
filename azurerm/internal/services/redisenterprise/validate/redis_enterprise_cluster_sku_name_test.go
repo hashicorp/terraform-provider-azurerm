@@ -9,54 +9,54 @@ func TestRedisEnterpriseClusterSkuName(t *testing.T) {
 		expected bool
 	}{
 		{
-			name:     "Empty sku_name value",
+			name:     "Invalid Empty sku_name value",
 			input:    "",
 			expected: false,
 		},
 		{
-			name:     "Ignore extra delimiter",
-			input:    "EnterpriseE100-2-IgnoredInput",
-			expected: true,
-		},
-		{
-			name:     "Valid sku with no delimiter or tier",
-			input:    "EnterpriseFlashF1500",
+			name:     "Invalid sku name with no delimiter or capacity",
+			input:    "EnterpriseFlash_F1500",
 			expected: false,
 		},
 		{
-			name:     "valid sku with empty tier and extra delimiter",
+			name:     "Invalid sku name with invalid capacity above max int32",
+			input:    "EnterpriseFlash_F1500-2147483649",
+			expected: false,
+		},
+		{
+			name:     "Invalid sku name with empty capacity and extra delimiter",
 			input:    "TEA_4Node_UPS_Heater--",
 			expected: false,
 		},
 		{
-			name:     "Valid sku with delimiter and no tier defined",
-			input:    "TEA_4Node_UPS_Heater-",
+			name:     "Invalid sku name with delimiter and no capacity defined",
+			input:    "EnterpriseFlash_F1500-",
 			expected: false,
 		},
 		{
-			name:     "Valid sku and tier",
-			input:    "TEA_4Node_UPS_Heater-Standard",
-			expected: true,
-		},
-		{
-			name:     "Valid sku and tier with wrong sku casing",
-			input:    "tea_4Node_UPS_Heater-Standard",
+			name:     "Invalid wrong sku name casing",
+			input:    "Enterpriseflash_F1500-15",
 			expected: false,
 		},
 		{
-			name:     "Valid sku and tier with wrong tier casing",
-			input:    "TEA_4Node_UPS_Heater-standard",
-			expected: false,
-		},
-		{
-			name:     "No sku with delimiter and invalid tier",
+			name:     "Invalid No sku with delimiter and invalid capacity",
 			input:    "-YEET!",
 			expected: false,
 		},
 		{
-			name:     "Valid sku with delimiter and invalid Tier",
-			input:    "Gateway-MemoryOptimized",
+			name:     "Invalid sku name with delimiter and invalid capacity",
+			input:    "EnterpriseFlash_F1500-2",
 			expected: false,
+		},
+		{
+			name:     "Valid Ignore extra delimiter",
+			input:    "Enterprise_E100-2-IgnoredInput",
+			expected: true,
+		},
+		{
+			name:     "Valid sku and capacity",
+			input:    "EnterpriseFlash_F1500-15",
+			expected: true,
 		},
 	}
 

@@ -14,11 +14,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redisenterprise/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redisenterprise/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -27,7 +27,6 @@ func resourceRedisEnterpriseCluster() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceRedisEnterpriseClusterCreate,
 		Read:   resourceRedisEnterpriseClusterRead,
-		Update: resourceRedisEnterpriseClusterUpdate,
 		Delete: resourceRedisEnterpriseClusterDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.RedisEnterpriseClusterID(id)
@@ -37,7 +36,6 @@ func resourceRedisEnterpriseCluster() *schema.Resource {
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
@@ -46,17 +44,18 @@ func resourceRedisEnterpriseCluster() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: validate.RedisEnterpriseName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
+			"location": azure.SchemaLocation(),
+
 			"sku_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				//ForceNew:         true,
-				ValidateFunc:     validate.RedisEnterpriseClusterSkuName,
-				DiffSuppressFunc: suppress.CaseDifference,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.RedisEnterpriseClusterSkuName,
 			},
 
 			"zones": {
@@ -74,28 +73,31 @@ func resourceRedisEnterpriseCluster() *schema.Resource {
 				},
 			},
 
-			"minimum_tls_version": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  string(redisenterprise.OneFullStopTwo),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(redisenterprise.OneFullStopZero),
-					string(redisenterprise.OneFullStopOne),
-					string(redisenterprise.OneFullStopTwo),
-				}, false),
-			},
+			// RP currently does not return this value, but will in the near future (RP defaults to 1.2)
+			// "minimum_tls_version": {
+			// 	Type:     schema.TypeString,
+			// 	Optional: true,
+			// 	Default:  string(redisenterprise.OneFullStopTwo),
+			// 	ValidateFunc: validation.StringInSlice([]string{
+			// 		string(redisenterprise.OneFullStopZero),
+			// 		string(redisenterprise.OneFullStopOne),
+			// 		string(redisenterprise.OneFullStopTwo),
+			// 	}, false),
+			// },
 
+			// RP currently does not return this value, but will in the near future
 			"hostname": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
+			// RP currently does not return this value, but will in the near future
 			"version": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": tags.ForceNewSchema(),
 		},
 	}
 }
@@ -112,7 +114,7 @@ func resourceRedisEnterpriseClusterCreate(d *schema.ResourceData, meta interface
 		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Redis Enterprise Cluster %q (Name %q / Resource Group %q): %+v", resourceId.Name, resourceId.ResourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Redis Enterprise Cluster (Name %q / Resource Group %q): %+v", resourceId.Name, resourceId.ResourceGroup, err)
 			}
 		}
 		if !utils.ResponseWasNotFound(existing.Response) {
@@ -120,22 +122,21 @@ func resourceRedisEnterpriseClusterCreate(d *schema.ResourceData, meta interface
 		}
 	}
 
-	minTLS := d.Get("minimum_tls_version").(string)
-
-	t := d.Get("tags").(map[string]interface{})
-	expandedTags := tags.Expand(t)
-
 	parameters := redisenterprise.Cluster{
-		Sku: expandRedisEnterpriseClusterSku(d.Get("sku_name").(string)),
-		ClusterProperties: &redisenterprise.ClusterProperties{
-			MinimumTLSVersion: redisenterprise.TLSVersion(minTLS),
-		},
-		Tags: expandedTags,
+		Name:     utils.String(d.Get("name").(string)),
+		Location: utils.String(location.Normalize(d.Get("location").(string))),
+		Sku:      expandRedisEnterpriseClusterSku(d.Get("sku_name").(string)),
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if v, ok := d.GetOk("zones"); ok {
 		parameters.Zones = azure.ExpandZones(v.([]interface{}))
 	}
+
+	// RP currently does not return this value
+	// if v, ok := d.GetOk("minimum_tls_version"); ok {
+	// 	parameters.ClusterProperties.MinimumTLSVersion = redisenterprise.TLSVersion(v.(string))
+	// }
 
 	future, err := client.Create(ctx, resourceId.ResourceGroup, resourceId.Name, parameters)
 	if err != nil {
@@ -148,8 +149,8 @@ func resourceRedisEnterpriseClusterCreate(d *schema.ResourceData, meta interface
 
 	log.Printf("[DEBUG] Waiting for Redis Enterprise Cluster (Name %q / Resource Group %q) to become available", resourceId.Name, resourceId.ResourceGroup)
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"ResourceStateCreating", "ResourceStateUpdating", "ResourceStateDisabling"},
-		Target:     []string{"ResourceStateRunning"},
+		Pending:    []string{"Creating", "Updating", "Enabling", "Deleting", "Disabling"},
+		Target:     []string{"Running"},
 		Refresh:    redisEnterpriseClusterStateRefreshFunc(ctx, client, resourceId),
 		MinTimeout: 15 * time.Second,
 		Timeout:    d.Timeout(schema.TimeoutCreate),
@@ -187,6 +188,7 @@ func resourceRedisEnterpriseClusterRead(d *schema.ResourceData, meta interface{}
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if err := d.Set("sku_name", flattenRedisEnterpriseClusterSku(resp.Sku)); err != nil {
 		return fmt.Errorf("setting `sku_name`: %+v", err)
@@ -199,68 +201,11 @@ func resourceRedisEnterpriseClusterRead(d *schema.ResourceData, meta interface{}
 	if props := resp.ClusterProperties; props != nil {
 		d.Set("hostname", props.HostName)
 		d.Set("version", props.RedisVersion)
-		d.Set("minimum_tls_version", props.MinimumTLSVersion)
+		// RP currently does not return this value
+		// d.Set("minimum_tls_version", string(props.MinimumTLSVersion))
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
-}
-
-func resourceRedisEnterpriseClusterUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).RedisEnterprise.Client
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-	log.Printf("[INFO] preparing arguments for Redis Enterprise Cluster update.")
-
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	resourceId := parse.NewRedisEnterpriseClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.Name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Redis Enterprise Cluster %q (Name %q / Resource Group %q): %+v", resourceId.Name, resourceId.ResourceGroup, err)
-			}
-		}
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_redis_enterprise_cluster", resourceId.ID())
-		}
-	}
-
-	minTLS := d.Get("minimum_tls_version").(string)
-
-	t := d.Get("tags").(map[string]interface{})
-	expandedTags := tags.Expand(t)
-
-	parameters := redisenterprise.ClusterUpdate{
-		Sku: expandRedisEnterpriseClusterSku(d.Get("sku_name").(string)),
-		ClusterProperties: &redisenterprise.ClusterProperties{
-			MinimumTLSVersion: redisenterprise.TLSVersion(minTLS),
-		},
-		Tags: expandedTags,
-	}
-
-	future, err := client.Update(ctx, resourceId.ResourceGroup, resourceId.Name, parameters)
-	if err != nil {
-		return fmt.Errorf("waiting for update of Redis Enterprise Cluster (Name %q / Resource Group %q): %+v", resourceId.Name, resourceId.ResourceGroup, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the update of Redis Enterprise Cluster (Name %q / Resource Group %q): %+v", resourceId.Name, resourceId.ResourceGroup, err)
-	}
-
-	log.Printf("[DEBUG] Waiting for Redis Enterprise Cluster (Name %q / Resource Group %q) to become available", resourceId.Name, resourceId.ResourceGroup)
-	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"ResourceStateCreating", "ResourceStateUpdating", "ResourceStateDisabling"},
-		Target:     []string{"ResourceStateRunning"},
-		Refresh:    redisEnterpriseClusterStateRefreshFunc(ctx, client, resourceId),
-		MinTimeout: 15 * time.Second,
-		Timeout:    d.Timeout(schema.TimeoutCreate),
-	}
-
-	if _, err = stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("waiting for Redis Enterprise Cluster (Name %q / Resource Group %q) to become available: %+v", resourceId.Name, resourceId.ResourceGroup, err)
-	}
-
-	return resourceRedisEnterpriseClusterRead(d, meta)
 }
 
 func resourceRedisEnterpriseClusterDelete(d *schema.ResourceData, meta interface{}) error {
