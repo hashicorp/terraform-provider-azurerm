@@ -120,7 +120,7 @@ func (KustoIotHubDataConnectionResource) Exists(ctx context.Context, clients *cl
 
 	value, ok := resp.Value.AsIotHubDataConnection()
 	if !ok {
-		return nil, fmt.Errorf("%s is not an EventHubDataConnection", id.String())
+		return nil, fmt.Errorf("%s is not an IotHub Data Connection", id.String())
 	}
 
 	return utils.Bool(value.IotHubConnectionProperties != nil), nil
