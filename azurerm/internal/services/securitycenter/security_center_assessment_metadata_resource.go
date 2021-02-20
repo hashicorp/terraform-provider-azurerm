@@ -49,15 +49,6 @@ func resourceArmSecurityCenterAssessmentMetadata() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"assessment_type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  string(security.CustomerManaged),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(security.CustomerManaged),
-				}, false),
-			},
-
 			"severity": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -148,7 +139,7 @@ func resourceArmSecurityCenterAssessmentMetadataCreate(d *schema.ResourceData, m
 
 	params := security.AssessmentMetadata{
 		AssessmentMetadataProperties: &security.AssessmentMetadataProperties{
-			AssessmentType: security.AssessmentType(d.Get("assessment_type").(string)),
+			AssessmentType: security.CustomerManaged,
 			Description:    utils.String(d.Get("description").(string)),
 			DisplayName:    utils.String(d.Get("display_name").(string)),
 			Severity:       security.Severity(d.Get("severity").(string)),
@@ -207,7 +198,6 @@ func resourceArmSecurityCenterAssessmentMetadataRead(d *schema.ResourceData, met
 	d.Set("name", id.AssessmentMetadataName)
 
 	if props := resp.AssessmentMetadataProperties; props != nil {
-		d.Set("assessment_type", string(props.AssessmentType))
 		d.Set("description", props.Description)
 		d.Set("display_name", props.DisplayName)
 		d.Set("severity", string(props.Severity))
@@ -243,10 +233,6 @@ func resourceArmSecurityCenterAssessmentMetadataUpdate(d *schema.ResourceData, m
 	}
 	if existing.AssessmentMetadataProperties == nil {
 		return fmt.Errorf("retrieving %s: `assessmentMetadataProperties` was nil", id)
-	}
-
-	if d.HasChange("assessment_type") {
-		existing.AssessmentMetadataProperties.AssessmentType = security.AssessmentType(d.Get("assessment_type").(string))
 	}
 
 	if d.HasChange("description") {

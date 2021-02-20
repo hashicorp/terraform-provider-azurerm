@@ -14,18 +14,15 @@ Manages the Security Center Assessment Metadata for Azure Security Center.
 
 ```hcl
 resource "azurerm_security_center_assessment_metadata" "example" {
-  display_name    = "Test Display Name"
-  assessment_type = "CustomerManaged"
-  severity        = "Medium"
-  description     = "Test Description"
+  display_name = "Test Display Name"
+  severity     = "Medium"
+  description  = "Test Description"
 }
 ```
 
 ## Arguments Reference
 
 The following arguments are supported:
-
-* `assessment_type` - (Required) The type of the Security Center Assessment which can be specified by user. Possible value is `CustomerManaged`.
 
 * `description` - (Required) The description of the Security Center Assessment.
 

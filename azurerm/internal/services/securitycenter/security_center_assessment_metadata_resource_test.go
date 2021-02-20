@@ -95,7 +95,6 @@ provider "azurerm" {
 
 resource "azurerm_security_center_assessment_metadata" "test" {
   display_name    = "Test Display Name"
-  assessment_type = "CustomerManaged"
   severity        = "Medium"
   description     = "Test Description"
 }
@@ -110,7 +109,6 @@ provider "azurerm" {
 
 resource "azurerm_security_center_assessment_metadata" "test" {
   display_name            = "Test Display Name"
-  assessment_type         = "CustomerManaged"
   severity                = "Low"
   description             = "Test Description"
   implementation_effort   = "Low"
@@ -129,7 +127,6 @@ provider "azurerm" {
 
 resource "azurerm_security_center_assessment_metadata" "test" {
   display_name            = "Updated Test Display Name"
-  assessment_type         = "CustomerManaged"
   severity                = "Medium"
   description             = "Updated Test Description"
   implementation_effort   = "Moderate"
