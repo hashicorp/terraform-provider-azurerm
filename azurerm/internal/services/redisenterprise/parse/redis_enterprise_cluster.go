@@ -10,7 +10,6 @@ import (
 type RedisEnterpriseClusterId struct {
 	SubscriptionId string
 	ResourceGroup  string
-	RediName       string
 	Name           string
 }
 

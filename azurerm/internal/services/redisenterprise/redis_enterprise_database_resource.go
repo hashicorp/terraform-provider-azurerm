@@ -1,0 +1,404 @@
+package redisenterprise
+
+import (
+	"fmt"
+	"log"
+	"time"
+
+	"github.com/Azure/azure-sdk-for-go/services/redisenterprise/mgmt/2021-03-01/redisenterprise"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redisenterprise/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redisenterprise/validate"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+)
+
+func resourceRedisEnterpriseDatabase() *schema.Resource {
+	return &schema.Resource{
+		Create: resourceRedisEnterpriseDatabaseCreate,
+		Read:   resourceRedisEnterpriseDatabaseRead,
+		Update: resourceRedisEnterpriseDatabaseUpdate,
+		Delete: resourceRedisEnterpriseDatabaseDelete,
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
+		},
+
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.RedisEnterpriseDatabaseID(id)
+			return err
+		}),
+
+		Schema: map[string]*schema.Schema{
+			"name": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.RedisEnterpriseName,
+			},
+
+			"resource_group_name": azure.SchemaResourceGroupName(),
+
+			"cluster_id": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.RedisEnterpriseClusterID,
+			},
+
+			"client_protocol": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(redisenterprise.Encrypted),
+					string(redisenterprise.Plaintext),
+				}, false),
+			},
+
+			"clustering_policy": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(redisenterprise.EnterpriseCluster),
+					string(redisenterprise.OSSCluster),
+				}, false),
+			},
+
+			"eviction_policy": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(redisenterprise.AllKeysLFU),
+					string(redisenterprise.AllKeysLRU),
+					string(redisenterprise.AllKeysRandom),
+					string(redisenterprise.VolatileLRU),
+					string(redisenterprise.VolatileLFU),
+					string(redisenterprise.VolatileTTL),
+					string(redisenterprise.VolatileRandom),
+					string(redisenterprise.NoEviction),
+				}, false),
+			},
+
+			"module": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+
+						"args": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+
+						"version": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			// This attribute is currently in preview
+			"persistence": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"aof_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+
+						"aof_frequency": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(redisenterprise.Ones),
+								string(redisenterprise.Always),
+							}, false),
+						},
+
+						"rdb_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+
+						"rdb_frequency": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(redisenterprise.Oneh),
+								string(redisenterprise.Sixh),
+								string(redisenterprise.OneTwoh),
+							}, false),
+						},
+					},
+				},
+			},
+
+			"port": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
+		},
+	}
+}
+func resourceRedisEnterpriseDatabaseCreate(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	client := meta.(*clients.Client).RedisEnterprise.DatabaseClient
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	name := d.Get("name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
+
+	clusterID, _ := parse.RedisEnterpriseClusterID(d.Get("cluster_id").(string))
+	id := parse.NewRedisEnterpriseDatabaseID(subscriptionId, resourceGroup, clusterID.Name, name)
+
+	existing, err := client.Get(ctx, resourceGroup, id.ClusterName, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("checking for present of existing Redis Enterprise Database %q (Resource Group %q / Cluster Name %q): %+v", name, resourceGroup, id.ClusterName, err)
+		}
+	}
+
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_redisenterprise_database", id.ID())
+	}
+
+	parameters := redisenterprise.Database{
+		DatabaseProperties: &redisenterprise.DatabaseProperties{
+			ClientProtocol:   redisenterprise.Protocol(d.Get("client_protocol").(string)),
+			ClusteringPolicy: redisenterprise.ClusteringPolicy(d.Get("clustering_policy").(string)),
+			EvictionPolicy:   redisenterprise.EvictionPolicy(d.Get("eviction_policy").(string)),
+			Modules:          expandArmDatabaseModuleArray(d.Get("module").(*schema.Set).List()),
+			Persistence:      expandArmDatabasePersistence(d.Get("persistence").([]interface{})),
+			Port:             utils.Int32(int32(d.Get("port").(int))),
+		},
+	}
+
+	future, err := client.Create(ctx, resourceGroup, id.ClusterName, name, parameters)
+	if err != nil {
+		return fmt.Errorf("creating Redis Enterprise Database %q (Resource Group %q / Cluster Name %q): %+v", name, resourceGroup, id.ClusterName, err)
+	}
+
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creating future for Redis Enterprise Database %q (Resource Group %q / Cluster Name %q): %+v", name, resourceGroup, id.ClusterName, err)
+	}
+
+	d.SetId(id.ID())
+
+	return resourceRedisEnterpriseDatabaseRead(d, meta)
+}
+
+func resourceRedisEnterpriseDatabaseRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).RedisEnterprise.DatabaseClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.RedisEnterpriseDatabaseID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ClusterName, id.Name)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[INFO] Redis Enterprise Database %q does not exist - removing from state", d.Id())
+			d.SetId("")
+			return nil
+		}
+		return fmt.Errorf("retrieving Redis Enterprise Database %q (Resource Group %q / Cluster Name %q): %+v", id.Name, id.ResourceGroup, id.ClusterName, err)
+	}
+
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("cluster_id", parse.NewRedisEnterpriseClusterID(id.SubscriptionId, id.ResourceGroup, id.ClusterName).ID())
+
+	if props := resp.DatabaseProperties; props != nil {
+		d.Set("client_protocol", props.ClientProtocol)
+		d.Set("clustering_policy", props.ClusteringPolicy)
+		d.Set("eviction_policy", props.EvictionPolicy)
+		if err := d.Set("module", flattenArmDatabaseModuleArray(props.Modules)); err != nil {
+			return fmt.Errorf("setting `module`: %+v", err)
+		}
+		if err := d.Set("persistence", flattenArmDatabasePersistence(props.Persistence)); err != nil {
+			return fmt.Errorf("setting `persistence`: %+v", err)
+		}
+		d.Set("port", props.Port)
+	}
+
+	return nil
+}
+
+func resourceRedisEnterpriseDatabaseUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).RedisEnterprise.DatabaseClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.RedisEnterpriseDatabaseID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	parameters := redisenterprise.DatabaseUpdate{
+		DatabaseProperties: &redisenterprise.DatabaseProperties{},
+	}
+
+	if d.HasChange("client_protocol") {
+		parameters.DatabaseProperties.ClientProtocol = redisenterprise.Protocol(d.Get("client_protocol").(string))
+	}
+
+	if d.HasChange("port") {
+		parameters.DatabaseProperties.Port = utils.Int32(int32(d.Get("port").(int)))
+	}
+
+	if d.HasChange("clustering_policy") {
+		parameters.DatabaseProperties.ClusteringPolicy = redisenterprise.ClusteringPolicy(d.Get("clustering_policy").(string))
+	}
+
+	if d.HasChange("eviction_policy") {
+		parameters.DatabaseProperties.EvictionPolicy = redisenterprise.EvictionPolicy(d.Get("eviction_policy").(string))
+	}
+
+	if d.HasChange("persistence") {
+		parameters.DatabaseProperties.Persistence = expandArmDatabasePersistence(d.Get("persistence").([]interface{}))
+	}
+
+	if d.HasChange("module") {
+		parameters.DatabaseProperties.Modules = expandArmDatabaseModuleArray(d.Get("module").(*schema.Set).List())
+	}
+
+	future, err := client.Update(ctx, id.ResourceGroup, id.ClusterName, id.Name, parameters)
+	if err != nil {
+		return fmt.Errorf("updating Redis Enterprise Database %q (Resource Group %q / Cluster Name %q): %+v", id.Name, id.ResourceGroup, id.ClusterName, err)
+	}
+
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for updating future for Redis Enterprise Database %q (Resource Group %q / Cluster Name %q): %+v", id.Name, id.ResourceGroup, id.ClusterName, err)
+	}
+	return resourceRedisEnterpriseDatabaseRead(d, meta)
+}
+
+func resourceRedisEnterpriseDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).RedisEnterprise.DatabaseClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.RedisEnterpriseDatabaseID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	future, err := client.Delete(ctx, id.ResourceGroup, id.ClusterName, id.Name)
+	if err != nil {
+		return fmt.Errorf("deleting Redis Enterprise Database %q (Resource Group %q / Cluster Name %q): %+v", id.Name, id.ResourceGroup, id.ClusterName, err)
+	}
+
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for deleting future for Redis Enterprise Database %q (Resource Group %q / Cluster Name %q): %+v", id.Name, id.ResourceGroup, id.ClusterName, err)
+	}
+	return nil
+}
+
+func expandArmDatabaseModuleArray(input []interface{}) *[]redisenterprise.Module {
+	results := make([]redisenterprise.Module, 0)
+	for _, item := range input {
+		v := item.(map[string]interface{})
+		results = append(results, redisenterprise.Module{
+			Name: utils.String(v["name"].(string)),
+			Args: utils.String(v["args"].(string)),
+		})
+	}
+	return &results
+}
+
+func expandArmDatabasePersistence(input []interface{}) *redisenterprise.Persistence {
+	if len(input) == 0 {
+		return nil
+	}
+	v := input[0].(map[string]interface{})
+	return &redisenterprise.Persistence{
+		AofEnabled:   utils.Bool(v["aof_enabled"].(bool)),
+		RdbEnabled:   utils.Bool(v["rdb_enabled"].(bool)),
+		AofFrequency: redisenterprise.AofFrequency(v["aof_frequency"].(string)),
+		RdbFrequency: redisenterprise.RdbFrequency(v["rdb_frequency"].(string)),
+	}
+}
+
+func flattenArmDatabaseModuleArray(input *[]redisenterprise.Module) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		var name string
+		if item.Name != nil {
+			name = *item.Name
+		}
+		var args string
+		if item.Args != nil {
+			args = *item.Args
+		}
+		var version string
+		if item.Version != nil {
+			version = *item.Version
+		}
+		results = append(results, map[string]interface{}{
+			"name":    name,
+			"args":    args,
+			"version": version,
+		})
+	}
+
+	return results
+}
+
+func flattenArmDatabasePersistence(input *redisenterprise.Persistence) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	var aofEnabled bool
+	if input.AofEnabled != nil {
+		aofEnabled = *input.AofEnabled
+	}
+
+	var aofFrequency redisenterprise.AofFrequency
+	if input.AofFrequency != "" {
+		aofFrequency = input.AofFrequency
+	}
+
+	var rdbEnabled bool
+	if input.RdbEnabled != nil {
+		rdbEnabled = *input.RdbEnabled
+	}
+
+	var rdbFrequency redisenterprise.RdbFrequency
+	if input.RdbFrequency != "" {
+		rdbFrequency = input.RdbFrequency
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"aof_enabled":   aofEnabled,
+			"aof_frequency": aofFrequency,
+			"rdb_enabled":   rdbEnabled,
+			"rdb_frequency": rdbFrequency,
+		},
+	}
+}
