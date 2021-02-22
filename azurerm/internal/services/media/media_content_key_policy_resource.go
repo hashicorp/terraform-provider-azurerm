@@ -7,6 +7,7 @@ import (
 	"time"
 
 	b64 "encoding/base64"
+	"encoding/hex"
 
 	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2020-05-01/media"
 	"github.com/Azure/go-autorest/autorest/date"
@@ -965,8 +966,8 @@ func expandFairplayConfiguration(input []interface{}) *media.ContentKeyPolicyFai
 	}
 
 	if fairplay["ask"] != nil && fairplay["ask"].(string) != "" {
-		ask := []byte(fairplay["ask"].(string))
-		fairplayConfiguration.Ask = &ask
+		askBytes, _ := hex.DecodeString(fairplay["ask"].(string))
+		fairplayConfiguration.Ask = &askBytes
 	}
 
 	if fairplay["pfx"] != nil && fairplay["pfx"].(string) != "" {
@@ -1003,7 +1004,7 @@ func flattenFairplayConfiguration(input *media.ContentKeyPolicyFairPlayConfigura
 
 	ask := ""
 	if input.Ask != nil {
-		ask = string(*input.Ask)
+		ask = hex.EncodeToString(*input.Ask)
 	}
 
 	return []interface{}{
