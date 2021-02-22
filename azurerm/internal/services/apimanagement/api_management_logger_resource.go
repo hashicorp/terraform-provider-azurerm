@@ -148,7 +148,6 @@ func resourceApiManagementLoggerCreate(d *schema.ResourceData, meta interface{})
 		parameters.Credentials = expandApiManagementLoggerApplicationInsights(appInsightsRaw)
 	}
 
-	resourceId := utils.String(d.Get("resource_id").(string))
 	if resourceId := d.Get("resource_id").(string); resourceId != "" {
 		parameters.ResourceID = utils.String(resourceId)
 	}
