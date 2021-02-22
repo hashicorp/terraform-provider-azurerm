@@ -1,5 +1,9 @@
 ## 2.49.0 (Unreleased)
 
+FEATURES:
+
+* **New Data Source:** `azurerm_spring_cloud_app` [GH-10678]
+
 ENHANCEMENTS:
 
 * `azurerm_api_management` - support for the  `tenant_access` block [GH-10475]
