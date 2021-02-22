@@ -90,6 +90,7 @@ func (client UserIdentitiesClient) List(ctx context.Context, resourceGroupName s
 	}
 	if result.uic.hasNextLink() && result.uic.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -152,7 +153,6 @@ func (client UserIdentitiesClient) listNextResults(ctx context.Context, lastResu
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.UserIdentitiesClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

@@ -124,11 +124,41 @@ resource "azurerm_virtual_network" "primary" {
   location            = azurerm_resource_group.primary.location
 }
 
+resource "azurerm_virtual_network" "secondary" {
+  name                = "network2"
+  resource_group_name = azurerm_resource_group.secondary.name
+  address_space       = ["192.168.2.0/24"]
+  location            = azurerm_resource_group.secondary.location
+}
+
 resource "azurerm_subnet" "primary" {
   name                 = "network1-subnet"
   resource_group_name  = azurerm_resource_group.primary.name
   virtual_network_name = azurerm_virtual_network.primary.name
   address_prefixes     = ["192.168.1.0/24"]
+}
+
+resource "azurerm_subnet" "secondary" {
+  name                 = "network2-subnet"
+  resource_group_name  = azurerm_resource_group.secondary.name
+  virtual_network_name = azurerm_virtual_network.secondary.name
+  address_prefixes     = ["192.168.2.0/24"]
+}
+
+resource "azurerm_public_ip" "primary" {
+  name                = "vm-public-ip-primary"
+  allocation_method   = "Static"
+  location            = azurerm_resource_group.primary.location
+  resource_group_name = azurerm_resource_group.primary.name
+  sku                 = "Basic"
+}
+
+resource "azurerm_public_ip" "secondary" {
+  name                = "vm-public-ip-secondary"
+  allocation_method   = "Static"
+  location            = azurerm_resource_group.secondary.location
+  resource_group_name = azurerm_resource_group.secondary.name
+  sku                 = "Basic"
 }
 
 resource "azurerm_network_interface" "vm" {
@@ -140,6 +170,7 @@ resource "azurerm_network_interface" "vm" {
     name                          = "vm"
     subnet_id                     = azurerm_subnet.primary.id
     private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = azurerm_public_ip.primary.id
   }
 }
 
@@ -162,6 +193,12 @@ resource "azurerm_site_recovery_replicated_vm" "vm-replication" {
     target_resource_group_id   = azurerm_resource_group.secondary.id
     target_disk_type           = "Premium_LRS"
     target_replica_disk_type   = "Premium_LRS"
+  }
+
+  network_interface {
+    source_network_interface_id   = azurerm_network_interface.vm.id
+    target_subnet_name            = "network2-subnet"
+    recovery_public_ip_address_id = azurerm_public_ip.secondary.id
   }
 }
 ```
@@ -219,6 +256,8 @@ A `network_interface` block supports the following:
 * `target_static_ip` - (Optional) Static IP to assign when a failover is done.
 
 * `target_subnet_name` - (Optional) Name of the subnet to to use when a failover is done.
+
+* `recovery_public_ip_address_id` - (Optional) Id of the public IP object to use when a failover is done.
 
 ## Attributes Reference
 

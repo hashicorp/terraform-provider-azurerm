@@ -382,6 +382,7 @@ func (client PartnerRegistrationsClient) ListByResourceGroup(ctx context.Context
 	}
 	if result.prlr.hasNextLink() && result.prlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -448,7 +449,6 @@ func (client PartnerRegistrationsClient) listByResourceGroupNextResults(ctx cont
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.PartnerRegistrationsClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -511,6 +511,7 @@ func (client PartnerRegistrationsClient) ListBySubscription(ctx context.Context,
 	}
 	if result.prlr.hasNextLink() && result.prlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -576,7 +577,6 @@ func (client PartnerRegistrationsClient) listBySubscriptionNextResults(ctx conte
 	result, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.PartnerRegistrationsClient", "listBySubscriptionNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

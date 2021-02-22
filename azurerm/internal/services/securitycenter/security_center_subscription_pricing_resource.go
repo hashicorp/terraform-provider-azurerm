@@ -65,6 +65,8 @@ func resourceSecurityCenterSubscriptionPricing() *schema.Resource {
 					"SqlServerVirtualMachines",
 					"StorageAccounts",
 					"VirtualMachines",
+					"Arm",
+					"Dns",
 				}, false),
 			},
 		},

@@ -53,11 +53,11 @@ func assertAlertRuleKind(rule securityinsight.BasicAlertRule, expectKind securit
 	var kind securityinsight.AlertRuleKind
 	switch rule.(type) {
 	case securityinsight.FusionAlertRule:
-		kind = securityinsight.Fusion
+		kind = securityinsight.AlertRuleKindFusion
 	case securityinsight.MicrosoftSecurityIncidentCreationAlertRule:
-		kind = securityinsight.MicrosoftSecurityIncidentCreation
+		kind = securityinsight.AlertRuleKindMicrosoftSecurityIncidentCreation
 	case securityinsight.ScheduledAlertRule:
-		kind = securityinsight.Scheduled
+		kind = securityinsight.AlertRuleKindScheduled
 	}
 	if expectKind != kind {
 		return fmt.Errorf("Sentinel Alert Rule has mismatched kind, expected: %q, got %q", expectKind, kind)

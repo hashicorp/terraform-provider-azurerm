@@ -24,8 +24,9 @@ resource "azurerm_lighthouse_definition" "example" {
   managing_tenant_id = "00000000-0000-0000-0000-000000000000"
 
   authorization {
-    principal_id       = "00000000-0000-0000-0000-000000000000"
-    role_definition_id = data.azurerm_role_definition.contributor.role_definition_id
+    principal_id           = "00000000-0000-0000-0000-000000000000"
+    role_definition_id     = data.azurerm_role_definition.contributor.role_definition_id
+    principal_display_name = "Tier 1 Support"
   }
 }
 ```
@@ -44,11 +45,13 @@ The following arguments are supported:
 
 * `authorization` - (Required) An authorization block as defined below.  
 
---- 
+---
 
 An `authorization` block supports the following:
 
 * `principal_id` - (Required) Principal ID of the security group/service principal/user that would be assigned permissions to the projected subscription.
+
+* `principal_display_name` - (Optional) The display name of the security group/service principal/user that would be assigned permissions to the projected subscription.
 
 * `role_definition_id` - (Required) The role definition identifier. This role will define the permissions that are granted to the principal. This cannot be an `Owner` role.
 

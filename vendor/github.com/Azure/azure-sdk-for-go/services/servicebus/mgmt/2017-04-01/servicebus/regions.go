@@ -84,6 +84,7 @@ func (client RegionsClient) ListBySku(ctx context.Context, sku string) (result P
 	}
 	if result.pmrlr.hasNextLink() && result.pmrlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -144,7 +145,6 @@ func (client RegionsClient) listBySkuNextResults(ctx context.Context, lastResult
 	result, err = client.ListBySkuResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.RegionsClient", "listBySkuNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

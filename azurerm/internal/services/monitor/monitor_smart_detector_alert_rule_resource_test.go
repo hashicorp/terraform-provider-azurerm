@@ -168,6 +168,10 @@ BODY
   }
 
   throttling_duration = "PT20M"
+
+  tags = {
+    Env = "Test"
+  }
 }
 `, r.template(data), data.RandomInteger)
 }

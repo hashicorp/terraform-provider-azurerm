@@ -343,6 +343,7 @@ func (client RecordSetsClient) List(ctx context.Context, resourceGroupName strin
 	}
 	if result.rslr.hasNextLink() && result.rslr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -410,7 +411,6 @@ func (client RecordSetsClient) listNextResults(ctx context.Context, lastResults 
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "privatedns.RecordSetsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -472,6 +472,7 @@ func (client RecordSetsClient) ListByType(ctx context.Context, resourceGroupName
 	}
 	if result.rslr.hasNextLink() && result.rslr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -540,7 +541,6 @@ func (client RecordSetsClient) listByTypeNextResults(ctx context.Context, lastRe
 	result, err = client.ListByTypeResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "privatedns.RecordSetsClient", "listByTypeNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

@@ -157,6 +157,7 @@ func (client PolicyMetadataClient) List(ctx context.Context, top *int32) (result
 	}
 	if result.pmc.hasNextLink() && result.pmc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -215,7 +216,6 @@ func (client PolicyMetadataClient) listNextResults(ctx context.Context, lastResu
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyMetadataClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

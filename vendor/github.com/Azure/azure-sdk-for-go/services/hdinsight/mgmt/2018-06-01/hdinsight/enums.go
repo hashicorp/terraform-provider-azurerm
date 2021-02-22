@@ -97,15 +97,19 @@ func PossibleDirectoryTypeValues() []DirectoryType {
 type FilterMode string
 
 const (
+	// Default ...
+	Default FilterMode = "Default"
 	// Exclude ...
 	Exclude FilterMode = "Exclude"
 	// Include ...
 	Include FilterMode = "Include"
+	// Recommend ...
+	Recommend FilterMode = "Recommend"
 )
 
 // PossibleFilterModeValues returns an array of possible values for the FilterMode const type.
 func PossibleFilterModeValues() []FilterMode {
-	return []FilterMode{Exclude, Include}
+	return []FilterMode{Default, Exclude, Include, Recommend}
 }
 
 // JSONWebKeyEncryptionAlgorithm enumerates the values for json web key encryption algorithm.

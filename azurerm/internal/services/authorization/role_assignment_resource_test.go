@@ -354,6 +354,8 @@ provider "azurerm" {
   features {}
 }
 
+provider "azuread" {}
+
 data "azurerm_subscription" "current" {
 }
 
@@ -379,6 +381,8 @@ func (RoleAssignmentResource) servicePrincipalWithType(rInt int, roleAssignmentI
 provider "azurerm" {
   features {}
 }
+
+provider "azuread" {}
 
 data "azurerm_subscription" "current" {
 }
@@ -406,6 +410,8 @@ func (RoleAssignmentResource) group(rInt int, roleAssignmentID string) string {
 provider "azurerm" {
   features {}
 }
+
+provider "azuread" {}
 
 data "azurerm_subscription" "current" {
 }

@@ -79,6 +79,7 @@ func (client TargetComputeSizesClient) ListByReplicationProtectedItems(ctx conte
 	}
 	if result.tcsc.hasNextLink() && result.tcsc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -143,7 +144,6 @@ func (client TargetComputeSizesClient) listByReplicationProtectedItemsNextResult
 	result, err = client.ListByReplicationProtectedItemsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.TargetComputeSizesClient", "listByReplicationProtectedItemsNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

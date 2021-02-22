@@ -156,6 +156,7 @@ func (client DeletedApplicationsClient) List(ctx context.Context, filter string)
 	}
 	if result.alr.hasNextLink() && result.alr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

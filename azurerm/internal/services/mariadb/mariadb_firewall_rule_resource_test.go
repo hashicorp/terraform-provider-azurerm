@@ -98,7 +98,7 @@ resource "azurerm_mariadb_server" "test" {
 }
 
 resource "azurerm_mariadb_firewall_rule" "test" {
-  name                = "acctestfwrule-%d"
+  name                = "acctestFWRule_01-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   server_name         = "${azurerm_mariadb_server.test.name}"
   start_ip_address    = "0.0.0.0"

@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `enable_purge` - (Optional) Specifies if the purge operations are enabled.
 
-* `virtual_network_configuration`- (Optional) A `virtual_network_configuration` block as defined below.
+* `virtual_network_configuration`- (Optional) A `virtual_network_configuration` block as defined below. Changing this forces a new resource to be created.
 
 * `language_extensions` - (Optional) An list of `language_extensions` to enable. Valid values are: `PYTHON` and `R`.
 

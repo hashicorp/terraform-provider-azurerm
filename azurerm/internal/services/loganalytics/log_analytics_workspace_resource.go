@@ -84,9 +84,16 @@ func resourceLogAnalyticsWorkspace() *schema.Resource {
 					string(operationalinsights.WorkspaceSkuNameEnumPremium),
 					string(operationalinsights.WorkspaceSkuNameEnumStandalone),
 					string(operationalinsights.WorkspaceSkuNameEnumStandard),
+					string(operationalinsights.WorkspaceSkuNameEnumCapacityReservation),
 					"Unlimited", // TODO check if this is actually no longer valid, removed in v28.0.0 of the SDK
 				}, true),
 				DiffSuppressFunc: logAnalyticsLinkedServiceSkuChangeCaseDifference,
+			},
+
+			"reservation_capcity_in_gb_per_day": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.All(validation.IntBetween(100, 5000), validation.IntDivisibleBy(100)),
 			},
 
 			"retention_in_days": {
@@ -210,6 +217,19 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta inte
 		}
 	}
 
+	capacityReservationLevel, ok := d.GetOk("reservation_capcity_in_gb_per_day")
+	if ok {
+		if strings.EqualFold(skuName, string(operationalinsights.WorkspaceSkuNameEnumCapacityReservation)) {
+			parameters.WorkspaceProperties.Sku.CapacityReservationLevel = utils.Int32((int32(capacityReservationLevel.(int))))
+		} else {
+			return fmt.Errorf("`reservation_capcity_in_gb_per_day` can only be used with the `CapacityReservation` SKU")
+		}
+	} else {
+		if strings.EqualFold(skuName, string(operationalinsights.WorkspaceSkuNameEnumCapacityReservation)) {
+			return fmt.Errorf("`reservation_capcity_in_gb_per_day` must be set when using the `CapacityReservation` SKU")
+		}
+	}
+
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
 	if err != nil {
 		return err
@@ -256,6 +276,10 @@ func resourceLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface{})
 	d.Set("portal_url", "")
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku", sku.Name)
+
+		if capacityReservationLevel := sku.CapacityReservationLevel; capacityReservationLevel != nil {
+			d.Set("reservation_capcity_in_gb_per_day", capacityReservationLevel)
+		}
 	}
 	d.Set("retention_in_days", resp.RetentionInDays)
 	if resp.WorkspaceProperties != nil && resp.WorkspaceProperties.Sku != nil && strings.EqualFold(string(resp.WorkspaceProperties.Sku.Name), string(operationalinsights.WorkspaceSkuNameEnumFree)) {

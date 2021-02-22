@@ -561,6 +561,7 @@ func (client BaseClient) GetRoleDefinitions(ctx context.Context) (result RolesLi
 	}
 	if result.rlr.hasNextLink() && result.rlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -620,7 +621,6 @@ func (client BaseClient) getRoleDefinitionsNextResults(ctx context.Context, last
 	result, err = client.GetRoleDefinitionsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "accesscontrol.BaseClient", "getRoleDefinitionsNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

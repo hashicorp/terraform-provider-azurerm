@@ -153,6 +153,7 @@ func (client ReplicationEventsClient) List(ctx context.Context, filter string) (
 	}
 	if result.ec.hasNextLink() && result.ec.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -217,7 +218,6 @@ func (client ReplicationEventsClient) listNextResults(ctx context.Context, lastR
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationEventsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

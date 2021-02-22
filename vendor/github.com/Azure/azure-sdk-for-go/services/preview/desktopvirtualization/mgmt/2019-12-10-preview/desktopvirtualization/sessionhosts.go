@@ -282,6 +282,7 @@ func (client SessionHostsClient) List(ctx context.Context, resourceGroupName str
 	}
 	if result.shl.hasNextLink() && result.shl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -343,7 +344,6 @@ func (client SessionHostsClient) listNextResults(ctx context.Context, lastResult
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "desktopvirtualization.SessionHostsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

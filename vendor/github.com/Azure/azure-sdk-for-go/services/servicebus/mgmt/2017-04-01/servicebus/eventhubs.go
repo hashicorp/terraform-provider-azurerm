@@ -88,6 +88,7 @@ func (client EventHubsClient) ListByNamespace(ctx context.Context, resourceGroup
 	}
 	if result.ehlr.hasNextLink() && result.ehlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -149,7 +150,6 @@ func (client EventHubsClient) listByNamespaceNextResults(ctx context.Context, la
 	result, err = client.ListByNamespaceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.EventHubsClient", "listByNamespaceNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

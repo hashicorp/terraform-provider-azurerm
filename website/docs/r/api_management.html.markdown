@@ -83,6 +83,8 @@ The following arguments are supported:
 
 * `sign_up` - (Optional) A `sign_up` block as defined below.
 
+* `tenant_access` - (Optional) A `tenant_access` block as defined below.
+
 * `virtual_network_type` - (Optional) The type of virtual network you want to use, valid values include: `None`, `External`, `Internal`. 
 > **NOTE:** Please ensure that in the subnet, inbound port 3443 is open when `virtual_network_type` is `Internal` or `External`. And please ensure other necessary ports are open according to [api management network configuration](https://docs.microsoft.com/en-us/azure/api-management/api-management-using-with-vnet#-common-network-configuration-issues).
 
@@ -299,6 +301,12 @@ A `sign_up` block supports the following:
 
 ---
 
+A `tenant_access` block supports the following:
+
+* `enabled` - (Required) Should the access to the management api be enabled?
+
+---
+
 A `virtual_network_configuration` block supports the following:
 
 * `subnet_id` - (Required) The id of the subnet that will be used for the API Management.
@@ -340,6 +348,8 @@ In addition to all arguments above, the following attributes are exported:
 
 * `scm_url` - The URL for the SCM (Source Code Management) Endpoint associated with this API Management service.
 
+* `tenant_access` - The `tenant_access` block as documented below.
+
 ---
 
 An `additional_location` block exports the following:
@@ -357,6 +367,16 @@ An `identity` block exports the following:
 * `principal_id` - The Principal ID associated with this Managed Service Identity.
 
 * `tenant_id` - The Tenant ID associated with this Managed Service Identity.
+
+---
+
+A `tenant_access` block exports the following:
+
+* `tenant_id` - The identifier for the tenant access information contract.
+
+* `primary_key` - Primary access key for the tenant access information contract.
+
+* `secondary_key` - Secondary access key for the tenant access information contract.
 
 ## Timeouts
 

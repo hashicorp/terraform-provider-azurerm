@@ -80,6 +80,7 @@ func (client ProtectedItemsGroupClient) List(ctx context.Context, vaultName stri
 	}
 	if result.pirl.hasNextLink() && result.pirl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -147,7 +148,6 @@ func (client ProtectedItemsGroupClient) listNextResults(ctx context.Context, las
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ProtectedItemsGroupClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

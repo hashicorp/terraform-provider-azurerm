@@ -190,12 +190,20 @@ func networkInterfaceResource() *schema.Resource {
 			"target_static_ip": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				ForceNew:     false,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 			"target_subnet_name": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				ForceNew:     false,
 				ValidateFunc: validation.StringIsNotEmpty,
+			},
+			"recovery_public_ip_address_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     false,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 		},
 	}
@@ -320,6 +328,7 @@ func resourceSiteRecoveryReplicatedItemUpdate(d *schema.ResourceData, meta inter
 		sourceNicId := vmNicInput["source_network_interface_id"].(string)
 		targetStaticIp := vmNicInput["target_static_ip"].(string)
 		targetSubnetName := vmNicInput["target_subnet_name"].(string)
+		recoveryPublicIPAddressID := vmNicInput["recovery_public_ip_address_id"].(string)
 
 		nicId := findNicId(state, sourceNicId)
 		if nicId == nil {
@@ -329,6 +338,7 @@ func resourceSiteRecoveryReplicatedItemUpdate(d *schema.ResourceData, meta inter
 			NicID:                     nicId,
 			RecoveryVMSubnetName:      &targetSubnetName,
 			ReplicaNicStaticIPAddress: &targetStaticIp,
+			RecoveryPublicIPAddressID: &recoveryPublicIPAddressID,
 		})
 	}
 
@@ -461,6 +471,9 @@ func resourceSiteRecoveryReplicatedItemRead(d *schema.ResourceData, meta interfa
 				}
 				if nic.RecoveryVMSubnetName != nil {
 					nicOutput["target_subnet_name"] = *nic.RecoveryVMSubnetName
+				}
+				if nic.RecoveryPublicIPAddressID != nil {
+					nicOutput["recovery_public_ip_address_id"] = *nic.RecoveryPublicIPAddressID
 				}
 				nicsOutput = append(nicsOutput, nicOutput)
 			}

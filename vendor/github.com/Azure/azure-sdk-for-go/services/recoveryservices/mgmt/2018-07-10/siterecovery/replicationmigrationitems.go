@@ -63,9 +63,7 @@ func (client ReplicationMigrationItemsClient) Create(ctx context.Context, fabric
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: input,
 			Constraints: []validation.Constraint{{Target: "input.Properties", Name: validation.Null, Rule: true,
-				Chain: []validation.Constraint{{Target: "input.Properties.PolicyID", Name: validation.Null, Rule: true, Chain: nil},
-					{Target: "input.Properties.ProviderSpecificDetails", Name: validation.Null, Rule: true, Chain: nil},
-				}}}}}); err != nil {
+				Chain: []validation.Constraint{{Target: "input.Properties.PolicyID", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
 		return result, validation.NewError("siterecovery.ReplicationMigrationItemsClient", "Create", err.Error())
 	}
 
@@ -77,7 +75,7 @@ func (client ReplicationMigrationItemsClient) Create(ctx context.Context, fabric
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsClient", "Create", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsClient", "Create", nil, "Failure sending request")
 		return
 	}
 
@@ -118,7 +116,33 @@ func (client ReplicationMigrationItemsClient) CreateSender(req *http.Request) (f
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ReplicationMigrationItemsClient) (mi MigrationItem, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsCreateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationMigrationItemsCreateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		mi.Response.Response, err = future.GetResult(sender)
+		if mi.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsCreateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && mi.Response.Response.StatusCode != http.StatusNoContent {
+			mi, err = client.CreateResponder(mi.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsCreateFuture", "Result", mi.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -159,7 +183,7 @@ func (client ReplicationMigrationItemsClient) Delete(ctx context.Context, fabric
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -201,7 +225,23 @@ func (client ReplicationMigrationItemsClient) DeleteSender(req *http.Request) (f
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ReplicationMigrationItemsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationMigrationItemsDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -332,6 +372,7 @@ func (client ReplicationMigrationItemsClient) List(ctx context.Context, skipToke
 	}
 	if result.mic.hasNextLink() && result.mic.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -399,7 +440,6 @@ func (client ReplicationMigrationItemsClient) listNextResults(ctx context.Contex
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -456,6 +496,7 @@ func (client ReplicationMigrationItemsClient) ListByReplicationProtectionContain
 	}
 	if result.mic.hasNextLink() && result.mic.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -519,7 +560,6 @@ func (client ReplicationMigrationItemsClient) listByReplicationProtectionContain
 	result, err = client.ListByReplicationProtectionContainersResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsClient", "listByReplicationProtectionContainersNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -559,8 +599,7 @@ func (client ReplicationMigrationItemsClient) Migrate(ctx context.Context, fabri
 	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: migrateInput,
-			Constraints: []validation.Constraint{{Target: "migrateInput.Properties", Name: validation.Null, Rule: true,
-				Chain: []validation.Constraint{{Target: "migrateInput.Properties.ProviderSpecificDetails", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "migrateInput.Properties", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("siterecovery.ReplicationMigrationItemsClient", "Migrate", err.Error())
 	}
 
@@ -572,7 +611,7 @@ func (client ReplicationMigrationItemsClient) Migrate(ctx context.Context, fabri
 
 	result, err = client.MigrateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsClient", "Migrate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsClient", "Migrate", nil, "Failure sending request")
 		return
 	}
 
@@ -613,7 +652,33 @@ func (client ReplicationMigrationItemsClient) MigrateSender(req *http.Request) (
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ReplicationMigrationItemsClient) (mi MigrationItem, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsMigrateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationMigrationItemsMigrateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		mi.Response.Response, err = future.GetResult(sender)
+		if mi.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsMigrateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && mi.Response.Response.StatusCode != http.StatusNoContent {
+			mi, err = client.MigrateResponder(mi.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsMigrateFuture", "Result", mi.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -648,8 +713,7 @@ func (client ReplicationMigrationItemsClient) TestMigrate(ctx context.Context, f
 	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: testMigrateInput,
-			Constraints: []validation.Constraint{{Target: "testMigrateInput.Properties", Name: validation.Null, Rule: true,
-				Chain: []validation.Constraint{{Target: "testMigrateInput.Properties.ProviderSpecificDetails", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "testMigrateInput.Properties", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("siterecovery.ReplicationMigrationItemsClient", "TestMigrate", err.Error())
 	}
 
@@ -661,7 +725,7 @@ func (client ReplicationMigrationItemsClient) TestMigrate(ctx context.Context, f
 
 	result, err = client.TestMigrateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsClient", "TestMigrate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsClient", "TestMigrate", nil, "Failure sending request")
 		return
 	}
 
@@ -702,7 +766,33 @@ func (client ReplicationMigrationItemsClient) TestMigrateSender(req *http.Reques
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ReplicationMigrationItemsClient) (mi MigrationItem, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsTestMigrateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationMigrationItemsTestMigrateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		mi.Response.Response, err = future.GetResult(sender)
+		if mi.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsTestMigrateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && mi.Response.Response.StatusCode != http.StatusNoContent {
+			mi, err = client.TestMigrateResponder(mi.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsTestMigrateFuture", "Result", mi.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -749,7 +839,7 @@ func (client ReplicationMigrationItemsClient) TestMigrateCleanup(ctx context.Con
 
 	result, err = client.TestMigrateCleanupSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsClient", "TestMigrateCleanup", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsClient", "TestMigrateCleanup", nil, "Failure sending request")
 		return
 	}
 
@@ -790,7 +880,33 @@ func (client ReplicationMigrationItemsClient) TestMigrateCleanupSender(req *http
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ReplicationMigrationItemsClient) (mi MigrationItem, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsTestMigrateCleanupFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationMigrationItemsTestMigrateCleanupFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		mi.Response.Response, err = future.GetResult(sender)
+		if mi.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsTestMigrateCleanupFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && mi.Response.Response.StatusCode != http.StatusNoContent {
+			mi, err = client.TestMigrateCleanupResponder(mi.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsTestMigrateCleanupFuture", "Result", mi.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -831,7 +947,7 @@ func (client ReplicationMigrationItemsClient) Update(ctx context.Context, fabric
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsClient", "Update", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsClient", "Update", nil, "Failure sending request")
 		return
 	}
 
@@ -872,7 +988,33 @@ func (client ReplicationMigrationItemsClient) UpdateSender(req *http.Request) (f
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ReplicationMigrationItemsClient) (mi MigrationItem, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationMigrationItemsUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		mi.Response.Response, err = future.GetResult(sender)
+		if mi.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && mi.Response.Response.StatusCode != http.StatusNoContent {
+			mi, err = client.UpdateResponder(mi.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsUpdateFuture", "Result", mi.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

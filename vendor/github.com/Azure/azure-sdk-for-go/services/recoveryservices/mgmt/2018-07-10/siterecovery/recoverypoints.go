@@ -160,6 +160,7 @@ func (client RecoveryPointsClient) ListByReplicationProtectedItems(ctx context.C
 	}
 	if result.RPCVar.hasNextLink() && result.RPCVar.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -224,7 +225,6 @@ func (client RecoveryPointsClient) listByReplicationProtectedItemsNextResults(ct
 	result, err = client.ListByReplicationProtectedItemsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.RecoveryPointsClient", "listByReplicationProtectedItemsNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

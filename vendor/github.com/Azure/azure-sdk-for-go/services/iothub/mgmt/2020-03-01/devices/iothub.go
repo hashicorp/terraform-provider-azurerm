@@ -74,7 +74,7 @@ func (client IotHubClient) ManualFailover(ctx context.Context, iotHubName string
 
 	result, err = client.ManualFailoverSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "devices.IotHubClient", "ManualFailover", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "devices.IotHubClient", "ManualFailover", nil, "Failure sending request")
 		return
 	}
 
@@ -112,7 +112,23 @@ func (client IotHubClient) ManualFailoverSender(req *http.Request) (future IotHu
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client IotHubClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "devices.IotHubManualFailoverFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("devices.IotHubManualFailoverFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 

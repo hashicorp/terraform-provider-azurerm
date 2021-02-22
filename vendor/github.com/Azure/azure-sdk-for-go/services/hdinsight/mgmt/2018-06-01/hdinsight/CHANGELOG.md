@@ -1,16 +1,5 @@
-Generated from https://github.com/Azure/azure-rest-api-specs/tree/b08824e05817297a4b2874d8db5e6fc8c29349c9
+Generated from https://github.com/Azure/azure-rest-api-specs/tree/12b41f4c0ff9814429a6dcfc4a72d5f9d52d1f62//specification/hdinsight/resource-manager/readme.md tag: `package-2018-06-preview`
 
-Code generator @microsoft.azure/autorest.go@~2.1.165
+Code generator @microsoft.azure/autorest.go@2.1.171
 
-## Struct Changes
 
-### New Structs
-
-1. ComputeIsolationProperties
-
-### New Struct Fields
-
-1. ClusterCreateProperties.ComputeIsolationProperties
-1. ClusterGetProperties.ComputeIsolationProperties
-1. HostInfo.EffectiveDiskEncryptionKeyURL
-1. HostInfo.Fqdn

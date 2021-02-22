@@ -81,6 +81,7 @@ func (client ResourceSkusClient) List(ctx context.Context) (result ResourceSkusR
 	}
 	if result.rsr.hasNextLink() && result.rsr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -140,7 +141,6 @@ func (client ResourceSkusClient) listNextResults(ctx context.Context, lastResult
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cognitiveservices.ResourceSkusClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

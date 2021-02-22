@@ -504,6 +504,7 @@ func (client DiagnosticClient) ListByService(ctx context.Context, resourceGroupN
 	}
 	if result.dc.hasNextLink() && result.dc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -574,7 +575,6 @@ func (client DiagnosticClient) listByServiceNextResults(ctx context.Context, las
 	result, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.DiagnosticClient", "listByServiceNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
