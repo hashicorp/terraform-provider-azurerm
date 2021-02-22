@@ -2,7 +2,6 @@ package springcloud
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -112,11 +111,9 @@ func dataSourceSpringCloudAppRead(d *schema.ResourceData, meta interface{}) erro
 	resp, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.AppName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Spring Cloud App %q does not exist - removing from state", d.Id())
-			d.SetId("")
-			return nil
+			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("reading %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())

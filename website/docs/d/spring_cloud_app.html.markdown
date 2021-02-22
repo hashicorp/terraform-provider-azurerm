@@ -13,18 +13,14 @@ Use this data source to access information about an existing Spring Cloud Applic
 ## Example Usage
 
 ```hcl
-provider "azurerm" {
-  features {}
-}
-
 data "azurerm_spring_cloud_app" "example" {
   name                = azurerm_spring_cloud_app.example.name
   resource_group_name = azurerm_spring_cloud_app.example.resource_group_name
-  service_name        = azurerm_spring_cloud_app.test.service_name
+  service_name        = azurerm_spring_cloud_app.example.service_name
 }
 
 output "spring_cloud_app_id" {
-  value = "${data.azurerm_spring_cloud_app.example.id}"
+  value = data.azurerm_spring_cloud_app.example.id
 }
 ```
 
@@ -32,11 +28,11 @@ output "spring_cloud_app_id" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies The name of the Spring Cloud Application resource.
+* `name` - (Required) The name of the Spring Cloud Application.
 
-* `resource_group_name` - (Required) Specifies the name of the Resource Group where the Spring Cloud Application exists.
+* `resource_group_name` - (Required) The name of the Resource Group where the Spring Cloud Application exists.
 
-* `service_name` - (Required) Specifies the name of the Spring Cloud Service resource.
+* `service_name` - (Required) The name of the Spring Cloud Service.
 
 ## Attributes Reference
 
@@ -52,7 +48,7 @@ The following attributes are exported:
 
 * `is_public` - Does the Spring Cloud Application have public endpoint?
 
-* `persistent_disk` - An `persistent_disk` block as defined below.
+* `persistent_disk` - A `persistent_disk` block as defined below.
 
 * `url` - The public endpoint of the Spring Cloud Application.
 
@@ -64,15 +60,15 @@ The `identity` block exports the following:
 
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this Spring Cloud Application.
 
-* `type` - the identity type of the Spring Cloud Application.
+* `type` - The Type of Managed Identity assigned to the Spring Cloud Application.
 
 ---
 
 The `persistent_disk` block exports the following:
 
-* `mount_path` - the mount path of the persistent disk.
+* `mount_path` - The mount path of the persistent disk.
 
-* `size_in_gb` - the size of the persistent disk in GB.
+* `size_in_gb` - The size of the persistent disk in GB.
 
 ## Timeouts
 
