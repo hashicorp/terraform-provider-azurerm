@@ -61,62 +61,34 @@ func TestAccGuestConfigurationAssignment_complete(t *testing.T) {
 	})
 }
 
-//func TestAccAzureRMguestConfigurationAssignment_update(t *testing.T) {
-//	data := acceptance.BuildTestData(t, "azurerm_guest_configuration_assignment", "test")
-//	resource.ParallelTest(t, resource.TestCase{
-//		PreCheck:     func() { acceptance.PreCheck(t) },
-//		Providers:    acceptance.SupportedProviders,
-//		CheckDestroy: testCheckAzureRMguestConfigurationAssignmentDestroy,
-//		Steps: []resource.TestStep{
-//			{
-//				Config: basic(data),
-//				Check: resource.ComposeTestCheckFunc(
-//					testCheckAzureRMguestConfigurationAssignmentExists(data.ResourceName),
-//				),
-//			},
-//			data.ImportStep(),
-//			{
-//				Config: complete(data),
-//				Check: resource.ComposeTestCheckFunc(
-//					testCheckAzureRMguestConfigurationAssignmentExists(data.ResourceName),
-//				),
-//			},
-//			data.ImportStep(),
-//			{
-//				Config: basic(data),
-//				Check: resource.ComposeTestCheckFunc(
-//					testCheckAzureRMguestConfigurationAssignmentExists(data.ResourceName),
-//				),
-//			},
-//			data.ImportStep(),
-//		},
-//	})
-//}
+func TestAccGuestConfigurationAssignment_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_guest_configuration_assignment", "test")
+	r := GuestConfigurationAssignmentResource{}
 
-//func TestAccAzureRMguestConfigurationAssignment_updateGuestConfiguration(t *testing.T) {
-//	data := acceptance.BuildTestData(t, "azurerm_guest_configuration_assignment", "test")
-//	resource.ParallelTest(t, resource.TestCase{
-//		PreCheck:     func() { acceptance.PreCheck(t) },
-//		Providers:    acceptance.SupportedProviders,
-//		CheckDestroy: testCheckAzureRMguestConfigurationAssignmentDestroy,
-//		Steps: []resource.TestStep{
-//			{
-//				Config: complete(data),
-//				Check: resource.ComposeTestCheckFunc(
-//					testCheckAzureRMguestConfigurationAssignmentExists(data.ResourceName),
-//				),
-//			},
-//			data.ImportStep(),
-//			{
-//				Config: testAccAzureRMguestConfigurationAssignment_updateGuestConfiguration(data),
-//				Check: resource.ComposeTestCheckFunc(
-//					testCheckAzureRMguestConfigurationAssignmentExists(data.ResourceName),
-//				),
-//			},
-//			data.ImportStep(),
-//		},
-//	})
-//}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
 
 func (r GuestConfigurationAssignmentResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.GuestConfigurationAssignmentID(state.ID)
@@ -215,20 +187,17 @@ func (r GuestConfigurationAssignmentResource) basic(data acceptance.TestData) st
 %s
 
 resource "azurerm_guest_configuration_assignment" "test" {
-  name = "acctest-gca-%d"
-location = azurerm_linux_virtual_machine.test.location
-virtual_machine_id = azurerm_linux_virtual_machine.test.id
-guest_configuration {
-      name = "something"
-      version = "1.0"
-      configuration_parameter {
-          name = "[InstalledApplication]bwhitelistedapp;Name"
-          value = "NotePad,sql"
-      }
-      configuration_setting {
-          reboot_if_needed = false
-          action_after_reboot = "ContinueConfiguration"
-      }
+  name               = "acctest-gca-%d"
+  location           = azurerm_linux_virtual_machine.test.location
+  virtual_machine_id = azurerm_linux_virtual_machine.test.id
+  guest_configuration {
+    name    = "acctest-assignment"
+    version = "1.0"
+
+    parameter {
+      name  = "[InstalledApplication]bwhitelistedapp;Name"
+      value = "NotePad,sql"
+    }
   }
 }
 `, template, data.RandomInteger)
@@ -240,10 +209,10 @@ func (r GuestConfigurationAssignmentResource) requiresImport(data acceptance.Tes
 %s
 
 resource "azurerm_guest_configuration_assignment" "import" {
-  name = azurerm_guest_configuration_assignment.test.name
+  name                = azurerm_guest_configuration_assignment.test.name
   resource_group_name = azurerm_guest_configuration_assignment.test.resource_group_name
-  location = azurerm_guest_configuration_assignment.test.location
-  vm_name = azurerm_guest_configuration_assignment.test.vm_name
+  location            = azurerm_guest_configuration_assignment.test.location
+  vm_name             = azurerm_guest_configuration_assignment.test.vm_name
 }
 `, config)
 }
@@ -254,28 +223,18 @@ func (r GuestConfigurationAssignmentResource) complete(data acceptance.TestData)
 %s
 
 resource "azurerm_guest_configuration_assignment" "test" {
-  name = "acctest-gca-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location = azurerm_resource_group.test.location
-  vm_name = azurerm_storage_container.test.name
-  context = "Azure policy"
+  name                = "acctest-gca-%d"
+  location            = azurerm_resource_group.test.location
+  virtual_machine_id = azurerm_linux_virtual_machine.test.id
+  context             = "Azure policy"
   guest_configuration {
     name = "WhitelistedApplication"
-    configuration_parameter {
-      name = "[InstalledApplication]bwhitelistedapp;Name"
+    version = "1.*"
+
+    parameter {
+      name  = "[InstalledApplication]bwhitelistedapp;Name"
       value = "NotePad,sql"
     }
-
-    configuration_setting {
-      action_after_reboot = "ContinueConfiguration"
-      allow_module_overwrite = ""
-      configuration_mode = "MonitorOnly"
-      configuration_mode_frequency_mins = 15
-      reboot_if_needed = "False"
-      refresh_frequency_mins = 30
-    }
-    kind = ""
-    version = "1.*"
   }
 }
 `, template, data.RandomInteger)

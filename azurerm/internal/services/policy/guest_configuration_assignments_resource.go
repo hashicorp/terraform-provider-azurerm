@@ -71,7 +71,7 @@ func resourceGuestConfigurationAssignment() *schema.Resource {
 							Optional: true,
 						},
 
-						"configuration_parameter": {
+						"parameter": {
 							Type:     schema.TypeSet,
 							Optional: true,
 							Elem: &schema.Resource{
@@ -85,60 +85,6 @@ func resourceGuestConfigurationAssignment() *schema.Resource {
 									"value": {
 										Type:     schema.TypeString,
 										Optional: true,
-									},
-								},
-							},
-						},
-
-						"configuration_setting": {
-							Type:     schema.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"action_after_reboot": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(guestconfiguration.ContinueConfiguration),
-											string(guestconfiguration.StopConfiguration),
-										}, false),
-										Default: string(guestconfiguration.ContinueConfiguration),
-									},
-
-									"allow_module_overwrite": {
-										Type:     schema.TypeBool,
-										Optional: true,
-										Default: false,
-									},
-
-									"configuration_mode": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(guestconfiguration.ApplyOnly),
-											string(guestconfiguration.ApplyAndMonitor),
-											string(guestconfiguration.ApplyAndAutoCorrect),
-										}, false),
-										Default: string(guestconfiguration.ApplyOnly),
-									},
-
-									"configuration_mode_frequency_mins": {
-										Type:     schema.TypeFloat,
-										Optional: true,
-										Default:  15,
-									},
-
-									"reboot_if_needed": {
-										Type:     schema.TypeBool,
-										Optional: true,
-										Default:  false,
-									},
-
-									"refresh_frequency_in_minute": {
-										Type:     schema.TypeFloat,
-										Optional: true,
-										Default:  30,
 									},
 								},
 							},
@@ -299,11 +245,9 @@ func expandGuestConfigurationAssignmentNavigation(input []interface{}) *guestcon
 	}
 	v := input[0].(map[string]interface{})
 	return &guestconfiguration.Navigation{
-		Kind:                   guestconfiguration.DSC, // hard-code here since this is the only valid value
 		Name:                   utils.String(v["name"].(string)),
 		Version:                utils.String(v["version"].(string)),
-		ConfigurationParameter: expandGuestConfigurationAssignmentConfigurationParameterArray(v["configuration_parameter"].(*schema.Set).List()),
-		ConfigurationSetting:   expandGuestConfigurationAssignmentConfigurationSetting(v["configuration_setting"].([]interface{})),
+		ConfigurationParameter: expandGuestConfigurationAssignmentConfigurationParameterArray(v["parameter"].(*schema.Set).List()),
 	}
 }
 
@@ -365,12 +309,11 @@ func flattenGuestConfigurationAssignmentNavigation(input *guestconfiguration.Nav
 	}
 	return []interface{}{
 		map[string]interface{}{
-			"name":                    name,
-			"configuration_parameter": flattenGuestConfigurationAssignmentConfigurationParameterArray(input.ConfigurationParameter),
-			"configuration_setting":   flattenGuestConfigurationAssignmentConfigurationSetting(input.ConfigurationSetting),
-			"version":                 version,
-			"content_hash":            contentHash,
-			"content_uri":             contentUri,
+			"name":         name,
+			"parameter":    flattenGuestConfigurationAssignmentConfigurationParameterArray(input.ConfigurationParameter),
+			"version":      version,
+			"content_hash": contentHash,
+			"content_uri":  contentUri,
 		},
 	}
 }
