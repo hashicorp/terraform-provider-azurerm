@@ -60,7 +60,7 @@ func TestAccNetAppVolume_crossRegionReplication(t *testing.T) {
 			Config: r.crossRegionReplication(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("data_protection_replication.0.endpoint_type").HasValue("Dst"),
+				check.That(data.ResourceName).Key("data_protection_replication.0.endpoint_type").HasValue("dst"),
 			),
 		},
 		data.ImportStep(),
@@ -317,7 +317,7 @@ resource "azurerm_netapp_volume" "test_secondary" {
     replication_frequency     = "10minutes"
   }
 }
-`, template, data.RandomInteger, data.Locations.Secondary)
+`, template, data.RandomInteger, "northeurope")
 }
 
 func (r NetAppVolumeResource) requiresImport(data acceptance.TestData) string {
@@ -501,7 +501,7 @@ resource "azurerm_netapp_pool" "test_secondary" {
   service_level       = "Standard"
   size_in_tb          = 4
 }
-`, r.template(data), data.RandomInteger, data.Locations.Secondary)
+`, r.template(data), data.RandomInteger, "northeurope")
 }
 
 func (NetAppVolumeResource) template(data acceptance.TestData) string {
