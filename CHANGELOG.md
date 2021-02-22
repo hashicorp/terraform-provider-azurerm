@@ -1,48 +1,67 @@
-## 2.48.0 (Unreleased)
+## 2.49.0 (Unreleased)
 
 FEATURES:
 
-* **New Data Source:** `azurerm_application_gateway` [GH-10268]
+* **New Data Source:** `azurerm_spring_cloud_app` [GH-10678]
 
 ENHANCEMENTS:
-* dependencies: updating to build using Go 1.16 [GH-10615]
-* dependencies: updating `github.com/Azure/azure-sdk-for-go` to `v51.2.0` [GH-10561]
-* Data Source: `azurerm_bastion_host` - updating to use a Resource ID Formatter [GH-10570]
-* Data Source: `azurerm_point_to_site_vpn_gateway` - updating to use a Resource ID Formatter [GH-10570]
-* Data Source: `azurerm_kubernetes_cluster` - exposing the `upgrade_settings` block [GH-10376]
-* Data Source: `azurerm_kubernetes_cluster_node_pool` - exposing the `upgrade_settings` block [GH-10376]
-* Data Source: `azurerm_route` - pdating to use a Resource ID Formatter [GH-10570]
-* Data Source: `azurerm_subnet ` - updating to use a Resource ID Formatter [GH-10570]
-* Data Source: `azurerm_subscriptions` - adding the field `id` to the `subscriptions` block [GH-10598]
-* Data Source: `azurerm_virtual_network` - updating to use a Resource ID Formatter [GH-10570]
-* `azurerm_bastion_host` - updating to use a Resource ID Formatter [GH-10570]
-* `azurerm_bastion_host` - support for enhanced import validation [GH-10570]
-* `azurerm_kubernetes_cluster` - support for configuring the `upgrade_settings` block [GH-10376]
-* `azurerm_kubernetes_cluster` - support for `automatic_channel_upgrade` [GH-10530]
-* `azurerm_kubernetes_cluster` - support for `skip_nodes_with_local_storage` within the `auto_scaler_profile` block [GH-10531]
-* `azurerm_kubernetes_cluster` - support for `skip_nodes_with_system_pods` within the `auto_scaler_profile` block [GH-10531]
-* `azurerm_kubernetes_cluster_node_pool` - support for configuring the `upgrade_settings` block [GH-10376]
-* `azurerm_lighthouse_definition` - add support for `principal_id_display_name` property [GH-10613]
-* `azurerm_log_analytics_workspace` - Support for `capacity_reservation_level` property and `CapacityReservation` SKU [GH-10612]
-* `azurerm_point_to_site_vpn_gateway` - updating to use a Resource ID Formatter [GH-10570]
-* `azurerm_point_to_site_vpn_gateway` - support for enhanced import validation [GH-10570]
-* `azurerm_route` - updating to use a Resource ID Formatter [GH-10570]
-* `azurerm_route` - support for enhanced import validation [GH-10570]
-* `azurerm_subnet` - updating to use a Resource ID Formatter [GH-10570]
-* `azurerm_subnet` - support for enhanced import validation [GH-10570]
-* `synapse_workspace_resource` - support for the `azure_devops_repo` and `github_repo` blocks [GH-10157]
-* `azurerm_virtual_network` - updating to use a Resource ID Formatter [GH-10570]
-* `azurerm_virtual_network` - support for enhanced import validation [GH-10570]
+
+* `azurerm_api_management` - support for the  `tenant_access` block [GH-10475]
+* `azurerm_monitor_smart_detector_alert_rule` - supports for the `tags` property [GH-10646]
 
 BUG FIXES:
 
-* `azurerm_eventgrid_event_subscription` - change the number of possible `advanced_filter` items from `5` to `25` [GH-10625]
-* `azurerm_key_vault` - normalizing the casing on the `certificate_permissions`, `key_permissions`, `secret_permissions` and `storage_permissions` fields within the `access_policy` block [GH-10593]
-* `azurerm_key_vault_access_policy ` - normalizing the casing on the `certificate_permissions`, `key_permissions`, `secret_permissions` and `storage_permissions` fields [GH-10593]
-* `azurerm_mariadb_firewall_rule` - correctly validate the `name` property [GH-10579]
-* `azurerm_postgresql_server` - correctly change `ssl_minimal_tls_version_enforced` on update [GH-10606]
-* `azurerm_private_endpoint` - only updating the associated Private DNS Zone Group when there's changes [GH-10559]
-* `azurerm_resource_group_template_deployment` - fixing an issue where the API version for nested items couldn't be found during deletion [GH-10565]
+* `azurerm_batch_certificate`: Allow empty `password` when format is pfx [GH-10642]
+* `azurerm_data_factory_integration_runtime_azure_ssis` - the `administrator_login` and `administrator_password` properties are now optional [GH-10474]
+* `azurerm_data_factory_integration_runtime_managed` - the `administrator_login` and `administrator_password` properties are now optional [GH-10640]
+* `azurerm_kusto_cluster`: changing `virtual_network_configuration` forces a new resource to be created. [GH-10640]
+
+## 2.48.0 (February 18, 2021)
+
+FEATURES:
+
+* **New Data Source:** `azurerm_application_gateway` ([#10268](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10268))
+
+ENHANCEMENTS:
+
+* dependencies: updating to build using Go 1.16 which adds support for `darwin/arm64` (Apple Silicon) ([#10615](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10615))
+* dependencies: updating `github.com/Azure/azure-sdk-for-go` to `v51.2.0` ([#10561](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10561))
+* Data Source: `azurerm_bastion_host` - updating to use a Resource ID Formatter ([#10570](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10570))
+* Data Source: `azurerm_point_to_site_vpn_gateway` - updating to use a Resource ID Formatter ([#10570](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10570))
+* Data Source: `azurerm_kubernetes_cluster` - exposing the `upgrade_settings` block ([#10376](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10376))
+* Data Source: `azurerm_kubernetes_cluster_node_pool` - exposing the `upgrade_settings` block ([#10376](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10376))
+* Data Source: `azurerm_route` - pdating to use a Resource ID Formatter ([#10570](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10570))
+* Data Source: `azurerm_subnet ` - updating to use a Resource ID Formatter ([#10570](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10570))
+* Data Source: `azurerm_subscriptions` - adding the field `id` to the `subscriptions` block ([#10598](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10598))
+* Data Source: `azurerm_virtual_network` - updating to use a Resource ID Formatter ([#10570](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10570))
+* `azurerm_bastion_host` - updating to use a Resource ID Formatter ([#10570](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10570))
+* `azurerm_bastion_host` - support for enhanced import validation ([#10570](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10570))
+* `azurerm_kubernetes_cluster` - support for configuring the `upgrade_settings` block ([#10376](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10376))
+* `azurerm_kubernetes_cluster` - support for `automatic_channel_upgrade` ([#10530](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10530))
+* `azurerm_kubernetes_cluster` - support for `skip_nodes_with_local_storage` within the `auto_scaler_profile` block ([#10531](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10531))
+* `azurerm_kubernetes_cluster` - support for `skip_nodes_with_system_pods` within the `auto_scaler_profile` block ([#10531](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10531))
+* `azurerm_kubernetes_cluster_node_pool` - support for configuring the `upgrade_settings` block ([#10376](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10376))
+* `azurerm_lighthouse_definition` - add support for `principal_id_display_name` property ([#10613](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10613))
+* `azurerm_log_analytics_workspace` - Support for `capacity_reservation_level` property and `CapacityReservation` SKU ([#10612](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10612))
+* `azurerm_point_to_site_vpn_gateway` - updating to use a Resource ID Formatter ([#10570](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10570))
+* `azurerm_point_to_site_vpn_gateway` - support for enhanced import validation ([#10570](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10570))
+* `azurerm_route` - updating to use a Resource ID Formatter ([#10570](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10570))
+* `azurerm_route` - support for enhanced import validation ([#10570](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10570))
+* `azurerm_subnet` - updating to use a Resource ID Formatter ([#10570](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10570))
+* `azurerm_subnet` - support for enhanced import validation ([#10570](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10570))
+* `synapse_workspace_resource` - support for the `azure_devops_repo` and `github_repo` blocks ([#10157](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10157))
+* `azurerm_virtual_network` - updating to use a Resource ID Formatter ([#10570](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10570))
+* `azurerm_virtual_network` - support for enhanced import validation ([#10570](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10570))
+
+BUG FIXES:
+
+* `azurerm_eventgrid_event_subscription` - change the number of possible `advanced_filter` items from `5` to `25` ([#10625](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10625))
+* `azurerm_key_vault` - normalizing the casing on the `certificate_permissions`, `key_permissions`, `secret_permissions` and `storage_permissions` fields within the `access_policy` block ([#10593](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10593))
+* `azurerm_key_vault_access_policy ` - normalizing the casing on the `certificate_permissions`, `key_permissions`, `secret_permissions` and `storage_permissions` fields ([#10593](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10593))
+* `azurerm_mariadb_firewall_rule` - correctly validate the `name` property ([#10579](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10579))
+* `azurerm_postgresql_server` - correctly change `ssl_minimal_tls_version_enforced` on update ([#10606](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10606))
+* `azurerm_private_endpoint` - only updating the associated Private DNS Zone Group when there's changes ([#10559](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10559))
+* `azurerm_resource_group_template_deployment` - fixing an issue where the API version for nested items couldn't be found during deletion ([#10565](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10565))
 
 ## 2.47.0 (February 11, 2021)
 
