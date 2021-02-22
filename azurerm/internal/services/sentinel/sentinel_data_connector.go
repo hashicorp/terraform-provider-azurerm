@@ -10,31 +10,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
 
-func dataConnectorID(dc securityinsight.BasicDataConnector) *string {
-	if dc == nil {
-		return nil
-	}
-	switch dc := dc.(type) {
-	case securityinsight.AADDataConnector:
-		return dc.ID
-	case securityinsight.ASCDataConnector:
-		return dc.ID
-	case securityinsight.MCASDataConnector:
-		return dc.ID
-	case securityinsight.TIDataConnector:
-		return dc.ID
-	case securityinsight.OfficeDataConnector:
-		return dc.ID
-	case securityinsight.OfficeATPDataConnector:
-		return dc.ID
-	case securityinsight.AwsCloudTrailDataConnector:
-		return dc.ID
-	case securityinsight.MDATPDataConnector:
-		return dc.ID
-	default:
-		return nil
-	}
-}
+// TODO: remove once one of the PR's has been merged
+var _ = importSentinelDataConnector(securityinsight.DataConnectorKindAmazonWebServicesCloudTrail)
+var _ = assertDataConnectorKind(securityinsight.AADDataConnector{}, securityinsight.DataConnectorKindAmazonWebServicesCloudTrail)
 
 func importSentinelDataConnector(expectKind securityinsight.DataConnectorKind) func(d *schema.ResourceData, meta interface{}) (data []*schema.ResourceData, err error) {
 	return func(d *schema.ResourceData, meta interface{}) (data []*schema.ResourceData, err error) {
