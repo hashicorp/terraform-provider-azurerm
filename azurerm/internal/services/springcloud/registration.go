@@ -22,6 +22,7 @@ func (r Registration) WebsiteCategories() []string {
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
 		"azurerm_spring_cloud_service": dataSourceSpringCloudService(),
+		"azurerm_spring_cloud_app":     dataSourceSpringCloudApp(),
 	}
 }
 
