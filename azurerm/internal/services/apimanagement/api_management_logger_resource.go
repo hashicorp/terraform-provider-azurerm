@@ -149,7 +149,9 @@ func resourceApiManagementLoggerCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	resourceId := utils.String(d.Get("resource_id").(string))
-	parameters.ResourceID = resourceId
+	if resourceId := d.Get("resource_id").(string); resourceId != "" {
+		parameters.ResourceID = utils.String(resourceId)
+	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, name, parameters, ""); err != nil {
 		return fmt.Errorf("creating Logger %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
