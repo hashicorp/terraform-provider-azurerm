@@ -22,6 +22,8 @@ Manages a Windows Virtual Machine.
 
 ~> In this release there's a known issue where the `public_ip_address` and `public_ip_addresses` fields may not be fully populated for Dynamic Public IP's.
 
+!> **Note:** Data Disks can be specified in-line with the Virtual Machine by opting into the beta feature by setting `ARM_PROVIDER_VM_DATADISKS_BETA=true` This feature should be used with caution and may be subject to change without notice.
+
 ## Example Usage
 
 This example provisions a basic Windows Virtual Machine on an internal network. Additional examples of how to use the `azurerm_windows_virtual_machine` resource can be found [in the ./examples/virtual-machines/windows directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/virtual-machines/windows).
@@ -123,6 +125,10 @@ The following arguments are supported:
 
 * `custom_data` - (Optional) The Base64-Encoded Custom Data which should be used for this Virtual Machine. Changing this forces a new resource to be created.
 
+* `data_disks` - (Optional) A `data_disks` block as defined below
+
+~> **Note:** This block is only valid when the Beta Opt-In environment variable `ARM_PROVIDER_VM_DATADISKS_BETA` is set to `true`
+
 * `dedicated_host_id` - (Optional) The ID of a Dedicated Host where this machine should be run on.
 
 * `enable_automatic_updates` - (Optional) Specifies if Automatic Updates are Enabled for the Windows Virtual Machine. Changing this forces a new resource to be created.
@@ -208,6 +214,52 @@ A `certificate` block supports the following:
 * `url` - (Required) The Secret URL of a Key Vault Certificate.
 
 -> **NOTE:** This can be sourced from the `secret_id` field within the `azurerm_key_vault_certificate` Resource.
+
+---
+
+A `data_disks` block supports the following:
+
+* `create` - (Optional) A `create` block, as defined below.
+
+* `attach` - (Optional) An `attach` block as defined below.
+
+---
+
+A `create` block supports the following:
+
+* `name` - (Required) The name of the Managed Disk to create. Changing this value after creation is not supported.
+
+* `lun` - (Required) The Logical Unit Number of the disk. Changing this value after creation is not supported.
+
+~> **Note:** LUN's must be unique per disk on a Virtual Machine.
+
+* `caching` - (Required) The Type of Caching which should be used for the Data Disk. Possible values are `None`, `ReadOnly` and `ReadWrite`.
+
+* `storage_account_type` - (Required) The Type of Storage Account which should back this the Data Disk. Possible values are `Standard_LRS`, `StandardSSD_LRS` and `Premium_LRS`. Changing this value after creation is not supported.
+
+* `disk_size_gb`- (Required) The size of the Data Disk in GB.
+
+~> **Note:** Managed disks can only be grown, so changes to this value can only be greater than the existing value.
+
+* `disk_encryption_set_id` - (Optional) The ID of the Disk Encryption Set which should be used to Encrypt this Data Disk.
+
+* `write_accelerator_enabled` - (Optional) Should Write Accelerator be Enabled for this Data Disk? Defaults to `false`.
+
+---
+
+An `attach` block supports the following:
+
+* `managed_disk_id` - The ID of the Managed Disk that should be attached to this Virtual Machine. Changing this value after creation is not supported.
+
+* `lun` - (Required) The Logical Unit Number of the disk. Changing this value after creation is not supported.
+
+~> **Note:** LUN's must be unique per disk on a Virtual Machine.
+
+* `caching` - (Required) The Type of Caching which should be used for the existing Data Disk being attached. Possible values are `None`, `ReadOnly` and `ReadWrite`.
+
+* `storage_account_type` - (Required) The Type of Storage Account which backs this the Data Disk. Possible values are `Standard_LRS`, `StandardSSD_LRS` and `Premium_LRS`. Changing this value after creation is not supported.
+
+* `write_accelerator_enabled` - (Optional) Should Write Accelerator be Enabled for this Data Disk? Defaults to `false`.
 
 ---
 
