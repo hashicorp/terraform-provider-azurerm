@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Data Source:** `azurerm_spring_cloud_app` [GH-10678]
+* **New Resource:** `azurerm_security_center_assessment_metadata` [GH-10124]
 
 ENHANCEMENTS:
 
