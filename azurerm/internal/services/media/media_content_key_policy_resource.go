@@ -778,7 +778,10 @@ func expandConfiguration(input map[string]interface{}) (media.BasicContentKeyPol
 		}
 		return wideVineConfiguration, nil
 	case string(media.OdataTypeMicrosoftMediaContentKeyPolicyFairPlayConfiguration):
-		fairplayConfiguration := expandFairplayConfiguration(input["fairplay_configuration"].([]interface{}))
+		fairplayConfiguration, err := expandFairplayConfiguration(input["fairplay_configuration"].([]interface{}))
+		if err != nil {
+			return nil, err
+		}
 		return fairplayConfiguration, nil
 	case string(media.OdataTypeMicrosoftMediaContentKeyPolicyPlayReadyConfiguration):
 		playReadyConfiguration := &media.ContentKeyPolicyPlayReadyConfiguration{
@@ -947,7 +950,7 @@ func flattenRentalConfiguration(input *media.ContentKeyPolicyFairPlayOfflineRent
 	}}
 }
 
-func expandFairplayConfiguration(input []interface{}) *media.ContentKeyPolicyFairPlayConfiguration {
+func expandFairplayConfiguration(input []interface{}) (*media.ContentKeyPolicyFairPlayConfiguration, error) {
 	fairplayConfiguration := &media.ContentKeyPolicyFairPlayConfiguration{
 		OdataType: media.OdataTypeMicrosoftMediaContentKeyPolicyWidevineConfiguration,
 	}
@@ -966,7 +969,10 @@ func expandFairplayConfiguration(input []interface{}) *media.ContentKeyPolicyFai
 	}
 
 	if fairplay["ask"] != nil && fairplay["ask"].(string) != "" {
-		askBytes, _ := hex.DecodeString(fairplay["ask"].(string))
+		askBytes, err := hex.DecodeString(fairplay["ask"].(string))
+		if err != nil {
+			return nil, err
+		}
 		fairplayConfiguration.Ask = &askBytes
 	}
 
@@ -978,7 +984,7 @@ func expandFairplayConfiguration(input []interface{}) *media.ContentKeyPolicyFai
 		fairplayConfiguration.FairPlayPfxPassword = utils.String(fairplay["pfx_password"].(string))
 	}
 
-	return fairplayConfiguration
+	return fairplayConfiguration, nil
 }
 
 func flattenFairplayConfiguration(input *media.ContentKeyPolicyFairPlayConfiguration) []interface{} {
