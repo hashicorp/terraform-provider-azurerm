@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sentinel"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sentinel/parse"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -113,7 +115,7 @@ func (r SentinelDataConnectorOffice365Resource) Exists(ctx context.Context, clie
 		return nil, err
 	}
 
-	if resp, err := client.Get(ctx, id.ResourceGroup, "Microsoft.OperationalInsights", id.WorkspaceName, id.Name); err != nil {
+	if resp, err := client.Get(ctx, id.ResourceGroup, sentinel.OperationalInsightsResourceProvider, id.WorkspaceName, id.Name); err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
 		}
@@ -147,7 +149,7 @@ resource "azurerm_sentinel_data_connector_office_365" "test" {
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
   tenant_id                  = data.azurerm_client_config.test.tenant_id
   exchange_enabled           = %t
-  share_point_enabled        = %t
+  sharepoint_enabled         = %t
   teams_enabled              = %t
 }
 `, template, data.RandomInteger, exchangeEnabled, sharePointEnabled, teamsEnabled)
