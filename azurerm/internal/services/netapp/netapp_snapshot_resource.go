@@ -79,7 +79,7 @@ func resourceNetAppSnapshot() *schema.Resource {
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
-				Deprecated: "Deprecated, snapshots don't support tags anymore.",
+				Deprecated: "This property as been deprecated as the API no longer supports tags and will be removed in version 3.0 of the provider.",
 			},
 		},
 	}
