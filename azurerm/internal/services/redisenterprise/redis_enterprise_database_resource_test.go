@@ -138,7 +138,7 @@ resource "azurerm_redis_enterprise_database" "test" {
 
   module {
     name = "RediSearch"
-		args = ""
+    args = ""
   }
 
   module {
@@ -147,7 +147,7 @@ resource "azurerm_redis_enterprise_database" "test" {
   }
 
   module {
-		name = "RedisTimeSeries"
+    name = "RedisTimeSeries"
     args = "RETENTION_POLICY 20"
   }
 
