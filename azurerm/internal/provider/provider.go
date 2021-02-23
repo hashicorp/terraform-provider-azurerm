@@ -238,7 +238,6 @@ func azureProvider(supportLegacyTestSuite bool) terraform.ResourceProvider {
 		p.Schema["skip_credentials_validation"] = &schema.Schema{
 			Type:        schema.TypeBool,
 			Optional:    true,
-			DefaultFunc: schema.EnvDefaultFunc("ARM_SKIP_CREDENTIALS_VALIDATION", false),
 			Description: "[DEPRECATED] This will cause the AzureRM Provider to skip verifying the credentials being used are valid.",
 			Deprecated:  "This field is deprecated and will be removed in version 3.0 of the Azure Provider",
 		}
