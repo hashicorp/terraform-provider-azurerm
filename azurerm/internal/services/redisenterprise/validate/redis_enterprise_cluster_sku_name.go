@@ -57,6 +57,7 @@ func RedisEnterpriseClusterSkuName(v interface{}, k string) (warnings []string, 
 	if !validSku {
 		errors = append(errors, fmt.Errorf("expected %q %q segment to be one of [%s], got %q", k, "name", azure.QuotedStringSlice(validSkus), value))
 	}
+
 	if !validCapacity {
 		errors = append(errors, fmt.Errorf("expected %q %q segment to be one of [%s], got %q", k, "capacity", validValues, value))
 	}

@@ -16,19 +16,19 @@ func RedisEnterpriseClusterLocation(input interface{}, key string) (warnings []s
 	}
 
 	location := location.Normalize(v)
-	invalidLocations := invalidRedisEnterpriseClusterLocation()
+	validLocations := validRedisEnterpriseClusterLocations()
 
-	for _, str := range invalidLocations {
+	for _, str := range validLocations {
 		if location == str {
-			errors = append(errors, fmt.Errorf("%q does not currently support Redis Enterprise Clusters. Locations which do not support Redis Enterprise Clusters are [%s]", v, azure.QuotedStringSlice(friendlyInvalidRedisEnterpriseClusterLocation())))
 			return warnings, errors
 		}
 	}
 
+	errors = append(errors, fmt.Errorf("%q does not currently support Redis Enterprise Clusters. Locations which currently support Redis Enterprise Clusters are [%s]", v, azure.QuotedStringSlice(friendlyValidRedisEnterpriseClusterLocations())))
 	return warnings, errors
 }
 
-func invalidRedisEnterpriseClusterLocation() []string {
+func validRedisEnterpriseClusterLocations() []string {
 	return []string{
 		location.Normalize("Australia East"),
 		location.Normalize("Australia Southeast"),
@@ -45,7 +45,7 @@ func invalidRedisEnterpriseClusterLocation() []string {
 	}
 }
 
-func friendlyInvalidRedisEnterpriseClusterLocation() []string {
+func friendlyValidRedisEnterpriseClusterLocations() []string {
 	return []string{
 		"Australia East",
 		"Australia Southeast",

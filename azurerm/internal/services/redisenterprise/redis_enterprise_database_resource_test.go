@@ -94,7 +94,7 @@ resource "azurerm_redis_enterprise_cluster" "test" {
 
   sku_name = "Enterprise_E20-4"
 }
-`, data.RandomInteger, "westus", data.RandomInteger)
+`, data.RandomInteger, "eastus", data.RandomInteger)
 }
 
 func (r RedisenterpriseDatabaseResource) basic(data acceptance.TestData) string {

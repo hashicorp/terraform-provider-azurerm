@@ -74,6 +74,7 @@ func (r RedisEnterpriseClusterResource) Exists(ctx context.Context, client *clie
 }
 
 func (r RedisEnterpriseClusterResource) template(data acceptance.TestData) string {
+	// I have to hardcode the location because some features are not currently available in all regions
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -83,7 +84,7 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-redisEnterprise-%d"
   location = "%s"
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, "eastus")
 }
 
 func (r RedisEnterpriseClusterResource) basic(data acceptance.TestData) string {

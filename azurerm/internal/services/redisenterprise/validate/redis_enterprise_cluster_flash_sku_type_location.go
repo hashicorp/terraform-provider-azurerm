@@ -7,8 +7,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 )
 
-//RedisEnterpriseClusterSkuTypeLocation - validates that the passed sku type is valid in the Redis Enterprist Cluster location or not
-func RedisEnterpriseClusterSkuTypeLocation(input string) error {
+//RedisEnterpriseClusterFlashSkuTypeLocation - validates that the passed location supports the flash sku type or not
+func RedisEnterpriseClusterFlashSkuTypeLocation(input string) error {
 	location := location.Normalize(input)
 	invalidLocations := invalidRedisEnterpriseClusterFlashLocations()
 
@@ -23,8 +23,6 @@ func RedisEnterpriseClusterSkuTypeLocation(input string) error {
 
 func invalidRedisEnterpriseClusterFlashLocations() []string {
 	return []string{
-		// NOTE: Yes, all of these locations are currently covered in the cluster location
-		//       check but they may diverge in the future so I am checking both
 		location.Normalize("Australia Southeast"),
 		location.Normalize("Brazil South"),
 		location.Normalize("Central US"),

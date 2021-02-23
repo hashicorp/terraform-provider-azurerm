@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/redisenterprise/mgmt/2021-03-01/redisenterprise"
@@ -132,8 +133,11 @@ func resourceRedisEnterpriseClusterCreate(d *schema.ResourceData, meta interface
 	location := location.Normalize(d.Get("location").(string))
 	sku := expandRedisEnterpriseClusterSku(d.Get("sku_name").(string))
 
-	if err := validate.RedisEnterpriseClusterSkuTypeLocation(location); err != nil {
-		return fmt.Errorf("%s", err)
+	// If the sku type is flash check to make sure that the sku is supported in that region
+	if strings.Contains(string(sku.Name), "Flash") {
+		if err := validate.RedisEnterpriseClusterFlashSkuTypeLocation(location); err != nil {
+			return fmt.Errorf("%s", err)
+		}
 	}
 
 	parameters := redisenterprise.Cluster{
