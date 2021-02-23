@@ -9,7 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-//RedisEnterpriseClusterSkuName validates if passed input string contains a valid Redis Enterprise Cluster Sku
+//RedisEnterpriseClusterSkuName - validates if passed input string contains a valid Redis Enterprise Cluster Sku
 func RedisEnterpriseClusterSkuName(v interface{}, k string) (warnings []string, errors []error) {
 	validSku := false
 	validCapacity := false

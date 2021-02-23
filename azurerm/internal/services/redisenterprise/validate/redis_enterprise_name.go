@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-//RedisEnterpriseName validates that the passed interface contains a valid Redis Enterprise Name
+//RedisEnterpriseName - validates that the passed interface contains a valid Redis Enterprise Name
 func RedisEnterpriseName(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {

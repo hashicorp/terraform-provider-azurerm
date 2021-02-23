@@ -6,7 +6,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redisenterprise/parse"
 )
 
-//RedisEnterpriseClusterID validates that the passed interface contains a valid Redis Enterprist Cluster ID
+// RedisEnterpriseClusterID - validates that the passed interface contains a valid Redis Enterprist Cluster ID
 func RedisEnterpriseClusterID(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {

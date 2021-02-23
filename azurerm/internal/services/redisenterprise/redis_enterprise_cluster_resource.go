@@ -49,7 +49,13 @@ func resourceRedisEnterpriseCluster() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.RedisEnterpriseClusterLocation,
+				StateFunc:    azure.NormalizeLocation,
+			},
 
 			"sku_name": {
 				Type:         schema.TypeString,
@@ -117,23 +123,36 @@ func resourceRedisEnterpriseClusterCreate(d *schema.ResourceData, meta interface
 				return fmt.Errorf("checking for presence of existing Redis Enterprise Cluster (Name %q / Resource Group %q): %+v", resourceId.Name, resourceId.ResourceGroup, err)
 			}
 		}
+
 		if !utils.ResponseWasNotFound(existing.Response) {
 			return tf.ImportAsExistsError("azurerm_redis_enterprise_cluster", resourceId.ID())
 		}
 	}
 
+	location := location.Normalize(d.Get("location").(string))
+	sku := expandRedisEnterpriseClusterSku(d.Get("sku_name").(string))
+
+	if err := validate.RedisEnterpriseClusterSkuTypeLocation(location); err != nil {
+		return fmt.Errorf("%s", err)
+	}
+
 	parameters := redisenterprise.Cluster{
 		Name:     utils.String(d.Get("name").(string)),
-		Location: utils.String(location.Normalize(d.Get("location").(string))),
-		Sku:      expandRedisEnterpriseClusterSku(d.Get("sku_name").(string)),
+		Location: utils.String(location),
+		Sku:      sku,
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if v, ok := d.GetOk("zones"); ok {
+		// Zones are currently not supported in these regions
+		if location == "centraluseuap" || location == "westus" {
+			return fmt.Errorf("Redis Enterprise Cluster (Name %q / Resource Group %q): 'Zones' are not currently supported in the 'West US' or 'Central US EUAP' regions, got %q", resourceId.Name, resourceId.ResourceGroup, location)
+		}
+
 		parameters.Zones = azure.ExpandZones(v.([]interface{}))
 	}
 
-	// RP currently does not return this value
+	// RP currently does not return this value but will in the near future
 	// if v, ok := d.GetOk("minimum_tls_version"); ok {
 	// 	parameters.ClusterProperties.MinimumTLSVersion = redisenterprise.TLSVersion(v.(string))
 	// }
