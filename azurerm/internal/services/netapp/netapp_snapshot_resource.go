@@ -110,8 +110,6 @@ func resourceNetAppSnapshotCreate(d *schema.ResourceData, meta interface{}) erro
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 
-	// Snapshot resource in Azure changed its type to proxied resource, therefore
-	// tags are not supported anymore, ignoring any tags.
 	if tags.Expand(d.Get("tags").(map[string]interface{})) != nil {
 		log.Printf("[WARN] Tags are not supported on snaphots anymore, ignoring values.")
 	}
