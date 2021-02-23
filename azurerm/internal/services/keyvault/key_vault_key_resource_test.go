@@ -654,7 +654,6 @@ resource "azurerm_key_vault" "test" {
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
-  soft_delete_enabled        = true
   soft_delete_retention_days = 7
 
   tags = {
@@ -668,18 +667,18 @@ resource "azurerm_key_vault_access_policy" "test" {
   object_id    = data.azurerm_client_config.current.object_id
 
   key_permissions = [
-    "create",
-    "delete",
-    "get",
-    "purge",
-    "recover",
-    "update",
+    "Create",
+    "Delete",
+    "Get",
+    "Purge",
+    "Recover",
+    "Update",
   ]
 
   secret_permissions = [
-    "get",
-    "delete",
-    "set",
+    "Delete",
+    "Get",
+    "Set",
   ]
 }
 
@@ -719,7 +718,6 @@ resource "azurerm_key_vault" "test" {
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
-  soft_delete_enabled        = true
   soft_delete_retention_days = 7
 
   tags = {
@@ -733,19 +731,19 @@ resource "azurerm_key_vault_access_policy" "test" {
   object_id    = data.azurerm_client_config.current.object_id
 
   key_permissions = [
-    "create",
-    "delete",
-    "encrypt",
-    "get",
-    "purge",
-    "recover",
-    "update",
+    "Create",
+    "Delete",
+    "Encrypt",
+    "Get",
+    "Purge",
+    "Recover",
+    "Update",
   ]
 
   secret_permissions = [
-    "get",
-    "delete",
-    "set",
+    "Delete",
+    "Get",
+    "Set",
   ]
 }
 
@@ -788,7 +786,6 @@ resource "azurerm_key_vault" "test" {
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "%s"
-  soft_delete_enabled        = true
   soft_delete_retention_days = 7
 
   access_policy {
@@ -796,18 +793,18 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
-      "create",
-      "delete",
-      "get",
-      "purge",
-      "recover",
-      "update",
+      "Create",
+      "Delete",
+      "Get",
+      "Purge",
+      "Recover",
+      "Update",
     ]
 
     secret_permissions = [
-      "get",
-      "delete",
-      "set",
+      "Delete",
+      "Get",
+      "Set",
     ]
   }
 
