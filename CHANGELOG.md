@@ -16,6 +16,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* provider: only showing the deprecation message if `skip_credentials_registration` is explicitly configured [GH-10699]
 * `azurerm_batch_certificate` - allow empty `password` when format is pfx [GH-10642]
 * `azurerm_data_factory_integration_runtime_azure_ssis` - the `administrator_login` and `administrator_password` properties are now optional [GH-10474]
 * `azurerm_data_factory_integration_runtime_managed` - the `administrator_login` and `administrator_password` properties are now optional [GH-10640]
