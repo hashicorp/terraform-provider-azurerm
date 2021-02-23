@@ -35,27 +35,27 @@ resource "azurerm_sentinel_data_connector_microsoft_defender_advanced_threat_pro
 
 The following arguments are supported:
 
-- `log_analytics_workspace_id` - (Required) The ID of the Log Analytics Workspace that this Microsoft Defender Advanced Threat Protection Data Connector resides in. Changing this forces a new Microsoft Defender Advanced Threat Protection Data Connector to be created.
+* `log_analytics_workspace_id` - (Required) The ID of the Log Analytics Workspace that this Microsoft Defender Advanced Threat Protection Data Connector resides in. Changing this forces a new Microsoft Defender Advanced Threat Protection Data Connector to be created.
 
 * `name` - (Required) The name which should be used for this Microsoft Defender Advanced Threat Protection Data Connector. Changing this forces a new Microsoft Defender Advanced Threat Protection Data Connector to be created.
 
 ---
 
-- `tenant_id` - (Optional) The ID of the tenant that this Microsoft Defender Advanced Threat Protection Data Connector connects to. Changing this forces a new Microsoft Defender Advanced Threat Protection Data Connector to be created.
+* `tenant_id` - (Optional) The ID of the tenant that this Microsoft Defender Advanced Threat Protection Data Connector connects to. Changing this forces a new Microsoft Defender Advanced Threat Protection Data Connector to be created.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-- `id` - The ID of the Microsoft Defender Advanced Threat Protection Data Connector.
+* `id` - The ID of the Microsoft Defender Advanced Threat Protection Data Connector.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-- `create` - (Defaults to 30 minutes) Used when creating the Microsoft Defender Advanced Threat Protection Data Connector.
-- `read` - (Defaults to 5 minutes) Used when retrieving the Microsoft Defender Advanced Threat Protection Data Connector.
-- `delete` - (Defaults to 30 minutes) Used when deleting the Microsoft Defender Advanced Threat Protection Data Connector.
+* `create` - (Defaults to 30 minutes) Used when creating the Microsoft Defender Advanced Threat Protection Data Connector.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Microsoft Defender Advanced Threat Protection Data Connector.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Microsoft Defender Advanced Threat Protection Data Connector.
 
 ## Import
 
