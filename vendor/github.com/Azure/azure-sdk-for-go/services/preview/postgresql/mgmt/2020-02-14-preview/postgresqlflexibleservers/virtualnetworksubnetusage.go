@@ -82,6 +82,7 @@ func (client VirtualNetworkSubnetUsageClient) Execute(ctx context.Context, locat
 	result, err = client.ExecuteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "postgresqlflexibleservers.VirtualNetworkSubnetUsageClient", "Execute", resp, "Failure responding to request")
+		return
 	}
 
 	return

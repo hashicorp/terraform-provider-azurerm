@@ -3,9 +3,10 @@ package postgres_test
 import (
 	"context"
 	"fmt"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"testing"
 	"time"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -133,6 +134,18 @@ func TestAccPostgresqlflexibleServer_updateMaintenanceWindow(t *testing.T) {
 		},
 		data.ImportStep("administrator_login_password", "create_mode"),
 		{
+			Config: r.updateMaintenanceWindowUpdated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("availability_zone").Exists(),
+				check.That(data.ResourceName).Key("byok_enforcement").Exists(),
+				check.That(data.ResourceName).Key("fqdn").Exists(),
+				check.That(data.ResourceName).Key("ha_state").Exists(),
+				check.That(data.ResourceName).Key("public_network_access").Exists(),
+			),
+		},
+		data.ImportStep("administrator_login_password", "create_mode"),
+		{
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -210,12 +223,12 @@ func TestAccPostgresqlflexibleServer_pitr(t *testing.T) {
 			PreConfig: func() { time.Sleep(10 * time.Minute) },
 			Config:    r.pitr(data),
 			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("availability_zone").Exists(),
-				check.That(data.ResourceName).Key("byok_enforcement").Exists(),
-				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("ha_state").Exists(),
-				check.That(data.ResourceName).Key("public_network_access").Exists(),
+				check.That("azurerm_postgresql_flexible_server.pitr").ExistsInAzure(r),
+				check.That("azurerm_postgresql_flexible_server.pitr").Key("availability_zone").Exists(),
+				check.That("azurerm_postgresql_flexible_server.pitr").Key("byok_enforcement").Exists(),
+				check.That("azurerm_postgresql_flexible_server.pitr").Key("fqdn").Exists(),
+				check.That("azurerm_postgresql_flexible_server.pitr").Key("ha_state").Exists(),
+				check.That("azurerm_postgresql_flexible_server.pitr").Key("public_network_access").Exists(),
 			),
 		},
 		data.ImportStep("administrator_login_password", "create_mode"),
@@ -369,6 +382,7 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
+  service_endpoints    = ["Microsoft.Storage"]
   delegation {
     name = "fs"
     service_delegation {
@@ -499,5 +513,5 @@ resource "azurerm_postgresql_flexible_server" "pitr" {
   source_server_name  = azurerm_postgresql_flexible_server.test.name
   point_in_time_utc   = "%s"
 }
-`, r.template(data), data.RandomInteger, time.Now().Add(time.Duration(20)*time.Minute).UTC().Format(time.RFC3339))
+`, r.basic(data), data.RandomInteger, time.Now().Add(time.Duration(10)*time.Minute).UTC().Format(time.RFC3339))
 }

@@ -41,15 +41,15 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `administrator_login` - The Administrator Login for the PostgreSQL Flexible Server.
 
-* `fqdn` - The FQDN of the PostgreSQL Flexible Server.
+* `fqdn` -  The FQDN of the PostgreSQL Flexible Server.
 
 * `identity` - A `identity` block as defined below.
 
 * `sku` - A `sku` block as defined below.
 
-* `tags` - A mapping of tags assigned to the PostgreSQL Flexible Server.
+* `version` - The version of PostgreSQL Flexible Server to use.
 
-* `version` - The version of PostgreSQL Flexible Server to use..
+* `tags` - A mapping of tags assigned to the PostgreSQL Flexible Server.
 
 ---
 
@@ -59,7 +59,7 @@ A `identity` block exports the following:
 
 * `tenant_id` - The ID of the Tenant the Service Principal is assigned in.
 
-* `type` -  The Type of Identity which should be used for this PostgreSQL Flexible Server.
+* `type` - The Type of Identity which should be used for this PostgreSQL Flexible Server.
 
 ---
 

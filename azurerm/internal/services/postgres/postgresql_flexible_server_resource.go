@@ -315,17 +315,23 @@ func resourcePostgresqlFlexibleServerCreate(d *schema.ResourceData, meta interfa
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Identity: expandArmServerIdentity(d.Get("identity").([]interface{})),
 		ServerProperties: &postgresqlflexibleservers.ServerProperties{
-			AdministratorLogin:         utils.String(d.Get("administrator_login").(string)),
-			CreateMode:                 postgresqlflexibleservers.CreateMode(d.Get("create_mode").(string)),
-			DelegatedSubnetArguments:   expandArmServerServerPropertiesDelegatedSubnetArguments(d.Get("delegated_subnet_id").(string)),
-			SourceServerName:           utils.String(d.Get("source_server_name").(string)),
-			Version:                    postgresqlflexibleservers.ServerVersion(d.Get("version").(string)),
-			AdministratorLoginPassword: utils.String(d.Get("administrator_login_password").(string)),
-			HaEnabled:                  haEnabled,
-			StorageProfile:             expandArmServerStorageProfile(d),
+			CreateMode:               postgresqlflexibleservers.CreateMode(d.Get("create_mode").(string)),
+			DelegatedSubnetArguments: expandArmServerServerPropertiesDelegatedSubnetArguments(d.Get("delegated_subnet_id").(string)),
+			SourceServerName:         utils.String(d.Get("source_server_name").(string)),
+			Version:                  postgresqlflexibleservers.ServerVersion(d.Get("version").(string)),
+			HaEnabled:                haEnabled,
+			StorageProfile:           expandArmServerStorageProfile(d),
 		},
 		Sku:  expandArmServerSku(d.Get("sku").([]interface{})),
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if v, ok := d.GetOk("administrator_login"); ok && v.(string) != "" {
+		parameters.ServerProperties.AdministratorLogin = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("administrator_login_password"); ok && v.(string) != "" {
+		parameters.ServerProperties.AdministratorLoginPassword = utils.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("availability_zone"); ok && v.(string) != "" {
@@ -405,33 +411,28 @@ func resourcePostgresqlFlexibleServerRead(d *schema.ResourceData, meta interface
 	if props := resp.ServerProperties; props != nil {
 		d.Set("administrator_login", props.AdministratorLogin)
 		d.Set("availability_zone", props.AvailabilityZone)
+		d.Set("ha_enabled", props.HaEnabled == postgresqlflexibleservers.Enabled)
+		d.Set("point_in_time_utc", props.PointInTimeUTC)
+		d.Set("source_server_name", props.SourceServerName)
+		d.Set("version", props.Version)
+		d.Set("byok_enforcement", props.ByokEnforcement)
+		d.Set("fqdn", props.FullyQualifiedDomainName)
+		d.Set("public_network_access", props.PublicNetworkAccess == postgresqlflexibleservers.ServerPublicNetworkAccessStateEnabled)
+		d.Set("ha_state", string(props.HaState))
+		d.Set("standby_availability_zone", props.StandbyAvailabilityZone)
 
 		if props.DelegatedSubnetArguments != nil {
 			d.Set("delegated_subnet_id", props.DelegatedSubnetArguments.SubnetArmResourceID)
 		}
 
-		d.Set("ha_enabled", props.HaEnabled == postgresqlflexibleservers.Enabled)
-
 		if err := d.Set("maintenance_window", flattenArmServerMaintenanceWindow(props.MaintenanceWindow)); err != nil {
 			return fmt.Errorf("setting `maintenance_window`: %+v", err)
 		}
-
-		d.Set("point_in_time_utc", props.PointInTimeUTC)
-		d.Set("source_server_name", props.SourceServerName)
 
 		if storage := props.StorageProfile; storage != nil {
 			d.Set("storage_mb", storage.StorageMB)
 			d.Set("backup_retention_days", storage.BackupRetentionDays)
 		}
-
-		d.Set("version", props.Version)
-
-		// computed
-		d.Set("byok_enforcement", *props.ByokEnforcement)
-		d.Set("fqdn", *props.FullyQualifiedDomainName)
-		d.Set("public_network_access", props.PublicNetworkAccess == postgresqlflexibleservers.ServerPublicNetworkAccessStateEnabled)
-		d.Set("ha_state", string(props.HaState))
-		d.Set("standby_availability_zone", *props.StandbyAvailabilityZone)
 	}
 
 	if err := d.Set("sku", flattenArmServerSku(resp.Sku)); err != nil {
