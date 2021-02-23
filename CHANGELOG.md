@@ -19,6 +19,9 @@ BUG FIXES:
 * `azurerm_batch_certificate` - allow empty `password` when format is pfx [GH-10642]
 * `azurerm_data_factory_integration_runtime_azure_ssis` - the `administrator_login` and `administrator_password` properties are now optional [GH-10474]
 * `azurerm_data_factory_integration_runtime_managed` - the `administrator_login` and `administrator_password` properties are now optional [GH-10640]
+* `azurerm_key_vault_certificate` - waiting for deletion to complete before purging [GH-10577]
+* `azurerm_key_vault_key` - waiting for deletion to complete before purging [GH-10577]
+* `azurerm_key_vault_secret` - waiting for deletion to complete before purging [GH-10577]
 * `azurerm_kusto_cluster` - changing `virtual_network_configuration` forces a new resource to be created [GH-10640]
 
 ## 2.48.0 (February 18, 2021)
