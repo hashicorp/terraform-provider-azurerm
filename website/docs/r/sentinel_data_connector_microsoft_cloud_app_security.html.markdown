@@ -35,34 +35,34 @@ resource "azurerm_sentinel_data_connector_microsoft_cloud_app_security" "example
 
 The following arguments are supported:
 
-- `log_analytics_workspace_id` - (Required) The ID of the Log Analytics Workspace that this Microsoft Cloud App Security Data Connector resides in. Changing this forces a new Microsoft Cloud App Security Data Connector to be created.
+* `log_analytics_workspace_id` - (Required) The ID of the Log Analytics Workspace that this Microsoft Cloud App Security Data Connector resides in. Changing this forces a new Microsoft Cloud App Security Data Connector to be created.
 
 * `name` - (Required) The name which should be used for this Microsoft Cloud App Security Data Connector. Changing this forces a new Microsoft Cloud App Security Data Connector to be created.
 
 ---
 
-- `alerts_enabled` - (Optional) Should the alerts be enabled? Defaults to `true`.
+* `alerts_enabled` - (Optional) Should the alerts be enabled? Defaults to `true`.
 
-- `discovery_logs_enabled` - (Optional) Should the TODO be enabled? Defaults to `true`.
+* `discovery_logs_enabled` - (Optional) Should the Discovery Logs be enabled? Defaults to `true`.
 
 -> **NOTE**: At least one of `alerts_enabled` and `discovery_logs_enabled` has to be specified.
 
-- `tenant_id` - (Optional) The ID of the tenant that this Microsoft Cloud App Security Data Connector connects to. Changing this forces a new Microsoft Cloud App Security Data Connector to be created.
+* `tenant_id` - (Optional) The ID of the tenant that this Microsoft Cloud App Security Data Connector connects to. Changing this forces a new Microsoft Cloud App Security Data Connector to be created.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-- `id` - The ID of the Microsoft Cloud App Security Data Connector.
+* `id` - The ID of the Microsoft Cloud App Security Data Connector.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-- `create` - (Defaults to 30 minutes) Used when creating the Microsoft Cloud App Security Data Connector.
-- `read` - (Defaults to 5 minutes) Used when retrieving the Microsoft Cloud App Security Data Connector.
-- `update` - (Defaults to 30 minutes) Used when updating the Microsoft Cloud App Security Data Connector.
-- `delete` - (Defaults to 30 minutes) Used when deleting the Microsoft Cloud App Security Data Connector.
+* `create` - (Defaults to 30 minutes) Used when creating the Microsoft Cloud App Security Data Connector.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Microsoft Cloud App Security Data Connector.
+* `update` - (Defaults to 30 minutes) Used when updating the Microsoft Cloud App Security Data Connector.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Microsoft Cloud App Security Data Connector.
 
 ## Import
 

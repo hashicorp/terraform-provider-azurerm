@@ -88,17 +88,14 @@ func resourceSentinelDataConnectorMicrosoftCloudAppSecurityCreateUpdate(d *schem
 	id := parse.NewDataConnectorID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.WorkspaceName, name)
 
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, id.ResourceGroup, operationalInsightsResourceProvider, id.WorkspaceName, name)
+		resp, err := client.Get(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("checking for existing Sentinel Data Connector Microsoft Cloud App Security %q: %+v", id, err)
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
 		}
 
-		id := dataConnectorID(resp.Value)
-		if id != nil && *id != "" {
-			return tf.ImportAsExistsError("azurerm_sentinel_data_connector_microsoft_cloud_app_security", *id)
-		}
+		return tf.ImportAsExistsError("azurerm_sentinel_data_connector_microsoft_cloud_app_security", id.ID())
 	}
 
 	tenantId := d.Get("tenant_id").(string)
@@ -142,20 +139,20 @@ func resourceSentinelDataConnectorMicrosoftCloudAppSecurityCreateUpdate(d *schem
 
 	// Service avoid concurrent updates of this resource via checking the "etag" to guarantee it is the same value as last Read.
 	if !d.IsNewResource() {
-		resp, err := client.Get(ctx, id.ResourceGroup, operationalInsightsResourceProvider, id.WorkspaceName, name)
+		resp, err := client.Get(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, name)
 		if err != nil {
-			return fmt.Errorf("retrieving Sentinel Data Connector Microsoft Cloud App Security %q: %+v", id, err)
+			return fmt.Errorf("retrieving %s: %+v", id, err)
 		}
 
 		if err := assertDataConnectorKind(resp.Value, securityinsight.DataConnectorKindMicrosoftCloudAppSecurity); err != nil {
-			return fmt.Errorf("asserting Sentinel Data Connector of %q: %+v", id, err)
+			return fmt.Errorf("asserting %s: %+v", id, err)
 		}
 		param.Etag = resp.Value.(securityinsight.MCASDataConnector).Etag
 	}
 
-	_, err = client.CreateOrUpdate(ctx, id.ResourceGroup, operationalInsightsResourceProvider, id.WorkspaceName, id.Name, param)
+	_, err = client.CreateOrUpdate(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.Name, param)
 	if err != nil {
-		return fmt.Errorf("creating Sentinel Data Connector Microsoft Cloud App Security %q: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -174,19 +171,19 @@ func resourceSentinelDataConnectorMicrosoftCloudAppSecurityRead(d *schema.Resour
 	}
 	workspaceId := loganalyticsParse.NewLogAnalyticsWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
 
-	resp, err := client.Get(ctx, id.ResourceGroup, operationalInsightsResourceProvider, id.WorkspaceName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Sentinel Data Connector Microsoft Cloud App Security %q was not found - removing from state!", id)
+			log.Printf("[DEBUG] %s was not found - removing from state!", id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Sentinel Data Connector Microsoft Cloud App Security %q: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	if err := assertDataConnectorKind(resp.Value, securityinsight.DataConnectorKindMicrosoftCloudAppSecurity); err != nil {
-		return fmt.Errorf("asserting Sentinel Data Connector Microsoft Cloud App Security of %q: %+v", id, err)
+		return fmt.Errorf("asserting %s: %+v", id, err)
 	}
 	dc := resp.Value.(securityinsight.MCASDataConnector)
 
@@ -194,11 +191,16 @@ func resourceSentinelDataConnectorMicrosoftCloudAppSecurityRead(d *schema.Resour
 	d.Set("log_analytics_workspace_id", workspaceId.ID())
 	d.Set("tenant_id", dc.TenantID)
 	if dt := dc.DataTypes; dt != nil {
+		alertsEnabled := false
 		if alert := dt.Alerts; alert != nil {
-			d.Set("alerts_enabled", strings.EqualFold(string(alert.State), string(securityinsight.Enabled)))
+			alertsEnabled = strings.EqualFold(string(alert.State), string(securityinsight.Enabled))
+			d.Set("alerts_enabled", alertsEnabled)
 		}
+
+		discoveryLogsEnabled := false
 		if discoveryLogs := dt.DiscoveryLogs; discoveryLogs != nil {
-			d.Set("discovery_logs_enabled", strings.EqualFold(string(discoveryLogs.State), string(securityinsight.Enabled)))
+			discoveryLogsEnabled = strings.EqualFold(string(discoveryLogs.State), string(securityinsight.Enabled))
+			d.Set("discovery_logs_enabled", discoveryLogsEnabled)
 		}
 	}
 
@@ -215,9 +217,9 @@ func resourceSentinelDataConnectorMicrosoftCloudAppSecurityDelete(d *schema.Reso
 		return err
 	}
 
-	_, err = client.Delete(ctx, id.ResourceGroup, operationalInsightsResourceProvider, id.WorkspaceName, id.Name)
+	_, err = client.Delete(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting Sentinel Data Connector Microsoft Cloud App Security %q: %+v", id, err)
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil
