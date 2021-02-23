@@ -167,10 +167,6 @@ func resourceNetAppSnapshotRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	// Snapshot resource in Azure changed its type to proxied resource, therefore
-	// tags are not supported anymore, returning nil now.
-	// For reference, this method return line was `return tags.FlattenAndSet(d, resp.Tags)`
-
 	return nil
 }
 
