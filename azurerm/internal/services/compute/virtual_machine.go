@@ -450,21 +450,18 @@ func virtualMachineCreateDataDiskSchema() *schema.Schema {
 				"lun": {
 					Type:         schema.TypeInt,
 					Required:     true,
-					ForceNew:     true,
 					ValidateFunc: validation.IntAtLeast(0),
 				},
 
 				"name": {
 					Type:         schema.TypeString,
 					Required:     true,
-					ForceNew:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"storage_account_type": {
 					Type:     schema.TypeString,
 					Required: true,
-					ForceNew: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(compute.StorageAccountTypesPremiumLRS),
 						string(compute.StorageAccountTypesStandardLRS),
@@ -508,14 +505,12 @@ func virtualMachineAttachDataDiskSchema() *schema.Schema {
 				"managed_disk_id": {
 					Type:         schema.TypeString,
 					Required:     true,
-					ForceNew:     true,
 					ValidateFunc: validate.ManagedDiskID,
 				},
 
 				"lun": {
 					Type:         schema.TypeInt,
 					Required:     true,
-					ForceNew:     true,
 					ValidateFunc: validation.IntAtLeast(0),
 				},
 
@@ -531,7 +526,6 @@ func virtualMachineAttachDataDiskSchema() *schema.Schema {
 				"storage_account_type": {
 					Type:     schema.TypeString,
 					Required: true,
-					ForceNew: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(compute.StorageAccountTypesPremiumLRS),
 						string(compute.StorageAccountTypesStandardLRS),
