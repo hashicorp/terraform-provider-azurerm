@@ -7,7 +7,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 )
 
-//RedisEnterpriseClusterFlashSkuTypeLocation - validates that the passed location supports the flash sku type or not
+// RedisEnterpriseClusterFlashSkuTypeLocation - validates that the passed location supports the flash sku type or not
 func RedisEnterpriseClusterFlashSkuTypeLocation(input string) error {
 	location := location.Normalize(input)
 	invalidLocations := invalidRedisEnterpriseClusterFlashLocations()

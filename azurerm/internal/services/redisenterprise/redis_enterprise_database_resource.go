@@ -126,7 +126,6 @@ func resourceRedisEnterpriseDatabase() *schema.Resource {
 						"version": {
 							Type:     schema.TypeString,
 							Computed: true,
-							ForceNew: true,
 						},
 					},
 				},

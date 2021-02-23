@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-//RedisEnterpriseDatabaseName - validates that the passed interface contains a valid Redis Enterprise Database Name
+// RedisEnterpriseDatabaseName - validates that the passed interface contains a valid Redis Enterprise Database Name
 func RedisEnterpriseDatabaseName(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
