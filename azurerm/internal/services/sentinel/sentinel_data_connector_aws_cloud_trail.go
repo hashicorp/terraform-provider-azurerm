@@ -77,14 +77,11 @@ func resourceSentinelDataConnectorAwsCloudTrailCreateUpdate(d *schema.ResourceDa
 		resp, err := client.Get(ctx, id.ResourceGroup, operationalInsightsResourceProvider, id.WorkspaceName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("checking for existing Sentinel Data Connector AWS Cloud Trail %q: %+v", id, err)
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
 		}
 
-		id := dataConnectorID(resp.Value)
-		if id != nil && *id != "" {
-			return tf.ImportAsExistsError("azurerm_sentinel_data_connector_aws_cloud_trail", *id)
-		}
+		return tf.ImportAsExistsError("azurerm_sentinel_data_connector_aws_cloud_trail", id.ID())
 	}
 
 	param := securityinsight.AwsCloudTrailDataConnector{
@@ -104,18 +101,18 @@ func resourceSentinelDataConnectorAwsCloudTrailCreateUpdate(d *schema.ResourceDa
 	if !d.IsNewResource() {
 		resp, err := client.Get(ctx, id.ResourceGroup, operationalInsightsResourceProvider, id.WorkspaceName, name)
 		if err != nil {
-			return fmt.Errorf("retrieving Sentinel Data Connector AWS Cloud Trail %q: %+v", id, err)
+			return fmt.Errorf("retrieving %s: %+v", id, err)
 		}
 
 		if err := assertDataConnectorKind(resp.Value, securityinsight.DataConnectorKindAmazonWebServicesCloudTrail); err != nil {
-			return fmt.Errorf("asserting Sentinel Data Connector of %q: %+v", id, err)
+			return fmt.Errorf("asserting %s: %+v", id, err)
 		}
 		param.Etag = resp.Value.(securityinsight.AwsCloudTrailDataConnector).Etag
 	}
 
 	_, err = client.CreateOrUpdate(ctx, id.ResourceGroup, operationalInsightsResourceProvider, id.WorkspaceName, id.Name, param)
 	if err != nil {
-		return fmt.Errorf("creating Sentinel Data Connector AWS Cloud Trail %q: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -137,16 +134,16 @@ func resourceSentinelDataConnectorAwsCloudTrailRead(d *schema.ResourceData, meta
 	resp, err := client.Get(ctx, id.ResourceGroup, operationalInsightsResourceProvider, id.WorkspaceName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Sentinel Data Connector AWS Cloud Trail %q was not found - removing from state!", id)
+			log.Printf("[DEBUG] %s was not found - removing from state!", id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Sentinel Data Connector AWS Cloud Trail %q: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	if err := assertDataConnectorKind(resp.Value, securityinsight.DataConnectorKindAmazonWebServicesCloudTrail); err != nil {
-		return fmt.Errorf("asserting Sentinel Data Connector AWS Cloud Trail of %q: %+v", id, err)
+		return fmt.Errorf("asserting %s: %+v", id, err)
 	}
 	dc := resp.Value.(securityinsight.AwsCloudTrailDataConnector)
 
@@ -171,7 +168,7 @@ func resourceSentinelDataConnectorAwsCloudTrailDelete(d *schema.ResourceData, me
 
 	_, err = client.Delete(ctx, id.ResourceGroup, operationalInsightsResourceProvider, id.WorkspaceName, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting Sentinel Data Connector AWS Cloud Trail %q: %+v", id, err)
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil
