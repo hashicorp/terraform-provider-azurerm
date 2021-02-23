@@ -7,10 +7,9 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/helpers"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/testclient"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/types"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
 type thatType struct {
@@ -28,7 +27,10 @@ func That(resourceName string) thatType {
 // DoesNotExistInAzure validates that the specified resource does not exist within Azure
 func (t thatType) DoesNotExistInAzure(testResource types.TestResource) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client)
+		client, err := testclient.Build()
+		if err != nil {
+			return fmt.Errorf("building client: %+v", err)
+		}
 		return helpers.DoesNotExistInAzure(client, testResource, t.resourceName)(s)
 	}
 }
@@ -36,7 +38,10 @@ func (t thatType) DoesNotExistInAzure(testResource types.TestResource) resource.
 // ExistsInAzure validates that the specified resource exists within Azure
 func (t thatType) ExistsInAzure(testResource types.TestResource) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client)
+		client, err := testclient.Build()
+		if err != nil {
+			return fmt.Errorf("building client: %+v", err)
+		}
 		return helpers.ExistsInAzure(client, testResource, t.resourceName)(s)
 	}
 }

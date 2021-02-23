@@ -324,14 +324,9 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 
 		client.StopContext = p.StopContext()
 
-		// replaces the context between tests
-		p.MetaReset = func() error {
-			client.StopContext = p.StopContext()
-			return nil
-		}
-
 		if !skipProviderRegistration {
-			// List all the available providers and their registration state to avoid unnecessary requests.
+			// List all the available providers and their registration state to avoid unnecessary
+			// requests. This also lets us check if the provider credentials are correct.
 			ctx := client.StopContext
 			providerList, err := client.Resource.ProvidersClient.List(ctx, nil, "")
 			if err != nil {
