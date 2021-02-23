@@ -26,31 +26,29 @@ import (
 	"net/http"
 )
 
-// MountTargetsClient is the microsoft NetApp Azure Resource Provider specification
-type MountTargetsClient struct {
+// VaultsClient is the microsoft NetApp Azure Resource Provider specification
+type VaultsClient struct {
 	BaseClient
 }
 
-// NewMountTargetsClient creates an instance of the MountTargetsClient client.
-func NewMountTargetsClient(subscriptionID string) MountTargetsClient {
-	return NewMountTargetsClientWithBaseURI(DefaultBaseURI, subscriptionID)
+// NewVaultsClient creates an instance of the VaultsClient client.
+func NewVaultsClient(subscriptionID string) VaultsClient {
+	return NewVaultsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewMountTargetsClientWithBaseURI creates an instance of the MountTargetsClient client using a custom endpoint.  Use
-// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
-func NewMountTargetsClientWithBaseURI(baseURI string, subscriptionID string) MountTargetsClient {
-	return MountTargetsClient{NewWithBaseURI(baseURI, subscriptionID)}
+// NewVaultsClientWithBaseURI creates an instance of the VaultsClient client using a custom endpoint.  Use this when
+// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
+func NewVaultsClientWithBaseURI(baseURI string, subscriptionID string) VaultsClient {
+	return VaultsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// List list all mount targets associated with the volume
+// List list vaults for a Netapp Account
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // accountName - the name of the NetApp account
-// poolName - the name of the capacity pool
-// volumeName - the name of the volume
-func (client MountTargetsClient) List(ctx context.Context, resourceGroupName string, accountName string, poolName string, volumeName string) (result MountTargetList, err error) {
+func (client VaultsClient) List(ctx context.Context, resourceGroupName string, accountName string) (result VaultList, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/MountTargetsClient.List")
+		ctx = tracing.StartSpan(ctx, fqdn+"/VaultsClient.List")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -64,25 +62,25 @@ func (client MountTargetsClient) List(ctx context.Context, resourceGroupName str
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("netapp.MountTargetsClient", "List", err.Error())
+		return result, validation.NewError("netapp.VaultsClient", "List", err.Error())
 	}
 
-	req, err := client.ListPreparer(ctx, resourceGroupName, accountName, poolName, volumeName)
+	req, err := client.ListPreparer(ctx, resourceGroupName, accountName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "netapp.MountTargetsClient", "List", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "netapp.VaultsClient", "List", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.ListSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "netapp.MountTargetsClient", "List", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "netapp.VaultsClient", "List", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "netapp.MountTargetsClient", "List", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "netapp.VaultsClient", "List", resp, "Failure responding to request")
 		return
 	}
 
@@ -90,16 +88,14 @@ func (client MountTargetsClient) List(ctx context.Context, resourceGroupName str
 }
 
 // ListPreparer prepares the List request.
-func (client MountTargetsClient) ListPreparer(ctx context.Context, resourceGroupName string, accountName string, poolName string, volumeName string) (*http.Request, error) {
+func (client VaultsClient) ListPreparer(ctx context.Context, resourceGroupName string, accountName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"accountName":       autorest.Encode("path", accountName),
-		"poolName":          autorest.Encode("path", poolName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-		"volumeName":        autorest.Encode("path", volumeName),
 	}
 
-	const APIVersion = "2019-10-01"
+	const APIVersion = "2020-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -107,20 +103,20 @@ func (client MountTargetsClient) ListPreparer(ctx context.Context, resourceGroup
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.NetApp/netAppAccounts/{accountName}/capacityPools/{poolName}/volumes/{volumeName}/mountTargets", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.NetApp/netAppAccounts/{accountName}/vaults", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
-func (client MountTargetsClient) ListSender(req *http.Request) (*http.Response, error) {
+func (client VaultsClient) ListSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
-func (client MountTargetsClient) ListResponder(resp *http.Response) (result MountTargetList, err error) {
+func (client VaultsClient) ListResponder(resp *http.Response) (result VaultList, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),

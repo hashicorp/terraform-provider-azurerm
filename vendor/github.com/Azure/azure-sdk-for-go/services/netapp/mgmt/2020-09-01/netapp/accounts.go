@@ -91,7 +91,7 @@ func (client AccountsClient) CreateOrUpdatePreparer(ctx context.Context, body Ac
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-10-01"
+	const APIVersion = "2020-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -205,7 +205,7 @@ func (client AccountsClient) DeletePreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-10-01"
+	const APIVersion = "2020-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -310,7 +310,7 @@ func (client AccountsClient) GetPreparer(ctx context.Context, resourceGroupName 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-10-01"
+	const APIVersion = "2020-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -392,7 +392,7 @@ func (client AccountsClient) ListPreparer(ctx context.Context, resourceGroupName
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-10-01"
+	const APIVersion = "2020-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -428,13 +428,13 @@ func (client AccountsClient) ListResponder(resp *http.Response) (result AccountL
 // body - netApp Account object supplied in the body of the operation.
 // resourceGroupName - the name of the resource group.
 // accountName - the name of the NetApp account
-func (client AccountsClient) Update(ctx context.Context, body AccountPatch, resourceGroupName string, accountName string) (result Account, err error) {
+func (client AccountsClient) Update(ctx context.Context, body AccountPatch, resourceGroupName string, accountName string) (result AccountsUpdateFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AccountsClient.Update")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -453,16 +453,9 @@ func (client AccountsClient) Update(ctx context.Context, body AccountPatch, reso
 		return
 	}
 
-	resp, err := client.UpdateSender(req)
+	result, err = client.UpdateSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "netapp.AccountsClient", "Update", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.UpdateResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "netapp.AccountsClient", "Update", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "netapp.AccountsClient", "Update", nil, "Failure sending request")
 		return
 	}
 
@@ -477,7 +470,7 @@ func (client AccountsClient) UpdatePreparer(ctx context.Context, body AccountPat
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-10-01"
+	const APIVersion = "2020-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -497,8 +490,40 @@ func (client AccountsClient) UpdatePreparer(ctx context.Context, body AccountPat
 
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
-func (client AccountsClient) UpdateSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+func (client AccountsClient) UpdateSender(req *http.Request) (future AccountsUpdateFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client AccountsClient) (a Account, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "netapp.AccountsUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("netapp.AccountsUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		a.Response.Response, err = future.GetResult(sender)
+		if a.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "netapp.AccountsUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && a.Response.Response.StatusCode != http.StatusNoContent {
+			a, err = client.UpdateResponder(a.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "netapp.AccountsUpdateFuture", "Result", a.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
+	return
 }
 
 // UpdateResponder handles the response to the Update request. The method always
@@ -506,7 +531,7 @@ func (client AccountsClient) UpdateSender(req *http.Request) (*http.Response, er
 func (client AccountsClient) UpdateResponder(resp *http.Response) (result Account, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
