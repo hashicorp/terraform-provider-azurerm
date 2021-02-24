@@ -1,859 +1,708 @@
-package tests
+package servicefabric_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicefabric/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+type ServiceFabricClusterResource struct{}
 
 func TestAccAzureRMServiceFabricCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
+	r := ServiceFabricClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceFabricCluster_basic(data, 3),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceFabricClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "management_endpoint", "http://example:80"),
-					resource.TestCheckResourceAttr(data.ResourceName, "add_on_features.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "certificate.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "reverse_proxy_certificate.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "client_certificate_thumbprint.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "azure_active_directory.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "diagnostics_config.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "node_type.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "node_type.0.instance_count", "3"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, 3),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("management_endpoint").HasValue("http://example:80"),
+				check.That(data.ResourceName).Key("add_on_features.#").HasValue("0"),
+				check.That(data.ResourceName).Key("certificate.#").HasValue("0"),
+				check.That(data.ResourceName).Key("reverse_proxy_certificate.#").HasValue("0"),
+				check.That(data.ResourceName).Key("client_certificate_thumbprint.#").HasValue("0"),
+				check.That(data.ResourceName).Key("azure_active_directory.#").HasValue("0"),
+				check.That(data.ResourceName).Key("diagnostics_config.#").HasValue("0"),
+				check.That(data.ResourceName).Key("node_type.#").HasValue("1"),
+				check.That(data.ResourceName).Key("node_type.0.instance_count").HasValue("3"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMServiceFabricCluster_basicNodeTypeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
+	r := ServiceFabricClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceFabricCluster_basic(data, 3),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceFabricClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "management_endpoint", "http://example:80"),
-					resource.TestCheckResourceAttr(data.ResourceName, "add_on_features.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "certificate.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "reverse_proxy_certificate.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "client_certificate_thumbprint.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "azure_active_directory.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "diagnostics_config.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "node_type.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "node_type.0.is_primary", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-				),
-			},
-			{
-				Config: testAccAzureRMServiceFabricCluster_basicNodeTypeUpdate(data, 3, 3),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceFabricClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "management_endpoint", "http://example:80"),
-					resource.TestCheckResourceAttr(data.ResourceName, "add_on_features.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "certificate.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "reverse_proxy_certificate.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "client_certificate_thumbprint.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "azure_active_directory.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "diagnostics_config.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "node_type.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "node_type.0.is_primary", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "node_type.1.is_primary", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, 3),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("management_endpoint").HasValue("http://example:80"),
+				check.That(data.ResourceName).Key("add_on_features.#").HasValue("0"),
+				check.That(data.ResourceName).Key("certificate.#").HasValue("0"),
+				check.That(data.ResourceName).Key("reverse_proxy_certificate.#").HasValue("0"),
+				check.That(data.ResourceName).Key("client_certificate_thumbprint.#").HasValue("0"),
+				check.That(data.ResourceName).Key("azure_active_directory.#").HasValue("0"),
+				check.That(data.ResourceName).Key("diagnostics_config.#").HasValue("0"),
+				check.That(data.ResourceName).Key("node_type.#").HasValue("1"),
+				check.That(data.ResourceName).Key("node_type.0.is_primary").HasValue("true"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+			),
 		},
+		{
+			Config: r.basicNodeTypeUpdate(data, 3, 3),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("management_endpoint").HasValue("http://example:80"),
+				check.That(data.ResourceName).Key("add_on_features.#").HasValue("0"),
+				check.That(data.ResourceName).Key("certificate.#").HasValue("0"),
+				check.That(data.ResourceName).Key("reverse_proxy_certificate.#").HasValue("0"),
+				check.That(data.ResourceName).Key("client_certificate_thumbprint.#").HasValue("0"),
+				check.That(data.ResourceName).Key("azure_active_directory.#").HasValue("0"),
+				check.That(data.ResourceName).Key("diagnostics_config.#").HasValue("0"),
+				check.That(data.ResourceName).Key("node_type.#").HasValue("2"),
+				check.That(data.ResourceName).Key("node_type.0.is_primary").HasValue("true"),
+				check.That(data.ResourceName).Key("node_type.1.is_primary").HasValue("false"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMServiceFabricCluster_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
+	r := ServiceFabricClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceFabricCluster_basic(data, 3),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceFabricClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "management_endpoint", "http://example:80"),
-					resource.TestCheckResourceAttr(data.ResourceName, "add_on_features.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "certificate.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "reverse_proxy_certificate.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "client_certificate_thumbprint.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "azure_active_directory.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "diagnostics_config.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "node_type.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "node_type.0.instance_count", "3"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMServiceFabricCluster_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, 3),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("management_endpoint").HasValue("http://example:80"),
+				check.That(data.ResourceName).Key("add_on_features.#").HasValue("0"),
+				check.That(data.ResourceName).Key("certificate.#").HasValue("0"),
+				check.That(data.ResourceName).Key("reverse_proxy_certificate.#").HasValue("0"),
+				check.That(data.ResourceName).Key("client_certificate_thumbprint.#").HasValue("0"),
+				check.That(data.ResourceName).Key("azure_active_directory.#").HasValue("0"),
+				check.That(data.ResourceName).Key("diagnostics_config.#").HasValue("0"),
+				check.That(data.ResourceName).Key("node_type.#").HasValue("1"),
+				check.That(data.ResourceName).Key("node_type.0.instance_count").HasValue("3"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
 func TestAccAzureRMServiceFabricCluster_manualClusterCodeVersion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
-	codeVersion := "6.5.676.9590"
+	codeVersion := "7.2.445.9590"
+	r := ServiceFabricClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceFabricCluster_manualClusterCodeVersion(data, codeVersion),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceFabricClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_mode", "Manual"),
-					resource.TestCheckResourceAttr(data.ResourceName, "cluster_code_version", codeVersion),
-				),
-			},
-			{
-				Config: testAccAzureRMServiceFabricCluster_manualClusterCodeVersion(data, codeVersion),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceFabricClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_mode", "Manual"),
-					resource.TestCheckResourceAttr(data.ResourceName, "cluster_code_version", codeVersion),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.manualClusterCodeVersion(data, codeVersion),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("upgrade_mode").HasValue("Manual"),
+				resource.TestCheckResourceAttr(data.ResourceName, "cluster_code_version", codeVersion),
+			),
 		},
+		{
+			Config: r.manualClusterCodeVersion(data, codeVersion),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("upgrade_mode").HasValue("Manual"),
+				resource.TestCheckResourceAttr(data.ResourceName, "cluster_code_version", codeVersion),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMServiceFabricCluster_manualLatest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
+	r := ServiceFabricClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceFabricCluster_manualClusterCodeVersion(data, ""),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceFabricClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_mode", "Manual"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "cluster_code_version"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.manualClusterCodeVersion(data, ""),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("upgrade_mode").HasValue("Manual"),
+				check.That(data.ResourceName).Key("cluster_code_version").Exists(),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMServiceFabricCluster_addOnFeatures(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
+	r := ServiceFabricClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceFabricCluster_addOnFeatures(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceFabricClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "add_on_features.#", "2"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.addOnFeatures(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("add_on_features.#").HasValue("2"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMServiceFabricCluster_certificate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
+	r := ServiceFabricClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceFabricCluster_certificates(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceFabricClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "certificate.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "certificate.0.thumbprint", "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"),
-					resource.TestCheckResourceAttr(data.ResourceName, "certificate.0.x509_store_name", "My"),
-					resource.TestCheckResourceAttr(data.ResourceName, "fabric_settings.0.name", "Security"),
-					resource.TestCheckResourceAttr(data.ResourceName, "fabric_settings.0.parameters.ClusterProtectionLevel", "EncryptAndSign"),
-					resource.TestCheckResourceAttr(data.ResourceName, "management_endpoint", "https://example:80"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.certificates(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("certificate.#").HasValue("1"),
+				check.That(data.ResourceName).Key("certificate.0.thumbprint").HasValue("3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"),
+				check.That(data.ResourceName).Key("certificate.0.x509_store_name").HasValue("My"),
+				check.That(data.ResourceName).Key("fabric_settings.0.name").HasValue("Security"),
+				check.That(data.ResourceName).Key("fabric_settings.0.parameters.ClusterProtectionLevel").HasValue("EncryptAndSign"),
+				check.That(data.ResourceName).Key("management_endpoint").HasValue("https://example:80"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMServiceFabricCluster_reverseProxyCertificate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
+	r := ServiceFabricClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceFabricCluster_reverseProxyCertificates(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceFabricClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "certificate.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "certificate.0.thumbprint", "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"),
-					resource.TestCheckResourceAttr(data.ResourceName, "certificate.0.x509_store_name", "My"),
-					resource.TestCheckResourceAttr(data.ResourceName, "reverse_proxy_certificate.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "reverse_proxy_certificate.0.thumbprint", "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"),
-					resource.TestCheckResourceAttr(data.ResourceName, "reverse_proxy_certificate.0.x509_store_name", "My"),
-					resource.TestCheckResourceAttr(data.ResourceName, "fabric_settings.0.name", "Security"),
-					resource.TestCheckResourceAttr(data.ResourceName, "fabric_settings.0.parameters.ClusterProtectionLevel", "EncryptAndSign"),
-					resource.TestCheckResourceAttr(data.ResourceName, "management_endpoint", "https://example:80"),
-					resource.TestCheckResourceAttr(data.ResourceName, "node_type.0.reverse_proxy_endpoint_port", "19081"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.reverseProxyCertificates(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("certificate.#").HasValue("1"),
+				check.That(data.ResourceName).Key("certificate.0.thumbprint").HasValue("3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"),
+				check.That(data.ResourceName).Key("certificate.0.x509_store_name").HasValue("My"),
+				check.That(data.ResourceName).Key("reverse_proxy_certificate.#").HasValue("1"),
+				check.That(data.ResourceName).Key("reverse_proxy_certificate.0.thumbprint").HasValue("3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"),
+				check.That(data.ResourceName).Key("reverse_proxy_certificate.0.x509_store_name").HasValue("My"),
+				check.That(data.ResourceName).Key("fabric_settings.0.name").HasValue("Security"),
+				check.That(data.ResourceName).Key("fabric_settings.0.parameters.ClusterProtectionLevel").HasValue("EncryptAndSign"),
+				check.That(data.ResourceName).Key("management_endpoint").HasValue("https://example:80"),
+				check.That(data.ResourceName).Key("node_type.0.reverse_proxy_endpoint_port").HasValue("19081"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMServiceFabricCluster_reverseProxyNotSet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
+	r := ServiceFabricClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceFabricCluster_basic(data, 3),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceFabricClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "management_endpoint", "http://example:80"),
-					resource.TestCheckResourceAttr(data.ResourceName, "add_on_features.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "certificate.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "reverse_proxy_certificate.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "client_certificate_thumbprint.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "azure_active_directory.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "diagnostics_config.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "node_type.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "node_type.0.instance_count", "3"),
-					resource.TestCheckResourceAttr(data.ResourceName, "node_type.0.reverse_proxy_endpoint_port", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, 3),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("management_endpoint").HasValue("http://example:80"),
+				check.That(data.ResourceName).Key("add_on_features.#").HasValue("0"),
+				check.That(data.ResourceName).Key("certificate.#").HasValue("0"),
+				check.That(data.ResourceName).Key("reverse_proxy_certificate.#").HasValue("0"),
+				check.That(data.ResourceName).Key("client_certificate_thumbprint.#").HasValue("0"),
+				check.That(data.ResourceName).Key("azure_active_directory.#").HasValue("0"),
+				check.That(data.ResourceName).Key("diagnostics_config.#").HasValue("0"),
+				check.That(data.ResourceName).Key("node_type.#").HasValue("1"),
+				check.That(data.ResourceName).Key("node_type.0.instance_count").HasValue("3"),
+				check.That(data.ResourceName).Key("node_type.0.reverse_proxy_endpoint_port").HasValue("0"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMServiceFabricCluster_reverseProxyUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
-	configBasic := testAccAzureRMServiceFabricCluster_basic(data, 3)
-	configProxy := testAccAzureRMServiceFabricCluster_reverseProxyCertificates(data)
+	r := ServiceFabricClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: configBasic,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceFabricClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "management_endpoint", "http://example:80"),
-					resource.TestCheckResourceAttr(data.ResourceName, "add_on_features.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "certificate.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "reverse_proxy_certificate.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "client_certificate_thumbprint.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "azure_active_directory.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "diagnostics_config.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "node_type.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "node_type.0.instance_count", "3"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-				),
-			},
-			{
-				Config: configProxy,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceFabricClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "certificate.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "certificate.0.thumbprint", "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"),
-					resource.TestCheckResourceAttr(data.ResourceName, "certificate.0.x509_store_name", "My"),
-					resource.TestCheckResourceAttr(data.ResourceName, "reverse_proxy_certificate.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "reverse_proxy_certificate.0.thumbprint", "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"),
-					resource.TestCheckResourceAttr(data.ResourceName, "reverse_proxy_certificate.0.x509_store_name", "My"),
-					resource.TestCheckResourceAttr(data.ResourceName, "fabric_settings.0.name", "Security"),
-					resource.TestCheckResourceAttr(data.ResourceName, "fabric_settings.0.parameters.ClusterProtectionLevel", "EncryptAndSign"),
-					resource.TestCheckResourceAttr(data.ResourceName, "management_endpoint", "https://example:80"),
-					resource.TestCheckResourceAttr(data.ResourceName, "node_type.0.reverse_proxy_endpoint_port", "19081"),
-				),
-			},
-			{
-				Config: configBasic,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceFabricClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "management_endpoint", "http://example:80"),
-					resource.TestCheckResourceAttr(data.ResourceName, "add_on_features.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "certificate.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "reverse_proxy_certificate.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "client_certificate_thumbprint.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "azure_active_directory.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "diagnostics_config.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "node_type.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "node_type.0.instance_count", "3"),
-					resource.TestCheckResourceAttr(data.ResourceName, "node_type.0.reverse_proxy_endpoint_port", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, 3),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("management_endpoint").HasValue("http://example:80"),
+				check.That(data.ResourceName).Key("add_on_features.#").HasValue("0"),
+				check.That(data.ResourceName).Key("certificate.#").HasValue("0"),
+				check.That(data.ResourceName).Key("reverse_proxy_certificate.#").HasValue("0"),
+				check.That(data.ResourceName).Key("client_certificate_thumbprint.#").HasValue("0"),
+				check.That(data.ResourceName).Key("azure_active_directory.#").HasValue("0"),
+				check.That(data.ResourceName).Key("diagnostics_config.#").HasValue("0"),
+				check.That(data.ResourceName).Key("node_type.#").HasValue("1"),
+				check.That(data.ResourceName).Key("node_type.0.instance_count").HasValue("3"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+			),
+		},
+		{
+			Config: r.reverseProxyCertificates(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("certificate.#").HasValue("1"),
+				check.That(data.ResourceName).Key("certificate.0.thumbprint").HasValue("3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"),
+				check.That(data.ResourceName).Key("certificate.0.x509_store_name").HasValue("My"),
+				check.That(data.ResourceName).Key("reverse_proxy_certificate.#").HasValue("1"),
+				check.That(data.ResourceName).Key("reverse_proxy_certificate.0.thumbprint").HasValue("3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"),
+				check.That(data.ResourceName).Key("reverse_proxy_certificate.0.x509_store_name").HasValue("My"),
+				check.That(data.ResourceName).Key("fabric_settings.0.name").HasValue("Security"),
+				check.That(data.ResourceName).Key("fabric_settings.0.parameters.ClusterProtectionLevel").HasValue("EncryptAndSign"),
+				check.That(data.ResourceName).Key("management_endpoint").HasValue("https://example:80"),
+				check.That(data.ResourceName).Key("node_type.0.reverse_proxy_endpoint_port").HasValue("19081"),
+			),
+		},
+		{
+			Config: r.basic(data, 3),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("management_endpoint").HasValue("http://example:80"),
+				check.That(data.ResourceName).Key("add_on_features.#").HasValue("0"),
+				check.That(data.ResourceName).Key("certificate.#").HasValue("0"),
+				check.That(data.ResourceName).Key("reverse_proxy_certificate.#").HasValue("0"),
+				check.That(data.ResourceName).Key("client_certificate_thumbprint.#").HasValue("0"),
+				check.That(data.ResourceName).Key("azure_active_directory.#").HasValue("0"),
+				check.That(data.ResourceName).Key("diagnostics_config.#").HasValue("0"),
+				check.That(data.ResourceName).Key("node_type.#").HasValue("1"),
+				check.That(data.ResourceName).Key("node_type.0.instance_count").HasValue("3"),
+				check.That(data.ResourceName).Key("node_type.0.reverse_proxy_endpoint_port").HasValue("0"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+			),
 		},
 	})
 }
 
 func TestAccAzureRMServiceFabricCluster_clientCertificateThumbprint(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
+	r := ServiceFabricClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceFabricCluster_clientCertificateThumbprint(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceFabricClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "certificate.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "certificate.0.thumbprint", "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"),
-					resource.TestCheckResourceAttr(data.ResourceName, "certificate.0.x509_store_name", "My"),
-					resource.TestCheckResourceAttr(data.ResourceName, "client_certificate_thumbprint.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "client_certificate_thumbprint.0.thumbprint", "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"),
-					resource.TestCheckResourceAttr(data.ResourceName, "client_certificate_thumbprint.0.is_admin", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "client_certificate_common_name.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "fabric_settings.0.name", "Security"),
-					resource.TestCheckResourceAttr(data.ResourceName, "fabric_settings.0.parameters.ClusterProtectionLevel", "EncryptAndSign"),
-					resource.TestCheckResourceAttr(data.ResourceName, "management_endpoint", "https://example:80"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.clientCertificateThumbprint(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("certificate.#").HasValue("1"),
+				check.That(data.ResourceName).Key("certificate.0.thumbprint").HasValue("3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"),
+				check.That(data.ResourceName).Key("certificate.0.x509_store_name").HasValue("My"),
+				check.That(data.ResourceName).Key("client_certificate_thumbprint.#").HasValue("1"),
+				check.That(data.ResourceName).Key("client_certificate_thumbprint.0.thumbprint").HasValue("3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"),
+				check.That(data.ResourceName).Key("client_certificate_thumbprint.0.is_admin").HasValue("true"),
+				check.That(data.ResourceName).Key("client_certificate_common_name.#").HasValue("0"),
+				check.That(data.ResourceName).Key("fabric_settings.0.name").HasValue("Security"),
+				check.That(data.ResourceName).Key("fabric_settings.0.parameters.ClusterProtectionLevel").HasValue("EncryptAndSign"),
+				check.That(data.ResourceName).Key("management_endpoint").HasValue("https://example:80"),
+			),
 		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAzureRMServiceFabricCluster_withMultipleClientCertificateThumbprints(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
+	r := ServiceFabricClusterResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withMultipleClientCertificateThumbprints(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMServiceFabricCluster_clientCertificateCommonNames(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
+	r := ServiceFabricClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceFabricCluster_clientCertificateCommonNames(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceFabricClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "client_certificate_common_name.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "client_certificate_common_name.0.common_name", "firstcertcommonname"),
-					resource.TestCheckResourceAttr(data.ResourceName, "client_certificate_common_name.0.is_admin", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "client_certificate_common_name.0.issuer_thumbprint", "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"),
-					resource.TestCheckResourceAttr(data.ResourceName, "client_certificate_common_name.1.common_name", "secondcertcommonname"),
-					resource.TestCheckResourceAttr(data.ResourceName, "client_certificate_common_name.1.is_admin", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "client_certificate_common_name.1.issuer_thumbprint", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "client_certificate_thumbprint.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "client_certificate_thumbprint.0.thumbprint", "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"),
-					resource.TestCheckResourceAttr(data.ResourceName, "client_certificate_thumbprint.0.is_admin", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "fabric_settings.0.name", "Security"),
-					resource.TestCheckResourceAttr(data.ResourceName, "fabric_settings.0.parameters.ClusterProtectionLevel", "EncryptAndSign"),
-					resource.TestCheckResourceAttr(data.ResourceName, "management_endpoint", "https://example:80"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.clientCertificateCommonNames(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("client_certificate_common_name.#").HasValue("2"),
+				check.That(data.ResourceName).Key("client_certificate_common_name.0.common_name").HasValue("firstcertcommonname"),
+				check.That(data.ResourceName).Key("client_certificate_common_name.0.is_admin").HasValue("true"),
+				check.That(data.ResourceName).Key("client_certificate_common_name.0.issuer_thumbprint").HasValue("3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"),
+				check.That(data.ResourceName).Key("client_certificate_common_name.1.common_name").HasValue("secondcertcommonname"),
+				check.That(data.ResourceName).Key("client_certificate_common_name.1.is_admin").HasValue("false"),
+				check.That(data.ResourceName).Key("client_certificate_common_name.1.issuer_thumbprint").IsEmpty(),
+				check.That(data.ResourceName).Key("client_certificate_thumbprint.#").HasValue("1"),
+				check.That(data.ResourceName).Key("client_certificate_thumbprint.0.thumbprint").HasValue("3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"),
+				check.That(data.ResourceName).Key("client_certificate_thumbprint.0.is_admin").HasValue("true"),
+				check.That(data.ResourceName).Key("fabric_settings.0.name").HasValue("Security"),
+				check.That(data.ResourceName).Key("fabric_settings.0.parameters.ClusterProtectionLevel").HasValue("EncryptAndSign"),
+				check.That(data.ResourceName).Key("management_endpoint").HasValue("https://example:80"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMServiceFabricCluster_readerAdminClientCertificateThumbprint(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
+	r := ServiceFabricClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceFabricCluster_readerAdminClientCertificateThumbprint(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceFabricClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "certificate.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "certificate.0.thumbprint", "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"),
-					resource.TestCheckResourceAttr(data.ResourceName, "certificate.0.x509_store_name", "My"),
-					resource.TestCheckResourceAttr(data.ResourceName, "client_certificate_thumbprint.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "client_certificate_thumbprint.0.thumbprint", "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"),
-					resource.TestCheckResourceAttr(data.ResourceName, "client_certificate_thumbprint.0.is_admin", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "client_certificate_thumbprint.1.thumbprint", "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"),
-					resource.TestCheckResourceAttr(data.ResourceName, "client_certificate_thumbprint.1.is_admin", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "client_certificate_common_name.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "fabric_settings.0.name", "Security"),
-					resource.TestCheckResourceAttr(data.ResourceName, "fabric_settings.0.parameters.ClusterProtectionLevel", "EncryptAndSign"),
-					resource.TestCheckResourceAttr(data.ResourceName, "management_endpoint", "https://example:80"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.readerAdminClientCertificateThumbprint(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("certificate.#").HasValue("1"),
+				check.That(data.ResourceName).Key("certificate.0.thumbprint").HasValue("3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"),
+				check.That(data.ResourceName).Key("certificate.0.x509_store_name").HasValue("My"),
+				check.That(data.ResourceName).Key("client_certificate_thumbprint.#").HasValue("2"),
+				check.That(data.ResourceName).Key("client_certificate_thumbprint.0.thumbprint").HasValue("3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"),
+				check.That(data.ResourceName).Key("client_certificate_thumbprint.0.is_admin").HasValue("true"),
+				check.That(data.ResourceName).Key("client_certificate_thumbprint.1.thumbprint").HasValue("3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"),
+				check.That(data.ResourceName).Key("client_certificate_thumbprint.1.is_admin").HasValue("false"),
+				check.That(data.ResourceName).Key("client_certificate_common_name.#").HasValue("0"),
+				check.That(data.ResourceName).Key("fabric_settings.0.name").HasValue("Security"),
+				check.That(data.ResourceName).Key("fabric_settings.0.parameters.ClusterProtectionLevel").HasValue("EncryptAndSign"),
+				check.That(data.ResourceName).Key("management_endpoint").HasValue("https://example:80"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMServiceFabricCluster_certificateCommonNames(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
+	r := ServiceFabricClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceFabricCluster_certificateCommonNames(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceFabricClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "certificate_common_names.0.common_names.2962847220.certificate_common_name", "example"),
-					resource.TestCheckResourceAttr(data.ResourceName, "certificate_common_names.0.x509_store_name", "My"),
-					resource.TestCheckResourceAttr(data.ResourceName, "fabric_settings.0.name", "Security"),
-					resource.TestCheckResourceAttr(data.ResourceName, "fabric_settings.0.parameters.ClusterProtectionLevel", "EncryptAndSign"),
-					resource.TestCheckResourceAttr(data.ResourceName, "management_endpoint", "https://example:80"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.certificateCommonNames(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("certificate_common_names.0.common_names.2962847220.certificate_common_name").HasValue("example"),
+				check.That(data.ResourceName).Key("certificate_common_names.0.x509_store_name").HasValue("My"),
+				check.That(data.ResourceName).Key("fabric_settings.0.name").HasValue("Security"),
+				check.That(data.ResourceName).Key("fabric_settings.0.parameters.ClusterProtectionLevel").HasValue("EncryptAndSign"),
+				check.That(data.ResourceName).Key("management_endpoint").HasValue("https://example:80"),
+			),
 		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAzureRMServiceFabricCluster_reverseProxyCertificateCommonNames(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
+	r := ServiceFabricClusterResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.reverseProxyCertificateCommonNames(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("reverse_proxy_certificate_common_names.0.common_names.2962847220.certificate_common_name").HasValue("example"),
+				check.That(data.ResourceName).Key("reverse_proxy_certificate_common_names.0.x509_store_name").HasValue("My"),
+				check.That(data.ResourceName).Key("fabric_settings.0.name").HasValue("Security"),
+				check.That(data.ResourceName).Key("fabric_settings.0.parameters.ClusterProtectionLevel").HasValue("EncryptAndSign"),
+				check.That(data.ResourceName).Key("management_endpoint").HasValue("https://example:80"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMServiceFabricCluster_azureActiveDirectory(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
+	r := ServiceFabricClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceFabricCluster_azureActiveDirectory(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceFabricClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "certificate.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "certificate.0.thumbprint", "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"),
-					resource.TestCheckResourceAttr(data.ResourceName, "certificate.0.x509_store_name", "My"),
-					resource.TestCheckResourceAttr(data.ResourceName, "azure_active_directory.#", "1"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "azure_active_directory.0.tenant_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "azure_active_directory.0.cluster_application_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "azure_active_directory.0.client_application_id"),
-					resource.TestCheckResourceAttr(data.ResourceName, "fabric_settings.0.name", "Security"),
-					resource.TestCheckResourceAttr(data.ResourceName, "fabric_settings.0.parameters.ClusterProtectionLevel", "EncryptAndSign"),
-					resource.TestCheckResourceAttr(data.ResourceName, "management_endpoint", "https://example:19080"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.azureActiveDirectory(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("certificate.#").HasValue("1"),
+				check.That(data.ResourceName).Key("certificate.0.thumbprint").HasValue("3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"),
+				check.That(data.ResourceName).Key("certificate.0.x509_store_name").HasValue("My"),
+				check.That(data.ResourceName).Key("azure_active_directory.#").HasValue("1"),
+				check.That(data.ResourceName).Key("azure_active_directory.0.tenant_id").Exists(),
+				check.That(data.ResourceName).Key("azure_active_directory.0.cluster_application_id").Exists(),
+				check.That(data.ResourceName).Key("azure_active_directory.0.client_application_id").Exists(),
+				check.That(data.ResourceName).Key("fabric_settings.0.name").HasValue("Security"),
+				check.That(data.ResourceName).Key("fabric_settings.0.parameters.ClusterProtectionLevel").HasValue("EncryptAndSign"),
+				check.That(data.ResourceName).Key("management_endpoint").HasValue("https://example:19080"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMServiceFabricCluster_azureActiveDirectoryDelete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
+	r := ServiceFabricClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceFabricCluster_azureActiveDirectory(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceFabricClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "certificate.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "certificate.0.thumbprint", "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"),
-					resource.TestCheckResourceAttr(data.ResourceName, "certificate.0.x509_store_name", "My"),
-					resource.TestCheckResourceAttr(data.ResourceName, "azure_active_directory.#", "1"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "azure_active_directory.0.tenant_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "azure_active_directory.0.cluster_application_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "azure_active_directory.0.client_application_id"),
-					resource.TestCheckResourceAttr(data.ResourceName, "fabric_settings.0.name", "Security"),
-					resource.TestCheckResourceAttr(data.ResourceName, "fabric_settings.0.parameters.ClusterProtectionLevel", "EncryptAndSign"),
-					resource.TestCheckResourceAttr(data.ResourceName, "management_endpoint", "https://example:19080"),
-				),
-			},
-			{
-				Config: testAccAzureRMServiceFabricCluster_azureActiveDirectoryDelete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceFabricClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "certificate.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "certificate.0.thumbprint", "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"),
-					resource.TestCheckResourceAttr(data.ResourceName, "certificate.0.x509_store_name", "My"),
-					resource.TestCheckResourceAttr(data.ResourceName, "azure_active_directory.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "fabric_settings.0.name", "Security"),
-					resource.TestCheckResourceAttr(data.ResourceName, "fabric_settings.0.parameters.ClusterProtectionLevel", "EncryptAndSign"),
-					resource.TestCheckResourceAttr(data.ResourceName, "management_endpoint", "https://example:19080"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.azureActiveDirectory(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("certificate.#").HasValue("1"),
+				check.That(data.ResourceName).Key("certificate.0.thumbprint").HasValue("3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"),
+				check.That(data.ResourceName).Key("certificate.0.x509_store_name").HasValue("My"),
+				check.That(data.ResourceName).Key("azure_active_directory.#").HasValue("1"),
+				check.That(data.ResourceName).Key("azure_active_directory.0.tenant_id").Exists(),
+				check.That(data.ResourceName).Key("azure_active_directory.0.cluster_application_id").Exists(),
+				check.That(data.ResourceName).Key("azure_active_directory.0.client_application_id").Exists(),
+				check.That(data.ResourceName).Key("fabric_settings.0.name").HasValue("Security"),
+				check.That(data.ResourceName).Key("fabric_settings.0.parameters.ClusterProtectionLevel").HasValue("EncryptAndSign"),
+				check.That(data.ResourceName).Key("management_endpoint").HasValue("https://example:19080"),
+			),
 		},
+		{
+			Config: r.azureActiveDirectoryDelete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("certificate.#").HasValue("1"),
+				check.That(data.ResourceName).Key("certificate.0.thumbprint").HasValue("3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"),
+				check.That(data.ResourceName).Key("certificate.0.x509_store_name").HasValue("My"),
+				check.That(data.ResourceName).Key("azure_active_directory.#").HasValue("0"),
+				check.That(data.ResourceName).Key("fabric_settings.0.name").HasValue("Security"),
+				check.That(data.ResourceName).Key("fabric_settings.0.parameters.ClusterProtectionLevel").HasValue("EncryptAndSign"),
+				check.That(data.ResourceName).Key("management_endpoint").HasValue("https://example:19080"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMServiceFabricCluster_diagnosticsConfig(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
+	r := ServiceFabricClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceFabricCluster_diagnosticsConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceFabricClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "diagnostics_config.#", "1"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "diagnostics_config.0.storage_account_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "diagnostics_config.0.protected_account_key_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "diagnostics_config.0.blob_endpoint"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "diagnostics_config.0.queue_endpoint"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "diagnostics_config.0.table_endpoint"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.diagnosticsConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("diagnostics_config.#").HasValue("1"),
+				check.That(data.ResourceName).Key("diagnostics_config.0.storage_account_name").Exists(),
+				check.That(data.ResourceName).Key("diagnostics_config.0.protected_account_key_name").Exists(),
+				check.That(data.ResourceName).Key("diagnostics_config.0.blob_endpoint").Exists(),
+				check.That(data.ResourceName).Key("diagnostics_config.0.queue_endpoint").Exists(),
+				check.That(data.ResourceName).Key("diagnostics_config.0.table_endpoint").Exists(),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMServiceFabricCluster_diagnosticsConfigDelete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
+	r := ServiceFabricClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceFabricCluster_diagnosticsConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceFabricClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "diagnostics_config.#", "1"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "diagnostics_config.0.storage_account_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "diagnostics_config.0.protected_account_key_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "diagnostics_config.0.blob_endpoint"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "diagnostics_config.0.queue_endpoint"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "diagnostics_config.0.table_endpoint"),
-				),
-			},
-			{
-				Config: testAccAzureRMServiceFabricCluster_diagnosticsConfigDelete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceFabricClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "diagnostics_config.#", "0"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.diagnosticsConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("diagnostics_config.#").HasValue("1"),
+				check.That(data.ResourceName).Key("diagnostics_config.0.storage_account_name").Exists(),
+				check.That(data.ResourceName).Key("diagnostics_config.0.protected_account_key_name").Exists(),
+				check.That(data.ResourceName).Key("diagnostics_config.0.blob_endpoint").Exists(),
+				check.That(data.ResourceName).Key("diagnostics_config.0.queue_endpoint").Exists(),
+				check.That(data.ResourceName).Key("diagnostics_config.0.table_endpoint").Exists(),
+			),
 		},
-	})
-}
-
-func TestAccAzureRMServiceFabricCluster_clusterUpgradeDescription(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceFabricCluster_clusterUpgradeDescription(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceFabricClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_description.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_description.0.force_restart", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_description.0.health_check_retry_timeout", "00:00:02"),
-					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_description.0.health_check_stable_duration", "00:00:04"),
-					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_description.0.health_check_wait_duration", "00:00:06"),
-					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_description.0.upgrade_domain_timeout", "00:00:20"),
-					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_description.0.upgrade_replica_set_check_timeout", "00:00:10"),
-					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_description.0.upgrade_timeout", "00:00:40"),
-					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_description.0.health_policy.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_description.0.health_policy.0.max_percent_unhealthy_applications", "40"),
-					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_description.0.health_policy.0.max_percent_unhealthy_nodes", "5"),
-					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_description.0.delta_health_policy.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_description.0.delta_health_policy.0.max_percent_delta_unhealthy_applications", "20"),
-					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_description.0.delta_health_policy.0.max_percent_delta_unhealthy_nodes", "40"),
-					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_description.0.delta_health_policy.0.max_percent_upgrade_domain_delta_unhealthy_nodes", "60"),
-					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_description.0.delta_health_policy.0.application_delta_health_policy.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_description.0.delta_health_policy.0.application_delta_health_policy.0.application_type", "fabric:/system"),
-					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_description.0.delta_health_policy.0.application_delta_health_policy.0.default_service_type_delta_health_policy.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_description.0.delta_health_policy.0.application_delta_health_policy.0.default_service_type_delta_health_policy.0.max_percent_delta_unhealthy_services", "5"),
-					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_description.0.delta_health_policy.0.application_delta_health_policy.0.service_type_delta_health_policy.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_description.0.delta_health_policy.0.application_delta_health_policy.0.service_type_delta_health_policy.0.service_type", "fabric:/system/service"),
-					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_description.0.delta_health_policy.0.application_delta_health_policy.0.service_type_delta_health_policy.0.max_percent_delta_unhealthy_services", "30"),
-				),
-			},
-			data.ImportStep(),
+		{
+			Config: r.diagnosticsConfigDelete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("diagnostics_config.#").HasValue("0"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMServiceFabricCluster_fabricSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
+	r := ServiceFabricClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceFabricCluster_fabricSettings(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceFabricClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "fabric_settings.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "fabric_settings.0.name", "Security"),
-					resource.TestCheckResourceAttr(data.ResourceName, "fabric_settings.0.parameters.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "fabric_settings.0.parameters.ClusterProtectionLevel", "None"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.fabricSettings(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("fabric_settings.#").HasValue("1"),
+				check.That(data.ResourceName).Key("fabric_settings.0.name").HasValue("Security"),
+				check.That(data.ResourceName).Key("fabric_settings.0.parameters.%").HasValue("1"),
+				check.That(data.ResourceName).Key("fabric_settings.0.parameters.ClusterProtectionLevel").HasValue("None"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMServiceFabricCluster_fabricSettingsRemove(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
+	r := ServiceFabricClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceFabricCluster_fabricSettings(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceFabricClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "fabric_settings.#", "1"),
-				),
-			},
-			{
-				Config: testAccAzureRMServiceFabricCluster_basic(data, 3),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceFabricClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "fabric_settings.#", "0"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.fabricSettings(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("fabric_settings.#").HasValue("1"),
+			),
+		},
+		{
+			Config: r.basic(data, 3),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("fabric_settings.#").HasValue("0"),
+			),
 		},
 	})
 }
 
 func TestAccAzureRMServiceFabricCluster_nodeTypeCustomPorts(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
+	r := ServiceFabricClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceFabricCluster_nodeTypeCustomPorts(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceFabricClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "node_type.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "node_type.0.application_ports.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "node_type.0.application_ports.0.start_port", "20000"),
-					resource.TestCheckResourceAttr(data.ResourceName, "node_type.0.application_ports.0.end_port", "29999"),
-					resource.TestCheckResourceAttr(data.ResourceName, "node_type.0.ephemeral_ports.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "node_type.0.ephemeral_ports.0.start_port", "30000"),
-					resource.TestCheckResourceAttr(data.ResourceName, "node_type.0.ephemeral_ports.0.end_port", "39999"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.nodeTypeCustomPorts(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("node_type.#").HasValue("1"),
+				check.That(data.ResourceName).Key("node_type.0.application_ports.#").HasValue("1"),
+				check.That(data.ResourceName).Key("node_type.0.application_ports.0.start_port").HasValue("20000"),
+				check.That(data.ResourceName).Key("node_type.0.application_ports.0.end_port").HasValue("29999"),
+				check.That(data.ResourceName).Key("node_type.0.ephemeral_ports.#").HasValue("1"),
+				check.That(data.ResourceName).Key("node_type.0.ephemeral_ports.0.start_port").HasValue("30000"),
+				check.That(data.ResourceName).Key("node_type.0.ephemeral_ports.0.end_port").HasValue("39999"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMServiceFabricCluster_nodeTypesMultiple(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
+	r := ServiceFabricClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceFabricCluster_nodeTypeMultiple(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceFabricClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "node_type.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "node_type.0.name", "first"),
-					resource.TestCheckResourceAttr(data.ResourceName, "node_type.0.instance_count", "3"),
-					resource.TestCheckResourceAttr(data.ResourceName, "node_type.0.is_primary", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "node_type.1.name", "second"),
-					resource.TestCheckResourceAttr(data.ResourceName, "node_type.1.instance_count", "4"),
-					resource.TestCheckResourceAttr(data.ResourceName, "node_type.1.is_primary", "false"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.nodeTypeMultiple(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("node_type.#").HasValue("2"),
+				check.That(data.ResourceName).Key("node_type.0.name").HasValue("first"),
+				check.That(data.ResourceName).Key("node_type.0.instance_count").HasValue("3"),
+				check.That(data.ResourceName).Key("node_type.0.is_primary").HasValue("true"),
+				check.That(data.ResourceName).Key("node_type.1.name").HasValue("second"),
+				check.That(data.ResourceName).Key("node_type.1.instance_count").HasValue("4"),
+				check.That(data.ResourceName).Key("node_type.1.is_primary").HasValue("false"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMServiceFabricCluster_nodeTypesUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
+	r := ServiceFabricClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceFabricCluster_basic(data, 3),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceFabricClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "node_type.0.instance_count", "3"),
-				),
-			},
-			{
-				Config: testAccAzureRMServiceFabricCluster_basic(data, 4),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceFabricClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "node_type.0.instance_count", "4"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, 3),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("node_type.0.instance_count").HasValue("3"),
+			),
+		},
+		{
+			Config: r.basic(data, 4),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("node_type.0.instance_count").HasValue("4"),
+			),
 		},
 	})
 }
 
 func TestAccAzureRMServiceFabricCluster_nodeTypeProperties(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
+	r := ServiceFabricClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceFabricCluster_nodeTypeProperties(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceFabricClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "node_type.0.placement_properties.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "node_type.0.placement_properties.HasSSD", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "node_type.0.capacities.%", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "node_type.0.capacities.ClientConnections", "20000"),
-					resource.TestCheckResourceAttr(data.ResourceName, "node_type.0.capacities.MemoryGB", "8"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.nodeTypeProperties(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("node_type.0.placement_properties.%").HasValue("1"),
+				check.That(data.ResourceName).Key("node_type.0.placement_properties.HasSSD").HasValue("true"),
+				check.That(data.ResourceName).Key("node_type.0.capacities.%").HasValue("2"),
+				check.That(data.ResourceName).Key("node_type.0.capacities.ClientConnections").HasValue("20000"),
+				check.That(data.ResourceName).Key("node_type.0.capacities.MemoryGB").HasValue("8"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMServiceFabricCluster_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
+	r := ServiceFabricClusterResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceFabricCluster_tags(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceFabricClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.Hello", "World"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.tags(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.Hello").HasValue("World"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMServiceFabricClusterDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).ServiceFabric.ClustersClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_service_fabric_cluster" {
-			continue
-		}
-
-		id, err := parse.ServiceFabricClusterID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
-
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Service Fabric Cluster still exists:\n%+v", resp)
-		}
+func (r ServiceFabricClusterResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.ClusterID(state.ID)
+	if err != nil {
+		return nil, err
 	}
-
-	return nil
+	resp, err := client.ServiceFabric.ClustersClient.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return utils.Bool(false), nil
+		}
+		return nil, fmt.Errorf("retrieving Service Fabric Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	}
+	return utils.Bool(true), nil
 }
 
-func testCheckAzureRMServiceFabricClusterExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).ServiceFabric.ClustersClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		id, err := parse.ServiceFabricClusterID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on serviceFabricClustersClient: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Service Fabric Cluster %q (Resource Group: %q) does not exist", id.Name, id.ResourceGroup)
-		}
-
-		return nil
-	}
-}
-
-func testAccAzureRMServiceFabricCluster_basic(data acceptance.TestData, count int) string {
+func (r ServiceFabricClusterResource) basic(data acceptance.TestData, count int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -884,7 +733,7 @@ resource "azurerm_service_fabric_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, count)
 }
 
-func testAccAzureRMServiceFabricCluster_basicNodeTypeUpdate(data acceptance.TestData, count int, secondary_count int) string {
+func (r ServiceFabricClusterResource) basicNodeTypeUpdate(data acceptance.TestData, count int, secondary_count int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -923,7 +772,7 @@ resource "azurerm_service_fabric_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, count, secondary_count)
 }
 
-func testAccAzureRMServiceFabricCluster_requiresImport(data acceptance.TestData) string {
+func (r ServiceFabricClusterResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -944,10 +793,10 @@ resource "azurerm_service_fabric_cluster" "import" {
     http_endpoint_port   = 80
   }
 }
-`, testAccAzureRMServiceFabricCluster_basic(data, 3))
+`, r.basic(data, 3))
 }
 
-func testAccAzureRMServiceFabricCluster_manualClusterCodeVersion(data acceptance.TestData, clusterCodeVersion string) string {
+func (r ServiceFabricClusterResource) manualClusterCodeVersion(data acceptance.TestData, clusterCodeVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -979,7 +828,7 @@ resource "azurerm_service_fabric_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, clusterCodeVersion)
 }
 
-func testAccAzureRMServiceFabricCluster_addOnFeatures(data acceptance.TestData) string {
+func (r ServiceFabricClusterResource) addOnFeatures(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1011,7 +860,7 @@ resource "azurerm_service_fabric_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMServiceFabricCluster_certificates(data acceptance.TestData) string {
+func (r ServiceFabricClusterResource) certificates(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1055,7 +904,7 @@ resource "azurerm_service_fabric_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMServiceFabricCluster_reverseProxyCertificates(data acceptance.TestData) string {
+func (r ServiceFabricClusterResource) reverseProxyCertificates(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1105,7 +954,7 @@ resource "azurerm_service_fabric_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMServiceFabricCluster_clientCertificateThumbprint(data acceptance.TestData) string {
+func (r ServiceFabricClusterResource) clientCertificateThumbprint(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1154,7 +1003,66 @@ resource "azurerm_service_fabric_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMServiceFabricCluster_clientCertificateCommonNames(data acceptance.TestData) string {
+func (r ServiceFabricClusterResource) withMultipleClientCertificateThumbprints(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cluster-%d"
+  location = "%s"
+}
+
+resource "azurerm_service_fabric_cluster" "test" {
+  name                = "acctest-cluster-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  reliability_level   = "Bronze"
+  upgrade_mode        = "Automatic"
+  vm_image            = "Windows"
+  management_endpoint = "https://example:80"
+
+  certificate {
+    thumbprint      = "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
+    x509_store_name = "My"
+  }
+
+  client_certificate_thumbprint {
+    thumbprint = "1341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
+    is_admin   = true
+  }
+
+  client_certificate_thumbprint {
+    thumbprint = "2341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
+    is_admin   = false
+  }
+
+  client_certificate_thumbprint {
+    thumbprint = "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
+    is_admin   = true
+  }
+
+  fabric_settings {
+    name = "Security"
+
+    parameters = {
+      "ClusterProtectionLevel" = "EncryptAndSign"
+    }
+  }
+
+  node_type {
+    name                 = "first"
+    instance_count       = 3
+    is_primary           = true
+    client_endpoint_port = 2020
+    http_endpoint_port   = 80
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (r ServiceFabricClusterResource) clientCertificateCommonNames(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -1210,7 +1118,7 @@ resource "azurerm_service_fabric_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMServiceFabricCluster_readerAdminClientCertificateThumbprint(data acceptance.TestData) string {
+func (r ServiceFabricClusterResource) readerAdminClientCertificateThumbprint(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1264,7 +1172,7 @@ resource "azurerm_service_fabric_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMServiceFabricCluster_certificateCommonNames(data acceptance.TestData) string {
+func (r ServiceFabricClusterResource) certificateCommonNames(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1311,11 +1219,68 @@ resource "azurerm_service_fabric_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMServiceFabricCluster_azureActiveDirectory(data acceptance.TestData) string {
+func (r ServiceFabricClusterResource) reverseProxyCertificateCommonNames(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_service_fabric_cluster" "test" {
+  name                = "acctest-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  reliability_level   = "Bronze"
+  upgrade_mode        = "Automatic"
+  vm_image            = "Windows"
+  management_endpoint = "https://example:80"
+
+  certificate_common_names {
+    common_names {
+      certificate_common_name = "example"
+    }
+
+    x509_store_name = "My"
+  }
+
+  reverse_proxy_certificate_common_names {
+    common_names {
+      certificate_common_name = "example"
+    }
+
+    x509_store_name = "My"
+  }
+
+  fabric_settings {
+    name = "Security"
+
+    parameters = {
+      "ClusterProtectionLevel" = "EncryptAndSign"
+    }
+  }
+
+  node_type {
+    name                 = "first"
+    instance_count       = 3
+    is_primary           = true
+    client_endpoint_port = 2020
+    http_endpoint_port   = 80
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (r ServiceFabricClusterResource) azureActiveDirectory(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+provider "azuread" {}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -1420,7 +1385,7 @@ resource "azurerm_service_fabric_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMServiceFabricCluster_azureActiveDirectoryDelete(data acceptance.TestData) string {
+func (r ServiceFabricClusterResource) azureActiveDirectoryDelete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1467,7 +1432,7 @@ resource "azurerm_service_fabric_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMServiceFabricCluster_diagnosticsConfig(data acceptance.TestData) string {
+func (r ServiceFabricClusterResource) diagnosticsConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1514,7 +1479,7 @@ resource "azurerm_service_fabric_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
-func testAccAzureRMServiceFabricCluster_diagnosticsConfigDelete(data acceptance.TestData) string {
+func (r ServiceFabricClusterResource) diagnosticsConfigDelete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1553,85 +1518,7 @@ resource "azurerm_service_fabric_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
-func testAccAzureRMServiceFabricCluster_clusterUpgradeDescription(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "GRS"
-}
-resource "azurerm_service_fabric_cluster" "test" {
-  name                = "acctest-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  reliability_level   = "Bronze"
-  upgrade_mode        = "Automatic"
-  vm_image            = "Windows"
-  management_endpoint = "http://example:80"
-  diagnostics_config {
-    storage_account_name       = azurerm_storage_account.test.name
-    protected_account_key_name = "StorageAccountKey1"
-    blob_endpoint              = azurerm_storage_account.test.primary_blob_endpoint
-    queue_endpoint             = azurerm_storage_account.test.primary_queue_endpoint
-    table_endpoint             = azurerm_storage_account.test.primary_table_endpoint
-  }
-  upgrade_description {
-    force_restart                     = true
-    health_check_retry_timeout        = "00:00:02"
-    health_check_stable_duration      = "00:00:04"
-    health_check_wait_duration        = "00:00:06"
-    upgrade_domain_timeout            = "00:00:20"
-    upgrade_replica_set_check_timeout = "00:00:10"
-    upgrade_timeout                   = "00:00:40"
-
-    health_policy {
-      max_percent_unhealthy_nodes        = 5
-      max_percent_unhealthy_applications = 40
-    }
-
-    delta_health_policy {
-      max_percent_delta_unhealthy_applications         = 20
-      max_percent_delta_unhealthy_nodes                = 40
-      max_percent_upgrade_domain_delta_unhealthy_nodes = 60
-
-      application_delta_health_policy {
-
-        application_type = "fabric:/system"
-
-        default_service_type_delta_health_policy {
-          max_percent_delta_unhealthy_services = 5
-        }
-
-        service_type_delta_health_policy {
-          service_type                         = "fabric:/system/service"
-          max_percent_delta_unhealthy_services = 30
-        }
-      }
-
-    }
-  }
-
-  node_type {
-    name                 = "first"
-    instance_count       = 3
-    is_primary           = true
-    client_endpoint_port = 2020
-    http_endpoint_port   = 80
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
-}
-
-func testAccAzureRMServiceFabricCluster_fabricSettings(data acceptance.TestData) string {
+func (r ServiceFabricClusterResource) fabricSettings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1670,7 +1557,7 @@ resource "azurerm_service_fabric_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMServiceFabricCluster_nodeTypeCustomPorts(data acceptance.TestData) string {
+func (r ServiceFabricClusterResource) nodeTypeCustomPorts(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1711,7 +1598,7 @@ resource "azurerm_service_fabric_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMServiceFabricCluster_nodeTypeMultiple(data acceptance.TestData) string {
+func (r ServiceFabricClusterResource) nodeTypeMultiple(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1750,7 +1637,7 @@ resource "azurerm_service_fabric_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMServiceFabricCluster_nodeTypeProperties(data acceptance.TestData) string {
+func (r ServiceFabricClusterResource) nodeTypeProperties(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1795,7 +1682,7 @@ resource "azurerm_service_fabric_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMServiceFabricCluster_tags(data acceptance.TestData) string {
+func (r ServiceFabricClusterResource) tags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
