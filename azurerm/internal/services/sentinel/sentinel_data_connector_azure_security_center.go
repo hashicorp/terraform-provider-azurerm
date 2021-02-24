@@ -134,10 +134,10 @@ func resourceSentinelDataConnectorAzureSecurityCenterRead(d *schema.ResourceData
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if err := assertDataConnectorKind(resp.Value, securityinsight.DataConnectorKindAzureSecurityCenter); err != nil {
-		return fmt.Errorf("asserting %s: %+v", id, err)
+	dc, ok := resp.Value.(securityinsight.ASCDataConnector)
+	if !ok {
+		return fmt.Errorf("%s was not an Azure Security Center Data Connector", id)
 	}
-	dc := resp.Value.(securityinsight.ASCDataConnector)
 
 	d.Set("name", id.Name)
 	d.Set("log_analytics_workspace_id", workspaceId.ID())
