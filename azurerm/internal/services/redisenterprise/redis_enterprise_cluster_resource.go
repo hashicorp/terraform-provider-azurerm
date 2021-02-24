@@ -76,7 +76,7 @@ func resourceRedisEnterpriseCluster() *schema.Resource {
 						"1",
 						"2",
 						"3",
-					}, true),
+					}, false),
 				},
 			},
 
@@ -118,10 +118,10 @@ func resourceRedisEnterpriseClusterCreate(d *schema.ResourceData, meta interface
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	resourceId := parse.NewRedisEnterpriseClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.Name)
+		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.RedisEnterpriseName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Redis Enterprise Cluster (Name %q / Resource Group %q): %+v", resourceId.Name, resourceId.ResourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Redis Enterprise Cluster (Name %q / Resource Group %q): %+v", resourceId.RedisEnterpriseName, resourceId.ResourceGroup, err)
 			}
 		}
 
@@ -150,7 +150,7 @@ func resourceRedisEnterpriseClusterCreate(d *schema.ResourceData, meta interface
 	if v, ok := d.GetOk("zones"); ok {
 		// Zones are currently not supported in these regions
 		if location == "centraluseuap" || location == "westus" {
-			return fmt.Errorf("Redis Enterprise Cluster (Name %q / Resource Group %q): 'Zones' are not currently supported in the 'West US' or 'Central US EUAP' regions, got %q", resourceId.Name, resourceId.ResourceGroup, location)
+			return fmt.Errorf("Redis Enterprise Cluster %q: 'Zones' are not currently supported in the 'West US' or 'Central US EUAP' regions, got %q", resourceId, location)
 		}
 
 		parameters.Zones = azure.ExpandZones(v.([]interface{}))
@@ -161,16 +161,16 @@ func resourceRedisEnterpriseClusterCreate(d *schema.ResourceData, meta interface
 	// 	parameters.ClusterProperties.MinimumTLSVersion = redisenterprise.TLSVersion(v.(string))
 	// }
 
-	future, err := client.Create(ctx, resourceId.ResourceGroup, resourceId.Name, parameters)
+	future, err := client.Create(ctx, resourceId.ResourceGroup, resourceId.RedisEnterpriseName, parameters)
 	if err != nil {
-		return fmt.Errorf("waiting for creation of Redis Enterprise Cluster (Name %q / Resource Group %q): %+v", resourceId.Name, resourceId.ResourceGroup, err)
+		return fmt.Errorf("waiting for creation of Redis Enterprise Cluster (Name %q / Resource Group %q): %+v", resourceId.RedisEnterpriseName, resourceId.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the creation of Redis Enterprise Cluster (Name %q / Resource Group %q): %+v", resourceId.Name, resourceId.ResourceGroup, err)
+		return fmt.Errorf("waiting for the creation of Redis Enterprise Cluster (Name %q / Resource Group %q): %+v", resourceId.RedisEnterpriseName, resourceId.ResourceGroup, err)
 	}
 
-	log.Printf("[DEBUG] Waiting for Redis Enterprise Cluster (Name %q / Resource Group %q) to become available", resourceId.Name, resourceId.ResourceGroup)
+	log.Printf("[DEBUG] Waiting for Redis Enterprise Cluster (Name %q / Resource Group %q) to become available", resourceId.RedisEnterpriseName, resourceId.ResourceGroup)
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"Creating", "Updating", "Enabling", "Deleting", "Disabling"},
 		Target:     []string{"Running"},
@@ -180,7 +180,7 @@ func resourceRedisEnterpriseClusterCreate(d *schema.ResourceData, meta interface
 	}
 
 	if _, err = stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("waiting for Redis Enterprise Cluster (Name %q / Resource Group %q) to become available: %+v", resourceId.Name, resourceId.ResourceGroup, err)
+		return fmt.Errorf("waiting for Redis Enterprise Cluster (Name %q / Resource Group %q) to become available: %+v", resourceId.RedisEnterpriseName, resourceId.ResourceGroup, err)
 	}
 
 	d.SetId(resourceId.ID())
@@ -198,18 +198,18 @@ func resourceRedisEnterpriseClusterRead(d *schema.ResourceData, meta interface{}
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.RedisEnterpriseName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Redis Enterprise Cluster (Name %q / Resource Group %q) was not found - removing from state!", id.Name, id.ResourceGroup)
+			log.Printf("[DEBUG] Redis Enterprise Cluster (Name %q / Resource Group %q) was not found - removing from state!", id.RedisEnterpriseName, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Redis Enterprise Cluster (Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Redis Enterprise Cluster (Name %q / Resource Group %q): %+v", id.RedisEnterpriseName, id.ResourceGroup, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.RedisEnterpriseName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
@@ -241,13 +241,13 @@ func resourceRedisEnterpriseClusterDelete(d *schema.ResourceData, meta interface
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.RedisEnterpriseName)
 	if err != nil {
-		return fmt.Errorf("deleting Redis Enterprise Cluster (Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Redis Enterprise Cluster (Name %q / Resource Group %q): %+v", id.RedisEnterpriseName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the deletion of Redis Enterprise Cluster (Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for the deletion of Redis Enterprise Cluster (Name %q / Resource Group %q): %+v", id.RedisEnterpriseName, id.ResourceGroup, err)
 	}
 
 	return nil
@@ -277,7 +277,9 @@ func flattenRedisEnterpriseClusterSku(input *redisenterprise.Sku) *string {
 		name = input.Name
 	}
 
-	capacity = *input.Capacity
+	if input.Capacity != nil {
+		capacity = *input.Capacity
+	}
 
 	skuName := fmt.Sprintf("%s-%d", name, capacity)
 
@@ -286,9 +288,9 @@ func flattenRedisEnterpriseClusterSku(input *redisenterprise.Sku) *string {
 
 func redisEnterpriseClusterStateRefreshFunc(ctx context.Context, client *redisenterprise.Client, id parse.RedisEnterpriseClusterId) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		res, err := client.Get(ctx, id.ResourceGroup, id.RedisEnterpriseName)
 		if err != nil {
-			return nil, "", fmt.Errorf("retrieving status of Redis Enterprise Cluster (Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return nil, "", fmt.Errorf("retrieving status of Redis Enterprise Cluster (Name %q / Resource Group %q): %+v", id.RedisEnterpriseName, id.ResourceGroup, err)
 		}
 
 		return res, string(res.ClusterProperties.ResourceState), nil

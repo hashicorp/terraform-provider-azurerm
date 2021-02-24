@@ -24,13 +24,11 @@ func resourceRedisEnterpriseDatabase() *schema.Resource {
 		Create: resourceRedisEnterpriseDatabaseCreate,
 		Read:   resourceRedisEnterpriseDatabaseRead,
 		// Update currently is not implemented, will be for GA
-		// Update: resourceRedisEnterpriseDatabaseUpdate,
 		Delete: resourceRedisEnterpriseDatabaseDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
@@ -171,10 +169,11 @@ func resourceRedisEnterpriseDatabase() *schema.Resource {
 			// },
 
 			"port": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				ForceNew: true,
-				Default:  10000,
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      10000,
+				ValidateFunc: validation.IntBetween(0, 65353),
 			},
 		},
 	}
@@ -189,12 +188,12 @@ func resourceRedisEnterpriseDatabaseCreate(d *schema.ResourceData, meta interfac
 	resourceGroup := d.Get("resource_group_name").(string)
 
 	clusterID, _ := parse.RedisEnterpriseClusterID(d.Get("cluster_id").(string))
-	id := parse.NewRedisEnterpriseDatabaseID(subscriptionId, resourceGroup, clusterID.Name, name)
+	id := parse.NewRedisEnterpriseDatabaseID(subscriptionId, resourceGroup, clusterID.RedisEnterpriseName, name)
 
-	existing, err := client.Get(ctx, resourceGroup, id.ClusterName, name)
+	existing, err := client.Get(ctx, resourceGroup, id.RedisEnterpriseName, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for present of existing Redis Enterprise Database %q (Resource Group %q / Cluster Name %q): %+v", name, resourceGroup, id.ClusterName, err)
+			return fmt.Errorf("checking for present of existing Redis Enterprise Database %q (Resource Group %q / Cluster Name %q): %+v", name, resourceGroup, id.RedisEnterpriseName, err)
 		}
 	}
 
@@ -213,26 +212,26 @@ func resourceRedisEnterpriseDatabaseCreate(d *schema.ResourceData, meta interfac
 		},
 	}
 
-	future, err := client.Create(ctx, resourceGroup, id.ClusterName, name, parameters)
+	future, err := client.Create(ctx, resourceGroup, id.RedisEnterpriseName, name, parameters)
 	if err != nil {
 		// Need to check if this was due to the cluster having the wrong sku
 		if strings.Contains(err.Error(), "The value of the parameter 'properties.modules' is invalid") {
 			clusterClient := meta.(*clients.Client).RedisEnterprise.Client
-			resp, err := clusterClient.Get(ctx, clusterID.ResourceGroup, clusterID.Name)
+			resp, err := clusterClient.Get(ctx, clusterID.ResourceGroup, clusterID.RedisEnterpriseName)
 			if err != nil {
-				return fmt.Errorf("retrieving Redis Enterprise Cluster (Name %q / Resource Group %q): %+v", clusterID.Name, clusterID.ResourceGroup, err)
+				return fmt.Errorf("retrieving Redis Enterprise Cluster (Name %q / Resource Group %q): %+v", clusterID.RedisEnterpriseName, clusterID.ResourceGroup, err)
 			}
 
 			if strings.Contains(strings.ToLower(string(resp.Sku.Name)), "flash") {
-				return fmt.Errorf("creating a Redis Enterprise Database with modules in a Redis Enterprise Cluster that has an incompatible Flash SKU type %q - please remove the Redis Enterprise Database modules or change the Redis Enterprise Cluster SKU type (Resource Group %q / Cluster Name %q / Database %q)", string(resp.Sku.Name), resourceGroup, id.ClusterName, name)
+				return fmt.Errorf("creating a Redis Enterprise Database with modules in a Redis Enterprise Cluster that has an incompatible Flash SKU type %q - please remove the Redis Enterprise Database modules or change the Redis Enterprise Cluster SKU type (Resource Group %q / Cluster Name %q / Database %q)", string(resp.Sku.Name), resourceGroup, id.RedisEnterpriseName, name)
 			}
 		}
 
-		return fmt.Errorf("creating Redis Enterprise Database %q (Resource Group %q / Cluster Name %q): %+v", name, resourceGroup, id.ClusterName, err)
+		return fmt.Errorf("creating Redis Enterprise Database %q (Resource Group %q / Cluster Name %q): %+v", name, resourceGroup, id.RedisEnterpriseName, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creating future for Redis Enterprise Database %q (Resource Group %q / Cluster Name %q): %+v", name, resourceGroup, id.ClusterName, err)
+		return fmt.Errorf("waiting for creating future for Redis Enterprise Database %q (Resource Group %q / Cluster Name %q): %+v", name, resourceGroup, id.RedisEnterpriseName, err)
 	}
 
 	d.SetId(id.ID())
@@ -250,19 +249,19 @@ func resourceRedisEnterpriseDatabaseRead(d *schema.ResourceData, meta interface{
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ClusterName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.RedisEnterpriseName, id.DatabaseName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Redis Enterprise Database %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Redis Enterprise Database %q (Resource Group %q / Cluster Name %q): %+v", id.Name, id.ResourceGroup, id.ClusterName, err)
+		return fmt.Errorf("retrieving Redis Enterprise Database %q (Resource Group %q / Cluster Name %q): %+v", id.DatabaseName, id.ResourceGroup, id.RedisEnterpriseName, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.DatabaseName)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("cluster_id", parse.NewRedisEnterpriseClusterID(id.SubscriptionId, id.ResourceGroup, id.ClusterName).ID())
+	d.Set("cluster_id", parse.NewRedisEnterpriseClusterID(id.SubscriptionId, id.ResourceGroup, id.RedisEnterpriseName).ID())
 
 	if props := resp.DatabaseProperties; props != nil {
 		d.Set("client_protocol", props.ClientProtocol)
@@ -280,56 +279,6 @@ func resourceRedisEnterpriseDatabaseRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-// Update is currently not implemented yet but will be in the near future
-// func resourceRedisEnterpriseDatabaseUpdate(d *schema.ResourceData, meta interface{}) error {
-// 	client := meta.(*clients.Client).RedisEnterprise.DatabaseClient
-// 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
-// 	defer cancel()
-
-// 	id, err := parse.RedisEnterpriseDatabaseID(d.Id())
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	parameters := redisenterprise.DatabaseUpdate{
-// 		DatabaseProperties: &redisenterprise.DatabaseProperties{},
-// 	}
-
-// 	if d.HasChange("client_protocol") {
-// 		parameters.DatabaseProperties.ClientProtocol = redisenterprise.Protocol(d.Get("client_protocol").(string))
-// 	}
-
-// 	if d.HasChange("port") {
-// 		parameters.DatabaseProperties.Port = utils.Int32(int32(d.Get("port").(int)))
-// 	}
-
-// 	if d.HasChange("clustering_policy") {
-// 		parameters.DatabaseProperties.ClusteringPolicy = redisenterprise.ClusteringPolicy(d.Get("clustering_policy").(string))
-// 	}
-
-// 	if d.HasChange("eviction_policy") {
-// 		parameters.DatabaseProperties.EvictionPolicy = redisenterprise.EvictionPolicy(d.Get("eviction_policy").(string))
-// 	}
-
-// 	if d.HasChange("persistence") {
-// 		parameters.DatabaseProperties.Persistence = expandArmDatabasePersistence(d.Get("persistence").([]interface{}))
-// 	}
-
-// 	if d.HasChange("module") {
-// 		parameters.DatabaseProperties.Modules = expandArmDatabaseModuleArray(d.Get("module").(*schema.Set).List())
-// 	}
-
-// 	future, err := client.Update(ctx, id.ResourceGroup, id.ClusterName, id.Name, parameters)
-// 	if err != nil {
-// 		return fmt.Errorf("updating Redis Enterprise Database %q (Resource Group %q / Cluster Name %q): %+v", id.Name, id.ResourceGroup, id.ClusterName, err)
-// 	}
-
-// 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-// 		return fmt.Errorf("waiting for updating future for Redis Enterprise Database %q (Resource Group %q / Cluster Name %q): %+v", id.Name, id.ResourceGroup, id.ClusterName, err)
-// 	}
-// 	return resourceRedisEnterpriseDatabaseRead(d, meta)
-// }
-
 func resourceRedisEnterpriseDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).RedisEnterprise.DatabaseClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -340,13 +289,13 @@ func resourceRedisEnterpriseDatabaseDelete(d *schema.ResourceData, meta interfac
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.ClusterName, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.RedisEnterpriseName, id.DatabaseName)
 	if err != nil {
-		return fmt.Errorf("deleting Redis Enterprise Database %q (Resource Group %q / Cluster Name %q): %+v", id.Name, id.ResourceGroup, id.ClusterName, err)
+		return fmt.Errorf("deleting Redis Enterprise Database %q (Resource Group %q / Cluster Name %q): %+v", id.DatabaseName, id.ResourceGroup, id.RedisEnterpriseName, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deleting future for Redis Enterprise Database %q (Resource Group %q / Cluster Name %q): %+v", id.Name, id.ResourceGroup, id.ClusterName, err)
+		return fmt.Errorf("waiting for deleting future for Redis Enterprise Database %q (Resource Group %q / Cluster Name %q): %+v", id.DatabaseName, id.ResourceGroup, id.RedisEnterpriseName, err)
 	}
 	return nil
 }
@@ -360,17 +309,6 @@ func expandArmDatabaseModuleArray(input []interface{}) *[]redisenterprise.Module
 			Name: utils.String(v["name"].(string)),
 			Args: utils.String(v["args"].(string)),
 		})
-
-		// if v["args"].(string) != "" {
-		// 	results = append(results, redisenterprise.Module{
-		// 		Name: utils.String(v["name"].(string)),
-		// 		Args: utils.String(v["args"].(string)),
-		// 	})
-		// } else {
-		// 	results = append(results, redisenterprise.Module{
-		// 		Name: utils.String(v["name"].(string)),
-		// 	})
-		// }
 	}
 	return &results
 }

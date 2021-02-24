@@ -1,48 +1,69 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 type RedisEnterpriseDatabaseId struct {
-	SubscriptionId string
-	ResourceGroup  string
-	ClusterName    string
-	Name           string
+	SubscriptionId      string
+	ResourceGroup       string
+	RedisEnterpriseName string
+	DatabaseName        string
 }
 
-func NewRedisEnterpriseDatabaseID(subscriptionId string, resourcegroup string, clustername string, name string) RedisEnterpriseDatabaseId {
+func NewRedisEnterpriseDatabaseID(subscriptionId, resourceGroup, redisEnterpriseName, databaseName string) RedisEnterpriseDatabaseId {
 	return RedisEnterpriseDatabaseId{
-		SubscriptionId: subscriptionId,
-		ResourceGroup:  resourcegroup,
-		ClusterName:    clustername,
-		Name:           name,
+		SubscriptionId:      subscriptionId,
+		ResourceGroup:       resourceGroup,
+		RedisEnterpriseName: redisEnterpriseName,
+		DatabaseName:        databaseName,
 	}
+}
+
+func (id RedisEnterpriseDatabaseId) String() string {
+	segments := []string{
+		fmt.Sprintf("Database Name %q", id.DatabaseName),
+		fmt.Sprintf("Redis Enterprise Name %q", id.RedisEnterpriseName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+	}
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Redis Enterprise Database", segmentsStr)
 }
 
 func (id RedisEnterpriseDatabaseId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Cache/redisEnterprise/%s/databases/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ClusterName, id.Name)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.RedisEnterpriseName, id.DatabaseName)
 }
 
+// RedisEnterpriseDatabaseID parses a RedisEnterpriseDatabase ID into an RedisEnterpriseDatabaseId struct
 func RedisEnterpriseDatabaseID(input string) (*RedisEnterpriseDatabaseId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing Redis Enterprise Database ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	redisenterpriseDatabase := RedisEnterpriseDatabaseId{
+	resourceId := RedisEnterpriseDatabaseId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if redisenterpriseDatabase.ClusterName, err = id.PopSegment("redisEnterprise"); err != nil {
-		return nil, err
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
 	}
 
-	if redisenterpriseDatabase.Name, err = id.PopSegment("databases"); err != nil {
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	if resourceId.RedisEnterpriseName, err = id.PopSegment("redisEnterprise"); err != nil {
+		return nil, err
+	}
+	if resourceId.DatabaseName, err = id.PopSegment("databases"); err != nil {
 		return nil, err
 	}
 
@@ -50,5 +71,5 @@ func RedisEnterpriseDatabaseID(input string) (*RedisEnterpriseDatabaseId, error)
 		return nil, err
 	}
 
-	return &redisenterpriseDatabase, nil
+	return &resourceId, nil
 }

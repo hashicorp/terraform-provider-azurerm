@@ -63,12 +63,12 @@ func (r RedisEnterpriseClusterResource) Exists(ctx context.Context, client *clie
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.RedisEnterprise.Client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.RedisEnterprise.Client.Get(ctx, id.ResourceGroup, id.RedisEnterpriseName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Redis Enterprise Cluster (Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving Redis Enterprise Cluster (Name %q / Resource Group %q): %+v", id.RedisEnterpriseName, id.ResourceGroup, err)
 	}
 	return utils.Bool(true), nil
 }

@@ -1,8 +1,14 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
+
+var _ resourceid.Formatter = RedisEnterpriseDatabaseId{}
 
 func TestRedisEnterpriseDatabaseIDFormatter(t *testing.T) {
 	actual := NewRedisEnterpriseDatabaseID("12345678-1234-9876-4563-123456789012", "resourceGroup1", "cluster1", "database1").ID()
@@ -18,61 +24,72 @@ func TestRedisEnterpriseDatabaseID(t *testing.T) {
 		Error    bool
 		Expected *RedisEnterpriseDatabaseId
 	}{
+
 		{
 			// empty
 			Input: "",
 			Error: true,
 		},
+
 		{
-			// missing subscriptions
+			// missing SubscriptionId
 			Input: "/",
 			Error: true,
 		},
+
 		{
-			// missing value for subscriptions
+			// missing value for SubscriptionId
 			Input: "/subscriptions/",
 			Error: true,
 		},
+
 		{
-			// missing resourceGroups
+			// missing ResourceGroup
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/",
 			Error: true,
 		},
+
 		{
-			// missing value for resourceGroups
+			// missing value for ResourceGroup
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/",
 			Error: true,
 		},
+
 		{
-			// missing redisEnterprise
+			// missing RedisEnterpriseName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cache/",
 			Error: true,
 		},
+
 		{
-			// missing value for redisEnterprise
+			// missing value for RedisEnterpriseName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cache/redisEnterprise/",
 			Error: true,
 		},
+
 		{
-			// missing databases
+			// missing DatabaseName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cache/redisEnterprise/cluster1/",
 			Error: true,
 		},
+
 		{
-			// missing value for databases
+			// missing value for DatabaseName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cache/redisEnterprise/cluster1/databases/",
 			Error: true,
 		},
+
 		{
 			// valid
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cache/redisEnterprise/cluster1/databases/database1",
 			Expected: &RedisEnterpriseDatabaseId{
-				SubscriptionId: "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:  "resourceGroup1",
-				ClusterName:    "cluster1",
-				Name:           "database1",
+				SubscriptionId:      "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:       "resourceGroup1",
+				RedisEnterpriseName: "cluster1",
+				DatabaseName:        "database1",
 			},
 		},
+
 		{
 			// upper-cased
 			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESOURCEGROUP1/PROVIDERS/MICROSOFT.CACHE/REDISENTERPRISE/CLUSTER1/DATABASES/DATABASE1",
@@ -88,23 +105,24 @@ func TestRedisEnterpriseDatabaseID(t *testing.T) {
 			if v.Error {
 				continue
 			}
-			t.Fatalf("Expected a value but got an error: %s", err)
+
+			t.Fatalf("Expect a value but got an error: %s", err)
+		}
+		if v.Error {
+			t.Fatal("Expect an error but didn't get one")
 		}
 
 		if actual.SubscriptionId != v.Expected.SubscriptionId {
 			t.Fatalf("Expected %q but got %q for SubscriptionId", v.Expected.SubscriptionId, actual.SubscriptionId)
 		}
-
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
 			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
 		}
-
-		if actual.ClusterName != v.Expected.ClusterName {
-			t.Fatalf("Expected %q but got %q for ClusterName", v.Expected.ClusterName, actual.ClusterName)
+		if actual.RedisEnterpriseName != v.Expected.RedisEnterpriseName {
+			t.Fatalf("Expected %q but got %q for RedisEnterpriseName", v.Expected.RedisEnterpriseName, actual.RedisEnterpriseName)
 		}
-
-		if actual.Name != v.Expected.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
+		if actual.DatabaseName != v.Expected.DatabaseName {
+			t.Fatalf("Expected %q but got %q for DatabaseName", v.Expected.DatabaseName, actual.DatabaseName)
 		}
 	}
 }

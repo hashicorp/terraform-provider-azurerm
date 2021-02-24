@@ -4,7 +4,7 @@ package validate
 
 import "testing"
 
-func TestRedisEnterpriseClusterID(t *testing.T) {
+func TestRedisEnterpriseDatabaseID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
@@ -53,20 +53,32 @@ func TestRedisEnterpriseClusterID(t *testing.T) {
 		},
 
 		{
+			// missing DatabaseName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cache/redisEnterprise/cluster1/",
+			Valid: false,
+		},
+
+		{
+			// missing value for DatabaseName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cache/redisEnterprise/cluster1/databases/",
+			Valid: false,
+		},
+
+		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cache/redisEnterprise/cluster1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cache/redisEnterprise/cluster1/databases/database1",
 			Valid: true,
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESOURCEGROUP1/PROVIDERS/MICROSOFT.CACHE/REDISENTERPRISE/CLUSTER1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESOURCEGROUP1/PROVIDERS/MICROSOFT.CACHE/REDISENTERPRISE/CLUSTER1/DATABASES/DATABASE1",
 			Valid: false,
 		},
 	}
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %s", tc.Input)
-		_, errors := RedisEnterpriseClusterID(tc.Input, "test")
+		_, errors := RedisEnterpriseDatabaseID(tc.Input, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {

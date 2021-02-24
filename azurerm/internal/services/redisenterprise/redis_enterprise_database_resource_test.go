@@ -64,12 +64,12 @@ func (r RedisenterpriseDatabaseResource) Exists(ctx context.Context, client *cli
 		return nil, err
 	}
 
-	resp, err := client.RedisEnterprise.DatabaseClient.Get(ctx, id.ResourceGroup, id.ClusterName, id.Name)
+	resp, err := client.RedisEnterprise.DatabaseClient.Get(ctx, id.ResourceGroup, id.RedisEnterpriseName, id.DatabaseName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Redis Entrprise Database %q (Resource Group %q / clusterName %q): %+v", id.Name, id.ResourceGroup, id.ClusterName, err)
+		return nil, fmt.Errorf("retrieving Redis Entrprise Database %q (Resource Group %q / clusterName %q): %+v", id.DatabaseName, id.ResourceGroup, id.RedisEnterpriseName, err)
 	}
 
 	return utils.Bool(true), nil

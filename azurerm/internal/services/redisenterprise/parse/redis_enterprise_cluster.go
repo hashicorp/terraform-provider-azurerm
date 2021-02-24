@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 	"strings"
@@ -8,22 +10,22 @@ import (
 )
 
 type RedisEnterpriseClusterId struct {
-	SubscriptionId string
-	ResourceGroup  string
-	Name           string
+	SubscriptionId      string
+	ResourceGroup       string
+	RedisEnterpriseName string
 }
 
-func NewRedisEnterpriseClusterID(subscriptionId, resourceGroup, name string) RedisEnterpriseClusterId {
+func NewRedisEnterpriseClusterID(subscriptionId, resourceGroup, redisEnterpriseName string) RedisEnterpriseClusterId {
 	return RedisEnterpriseClusterId{
-		SubscriptionId: subscriptionId,
-		ResourceGroup:  resourceGroup,
-		Name:           name,
+		SubscriptionId:      subscriptionId,
+		ResourceGroup:       resourceGroup,
+		RedisEnterpriseName: redisEnterpriseName,
 	}
 }
 
 func (id RedisEnterpriseClusterId) String() string {
 	segments := []string{
-		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Redis Enterprise Name %q", id.RedisEnterpriseName),
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
@@ -32,7 +34,7 @@ func (id RedisEnterpriseClusterId) String() string {
 
 func (id RedisEnterpriseClusterId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Cache/redisEnterprise/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.RedisEnterpriseName)
 }
 
 // RedisEnterpriseClusterID parses a RedisEnterpriseCluster ID into an RedisEnterpriseClusterId struct
@@ -55,7 +57,7 @@ func RedisEnterpriseClusterID(input string) (*RedisEnterpriseClusterId, error) {
 		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
-	if resourceId.Name, err = id.PopSegment("redisEnterprise"); err != nil {
+	if resourceId.RedisEnterpriseName, err = id.PopSegment("redisEnterprise"); err != nil {
 		return nil, err
 	}
 
