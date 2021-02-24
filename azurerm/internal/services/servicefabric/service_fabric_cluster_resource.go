@@ -1205,7 +1205,6 @@ func expandServiceFabricClusterUpgradePolicy(input []interface{}) *servicefabric
 
 	if v["health_policy"] != nil {
 		policy.HealthPolicy = expandServiceFabricClusterUpgradePolicyHealthPolicy(v["health_policy"].([]interface{}))
-
 	}
 	if v["delta_health_policy"] != nil {
 		policy.DeltaHealthPolicy = expandServiceFabricClusterUpgradePolicyDeltaHealthPolicy(v["delta_health_policy"].([]interface{}))

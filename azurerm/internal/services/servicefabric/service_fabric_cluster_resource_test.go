@@ -1841,10 +1841,10 @@ resource "azurerm_service_fabric_cluster" "test" {
     table_endpoint             = azurerm_storage_account.test.primary_table_endpoint
   }
   upgrade_policy {
-    force_restart_enabled             = false
-    health_check_retry_timeout        = "00:00:02"
-    health_check_stable_duration      = "00:00:04"
-    health_check_wait_duration        = "00:00:06"
+    force_restart_enabled        = false
+    health_check_retry_timeout   = "00:00:02"
+    health_check_stable_duration = "00:00:04"
+    health_check_wait_duration   = "00:00:06"
     health_policy {
       max_unhealthy_nodes_percent = 5
     }
