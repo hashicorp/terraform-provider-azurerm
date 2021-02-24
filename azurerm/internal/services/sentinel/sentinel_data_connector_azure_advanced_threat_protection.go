@@ -134,10 +134,10 @@ func resourceSentinelDataConnectorAzureAdvancedThreatProtectionRead(d *schema.Re
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if err := assertDataConnectorKind(resp.Value, securityinsight.DataConnectorKindAzureAdvancedThreatProtection); err != nil {
-		return fmt.Errorf("asserting %s: %+v", id, err)
+	dc, ok := resp.Value.(securityinsight.AATPDataConnector)
+	if !ok {
+		return fmt.Errorf("%s was not an Azure Advanced Threat Protection Data Connector", id)
 	}
-	dc := resp.Value.(securityinsight.AATPDataConnector)
 
 	d.Set("name", id.Name)
 	d.Set("log_analytics_workspace_id", workspaceId.ID())
