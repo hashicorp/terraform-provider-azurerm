@@ -1188,11 +1188,11 @@ func expandServiceFabricClusterUpgradePolicyHealthPolicy(input []interface{}) *s
 }
 
 func expandServiceFabricClusterUpgradePolicy(input []interface{}) *servicefabric.ClusterUpgradePolicy {
-	policy := &servicefabric.ClusterUpgradePolicy{}
 	if len(input) == 0 || input[0] == nil {
-		return policy
+		return nil
 	}
 
+	policy := &servicefabric.ClusterUpgradePolicy{}
 	v := input[0].(map[string]interface{})
 
 	policy.ForceRestart = utils.Bool(v["force_restart_enabled"].(bool))
