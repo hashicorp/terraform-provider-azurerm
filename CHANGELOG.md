@@ -3,18 +3,29 @@
 FEATURES:
 
 * **New Data Source:** `azurerm_spring_cloud_app` [GH-10678]
+* **New Resource:** `azurerm_security_center_assessment_metadata` [GH-10124]
+* **New Resource:** `azurerm_kusto_iothub_data_connection` [GH-8626]
 
 ENHANCEMENTS:
 
+* dependencies: updating `github.com/hashicorp/terraform-plugin-sdk` to the latest `1.x` branch [GH-10692]
+* testing: updating the tests to use the Terraform release binaries when running acceptance tests [GH-10523]
 * `azurerm_api_management` - support for the  `tenant_access` block [GH-10475]
 * `azurerm_monitor_smart_detector_alert_rule` - supports for the `tags` property [GH-10646]
+* `azurerm_netapp_volume` - support for the `data_protection_replication` block [GH-10610]
 
 BUG FIXES:
 
-* `azurerm_batch_certificate`: Allow empty `password` when format is pfx [GH-10642]
+* provider: only showing the deprecation message if `skip_credentials_registration` is explicitly configured [GH-10699]
+* `azurerm_batch_certificate` - allow empty `password` when format is pfx [GH-10642]
 * `azurerm_data_factory_integration_runtime_azure_ssis` - the `administrator_login` and `administrator_password` properties are now optional [GH-10474]
 * `azurerm_data_factory_integration_runtime_managed` - the `administrator_login` and `administrator_password` properties are now optional [GH-10640]
-* `azurerm_kusto_cluster`: changing `virtual_network_configuration` forces a new resource to be created. [GH-10640]
+* `azurerm_key_vault_certificate` - waiting for deletion to complete before purging [GH-10577]
+* `azurerm_key_vault_key` - waiting for deletion to complete before purging [GH-10577]
+* `azurerm_key_vault_secret` - waiting for deletion to complete before purging [GH-10577]
+* `azurerm_kusto_cluster` - changing `virtual_network_configuration` forces a new resource to be created [GH-10640]
+* `azurerm_lb_outbound_rule` - fixing a crash when `frontendIPConfigurations` is omitted in the API response [GH-10696]
+* `azurerm_media_content_key_policy` - fix an encoding bug which prevented configuring `ask` in the `fairplay_configuration` block [GH-10684]
 
 ## 2.48.0 (February 18, 2021)
 

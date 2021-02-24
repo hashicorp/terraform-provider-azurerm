@@ -7,6 +7,7 @@ import (
 	"time"
 
 	b64 "encoding/base64"
+	"encoding/hex"
 
 	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2020-05-01/media"
 	"github.com/Azure/go-autorest/autorest/date"
@@ -777,7 +778,10 @@ func expandConfiguration(input map[string]interface{}) (media.BasicContentKeyPol
 		}
 		return wideVineConfiguration, nil
 	case string(media.OdataTypeMicrosoftMediaContentKeyPolicyFairPlayConfiguration):
-		fairplayConfiguration := expandFairplayConfiguration(input["fairplay_configuration"].([]interface{}))
+		fairplayConfiguration, err := expandFairplayConfiguration(input["fairplay_configuration"].([]interface{}))
+		if err != nil {
+			return nil, err
+		}
 		return fairplayConfiguration, nil
 	case string(media.OdataTypeMicrosoftMediaContentKeyPolicyPlayReadyConfiguration):
 		playReadyConfiguration := &media.ContentKeyPolicyPlayReadyConfiguration{
@@ -946,7 +950,7 @@ func flattenRentalConfiguration(input *media.ContentKeyPolicyFairPlayOfflineRent
 	}}
 }
 
-func expandFairplayConfiguration(input []interface{}) *media.ContentKeyPolicyFairPlayConfiguration {
+func expandFairplayConfiguration(input []interface{}) (*media.ContentKeyPolicyFairPlayConfiguration, error) {
 	fairplayConfiguration := &media.ContentKeyPolicyFairPlayConfiguration{
 		OdataType: media.OdataTypeMicrosoftMediaContentKeyPolicyWidevineConfiguration,
 	}
@@ -965,8 +969,11 @@ func expandFairplayConfiguration(input []interface{}) *media.ContentKeyPolicyFai
 	}
 
 	if fairplay["ask"] != nil && fairplay["ask"].(string) != "" {
-		ask := []byte(fairplay["ask"].(string))
-		fairplayConfiguration.Ask = &ask
+		askBytes, err := hex.DecodeString(fairplay["ask"].(string))
+		if err != nil {
+			return nil, err
+		}
+		fairplayConfiguration.Ask = &askBytes
 	}
 
 	if fairplay["pfx"] != nil && fairplay["pfx"].(string) != "" {
@@ -977,7 +984,7 @@ func expandFairplayConfiguration(input []interface{}) *media.ContentKeyPolicyFai
 		fairplayConfiguration.FairPlayPfxPassword = utils.String(fairplay["pfx_password"].(string))
 	}
 
-	return fairplayConfiguration
+	return fairplayConfiguration, nil
 }
 
 func flattenFairplayConfiguration(input *media.ContentKeyPolicyFairPlayConfiguration) []interface{} {
@@ -1003,7 +1010,7 @@ func flattenFairplayConfiguration(input *media.ContentKeyPolicyFairPlayConfigura
 
 	ask := ""
 	if input.Ask != nil {
-		ask = string(*input.Ask)
+		ask = hex.EncodeToString(*input.Ask)
 	}
 
 	return []interface{}{
