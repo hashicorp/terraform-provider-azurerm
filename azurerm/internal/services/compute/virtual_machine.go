@@ -146,7 +146,7 @@ func flattenVirtualMachineIdentity(input *compute.VirtualMachineIdentity) ([]int
 	identityIds := make([]string, 0)
 	if input.UserAssignedIdentities != nil {
 		for key := range input.UserAssignedIdentities {
-			parsedId, err := msiparse.UserAssignedIdentityID(key)
+			parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(key)
 			if err != nil {
 				return nil, err
 			}

@@ -24,3 +24,5 @@ go run main.go -path=-path=./ -name=MyResourceType -id=/subscriptions/12345678-1
 
 * `path` - The Relative Path to the Service Package.
 
+* `rewrite` - Parse Resource IDs insensitively to work aroudn bugs.
+
