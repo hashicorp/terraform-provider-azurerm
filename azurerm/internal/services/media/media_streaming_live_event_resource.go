@@ -94,29 +94,28 @@ func resourceMediaLiveEvent() *schema.Resource {
 						"access_token": {
 							Type:         schema.TypeString,
 							Optional:     true,
+							Computed:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"endpoint": {
 							Type:     schema.TypeList,
-							Optional: true,
+							Computed: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"protocol": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
+										Type:     schema.TypeString,
+										Computed: true,
 									},
 									"url": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
+										Type:     schema.TypeString,
+										Computed: true,
 									},
 								},
 							},
 						},
 
-						"key_frame_interval": {
+						"key_frame_interval_duration": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -182,6 +181,7 @@ func resourceMediaLiveEvent() *schema.Resource {
 						"key_frame_interval": {
 							Type:         schema.TypeString,
 							Optional:     true,
+							Default:      "PT2S",
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
@@ -213,6 +213,7 @@ func resourceMediaLiveEvent() *schema.Resource {
 			"preview": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -247,18 +248,16 @@ func resourceMediaLiveEvent() *schema.Resource {
 
 						"endpoint": {
 							Type:     schema.TypeList,
-							Optional: true,
+							Computed: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"protocol": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
+										Type:     schema.TypeString,
+										Computed: true,
 									},
-									"uri": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
+									"url": {
+										Type:     schema.TypeString,
+										Computed: true,
 									},
 								},
 							},
@@ -267,11 +266,13 @@ func resourceMediaLiveEvent() *schema.Resource {
 						"preview_locator": {
 							Type:         schema.TypeString,
 							Optional:     true,
+							Computed:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"streaming_policy_name": {
 							Type:         schema.TypeString,
+							Computed:     true,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
@@ -424,7 +425,7 @@ func resourceMediaLiveEventRead(d *schema.ResourceData, meta interface{}) error 
 			return fmt.Errorf("Error flattening `input`: %s", err)
 		}
 
-		crossSiteAccessPolicies := flattenCrossSiteAccessPolicies(resp.CrossSiteAccessPolicies)
+		crossSiteAccessPolicies := flattenLiveEventCrossSiteAccessPolicies(resp.CrossSiteAccessPolicies)
 		if err := d.Set("cross_site_access_policy", crossSiteAccessPolicies); err != nil {
 			return fmt.Errorf("Error flattening `cross_site_access_policy`: %s", err)
 		}
@@ -443,8 +444,8 @@ func resourceMediaLiveEventRead(d *schema.ResourceData, meta interface{}) error 
 		}
 
 		transcriptions := flattenTranscriptions(resp.Transcriptions)
-		if err := d.Set("transcription_language", transcriptions); err != nil {
-			return fmt.Errorf("Error flattening `transcription_language`: %s", err)
+		if err := d.Set("transcription_languages", transcriptions); err != nil {
+			return fmt.Errorf("Error flattening `transcription_languages`: %s", err)
 		}
 
 		useStaticHostName := false
@@ -519,13 +520,8 @@ func expandLiveEventInput(input []interface{}) *media.LiveEventInput {
 		accessToken = v.(string)
 	}
 
-	endpoints := make([]media.LiveEventEndpoint, 0)
-	if v := liveInput["endpoint"]; v != nil {
-		endpoints = expandLiveEventEndpoints(v.([]interface{}))
-	}
-
 	keyFrameInterval := ""
-	if v := liveInput["key_frame_interval"]; v != nil {
+	if v := liveInput["key_frame_interval_duration"]; v != nil {
 		keyFrameInterval = v.(string)
 	}
 
@@ -537,7 +533,6 @@ func expandLiveEventInput(input []interface{}) *media.LiveEventInput {
 	return &media.LiveEventInput{
 		AccessControl:            inputAccessControl,
 		AccessToken:              utils.String(accessToken),
-		Endpoints:                &endpoints,
 		KeyFrameIntervalDuration: utils.String(keyFrameInterval),
 		StreamingProtocol:        media.LiveEventInputProtocol(streamingProtocol),
 	}
@@ -568,33 +563,6 @@ func expandIPRanges(input []interface{}) []media.IPRange {
 	return ipRanges
 }
 
-func expandLiveEventEndpoints(input []interface{}) []media.LiveEventEndpoint {
-	if len(input) == 0 {
-		return nil
-	}
-
-	endpoints := make([]media.LiveEventEndpoint, len(input))
-	for index, eventEndpoint := range input {
-		endpoint := eventEndpoint.(map[string]interface{})
-		protocol := ""
-		if v := endpoint["protocol"]; v != "" {
-			protocol = v.(string)
-		}
-
-		url := ""
-		if v := endpoint["url"]; v != "" {
-			url = v.(string)
-		}
-
-		endpoints[index] = media.LiveEventEndpoint{
-			Protocol: utils.String(protocol),
-			URL:      utils.String(url),
-		}
-	}
-
-	return endpoints
-}
-
 func expandEncoding(input []interface{}) *media.LiveEventEncoding {
 	if len(input) == 0 {
 		return nil
@@ -607,27 +575,26 @@ func expandEncoding(input []interface{}) *media.LiveEventEncoding {
 		encodingType = v.(string)
 	}
 
-	keyFrameInterval := ""
-	if v := liveEncoding["key_frame_interval"]; v != nil {
-		keyFrameInterval = v.(string)
-	}
-
-	presetName := ""
-	if v := liveEncoding["preset_name"]; v != nil {
-		presetName = v.(string)
-	}
-
 	stretchMode := ""
 	if v := liveEncoding["stretch_mode"]; v != nil {
 		stretchMode = v.(string)
 	}
 
-	return &media.LiveEventEncoding{
-		EncodingType:     media.LiveEventEncodingType(encodingType),
-		KeyFrameInterval: utils.String(keyFrameInterval),
-		PresetName:       utils.String(presetName),
-		StretchMode:      media.StretchMode(stretchMode),
+	liveEventEncoding := &media.LiveEventEncoding{
+		EncodingType: media.LiveEventEncodingType(encodingType),
+		StretchMode:  media.StretchMode(stretchMode),
 	}
+
+	if v := liveEncoding["key_frame_interval"]; v != nil && v.(string) != "" {
+		liveEventEncoding.KeyFrameInterval = utils.String(v.(string))
+	}
+
+	if v := liveEncoding["preset_name"]; v != nil {
+		liveEventEncoding.PresetName = utils.String(v.(string))
+	}
+
+	return liveEventEncoding
+
 }
 
 func expandPreview(input []interface{}) *media.LiveEventPreview {
@@ -652,11 +619,6 @@ func expandPreview(input []interface{}) *media.LiveEventPreview {
 		alternativeMediaID = v.(string)
 	}
 
-	endpoints := make([]media.LiveEventEndpoint, 0)
-	if v := livePreview["endpoint"]; v != nil {
-		endpoints = expandLiveEventEndpoints(v.([]interface{}))
-	}
-
 	previewLocator := ""
 	if v := livePreview["preview_locator"]; v != nil {
 		previewLocator = v.(string)
@@ -670,7 +632,6 @@ func expandPreview(input []interface{}) *media.LiveEventPreview {
 	return &media.LiveEventPreview{
 		AccessControl:       inputAccessControl,
 		AlternativeMediaID:  utils.String(alternativeMediaID),
-		Endpoints:           &endpoints,
 		PreviewLocator:      utils.String(previewLocator),
 		StreamingPolicyName: utils.String(streamingPolicyName),
 	}
@@ -713,11 +674,11 @@ func flattenLiveEventInput(input *media.LiveEventInput) []interface{} {
 
 	return []interface{}{
 		map[string]interface{}{
-			"ip_access_control_allow": IPAccessControlAllow,
-			"access_token":            accessToken,
-			"endpoint":                endpoints,
-			"key_frame_interval":      keyFrameInterval,
-			"streaming_protocol":      string(input.StreamingProtocol),
+			"ip_access_control_allow":     IPAccessControlAllow,
+			"access_token":                accessToken,
+			"endpoint":                    endpoints,
+			"key_frame_interval_duration": keyFrameInterval,
+			"streaming_protocol":          string(input.StreamingProtocol),
 		},
 	}
 }
@@ -781,7 +742,7 @@ func flattenEndpoints(input *[]media.LiveEventEndpoint) []interface{} {
 }
 
 func flattenEncoding(input *media.LiveEventEncoding) []interface{} {
-	if input == nil {
+	if input == nil || (input.KeyFrameInterval == nil && input.PresetName == nil && input.EncodingType == media.LiveEventEncodingTypeNone) {
 		return make([]interface{}, 0)
 	}
 
@@ -846,14 +807,37 @@ func flattenPreview(input *media.LiveEventPreview) []interface{} {
 	}
 }
 
+func flattenLiveEventCrossSiteAccessPolicies(input *media.CrossSiteAccessPolicies) []interface{} {
+	if input == nil || (input.ClientAccessPolicy == nil && input.CrossDomainPolicy == nil) {
+		return make([]interface{}, 0)
+	}
+
+	clientAccessPolicy := ""
+	if input.ClientAccessPolicy != nil {
+		clientAccessPolicy = *input.ClientAccessPolicy
+	}
+
+	crossDomainPolicy := ""
+	if input.CrossDomainPolicy != nil {
+		crossDomainPolicy = *input.CrossDomainPolicy
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"client_access_policy": clientAccessPolicy,
+			"cross_domain_policy":  crossDomainPolicy,
+		},
+	}
+}
+
 func flattenTranscriptions(input *[]media.LiveEventTranscription) []string {
 	if input == nil {
 		return make([]string, 0)
 	}
 
-	transcriptionLanguages := make([]string, len(*input))
+	transcriptionLanguages := make([]string, 0)
 	for _, v := range *input {
-		if v.Language != nil {
+		if v.Language != nil && *v.Language != "" {
 			transcriptionLanguages = append(transcriptionLanguages, *v.Language)
 		}
 	}
