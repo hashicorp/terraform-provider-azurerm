@@ -182,10 +182,10 @@ func resourceSentinelDataConnectorMicrosoftCloudAppSecurityRead(d *schema.Resour
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if err := assertDataConnectorKind(resp.Value, securityinsight.DataConnectorKindMicrosoftCloudAppSecurity); err != nil {
-		return fmt.Errorf("asserting %s: %+v", id, err)
+	dc, ok := resp.Value.(securityinsight.MCASDataConnector)
+	if !ok {
+		return fmt.Errorf("%s was not a Microsoft Cloud App Security Data Connector", id)
 	}
-	dc := resp.Value.(securityinsight.MCASDataConnector)
 
 	d.Set("name", id.Name)
 	d.Set("log_analytics_workspace_id", workspaceId.ID())
