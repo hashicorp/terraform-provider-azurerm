@@ -232,7 +232,7 @@ The `bgp_settings` block supports:
 
 * `asn` - (Optional) The Autonomous System Number (ASN) to use as part of the BGP.
 
-* `peering_addresses` - (Optional) A list of `peering_addresses` as defined below. You can specify either one `peering_addresses` (normal use case) or two (when `active_active` is `true`).
+* `peering_addresses` - (Optional) A list of `peering_addresses` as defined below. Only one `peering_addresses` block can be specified except when `active_active` of this Virtual Network Gateway is `true`.
 
 * `peer_weight` - (Optional) The weight added to routes which have been learned
     through BGP peering. Valid values can be between `0` and `100`.
@@ -251,7 +251,7 @@ A `peering_addresses` supports the following:
 
 * `apipa_addresses` - (Optional) A list of Azure custom APIPA addresses assigned to the BGP peer of the Virtual Network Gateway.
   
-~> **Note:** The valid range for the reserved APIPA address in Azure Public is from "169.254.21.0" to "169.254.22.255".
+~> **Note:** The valid range for the reserved APIPA address in Azure Public is from `169.254.21.0` to `169.254.22.255`.
 
 ---
 

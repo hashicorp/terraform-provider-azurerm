@@ -319,7 +319,7 @@ func resourceVirtualNetworkGateway() *schema.Resource {
 							Type:       schema.TypeString,
 							Optional:   true,
 							Computed:   true,
-							Deprecated: "Deprecated in favor of `peering_addresses`",
+							Deprecated: "Deprecated in favor of `bgp_settings.0.peering_addresses.0.default_addresses.0`",
 						},
 
 						"peer_weight": {
