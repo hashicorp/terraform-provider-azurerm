@@ -252,7 +252,7 @@ func resourceEventHubDelete(d *schema.ResourceData, meta interface{}) error {
 			return nil
 		}
 
-		return fmt.Errorf("deleting request for EventHub %q (resource group %q)s: %+v", id, err)
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil
