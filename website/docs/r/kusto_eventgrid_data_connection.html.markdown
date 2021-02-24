@@ -46,25 +46,38 @@ resource "azurerm_storage_account" "example" {
 }
 
 resource "azurerm_eventhub_namespace" "test" {
-  name                = "acctesteventhubnamespace-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  name                = "eventhubnamespace-example"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   sku                 = "Standard"
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "acctesteventhub-%d"
-  namespace_name      = azurerm_eventhub_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
+  name                = "eventhub-example"
+  namespace_name      = azurerm_eventhub_namespace.example.name
+  resource_group_name = azurerm_resource_group.example.name
   partition_count     = 1
   message_retention   = 1
 }
 
 resource "azurerm_eventhub_consumer_group" "example" {
-  name                = "acceptanceTestEventHubConsumerGroup"
+  name                = "consumergroup-example"
   namespace_name      = azurerm_eventhub_namespace.example.name
   eventhub_name       = azurerm_eventhub.example.name
   resource_group_name = azurerm_resource_group.example.name
+}
+
+resource "azurerm_eventgrid_event_subscription" "example" {
+  name                  = "eventgrid-example"
+  scope                 = azurerm_storage_account.example.id
+  eventhub_endpoint_id  = azurerm_eventhub.example.id
+  event_delivery_schema = "EventGridSchema"
+  included_event_types  = ["Microsoft.Storage.BlobCreated", "Microsoft.Storage.BlobRenamed"]
+
+  retry_policy {
+    event_time_to_live    = 144
+    max_delivery_attempts = 10
+  }
 }
 
 resource "azurerm_kusto_eventgrid_data_connection" "example" {
@@ -73,9 +86,11 @@ resource "azurerm_kusto_eventgrid_data_connection" "example" {
   location            = azurerm_resource_group.example.location
   cluster_name        = azurerm_kusto_cluster.example.name
   database_name       = azurerm_kusto_database.example.name
-  storage_account_id = azurerm_storage_account.example.id
-  eventhub_id        = azurerm_eventhub.example.id
-  consumer_group     = azurerm_eventhub_consumer_group.example.name
+  storage_account_id  = azurerm_storage_account.example.id
+  eventhub_id         = azurerm_eventhub.example.id
+  consumer_group      = azurerm_eventhub_consumer_group.example.name
+
+  depends_on = [azurerm_eventgrid_event_subscription.example]
 }
 ```
 

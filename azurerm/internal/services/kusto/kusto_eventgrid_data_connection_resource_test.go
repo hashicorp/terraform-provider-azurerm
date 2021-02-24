@@ -94,6 +94,8 @@ resource "azurerm_kusto_eventgrid_data_connection" "test" {
   storage_account_id  = azurerm_storage_account.test.id
   eventhub_id         = azurerm_eventhub.test.id
   consumer_group      = azurerm_eventhub_consumer_group.test.name
+
+  depends_on = [azurerm_eventgrid_event_subscription.test]
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -131,6 +133,8 @@ resource "azurerm_kusto_eventgrid_data_connection" "test" {
 
   blob_storage_event_type = "Microsoft.Storage.BlobRenamed"
   ignore_first_record     = true
+
+  depends_on = [azurerm_eventgrid_event_subscription.test]
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -192,5 +196,18 @@ resource "azurerm_eventhub_consumer_group" "test" {
   eventhub_name       = azurerm_eventhub.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+
+resource "azurerm_eventgrid_event_subscription" "test" {
+  name                  = "acctest-eg-%d"
+  scope                 = azurerm_storage_account.test.id
+  eventhub_endpoint_id  = azurerm_eventhub.test.id
+  event_delivery_schema = "EventGridSchema"
+  included_event_types  = ["Microsoft.Storage.BlobCreated", "Microsoft.Storage.BlobRenamed"]
+
+  retry_policy {
+    event_time_to_live    = 144
+    max_delivery_attempts = 10
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
