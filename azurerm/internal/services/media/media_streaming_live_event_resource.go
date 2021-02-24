@@ -450,7 +450,7 @@ func resourceMediaLiveEventRead(d *schema.ResourceData, meta interface{}) error 
 
 		useStaticHostName := false
 		if props.UseStaticHostname != nil {
-			useStaticHostName = bool(*props.UseStaticHostname)
+			useStaticHostName = *props.UseStaticHostname
 		}
 		d.Set("use_static_hostname", useStaticHostName)
 	}
@@ -594,7 +594,6 @@ func expandEncoding(input []interface{}) *media.LiveEventEncoding {
 	}
 
 	return liveEventEncoding
-
 }
 
 func expandPreview(input []interface{}) *media.LiveEventPreview {
@@ -603,7 +602,6 @@ func expandPreview(input []interface{}) *media.LiveEventPreview {
 	}
 
 	livePreview := input[0].(map[string]interface{})
-
 	var inputAccessControl *media.LiveEventPreviewAccessControl
 	if v := livePreview["ip_access_control_allow"]; v != nil {
 		ipRanges := expandIPRanges(v.([]interface{}))

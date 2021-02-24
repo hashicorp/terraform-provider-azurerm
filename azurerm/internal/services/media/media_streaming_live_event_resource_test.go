@@ -1,4 +1,4 @@
-package tests
+package media_test
 
 import (
 	"context"
@@ -62,36 +62,6 @@ func TestAccLiveEvent_complete(t *testing.T) {
 	})
 }
 
-func TestAccLiveEvent_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_media_live_event", "test")
-	r := LiveEventResource{}
-
-	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.basic(data),
-			Check: resource.ComposeAggregateTestCheckFunc(
-				check.That(data.ResourceName).Key("name").HasValue("Event-1"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.complete(data),
-			Check: resource.ComposeAggregateTestCheckFunc(
-				check.That(data.ResourceName).Key("encoding.#").HasValue("1"),
-				check.That(data.ResourceName).Key("preview.#").HasValue("1"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basic(data),
-			Check: resource.ComposeAggregateTestCheckFunc(
-				check.That(data.ResourceName).Key("name").HasValue("Event-1"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func (LiveEventResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.LiveEventID(state.ID)
 	if err != nil {
@@ -114,16 +84,16 @@ resource "azurerm_media_live_event" "test" {
   name                        = "Event-1"
   resource_group_name         = azurerm_resource_group.test.name
   media_services_account_name = azurerm_media_services_account.test.name
-  location		              = azurerm_resource_group.test.location
-  
+  location                    = azurerm_resource_group.test.location
+
   input {
-	streaming_protocol           = "RTMP" 
-	key_frame_interval_duration  = "PT6S" 
-	ip_access_control_allow {
-		name                 = "AllowAll"
-		address              = "0.0.0.0"
-		subnet_prefix_length = 0
-	}    
+    streaming_protocol          = "RTMP"
+    key_frame_interval_duration = "PT6S"
+    ip_access_control_allow {
+      name                 = "AllowAll"
+      address              = "0.0.0.0"
+      subnet_prefix_length = 0
+    }
   }
 }
 
@@ -138,16 +108,16 @@ resource "azurerm_media_live_event" "import" {
   name                        = azurerm_media_live_event.test.name
   resource_group_name         = azurerm_media_live_event.test.resource_group_name
   media_services_account_name = azurerm_media_live_event.test.media_services_account_name
-  location		              = azurerm_resource_group.test.location
-  
+  location                    = azurerm_resource_group.test.location
+
   input {
-     streaming_protocol           = "RTMP" 
-     key_frame_interval_duration  = "PT6S"
-	 ip_access_control_allow {
-		name                 = "AllowAll"
-		address              = "0.0.0.0"
-		subnet_prefix_length = 0
-	}      
+    streaming_protocol          = "RTMP"
+    key_frame_interval_duration = "PT6S"
+    ip_access_control_allow {
+      name                 = "AllowAll"
+      address              = "0.0.0.0"
+      subnet_prefix_length = 0
+    }
   }
 }
 
@@ -162,36 +132,36 @@ resource "azurerm_media_live_event" "test" {
   name                        = "Event-1"
   resource_group_name         = azurerm_resource_group.test.name
   media_services_account_name = azurerm_media_services_account.test.name
-  location		              = azurerm_resource_group.test.location
-  description	              = "My Event Description"
-  
+  location                    = azurerm_resource_group.test.location
+  description                 = "My Event Description"
+
   input {
-     streaming_protocol           = "RTMP" 
-     ip_access_control_allow {
-         name                 = "AllowAll"
-         address              = "0.0.0.0"
-         subnet_prefix_length = 0
-     }       
+    streaming_protocol = "RTMP"
+    ip_access_control_allow {
+      name                 = "AllowAll"
+      address              = "0.0.0.0"
+      subnet_prefix_length = 0
+    }
   }
 
   encoding {
-      type               = "Standard"
-	  preset_name        = "Default720p"
-	  stretch_mode       = "AutoFit"
-	  key_frame_interval = "PT2S"
+    type               = "Standard"
+    preset_name        = "Default720p"
+    stretch_mode       = "AutoFit"
+    key_frame_interval = "PT2S"
   }
 
   preview {
-	ip_access_control_allow {
-		name                 = "AllowAll"
-		address              = "0.0.0.0"
-		subnet_prefix_length = 0
-	}  
+    ip_access_control_allow {
+      name                 = "AllowAll"
+      address              = "0.0.0.0"
+      subnet_prefix_length = 0
+    }
   }
 
-  use_static_hostname        = true
-  hostname_prefix            = "special-event"
-  transcription_languages    = ["en-US"]
+  use_static_hostname     = true
+  hostname_prefix         = "special-event"
+  transcription_languages = ["en-US"]
 }
 
 `, r.template(data))
