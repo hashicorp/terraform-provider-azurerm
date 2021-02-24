@@ -25,6 +25,7 @@ BUG FIXES:
 * `azurerm_key_vault_secret` - waiting for deletion to complete before purging [GH-10577]
 * `azurerm_kusto_cluster` - changing `virtual_network_configuration` forces a new resource to be created [GH-10640]
 * `azurerm_lb_outbound_rule` - fixing a crash when `frontendIPConfigurations` is omitted in the API response [GH-10696]
+* `azurerm_media_content_key_policy` - fix an encoding bug which prevented configuring `ask` in the `fairplay_configuration` block [GH-10684]
 
 ## 2.48.0 (February 18, 2021)
 
