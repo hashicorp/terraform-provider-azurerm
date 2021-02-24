@@ -3,6 +3,7 @@ package subscription_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -17,6 +18,10 @@ import (
 type SubscriptionResource struct{}
 
 func TestAccSubscriptionResource_basic(t *testing.T) {
+	if os.Getenv("ARM_BILLING_ACCOUNT") == "" {
+		t.Skip("skipping tests - no billing account data provided")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_subscription", "test")
 	r := SubscriptionResource{}
 
@@ -30,6 +35,10 @@ func TestAccSubscriptionResource_basic(t *testing.T) {
 }
 
 func TestAccSubscriptionResource_requiresImport(t *testing.T) {
+	if os.Getenv("ARM_BILLING_ACCOUNT") == "" {
+		t.Skip("skipping tests - no billing account data provided")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_subscription", "test")
 	r := SubscriptionResource{}
 
@@ -58,7 +67,7 @@ func (SubscriptionResource) Exists(ctx context.Context, client *clients.Client, 
 	return utils.Bool(true), nil
 }
 
-// TODO - Need Env vars for Billing Account and Enrollment Account
+// TODO - Need Env vars in CI for Billing Account and Enrollment Account - Testing disabled for now
 func (SubscriptionResource) basicEnrollmentAccount(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
