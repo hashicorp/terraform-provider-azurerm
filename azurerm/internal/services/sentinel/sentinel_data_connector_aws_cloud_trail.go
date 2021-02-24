@@ -142,10 +142,10 @@ func resourceSentinelDataConnectorAwsCloudTrailRead(d *schema.ResourceData, meta
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if err := assertDataConnectorKind(resp.Value, securityinsight.DataConnectorKindAmazonWebServicesCloudTrail); err != nil {
-		return fmt.Errorf("asserting %s: %+v", id, err)
+	dc, ok := resp.Value.(securityinsight.AwsCloudTrailDataConnector)
+	if !ok {
+		return fmt.Errorf("%s was not an AWS Cloud Trail Data Connector", id)
 	}
-	dc := resp.Value.(securityinsight.AwsCloudTrailDataConnector)
 
 	d.Set("name", id.Name)
 	d.Set("log_analytics_workspace_id", workspaceId.ID())
