@@ -72,7 +72,7 @@ The following supported arguments are specific to Azure Blob Storage Linked Serv
 
 * `service_principal_key` - (Optional) The service principal key in which to authenticate against the AAzure Blob Storage account.  Required if `service_principal_id` is set.
 
-* `tenant` - (Optional) The tenant id or name in which to authenticate against the Azure Blob Storage account.
+* `tenant_id` - (Optional) The tenant id or name in which to authenticate against the Azure Blob Storage account.
 
 ## Attributes Reference
 
