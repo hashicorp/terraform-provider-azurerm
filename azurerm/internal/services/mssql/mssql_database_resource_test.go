@@ -1141,7 +1141,7 @@ resource "azurerm_mssql_database" "test" {
   name      = "acctest-db-%[2]d"
   server_id = azurerm_sql_server.test.id
   extended_auditing_policy {
-    monitor_enabled = true
+    log_monitoring_enabled = true
   }
 }
 `, r.withBlobAuditingPolicesTemplate(data), data.RandomInteger)
@@ -1185,7 +1185,7 @@ resource "azurerm_mssql_database" "test" {
   name      = "acctest-db-%[2]d"
   server_id = azurerm_sql_server.test.id
   extended_auditing_policy {
-    monitor_enabled = true
+    log_monitoring_enabled = true
   }
 }
 `, r.withBlobAuditingPolicesTemplate(data), data.RandomInteger)

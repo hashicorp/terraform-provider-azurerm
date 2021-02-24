@@ -390,8 +390,8 @@ resource "azurerm_eventhub_namespace_authorization_rule" "test" {
 }
 
 resource "azurerm_mssql_server_extended_auditing_policy" "test" {
-  server_id       = azurerm_mssql_server.test.id
-  monitor_enabled = true
+  server_id              = azurerm_mssql_server.test.id
+  log_monitoring_enabled = true
 }
 
 `, r.template(data), data.RandomInteger)
@@ -430,8 +430,8 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 }
 
 resource "azurerm_mssql_database_extended_auditing_policy" "test" {
-  database_id     = azurerm_mssql_database.test.id
-  monitor_enabled = true
+  database_id            = azurerm_mssql_database.test.id
+  log_monitoring_enabled = true
 }
 `, r.monitorTemplate(data), data.RandomInteger)
 }
@@ -472,7 +472,7 @@ resource "azurerm_mssql_database_extended_auditing_policy" "test" {
   database_id                = azurerm_mssql_database.test.id
   storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
-  monitor_enabled            = true
+  log_monitoring_enabled     = true
 }
 `, r.monitorTemplate(data), data.RandomInteger)
 }
@@ -513,8 +513,8 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 }
 
 resource "azurerm_mssql_database_extended_auditing_policy" "test" {
-  database_id     = azurerm_mssql_database.test.id
-  monitor_enabled = true
+  database_id            = azurerm_mssql_database.test.id
+  log_monitoring_enabled = true
 }
 `, r.monitorTemplate(data), data.RandomInteger)
 }
@@ -558,7 +558,7 @@ resource "azurerm_mssql_database_extended_auditing_policy" "test" {
   database_id                = azurerm_mssql_database.test.id
   storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
-  monitor_enabled            = true
+  log_monitoring_enabled     = true
 }
 `, r.monitorTemplate(data), data.RandomInteger)
 }

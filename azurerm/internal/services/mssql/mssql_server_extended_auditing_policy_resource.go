@@ -71,7 +71,7 @@ func resourceMsSqlServerExtendedAuditingPolicy() *schema.Resource {
 				ValidateFunc: validation.IntBetween(0, 3285),
 			},
 
-			"monitor_enabled": {
+			"log_monitoring_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  true,
@@ -112,7 +112,7 @@ func resourceMsSqlServerExtendedAuditingPolicyCreateUpdate(d *schema.ResourceDat
 			StorageEndpoint:             utils.String(d.Get("storage_endpoint").(string)),
 			IsStorageSecondaryKeyInUse:  utils.Bool(d.Get("storage_account_access_key_is_secondary").(bool)),
 			RetentionDays:               utils.Int32(int32(d.Get("retention_in_days").(int))),
-			IsAzureMonitorTargetEnabled: utils.Bool(d.Get("monitor_enabled").(bool)),
+			IsAzureMonitorTargetEnabled: utils.Bool(d.Get("log_monitoring_enabled").(bool)),
 		},
 	}
 
@@ -174,7 +174,7 @@ func resourceMsSqlServerExtendedAuditingPolicyRead(d *schema.ResourceData, meta 
 		d.Set("storage_endpoint", props.StorageEndpoint)
 		d.Set("storage_account_access_key_is_secondary", props.IsStorageSecondaryKeyInUse)
 		d.Set("retention_in_days", props.RetentionDays)
-		d.Set("monitor_enabled", props.IsAzureMonitorTargetEnabled)
+		d.Set("log_monitoring_enabled", props.IsAzureMonitorTargetEnabled)
 	}
 
 	return nil
