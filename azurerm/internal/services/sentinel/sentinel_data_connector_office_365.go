@@ -198,10 +198,10 @@ func resourceSentinelDataConnectorOffice365Read(d *schema.ResourceData, meta int
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if err := assertDataConnectorKind(resp.Value, securityinsight.DataConnectorKindOffice365); err != nil {
-		return fmt.Errorf("asserting %s: %+v", id, err)
+	dc, ok := resp.Value.(securityinsight.OfficeDataConnector)
+	if !ok {
+		return fmt.Errorf("%s was not an Office 365 Data Connector", id)
 	}
-	dc := resp.Value.(securityinsight.OfficeDataConnector)
 
 	d.Set("name", id.Name)
 	d.Set("log_analytics_workspace_id", workspaceId.ID())
