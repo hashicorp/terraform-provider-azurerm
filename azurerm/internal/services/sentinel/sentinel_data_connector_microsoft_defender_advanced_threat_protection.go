@@ -134,10 +134,10 @@ func resourceSentinelDataConnectorMicrosoftDefenderAdvancedThreatProtectionRead(
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if err := assertDataConnectorKind(resp.Value, securityinsight.DataConnectorKindMicrosoftDefenderAdvancedThreatProtection); err != nil {
-		return fmt.Errorf("asserting %s: %+v", id, err)
+	dc, ok := resp.Value.(securityinsight.MDATPDataConnector)
+	if !ok {
+		return fmt.Errorf("%s was not a Microsoft Defender Advanced Threat Protection Data Connector", id)
 	}
-	dc := resp.Value.(securityinsight.MDATPDataConnector)
 
 	d.Set("name", id.Name)
 	d.Set("log_analytics_workspace_id", workspaceId.ID())
