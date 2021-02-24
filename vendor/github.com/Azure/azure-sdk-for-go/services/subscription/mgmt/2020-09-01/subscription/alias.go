@@ -70,7 +70,7 @@ func (client AliasClient) Create(ctx context.Context, aliasName string, body Put
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "subscription.AliasClient", "Create", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "subscription.AliasClient", "Create", nil, "Failure sending request")
 		return
 	}
 
@@ -106,7 +106,33 @@ func (client AliasClient) CreateSender(req *http.Request) (future AliasCreateFut
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client AliasClient) (par PutAliasResponse, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "subscription.AliasCreateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("subscription.AliasCreateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		par.Response.Response, err = future.GetResult(sender)
+		if par.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "subscription.AliasCreateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && par.Response.Response.StatusCode != http.StatusNoContent {
+			par, err = client.CreateResponder(par.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "subscription.AliasCreateFuture", "Result", par.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
