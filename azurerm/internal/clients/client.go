@@ -21,6 +21,7 @@ import (
 	bot "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot/client"
 	cdn "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn/client"
 	cognitiveServices "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cognitive/client"
+	communication "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/communication/client"
 	compute "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/client"
 	containerServices "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/client"
 	cosmosdb "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/client"
@@ -116,6 +117,7 @@ type Client struct {
 	Bot                   *bot.Client
 	Cdn                   *cdn.Client
 	Cognitive             *cognitiveServices.Client
+	Communication         *communication.Client
 	Compute               *compute.Client
 	Containers            *containerServices.Client
 	Cosmos                *cosmosdb.Client
@@ -213,6 +215,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Bot = bot.NewClient(o)
 	client.Cdn = cdn.NewClient(o)
 	client.Cognitive = cognitiveServices.NewClient(o)
+	client.Communication = communication.NewClient(o)
 	client.Compute = compute.NewClient(o)
 	client.Containers = containerServices.NewClient(o)
 	client.Cosmos = cosmosdb.NewClient(o)
