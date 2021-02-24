@@ -19,7 +19,7 @@ resource "azurerm_subscription" "example" {
   alias              = "examplesub"
   subscription_name  = "My Example Subscription"
   billing_account    = "1234567890"
-  enrollment_account = "0123456" 
+  enrollment_account = "0123456"
 }
 ```
 
@@ -86,8 +86,8 @@ In this scenario, the `subscription_id` property can be completed and Terraform 
 ```hcl
 // importing existing Manually Created Subscription with no Alias
 resource "azurerm_subscription" "example" {
-  alias              = "examplesub"
-  subscription_name  = "My Example Subscription"
-  subscription_id    = "12345678-12234-5678-9012-123456789012"
+  alias             = "examplesub"
+  subscription_name = "My Example Subscription"
+  subscription_id   = "12345678-12234-5678-9012-123456789012"
 }
 ```
