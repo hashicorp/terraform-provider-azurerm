@@ -134,10 +134,10 @@ func resourceSentinelDataConnectorAzureActiveDirectoryRead(d *schema.ResourceDat
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if err := assertDataConnectorKind(resp.Value, securityinsight.DataConnectorKindAzureActiveDirectory); err != nil {
-		return fmt.Errorf("asserting %s: %+v", id, err)
+	dc, ok := resp.Value.(securityinsight.AADDataConnector)
+	if !ok {
+		return fmt.Errorf("%s was not an Azure Active Directory Data Connector", id)
 	}
-	dc := resp.Value.(securityinsight.AADDataConnector)
 
 	d.Set("name", id.Name)
 	d.Set("log_analytics_workspace_id", workspaceId.ID())
