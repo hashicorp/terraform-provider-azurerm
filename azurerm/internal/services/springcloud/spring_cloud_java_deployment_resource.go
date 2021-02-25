@@ -152,11 +152,11 @@ func resourceSpringCloudJavaDeploymentCreate(d *schema.ResourceData, meta interf
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.AppName, id.DeploymentName, deployment)
 	if err != nil {
-		return fmt.Errorf("creating Spring Cloud Deployment %q (Spring Cloud Service %q / App %q / Resource Group %q): %+v", id.DeploymentName, id.SpringName, id.AppName, id.ResourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Spring Cloud Deployment %q (Spring Cloud Service %q / App %q / Resource Group %q): %+v", id.DeploymentName, id.SpringName, id.AppName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
