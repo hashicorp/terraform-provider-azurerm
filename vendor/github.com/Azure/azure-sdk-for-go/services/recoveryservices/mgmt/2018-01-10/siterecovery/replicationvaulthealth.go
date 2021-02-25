@@ -135,7 +135,7 @@ func (client ReplicationVaultHealthClient) Refresh(ctx context.Context) (result 
 
 	result, err = client.RefreshSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationVaultHealthClient", "Refresh", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationVaultHealthClient", "Refresh", nil, "Failure sending request")
 		return
 	}
 
@@ -171,7 +171,33 @@ func (client ReplicationVaultHealthClient) RefreshSender(req *http.Request) (fut
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ReplicationVaultHealthClient) (vhd VaultHealthDetails, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationVaultHealthRefreshFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationVaultHealthRefreshFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		vhd.Response.Response, err = future.GetResult(sender)
+		if vhd.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationVaultHealthRefreshFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && vhd.Response.Response.StatusCode != http.StatusNoContent {
+			vhd, err = client.RefreshResponder(vhd.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "siterecovery.ReplicationVaultHealthRefreshFuture", "Result", vhd.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

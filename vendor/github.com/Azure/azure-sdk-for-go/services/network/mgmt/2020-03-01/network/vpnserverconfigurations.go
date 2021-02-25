@@ -67,7 +67,7 @@ func (client VpnServerConfigurationsClient) CreateOrUpdate(ctx context.Context, 
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "network.VpnServerConfigurationsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "network.VpnServerConfigurationsClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -106,7 +106,33 @@ func (client VpnServerConfigurationsClient) CreateOrUpdateSender(req *http.Reque
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client VpnServerConfigurationsClient) (vsc VpnServerConfiguration, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "network.VpnServerConfigurationsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("network.VpnServerConfigurationsCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		vsc.Response.Response, err = future.GetResult(sender)
+		if vsc.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "network.VpnServerConfigurationsCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && vsc.Response.Response.StatusCode != http.StatusNoContent {
+			vsc, err = client.CreateOrUpdateResponder(vsc.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "network.VpnServerConfigurationsCreateOrUpdateFuture", "Result", vsc.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -145,7 +171,7 @@ func (client VpnServerConfigurationsClient) Delete(ctx context.Context, resource
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "network.VpnServerConfigurationsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "network.VpnServerConfigurationsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -181,7 +207,23 @@ func (client VpnServerConfigurationsClient) DeleteSender(req *http.Request) (fut
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client VpnServerConfigurationsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "network.VpnServerConfigurationsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("network.VpnServerConfigurationsDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -305,6 +347,7 @@ func (client VpnServerConfigurationsClient) List(ctx context.Context) (result Li
 	}
 	if result.lvscr.hasNextLink() && result.lvscr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -364,7 +407,6 @@ func (client VpnServerConfigurationsClient) listNextResults(ctx context.Context,
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VpnServerConfigurationsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -420,6 +462,7 @@ func (client VpnServerConfigurationsClient) ListByResourceGroup(ctx context.Cont
 	}
 	if result.lvscr.hasNextLink() && result.lvscr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -480,7 +523,6 @@ func (client VpnServerConfigurationsClient) listByResourceGroupNextResults(ctx c
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VpnServerConfigurationsClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

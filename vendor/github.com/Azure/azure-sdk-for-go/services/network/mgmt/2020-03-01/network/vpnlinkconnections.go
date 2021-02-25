@@ -79,6 +79,7 @@ func (client VpnLinkConnectionsClient) ListByVpnConnection(ctx context.Context, 
 	}
 	if result.lvslcr.hasNextLink() && result.lvslcr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -141,7 +142,6 @@ func (client VpnLinkConnectionsClient) listByVpnConnectionNextResults(ctx contex
 	result, err = client.ListByVpnConnectionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VpnLinkConnectionsClient", "listByVpnConnectionNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

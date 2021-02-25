@@ -153,6 +153,7 @@ func (client ReplicationNetworksClient) List(ctx context.Context) (result Networ
 	}
 	if result.nc.hasNextLink() && result.nc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -214,7 +215,6 @@ func (client ReplicationNetworksClient) listNextResults(ctx context.Context, las
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationNetworksClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -270,6 +270,7 @@ func (client ReplicationNetworksClient) ListByReplicationFabrics(ctx context.Con
 	}
 	if result.nc.hasNextLink() && result.nc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -332,7 +333,6 @@ func (client ReplicationNetworksClient) listByReplicationFabricsNextResults(ctx 
 	result, err = client.ListByReplicationFabricsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationNetworksClient", "listByReplicationFabricsNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

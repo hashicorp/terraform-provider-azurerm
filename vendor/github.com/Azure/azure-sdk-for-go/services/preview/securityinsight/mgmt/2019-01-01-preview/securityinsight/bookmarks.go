@@ -391,6 +391,7 @@ func (client BookmarksClient) List(ctx context.Context, resourceGroupName string
 	}
 	if result.bl.hasNextLink() && result.bl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -453,7 +454,6 @@ func (client BookmarksClient) listNextResults(ctx context.Context, lastResults B
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.BookmarksClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

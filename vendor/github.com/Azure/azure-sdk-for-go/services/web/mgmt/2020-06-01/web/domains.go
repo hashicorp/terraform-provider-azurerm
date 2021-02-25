@@ -207,7 +207,7 @@ func (client DomainsClient) CreateOrUpdate(ctx context.Context, resourceGroupNam
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.DomainsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "web.DomainsClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -245,7 +245,33 @@ func (client DomainsClient) CreateOrUpdateSender(req *http.Request) (future Doma
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client DomainsClient) (d Domain, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "web.DomainsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("web.DomainsCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		d.Response.Response, err = future.GetResult(sender)
+		if d.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "web.DomainsCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && d.Response.Response.StatusCode != http.StatusNoContent {
+			d, err = client.CreateOrUpdateResponder(d.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "web.DomainsCreateOrUpdateFuture", "Result", d.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -798,6 +824,7 @@ func (client DomainsClient) List(ctx context.Context) (result DomainCollectionPa
 	}
 	if result.dc.hasNextLink() && result.dc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -857,7 +884,6 @@ func (client DomainsClient) listNextResults(ctx context.Context, lastResults Dom
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DomainsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -921,6 +947,7 @@ func (client DomainsClient) ListByResourceGroup(ctx context.Context, resourceGro
 	}
 	if result.dc.hasNextLink() && result.dc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -981,7 +1008,6 @@ func (client DomainsClient) listByResourceGroupNextResults(ctx context.Context, 
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DomainsClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -1046,6 +1072,7 @@ func (client DomainsClient) ListOwnershipIdentifiers(ctx context.Context, resour
 	}
 	if result.doic.hasNextLink() && result.doic.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -1107,7 +1134,6 @@ func (client DomainsClient) listOwnershipIdentifiersNextResults(ctx context.Cont
 	result, err = client.ListOwnershipIdentifiersResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DomainsClient", "listOwnershipIdentifiersNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -1163,6 +1189,7 @@ func (client DomainsClient) ListRecommendations(ctx context.Context, parameters 
 	}
 	if result.nic.hasNextLink() && result.nic.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -1224,7 +1251,6 @@ func (client DomainsClient) listRecommendationsNextResults(ctx context.Context, 
 	result, err = client.ListRecommendationsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DomainsClient", "listRecommendationsNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

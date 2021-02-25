@@ -155,6 +155,7 @@ func (client AlertsClient) ListByDataBoxEdgeDevice(ctx context.Context, deviceNa
 	}
 	if result.al.hasNextLink() && result.al.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -216,7 +217,6 @@ func (client AlertsClient) listByDataBoxEdgeDeviceNextResults(ctx context.Contex
 	result, err = client.ListByDataBoxEdgeDeviceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "databoxedge.AlertsClient", "listByDataBoxEdgeDeviceNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

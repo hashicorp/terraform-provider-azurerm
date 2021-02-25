@@ -178,6 +178,7 @@ func (client JobStepExecutionsClient) ListByJobExecution(ctx context.Context, re
 	}
 	if result.jelr.hasNextLink() && result.jelr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -263,7 +264,6 @@ func (client JobStepExecutionsClient) listByJobExecutionNextResults(ctx context.
 	result, err = client.ListByJobExecutionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobStepExecutionsClient", "listByJobExecutionNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

@@ -78,7 +78,7 @@ func (client StorageAccountCredentialsClient) CreateOrUpdate(ctx context.Context
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "databoxedge.StorageAccountCredentialsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "databoxedge.StorageAccountCredentialsClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -117,7 +117,33 @@ func (client StorageAccountCredentialsClient) CreateOrUpdateSender(req *http.Req
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client StorageAccountCredentialsClient) (sac StorageAccountCredential, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "databoxedge.StorageAccountCredentialsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("databoxedge.StorageAccountCredentialsCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		sac.Response.Response, err = future.GetResult(sender)
+		if sac.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "databoxedge.StorageAccountCredentialsCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && sac.Response.Response.StatusCode != http.StatusNoContent {
+			sac, err = client.CreateOrUpdateResponder(sac.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "databoxedge.StorageAccountCredentialsCreateOrUpdateFuture", "Result", sac.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -157,7 +183,7 @@ func (client StorageAccountCredentialsClient) Delete(ctx context.Context, device
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "databoxedge.StorageAccountCredentialsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "databoxedge.StorageAccountCredentialsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -194,7 +220,23 @@ func (client StorageAccountCredentialsClient) DeleteSender(req *http.Request) (f
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client StorageAccountCredentialsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "databoxedge.StorageAccountCredentialsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("databoxedge.StorageAccountCredentialsDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -323,6 +365,7 @@ func (client StorageAccountCredentialsClient) ListByDataBoxEdgeDevice(ctx contex
 	}
 	if result.sacl.hasNextLink() && result.sacl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -384,7 +427,6 @@ func (client StorageAccountCredentialsClient) listByDataBoxEdgeDeviceNextResults
 	result, err = client.ListByDataBoxEdgeDeviceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "databoxedge.StorageAccountCredentialsClient", "listByDataBoxEdgeDeviceNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

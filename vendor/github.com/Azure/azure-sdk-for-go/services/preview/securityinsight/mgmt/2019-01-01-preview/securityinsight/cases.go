@@ -74,9 +74,7 @@ func (client CasesClient) CreateOrUpdate(ctx context.Context, resourceGroupName 
 				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: caseParameter,
 			Constraints: []validation.Constraint{{Target: "caseParameter.CaseProperties", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "caseParameter.CaseProperties.StartTimeUtc", Name: validation.Null, Rule: true, Chain: nil},
-					{Target: "caseParameter.CaseProperties.Title", Name: validation.Null, Rule: true, Chain: nil},
-				}}}}}); err != nil {
+				Chain: []validation.Constraint{{Target: "caseParameter.CaseProperties.Title", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
 		return result, validation.NewError("securityinsight.CasesClient", "CreateOrUpdate", err.Error())
 	}
 
@@ -489,6 +487,7 @@ func (client CasesClient) List(ctx context.Context, resourceGroupName string, op
 	}
 	if result.cl.hasNextLink() && result.cl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -563,7 +562,6 @@ func (client CasesClient) listNextResults(ctx context.Context, lastResults CaseL
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.CasesClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

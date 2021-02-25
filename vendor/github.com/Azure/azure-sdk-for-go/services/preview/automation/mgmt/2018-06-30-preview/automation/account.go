@@ -329,6 +329,7 @@ func (client AccountClient) List(ctx context.Context) (result AccountListResultP
 	}
 	if result.alr.hasNextLink() && result.alr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -388,7 +389,6 @@ func (client AccountClient) listNextResults(ctx context.Context, lastResults Acc
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.AccountClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -452,6 +452,7 @@ func (client AccountClient) ListByResourceGroup(ctx context.Context, resourceGro
 	}
 	if result.alr.hasNextLink() && result.alr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -512,7 +513,6 @@ func (client AccountClient) listByResourceGroupNextResults(ctx context.Context, 
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.AccountClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

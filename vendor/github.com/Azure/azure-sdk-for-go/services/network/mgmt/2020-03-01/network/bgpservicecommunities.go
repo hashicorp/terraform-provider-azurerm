@@ -75,6 +75,7 @@ func (client BgpServiceCommunitiesClient) List(ctx context.Context) (result BgpS
 	}
 	if result.bsclr.hasNextLink() && result.bsclr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -134,7 +135,6 @@ func (client BgpServiceCommunitiesClient) listNextResults(ctx context.Context, l
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.BgpServiceCommunitiesClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

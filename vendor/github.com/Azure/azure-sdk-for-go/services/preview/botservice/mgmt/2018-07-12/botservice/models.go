@@ -1573,82 +1573,28 @@ func NewEnterpriseChannelResponseListPage(cur EnterpriseChannelResponseList, get
 // EnterpriseChannelsCreateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type EnterpriseChannelsCreateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *EnterpriseChannelsCreateFuture) Result(client EnterpriseChannelsClient) (ec EnterpriseChannel, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "botservice.EnterpriseChannelsCreateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("botservice.EnterpriseChannelsCreateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if ec.Response.Response, err = future.GetResult(sender); err == nil && ec.Response.Response.StatusCode != http.StatusNoContent {
-		ec, err = client.CreateResponder(ec.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "botservice.EnterpriseChannelsCreateFuture", "Result", ec.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(EnterpriseChannelsClient) (EnterpriseChannel, error)
 }
 
 // EnterpriseChannelsDeleteFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type EnterpriseChannelsDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *EnterpriseChannelsDeleteFuture) Result(client EnterpriseChannelsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "botservice.EnterpriseChannelsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("botservice.EnterpriseChannelsDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(EnterpriseChannelsClient) (autorest.Response, error)
 }
 
 // EnterpriseChannelsUpdateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type EnterpriseChannelsUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *EnterpriseChannelsUpdateFuture) Result(client EnterpriseChannelsClient) (ec EnterpriseChannel, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "botservice.EnterpriseChannelsUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("botservice.EnterpriseChannelsUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if ec.Response.Response, err = future.GetResult(sender); err == nil && ec.Response.Response.StatusCode != http.StatusNoContent {
-		ec, err = client.UpdateResponder(ec.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "botservice.EnterpriseChannelsUpdateFuture", "Result", ec.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(EnterpriseChannelsClient) (EnterpriseChannel, error)
 }
 
 // Error bot Service error object.

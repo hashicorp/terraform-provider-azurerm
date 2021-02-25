@@ -67,7 +67,7 @@ func (client VirtualClustersClient) Delete(ctx context.Context, resourceGroupNam
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.VirtualClustersClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.VirtualClustersClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -103,7 +103,23 @@ func (client VirtualClustersClient) DeleteSender(req *http.Request) (future Virt
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client VirtualClustersClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.VirtualClustersDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.VirtualClustersDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -228,6 +244,7 @@ func (client VirtualClustersClient) List(ctx context.Context) (result VirtualClu
 	}
 	if result.vclr.hasNextLink() && result.vclr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -287,7 +304,6 @@ func (client VirtualClustersClient) listNextResults(ctx context.Context, lastRes
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.VirtualClustersClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -344,6 +360,7 @@ func (client VirtualClustersClient) ListByResourceGroup(ctx context.Context, res
 	}
 	if result.vclr.hasNextLink() && result.vclr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -404,7 +421,6 @@ func (client VirtualClustersClient) listByResourceGroupNextResults(ctx context.C
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.VirtualClustersClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -450,7 +466,7 @@ func (client VirtualClustersClient) Update(ctx context.Context, resourceGroupNam
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.VirtualClustersClient", "Update", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.VirtualClustersClient", "Update", nil, "Failure sending request")
 		return
 	}
 
@@ -488,7 +504,33 @@ func (client VirtualClustersClient) UpdateSender(req *http.Request) (future Virt
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client VirtualClustersClient) (vc VirtualCluster, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.VirtualClustersUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.VirtualClustersUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		vc.Response.Response, err = future.GetResult(sender)
+		if vc.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "sql.VirtualClustersUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && vc.Response.Response.StatusCode != http.StatusNoContent {
+			vc, err = client.UpdateResponder(vc.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "sql.VirtualClustersUpdateFuture", "Result", vc.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

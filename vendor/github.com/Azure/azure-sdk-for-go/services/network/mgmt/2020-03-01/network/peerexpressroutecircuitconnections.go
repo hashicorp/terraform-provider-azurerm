@@ -160,6 +160,7 @@ func (client PeerExpressRouteCircuitConnectionsClient) List(ctx context.Context,
 	}
 	if result.percclr.hasNextLink() && result.percclr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -222,7 +223,6 @@ func (client PeerExpressRouteCircuitConnectionsClient) listNextResults(ctx conte
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.PeerExpressRouteCircuitConnectionsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

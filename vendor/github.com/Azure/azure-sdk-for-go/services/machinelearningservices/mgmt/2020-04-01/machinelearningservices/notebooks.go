@@ -64,7 +64,7 @@ func (client NotebooksClient) Prepare(ctx context.Context, resourceGroupName str
 
 	result, err = client.PrepareSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "machinelearningservices.NotebooksClient", "Prepare", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "machinelearningservices.NotebooksClient", "Prepare", nil, "Failure sending request")
 		return
 	}
 
@@ -100,7 +100,33 @@ func (client NotebooksClient) PrepareSender(req *http.Request) (future Notebooks
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client NotebooksClient) (nri NotebookResourceInfo, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "machinelearningservices.NotebooksPrepareFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("machinelearningservices.NotebooksPrepareFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		nri.Response.Response, err = future.GetResult(sender)
+		if nri.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "machinelearningservices.NotebooksPrepareFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && nri.Response.Response.StatusCode != http.StatusNoContent {
+			nri, err = client.PrepareResponder(nri.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "machinelearningservices.NotebooksPrepareFuture", "Result", nri.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

@@ -78,6 +78,7 @@ func (client InterfaceLoadBalancersClient) List(ctx context.Context, resourceGro
 	}
 	if result.ilblr.hasNextLink() && result.ilblr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -139,7 +140,6 @@ func (client InterfaceLoadBalancersClient) listNextResults(ctx context.Context, 
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.InterfaceLoadBalancersClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

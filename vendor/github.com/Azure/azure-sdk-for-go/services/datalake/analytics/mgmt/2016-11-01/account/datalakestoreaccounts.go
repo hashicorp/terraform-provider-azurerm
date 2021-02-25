@@ -338,6 +338,7 @@ func (client DataLakeStoreAccountsClient) ListByAccount(ctx context.Context, res
 	}
 	if result.dlsailr.hasNextLink() && result.dlsailr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -417,7 +418,6 @@ func (client DataLakeStoreAccountsClient) listByAccountNextResults(ctx context.C
 	result, err = client.ListByAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.DataLakeStoreAccountsClient", "listByAccountNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

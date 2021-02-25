@@ -78,7 +78,7 @@ func (client SharesClient) CreateOrUpdate(ctx context.Context, deviceName string
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "databoxedge.SharesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "databoxedge.SharesClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -117,7 +117,33 @@ func (client SharesClient) CreateOrUpdateSender(req *http.Request) (future Share
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client SharesClient) (s Share, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "databoxedge.SharesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("databoxedge.SharesCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		s.Response.Response, err = future.GetResult(sender)
+		if s.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "databoxedge.SharesCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && s.Response.Response.StatusCode != http.StatusNoContent {
+			s, err = client.CreateOrUpdateResponder(s.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "databoxedge.SharesCreateOrUpdateFuture", "Result", s.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -157,7 +183,7 @@ func (client SharesClient) Delete(ctx context.Context, deviceName string, name s
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "databoxedge.SharesClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "databoxedge.SharesClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -194,7 +220,23 @@ func (client SharesClient) DeleteSender(req *http.Request) (future SharesDeleteF
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client SharesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "databoxedge.SharesDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("databoxedge.SharesDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -323,6 +365,7 @@ func (client SharesClient) ListByDataBoxEdgeDevice(ctx context.Context, deviceNa
 	}
 	if result.sl.hasNextLink() && result.sl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -384,7 +427,6 @@ func (client SharesClient) listByDataBoxEdgeDeviceNextResults(ctx context.Contex
 	result, err = client.ListByDataBoxEdgeDeviceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "databoxedge.SharesClient", "listByDataBoxEdgeDeviceNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -429,7 +471,7 @@ func (client SharesClient) Refresh(ctx context.Context, deviceName string, name 
 
 	result, err = client.RefreshSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "databoxedge.SharesClient", "Refresh", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "databoxedge.SharesClient", "Refresh", nil, "Failure sending request")
 		return
 	}
 
@@ -466,7 +508,23 @@ func (client SharesClient) RefreshSender(req *http.Request) (future SharesRefres
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client SharesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "databoxedge.SharesRefreshFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("databoxedge.SharesRefreshFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 

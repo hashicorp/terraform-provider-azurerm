@@ -165,6 +165,7 @@ func (client EnginesClient) List(ctx context.Context, vaultName string, resource
 	}
 	if result.ebrl.hasNextLink() && result.ebrl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -232,7 +233,6 @@ func (client EnginesClient) listNextResults(ctx context.Context, lastResults Eng
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.EnginesClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

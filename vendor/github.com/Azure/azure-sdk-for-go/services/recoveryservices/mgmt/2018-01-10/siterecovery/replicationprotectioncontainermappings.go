@@ -69,7 +69,7 @@ func (client ReplicationProtectionContainerMappingsClient) Create(ctx context.Co
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainerMappingsClient", "Create", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainerMappingsClient", "Create", nil, "Failure sending request")
 		return
 	}
 
@@ -110,7 +110,33 @@ func (client ReplicationProtectionContainerMappingsClient) CreateSender(req *htt
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ReplicationProtectionContainerMappingsClient) (pcm ProtectionContainerMapping, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainerMappingsCreateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectionContainerMappingsCreateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		pcm.Response.Response, err = future.GetResult(sender)
+		if pcm.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainerMappingsCreateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && pcm.Response.Response.StatusCode != http.StatusNoContent {
+			pcm, err = client.CreateResponder(pcm.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainerMappingsCreateFuture", "Result", pcm.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -151,7 +177,7 @@ func (client ReplicationProtectionContainerMappingsClient) Delete(ctx context.Co
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainerMappingsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainerMappingsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -192,7 +218,23 @@ func (client ReplicationProtectionContainerMappingsClient) DeleteSender(req *htt
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ReplicationProtectionContainerMappingsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainerMappingsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectionContainerMappingsDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -320,6 +362,7 @@ func (client ReplicationProtectionContainerMappingsClient) List(ctx context.Cont
 	}
 	if result.pcmc.hasNextLink() && result.pcmc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -381,7 +424,6 @@ func (client ReplicationProtectionContainerMappingsClient) listNextResults(ctx c
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainerMappingsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -438,6 +480,7 @@ func (client ReplicationProtectionContainerMappingsClient) ListByReplicationProt
 	}
 	if result.pcmc.hasNextLink() && result.pcmc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -501,7 +544,6 @@ func (client ReplicationProtectionContainerMappingsClient) listByReplicationProt
 	result, err = client.ListByReplicationProtectionContainersResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainerMappingsClient", "listByReplicationProtectionContainersNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -546,7 +588,7 @@ func (client ReplicationProtectionContainerMappingsClient) Purge(ctx context.Con
 
 	result, err = client.PurgeSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainerMappingsClient", "Purge", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainerMappingsClient", "Purge", nil, "Failure sending request")
 		return
 	}
 
@@ -585,7 +627,23 @@ func (client ReplicationProtectionContainerMappingsClient) PurgeSender(req *http
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ReplicationProtectionContainerMappingsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainerMappingsPurgeFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectionContainerMappingsPurgeFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -625,7 +683,7 @@ func (client ReplicationProtectionContainerMappingsClient) Update(ctx context.Co
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainerMappingsClient", "Update", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainerMappingsClient", "Update", nil, "Failure sending request")
 		return
 	}
 
@@ -666,7 +724,33 @@ func (client ReplicationProtectionContainerMappingsClient) UpdateSender(req *htt
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ReplicationProtectionContainerMappingsClient) (pcm ProtectionContainerMapping, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainerMappingsUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectionContainerMappingsUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		pcm.Response.Response, err = future.GetResult(sender)
+		if pcm.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainerMappingsUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && pcm.Response.Response.StatusCode != http.StatusNoContent {
+			pcm, err = client.UpdateResponder(pcm.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainerMappingsUpdateFuture", "Result", pcm.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

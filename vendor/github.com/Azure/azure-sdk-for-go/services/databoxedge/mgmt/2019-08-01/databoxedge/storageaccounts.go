@@ -73,7 +73,7 @@ func (client StorageAccountsClient) CreateOrUpdate(ctx context.Context, deviceNa
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "databoxedge.StorageAccountsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "databoxedge.StorageAccountsClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -112,7 +112,33 @@ func (client StorageAccountsClient) CreateOrUpdateSender(req *http.Request) (fut
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client StorageAccountsClient) (sa StorageAccount, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "databoxedge.StorageAccountsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("databoxedge.StorageAccountsCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		sa.Response.Response, err = future.GetResult(sender)
+		if sa.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "databoxedge.StorageAccountsCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && sa.Response.Response.StatusCode != http.StatusNoContent {
+			sa, err = client.CreateOrUpdateResponder(sa.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "databoxedge.StorageAccountsCreateOrUpdateFuture", "Result", sa.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -152,7 +178,7 @@ func (client StorageAccountsClient) Delete(ctx context.Context, deviceName strin
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "databoxedge.StorageAccountsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "databoxedge.StorageAccountsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -189,7 +215,23 @@ func (client StorageAccountsClient) DeleteSender(req *http.Request) (future Stor
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client StorageAccountsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "databoxedge.StorageAccountsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("databoxedge.StorageAccountsDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -318,6 +360,7 @@ func (client StorageAccountsClient) ListByDataBoxEdgeDevice(ctx context.Context,
 	}
 	if result.sal.hasNextLink() && result.sal.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -379,7 +422,6 @@ func (client StorageAccountsClient) listByDataBoxEdgeDeviceNextResults(ctx conte
 	result, err = client.ListByDataBoxEdgeDeviceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "databoxedge.StorageAccountsClient", "listByDataBoxEdgeDeviceNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

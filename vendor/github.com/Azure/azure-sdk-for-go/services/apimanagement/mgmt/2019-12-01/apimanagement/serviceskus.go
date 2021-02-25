@@ -86,6 +86,7 @@ func (client ServiceSkusClient) ListAvailableServiceSkus(ctx context.Context, re
 	}
 	if result.rsr.hasNextLink() && result.rsr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -147,7 +148,6 @@ func (client ServiceSkusClient) listAvailableServiceSkusNextResults(ctx context.
 	result, err = client.ListAvailableServiceSkusResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.ServiceSkusClient", "listAvailableServiceSkusNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

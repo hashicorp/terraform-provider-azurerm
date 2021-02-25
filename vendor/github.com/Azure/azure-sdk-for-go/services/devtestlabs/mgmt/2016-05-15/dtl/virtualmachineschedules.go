@@ -236,7 +236,7 @@ func (client VirtualMachineSchedulesClient) Execute(ctx context.Context, resourc
 
 	result, err = client.ExecuteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.VirtualMachineSchedulesClient", "Execute", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dtl.VirtualMachineSchedulesClient", "Execute", nil, "Failure sending request")
 		return
 	}
 
@@ -274,7 +274,23 @@ func (client VirtualMachineSchedulesClient) ExecuteSender(req *http.Request) (fu
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client VirtualMachineSchedulesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "dtl.VirtualMachineSchedulesExecuteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("dtl.VirtualMachineSchedulesExecuteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -414,6 +430,7 @@ func (client VirtualMachineSchedulesClient) List(ctx context.Context, resourceGr
 	}
 	if result.rwcs.hasNextLink() && result.rwcs.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -488,7 +505,6 @@ func (client VirtualMachineSchedulesClient) listNextResults(ctx context.Context,
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.VirtualMachineSchedulesClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

@@ -66,7 +66,7 @@ func (client RolesClient) CreateOrUpdate(ctx context.Context, deviceName string,
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "databoxedge.RolesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "databoxedge.RolesClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -105,7 +105,33 @@ func (client RolesClient) CreateOrUpdateSender(req *http.Request) (future RolesC
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client RolesClient) (rm RoleModel, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "databoxedge.RolesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("databoxedge.RolesCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		rm.Response.Response, err = future.GetResult(sender)
+		if rm.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "databoxedge.RolesCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && rm.Response.Response.StatusCode != http.StatusNoContent {
+			rm, err = client.CreateOrUpdateResponder(rm.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "databoxedge.RolesCreateOrUpdateFuture", "Result", rm.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -145,7 +171,7 @@ func (client RolesClient) Delete(ctx context.Context, deviceName string, name st
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "databoxedge.RolesClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "databoxedge.RolesClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -182,7 +208,23 @@ func (client RolesClient) DeleteSender(req *http.Request) (future RolesDeleteFut
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client RolesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "databoxedge.RolesDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("databoxedge.RolesDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -311,6 +353,7 @@ func (client RolesClient) ListByDataBoxEdgeDevice(ctx context.Context, deviceNam
 	}
 	if result.rl.hasNextLink() && result.rl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -372,7 +415,6 @@ func (client RolesClient) listByDataBoxEdgeDeviceNextResults(ctx context.Context
 	result, err = client.ListByDataBoxEdgeDeviceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "databoxedge.RolesClient", "listByDataBoxEdgeDeviceNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

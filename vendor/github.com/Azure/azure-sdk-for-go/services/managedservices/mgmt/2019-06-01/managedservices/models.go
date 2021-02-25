@@ -352,53 +352,19 @@ type RegistrationAssignmentPropertiesRegistrationDefinitionProperties struct {
 // RegistrationAssignmentsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of
 // a long-running operation.
 type RegistrationAssignmentsCreateOrUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *RegistrationAssignmentsCreateOrUpdateFuture) Result(client RegistrationAssignmentsClient) (ra RegistrationAssignment, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "managedservices.RegistrationAssignmentsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("managedservices.RegistrationAssignmentsCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if ra.Response.Response, err = future.GetResult(sender); err == nil && ra.Response.Response.StatusCode != http.StatusNoContent {
-		ra, err = client.CreateOrUpdateResponder(ra.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "managedservices.RegistrationAssignmentsCreateOrUpdateFuture", "Result", ra.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(RegistrationAssignmentsClient) (RegistrationAssignment, error)
 }
 
 // RegistrationAssignmentsDeleteFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type RegistrationAssignmentsDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *RegistrationAssignmentsDeleteFuture) Result(client RegistrationAssignmentsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "managedservices.RegistrationAssignmentsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("managedservices.RegistrationAssignmentsDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(RegistrationAssignmentsClient) (autorest.Response, error)
 }
 
 // RegistrationDefinition registration definition.
@@ -625,28 +591,8 @@ func (rdp RegistrationDefinitionProperties) MarshalJSON() ([]byte, error) {
 // RegistrationDefinitionsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of
 // a long-running operation.
 type RegistrationDefinitionsCreateOrUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *RegistrationDefinitionsCreateOrUpdateFuture) Result(client RegistrationDefinitionsClient) (rd RegistrationDefinition, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "managedservices.RegistrationDefinitionsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("managedservices.RegistrationDefinitionsCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if rd.Response.Response, err = future.GetResult(sender); err == nil && rd.Response.Response.StatusCode != http.StatusNoContent {
-		rd, err = client.CreateOrUpdateResponder(rd.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "managedservices.RegistrationDefinitionsCreateOrUpdateFuture", "Result", rd.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(RegistrationDefinitionsClient) (RegistrationDefinition, error)
 }

@@ -79,7 +79,7 @@ func (client AttachedDatabaseConfigurationsClient) CreateOrUpdate(ctx context.Co
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "kusto.AttachedDatabaseConfigurationsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "kusto.AttachedDatabaseConfigurationsClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -118,7 +118,33 @@ func (client AttachedDatabaseConfigurationsClient) CreateOrUpdateSender(req *htt
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client AttachedDatabaseConfigurationsClient) (adc AttachedDatabaseConfiguration, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "kusto.AttachedDatabaseConfigurationsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("kusto.AttachedDatabaseConfigurationsCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		adc.Response.Response, err = future.GetResult(sender)
+		if adc.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "kusto.AttachedDatabaseConfigurationsCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && adc.Response.Response.StatusCode != http.StatusNoContent {
+			adc, err = client.CreateOrUpdateResponder(adc.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "kusto.AttachedDatabaseConfigurationsCreateOrUpdateFuture", "Result", adc.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -158,7 +184,7 @@ func (client AttachedDatabaseConfigurationsClient) Delete(ctx context.Context, r
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "kusto.AttachedDatabaseConfigurationsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "kusto.AttachedDatabaseConfigurationsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -195,7 +221,23 @@ func (client AttachedDatabaseConfigurationsClient) DeleteSender(req *http.Reques
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client AttachedDatabaseConfigurationsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "kusto.AttachedDatabaseConfigurationsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("kusto.AttachedDatabaseConfigurationsDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 

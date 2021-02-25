@@ -66,7 +66,6 @@ func (client MetricAlertsClient) CreateOrUpdate(ctx context.Context, resourceGro
 					{Target: "parameters.MetricAlertProperties.Enabled", Name: validation.Null, Rule: true, Chain: nil},
 					{Target: "parameters.MetricAlertProperties.EvaluationFrequency", Name: validation.Null, Rule: true, Chain: nil},
 					{Target: "parameters.MetricAlertProperties.WindowSize", Name: validation.Null, Rule: true, Chain: nil},
-					{Target: "parameters.MetricAlertProperties.Criteria", Name: validation.Null, Rule: true, Chain: nil},
 				}}}}}); err != nil {
 		return result, validation.NewError("insights.MetricAlertsClient", "CreateOrUpdate", err.Error())
 	}

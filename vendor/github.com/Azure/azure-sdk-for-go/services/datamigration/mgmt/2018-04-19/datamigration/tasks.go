@@ -416,6 +416,7 @@ func (client TasksClient) List(ctx context.Context, groupName string, serviceNam
 	}
 	if result.tl.hasNextLink() && result.tl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -481,7 +482,6 @@ func (client TasksClient) listNextResults(ctx context.Context, lastResults TaskL
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datamigration.TasksClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

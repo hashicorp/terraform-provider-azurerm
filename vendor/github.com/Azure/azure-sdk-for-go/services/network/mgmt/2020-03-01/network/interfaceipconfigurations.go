@@ -156,6 +156,7 @@ func (client InterfaceIPConfigurationsClient) List(ctx context.Context, resource
 	}
 	if result.iiclr.hasNextLink() && result.iiclr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -217,7 +218,6 @@ func (client InterfaceIPConfigurationsClient) listNextResults(ctx context.Contex
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.InterfaceIPConfigurationsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

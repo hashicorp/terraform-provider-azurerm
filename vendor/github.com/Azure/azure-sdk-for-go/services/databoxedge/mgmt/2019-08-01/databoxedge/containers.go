@@ -74,7 +74,7 @@ func (client ContainersClient) CreateOrUpdate(ctx context.Context, deviceName st
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "databoxedge.ContainersClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "databoxedge.ContainersClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -114,7 +114,33 @@ func (client ContainersClient) CreateOrUpdateSender(req *http.Request) (future C
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ContainersClient) (c Container, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "databoxedge.ContainersCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("databoxedge.ContainersCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		c.Response.Response, err = future.GetResult(sender)
+		if c.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "databoxedge.ContainersCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && c.Response.Response.StatusCode != http.StatusNoContent {
+			c, err = client.CreateOrUpdateResponder(c.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "databoxedge.ContainersCreateOrUpdateFuture", "Result", c.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -155,7 +181,7 @@ func (client ContainersClient) Delete(ctx context.Context, deviceName string, st
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "databoxedge.ContainersClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "databoxedge.ContainersClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -193,7 +219,23 @@ func (client ContainersClient) DeleteSender(req *http.Request) (future Container
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ContainersClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "databoxedge.ContainersDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("databoxedge.ContainersDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -325,6 +367,7 @@ func (client ContainersClient) ListByStorageAccount(ctx context.Context, deviceN
 	}
 	if result.cl.hasNextLink() && result.cl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -387,7 +430,6 @@ func (client ContainersClient) listByStorageAccountNextResults(ctx context.Conte
 	result, err = client.ListByStorageAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "databoxedge.ContainersClient", "listByStorageAccountNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -433,7 +475,7 @@ func (client ContainersClient) Refresh(ctx context.Context, deviceName string, s
 
 	result, err = client.RefreshSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "databoxedge.ContainersClient", "Refresh", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "databoxedge.ContainersClient", "Refresh", nil, "Failure sending request")
 		return
 	}
 
@@ -471,7 +513,23 @@ func (client ContainersClient) RefreshSender(req *http.Request) (future Containe
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ContainersClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "databoxedge.ContainersRefreshFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("databoxedge.ContainersRefreshFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 

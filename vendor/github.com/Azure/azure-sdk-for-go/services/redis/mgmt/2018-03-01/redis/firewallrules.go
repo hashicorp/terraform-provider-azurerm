@@ -323,6 +323,7 @@ func (client FirewallRulesClient) ListByRedisResource(ctx context.Context, resou
 	}
 	if result.frlr.hasNextLink() && result.frlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -384,7 +385,6 @@ func (client FirewallRulesClient) listByRedisResourceNextResults(ctx context.Con
 	result, err = client.ListByRedisResourceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "redis.FirewallRulesClient", "listByRedisResourceNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

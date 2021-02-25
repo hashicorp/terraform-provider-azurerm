@@ -190,6 +190,7 @@ func (client AlertRuleTemplatesClient) List(ctx context.Context, resourceGroupNa
 	}
 	if result.artl.hasNextLink() && result.artl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -252,7 +253,6 @@ func (client AlertRuleTemplatesClient) listNextResults(ctx context.Context, last
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.AlertRuleTemplatesClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

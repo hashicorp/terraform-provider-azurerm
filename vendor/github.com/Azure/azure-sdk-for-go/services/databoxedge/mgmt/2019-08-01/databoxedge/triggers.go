@@ -66,7 +66,7 @@ func (client TriggersClient) CreateOrUpdate(ctx context.Context, deviceName stri
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "databoxedge.TriggersClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "databoxedge.TriggersClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -105,7 +105,33 @@ func (client TriggersClient) CreateOrUpdateSender(req *http.Request) (future Tri
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client TriggersClient) (tm TriggerModel, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "databoxedge.TriggersCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("databoxedge.TriggersCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		tm.Response.Response, err = future.GetResult(sender)
+		if tm.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "databoxedge.TriggersCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && tm.Response.Response.StatusCode != http.StatusNoContent {
+			tm, err = client.CreateOrUpdateResponder(tm.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "databoxedge.TriggersCreateOrUpdateFuture", "Result", tm.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -145,7 +171,7 @@ func (client TriggersClient) Delete(ctx context.Context, deviceName string, name
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "databoxedge.TriggersClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "databoxedge.TriggersClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -182,7 +208,23 @@ func (client TriggersClient) DeleteSender(req *http.Request) (future TriggersDel
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client TriggersClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "databoxedge.TriggersDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("databoxedge.TriggersDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -312,6 +354,7 @@ func (client TriggersClient) ListByDataBoxEdgeDevice(ctx context.Context, device
 	}
 	if result.tl.hasNextLink() && result.tl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -376,7 +419,6 @@ func (client TriggersClient) listByDataBoxEdgeDeviceNextResults(ctx context.Cont
 	result, err = client.ListByDataBoxEdgeDeviceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "databoxedge.TriggersClient", "listByDataBoxEdgeDeviceNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

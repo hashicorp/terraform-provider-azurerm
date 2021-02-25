@@ -161,6 +161,7 @@ func (client MigrationRecoveryPointsClient) ListByReplicationMigrationItems(ctx 
 	}
 	if result.mrpc.hasNextLink() && result.mrpc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -225,7 +226,6 @@ func (client MigrationRecoveryPointsClient) listByReplicationMigrationItemsNextR
 	result, err = client.ListByReplicationMigrationItemsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.MigrationRecoveryPointsClient", "listByReplicationMigrationItemsNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

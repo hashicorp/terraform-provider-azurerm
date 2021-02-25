@@ -1,9 +1,17 @@
-Generated from https://github.com/Azure/azure-rest-api-specs/tree/3c764635e7d442b3e74caf593029fcd440b3ef82
+Generated from https://github.com/Azure/azure-rest-api-specs/tree/a1eee0489c374782a934ec1f093abd16fa7718ca/specification/iotcentral/resource-manager/readme.md tag: `package-2018-09-01`
 
-Code generator @microsoft.azure/autorest.go@~2.1.161
+Code generator @microsoft.azure/autorest.go@2.1.171
 
-## Breaking Changes
 
-- Function `NewOperationListResultPage` parameter(s) have been changed from `(func(context.Context, OperationListResult) (OperationListResult, error))` to `(OperationListResult, func(context.Context, OperationListResult) (OperationListResult, error))`
-- Function `NewAppListResultPage` parameter(s) have been changed from `(func(context.Context, AppListResult) (AppListResult, error))` to `(AppListResult, func(context.Context, AppListResult) (AppListResult, error))`
-- Function `NewAppTemplatesResultPage` parameter(s) have been changed from `(func(context.Context, AppTemplatesResult) (AppTemplatesResult, error))` to `(AppTemplatesResult, func(context.Context, AppTemplatesResult) (AppTemplatesResult, error))`
+## Struct Changes
+
+### New Structs
+
+1. AppTemplateLocations
+
+### New Struct Fields
+
+1. AppTemplate.Industry
+1. AppTemplate.Locations
+1. Operation.Origin
+1. Operation.Properties

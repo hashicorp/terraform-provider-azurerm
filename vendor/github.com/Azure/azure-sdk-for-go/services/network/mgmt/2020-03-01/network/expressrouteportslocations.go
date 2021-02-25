@@ -151,6 +151,7 @@ func (client ExpressRoutePortsLocationsClient) List(ctx context.Context) (result
 	}
 	if result.erpllr.hasNextLink() && result.erpllr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -210,7 +211,6 @@ func (client ExpressRoutePortsLocationsClient) listNextResults(ctx context.Conte
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ExpressRoutePortsLocationsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

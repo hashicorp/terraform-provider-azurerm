@@ -160,7 +160,7 @@ func (client NamespacesClient) CreateOrUpdate(ctx context.Context, resourceGroup
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "relay.NamespacesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "relay.NamespacesClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -198,7 +198,33 @@ func (client NamespacesClient) CreateOrUpdateSender(req *http.Request) (future N
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client NamespacesClient) (n Namespace, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "relay.NamespacesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("relay.NamespacesCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		n.Response.Response, err = future.GetResult(sender)
+		if n.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "relay.NamespacesCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && n.Response.Response.StatusCode != http.StatusNoContent {
+			n, err = client.CreateOrUpdateResponder(n.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "relay.NamespacesCreateOrUpdateFuture", "Result", n.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -345,7 +371,7 @@ func (client NamespacesClient) Delete(ctx context.Context, resourceGroupName str
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "relay.NamespacesClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "relay.NamespacesClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -381,7 +407,23 @@ func (client NamespacesClient) DeleteSender(req *http.Request) (future Namespace
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client NamespacesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "relay.NamespacesDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("relay.NamespacesDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -694,6 +736,7 @@ func (client NamespacesClient) List(ctx context.Context) (result NamespaceListRe
 	}
 	if result.nlr.hasNextLink() && result.nlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -753,7 +796,6 @@ func (client NamespacesClient) listNextResults(ctx context.Context, lastResults 
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.NamespacesClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -820,6 +862,7 @@ func (client NamespacesClient) ListAuthorizationRules(ctx context.Context, resou
 	}
 	if result.arlr.hasNextLink() && result.arlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -881,7 +924,6 @@ func (client NamespacesClient) listAuthorizationRulesNextResults(ctx context.Con
 	result, err = client.ListAuthorizationRulesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.NamespacesClient", "listAuthorizationRulesNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -944,6 +986,7 @@ func (client NamespacesClient) ListByResourceGroup(ctx context.Context, resource
 	}
 	if result.nlr.hasNextLink() && result.nlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -1004,7 +1047,6 @@ func (client NamespacesClient) listByResourceGroupNextResults(ctx context.Contex
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.NamespacesClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

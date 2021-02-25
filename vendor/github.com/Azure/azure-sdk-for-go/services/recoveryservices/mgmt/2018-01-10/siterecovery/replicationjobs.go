@@ -63,7 +63,7 @@ func (client ReplicationJobsClient) Cancel(ctx context.Context, jobName string) 
 
 	result, err = client.CancelSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationJobsClient", "Cancel", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationJobsClient", "Cancel", nil, "Failure sending request")
 		return
 	}
 
@@ -100,7 +100,33 @@ func (client ReplicationJobsClient) CancelSender(req *http.Request) (future Repl
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ReplicationJobsClient) (j Job, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationJobsCancelFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationJobsCancelFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		j.Response.Response, err = future.GetResult(sender)
+		if j.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationJobsCancelFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && j.Response.Response.StatusCode != http.StatusNoContent {
+			j, err = client.CancelResponder(j.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "siterecovery.ReplicationJobsCancelFuture", "Result", j.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -138,7 +164,7 @@ func (client ReplicationJobsClient) Export(ctx context.Context, jobQueryParamete
 
 	result, err = client.ExportSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationJobsClient", "Export", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationJobsClient", "Export", nil, "Failure sending request")
 		return
 	}
 
@@ -176,7 +202,33 @@ func (client ReplicationJobsClient) ExportSender(req *http.Request) (future Repl
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ReplicationJobsClient) (j Job, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationJobsExportFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationJobsExportFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		j.Response.Response, err = future.GetResult(sender)
+		if j.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationJobsExportFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && j.Response.Response.StatusCode != http.StatusNoContent {
+			j, err = client.ExportResponder(j.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "siterecovery.ReplicationJobsExportFuture", "Result", j.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -303,6 +355,7 @@ func (client ReplicationJobsClient) List(ctx context.Context, filter string) (re
 	}
 	if result.jc.hasNextLink() && result.jc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -367,7 +420,6 @@ func (client ReplicationJobsClient) listNextResults(ctx context.Context, lastRes
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationJobsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -410,7 +462,7 @@ func (client ReplicationJobsClient) Restart(ctx context.Context, jobName string)
 
 	result, err = client.RestartSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationJobsClient", "Restart", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationJobsClient", "Restart", nil, "Failure sending request")
 		return
 	}
 
@@ -447,7 +499,33 @@ func (client ReplicationJobsClient) RestartSender(req *http.Request) (future Rep
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ReplicationJobsClient) (j Job, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationJobsRestartFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationJobsRestartFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		j.Response.Response, err = future.GetResult(sender)
+		if j.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationJobsRestartFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && j.Response.Response.StatusCode != http.StatusNoContent {
+			j, err = client.RestartResponder(j.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "siterecovery.ReplicationJobsRestartFuture", "Result", j.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -486,7 +564,7 @@ func (client ReplicationJobsClient) Resume(ctx context.Context, jobName string, 
 
 	result, err = client.ResumeSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationJobsClient", "Resume", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationJobsClient", "Resume", nil, "Failure sending request")
 		return
 	}
 
@@ -525,7 +603,33 @@ func (client ReplicationJobsClient) ResumeSender(req *http.Request) (future Repl
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ReplicationJobsClient) (j Job, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationJobsResumeFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationJobsResumeFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		j.Response.Response, err = future.GetResult(sender)
+		if j.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationJobsResumeFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && j.Response.Response.StatusCode != http.StatusNoContent {
+			j, err = client.ResumeResponder(j.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "siterecovery.ReplicationJobsResumeFuture", "Result", j.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

@@ -91,7 +91,7 @@ func (client ReplicationRecoveryServicesProvidersClient) Create(ctx context.Cont
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryServicesProvidersClient", "Create", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryServicesProvidersClient", "Create", nil, "Failure sending request")
 		return
 	}
 
@@ -131,7 +131,33 @@ func (client ReplicationRecoveryServicesProvidersClient) CreateSender(req *http.
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ReplicationRecoveryServicesProvidersClient) (rsp RecoveryServicesProvider, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryServicesProvidersCreateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationRecoveryServicesProvidersCreateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		rsp.Response.Response, err = future.GetResult(sender)
+		if rsp.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryServicesProvidersCreateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && rsp.Response.Response.StatusCode != http.StatusNoContent {
+			rsp, err = client.CreateResponder(rsp.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryServicesProvidersCreateFuture", "Result", rsp.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -170,7 +196,7 @@ func (client ReplicationRecoveryServicesProvidersClient) Delete(ctx context.Cont
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryServicesProvidersClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryServicesProvidersClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -208,7 +234,23 @@ func (client ReplicationRecoveryServicesProvidersClient) DeleteSender(req *http.
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ReplicationRecoveryServicesProvidersClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryServicesProvidersDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationRecoveryServicesProvidersDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -334,6 +376,7 @@ func (client ReplicationRecoveryServicesProvidersClient) List(ctx context.Contex
 	}
 	if result.rspc.hasNextLink() && result.rspc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -395,7 +438,6 @@ func (client ReplicationRecoveryServicesProvidersClient) listNextResults(ctx con
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryServicesProvidersClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -451,6 +493,7 @@ func (client ReplicationRecoveryServicesProvidersClient) ListByReplicationFabric
 	}
 	if result.rspc.hasNextLink() && result.rspc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -513,7 +556,6 @@ func (client ReplicationRecoveryServicesProvidersClient) listByReplicationFabric
 	result, err = client.ListByReplicationFabricsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryServicesProvidersClient", "listByReplicationFabricsNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -557,7 +599,7 @@ func (client ReplicationRecoveryServicesProvidersClient) Purge(ctx context.Conte
 
 	result, err = client.PurgeSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryServicesProvidersClient", "Purge", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryServicesProvidersClient", "Purge", nil, "Failure sending request")
 		return
 	}
 
@@ -595,7 +637,23 @@ func (client ReplicationRecoveryServicesProvidersClient) PurgeSender(req *http.R
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ReplicationRecoveryServicesProvidersClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryServicesProvidersPurgeFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationRecoveryServicesProvidersPurgeFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -633,7 +691,7 @@ func (client ReplicationRecoveryServicesProvidersClient) RefreshProvider(ctx con
 
 	result, err = client.RefreshProviderSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryServicesProvidersClient", "RefreshProvider", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryServicesProvidersClient", "RefreshProvider", nil, "Failure sending request")
 		return
 	}
 
@@ -671,7 +729,33 @@ func (client ReplicationRecoveryServicesProvidersClient) RefreshProviderSender(r
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ReplicationRecoveryServicesProvidersClient) (rsp RecoveryServicesProvider, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryServicesProvidersRefreshProviderFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationRecoveryServicesProvidersRefreshProviderFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		rsp.Response.Response, err = future.GetResult(sender)
+		if rsp.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryServicesProvidersRefreshProviderFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && rsp.Response.Response.StatusCode != http.StatusNoContent {
+			rsp, err = client.RefreshProviderResponder(rsp.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryServicesProvidersRefreshProviderFuture", "Result", rsp.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

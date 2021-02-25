@@ -175,6 +175,7 @@ func (client ActivityClient) ListByModule(ctx context.Context, resourceGroupName
 	}
 	if result.alr.hasNextLink() && result.alr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -237,7 +238,6 @@ func (client ActivityClient) listByModuleNextResults(ctx context.Context, lastRe
 	result, err = client.ListByModuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.ActivityClient", "listByModuleNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

@@ -69,7 +69,7 @@ func (client LongTermRetentionBackupsClient) Delete(ctx context.Context, locatio
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionBackupsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionBackupsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -107,7 +107,23 @@ func (client LongTermRetentionBackupsClient) DeleteSender(req *http.Request) (fu
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client LongTermRetentionBackupsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.LongTermRetentionBackupsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.LongTermRetentionBackupsDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -149,7 +165,7 @@ func (client LongTermRetentionBackupsClient) DeleteByResourceGroup(ctx context.C
 
 	result, err = client.DeleteByResourceGroupSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionBackupsClient", "DeleteByResourceGroup", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionBackupsClient", "DeleteByResourceGroup", nil, "Failure sending request")
 		return
 	}
 
@@ -188,7 +204,23 @@ func (client LongTermRetentionBackupsClient) DeleteByResourceGroupSender(req *ht
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client LongTermRetentionBackupsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.LongTermRetentionBackupsDeleteByResourceGroupFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.LongTermRetentionBackupsDeleteByResourceGroupFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -405,6 +437,7 @@ func (client LongTermRetentionBackupsClient) ListByDatabase(ctx context.Context,
 	}
 	if result.ltrblr.hasNextLink() && result.ltrblr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -473,7 +506,6 @@ func (client LongTermRetentionBackupsClient) listByDatabaseNextResults(ctx conte
 	result, err = client.ListByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionBackupsClient", "listByDatabaseNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -531,6 +563,7 @@ func (client LongTermRetentionBackupsClient) ListByLocation(ctx context.Context,
 	}
 	if result.ltrblr.hasNextLink() && result.ltrblr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -597,7 +630,6 @@ func (client LongTermRetentionBackupsClient) listByLocationNextResults(ctx conte
 	result, err = client.ListByLocationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionBackupsClient", "listByLocationNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -659,6 +691,7 @@ func (client LongTermRetentionBackupsClient) ListByResourceGroupDatabase(ctx con
 	}
 	if result.ltrblr.hasNextLink() && result.ltrblr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -728,7 +761,6 @@ func (client LongTermRetentionBackupsClient) listByResourceGroupDatabaseNextResu
 	result, err = client.ListByResourceGroupDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionBackupsClient", "listByResourceGroupDatabaseNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -788,6 +820,7 @@ func (client LongTermRetentionBackupsClient) ListByResourceGroupLocation(ctx con
 	}
 	if result.ltrblr.hasNextLink() && result.ltrblr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -855,7 +888,6 @@ func (client LongTermRetentionBackupsClient) listByResourceGroupLocationNextResu
 	result, err = client.ListByResourceGroupLocationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionBackupsClient", "listByResourceGroupLocationNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -916,6 +948,7 @@ func (client LongTermRetentionBackupsClient) ListByResourceGroupServer(ctx conte
 	}
 	if result.ltrblr.hasNextLink() && result.ltrblr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -984,7 +1017,6 @@ func (client LongTermRetentionBackupsClient) listByResourceGroupServerNextResult
 	result, err = client.ListByResourceGroupServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionBackupsClient", "listByResourceGroupServerNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -1043,6 +1075,7 @@ func (client LongTermRetentionBackupsClient) ListByServer(ctx context.Context, l
 	}
 	if result.ltrblr.hasNextLink() && result.ltrblr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -1110,7 +1143,6 @@ func (client LongTermRetentionBackupsClient) listByServerNextResults(ctx context
 	result, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionBackupsClient", "listByServerNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

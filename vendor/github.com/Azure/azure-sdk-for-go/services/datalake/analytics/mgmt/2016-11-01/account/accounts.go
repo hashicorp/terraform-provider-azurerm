@@ -173,7 +173,7 @@ func (client AccountsClient) Create(ctx context.Context, resourceGroupName strin
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "account.AccountsClient", "Create", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "account.AccountsClient", "Create", nil, "Failure sending request")
 		return
 	}
 
@@ -211,7 +211,33 @@ func (client AccountsClient) CreateSender(req *http.Request) (future AccountsCre
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client AccountsClient) (dlaa DataLakeAnalyticsAccount, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "account.AccountsCreateFutureType", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("account.AccountsCreateFutureType")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		dlaa.Response.Response, err = future.GetResult(sender)
+		if dlaa.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "account.AccountsCreateFutureType", "Result", nil, "received nil response and error")
+		}
+		if err == nil && dlaa.Response.Response.StatusCode != http.StatusNoContent {
+			dlaa, err = client.CreateResponder(dlaa.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "account.AccountsCreateFutureType", "Result", dlaa.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -250,7 +276,7 @@ func (client AccountsClient) Delete(ctx context.Context, resourceGroupName strin
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "account.AccountsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "account.AccountsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -286,7 +312,23 @@ func (client AccountsClient) DeleteSender(req *http.Request) (future AccountsDel
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client AccountsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "account.AccountsDeleteFutureType", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("account.AccountsDeleteFutureType")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -432,6 +474,7 @@ func (client AccountsClient) List(ctx context.Context, filter string, top *int32
 	}
 	if result.dlaalr.hasNextLink() && result.dlaalr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -509,7 +552,6 @@ func (client AccountsClient) listNextResults(ctx context.Context, lastResults Da
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.AccountsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -586,6 +628,7 @@ func (client AccountsClient) ListByResourceGroup(ctx context.Context, resourceGr
 	}
 	if result.dlaalr.hasNextLink() && result.dlaalr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -664,7 +707,6 @@ func (client AccountsClient) listByResourceGroupNextResults(ctx context.Context,
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.AccountsClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -710,7 +752,7 @@ func (client AccountsClient) Update(ctx context.Context, resourceGroupName strin
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "account.AccountsClient", "Update", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "account.AccountsClient", "Update", nil, "Failure sending request")
 		return
 	}
 
@@ -751,7 +793,33 @@ func (client AccountsClient) UpdateSender(req *http.Request) (future AccountsUpd
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client AccountsClient) (dlaa DataLakeAnalyticsAccount, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "account.AccountsUpdateFutureType", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("account.AccountsUpdateFutureType")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		dlaa.Response.Response, err = future.GetResult(sender)
+		if dlaa.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "account.AccountsUpdateFutureType", "Result", nil, "received nil response and error")
+		}
+		if err == nil && dlaa.Response.Response.StatusCode != http.StatusNoContent {
+			dlaa, err = client.UpdateResponder(dlaa.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "account.AccountsUpdateFutureType", "Result", dlaa.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

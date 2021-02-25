@@ -86,7 +86,7 @@ func (client OrdersClient) CreateOrUpdate(ctx context.Context, deviceName string
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "databoxedge.OrdersClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "databoxedge.OrdersClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -124,7 +124,33 @@ func (client OrdersClient) CreateOrUpdateSender(req *http.Request) (future Order
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client OrdersClient) (o Order, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "databoxedge.OrdersCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("databoxedge.OrdersCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		o.Response.Response, err = future.GetResult(sender)
+		if o.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "databoxedge.OrdersCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && o.Response.Response.StatusCode != http.StatusNoContent {
+			o, err = client.CreateOrUpdateResponder(o.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "databoxedge.OrdersCreateOrUpdateFuture", "Result", o.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -163,7 +189,7 @@ func (client OrdersClient) Delete(ctx context.Context, deviceName string, resour
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "databoxedge.OrdersClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "databoxedge.OrdersClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -199,7 +225,23 @@ func (client OrdersClient) DeleteSender(req *http.Request) (future OrdersDeleteF
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client OrdersClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "databoxedge.OrdersDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("databoxedge.OrdersDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -326,6 +368,7 @@ func (client OrdersClient) ListByDataBoxEdgeDevice(ctx context.Context, deviceNa
 	}
 	if result.ol.hasNextLink() && result.ol.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -387,7 +430,6 @@ func (client OrdersClient) listByDataBoxEdgeDeviceNextResults(ctx context.Contex
 	result, err = client.ListByDataBoxEdgeDeviceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "databoxedge.OrdersClient", "listByDataBoxEdgeDeviceNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

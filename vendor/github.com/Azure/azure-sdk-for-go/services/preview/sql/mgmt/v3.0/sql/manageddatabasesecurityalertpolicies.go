@@ -246,6 +246,7 @@ func (client ManagedDatabaseSecurityAlertPoliciesClient) ListByDatabase(ctx cont
 	}
 	if result.mdsaplr.hasNextLink() && result.mdsaplr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -308,7 +309,6 @@ func (client ManagedDatabaseSecurityAlertPoliciesClient) listByDatabaseNextResul
 	result, err = client.ListByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedDatabaseSecurityAlertPoliciesClient", "listByDatabaseNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

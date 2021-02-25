@@ -66,7 +66,7 @@ func (client ReplicationvCentersClient) Create(ctx context.Context, fabricName s
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationvCentersClient", "Create", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationvCentersClient", "Create", nil, "Failure sending request")
 		return
 	}
 
@@ -106,7 +106,33 @@ func (client ReplicationvCentersClient) CreateSender(req *http.Request) (future 
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ReplicationvCentersClient) (vc VCenter, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationvCentersCreateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationvCentersCreateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		vc.Response.Response, err = future.GetResult(sender)
+		if vc.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationvCentersCreateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && vc.Response.Response.StatusCode != http.StatusNoContent {
+			vc, err = client.CreateResponder(vc.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "siterecovery.ReplicationvCentersCreateFuture", "Result", vc.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -145,7 +171,7 @@ func (client ReplicationvCentersClient) Delete(ctx context.Context, fabricName s
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationvCentersClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationvCentersClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -183,7 +209,23 @@ func (client ReplicationvCentersClient) DeleteSender(req *http.Request) (future 
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ReplicationvCentersClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationvCentersDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationvCentersDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -309,6 +351,7 @@ func (client ReplicationvCentersClient) List(ctx context.Context) (result VCente
 	}
 	if result.vcc.hasNextLink() && result.vcc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -370,7 +413,6 @@ func (client ReplicationvCentersClient) listNextResults(ctx context.Context, las
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationvCentersClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -426,6 +468,7 @@ func (client ReplicationvCentersClient) ListByReplicationFabrics(ctx context.Con
 	}
 	if result.vcc.hasNextLink() && result.vcc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -488,7 +531,6 @@ func (client ReplicationvCentersClient) listByReplicationFabricsNextResults(ctx 
 	result, err = client.ListByReplicationFabricsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationvCentersClient", "listByReplicationFabricsNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -533,7 +575,7 @@ func (client ReplicationvCentersClient) Update(ctx context.Context, fabricName s
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationvCentersClient", "Update", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationvCentersClient", "Update", nil, "Failure sending request")
 		return
 	}
 
@@ -573,7 +615,33 @@ func (client ReplicationvCentersClient) UpdateSender(req *http.Request) (future 
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ReplicationvCentersClient) (vc VCenter, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationvCentersUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationvCentersUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		vc.Response.Response, err = future.GetResult(sender)
+		if vc.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationvCentersUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && vc.Response.Response.StatusCode != http.StatusNoContent {
+			vc, err = client.UpdateResponder(vc.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "siterecovery.ReplicationvCentersUpdateFuture", "Result", vc.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
