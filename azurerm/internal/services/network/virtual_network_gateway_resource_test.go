@@ -892,8 +892,7 @@ resource "azurerm_virtual_network_gateway" "test" {
   bgp_settings {
     asn = "65010"
     peering_addresses {
-      ip_configuration_name = "gw-ip"
-      apipa_addresses       = ["169.254.21.1"]
+      apipa_addresses = ["169.254.21.1"]
     }
   }
 }

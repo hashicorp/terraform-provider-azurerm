@@ -247,7 +247,7 @@ A `custom_route` block supports the following:
 
 A `peering_addresses` supports the following:
 
-* `ip_configuration_name` - (Required) The name of the IP configuration of this Virtual Network Gateway (as you defined in the`ip_configuration`).
+* `ip_configuration_name` - (Optional) The name of the IP configuration of this Virtual Network Gateway. In case there are multiple `ip_configuration` blocks defined, this property is **required** to specify.
 
 * `apipa_addresses` - (Optional) A list of Azure custom APIPA addresses assigned to the BGP peer of the Virtual Network Gateway.
   

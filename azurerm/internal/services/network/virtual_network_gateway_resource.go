@@ -335,8 +335,10 @@ func resourceVirtualNetworkGateway() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"ip_configuration_name": {
-										Type:         schema.TypeString,
-										Required:     true,
+										Type: schema.TypeString,
+										// In case there is only one `ip_configuration` in root level. This property can be deduced from the that.
+										Optional:     true,
+										Computed:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"apipa_addresses": {
@@ -580,7 +582,11 @@ func getVirtualNetworkGatewayProperties(id parse.VirtualNetworkGatewayId, d *sch
 	}
 
 	if _, ok := d.GetOk("bgp_settings"); ok {
-		props.BgpSettings = expandVirtualNetworkGatewayBgpSettings(id, d)
+		bgpSettings, err := expandVirtualNetworkGatewayBgpSettings(id, d)
+		if err != nil {
+			return nil, err
+		}
+		props.BgpSettings = bgpSettings
 	}
 
 	// Sku validation for policy-based VPN gateways
@@ -614,10 +620,10 @@ func getVirtualNetworkGatewayProperties(id parse.VirtualNetworkGatewayId, d *sch
 	return props, nil
 }
 
-func expandVirtualNetworkGatewayBgpSettings(id parse.VirtualNetworkGatewayId, d *schema.ResourceData) *network.BgpSettings {
+func expandVirtualNetworkGatewayBgpSettings(id parse.VirtualNetworkGatewayId, d *schema.ResourceData) (*network.BgpSettings, error) {
 	bgpSets := d.Get("bgp_settings").([]interface{})
 	if len(bgpSets) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	bgp := bgpSets[0].(map[string]interface{})
@@ -626,32 +632,63 @@ func expandVirtualNetworkGatewayBgpSettings(id parse.VirtualNetworkGatewayId, d 
 	peeringAddress := bgp["peering_address"].(string)
 	peerWeight := int32(bgp["peer_weight"].(int))
 
+	ipConfiguration := d.Get("ip_configuration").([]interface{})
+	peeringAddresses, err := expandVirtualNetworkGatewayBgpPeeringAddresses(id, ipConfiguration, bgp["peering_addresses"].([]interface{}))
+	if err != nil {
+		return nil, err
+	}
+
 	return &network.BgpSettings{
 		Asn:                 &asn,
 		BgpPeeringAddress:   &peeringAddress,
 		PeerWeight:          &peerWeight,
-		BgpPeeringAddresses: expandVirtualNetworkGatewayBgpPeeringAddresses(id, bgp["peering_addresses"].([]interface{})),
-	}
+		BgpPeeringAddresses: peeringAddresses,
+	}, nil
 }
 
-func expandVirtualNetworkGatewayBgpPeeringAddresses(id parse.VirtualNetworkGatewayId, input []interface{}) *[]network.IPConfigurationBgpPeeringAddress {
+func expandVirtualNetworkGatewayBgpPeeringAddresses(id parse.VirtualNetworkGatewayId, ipConfig, input []interface{}) (*[]network.IPConfigurationBgpPeeringAddress, error) {
 	if len(input) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	result := make([]network.IPConfigurationBgpPeeringAddress, 0)
 
+	var existIpConfigName string
+	if len(ipConfig) == 1 {
+		existIpConfigName = ipConfig[0].(map[string]interface{})["name"].(string)
+	}
+
 	for _, e := range input {
 		b := e.(map[string]interface{})
 
-		ipConfigId := parse.NewVirtualNetworkGatewayIpConfigurationID(id.SubscriptionId, id.ResourceGroup, id.Name, b["ip_configuration_name"].(string))
+		ipConfigName := b["ip_configuration_name"].(string)
+
+		if ipConfigName == "" {
+			// existIpConfigName is empty means there are more than one `ip_configuration` blocks, in which case users have to specify the
+			// `ip_configuration_name` used in current `peering_addresses` setting.
+			if existIpConfigName == "" {
+				return nil, fmt.Errorf("`ip_configuration_name` has to be set in current `peering_addresses` block in case there are multiple `ip_configuration` blocks")
+			}
+
+			ipConfigName = existIpConfigName
+		}
+
+		// If there is an existing ip configuration name defined in the only `ip_configuration` block, and users explicitly set the `ip_configuration_name` in current
+		// `peering_addresses` block, they should be the same name.
+		if existIpConfigName != "" && ipConfigName != "" {
+			if ipConfigName != existIpConfigName {
+				return nil, fmt.Errorf("`ip_configuration.0.name` is not the same as `bgp_settings.0.peering_addresses.*.ip_configuration_name`")
+			}
+		}
+
+		ipConfigId := parse.NewVirtualNetworkGatewayIpConfigurationID(id.SubscriptionId, id.ResourceGroup, id.Name, ipConfigName)
 		result = append(result, network.IPConfigurationBgpPeeringAddress{
 			IpconfigurationID:    utils.String(ipConfigId.ID()),
 			CustomBgpIPAddresses: utils.ExpandStringSlice(b["apipa_addresses"].([]interface{})),
 		})
 	}
 
-	return &result
+	return &result, nil
 }
 
 func expandVirtualNetworkGatewayIPConfigurations(d *schema.ResourceData) *[]network.VirtualNetworkGatewayIPConfiguration {
