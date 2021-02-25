@@ -79,9 +79,11 @@ func (client WorkloadItemsClient) List(ctx context.Context, vaultName string, re
 	result.wirl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.WorkloadItemsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.wirl.hasNextLink() && result.wirl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

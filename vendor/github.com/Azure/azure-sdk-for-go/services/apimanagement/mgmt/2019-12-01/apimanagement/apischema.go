@@ -89,7 +89,7 @@ func (client APISchemaClient) CreateOrUpdate(ctx context.Context, resourceGroupN
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "apimanagement.APISchemaClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "apimanagement.APISchemaClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -133,7 +133,33 @@ func (client APISchemaClient) CreateOrUpdateSender(req *http.Request) (future AP
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client APISchemaClient) (sc SchemaContract, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "apimanagement.APISchemaCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("apimanagement.APISchemaCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		sc.Response.Response, err = future.GetResult(sender)
+		if sc.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "apimanagement.APISchemaCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && sc.Response.Response.StatusCode != http.StatusNoContent {
+			sc, err = client.CreateOrUpdateResponder(sc.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "apimanagement.APISchemaCreateOrUpdateFuture", "Result", sc.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -202,6 +228,7 @@ func (client APISchemaClient) Delete(ctx context.Context, resourceGroupName stri
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APISchemaClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -301,6 +328,7 @@ func (client APISchemaClient) Get(ctx context.Context, resourceGroupName string,
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APISchemaClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -397,6 +425,7 @@ func (client APISchemaClient) GetEntityTag(ctx context.Context, resourceGroupNam
 	result, err = client.GetEntityTagResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APISchemaClient", "GetEntityTag", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -499,9 +528,11 @@ func (client APISchemaClient) ListByAPI(ctx context.Context, resourceGroupName s
 	result.sc, err = client.ListByAPIResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APISchemaClient", "ListByAPI", resp, "Failure responding to request")
+		return
 	}
 	if result.sc.hasNextLink() && result.sc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

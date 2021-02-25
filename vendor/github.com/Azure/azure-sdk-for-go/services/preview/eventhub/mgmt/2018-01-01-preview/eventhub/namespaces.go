@@ -78,6 +78,7 @@ func (client NamespacesClient) CheckNameAvailability(ctx context.Context, parame
 	result, err = client.CheckNameAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.NamespacesClient", "CheckNameAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -170,7 +171,7 @@ func (client NamespacesClient) CreateOrUpdate(ctx context.Context, resourceGroup
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventhub.NamespacesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "eventhub.NamespacesClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -208,7 +209,33 @@ func (client NamespacesClient) CreateOrUpdateSender(req *http.Request) (future N
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client NamespacesClient) (en EHNamespace, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "eventhub.NamespacesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("eventhub.NamespacesCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		en.Response.Response, err = future.GetResult(sender)
+		if en.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "eventhub.NamespacesCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && en.Response.Response.StatusCode != http.StatusNoContent {
+			en, err = client.CreateOrUpdateResponder(en.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "eventhub.NamespacesCreateOrUpdateFuture", "Result", en.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -272,6 +299,7 @@ func (client NamespacesClient) CreateOrUpdateAuthorizationRule(ctx context.Conte
 	result, err = client.CreateOrUpdateAuthorizationRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.NamespacesClient", "CreateOrUpdateAuthorizationRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -364,6 +392,7 @@ func (client NamespacesClient) CreateOrUpdateIPFilterRule(ctx context.Context, r
 	result, err = client.CreateOrUpdateIPFilterRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.NamespacesClient", "CreateOrUpdateIPFilterRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -453,6 +482,7 @@ func (client NamespacesClient) CreateOrUpdateNetworkRuleSet(ctx context.Context,
 	result, err = client.CreateOrUpdateNetworkRuleSetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.NamespacesClient", "CreateOrUpdateNetworkRuleSet", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -544,6 +574,7 @@ func (client NamespacesClient) CreateOrUpdateVirtualNetworkRule(ctx context.Cont
 	result, err = client.CreateOrUpdateVirtualNetworkRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.NamespacesClient", "CreateOrUpdateVirtualNetworkRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -624,7 +655,7 @@ func (client NamespacesClient) Delete(ctx context.Context, resourceGroupName str
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventhub.NamespacesClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "eventhub.NamespacesClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -660,7 +691,23 @@ func (client NamespacesClient) DeleteSender(req *http.Request) (future Namespace
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client NamespacesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "eventhub.NamespacesDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("eventhub.NamespacesDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -719,6 +766,7 @@ func (client NamespacesClient) DeleteAuthorizationRule(ctx context.Context, reso
 	result, err = client.DeleteAuthorizationRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.NamespacesClient", "DeleteAuthorizationRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -807,6 +855,7 @@ func (client NamespacesClient) DeleteIPFilterRule(ctx context.Context, resourceG
 	result, err = client.DeleteIPFilterRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.NamespacesClient", "DeleteIPFilterRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -895,6 +944,7 @@ func (client NamespacesClient) DeleteVirtualNetworkRule(ctx context.Context, res
 	result, err = client.DeleteVirtualNetworkRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.NamespacesClient", "DeleteVirtualNetworkRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -980,6 +1030,7 @@ func (client NamespacesClient) Get(ctx context.Context, resourceGroupName string
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.NamespacesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1068,6 +1119,7 @@ func (client NamespacesClient) GetAuthorizationRule(ctx context.Context, resourc
 	result, err = client.GetAuthorizationRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.NamespacesClient", "GetAuthorizationRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1157,6 +1209,7 @@ func (client NamespacesClient) GetIPFilterRule(ctx context.Context, resourceGrou
 	result, err = client.GetIPFilterRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.NamespacesClient", "GetIPFilterRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1243,6 +1296,7 @@ func (client NamespacesClient) GetNetworkRuleSet(ctx context.Context, resourceGr
 	result, err = client.GetNetworkRuleSetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.NamespacesClient", "GetNetworkRuleSet", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1331,6 +1385,7 @@ func (client NamespacesClient) GetVirtualNetworkRule(ctx context.Context, resour
 	result, err = client.GetVirtualNetworkRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.NamespacesClient", "GetVirtualNetworkRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1405,9 +1460,11 @@ func (client NamespacesClient) List(ctx context.Context) (result EHNamespaceList
 	result.enlr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.NamespacesClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.enlr.hasNextLink() && result.enlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -1529,9 +1586,11 @@ func (client NamespacesClient) ListAuthorizationRules(ctx context.Context, resou
 	result.arlr, err = client.ListAuthorizationRulesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.NamespacesClient", "ListAuthorizationRules", resp, "Failure responding to request")
+		return
 	}
 	if result.arlr.hasNextLink() && result.arlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -1651,9 +1710,11 @@ func (client NamespacesClient) ListByResourceGroup(ctx context.Context, resource
 	result.enlr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.NamespacesClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.enlr.hasNextLink() && result.enlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -1776,9 +1837,11 @@ func (client NamespacesClient) ListIPFilterRules(ctx context.Context, resourceGr
 	result.ifrlr, err = client.ListIPFilterRulesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.NamespacesClient", "ListIPFilterRules", resp, "Failure responding to request")
+		return
 	}
 	if result.ifrlr.hasNextLink() && result.ifrlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -1904,6 +1967,7 @@ func (client NamespacesClient) ListKeys(ctx context.Context, resourceGroupName s
 	result, err = client.ListKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.NamespacesClient", "ListKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1991,9 +2055,11 @@ func (client NamespacesClient) ListVirtualNetworkRules(ctx context.Context, reso
 	result.vnrlr, err = client.ListVirtualNetworkRulesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.NamespacesClient", "ListVirtualNetworkRules", resp, "Failure responding to request")
+		return
 	}
 	if result.vnrlr.hasNextLink() && result.vnrlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -2120,6 +2186,7 @@ func (client NamespacesClient) RegenerateKeys(ctx context.Context, resourceGroup
 	result, err = client.RegenerateKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.NamespacesClient", "RegenerateKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -2210,6 +2277,7 @@ func (client NamespacesClient) Update(ctx context.Context, resourceGroupName str
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.NamespacesClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

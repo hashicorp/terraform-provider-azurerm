@@ -5,22 +5,22 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-01-10/siterecovery"
+	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-07-10/siterecovery"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSiteRecoveryNetworkMapping() *schema.Resource {
+func resourceSiteRecoveryNetworkMapping() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSiteRecoveryNetworkMappingCreate,
-		Read:   resourceArmSiteRecoveryNetworkMappingRead,
-		Delete: resourceArmSiteRecoveryNetworkMappingDelete,
+		Create: resourceSiteRecoveryNetworkMappingCreate,
+		Read:   resourceSiteRecoveryNetworkMappingRead,
+		Delete: resourceSiteRecoveryNetworkMappingDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -45,7 +45,7 @@ func resourceArmSiteRecoveryNetworkMapping() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateRecoveryServicesVaultName,
+				ValidateFunc: validateRecoveryServicesVaultName,
 			},
 			"source_recovery_fabric_name": {
 				Type:         schema.TypeString,
@@ -77,7 +77,7 @@ func resourceArmSiteRecoveryNetworkMapping() *schema.Resource {
 	}
 }
 
-func resourceArmSiteRecoveryNetworkMappingCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryNetworkMappingCreate(d *schema.ResourceData, meta interface{}) error {
 	resGroup := d.Get("resource_group_name").(string)
 	vaultName := d.Get("recovery_vault_name").(string)
 	fabricName := d.Get("source_recovery_fabric_name").(string)
@@ -115,7 +115,7 @@ func resourceArmSiteRecoveryNetworkMappingCreate(d *schema.ResourceData, meta in
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_site_recovery_network_mapping", azure.HandleAzureSdkForGoBug2824(*existing.ID))
+			return tf.ImportAsExistsError("azurerm_site_recovery_network_mapping", handleAzureSdkForGoBug2824(*existing.ID))
 		}
 	}
 
@@ -141,12 +141,12 @@ func resourceArmSiteRecoveryNetworkMappingCreate(d *schema.ResourceData, meta in
 		return fmt.Errorf("Error retrieving site recovery network mapping %s (vault %s): %+v", name, vaultName, err)
 	}
 
-	d.SetId(azure.HandleAzureSdkForGoBug2824(*resp.ID))
+	d.SetId(handleAzureSdkForGoBug2824(*resp.ID))
 
-	return resourceArmSiteRecoveryNetworkMappingRead(d, meta)
+	return resourceSiteRecoveryNetworkMappingRead(d, meta)
 }
 
-func resourceArmSiteRecoveryNetworkMappingRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryNetworkMappingRead(d *schema.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -179,7 +179,7 @@ func resourceArmSiteRecoveryNetworkMappingRead(d *schema.ResourceData, meta inte
 		d.Set("source_network_id", props.PrimaryNetworkID)
 		d.Set("target_network_id", props.RecoveryNetworkID)
 
-		targetFabricId, err := azure.ParseAzureResourceID(azure.HandleAzureSdkForGoBug2824(*resp.Properties.RecoveryFabricArmID))
+		targetFabricId, err := azure.ParseAzureResourceID(handleAzureSdkForGoBug2824(*resp.Properties.RecoveryFabricArmID))
 		if err != nil {
 			return err
 		}
@@ -189,7 +189,7 @@ func resourceArmSiteRecoveryNetworkMappingRead(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func resourceArmSiteRecoveryNetworkMappingDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryNetworkMappingDelete(d *schema.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err

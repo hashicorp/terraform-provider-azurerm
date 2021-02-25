@@ -89,6 +89,7 @@ func (client DisasterRecoveryConfigsClient) BreakPairing(ctx context.Context, re
 	result, err = client.BreakPairingResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.DisasterRecoveryConfigsClient", "BreakPairing", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -177,6 +178,7 @@ func (client DisasterRecoveryConfigsClient) CheckNameAvailability(ctx context.Co
 	result, err = client.CheckNameAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.DisasterRecoveryConfigsClient", "CheckNameAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -269,6 +271,7 @@ func (client DisasterRecoveryConfigsClient) CreateOrUpdate(ctx context.Context, 
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.DisasterRecoveryConfigsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -361,6 +364,7 @@ func (client DisasterRecoveryConfigsClient) Delete(ctx context.Context, resource
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.DisasterRecoveryConfigsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -450,6 +454,7 @@ func (client DisasterRecoveryConfigsClient) FailOver(ctx context.Context, resour
 	result, err = client.FailOverResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.DisasterRecoveryConfigsClient", "FailOver", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -539,6 +544,7 @@ func (client DisasterRecoveryConfigsClient) Get(ctx context.Context, resourceGro
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.DisasterRecoveryConfigsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -632,6 +638,7 @@ func (client DisasterRecoveryConfigsClient) GetAuthorizationRule(ctx context.Con
 	result, err = client.GetAuthorizationRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.DisasterRecoveryConfigsClient", "GetAuthorizationRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -720,9 +727,11 @@ func (client DisasterRecoveryConfigsClient) List(ctx context.Context, resourceGr
 	result.adrlr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.DisasterRecoveryConfigsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.adrlr.hasNextLink() && result.adrlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -850,9 +859,11 @@ func (client DisasterRecoveryConfigsClient) ListAuthorizationRules(ctx context.C
 	result.arlr, err = client.ListAuthorizationRulesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.DisasterRecoveryConfigsClient", "ListAuthorizationRules", resp, "Failure responding to request")
+		return
 	}
 	if result.arlr.hasNextLink() && result.arlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -983,6 +994,7 @@ func (client DisasterRecoveryConfigsClient) ListKeys(ctx context.Context, resour
 	result, err = client.ListKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.DisasterRecoveryConfigsClient", "ListKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return

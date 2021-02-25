@@ -31,8 +31,8 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl"
 
-// ApplicableSchedule schedules applicable to a virtual machine. The schedules may have been defined on a VM or
-// on lab level.
+// ApplicableSchedule schedules applicable to a virtual machine. The schedules may have been defined on a
+// VM or on lab level.
 type ApplicableSchedule struct {
 	autorest.Response `json:"-"`
 	// ApplicableScheduleProperties - The properties of the resource.
@@ -133,8 +133,8 @@ func (as *ApplicableSchedule) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// ApplicableScheduleFragment schedules applicable to a virtual machine. The schedules may have been defined on
-// a VM or on lab level.
+// ApplicableScheduleFragment schedules applicable to a virtual machine. The schedules may have been
+// defined on a VM or on lab level.
 type ApplicableScheduleFragment struct {
 	// ApplicableSchedulePropertiesFragment - The properties of the resource.
 	*ApplicableSchedulePropertiesFragment `json:"properties,omitempty"`
@@ -1166,56 +1166,22 @@ type CustomImagePropertiesFromVM struct {
 	LinuxOsInfo *LinuxOsInfo `json:"linuxOsInfo,omitempty"`
 }
 
-// CustomImagesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// CustomImagesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type CustomImagesCreateOrUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *CustomImagesCreateOrUpdateFuture) Result(client CustomImagesClient) (ci CustomImage, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.CustomImagesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("dtl.CustomImagesCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if ci.Response.Response, err = future.GetResult(sender); err == nil && ci.Response.Response.StatusCode != http.StatusNoContent {
-		ci, err = client.CreateOrUpdateResponder(ci.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "dtl.CustomImagesCreateOrUpdateFuture", "Result", ci.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(CustomImagesClient) (CustomImage, error)
 }
 
 // CustomImagesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type CustomImagesDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *CustomImagesDeleteFuture) Result(client CustomImagesClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.CustomImagesDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("dtl.CustomImagesDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(CustomImagesClient) (autorest.Response, error)
 }
 
 // DataDiskProperties request body for adding a new or existing data disk to a virtual machine.
@@ -1412,97 +1378,35 @@ func (dp DiskProperties) MarshalJSON() ([]byte, error) {
 
 // DisksAttachFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type DisksAttachFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *DisksAttachFuture) Result(client DisksClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.DisksAttachFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("dtl.DisksAttachFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(DisksClient) (autorest.Response, error)
 }
 
 // DisksCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type DisksCreateOrUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *DisksCreateOrUpdateFuture) Result(client DisksClient) (d Disk, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.DisksCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("dtl.DisksCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if d.Response.Response, err = future.GetResult(sender); err == nil && d.Response.Response.StatusCode != http.StatusNoContent {
-		d, err = client.CreateOrUpdateResponder(d.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "dtl.DisksCreateOrUpdateFuture", "Result", d.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(DisksClient) (Disk, error)
 }
 
 // DisksDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type DisksDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *DisksDeleteFuture) Result(client DisksClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.DisksDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("dtl.DisksDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(DisksClient) (autorest.Response, error)
 }
 
 // DisksDetachFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type DisksDetachFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *DisksDetachFuture) Result(client DisksClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.DisksDetachFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("dtl.DisksDetachFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(DisksClient) (autorest.Response, error)
 }
 
 // Environment an environment, which is essentially an ARM template deployment.
@@ -1648,56 +1552,22 @@ func (ep EnvironmentProperties) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// EnvironmentsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// EnvironmentsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type EnvironmentsCreateOrUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *EnvironmentsCreateOrUpdateFuture) Result(client EnvironmentsClient) (e Environment, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.EnvironmentsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("dtl.EnvironmentsCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if e.Response.Response, err = future.GetResult(sender); err == nil && e.Response.Response.StatusCode != http.StatusNoContent {
-		e, err = client.CreateOrUpdateResponder(e.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "dtl.EnvironmentsCreateOrUpdateFuture", "Result", e.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(EnvironmentsClient) (Environment, error)
 }
 
 // EnvironmentsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type EnvironmentsDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *EnvironmentsDeleteFuture) Result(client EnvironmentsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.EnvironmentsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("dtl.EnvironmentsDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(EnvironmentsClient) (autorest.Response, error)
 }
 
 // EvaluatePoliciesProperties properties for evaluating a policy set.
@@ -1916,30 +1786,10 @@ type FormulaPropertiesFromVM struct {
 // FormulasCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type FormulasCreateOrUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *FormulasCreateOrUpdateFuture) Result(client FormulasClient) (f Formula, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.FormulasCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("dtl.FormulasCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if f.Response.Response, err = future.GetResult(sender); err == nil && f.Response.Response.StatusCode != http.StatusNoContent {
-		f, err = client.CreateOrUpdateResponder(f.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "dtl.FormulasCreateOrUpdateFuture", "Result", f.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(FormulasClient) (Formula, error)
 }
 
 // GalleryImage a gallery image.
@@ -2135,47 +1985,19 @@ type GenerateUploadURIResponse struct {
 // GlobalSchedulesExecuteFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type GlobalSchedulesExecuteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *GlobalSchedulesExecuteFuture) Result(client GlobalSchedulesClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.GlobalSchedulesExecuteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("dtl.GlobalSchedulesExecuteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(GlobalSchedulesClient) (autorest.Response, error)
 }
 
 // GlobalSchedulesRetargetFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type GlobalSchedulesRetargetFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *GlobalSchedulesRetargetFuture) Result(client GlobalSchedulesClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.GlobalSchedulesRetargetFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("dtl.GlobalSchedulesRetargetFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(GlobalSchedulesClient) (autorest.Response, error)
 }
 
 // HourDetails properties of an hourly schedule.
@@ -2213,8 +2035,8 @@ type InboundNatRule struct {
 	BackendPort *int32 `json:"backendPort,omitempty"`
 }
 
-// InboundNatRuleFragment a rule for NAT - exposing a VM's port (backendPort) on the public IP address using a
-// load balancer.
+// InboundNatRuleFragment a rule for NAT - exposing a VM's port (backendPort) on the public IP address
+// using a load balancer.
 type InboundNatRuleFragment struct {
 	// TransportProtocol - The transport protocol for the endpoint. Possible values include: 'TCP', 'UDP'
 	TransportProtocol TransportProtocol `json:"transportProtocol,omitempty"`
@@ -2673,123 +2495,48 @@ type LabResourceCostProperties struct {
 	ExternalResourceID *string `json:"externalResourceId,omitempty"`
 }
 
-// LabsClaimAnyVMFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// LabsClaimAnyVMFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type LabsClaimAnyVMFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *LabsClaimAnyVMFuture) Result(client LabsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.LabsClaimAnyVMFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("dtl.LabsClaimAnyVMFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(LabsClient) (autorest.Response, error)
 }
 
 // LabsCreateEnvironmentFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type LabsCreateEnvironmentFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *LabsCreateEnvironmentFuture) Result(client LabsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.LabsCreateEnvironmentFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("dtl.LabsCreateEnvironmentFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(LabsClient) (autorest.Response, error)
 }
 
 // LabsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type LabsCreateOrUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *LabsCreateOrUpdateFuture) Result(client LabsClient) (l Lab, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.LabsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("dtl.LabsCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if l.Response.Response, err = future.GetResult(sender); err == nil && l.Response.Response.StatusCode != http.StatusNoContent {
-		l, err = client.CreateOrUpdateResponder(l.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "dtl.LabsCreateOrUpdateFuture", "Result", l.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(LabsClient) (Lab, error)
 }
 
 // LabsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type LabsDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *LabsDeleteFuture) Result(client LabsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.LabsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("dtl.LabsDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(LabsClient) (autorest.Response, error)
 }
 
 // LabsExportResourceUsageFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type LabsExportResourceUsageFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *LabsExportResourceUsageFuture) Result(client LabsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.LabsExportResourceUsageFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("dtl.LabsExportResourceUsageFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(LabsClient) (autorest.Response, error)
 }
 
 // LabVhd properties of a VHD in the lab.
@@ -4229,8 +3976,11 @@ func (page ProviderOperationResultPage) Values() []OperationMetadata {
 }
 
 // Creates a new instance of the ProviderOperationResultPage type.
-func NewProviderOperationResultPage(getNextPage func(context.Context, ProviderOperationResult) (ProviderOperationResult, error)) ProviderOperationResultPage {
-	return ProviderOperationResultPage{fn: getNextPage}
+func NewProviderOperationResultPage(cur ProviderOperationResult, getNextPage func(context.Context, ProviderOperationResult) (ProviderOperationResult, error)) ProviderOperationResultPage {
+	return ProviderOperationResultPage{
+		fn:  getNextPage,
+		por: cur,
+	}
 }
 
 // Resource an Azure resource.
@@ -4411,8 +4161,11 @@ func (page ResponseWithContinuationArmTemplatePage) Values() []ArmTemplate {
 }
 
 // Creates a new instance of the ResponseWithContinuationArmTemplatePage type.
-func NewResponseWithContinuationArmTemplatePage(getNextPage func(context.Context, ResponseWithContinuationArmTemplate) (ResponseWithContinuationArmTemplate, error)) ResponseWithContinuationArmTemplatePage {
-	return ResponseWithContinuationArmTemplatePage{fn: getNextPage}
+func NewResponseWithContinuationArmTemplatePage(cur ResponseWithContinuationArmTemplate, getNextPage func(context.Context, ResponseWithContinuationArmTemplate) (ResponseWithContinuationArmTemplate, error)) ResponseWithContinuationArmTemplatePage {
+	return ResponseWithContinuationArmTemplatePage{
+		fn:    getNextPage,
+		rwcat: cur,
+	}
 }
 
 // ResponseWithContinuationArtifact the response of a list operation.
@@ -4567,8 +4320,11 @@ func (page ResponseWithContinuationArtifactPage) Values() []Artifact {
 }
 
 // Creates a new instance of the ResponseWithContinuationArtifactPage type.
-func NewResponseWithContinuationArtifactPage(getNextPage func(context.Context, ResponseWithContinuationArtifact) (ResponseWithContinuationArtifact, error)) ResponseWithContinuationArtifactPage {
-	return ResponseWithContinuationArtifactPage{fn: getNextPage}
+func NewResponseWithContinuationArtifactPage(cur ResponseWithContinuationArtifact, getNextPage func(context.Context, ResponseWithContinuationArtifact) (ResponseWithContinuationArtifact, error)) ResponseWithContinuationArtifactPage {
+	return ResponseWithContinuationArtifactPage{
+		fn:   getNextPage,
+		rwca: cur,
+	}
 }
 
 // ResponseWithContinuationArtifactSource the response of a list operation.
@@ -4724,8 +4480,11 @@ func (page ResponseWithContinuationArtifactSourcePage) Values() []ArtifactSource
 }
 
 // Creates a new instance of the ResponseWithContinuationArtifactSourcePage type.
-func NewResponseWithContinuationArtifactSourcePage(getNextPage func(context.Context, ResponseWithContinuationArtifactSource) (ResponseWithContinuationArtifactSource, error)) ResponseWithContinuationArtifactSourcePage {
-	return ResponseWithContinuationArtifactSourcePage{fn: getNextPage}
+func NewResponseWithContinuationArtifactSourcePage(cur ResponseWithContinuationArtifactSource, getNextPage func(context.Context, ResponseWithContinuationArtifactSource) (ResponseWithContinuationArtifactSource, error)) ResponseWithContinuationArtifactSourcePage {
+	return ResponseWithContinuationArtifactSourcePage{
+		fn:    getNextPage,
+		rwcas: cur,
+	}
 }
 
 // ResponseWithContinuationCustomImage the response of a list operation.
@@ -4880,8 +4639,11 @@ func (page ResponseWithContinuationCustomImagePage) Values() []CustomImage {
 }
 
 // Creates a new instance of the ResponseWithContinuationCustomImagePage type.
-func NewResponseWithContinuationCustomImagePage(getNextPage func(context.Context, ResponseWithContinuationCustomImage) (ResponseWithContinuationCustomImage, error)) ResponseWithContinuationCustomImagePage {
-	return ResponseWithContinuationCustomImagePage{fn: getNextPage}
+func NewResponseWithContinuationCustomImagePage(cur ResponseWithContinuationCustomImage, getNextPage func(context.Context, ResponseWithContinuationCustomImage) (ResponseWithContinuationCustomImage, error)) ResponseWithContinuationCustomImagePage {
+	return ResponseWithContinuationCustomImagePage{
+		fn:    getNextPage,
+		rwcci: cur,
+	}
 }
 
 // ResponseWithContinuationDisk the response of a list operation.
@@ -5036,8 +4798,11 @@ func (page ResponseWithContinuationDiskPage) Values() []Disk {
 }
 
 // Creates a new instance of the ResponseWithContinuationDiskPage type.
-func NewResponseWithContinuationDiskPage(getNextPage func(context.Context, ResponseWithContinuationDisk) (ResponseWithContinuationDisk, error)) ResponseWithContinuationDiskPage {
-	return ResponseWithContinuationDiskPage{fn: getNextPage}
+func NewResponseWithContinuationDiskPage(cur ResponseWithContinuationDisk, getNextPage func(context.Context, ResponseWithContinuationDisk) (ResponseWithContinuationDisk, error)) ResponseWithContinuationDiskPage {
+	return ResponseWithContinuationDiskPage{
+		fn:   getNextPage,
+		rwcd: cur,
+	}
 }
 
 // ResponseWithContinuationDtlEnvironment the response of a list operation.
@@ -5049,7 +4814,8 @@ type ResponseWithContinuationDtlEnvironment struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// ResponseWithContinuationDtlEnvironmentIterator provides access to a complete listing of Environment values.
+// ResponseWithContinuationDtlEnvironmentIterator provides access to a complete listing of Environment
+// values.
 type ResponseWithContinuationDtlEnvironmentIterator struct {
 	i    int
 	page ResponseWithContinuationDtlEnvironmentPage
@@ -5192,8 +4958,11 @@ func (page ResponseWithContinuationDtlEnvironmentPage) Values() []Environment {
 }
 
 // Creates a new instance of the ResponseWithContinuationDtlEnvironmentPage type.
-func NewResponseWithContinuationDtlEnvironmentPage(getNextPage func(context.Context, ResponseWithContinuationDtlEnvironment) (ResponseWithContinuationDtlEnvironment, error)) ResponseWithContinuationDtlEnvironmentPage {
-	return ResponseWithContinuationDtlEnvironmentPage{fn: getNextPage}
+func NewResponseWithContinuationDtlEnvironmentPage(cur ResponseWithContinuationDtlEnvironment, getNextPage func(context.Context, ResponseWithContinuationDtlEnvironment) (ResponseWithContinuationDtlEnvironment, error)) ResponseWithContinuationDtlEnvironmentPage {
+	return ResponseWithContinuationDtlEnvironmentPage{
+		fn:    getNextPage,
+		rwcde: cur,
+	}
 }
 
 // ResponseWithContinuationFormula the response of a list operation.
@@ -5348,8 +5117,11 @@ func (page ResponseWithContinuationFormulaPage) Values() []Formula {
 }
 
 // Creates a new instance of the ResponseWithContinuationFormulaPage type.
-func NewResponseWithContinuationFormulaPage(getNextPage func(context.Context, ResponseWithContinuationFormula) (ResponseWithContinuationFormula, error)) ResponseWithContinuationFormulaPage {
-	return ResponseWithContinuationFormulaPage{fn: getNextPage}
+func NewResponseWithContinuationFormulaPage(cur ResponseWithContinuationFormula, getNextPage func(context.Context, ResponseWithContinuationFormula) (ResponseWithContinuationFormula, error)) ResponseWithContinuationFormulaPage {
+	return ResponseWithContinuationFormulaPage{
+		fn:   getNextPage,
+		rwcf: cur,
+	}
 }
 
 // ResponseWithContinuationGalleryImage the response of a list operation.
@@ -5361,7 +5133,8 @@ type ResponseWithContinuationGalleryImage struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// ResponseWithContinuationGalleryImageIterator provides access to a complete listing of GalleryImage values.
+// ResponseWithContinuationGalleryImageIterator provides access to a complete listing of GalleryImage
+// values.
 type ResponseWithContinuationGalleryImageIterator struct {
 	i    int
 	page ResponseWithContinuationGalleryImagePage
@@ -5504,8 +5277,11 @@ func (page ResponseWithContinuationGalleryImagePage) Values() []GalleryImage {
 }
 
 // Creates a new instance of the ResponseWithContinuationGalleryImagePage type.
-func NewResponseWithContinuationGalleryImagePage(getNextPage func(context.Context, ResponseWithContinuationGalleryImage) (ResponseWithContinuationGalleryImage, error)) ResponseWithContinuationGalleryImagePage {
-	return ResponseWithContinuationGalleryImagePage{fn: getNextPage}
+func NewResponseWithContinuationGalleryImagePage(cur ResponseWithContinuationGalleryImage, getNextPage func(context.Context, ResponseWithContinuationGalleryImage) (ResponseWithContinuationGalleryImage, error)) ResponseWithContinuationGalleryImagePage {
+	return ResponseWithContinuationGalleryImagePage{
+		fn:    getNextPage,
+		rwcgi: cur,
+	}
 }
 
 // ResponseWithContinuationLab the response of a list operation.
@@ -5660,8 +5436,11 @@ func (page ResponseWithContinuationLabPage) Values() []Lab {
 }
 
 // Creates a new instance of the ResponseWithContinuationLabPage type.
-func NewResponseWithContinuationLabPage(getNextPage func(context.Context, ResponseWithContinuationLab) (ResponseWithContinuationLab, error)) ResponseWithContinuationLabPage {
-	return ResponseWithContinuationLabPage{fn: getNextPage}
+func NewResponseWithContinuationLabPage(cur ResponseWithContinuationLab, getNextPage func(context.Context, ResponseWithContinuationLab) (ResponseWithContinuationLab, error)) ResponseWithContinuationLabPage {
+	return ResponseWithContinuationLabPage{
+		fn:   getNextPage,
+		rwcl: cur,
+	}
 }
 
 // ResponseWithContinuationLabVhd the response of a list operation.
@@ -5816,8 +5595,11 @@ func (page ResponseWithContinuationLabVhdPage) Values() []LabVhd {
 }
 
 // Creates a new instance of the ResponseWithContinuationLabVhdPage type.
-func NewResponseWithContinuationLabVhdPage(getNextPage func(context.Context, ResponseWithContinuationLabVhd) (ResponseWithContinuationLabVhd, error)) ResponseWithContinuationLabVhdPage {
-	return ResponseWithContinuationLabVhdPage{fn: getNextPage}
+func NewResponseWithContinuationLabVhdPage(cur ResponseWithContinuationLabVhd, getNextPage func(context.Context, ResponseWithContinuationLabVhd) (ResponseWithContinuationLabVhd, error)) ResponseWithContinuationLabVhdPage {
+	return ResponseWithContinuationLabVhdPage{
+		fn:    getNextPage,
+		rwclv: cur,
+	}
 }
 
 // ResponseWithContinuationLabVirtualMachine the response of a list operation.
@@ -5829,8 +5611,8 @@ type ResponseWithContinuationLabVirtualMachine struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// ResponseWithContinuationLabVirtualMachineIterator provides access to a complete listing of LabVirtualMachine
-// values.
+// ResponseWithContinuationLabVirtualMachineIterator provides access to a complete listing of
+// LabVirtualMachine values.
 type ResponseWithContinuationLabVirtualMachineIterator struct {
 	i    int
 	page ResponseWithContinuationLabVirtualMachinePage
@@ -5973,8 +5755,11 @@ func (page ResponseWithContinuationLabVirtualMachinePage) Values() []LabVirtualM
 }
 
 // Creates a new instance of the ResponseWithContinuationLabVirtualMachinePage type.
-func NewResponseWithContinuationLabVirtualMachinePage(getNextPage func(context.Context, ResponseWithContinuationLabVirtualMachine) (ResponseWithContinuationLabVirtualMachine, error)) ResponseWithContinuationLabVirtualMachinePage {
-	return ResponseWithContinuationLabVirtualMachinePage{fn: getNextPage}
+func NewResponseWithContinuationLabVirtualMachinePage(cur ResponseWithContinuationLabVirtualMachine, getNextPage func(context.Context, ResponseWithContinuationLabVirtualMachine) (ResponseWithContinuationLabVirtualMachine, error)) ResponseWithContinuationLabVirtualMachinePage {
+	return ResponseWithContinuationLabVirtualMachinePage{
+		fn:     getNextPage,
+		rwclvm: cur,
+	}
 }
 
 // ResponseWithContinuationNotificationChannel the response of a list operation.
@@ -6130,8 +5915,11 @@ func (page ResponseWithContinuationNotificationChannelPage) Values() []Notificat
 }
 
 // Creates a new instance of the ResponseWithContinuationNotificationChannelPage type.
-func NewResponseWithContinuationNotificationChannelPage(getNextPage func(context.Context, ResponseWithContinuationNotificationChannel) (ResponseWithContinuationNotificationChannel, error)) ResponseWithContinuationNotificationChannelPage {
-	return ResponseWithContinuationNotificationChannelPage{fn: getNextPage}
+func NewResponseWithContinuationNotificationChannelPage(cur ResponseWithContinuationNotificationChannel, getNextPage func(context.Context, ResponseWithContinuationNotificationChannel) (ResponseWithContinuationNotificationChannel, error)) ResponseWithContinuationNotificationChannelPage {
+	return ResponseWithContinuationNotificationChannelPage{
+		fn:    getNextPage,
+		rwcnc: cur,
+	}
 }
 
 // ResponseWithContinuationPolicy the response of a list operation.
@@ -6286,8 +6074,11 @@ func (page ResponseWithContinuationPolicyPage) Values() []Policy {
 }
 
 // Creates a new instance of the ResponseWithContinuationPolicyPage type.
-func NewResponseWithContinuationPolicyPage(getNextPage func(context.Context, ResponseWithContinuationPolicy) (ResponseWithContinuationPolicy, error)) ResponseWithContinuationPolicyPage {
-	return ResponseWithContinuationPolicyPage{fn: getNextPage}
+func NewResponseWithContinuationPolicyPage(cur ResponseWithContinuationPolicy, getNextPage func(context.Context, ResponseWithContinuationPolicy) (ResponseWithContinuationPolicy, error)) ResponseWithContinuationPolicyPage {
+	return ResponseWithContinuationPolicyPage{
+		fn:   getNextPage,
+		rwcp: cur,
+	}
 }
 
 // ResponseWithContinuationSchedule the response of a list operation.
@@ -6442,8 +6233,11 @@ func (page ResponseWithContinuationSchedulePage) Values() []Schedule {
 }
 
 // Creates a new instance of the ResponseWithContinuationSchedulePage type.
-func NewResponseWithContinuationSchedulePage(getNextPage func(context.Context, ResponseWithContinuationSchedule) (ResponseWithContinuationSchedule, error)) ResponseWithContinuationSchedulePage {
-	return ResponseWithContinuationSchedulePage{fn: getNextPage}
+func NewResponseWithContinuationSchedulePage(cur ResponseWithContinuationSchedule, getNextPage func(context.Context, ResponseWithContinuationSchedule) (ResponseWithContinuationSchedule, error)) ResponseWithContinuationSchedulePage {
+	return ResponseWithContinuationSchedulePage{
+		fn:   getNextPage,
+		rwcs: cur,
+	}
 }
 
 // ResponseWithContinuationSecret the response of a list operation.
@@ -6598,8 +6392,11 @@ func (page ResponseWithContinuationSecretPage) Values() []Secret {
 }
 
 // Creates a new instance of the ResponseWithContinuationSecretPage type.
-func NewResponseWithContinuationSecretPage(getNextPage func(context.Context, ResponseWithContinuationSecret) (ResponseWithContinuationSecret, error)) ResponseWithContinuationSecretPage {
-	return ResponseWithContinuationSecretPage{fn: getNextPage}
+func NewResponseWithContinuationSecretPage(cur ResponseWithContinuationSecret, getNextPage func(context.Context, ResponseWithContinuationSecret) (ResponseWithContinuationSecret, error)) ResponseWithContinuationSecretPage {
+	return ResponseWithContinuationSecretPage{
+		fn:   getNextPage,
+		rwcs: cur,
+	}
 }
 
 // ResponseWithContinuationServiceRunner the response of a list operation.
@@ -6611,7 +6408,8 @@ type ResponseWithContinuationServiceRunner struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// ResponseWithContinuationServiceRunnerIterator provides access to a complete listing of ServiceRunner values.
+// ResponseWithContinuationServiceRunnerIterator provides access to a complete listing of ServiceRunner
+// values.
 type ResponseWithContinuationServiceRunnerIterator struct {
 	i    int
 	page ResponseWithContinuationServiceRunnerPage
@@ -6754,8 +6552,11 @@ func (page ResponseWithContinuationServiceRunnerPage) Values() []ServiceRunner {
 }
 
 // Creates a new instance of the ResponseWithContinuationServiceRunnerPage type.
-func NewResponseWithContinuationServiceRunnerPage(getNextPage func(context.Context, ResponseWithContinuationServiceRunner) (ResponseWithContinuationServiceRunner, error)) ResponseWithContinuationServiceRunnerPage {
-	return ResponseWithContinuationServiceRunnerPage{fn: getNextPage}
+func NewResponseWithContinuationServiceRunnerPage(cur ResponseWithContinuationServiceRunner, getNextPage func(context.Context, ResponseWithContinuationServiceRunner) (ResponseWithContinuationServiceRunner, error)) ResponseWithContinuationServiceRunnerPage {
+	return ResponseWithContinuationServiceRunnerPage{
+		fn:    getNextPage,
+		rwcsr: cur,
+	}
 }
 
 // ResponseWithContinuationUser the response of a list operation.
@@ -6910,8 +6711,11 @@ func (page ResponseWithContinuationUserPage) Values() []User {
 }
 
 // Creates a new instance of the ResponseWithContinuationUserPage type.
-func NewResponseWithContinuationUserPage(getNextPage func(context.Context, ResponseWithContinuationUser) (ResponseWithContinuationUser, error)) ResponseWithContinuationUserPage {
-	return ResponseWithContinuationUserPage{fn: getNextPage}
+func NewResponseWithContinuationUserPage(cur ResponseWithContinuationUser, getNextPage func(context.Context, ResponseWithContinuationUser) (ResponseWithContinuationUser, error)) ResponseWithContinuationUserPage {
+	return ResponseWithContinuationUserPage{
+		fn:   getNextPage,
+		rwcu: cur,
+	}
 }
 
 // ResponseWithContinuationVirtualNetwork the response of a list operation.
@@ -7067,8 +6871,11 @@ func (page ResponseWithContinuationVirtualNetworkPage) Values() []VirtualNetwork
 }
 
 // Creates a new instance of the ResponseWithContinuationVirtualNetworkPage type.
-func NewResponseWithContinuationVirtualNetworkPage(getNextPage func(context.Context, ResponseWithContinuationVirtualNetwork) (ResponseWithContinuationVirtualNetwork, error)) ResponseWithContinuationVirtualNetworkPage {
-	return ResponseWithContinuationVirtualNetworkPage{fn: getNextPage}
+func NewResponseWithContinuationVirtualNetworkPage(cur ResponseWithContinuationVirtualNetwork, getNextPage func(context.Context, ResponseWithContinuationVirtualNetwork) (ResponseWithContinuationVirtualNetwork, error)) ResponseWithContinuationVirtualNetworkPage {
+	return ResponseWithContinuationVirtualNetworkPage{
+		fn:    getNextPage,
+		rwcvn: cur,
+	}
 }
 
 // RetargetScheduleProperties properties for retargeting a virtual machine schedule.
@@ -7366,26 +7173,13 @@ type SchedulePropertiesFragment struct {
 	UniqueIdentifier *string `json:"uniqueIdentifier,omitempty"`
 }
 
-// SchedulesExecuteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// SchedulesExecuteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type SchedulesExecuteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *SchedulesExecuteFuture) Result(client SchedulesClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.SchedulesExecuteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("dtl.SchedulesExecuteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(SchedulesClient) (autorest.Response, error)
 }
 
 // Secret a secret.
@@ -7531,8 +7325,8 @@ func (sr ServiceRunner) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// SharedPublicIPAddressConfiguration properties of a virtual machine that determine how it is connected to a
-// load balancer.
+// SharedPublicIPAddressConfiguration properties of a virtual machine that determine how it is connected to
+// a load balancer.
 type SharedPublicIPAddressConfiguration struct {
 	// InboundNatRules - The incoming NAT rules
 	InboundNatRules *[]InboundNatRule `json:"inboundNatRules,omitempty"`
@@ -7927,24 +7721,10 @@ type UserPropertiesFragment struct {
 
 // UsersDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type UsersDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *UsersDeleteFuture) Result(client UsersClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.UsersDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("dtl.UsersDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(UsersClient) (autorest.Response, error)
 }
 
 // UserSecretStore properties of a user's secret store.
@@ -7963,217 +7743,85 @@ type UserSecretStoreFragment struct {
 	KeyVaultID *string `json:"keyVaultId,omitempty"`
 }
 
-// VirtualMachinesAddDataDiskFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// VirtualMachinesAddDataDiskFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type VirtualMachinesAddDataDiskFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *VirtualMachinesAddDataDiskFuture) Result(client VirtualMachinesClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.VirtualMachinesAddDataDiskFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("dtl.VirtualMachinesAddDataDiskFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(VirtualMachinesClient) (autorest.Response, error)
 }
 
 // VirtualMachinesApplyArtifactsFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type VirtualMachinesApplyArtifactsFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *VirtualMachinesApplyArtifactsFuture) Result(client VirtualMachinesClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.VirtualMachinesApplyArtifactsFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("dtl.VirtualMachinesApplyArtifactsFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(VirtualMachinesClient) (autorest.Response, error)
 }
 
 // VirtualMachineSchedulesExecuteFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type VirtualMachineSchedulesExecuteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *VirtualMachineSchedulesExecuteFuture) Result(client VirtualMachineSchedulesClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.VirtualMachineSchedulesExecuteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("dtl.VirtualMachineSchedulesExecuteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(VirtualMachineSchedulesClient) (autorest.Response, error)
 }
 
 // VirtualMachinesClaimFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type VirtualMachinesClaimFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *VirtualMachinesClaimFuture) Result(client VirtualMachinesClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.VirtualMachinesClaimFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("dtl.VirtualMachinesClaimFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(VirtualMachinesClient) (autorest.Response, error)
 }
 
 // VirtualMachinesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type VirtualMachinesCreateOrUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *VirtualMachinesCreateOrUpdateFuture) Result(client VirtualMachinesClient) (lvm LabVirtualMachine, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.VirtualMachinesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("dtl.VirtualMachinesCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if lvm.Response.Response, err = future.GetResult(sender); err == nil && lvm.Response.Response.StatusCode != http.StatusNoContent {
-		lvm, err = client.CreateOrUpdateResponder(lvm.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "dtl.VirtualMachinesCreateOrUpdateFuture", "Result", lvm.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(VirtualMachinesClient) (LabVirtualMachine, error)
 }
 
 // VirtualMachinesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type VirtualMachinesDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *VirtualMachinesDeleteFuture) Result(client VirtualMachinesClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.VirtualMachinesDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("dtl.VirtualMachinesDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(VirtualMachinesClient) (autorest.Response, error)
 }
 
 // VirtualMachinesDetachDataDiskFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type VirtualMachinesDetachDataDiskFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *VirtualMachinesDetachDataDiskFuture) Result(client VirtualMachinesClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.VirtualMachinesDetachDataDiskFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("dtl.VirtualMachinesDetachDataDiskFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(VirtualMachinesClient) (autorest.Response, error)
 }
 
 // VirtualMachinesStartFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type VirtualMachinesStartFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *VirtualMachinesStartFuture) Result(client VirtualMachinesClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.VirtualMachinesStartFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("dtl.VirtualMachinesStartFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(VirtualMachinesClient) (autorest.Response, error)
 }
 
 // VirtualMachinesStopFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type VirtualMachinesStopFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *VirtualMachinesStopFuture) Result(client VirtualMachinesClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.VirtualMachinesStopFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("dtl.VirtualMachinesStopFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(VirtualMachinesClient) (autorest.Response, error)
 }
 
 // VirtualNetwork a virtual network.
@@ -8445,53 +8093,19 @@ type VirtualNetworkPropertiesFragment struct {
 // VirtualNetworksCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type VirtualNetworksCreateOrUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *VirtualNetworksCreateOrUpdateFuture) Result(client VirtualNetworksClient) (vn VirtualNetwork, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.VirtualNetworksCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("dtl.VirtualNetworksCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if vn.Response.Response, err = future.GetResult(sender); err == nil && vn.Response.Response.StatusCode != http.StatusNoContent {
-		vn, err = client.CreateOrUpdateResponder(vn.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "dtl.VirtualNetworksCreateOrUpdateFuture", "Result", vn.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(VirtualNetworksClient) (VirtualNetwork, error)
 }
 
 // VirtualNetworksDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type VirtualNetworksDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *VirtualNetworksDeleteFuture) Result(client VirtualNetworksClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.VirtualNetworksDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("dtl.VirtualNetworksDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(VirtualNetworksClient) (autorest.Response, error)
 }
 
 // WeekDetails properties of a weekly schedule.

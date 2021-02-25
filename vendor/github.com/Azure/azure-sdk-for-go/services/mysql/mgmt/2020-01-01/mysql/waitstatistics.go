@@ -86,6 +86,7 @@ func (client WaitStatisticsClient) Get(ctx context.Context, resourceGroupName st
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mysql.WaitStatisticsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -180,9 +181,11 @@ func (client WaitStatisticsClient) ListByServer(ctx context.Context, resourceGro
 	result.wsrl, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mysql.WaitStatisticsClient", "ListByServer", resp, "Failure responding to request")
+		return
 	}
 	if result.wsrl.hasNextLink() && result.wsrl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

@@ -36,7 +36,6 @@ resource "azurerm_data_factory_linked_service_azure_file_storage" "example" {
   resource_group_name = azurerm_resource_group.example.name
   data_factory_name   = azurerm_data_factory.example.name
   connection_string   = data.azurerm_storage_account.example.primary_connection_string
-
 }
 ```
 
@@ -44,7 +43,8 @@ resource "azurerm_data_factory_linked_service_azure_file_storage" "example" {
 
 The following supported arguments are common across all Azure Data Factory Linked Services:
 
-* `name` - (Required) Specifies the name of the Data Factory Linked Service. Changing this forces a new resource to be created. Must be globally unique. See the [Microsoft documentation](https://docs.microsoft.com/en-us/azure/data-factory/naming-rules) for all restrictions.
+* `name` - (Required) Specifies the name of the Data Factory Linked Service. Changing this forces a new resource to be created. Must be unique within a data
+  factory. See the [Microsoft documentation](https://docs.microsoft.com/en-us/azure/data-factory/naming-rules) for all restrictions.
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Data Factory Linked Service. Changing this forces a new resource
 
@@ -63,6 +63,8 @@ The following supported arguments are common across all Azure Data Factory Linke
 The following supported arguments are specific to Azure File Storage Linked Service:
 
 * `connection_string` - (Required) The connection string.
+
+* `file_share` - (Optional) The name of the file share.
 
 ## Attributes Reference
 

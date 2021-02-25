@@ -10,18 +10,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataFactoryIntegrationRuntimeManaged() *schema.Resource {
+func resourceDataFactoryIntegrationRuntimeManaged() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryIntegrationRuntimeManagedCreateUpdate,
-		Read:   resourceArmDataFactoryIntegrationRuntimeManagedRead,
-		Update: resourceArmDataFactoryIntegrationRuntimeManagedCreateUpdate,
-		Delete: resourceArmDataFactoryIntegrationRuntimeManagedDelete,
+		Create: resourceDataFactoryIntegrationRuntimeManagedCreateUpdate,
+		Read:   resourceDataFactoryIntegrationRuntimeManagedRead,
+		Update: resourceDataFactoryIntegrationRuntimeManagedCreateUpdate,
+		Delete: resourceDataFactoryIntegrationRuntimeManagedDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -173,12 +173,12 @@ func resourceArmDataFactoryIntegrationRuntimeManaged() *schema.Resource {
 						},
 						"administrator_login": {
 							Type:         schema.TypeString,
-							Required:     true,
+							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"administrator_password": {
 							Type:         schema.TypeString,
-							Required:     true,
+							Optional:     true,
 							Sensitive:    true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
@@ -200,7 +200,7 @@ func resourceArmDataFactoryIntegrationRuntimeManaged() *schema.Resource {
 	}
 }
 
-func resourceArmDataFactoryIntegrationRuntimeManagedCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryIntegrationRuntimeManagedCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.IntegrationRuntimesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -227,8 +227,8 @@ func resourceArmDataFactoryIntegrationRuntimeManagedCreateUpdate(d *schema.Resou
 		Description: &description,
 		Type:        datafactory.TypeManaged,
 		ManagedIntegrationRuntimeTypeProperties: &datafactory.ManagedIntegrationRuntimeTypeProperties{
-			ComputeProperties: expandArmDataFactoryIntegrationRuntimeManagedComputeProperties(d),
-			SsisProperties:    expandArmDataFactoryIntegrationRuntimeManagedSsisProperties(d),
+			ComputeProperties: expandDataFactoryIntegrationRuntimeManagedComputeProperties(d),
+			SsisProperties:    expandDataFactoryIntegrationRuntimeManagedSsisProperties(d),
 		},
 	}
 
@@ -254,10 +254,10 @@ func resourceArmDataFactoryIntegrationRuntimeManagedCreateUpdate(d *schema.Resou
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDataFactoryIntegrationRuntimeManagedRead(d, meta)
+	return resourceDataFactoryIntegrationRuntimeManagedRead(d, meta)
 }
 
-func resourceArmDataFactoryIntegrationRuntimeManagedRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryIntegrationRuntimeManagedRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.IntegrationRuntimesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -310,7 +310,7 @@ func resourceArmDataFactoryIntegrationRuntimeManagedRead(d *schema.ResourceData,
 			d.Set("max_parallel_executions_per_node", maxParallelExecutionsPerNode)
 		}
 
-		if err := d.Set("vnet_integration", flattenArmDataFactoryIntegrationRuntimeManagedVnetIntegration(computeProps.VNetProperties)); err != nil {
+		if err := d.Set("vnet_integration", flattenDataFactoryIntegrationRuntimeManagedVnetIntegration(computeProps.VNetProperties)); err != nil {
 			return fmt.Errorf("Error setting `vnet_integration`: %+v", err)
 		}
 	}
@@ -319,11 +319,11 @@ func resourceArmDataFactoryIntegrationRuntimeManagedRead(d *schema.ResourceData,
 		d.Set("edition", string(ssisProps.Edition))
 		d.Set("license_type", string(ssisProps.LicenseType))
 
-		if err := d.Set("catalog_info", flattenArmDataFactoryIntegrationRuntimeManagedSsisCatalogInfo(ssisProps.CatalogInfo, d)); err != nil {
+		if err := d.Set("catalog_info", flattenDataFactoryIntegrationRuntimeManagedSsisCatalogInfo(ssisProps.CatalogInfo, d)); err != nil {
 			return fmt.Errorf("Error setting `vnet_integration`: %+v", err)
 		}
 
-		if err := d.Set("custom_setup_script", flattenArmDataFactoryIntegrationRuntimeManagedSsisCustomSetupScript(ssisProps.CustomSetupScriptProperties, d)); err != nil {
+		if err := d.Set("custom_setup_script", flattenDataFactoryIntegrationRuntimeManagedSsisCustomSetupScript(ssisProps.CustomSetupScriptProperties, d)); err != nil {
 			return fmt.Errorf("Error setting `vnet_integration`: %+v", err)
 		}
 	}
@@ -331,7 +331,7 @@ func resourceArmDataFactoryIntegrationRuntimeManagedRead(d *schema.ResourceData,
 	return nil
 }
 
-func resourceArmDataFactoryIntegrationRuntimeManagedDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryIntegrationRuntimeManagedDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.IntegrationRuntimesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -354,7 +354,7 @@ func resourceArmDataFactoryIntegrationRuntimeManagedDelete(d *schema.ResourceDat
 	return nil
 }
 
-func expandArmDataFactoryIntegrationRuntimeManagedComputeProperties(d *schema.ResourceData) *datafactory.IntegrationRuntimeComputeProperties {
+func expandDataFactoryIntegrationRuntimeManagedComputeProperties(d *schema.ResourceData) *datafactory.IntegrationRuntimeComputeProperties {
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	computeProperties := datafactory.IntegrationRuntimeComputeProperties{
 		Location:                     &location,
@@ -374,7 +374,7 @@ func expandArmDataFactoryIntegrationRuntimeManagedComputeProperties(d *schema.Re
 	return &computeProperties
 }
 
-func expandArmDataFactoryIntegrationRuntimeManagedSsisProperties(d *schema.ResourceData) *datafactory.IntegrationRuntimeSsisProperties {
+func expandDataFactoryIntegrationRuntimeManagedSsisProperties(d *schema.ResourceData) *datafactory.IntegrationRuntimeSsisProperties {
 	ssisProperties := &datafactory.IntegrationRuntimeSsisProperties{
 		Edition:     datafactory.IntegrationRuntimeEdition(d.Get("edition").(string)),
 		LicenseType: datafactory.IntegrationRuntimeLicenseType(d.Get("license_type").(string)),
@@ -383,16 +383,20 @@ func expandArmDataFactoryIntegrationRuntimeManagedSsisProperties(d *schema.Resou
 	if catalogInfos, ok := d.GetOk("catalog_info"); ok && len(catalogInfos.([]interface{})) > 0 {
 		catalogInfo := catalogInfos.([]interface{})[0].(map[string]interface{})
 
-		adminPassword := &datafactory.SecureString{
-			Value: utils.String(catalogInfo["administrator_password"].(string)),
-			Type:  datafactory.TypeSecureString,
-		}
-
 		ssisProperties.CatalogInfo = &datafactory.IntegrationRuntimeSsisCatalogInfo{
 			CatalogServerEndpoint: utils.String(catalogInfo["server_endpoint"].(string)),
-			CatalogAdminUserName:  utils.String(catalogInfo["administrator_login"].(string)),
-			CatalogAdminPassword:  adminPassword,
 			CatalogPricingTier:    datafactory.IntegrationRuntimeSsisCatalogPricingTier(catalogInfo["pricing_tier"].(string)),
+		}
+
+		if adminUserName := catalogInfo["administrator_login"]; adminUserName.(string) != "" {
+			ssisProperties.CatalogInfo.CatalogAdminUserName = utils.String(adminUserName.(string))
+		}
+
+		if adminPassword := catalogInfo["administrator_password"]; adminPassword.(string) != "" {
+			ssisProperties.CatalogInfo.CatalogAdminPassword = &datafactory.SecureString{
+				Value: utils.String(adminPassword.(string)),
+				Type:  datafactory.TypeSecureString,
+			}
 		}
 	}
 
@@ -413,7 +417,7 @@ func expandArmDataFactoryIntegrationRuntimeManagedSsisProperties(d *schema.Resou
 	return ssisProperties
 }
 
-func flattenArmDataFactoryIntegrationRuntimeManagedVnetIntegration(vnetProperties *datafactory.IntegrationRuntimeVNetProperties) []interface{} {
+func flattenDataFactoryIntegrationRuntimeManagedVnetIntegration(vnetProperties *datafactory.IntegrationRuntimeVNetProperties) []interface{} {
 	if vnetProperties == nil {
 		return []interface{}{}
 	}
@@ -426,15 +430,18 @@ func flattenArmDataFactoryIntegrationRuntimeManagedVnetIntegration(vnetPropertie
 	}
 }
 
-func flattenArmDataFactoryIntegrationRuntimeManagedSsisCatalogInfo(ssisProperties *datafactory.IntegrationRuntimeSsisCatalogInfo, d *schema.ResourceData) []interface{} {
+func flattenDataFactoryIntegrationRuntimeManagedSsisCatalogInfo(ssisProperties *datafactory.IntegrationRuntimeSsisCatalogInfo, d *schema.ResourceData) []interface{} {
 	if ssisProperties == nil {
 		return []interface{}{}
 	}
 
 	catalogInfo := map[string]string{
-		"server_endpoint":     *ssisProperties.CatalogServerEndpoint,
-		"administrator_login": *ssisProperties.CatalogAdminUserName,
-		"pricing_tier":        string(ssisProperties.CatalogPricingTier),
+		"server_endpoint": *ssisProperties.CatalogServerEndpoint,
+		"pricing_tier":    string(ssisProperties.CatalogPricingTier),
+	}
+
+	if ssisProperties.CatalogAdminUserName != nil {
+		catalogInfo["administrator_login"] = *ssisProperties.CatalogAdminUserName
 	}
 
 	if adminPassword, ok := d.GetOk("catalog_info.0.administrator_password"); ok {
@@ -444,7 +451,7 @@ func flattenArmDataFactoryIntegrationRuntimeManagedSsisCatalogInfo(ssisPropertie
 	return []interface{}{catalogInfo}
 }
 
-func flattenArmDataFactoryIntegrationRuntimeManagedSsisCustomSetupScript(customSetupScriptProperties *datafactory.IntegrationRuntimeCustomSetupScriptProperties, d *schema.ResourceData) []interface{} {
+func flattenDataFactoryIntegrationRuntimeManagedSsisCustomSetupScript(customSetupScriptProperties *datafactory.IntegrationRuntimeCustomSetupScriptProperties, d *schema.ResourceData) []interface{} {
 	if customSetupScriptProperties == nil {
 		return []interface{}{}
 	}

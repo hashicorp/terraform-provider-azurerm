@@ -75,6 +75,7 @@ func (client ApplicationTypesClient) Create(ctx context.Context, resourceGroupNa
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabric.ApplicationTypesClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -146,7 +147,7 @@ func (client ApplicationTypesClient) Delete(ctx context.Context, resourceGroupNa
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "servicefabric.ApplicationTypesClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "servicefabric.ApplicationTypesClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -183,7 +184,23 @@ func (client ApplicationTypesClient) DeleteSender(req *http.Request) (future App
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ApplicationTypesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "servicefabric.ApplicationTypesDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("servicefabric.ApplicationTypesDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -231,6 +248,7 @@ func (client ApplicationTypesClient) Get(ctx context.Context, resourceGroupName 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabric.ApplicationTypesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -308,6 +326,7 @@ func (client ApplicationTypesClient) List(ctx context.Context, resourceGroupName
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabric.ApplicationTypesClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return

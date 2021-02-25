@@ -24,12 +24,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmVpnSite() *schema.Resource {
+func resourceVpnSite() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmVpnSiteCreateUpdate,
-		Read:   resourceArmVpnSiteRead,
-		Update: resourceArmVpnSiteCreateUpdate,
-		Delete: resourceArmVpnSiteDelete,
+		Create: resourceVpnSiteCreateUpdate,
+		Read:   resourceVpnSiteRead,
+		Update: resourceVpnSiteCreateUpdate,
+		Delete: resourceVpnSiteDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.VpnSiteID(id)
@@ -146,7 +146,7 @@ func resourceArmVpnSite() *schema.Resource {
 	}
 }
 
-func resourceArmVpnSiteCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceVpnSiteCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VpnSitesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -173,9 +173,9 @@ func resourceArmVpnSiteCreateUpdate(d *schema.ResourceData, meta interface{}) er
 		Location: &location,
 		VpnSiteProperties: &network.VpnSiteProperties{
 			VirtualWan:       &network.SubResource{ID: utils.String(d.Get("virtual_wan_id").(string))},
-			DeviceProperties: expandArmVpnSiteDeviceProperties(d),
-			AddressSpace:     expandArmVpnSiteAddressSpace(d.Get("address_cidrs").(*schema.Set).List()),
-			VpnSiteLinks:     expandArmVpnSiteLinks(d.Get("link").([]interface{})),
+			DeviceProperties: expandVpnSiteDeviceProperties(d),
+			AddressSpace:     expandVpnSiteAddressSpace(d.Get("address_cidrs").(*schema.Set).List()),
+			VpnSiteLinks:     expandVpnSiteLinks(d.Get("link").([]interface{})),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -203,10 +203,10 @@ func resourceArmVpnSiteCreateUpdate(d *schema.ResourceData, meta interface{}) er
 	}
 	d.SetId(id.ID())
 
-	return resourceArmVpnSiteRead(d, meta)
+	return resourceVpnSiteRead(d, meta)
 }
 
-func resourceArmVpnSiteRead(d *schema.ResourceData, meta interface{}) error {
+func resourceVpnSiteRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VpnSitesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -242,10 +242,10 @@ func resourceArmVpnSiteRead(d *schema.ResourceData, meta interface{}) error {
 		if prop.VirtualWan != nil {
 			d.Set("virtual_wan_id", prop.VirtualWan.ID)
 		}
-		if err := d.Set("address_cidrs", flattenArmVpnSiteAddressSpace(prop.AddressSpace)); err != nil {
+		if err := d.Set("address_cidrs", flattenVpnSiteAddressSpace(prop.AddressSpace)); err != nil {
 			return fmt.Errorf("setting `address_cidrs`")
 		}
-		if err := d.Set("link", flattenArmVpnSiteLinks(prop.VpnSiteLinks)); err != nil {
+		if err := d.Set("link", flattenVpnSiteLinks(prop.VpnSiteLinks)); err != nil {
 			return fmt.Errorf("setting `link`")
 		}
 	}
@@ -253,7 +253,7 @@ func resourceArmVpnSiteRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmVpnSiteDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceVpnSiteDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VpnSitesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -276,7 +276,7 @@ func resourceArmVpnSiteDelete(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func expandArmVpnSiteDeviceProperties(d *schema.ResourceData) *network.DeviceProperties {
+func expandVpnSiteDeviceProperties(d *schema.ResourceData) *network.DeviceProperties {
 	vendor, model := d.Get("device_vendor").(string), d.Get("device_model").(string)
 	if vendor == "" && model == "" {
 		return nil
@@ -292,7 +292,7 @@ func expandArmVpnSiteDeviceProperties(d *schema.ResourceData) *network.DevicePro
 	return output
 }
 
-func expandArmVpnSiteAddressSpace(input []interface{}) *network.AddressSpace {
+func expandVpnSiteAddressSpace(input []interface{}) *network.AddressSpace {
 	if len(input) == 0 {
 		return nil
 	}
@@ -307,14 +307,14 @@ func expandArmVpnSiteAddressSpace(input []interface{}) *network.AddressSpace {
 	}
 }
 
-func flattenArmVpnSiteAddressSpace(input *network.AddressSpace) []interface{} {
+func flattenVpnSiteAddressSpace(input *network.AddressSpace) []interface{} {
 	if input == nil {
 		return nil
 	}
 	return utils.FlattenStringSlice(input.AddressPrefixes)
 }
 
-func expandArmVpnSiteLinks(input []interface{}) *[]network.VpnSiteLink {
+func expandVpnSiteLinks(input []interface{}) *[]network.VpnSiteLink {
 	if len(input) == 0 {
 		return nil
 	}
@@ -344,7 +344,7 @@ func expandArmVpnSiteLinks(input []interface{}) *[]network.VpnSiteLink {
 			link.VpnSiteLinkProperties.Fqdn = utils.String(v.(string))
 		}
 		if v, ok := e["bgp"]; ok {
-			link.VpnSiteLinkProperties.BgpProperties = expandArmVpnSiteVpnLinkBgpSettings(v.([]interface{}))
+			link.VpnSiteLinkProperties.BgpProperties = expandVpnSiteVpnLinkBgpSettings(v.([]interface{}))
 		}
 
 		result = append(result, link)
@@ -353,7 +353,7 @@ func expandArmVpnSiteLinks(input []interface{}) *[]network.VpnSiteLink {
 	return &result
 }
 
-func flattenArmVpnSiteLinks(input *[]network.VpnSiteLink) []interface{} {
+func flattenVpnSiteLinks(input *[]network.VpnSiteLink) []interface{} {
 	if input == nil {
 		return nil
 	}
@@ -397,7 +397,7 @@ func flattenArmVpnSiteLinks(input *[]network.VpnSiteLink) []interface{} {
 				}
 			}
 
-			bgpProperty = flattenArmVpnSiteVpnSiteBgpSettings(prop.BgpProperties)
+			bgpProperty = flattenVpnSiteVpnSiteBgpSettings(prop.BgpProperties)
 		}
 
 		link := map[string]interface{}{
@@ -416,7 +416,7 @@ func flattenArmVpnSiteLinks(input *[]network.VpnSiteLink) []interface{} {
 	return output
 }
 
-func expandArmVpnSiteVpnLinkBgpSettings(input []interface{}) *network.VpnLinkBgpSettings {
+func expandVpnSiteVpnLinkBgpSettings(input []interface{}) *network.VpnLinkBgpSettings {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
@@ -429,7 +429,7 @@ func expandArmVpnSiteVpnLinkBgpSettings(input []interface{}) *network.VpnLinkBgp
 	}
 }
 
-func flattenArmVpnSiteVpnSiteBgpSettings(input *network.VpnLinkBgpSettings) []interface{} {
+func flattenVpnSiteVpnSiteBgpSettings(input *network.VpnLinkBgpSettings) []interface{} {
 	if input == nil {
 		return nil
 	}

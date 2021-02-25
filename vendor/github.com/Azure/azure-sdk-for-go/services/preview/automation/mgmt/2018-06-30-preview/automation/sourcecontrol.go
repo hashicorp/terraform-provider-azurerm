@@ -100,6 +100,7 @@ func (client SourceControlClient) CreateOrUpdate(ctx context.Context, resourceGr
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.SourceControlClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -187,6 +188,7 @@ func (client SourceControlClient) Delete(ctx context.Context, resourceGroupName 
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.SourceControlClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -271,6 +273,7 @@ func (client SourceControlClient) Get(ctx context.Context, resourceGroupName str
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.SourceControlClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -357,9 +360,11 @@ func (client SourceControlClient) ListByAutomationAccount(ctx context.Context, r
 	result.sclr, err = client.ListByAutomationAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.SourceControlClient", "ListByAutomationAccount", resp, "Failure responding to request")
+		return
 	}
 	if result.sclr.hasNextLink() && result.sclr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -485,6 +490,7 @@ func (client SourceControlClient) Update(ctx context.Context, resourceGroupName 
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.SourceControlClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

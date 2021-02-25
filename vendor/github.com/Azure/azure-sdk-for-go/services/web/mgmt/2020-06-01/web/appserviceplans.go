@@ -74,7 +74,7 @@ func (client AppServicePlansClient) CreateOrUpdate(ctx context.Context, resource
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppServicePlansClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "web.AppServicePlansClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -112,7 +112,33 @@ func (client AppServicePlansClient) CreateOrUpdateSender(req *http.Request) (fut
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client AppServicePlansClient) (asp AppServicePlan, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "web.AppServicePlansCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("web.AppServicePlansCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		asp.Response.Response, err = future.GetResult(sender)
+		if asp.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "web.AppServicePlansCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && asp.Response.Response.StatusCode != http.StatusNoContent {
+			asp, err = client.CreateOrUpdateResponder(asp.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "web.AppServicePlansCreateOrUpdateFuture", "Result", asp.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -170,6 +196,7 @@ func (client AppServicePlansClient) CreateOrUpdateVnetRoute(ctx context.Context,
 	result, err = client.CreateOrUpdateVnetRouteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppServicePlansClient", "CreateOrUpdateVnetRoute", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -257,6 +284,7 @@ func (client AppServicePlansClient) Delete(ctx context.Context, resourceGroupNam
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppServicePlansClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -341,6 +369,7 @@ func (client AppServicePlansClient) DeleteHybridConnection(ctx context.Context, 
 	result, err = client.DeleteHybridConnectionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppServicePlansClient", "DeleteHybridConnection", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -427,6 +456,7 @@ func (client AppServicePlansClient) DeleteVnetRoute(ctx context.Context, resourc
 	result, err = client.DeleteVnetRouteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppServicePlansClient", "DeleteVnetRoute", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -511,6 +541,7 @@ func (client AppServicePlansClient) Get(ctx context.Context, resourceGroupName s
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppServicePlansClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -596,6 +627,7 @@ func (client AppServicePlansClient) GetHybridConnection(ctx context.Context, res
 	result, err = client.GetHybridConnectionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppServicePlansClient", "GetHybridConnection", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -682,6 +714,7 @@ func (client AppServicePlansClient) GetHybridConnectionPlanLimit(ctx context.Con
 	result, err = client.GetHybridConnectionPlanLimitResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppServicePlansClient", "GetHybridConnectionPlanLimit", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -767,6 +800,7 @@ func (client AppServicePlansClient) GetRouteForVnet(ctx context.Context, resourc
 	result, err = client.GetRouteForVnetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppServicePlansClient", "GetRouteForVnet", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -852,6 +886,7 @@ func (client AppServicePlansClient) GetServerFarmSkus(ctx context.Context, resou
 	result, err = client.GetServerFarmSkusResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppServicePlansClient", "GetServerFarmSkus", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -936,6 +971,7 @@ func (client AppServicePlansClient) GetVnetFromServerFarm(ctx context.Context, r
 	result, err = client.GetVnetFromServerFarmResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppServicePlansClient", "GetVnetFromServerFarm", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1022,6 +1058,7 @@ func (client AppServicePlansClient) GetVnetGateway(ctx context.Context, resource
 	result, err = client.GetVnetGatewayResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppServicePlansClient", "GetVnetGateway", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1101,9 +1138,11 @@ func (client AppServicePlansClient) List(ctx context.Context, detailed *bool) (r
 	result.aspc, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppServicePlansClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.aspc.hasNextLink() && result.aspc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -1225,9 +1264,11 @@ func (client AppServicePlansClient) ListByResourceGroup(ctx context.Context, res
 	result.aspc, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppServicePlansClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.aspc.hasNextLink() && result.aspc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -1347,6 +1388,7 @@ func (client AppServicePlansClient) ListCapabilities(ctx context.Context, resour
 	result, err = client.ListCapabilitiesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppServicePlansClient", "ListCapabilities", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1432,6 +1474,7 @@ func (client AppServicePlansClient) ListHybridConnectionKeys(ctx context.Context
 	result, err = client.ListHybridConnectionKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppServicePlansClient", "ListHybridConnectionKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1518,9 +1561,11 @@ func (client AppServicePlansClient) ListHybridConnections(ctx context.Context, r
 	result.hcc, err = client.ListHybridConnectionsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppServicePlansClient", "ListHybridConnections", resp, "Failure responding to request")
+		return
 	}
 	if result.hcc.hasNextLink() && result.hcc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -1642,6 +1687,7 @@ func (client AppServicePlansClient) ListRoutesForVnet(ctx context.Context, resou
 	result, err = client.ListRoutesForVnetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppServicePlansClient", "ListRoutesForVnet", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1729,9 +1775,11 @@ func (client AppServicePlansClient) ListUsages(ctx context.Context, resourceGrou
 	result.cuqc, err = client.ListUsagesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppServicePlansClient", "ListUsages", resp, "Failure responding to request")
+		return
 	}
 	if result.cuqc.hasNextLink() && result.cuqc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -1855,6 +1903,7 @@ func (client AppServicePlansClient) ListVnets(ctx context.Context, resourceGroup
 	result, err = client.ListVnetsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppServicePlansClient", "ListVnets", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1944,9 +1993,11 @@ func (client AppServicePlansClient) ListWebApps(ctx context.Context, resourceGro
 	result.ac, err = client.ListWebAppsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppServicePlansClient", "ListWebApps", resp, "Failure responding to request")
+		return
 	}
 	if result.ac.hasNextLink() && result.ac.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -2079,9 +2130,11 @@ func (client AppServicePlansClient) ListWebAppsByHybridConnection(ctx context.Co
 	result.rc, err = client.ListWebAppsByHybridConnectionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppServicePlansClient", "ListWebAppsByHybridConnection", resp, "Failure responding to request")
+		return
 	}
 	if result.rc.hasNextLink() && result.rc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -2205,6 +2258,7 @@ func (client AppServicePlansClient) RebootWorker(ctx context.Context, resourceGr
 	result, err = client.RebootWorkerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppServicePlansClient", "RebootWorker", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -2291,6 +2345,7 @@ func (client AppServicePlansClient) RestartWebApps(ctx context.Context, resource
 	result, err = client.RestartWebAppsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppServicePlansClient", "RestartWebApps", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -2377,6 +2432,7 @@ func (client AppServicePlansClient) Update(ctx context.Context, resourceGroupNam
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppServicePlansClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -2468,6 +2524,7 @@ func (client AppServicePlansClient) UpdateVnetGateway(ctx context.Context, resou
 	result, err = client.UpdateVnetGatewayResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppServicePlansClient", "UpdateVnetGateway", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -2558,6 +2615,7 @@ func (client AppServicePlansClient) UpdateVnetRoute(ctx context.Context, resourc
 	result, err = client.UpdateVnetRouteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppServicePlansClient", "UpdateVnetRoute", resp, "Failure responding to request")
+		return
 	}
 
 	return

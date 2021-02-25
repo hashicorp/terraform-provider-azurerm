@@ -187,8 +187,8 @@ func (aic *ApplicationInsightsComponent) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// ApplicationInsightsComponentAnalyticsItem properties that define an Analytics item that is associated to an
-// Application Insights component.
+// ApplicationInsightsComponentAnalyticsItem properties that define an Analytics item that is associated to
+// an Application Insights component.
 type ApplicationInsightsComponentAnalyticsItem struct {
 	autorest.Response `json:"-"`
 	// ID - Internally assigned unique id of the item definition.
@@ -234,14 +234,15 @@ func (aicai ApplicationInsightsComponentAnalyticsItem) MarshalJSON() ([]byte, er
 	return json.Marshal(objectMap)
 }
 
-// ApplicationInsightsComponentAnalyticsItemProperties a set of properties that can be defined in the context
-// of a specific item type. Each type may have its own properties.
+// ApplicationInsightsComponentAnalyticsItemProperties a set of properties that can be defined in the
+// context of a specific item type. Each type may have its own properties.
 type ApplicationInsightsComponentAnalyticsItemProperties struct {
 	// FunctionAlias - A function alias, used when the type of the item is Function
 	FunctionAlias *string `json:"functionAlias,omitempty"`
 }
 
-// ApplicationInsightsComponentAPIKey properties that define an API key of an Application Insights Component.
+// ApplicationInsightsComponentAPIKey properties that define an API key of an Application Insights
+// Component.
 type ApplicationInsightsComponentAPIKey struct {
 	autorest.Response `json:"-"`
 	// ID - READ-ONLY; The unique ID of the API key inside an Application Insights component. It is auto generated when the API key is created.
@@ -334,7 +335,8 @@ func (aicdvc ApplicationInsightsComponentDataVolumeCap) MarshalJSON() ([]byte, e
 	return json.Marshal(objectMap)
 }
 
-// ApplicationInsightsComponentExportConfiguration properties that define a Continuous Export configuration.
+// ApplicationInsightsComponentExportConfiguration properties that define a Continuous Export
+// configuration.
 type ApplicationInsightsComponentExportConfiguration struct {
 	autorest.Response `json:"-"`
 	// ExportID - READ-ONLY; The unique ID of the export configuration inside an Application Insights component. It is auto generated when the Continuous Export configuration is created.
@@ -389,8 +391,8 @@ func (aicec ApplicationInsightsComponentExportConfiguration) MarshalJSON() ([]by
 	return json.Marshal(objectMap)
 }
 
-// ApplicationInsightsComponentExportRequest an Application Insights component Continuous Export configuration
-// request definition.
+// ApplicationInsightsComponentExportRequest an Application Insights component Continuous Export
+// configuration request definition.
 type ApplicationInsightsComponentExportRequest struct {
 	// RecordTypes - The document types to be exported, as comma separated values. Allowed values include 'Requests', 'Event', 'Exceptions', 'Metrics', 'PageViews', 'PageViewPerformance', 'Rdd', 'PerformanceCounters', 'Availability', 'Messages'.
 	RecordTypes *string `json:"RecordTypes,omitempty"`
@@ -412,8 +414,8 @@ type ApplicationInsightsComponentExportRequest struct {
 	DestinationAccountID *string `json:"DestinationAccountId,omitempty"`
 }
 
-// ApplicationInsightsComponentFavorite properties that define a favorite that is associated to an Application
-// Insights component.
+// ApplicationInsightsComponentFavorite properties that define a favorite that is associated to an
+// Application Insights component.
 type ApplicationInsightsComponentFavorite struct {
 	autorest.Response `json:"-"`
 	// Name - The user-defined name of the favorite.
@@ -698,8 +700,11 @@ func (page ApplicationInsightsComponentListResultPage) Values() []ApplicationIns
 }
 
 // Creates a new instance of the ApplicationInsightsComponentListResultPage type.
-func NewApplicationInsightsComponentListResultPage(getNextPage func(context.Context, ApplicationInsightsComponentListResult) (ApplicationInsightsComponentListResult, error)) ApplicationInsightsComponentListResultPage {
-	return ApplicationInsightsComponentListResultPage{fn: getNextPage}
+func NewApplicationInsightsComponentListResultPage(cur ApplicationInsightsComponentListResult, getNextPage func(context.Context, ApplicationInsightsComponentListResult) (ApplicationInsightsComponentListResult, error)) ApplicationInsightsComponentListResultPage {
+	return ApplicationInsightsComponentListResultPage{
+		fn:    getNextPage,
+		aiclr: cur,
+	}
 }
 
 // ApplicationInsightsComponentProactiveDetectionConfiguration properties that define a ProactiveDetection
@@ -741,7 +746,8 @@ type ApplicationInsightsComponentProactiveDetectionConfigurationRuleDefinitions 
 	SupportsEmailNotifications *bool `json:"SupportsEmailNotifications,omitempty"`
 }
 
-// ApplicationInsightsComponentProperties properties that define an Application Insights component resource.
+// ApplicationInsightsComponentProperties properties that define an Application Insights component
+// resource.
 type ApplicationInsightsComponentProperties struct {
 	// ApplicationID - READ-ONLY; The unique ID of your application. This field mirrors the 'Name' field and cannot be changed.
 	ApplicationID *string `json:"ApplicationId,omitempty"`
@@ -969,6 +975,226 @@ type ListApplicationInsightsComponentProactiveDetectionConfiguration struct {
 	Value             *[]ApplicationInsightsComponentProactiveDetectionConfiguration `json:"value,omitempty"`
 }
 
+// MyWorkbook an Application Insights private workbook definition.
+type MyWorkbook struct {
+	autorest.Response `json:"-"`
+	// Kind - The kind of workbook. Choices are user and shared. Possible values include: 'SharedTypeKindUser', 'SharedTypeKindShared'
+	Kind SharedTypeKind `json:"kind,omitempty"`
+	// MyWorkbookProperties - Metadata describing a workbook for an Azure resource.
+	*MyWorkbookProperties `json:"properties,omitempty"`
+	// ID - Azure resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - Azure resource name
+	Name *string `json:"name,omitempty"`
+	// Type - Azure resource type
+	Type *string `json:"type,omitempty"`
+	// Location - Resource location
+	Location *string `json:"location,omitempty"`
+	// Tags - Resource tags
+	Tags map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for MyWorkbook.
+func (mw MyWorkbook) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mw.Kind != "" {
+		objectMap["kind"] = mw.Kind
+	}
+	if mw.MyWorkbookProperties != nil {
+		objectMap["properties"] = mw.MyWorkbookProperties
+	}
+	if mw.ID != nil {
+		objectMap["id"] = mw.ID
+	}
+	if mw.Name != nil {
+		objectMap["name"] = mw.Name
+	}
+	if mw.Type != nil {
+		objectMap["type"] = mw.Type
+	}
+	if mw.Location != nil {
+		objectMap["location"] = mw.Location
+	}
+	if mw.Tags != nil {
+		objectMap["tags"] = mw.Tags
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for MyWorkbook struct.
+func (mw *MyWorkbook) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "kind":
+			if v != nil {
+				var kind SharedTypeKind
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				mw.Kind = kind
+			}
+		case "properties":
+			if v != nil {
+				var myWorkbookProperties MyWorkbookProperties
+				err = json.Unmarshal(*v, &myWorkbookProperties)
+				if err != nil {
+					return err
+				}
+				mw.MyWorkbookProperties = &myWorkbookProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				mw.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				mw.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				mw.Type = &typeVar
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				mw.Location = &location
+			}
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				mw.Tags = tags
+			}
+		}
+	}
+
+	return nil
+}
+
+// MyWorkbookError error message body that will indicate why the operation failed.
+type MyWorkbookError struct {
+	// Code - Service-defined error code. This code serves as a sub-status for the HTTP error code specified in the response.
+	Code *string `json:"code,omitempty"`
+	// Message - Human-readable representation of the error.
+	Message *string `json:"message,omitempty"`
+	// Details - The list of invalid fields send in request, in case of validation error.
+	Details *[]ErrorFieldContract `json:"details,omitempty"`
+}
+
+// MyWorkbookProperties properties that contain a private workbook.
+type MyWorkbookProperties struct {
+	// DisplayName - The user-defined name of the private workbook.
+	DisplayName *string `json:"displayName,omitempty"`
+	// SerializedData - Configuration of this particular private workbook. Configuration data is a string containing valid JSON
+	SerializedData *string `json:"serializedData,omitempty"`
+	// Version - This instance's version of the data model. This can change as new features are added that can be marked private workbook.
+	Version *string `json:"version,omitempty"`
+	// TimeModified - READ-ONLY; Date and time in UTC of the last modification that was made to this private workbook definition.
+	TimeModified *string `json:"timeModified,omitempty"`
+	// Category - Workbook category, as defined by the user at creation time.
+	Category *string `json:"category,omitempty"`
+	// Tags - A list of 0 or more tags that are associated with this private workbook definition
+	Tags *[]string `json:"tags,omitempty"`
+	// UserID - READ-ONLY; Unique user id of the specific user that owns this private workbook.
+	UserID *string `json:"userId,omitempty"`
+	// SourceID - Optional resourceId for a source resource.
+	SourceID *string `json:"sourceId,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for MyWorkbookProperties.
+func (mwp MyWorkbookProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mwp.DisplayName != nil {
+		objectMap["displayName"] = mwp.DisplayName
+	}
+	if mwp.SerializedData != nil {
+		objectMap["serializedData"] = mwp.SerializedData
+	}
+	if mwp.Version != nil {
+		objectMap["version"] = mwp.Version
+	}
+	if mwp.Category != nil {
+		objectMap["category"] = mwp.Category
+	}
+	if mwp.Tags != nil {
+		objectMap["tags"] = mwp.Tags
+	}
+	if mwp.SourceID != nil {
+		objectMap["sourceId"] = mwp.SourceID
+	}
+	return json.Marshal(objectMap)
+}
+
+// MyWorkbookResource an azure resource object
+type MyWorkbookResource struct {
+	// ID - Azure resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - Azure resource name
+	Name *string `json:"name,omitempty"`
+	// Type - Azure resource type
+	Type *string `json:"type,omitempty"`
+	// Location - Resource location
+	Location *string `json:"location,omitempty"`
+	// Tags - Resource tags
+	Tags map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for MyWorkbookResource.
+func (mwr MyWorkbookResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mwr.ID != nil {
+		objectMap["id"] = mwr.ID
+	}
+	if mwr.Name != nil {
+		objectMap["name"] = mwr.Name
+	}
+	if mwr.Type != nil {
+		objectMap["type"] = mwr.Type
+	}
+	if mwr.Location != nil {
+		objectMap["location"] = mwr.Location
+	}
+	if mwr.Tags != nil {
+		objectMap["tags"] = mwr.Tags
+	}
+	return json.Marshal(objectMap)
+}
+
+// MyWorkbooksListResult workbook list result.
+type MyWorkbooksListResult struct {
+	autorest.Response `json:"-"`
+	// Value - READ-ONLY; An array of private workbooks.
+	Value *[]MyWorkbook `json:"value,omitempty"`
+}
+
 // Operation CDN REST API operation
 type Operation struct {
 	// Name - Operation name: {provider}/{resource}/{operation}
@@ -987,8 +1213,8 @@ type OperationDisplay struct {
 	Operation *string `json:"operation,omitempty"`
 }
 
-// OperationListResult result of the request to list CDN operations. It contains a list of operations and a URL
-// link to get the next set of results.
+// OperationListResult result of the request to list CDN operations. It contains a list of operations and a
+// URL link to get the next set of results.
 type OperationListResult struct {
 	autorest.Response `json:"-"`
 	// Value - List of CDN operations supported by the CDN resource provider.
@@ -1140,8 +1366,11 @@ func (page OperationListResultPage) Values() []Operation {
 }
 
 // Creates a new instance of the OperationListResultPage type.
-func NewOperationListResultPage(getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
-	return OperationListResultPage{fn: getNextPage}
+func NewOperationListResultPage(cur OperationListResult, getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
+	return OperationListResultPage{
+		fn:  getNextPage,
+		olr: cur,
+	}
 }
 
 // PrivateLinkScopedResource the private link scope resource reference.
@@ -1283,8 +1512,8 @@ func (wt *WebTest) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// WebTestGeolocation geo-physical location to run a web test from. You must specify one or more locations for
-// the test to run from.
+// WebTestGeolocation geo-physical location to run a web test from. You must specify one or more locations
+// for the test to run from.
 type WebTestGeolocation struct {
 	// Location - Location ID for the webtest to run from.
 	Location *string `json:"Id,omitempty"`
@@ -1442,8 +1671,11 @@ func (page WebTestListResultPage) Values() []WebTest {
 }
 
 // Creates a new instance of the WebTestListResultPage type.
-func NewWebTestListResultPage(getNextPage func(context.Context, WebTestListResult) (WebTestListResult, error)) WebTestListResultPage {
-	return WebTestListResultPage{fn: getNextPage}
+func NewWebTestListResultPage(cur WebTestListResult, getNextPage func(context.Context, WebTestListResult) (WebTestListResult, error)) WebTestListResultPage {
+	return WebTestListResultPage{
+		fn:   getNextPage,
+		wtlr: cur,
+	}
 }
 
 // WebTestProperties metadata describing a web test for an Azure resource.

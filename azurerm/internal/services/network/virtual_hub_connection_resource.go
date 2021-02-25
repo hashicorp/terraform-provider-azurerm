@@ -17,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmVirtualHubConnection() *schema.Resource {
+func resourceVirtualHubConnection() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmVirtualHubConnectionCreateOrUpdate,
-		Read:   resourceArmVirtualHubConnectionRead,
-		Update: resourceArmVirtualHubConnectionCreateOrUpdate,
-		Delete: resourceArmVirtualHubConnectionDelete,
+		Create: resourceVirtualHubConnectionCreateOrUpdate,
+		Read:   resourceVirtualHubConnectionRead,
+		Update: resourceVirtualHubConnectionCreateOrUpdate,
+		Delete: resourceVirtualHubConnectionDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -157,7 +157,7 @@ func resourceArmVirtualHubConnection() *schema.Resource {
 	}
 }
 
-func resourceArmVirtualHubConnectionCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualHubConnectionCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.HubVirtualNetworkConnectionClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -195,7 +195,7 @@ func resourceArmVirtualHubConnectionCreateOrUpdate(d *schema.ResourceData, meta 
 	}
 
 	if v, ok := d.GetOk("routing"); ok {
-		connection.HubVirtualNetworkConnectionProperties.RoutingConfiguration = expandArmVirtualHubConnectionRouting(v.([]interface{}))
+		connection.HubVirtualNetworkConnectionProperties.RoutingConfiguration = expandVirtualHubConnectionRouting(v.([]interface{}))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, name, connection)
@@ -216,10 +216,10 @@ func resourceArmVirtualHubConnectionCreateOrUpdate(d *schema.ResourceData, meta 
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmVirtualHubConnectionRead(d, meta)
+	return resourceVirtualHubConnectionRead(d, meta)
 }
 
-func resourceArmVirtualHubConnectionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualHubConnectionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.HubVirtualNetworkConnectionClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -256,7 +256,7 @@ func resourceArmVirtualHubConnectionRead(d *schema.ResourceData, meta interface{
 		}
 		d.Set("remote_virtual_network_id", remoteVirtualNetworkId)
 
-		if err := d.Set("routing", flattenArmVirtualHubConnectionRouting(props.RoutingConfiguration)); err != nil {
+		if err := d.Set("routing", flattenVirtualHubConnectionRouting(props.RoutingConfiguration)); err != nil {
 			return fmt.Errorf("setting `routing`: %+v", err)
 		}
 	}
@@ -264,7 +264,7 @@ func resourceArmVirtualHubConnectionRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func resourceArmVirtualHubConnectionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualHubConnectionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.HubVirtualNetworkConnectionClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -289,7 +289,7 @@ func resourceArmVirtualHubConnectionDelete(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func expandArmVirtualHubConnectionRouting(input []interface{}) *network.RoutingConfiguration {
+func expandVirtualHubConnectionRouting(input []interface{}) *network.RoutingConfiguration {
 	if len(input) == 0 {
 		return &network.RoutingConfiguration{}
 	}
@@ -304,17 +304,17 @@ func expandArmVirtualHubConnectionRouting(input []interface{}) *network.RoutingC
 	}
 
 	if vnetStaticRoute := v["static_vnet_route"].([]interface{}); len(vnetStaticRoute) != 0 {
-		result.VnetRoutes = expandArmVirtualHubConnectionVnetStaticRoute(vnetStaticRoute)
+		result.VnetRoutes = expandVirtualHubConnectionVnetStaticRoute(vnetStaticRoute)
 	}
 
 	if propagatedRouteTable := v["propagated_route_table"].([]interface{}); len(propagatedRouteTable) != 0 {
-		result.PropagatedRouteTables = expandArmVirtualHubConnectionPropagatedRouteTable(propagatedRouteTable)
+		result.PropagatedRouteTables = expandVirtualHubConnectionPropagatedRouteTable(propagatedRouteTable)
 	}
 
 	return &result
 }
 
-func expandArmVirtualHubConnectionPropagatedRouteTable(input []interface{}) *network.PropagatedRouteTable {
+func expandVirtualHubConnectionPropagatedRouteTable(input []interface{}) *network.PropagatedRouteTable {
 	if len(input) == 0 {
 		return &network.PropagatedRouteTable{}
 	}
@@ -334,7 +334,7 @@ func expandArmVirtualHubConnectionPropagatedRouteTable(input []interface{}) *net
 	return &result
 }
 
-func expandArmVirtualHubConnectionVnetStaticRoute(input []interface{}) *network.VnetRoute {
+func expandVirtualHubConnectionVnetStaticRoute(input []interface{}) *network.VnetRoute {
 	if len(input) == 0 {
 		return &network.VnetRoute{}
 	}
@@ -378,7 +378,7 @@ func expandIDsToSubResources(input []interface{}) *[]network.SubResource {
 	return &ids
 }
 
-func flattenArmVirtualHubConnectionRouting(input *network.RoutingConfiguration) []interface{} {
+func flattenVirtualHubConnectionRouting(input *network.RoutingConfiguration) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -391,13 +391,13 @@ func flattenArmVirtualHubConnectionRouting(input *network.RoutingConfiguration) 
 	return []interface{}{
 		map[string]interface{}{
 			"associated_route_table_id": associatedRouteTableId,
-			"propagated_route_table":    flattenArmVirtualHubConnectionPropagatedRouteTable(input.PropagatedRouteTables),
-			"static_vnet_route":         flattenArmVirtualHubConnectionVnetStaticRoute(input.VnetRoutes),
+			"propagated_route_table":    flattenVirtualHubConnectionPropagatedRouteTable(input.PropagatedRouteTables),
+			"static_vnet_route":         flattenVirtualHubConnectionVnetStaticRoute(input.VnetRoutes),
 		},
 	}
 }
 
-func flattenArmVirtualHubConnectionPropagatedRouteTable(input *network.PropagatedRouteTable) []interface{} {
+func flattenVirtualHubConnectionPropagatedRouteTable(input *network.PropagatedRouteTable) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
@@ -420,7 +420,7 @@ func flattenArmVirtualHubConnectionPropagatedRouteTable(input *network.Propagate
 	}
 }
 
-func flattenArmVirtualHubConnectionVnetStaticRoute(input *network.VnetRoute) []interface{} {
+func flattenVirtualHubConnectionVnetStaticRoute(input *network.VnetRoute) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil || input.StaticRoutes == nil {
 		return results

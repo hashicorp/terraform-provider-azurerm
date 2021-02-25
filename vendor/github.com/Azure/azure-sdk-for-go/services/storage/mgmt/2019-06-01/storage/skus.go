@@ -76,6 +76,7 @@ func (client SkusClient) List(ctx context.Context) (result SkuListResult, err er
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.SkusClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return

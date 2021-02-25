@@ -81,7 +81,7 @@ func (client APIClient) CreateOrUpdate(ctx context.Context, resourceGroupName st
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "apimanagement.APIClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "apimanagement.APIClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -124,7 +124,33 @@ func (client APIClient) CreateOrUpdateSender(req *http.Request) (future APICreat
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client APIClient) (ac APIContract, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "apimanagement.APICreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("apimanagement.APICreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		ac.Response.Response, err = future.GetResult(sender)
+		if ac.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "apimanagement.APICreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && ac.Response.Response.StatusCode != http.StatusNoContent {
+			ac, err = client.CreateOrUpdateResponder(ac.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "apimanagement.APICreateOrUpdateFuture", "Result", ac.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -188,6 +214,7 @@ func (client APIClient) Delete(ctx context.Context, resourceGroupName string, se
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APIClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -281,6 +308,7 @@ func (client APIClient) Get(ctx context.Context, resourceGroupName string, servi
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APIClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -371,6 +399,7 @@ func (client APIClient) GetEntityTag(ctx context.Context, resourceGroupName stri
 	result, err = client.GetEntityTagResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APIClient", "GetEntityTag", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -472,9 +501,11 @@ func (client APIClient) ListByService(ctx context.Context, resourceGroupName str
 	result.ac, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APIClient", "ListByService", resp, "Failure responding to request")
+		return
 	}
 	if result.ac.hasNextLink() && result.ac.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -630,9 +661,11 @@ func (client APIClient) ListByTags(ctx context.Context, resourceGroupName string
 	result.trc, err = client.ListByTagsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APIClient", "ListByTags", resp, "Failure responding to request")
+		return
 	}
 	if result.trc.hasNextLink() && result.trc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -774,6 +807,7 @@ func (client APIClient) Update(ctx context.Context, resourceGroupName string, se
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APIClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

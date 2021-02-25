@@ -80,7 +80,7 @@ func (client ManagedInstanceAdministratorsClient) CreateOrUpdate(ctx context.Con
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceAdministratorsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceAdministratorsClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -119,7 +119,33 @@ func (client ManagedInstanceAdministratorsClient) CreateOrUpdateSender(req *http
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ManagedInstanceAdministratorsClient) (mia ManagedInstanceAdministrator, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ManagedInstanceAdministratorsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.ManagedInstanceAdministratorsCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		mia.Response.Response, err = future.GetResult(sender)
+		if mia.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "sql.ManagedInstanceAdministratorsCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && mia.Response.Response.StatusCode != http.StatusNoContent {
+			mia, err = client.CreateOrUpdateResponder(mia.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "sql.ManagedInstanceAdministratorsCreateOrUpdateFuture", "Result", mia.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -159,7 +185,7 @@ func (client ManagedInstanceAdministratorsClient) Delete(ctx context.Context, re
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceAdministratorsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceAdministratorsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -196,7 +222,23 @@ func (client ManagedInstanceAdministratorsClient) DeleteSender(req *http.Request
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ManagedInstanceAdministratorsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ManagedInstanceAdministratorsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.ManagedInstanceAdministratorsDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -243,6 +285,7 @@ func (client ManagedInstanceAdministratorsClient) Get(ctx context.Context, resou
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceAdministratorsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -321,9 +364,11 @@ func (client ManagedInstanceAdministratorsClient) ListByInstance(ctx context.Con
 	result.mialr, err = client.ListByInstanceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceAdministratorsClient", "ListByInstance", resp, "Failure responding to request")
+		return
 	}
 	if result.mialr.hasNextLink() && result.mialr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

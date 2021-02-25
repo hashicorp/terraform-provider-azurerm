@@ -85,6 +85,7 @@ func (client BaseClient) CreateRoleAssignment(ctx context.Context, createRoleAss
 	result, err = client.CreateRoleAssignmentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "accesscontrol.BaseClient", "CreateRoleAssignment", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -165,6 +166,7 @@ func (client BaseClient) DeleteRoleAssignmentByID(ctx context.Context, roleAssig
 	result, err = client.DeleteRoleAssignmentByIDResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "accesscontrol.BaseClient", "DeleteRoleAssignmentByID", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -238,6 +240,7 @@ func (client BaseClient) GetCallerRoleAssignments(ctx context.Context) (result L
 	result, err = client.GetCallerRoleAssignmentsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "accesscontrol.BaseClient", "GetCallerRoleAssignments", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -316,6 +319,7 @@ func (client BaseClient) GetRoleAssignmentByID(ctx context.Context, roleAssignme
 	result, err = client.GetRoleAssignmentByIDResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "accesscontrol.BaseClient", "GetRoleAssignmentByID", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -394,6 +398,7 @@ func (client BaseClient) GetRoleAssignments(ctx context.Context, roleID string, 
 	result, err = client.GetRoleAssignmentsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "accesscontrol.BaseClient", "GetRoleAssignments", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -476,6 +481,7 @@ func (client BaseClient) GetRoleDefinitionByID(ctx context.Context, roleID strin
 	result, err = client.GetRoleDefinitionByIDResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "accesscontrol.BaseClient", "GetRoleDefinitionByID", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -551,9 +557,11 @@ func (client BaseClient) GetRoleDefinitions(ctx context.Context) (result RolesLi
 	result.rlr, err = client.GetRoleDefinitionsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "accesscontrol.BaseClient", "GetRoleDefinitions", resp, "Failure responding to request")
+		return
 	}
 	if result.rlr.hasNextLink() && result.rlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

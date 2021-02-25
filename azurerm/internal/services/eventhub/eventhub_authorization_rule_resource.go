@@ -12,16 +12,17 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmEventHubAuthorizationRule() *schema.Resource {
+func resourceEventHubAuthorizationRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmEventHubAuthorizationRuleCreateUpdate,
-		Read:   resourceArmEventHubAuthorizationRuleRead,
-		Update: resourceArmEventHubAuthorizationRuleCreateUpdate,
-		Delete: resourceArmEventHubAuthorizationRuleDelete,
+		Create: resourceEventHubAuthorizationRuleCreateUpdate,
+		Read:   resourceEventHubAuthorizationRuleRead,
+		Update: resourceEventHubAuthorizationRuleCreateUpdate,
+		Delete: resourceEventHubAuthorizationRuleDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -34,36 +35,36 @@ func resourceArmEventHubAuthorizationRule() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: azure.EventHubAuthorizationRuleSchemaFrom(map[string]*schema.Schema{
+		Schema: eventHubAuthorizationRuleSchemaFrom(map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateEventHubAuthorizationRuleName(),
+				ValidateFunc: validate.ValidateEventHubAuthorizationRuleName(),
 			},
 
 			"namespace_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateEventHubNamespaceName(),
+				ValidateFunc: validate.ValidateEventHubNamespaceName(),
 			},
 
 			"eventhub_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateEventHubName(),
+				ValidateFunc: validate.ValidateEventHubName(),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 		}),
 
-		CustomizeDiff: azure.EventHubAuthorizationRuleCustomizeDiff,
+		CustomizeDiff: eventHubAuthorizationRuleCustomizeDiff,
 	}
 }
 
-func resourceArmEventHubAuthorizationRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceEventHubAuthorizationRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.EventHubsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -97,7 +98,7 @@ func resourceArmEventHubAuthorizationRuleCreateUpdate(d *schema.ResourceData, me
 	parameters := eventhub.AuthorizationRule{
 		Name: &name,
 		AuthorizationRuleProperties: &eventhub.AuthorizationRuleProperties{
-			Rights: azure.ExpandEventHubAuthorizationRuleRights(d),
+			Rights: expandEventHubAuthorizationRuleRights(d),
 		},
 	}
 
@@ -120,11 +121,11 @@ func resourceArmEventHubAuthorizationRuleCreateUpdate(d *schema.ResourceData, me
 
 		d.SetId(*read.ID)
 
-		return resource.NonRetryableError(resourceArmEventHubAuthorizationRuleRead(d, meta))
+		return resource.NonRetryableError(resourceEventHubAuthorizationRuleRead(d, meta))
 	})
 }
 
-func resourceArmEventHubAuthorizationRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceEventHubAuthorizationRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.EventHubsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -154,7 +155,7 @@ func resourceArmEventHubAuthorizationRuleRead(d *schema.ResourceData, meta inter
 	d.Set("resource_group_name", resourceGroup)
 
 	if properties := resp.AuthorizationRuleProperties; properties != nil {
-		listen, send, manage := azure.FlattenEventHubAuthorizationRuleRights(properties.Rights)
+		listen, send, manage := flattenEventHubAuthorizationRuleRights(properties.Rights)
 		d.Set("manage", manage)
 		d.Set("listen", listen)
 		d.Set("send", send)
@@ -175,7 +176,7 @@ func resourceArmEventHubAuthorizationRuleRead(d *schema.ResourceData, meta inter
 	return nil
 }
 
-func resourceArmEventHubAuthorizationRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceEventHubAuthorizationRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	eventhubClient := meta.(*clients.Client).Eventhub.EventHubsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

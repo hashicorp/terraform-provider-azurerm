@@ -71,7 +71,7 @@ func (client AvailabilityGroupListenersClient) CreateOrUpdate(ctx context.Contex
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.AvailabilityGroupListenersClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.AvailabilityGroupListenersClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -110,7 +110,33 @@ func (client AvailabilityGroupListenersClient) CreateOrUpdateSender(req *http.Re
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client AvailabilityGroupListenersClient) (agl AvailabilityGroupListener, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sqlvirtualmachine.AvailabilityGroupListenersCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sqlvirtualmachine.AvailabilityGroupListenersCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		agl.Response.Response, err = future.GetResult(sender)
+		if agl.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "sqlvirtualmachine.AvailabilityGroupListenersCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && agl.Response.Response.StatusCode != http.StatusNoContent {
+			agl, err = client.CreateOrUpdateResponder(agl.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "sqlvirtualmachine.AvailabilityGroupListenersCreateOrUpdateFuture", "Result", agl.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -151,7 +177,7 @@ func (client AvailabilityGroupListenersClient) Delete(ctx context.Context, resou
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.AvailabilityGroupListenersClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.AvailabilityGroupListenersClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -188,7 +214,23 @@ func (client AvailabilityGroupListenersClient) DeleteSender(req *http.Request) (
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client AvailabilityGroupListenersClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sqlvirtualmachine.AvailabilityGroupListenersDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sqlvirtualmachine.AvailabilityGroupListenersDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -236,6 +278,7 @@ func (client AvailabilityGroupListenersClient) Get(ctx context.Context, resource
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.AvailabilityGroupListenersClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -314,9 +357,11 @@ func (client AvailabilityGroupListenersClient) ListByGroup(ctx context.Context, 
 	result.agllr, err = client.ListByGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.AvailabilityGroupListenersClient", "ListByGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.agllr.hasNextLink() && result.agllr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

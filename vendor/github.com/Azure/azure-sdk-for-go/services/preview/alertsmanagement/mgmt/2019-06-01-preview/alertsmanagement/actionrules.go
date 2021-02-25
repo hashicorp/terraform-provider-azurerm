@@ -80,6 +80,7 @@ func (client ActionRulesClient) CreateUpdate(ctx context.Context, resourceGroupN
 	result, err = client.CreateUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "alertsmanagement.ActionRulesClient", "CreateUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -163,6 +164,7 @@ func (client ActionRulesClient) Delete(ctx context.Context, resourceGroupName st
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "alertsmanagement.ActionRulesClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -244,6 +246,7 @@ func (client ActionRulesClient) GetByName(ctx context.Context, resourceGroupName
 	result, err = client.GetByNameResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "alertsmanagement.ActionRulesClient", "GetByName", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -337,9 +340,11 @@ func (client ActionRulesClient) ListByResourceGroup(ctx context.Context, resourc
 	result.arl, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "alertsmanagement.ActionRulesClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.arl.hasNextLink() && result.arl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -497,9 +502,11 @@ func (client ActionRulesClient) ListBySubscription(ctx context.Context, targetRe
 	result.arl, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "alertsmanagement.ActionRulesClient", "ListBySubscription", resp, "Failure responding to request")
+		return
 	}
 	if result.arl.hasNextLink() && result.arl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -647,6 +654,7 @@ func (client ActionRulesClient) Update(ctx context.Context, resourceGroupName st
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "alertsmanagement.ActionRulesClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

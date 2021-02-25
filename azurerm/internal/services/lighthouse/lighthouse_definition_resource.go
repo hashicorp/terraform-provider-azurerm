@@ -18,12 +18,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmLighthouseDefinition() *schema.Resource {
+func resourceLighthouseDefinition() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmLighthouseDefinitionCreateUpdate,
-		Read:   resourceArmLighthouseDefinitionRead,
-		Update: resourceArmLighthouseDefinitionCreateUpdate,
-		Delete: resourceArmLighthouseDefinitionDelete,
+		Create: resourceLighthouseDefinitionCreateUpdate,
+		Read:   resourceLighthouseDefinitionRead,
+		Update: resourceLighthouseDefinitionCreateUpdate,
+		Delete: resourceLighthouseDefinitionDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -73,6 +73,12 @@ func resourceArmLighthouseDefinition() *schema.Resource {
 							Required:     true,
 							ValidateFunc: validation.IsUUID,
 						},
+
+						"principal_display_name": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
 					},
 				},
 			},
@@ -93,7 +99,7 @@ func resourceArmLighthouseDefinition() *schema.Resource {
 	}
 }
 
-func resourceArmLighthouseDefinitionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceLighthouseDefinitionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Lighthouse.DefinitionsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -152,10 +158,10 @@ func resourceArmLighthouseDefinitionCreateUpdate(d *schema.ResourceData, meta in
 
 	d.SetId(*read.ID)
 
-	return resourceArmLighthouseDefinitionRead(d, meta)
+	return resourceLighthouseDefinitionRead(d, meta)
 }
 
-func resourceArmLighthouseDefinitionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceLighthouseDefinitionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Lighthouse.DefinitionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -191,7 +197,7 @@ func resourceArmLighthouseDefinitionRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func resourceArmLighthouseDefinitionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceLighthouseDefinitionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Lighthouse.DefinitionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -201,8 +207,7 @@ func resourceArmLighthouseDefinitionDelete(d *schema.ResourceData, meta interfac
 		return err
 	}
 
-	_, err = client.Delete(ctx, id.LighthouseDefinitionID, id.Scope)
-	if err != nil {
+	if _, err = client.Delete(ctx, id.LighthouseDefinitionID, id.Scope); err != nil {
 		return fmt.Errorf("Error deleting Lighthouse Definition %q at Scope %q: %+v", id.LighthouseDefinitionID, id.Scope, err)
 	}
 
@@ -226,9 +231,15 @@ func flattenLighthouseDefinitionAuthorization(input *[]managedservices.Authoriza
 			roleDefinitionID = *item.RoleDefinitionID
 		}
 
+		principalIDDisplayName := ""
+		if item.PrincipalIDDisplayName != nil {
+			principalIDDisplayName = *item.PrincipalIDDisplayName
+		}
+
 		results = append(results, map[string]interface{}{
-			"role_definition_id": roleDefinitionID,
-			"principal_id":       principalID,
+			"role_definition_id":     roleDefinitionID,
+			"principal_id":           principalID,
+			"principal_display_name": principalIDDisplayName,
 		})
 	}
 
@@ -240,8 +251,9 @@ func expandLighthouseDefinitionAuthorization(input []interface{}) *[]managedserv
 	for _, item := range input {
 		v := item.(map[string]interface{})
 		result := managedservices.Authorization{
-			RoleDefinitionID: utils.String(v["role_definition_id"].(string)),
-			PrincipalID:      utils.String(v["principal_id"].(string)),
+			RoleDefinitionID:       utils.String(v["role_definition_id"].(string)),
+			PrincipalID:            utils.String(v["principal_id"].(string)),
+			PrincipalIDDisplayName: utils.String(v["principal_display_name"].(string)),
 		}
 		results = append(results, result)
 	}

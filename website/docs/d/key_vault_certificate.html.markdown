@@ -58,6 +58,8 @@ The following attributes are exported:
 
 * `certificate_data` - The raw Key Vault Certificate data represented as a hexadecimal string.
 
+* `certificate_data_base64` - The raw Key Vault Certificate data represented as a base64 string.
+
 * `thumbprint` - The X509 Thumbprint of the Key Vault Certificate represented as a hexadecimal string.
 
 * `certificate_policy` - A `certificate_policy` block as defined below.

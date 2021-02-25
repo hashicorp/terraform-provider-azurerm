@@ -64,18 +64,14 @@ func TestAccMySqlAdministrator_disappears(t *testing.T) {
 	r := MySqlAdministratorResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckAzureMySqlAdministratorDisappears(data.ResourceName),
-			),
-			ExpectNonEmptyPlan: true,
-		},
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.basic,
+			TestResource: r,
+		}),
 	})
 }
 
-func (t MySqlAdministratorResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r MySqlAdministratorResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -92,25 +88,25 @@ func (t MySqlAdministratorResource) Exists(ctx context.Context, clients *clients
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func testCheckAzureMySqlAdministratorDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).MySQL.ServerAdministratorsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		serverName := rs.Primary.Attributes["server_name"]
-
-		if _, err := client.Delete(ctx, resourceGroup, serverName); err != nil {
-			return fmt.Errorf("Bad: Delete on mysqlAdministratorClient: %+v", err)
-		}
-
-		return nil
+func (r MySqlAdministratorResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+
+	resourceGroup := id.ResourceGroup
+	serverName := id.Path["servers"]
+
+	future, err := client.MySQL.ServerAdministratorsClient.Delete(ctx, resourceGroup, serverName)
+	if err != nil {
+		return nil, fmt.Errorf("deleting MySQL Administrator (%s): %+v", id, err)
+	}
+
+	if err := future.WaitForCompletionRef(ctx, client.MySQL.ServerAdministratorsClient.Client); err != nil {
+		return nil, fmt.Errorf("waiting for deletion of MySQL Administrator (%s): %+v", id, err)
+	}
+
+	return utils.Bool(true), nil
 }
 
 func (MySqlAdministratorResource) basic(data acceptance.TestData) string {

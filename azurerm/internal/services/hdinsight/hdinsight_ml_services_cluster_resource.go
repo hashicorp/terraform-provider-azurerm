@@ -52,16 +52,16 @@ var hdInsightMLServicesClusterEdgeNodeDefinition = HDInsightNodeDefinition{
 	FixedTargetInstanceCount: utils.Int32(int32(1)),
 }
 
-func resourceArmHDInsightMLServicesCluster() *schema.Resource {
+func resourceHDInsightMLServicesCluster() *schema.Resource {
 	return &schema.Resource{
 		DeprecationMessage: `HDInsight 3.6 will be retired on 2020-12-31 - MLServices is not supported in HDInsight 4.0 and so this resource will be removed in the next major version of the AzureRM Terraform Provider.
 		
 More information on the HDInsight 3.6 deprecation can be found at:
 
 https://docs.microsoft.com/en-us/azure/hdinsight/hdinsight-component-versioning#available-versions`,
-		Create: resourceArmHDInsightMLServicesClusterCreate,
-		Read:   resourceArmHDInsightMLServicesClusterRead,
-		Update: hdinsightClusterUpdate("MLServices", resourceArmHDInsightMLServicesClusterRead),
+		Create: resourceHDInsightMLServicesClusterCreate,
+		Read:   resourceHDInsightMLServicesClusterRead,
+		Update: hdinsightClusterUpdate("MLServices", resourceHDInsightMLServicesClusterRead),
 		Delete: hdinsightClusterDelete("MLServices"),
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -103,13 +103,13 @@ https://docs.microsoft.com/en-us/azure/hdinsight/hdinsight-component-versioning#
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"head_node": SchemaHDInsightNodeDefinition("roles.0.head_node", hdInsightMLServicesClusterHeadNodeDefinition),
+						"head_node": SchemaHDInsightNodeDefinition("roles.0.head_node", hdInsightMLServicesClusterHeadNodeDefinition, true),
 
-						"worker_node": SchemaHDInsightNodeDefinition("roles.0.worker_node", hdInsightMLServicesClusterWorkerNodeDefinition),
+						"worker_node": SchemaHDInsightNodeDefinition("roles.0.worker_node", hdInsightMLServicesClusterWorkerNodeDefinition, true),
 
-						"zookeeper_node": SchemaHDInsightNodeDefinition("roles.0.zookeeper_node", hdInsightMLServicesClusterZookeeperNodeDefinition),
+						"zookeeper_node": SchemaHDInsightNodeDefinition("roles.0.zookeeper_node", hdInsightMLServicesClusterZookeeperNodeDefinition, true),
 
-						"edge_node": SchemaHDInsightNodeDefinition("roles.0.edge_node", hdInsightMLServicesClusterEdgeNodeDefinition),
+						"edge_node": SchemaHDInsightNodeDefinition("roles.0.edge_node", hdInsightMLServicesClusterEdgeNodeDefinition, true),
 					},
 				},
 			},
@@ -144,7 +144,7 @@ func expandHDInsightsMLServicesConfigurations(gateway []interface{}, rStudio boo
 	return config
 }
 
-func resourceArmHDInsightMLServicesClusterCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceHDInsightMLServicesClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HDInsight.ClustersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -233,10 +233,10 @@ func resourceArmHDInsightMLServicesClusterCreate(d *schema.ResourceData, meta in
 
 	d.SetId(id.ID())
 
-	return resourceArmHDInsightMLServicesClusterRead(d, meta)
+	return resourceHDInsightMLServicesClusterRead(d, meta)
 }
 
-func resourceArmHDInsightMLServicesClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceHDInsightMLServicesClusterRead(d *schema.ResourceData, meta interface{}) error {
 	clustersClient := meta.(*clients.Client).HDInsight.ClustersClient
 	configurationsClient := meta.(*clients.Client).HDInsight.ConfigurationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

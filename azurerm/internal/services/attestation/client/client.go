@@ -1,7 +1,7 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/preview/attestation/mgmt/2018-09-01-preview/attestation"
+	"github.com/Azure/azure-sdk-for-go/services/attestation/mgmt/2018-09-01/attestation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 

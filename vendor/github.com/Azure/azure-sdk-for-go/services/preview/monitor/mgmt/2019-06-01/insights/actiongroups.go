@@ -84,6 +84,7 @@ func (client ActionGroupsClient) CreateOrUpdate(ctx context.Context, resourceGro
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ActionGroupsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -161,6 +162,7 @@ func (client ActionGroupsClient) Delete(ctx context.Context, resourceGroupName s
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ActionGroupsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -243,6 +245,7 @@ func (client ActionGroupsClient) EnableReceiver(ctx context.Context, resourceGro
 	result, err = client.EnableReceiverResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ActionGroupsClient", "EnableReceiver", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -319,6 +322,7 @@ func (client ActionGroupsClient) Get(ctx context.Context, resourceGroupName stri
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ActionGroupsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -393,6 +397,7 @@ func (client ActionGroupsClient) ListByResourceGroup(ctx context.Context, resour
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ActionGroupsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -464,6 +469,7 @@ func (client ActionGroupsClient) ListBySubscriptionID(ctx context.Context) (resu
 	result, err = client.ListBySubscriptionIDResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ActionGroupsClient", "ListBySubscriptionID", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -538,6 +544,7 @@ func (client ActionGroupsClient) Update(ctx context.Context, resourceGroupName s
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ActionGroupsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

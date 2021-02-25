@@ -37,11 +37,11 @@ type AttachedDatabaseConfiguration struct {
 	Location *string `json:"location,omitempty"`
 	// AttachedDatabaseConfigurationProperties - The properties of the attached database configuration.
 	*AttachedDatabaseConfigurationProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -124,10 +124,10 @@ type AttachedDatabaseConfigurationListResult struct {
 	Value *[]AttachedDatabaseConfiguration `json:"value,omitempty"`
 }
 
-// AttachedDatabaseConfigurationProperties class representing the an attached database configuration properties
-// of kind specific.
+// AttachedDatabaseConfigurationProperties class representing the an attached database configuration
+// properties of kind specific.
 type AttachedDatabaseConfigurationProperties struct {
-	// ProvisioningState - READ-ONLY; The provisioned state of the resource. Possible values include: 'Running', 'Creating', 'Deleting', 'Succeeded', 'Failed', 'Moving'
+	// ProvisioningState - The provisioned state of the resource. Possible values include: 'Running', 'Creating', 'Deleting', 'Succeeded', 'Failed', 'Moving'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 	// DatabaseName - The name of the database which you would like to attach, use * if you want to follow all current and future databases.
 	DatabaseName *string `json:"databaseName,omitempty"`
@@ -142,6 +142,9 @@ type AttachedDatabaseConfigurationProperties struct {
 // MarshalJSON is the custom marshaler for AttachedDatabaseConfigurationProperties.
 func (adcp AttachedDatabaseConfigurationProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
+	if adcp.ProvisioningState != "" {
+		objectMap["provisioningState"] = adcp.ProvisioningState
+	}
 	if adcp.DatabaseName != nil {
 		objectMap["databaseName"] = adcp.DatabaseName
 	}
@@ -154,56 +157,22 @@ func (adcp AttachedDatabaseConfigurationProperties) MarshalJSON() ([]byte, error
 	return json.Marshal(objectMap)
 }
 
-// AttachedDatabaseConfigurationsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results
-// of a long-running operation.
+// AttachedDatabaseConfigurationsCreateOrUpdateFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
 type AttachedDatabaseConfigurationsCreateOrUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AttachedDatabaseConfigurationsCreateOrUpdateFuture) Result(client AttachedDatabaseConfigurationsClient) (adc AttachedDatabaseConfiguration, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "kusto.AttachedDatabaseConfigurationsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("kusto.AttachedDatabaseConfigurationsCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if adc.Response.Response, err = future.GetResult(sender); err == nil && adc.Response.Response.StatusCode != http.StatusNoContent {
-		adc, err = client.CreateOrUpdateResponder(adc.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "kusto.AttachedDatabaseConfigurationsCreateOrUpdateFuture", "Result", adc.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AttachedDatabaseConfigurationsClient) (AttachedDatabaseConfiguration, error)
 }
 
 // AttachedDatabaseConfigurationsDeleteFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type AttachedDatabaseConfigurationsDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AttachedDatabaseConfigurationsDeleteFuture) Result(client AttachedDatabaseConfigurationsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "kusto.AttachedDatabaseConfigurationsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("kusto.AttachedDatabaseConfigurationsDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AttachedDatabaseConfigurationsClient) (autorest.Response, error)
 }
 
 // AzureCapacity azure capacity definition.
@@ -218,15 +187,15 @@ type AzureCapacity struct {
 	Default *int32 `json:"default,omitempty"`
 }
 
-// AzureEntityResource the resource model definition for a Azure Resource Manager resource with an etag.
+// AzureEntityResource the resource model definition for an Azure Resource Manager resource with an etag.
 type AzureEntityResource struct {
 	// Etag - READ-ONLY; Resource Etag.
 	Etag *string `json:"etag,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -304,11 +273,11 @@ type Cluster struct {
 	Tags map[string]*string `json:"tags"`
 	// Location - The geo-location where the resource lives
 	Location *string `json:"location,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -452,11 +421,11 @@ type ClusterPrincipalAssignment struct {
 	autorest.Response `json:"-"`
 	// ClusterPrincipalProperties - The cluster principal.
 	*ClusterPrincipalProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -535,56 +504,22 @@ type ClusterPrincipalAssignmentListResult struct {
 	Value *[]ClusterPrincipalAssignment `json:"value,omitempty"`
 }
 
-// ClusterPrincipalAssignmentsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of
-// a long-running operation.
+// ClusterPrincipalAssignmentsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results
+// of a long-running operation.
 type ClusterPrincipalAssignmentsCreateOrUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ClusterPrincipalAssignmentsCreateOrUpdateFuture) Result(client ClusterPrincipalAssignmentsClient) (cpa ClusterPrincipalAssignment, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "kusto.ClusterPrincipalAssignmentsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("kusto.ClusterPrincipalAssignmentsCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if cpa.Response.Response, err = future.GetResult(sender); err == nil && cpa.Response.Response.StatusCode != http.StatusNoContent {
-		cpa, err = client.CreateOrUpdateResponder(cpa.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "kusto.ClusterPrincipalAssignmentsCreateOrUpdateFuture", "Result", cpa.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ClusterPrincipalAssignmentsClient) (ClusterPrincipalAssignment, error)
 }
 
 // ClusterPrincipalAssignmentsDeleteFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ClusterPrincipalAssignmentsDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ClusterPrincipalAssignmentsDeleteFuture) Result(client ClusterPrincipalAssignmentsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "kusto.ClusterPrincipalAssignmentsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("kusto.ClusterPrincipalAssignmentsDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ClusterPrincipalAssignmentsClient) (autorest.Response, error)
 }
 
 // ClusterPrincipalProperties a class representing cluster principal property.
@@ -601,7 +536,7 @@ type ClusterPrincipalProperties struct {
 	TenantName *string `json:"tenantName,omitempty"`
 	// PrincipalName - READ-ONLY; The principal name
 	PrincipalName *string `json:"principalName,omitempty"`
-	// ProvisioningState - READ-ONLY; The provisioned state of the resource. Possible values include: 'Running', 'Creating', 'Deleting', 'Succeeded', 'Failed', 'Moving'
+	// ProvisioningState - The provisioned state of the resource. Possible values include: 'Running', 'Creating', 'Deleting', 'Succeeded', 'Failed', 'Moving'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 }
 
@@ -620,6 +555,9 @@ func (cpp ClusterPrincipalProperties) MarshalJSON() ([]byte, error) {
 	if cpp.PrincipalType != "" {
 		objectMap["principalType"] = cpp.PrincipalType
 	}
+	if cpp.ProvisioningState != "" {
+		objectMap["provisioningState"] = cpp.ProvisioningState
+	}
 	return json.Marshal(objectMap)
 }
 
@@ -627,7 +565,7 @@ func (cpp ClusterPrincipalProperties) MarshalJSON() ([]byte, error) {
 type ClusterProperties struct {
 	// State - READ-ONLY; The state of the resource. Possible values include: 'StateCreating', 'StateUnavailable', 'StateRunning', 'StateDeleting', 'StateDeleted', 'StateStopping', 'StateStopped', 'StateStarting', 'StateUpdating'
 	State State `json:"state,omitempty"`
-	// ProvisioningState - READ-ONLY; The provisioned state of the resource. Possible values include: 'Running', 'Creating', 'Deleting', 'Succeeded', 'Failed', 'Moving'
+	// ProvisioningState - The provisioned state of the resource. Possible values include: 'Running', 'Creating', 'Deleting', 'Succeeded', 'Failed', 'Moving'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 	// URI - READ-ONLY; The cluster URI.
 	URI *string `json:"uri,omitempty"`
@@ -660,6 +598,9 @@ type ClusterProperties struct {
 // MarshalJSON is the custom marshaler for ClusterProperties.
 func (cp ClusterProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
+	if cp.ProvisioningState != "" {
+		objectMap["provisioningState"] = cp.ProvisioningState
+	}
 	if cp.TrustedExternalTenants != nil {
 		objectMap["trustedExternalTenants"] = cp.TrustedExternalTenants
 	}
@@ -693,222 +634,81 @@ func (cp ClusterProperties) MarshalJSON() ([]byte, error) {
 // ClustersAddLanguageExtensionsFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ClustersAddLanguageExtensionsFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ClustersAddLanguageExtensionsFuture) Result(client ClustersClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "kusto.ClustersAddLanguageExtensionsFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("kusto.ClustersAddLanguageExtensionsFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ClustersClient) (autorest.Response, error)
 }
 
 // ClustersCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type ClustersCreateOrUpdateFuture struct {
-	azure.Future
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ClustersClient) (Cluster, error)
 }
 
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ClustersCreateOrUpdateFuture) Result(client ClustersClient) (c Cluster, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "kusto.ClustersCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("kusto.ClustersCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if c.Response.Response, err = future.GetResult(sender); err == nil && c.Response.Response.StatusCode != http.StatusNoContent {
-		c, err = client.CreateOrUpdateResponder(c.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "kusto.ClustersCreateOrUpdateFuture", "Result", c.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// ClustersDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// ClustersDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type ClustersDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ClustersDeleteFuture) Result(client ClustersClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "kusto.ClustersDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("kusto.ClustersDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ClustersClient) (autorest.Response, error)
 }
 
 // ClustersDetachFollowerDatabasesFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ClustersDetachFollowerDatabasesFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ClustersDetachFollowerDatabasesFuture) Result(client ClustersClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "kusto.ClustersDetachFollowerDatabasesFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("kusto.ClustersDetachFollowerDatabasesFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ClustersClient) (autorest.Response, error)
 }
 
 // ClustersDiagnoseVirtualNetworkFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ClustersDiagnoseVirtualNetworkFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ClustersDiagnoseVirtualNetworkFuture) Result(client ClustersClient) (dvnr DiagnoseVirtualNetworkResult, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "kusto.ClustersDiagnoseVirtualNetworkFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("kusto.ClustersDiagnoseVirtualNetworkFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if dvnr.Response.Response, err = future.GetResult(sender); err == nil && dvnr.Response.Response.StatusCode != http.StatusNoContent {
-		dvnr, err = client.DiagnoseVirtualNetworkResponder(dvnr.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "kusto.ClustersDiagnoseVirtualNetworkFuture", "Result", dvnr.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ClustersClient) (DiagnoseVirtualNetworkResult, error)
 }
 
 // ClustersRemoveLanguageExtensionsFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ClustersRemoveLanguageExtensionsFuture struct {
-	azure.Future
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ClustersClient) (autorest.Response, error)
 }
 
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ClustersRemoveLanguageExtensionsFuture) Result(client ClustersClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "kusto.ClustersRemoveLanguageExtensionsFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("kusto.ClustersRemoveLanguageExtensionsFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
-}
-
-// ClustersStartFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// ClustersStartFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type ClustersStartFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ClustersStartFuture) Result(client ClustersClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "kusto.ClustersStartFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("kusto.ClustersStartFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ClustersClient) (autorest.Response, error)
 }
 
 // ClustersStopFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type ClustersStopFuture struct {
-	azure.Future
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ClustersClient) (autorest.Response, error)
 }
 
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ClustersStopFuture) Result(client ClustersClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "kusto.ClustersStopFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("kusto.ClustersStopFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
-}
-
-// ClustersUpdateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// ClustersUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type ClustersUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ClustersUpdateFuture) Result(client ClustersClient) (c Cluster, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "kusto.ClustersUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("kusto.ClustersUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if c.Response.Response, err = future.GetResult(sender); err == nil && c.Response.Response.StatusCode != http.StatusNoContent {
-		c, err = client.UpdateResponder(c.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "kusto.ClustersUpdateFuture", "Result", c.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ClustersClient) (Cluster, error)
 }
 
 // ClusterUpdate class representing an update to a Kusto cluster.
@@ -923,11 +723,11 @@ type ClusterUpdate struct {
 	Identity *Identity `json:"identity,omitempty"`
 	// ClusterProperties - The cluster properties.
 	*ClusterProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -1053,11 +853,11 @@ type Database struct {
 	Location *string `json:"location,omitempty"`
 	// Kind - Possible values include: 'KindDatabase', 'KindReadWrite', 'KindReadOnlyFollowing'
 	Kind Kind `json:"kind,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -1229,11 +1029,11 @@ type DatabasePrincipalAssignment struct {
 	autorest.Response `json:"-"`
 	// DatabasePrincipalProperties - The database principal.
 	*DatabasePrincipalProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -1312,56 +1112,22 @@ type DatabasePrincipalAssignmentListResult struct {
 	Value *[]DatabasePrincipalAssignment `json:"value,omitempty"`
 }
 
-// DatabasePrincipalAssignmentsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of
-// a long-running operation.
+// DatabasePrincipalAssignmentsCreateOrUpdateFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
 type DatabasePrincipalAssignmentsCreateOrUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *DatabasePrincipalAssignmentsCreateOrUpdateFuture) Result(client DatabasePrincipalAssignmentsClient) (dpa DatabasePrincipalAssignment, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "kusto.DatabasePrincipalAssignmentsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("kusto.DatabasePrincipalAssignmentsCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if dpa.Response.Response, err = future.GetResult(sender); err == nil && dpa.Response.Response.StatusCode != http.StatusNoContent {
-		dpa, err = client.CreateOrUpdateResponder(dpa.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "kusto.DatabasePrincipalAssignmentsCreateOrUpdateFuture", "Result", dpa.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(DatabasePrincipalAssignmentsClient) (DatabasePrincipalAssignment, error)
 }
 
 // DatabasePrincipalAssignmentsDeleteFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type DatabasePrincipalAssignmentsDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *DatabasePrincipalAssignmentsDeleteFuture) Result(client DatabasePrincipalAssignmentsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "kusto.DatabasePrincipalAssignmentsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("kusto.DatabasePrincipalAssignmentsDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(DatabasePrincipalAssignmentsClient) (autorest.Response, error)
 }
 
 // DatabasePrincipalListRequest the list Kusto database principals operation request.
@@ -1391,7 +1157,7 @@ type DatabasePrincipalProperties struct {
 	TenantName *string `json:"tenantName,omitempty"`
 	// PrincipalName - READ-ONLY; The principal name
 	PrincipalName *string `json:"principalName,omitempty"`
-	// ProvisioningState - READ-ONLY; The provisioned state of the resource. Possible values include: 'Running', 'Creating', 'Deleting', 'Succeeded', 'Failed', 'Moving'
+	// ProvisioningState - The provisioned state of the resource. Possible values include: 'Running', 'Creating', 'Deleting', 'Succeeded', 'Failed', 'Moving'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 }
 
@@ -1410,58 +1176,28 @@ func (dpp DatabasePrincipalProperties) MarshalJSON() ([]byte, error) {
 	if dpp.PrincipalType != "" {
 		objectMap["principalType"] = dpp.PrincipalType
 	}
+	if dpp.ProvisioningState != "" {
+		objectMap["provisioningState"] = dpp.ProvisioningState
+	}
 	return json.Marshal(objectMap)
 }
 
 // DatabasesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type DatabasesCreateOrUpdateFuture struct {
-	azure.Future
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(DatabasesClient) (DatabaseModel, error)
 }
 
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *DatabasesCreateOrUpdateFuture) Result(client DatabasesClient) (dm DatabaseModel, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "kusto.DatabasesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("kusto.DatabasesCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if dm.Response.Response, err = future.GetResult(sender); err == nil && dm.Response.Response.StatusCode != http.StatusNoContent {
-		dm, err = client.CreateOrUpdateResponder(dm.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "kusto.DatabasesCreateOrUpdateFuture", "Result", dm.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// DatabasesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// DatabasesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type DatabasesDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *DatabasesDeleteFuture) Result(client DatabasesClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "kusto.DatabasesDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("kusto.DatabasesDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(DatabasesClient) (autorest.Response, error)
 }
 
 // DatabaseStatistics a class that contains database statistics information.
@@ -1470,32 +1206,13 @@ type DatabaseStatistics struct {
 	Size *float64 `json:"size,omitempty"`
 }
 
-// DatabasesUpdateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// DatabasesUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type DatabasesUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *DatabasesUpdateFuture) Result(client DatabasesClient) (dm DatabaseModel, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "kusto.DatabasesUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("kusto.DatabasesUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if dm.Response.Response, err = future.GetResult(sender); err == nil && dm.Response.Response.StatusCode != http.StatusNoContent {
-		dm, err = client.UpdateResponder(dm.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "kusto.DatabasesUpdateFuture", "Result", dm.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(DatabasesClient) (DatabaseModel, error)
 }
 
 // BasicDataConnection class representing an data connection.
@@ -1513,11 +1230,11 @@ type DataConnection struct {
 	Location *string `json:"location,omitempty"`
 	// Kind - Possible values include: 'KindDataConnection', 'KindEventHub', 'KindIotHub', 'KindEventGrid'
 	Kind KindBasicDataConnection `json:"kind,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -1662,111 +1379,37 @@ func (dcm *DataConnectionModel) UnmarshalJSON(body []byte) error {
 // DataConnectionsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type DataConnectionsCreateOrUpdateFuture struct {
-	azure.Future
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(DataConnectionsClient) (DataConnectionModel, error)
 }
 
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *DataConnectionsCreateOrUpdateFuture) Result(client DataConnectionsClient) (dcm DataConnectionModel, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "kusto.DataConnectionsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("kusto.DataConnectionsCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if dcm.Response.Response, err = future.GetResult(sender); err == nil && dcm.Response.Response.StatusCode != http.StatusNoContent {
-		dcm, err = client.CreateOrUpdateResponder(dcm.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "kusto.DataConnectionsCreateOrUpdateFuture", "Result", dcm.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// DataConnectionsDataConnectionValidationMethodFuture an abstraction for monitoring and retrieving the results
-// of a long-running operation.
+// DataConnectionsDataConnectionValidationMethodFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
 type DataConnectionsDataConnectionValidationMethodFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *DataConnectionsDataConnectionValidationMethodFuture) Result(client DataConnectionsClient) (dcvlr DataConnectionValidationListResult, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "kusto.DataConnectionsDataConnectionValidationMethodFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("kusto.DataConnectionsDataConnectionValidationMethodFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if dcvlr.Response.Response, err = future.GetResult(sender); err == nil && dcvlr.Response.Response.StatusCode != http.StatusNoContent {
-		dcvlr, err = client.DataConnectionValidationMethodResponder(dcvlr.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "kusto.DataConnectionsDataConnectionValidationMethodFuture", "Result", dcvlr.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(DataConnectionsClient) (DataConnectionValidationListResult, error)
 }
 
 // DataConnectionsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type DataConnectionsDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *DataConnectionsDeleteFuture) Result(client DataConnectionsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "kusto.DataConnectionsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("kusto.DataConnectionsDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(DataConnectionsClient) (autorest.Response, error)
 }
 
 // DataConnectionsUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type DataConnectionsUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *DataConnectionsUpdateFuture) Result(client DataConnectionsClient) (dcm DataConnectionModel, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "kusto.DataConnectionsUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("kusto.DataConnectionsUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if dcm.Response.Response, err = future.GetResult(sender); err == nil && dcm.Response.Response.StatusCode != http.StatusNoContent {
-		dcm, err = client.UpdateResponder(dcm.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "kusto.DataConnectionsUpdateFuture", "Result", dcm.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(DataConnectionsClient) (DataConnectionModel, error)
 }
 
 // DataConnectionValidation class representing an data connection validation.
@@ -1847,38 +1490,8 @@ type EventGridConnectionProperties struct {
 	IgnoreFirstRecord *bool `json:"ignoreFirstRecord,omitempty"`
 	// BlobStorageEventType - The name of blob storage event type to process. Possible values include: 'MicrosoftStorageBlobCreated', 'MicrosoftStorageBlobRenamed'
 	BlobStorageEventType BlobStorageEventType `json:"blobStorageEventType,omitempty"`
-	// ProvisioningState - READ-ONLY; The provisioned state of the resource. Possible values include: 'Running', 'Creating', 'Deleting', 'Succeeded', 'Failed', 'Moving'
+	// ProvisioningState - The provisioned state of the resource. Possible values include: 'Running', 'Creating', 'Deleting', 'Succeeded', 'Failed', 'Moving'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for EventGridConnectionProperties.
-func (egcp EventGridConnectionProperties) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if egcp.StorageAccountResourceID != nil {
-		objectMap["storageAccountResourceId"] = egcp.StorageAccountResourceID
-	}
-	if egcp.EventHubResourceID != nil {
-		objectMap["eventHubResourceId"] = egcp.EventHubResourceID
-	}
-	if egcp.ConsumerGroup != nil {
-		objectMap["consumerGroup"] = egcp.ConsumerGroup
-	}
-	if egcp.TableName != nil {
-		objectMap["tableName"] = egcp.TableName
-	}
-	if egcp.MappingRuleName != nil {
-		objectMap["mappingRuleName"] = egcp.MappingRuleName
-	}
-	if egcp.DataFormat != "" {
-		objectMap["dataFormat"] = egcp.DataFormat
-	}
-	if egcp.IgnoreFirstRecord != nil {
-		objectMap["ignoreFirstRecord"] = egcp.IgnoreFirstRecord
-	}
-	if egcp.BlobStorageEventType != "" {
-		objectMap["blobStorageEventType"] = egcp.BlobStorageEventType
-	}
-	return json.Marshal(objectMap)
 }
 
 // EventGridDataConnection class representing an Event Grid data connection.
@@ -1889,11 +1502,11 @@ type EventGridDataConnection struct {
 	Location *string `json:"location,omitempty"`
 	// Kind - Possible values include: 'KindDataConnection', 'KindEventHub', 'KindIotHub', 'KindEventGrid'
 	Kind KindBasicDataConnection `json:"kind,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -2023,35 +1636,8 @@ type EventHubConnectionProperties struct {
 	EventSystemProperties *[]string `json:"eventSystemProperties,omitempty"`
 	// Compression - The event hub messages compression type. Possible values include: 'CompressionNone', 'CompressionGZip'
 	Compression Compression `json:"compression,omitempty"`
-	// ProvisioningState - READ-ONLY; The provisioned state of the resource. Possible values include: 'Running', 'Creating', 'Deleting', 'Succeeded', 'Failed', 'Moving'
+	// ProvisioningState - The provisioned state of the resource. Possible values include: 'Running', 'Creating', 'Deleting', 'Succeeded', 'Failed', 'Moving'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for EventHubConnectionProperties.
-func (ehcp EventHubConnectionProperties) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if ehcp.EventHubResourceID != nil {
-		objectMap["eventHubResourceId"] = ehcp.EventHubResourceID
-	}
-	if ehcp.ConsumerGroup != nil {
-		objectMap["consumerGroup"] = ehcp.ConsumerGroup
-	}
-	if ehcp.TableName != nil {
-		objectMap["tableName"] = ehcp.TableName
-	}
-	if ehcp.MappingRuleName != nil {
-		objectMap["mappingRuleName"] = ehcp.MappingRuleName
-	}
-	if ehcp.DataFormat != "" {
-		objectMap["dataFormat"] = ehcp.DataFormat
-	}
-	if ehcp.EventSystemProperties != nil {
-		objectMap["eventSystemProperties"] = ehcp.EventSystemProperties
-	}
-	if ehcp.Compression != "" {
-		objectMap["compression"] = ehcp.Compression
-	}
-	return json.Marshal(objectMap)
 }
 
 // EventHubDataConnection class representing an event hub data connection.
@@ -2062,11 +1648,11 @@ type EventHubDataConnection struct {
 	Location *string `json:"location,omitempty"`
 	// Kind - Possible values include: 'KindDataConnection', 'KindEventHub', 'KindIotHub', 'KindEventGrid'
 	Kind KindBasicDataConnection `json:"kind,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -2257,35 +1843,8 @@ type IotHubConnectionProperties struct {
 	EventSystemProperties *[]string `json:"eventSystemProperties,omitempty"`
 	// SharedAccessPolicyName - The name of the share access policy
 	SharedAccessPolicyName *string `json:"sharedAccessPolicyName,omitempty"`
-	// ProvisioningState - READ-ONLY; The provisioned state of the resource. Possible values include: 'Running', 'Creating', 'Deleting', 'Succeeded', 'Failed', 'Moving'
+	// ProvisioningState - The provisioned state of the resource. Possible values include: 'Running', 'Creating', 'Deleting', 'Succeeded', 'Failed', 'Moving'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for IotHubConnectionProperties.
-func (ihcp IotHubConnectionProperties) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if ihcp.IotHubResourceID != nil {
-		objectMap["iotHubResourceId"] = ihcp.IotHubResourceID
-	}
-	if ihcp.ConsumerGroup != nil {
-		objectMap["consumerGroup"] = ihcp.ConsumerGroup
-	}
-	if ihcp.TableName != nil {
-		objectMap["tableName"] = ihcp.TableName
-	}
-	if ihcp.MappingRuleName != nil {
-		objectMap["mappingRuleName"] = ihcp.MappingRuleName
-	}
-	if ihcp.DataFormat != "" {
-		objectMap["dataFormat"] = ihcp.DataFormat
-	}
-	if ihcp.EventSystemProperties != nil {
-		objectMap["eventSystemProperties"] = ihcp.EventSystemProperties
-	}
-	if ihcp.SharedAccessPolicyName != nil {
-		objectMap["sharedAccessPolicyName"] = ihcp.SharedAccessPolicyName
-	}
-	return json.Marshal(objectMap)
 }
 
 // IotHubDataConnection class representing an iot hub data connection.
@@ -2296,11 +1855,11 @@ type IotHubDataConnection struct {
 	Location *string `json:"location,omitempty"`
 	// Kind - Possible values include: 'KindDataConnection', 'KindEventHub', 'KindIotHub', 'KindEventGrid'
 	Kind KindBasicDataConnection `json:"kind,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -2614,8 +2173,11 @@ func (page OperationListResultPage) Values() []Operation {
 }
 
 // Creates a new instance of the OperationListResultPage type.
-func NewOperationListResultPage(getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
-	return OperationListResultPage{fn: getNextPage}
+func NewOperationListResultPage(cur OperationListResult, getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
+	return OperationListResultPage{
+		fn:  getNextPage,
+		olr: cur,
+	}
 }
 
 // OptimizedAutoscale a class that contains the optimized auto scale definition.
@@ -2630,14 +2192,14 @@ type OptimizedAutoscale struct {
 	Maximum *int32 `json:"maximum,omitempty"`
 }
 
-// ProxyResource the resource model definition for a ARM proxy resource. It will have everything other than
-// required location and tags
+// ProxyResource the resource model definition for a Azure Resource Manager proxy resource. It will not
+// have tags and a location
 type ProxyResource struct {
-	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -2649,11 +2211,11 @@ type ReadOnlyFollowingDatabase struct {
 	Location *string `json:"location,omitempty"`
 	// Kind - Possible values include: 'KindDatabase', 'KindReadWrite', 'KindReadOnlyFollowing'
 	Kind Kind `json:"kind,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -2764,7 +2326,7 @@ func (rofd *ReadOnlyFollowingDatabase) UnmarshalJSON(body []byte) error {
 
 // ReadOnlyFollowingDatabaseProperties class representing the Kusto database properties.
 type ReadOnlyFollowingDatabaseProperties struct {
-	// ProvisioningState - READ-ONLY; The provisioned state of the resource. Possible values include: 'Running', 'Creating', 'Deleting', 'Succeeded', 'Failed', 'Moving'
+	// ProvisioningState - The provisioned state of the resource. Possible values include: 'Running', 'Creating', 'Deleting', 'Succeeded', 'Failed', 'Moving'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 	// SoftDeletePeriod - READ-ONLY; The time the data should be kept before it stops being accessible to queries in TimeSpan.
 	SoftDeletePeriod *string `json:"softDeletePeriod,omitempty"`
@@ -2783,6 +2345,9 @@ type ReadOnlyFollowingDatabaseProperties struct {
 // MarshalJSON is the custom marshaler for ReadOnlyFollowingDatabaseProperties.
 func (rofdp ReadOnlyFollowingDatabaseProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
+	if rofdp.ProvisioningState != "" {
+		objectMap["provisioningState"] = rofdp.ProvisioningState
+	}
 	if rofdp.HotCachePeriod != nil {
 		objectMap["hotCachePeriod"] = rofdp.HotCachePeriod
 	}
@@ -2800,11 +2365,11 @@ type ReadWriteDatabase struct {
 	Location *string `json:"location,omitempty"`
 	// Kind - Possible values include: 'KindDatabase', 'KindReadWrite', 'KindReadOnlyFollowing'
 	Kind Kind `json:"kind,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -2915,7 +2480,7 @@ func (rwd *ReadWriteDatabase) UnmarshalJSON(body []byte) error {
 
 // ReadWriteDatabaseProperties class representing the Kusto database properties.
 type ReadWriteDatabaseProperties struct {
-	// ProvisioningState - READ-ONLY; The provisioned state of the resource. Possible values include: 'Running', 'Creating', 'Deleting', 'Succeeded', 'Failed', 'Moving'
+	// ProvisioningState - The provisioned state of the resource. Possible values include: 'Running', 'Creating', 'Deleting', 'Succeeded', 'Failed', 'Moving'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 	// SoftDeletePeriod - The time the data should be kept before it stops being accessible to queries in TimeSpan.
 	SoftDeletePeriod *string `json:"softDeletePeriod,omitempty"`
@@ -2930,6 +2495,9 @@ type ReadWriteDatabaseProperties struct {
 // MarshalJSON is the custom marshaler for ReadWriteDatabaseProperties.
 func (rwdp ReadWriteDatabaseProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
+	if rwdp.ProvisioningState != "" {
+		objectMap["provisioningState"] = rwdp.ProvisioningState
+	}
 	if rwdp.SoftDeletePeriod != nil {
 		objectMap["softDeletePeriod"] = rwdp.SoftDeletePeriod
 	}
@@ -2942,13 +2510,13 @@ func (rwdp ReadWriteDatabaseProperties) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// Resource ...
+// Resource common fields that are returned in the response for all Azure Resource Manager resources
 type Resource struct {
-	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -2983,17 +2551,18 @@ type SkuLocationInfoItem struct {
 	Zones *[]string `json:"zones,omitempty"`
 }
 
-// TrackedResource the resource model definition for a ARM tracked top level resource
+// TrackedResource the resource model definition for an Azure Resource Manager tracked top level resource
+// which has 'tags' and a 'location'
 type TrackedResource struct {
 	// Tags - Resource tags.
 	Tags map[string]*string `json:"tags"`
 	// Location - The geo-location where the resource lives
 	Location *string `json:"location,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 

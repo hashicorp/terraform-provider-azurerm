@@ -10,23 +10,23 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAppService() *schema.Resource {
+func resourceAppService() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAppServiceCreate,
-		Read:   resourceArmAppServiceRead,
-		Update: resourceArmAppServiceUpdate,
-		Delete: resourceArmAppServiceDelete,
+		Create: resourceAppServiceCreate,
+		Read:   resourceAppServiceRead,
+		Update: resourceAppServiceUpdate,
+		Delete: resourceAppServiceDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.AppServiceID(id)
@@ -202,7 +202,7 @@ func resourceArmAppService() *schema.Resource {
 	}
 }
 
-func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	aspClient := meta.(*clients.Client).Web.AppServicePlansClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -349,16 +349,15 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 
 	backupRaw := d.Get("backup").([]interface{})
 	if backup := expandAppServiceBackup(backupRaw); backup != nil {
-		_, err = client.UpdateBackupConfiguration(ctx, resourceGroup, name, *backup)
-		if err != nil {
+		if _, err = client.UpdateBackupConfiguration(ctx, resourceGroup, name, *backup); err != nil {
 			return fmt.Errorf("Error updating Backup Settings for App Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
-	return resourceArmAppServiceUpdate(d, meta)
+	return resourceAppServiceUpdate(d, meta)
 }
 
-func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -465,13 +464,11 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 	if d.HasChange("backup") {
 		backupRaw := d.Get("backup").([]interface{})
 		if backup := expandAppServiceBackup(backupRaw); backup != nil {
-			_, err = client.UpdateBackupConfiguration(ctx, id.ResourceGroup, id.SiteName, *backup)
-			if err != nil {
+			if _, err = client.UpdateBackupConfiguration(ctx, id.ResourceGroup, id.SiteName, *backup); err != nil {
 				return fmt.Errorf("Error updating Backup Settings for App Service %q (Resource Group %q): %s", id.SiteName, id.ResourceGroup, err)
 			}
 		} else {
-			_, err = client.DeleteBackupConfiguration(ctx, id.ResourceGroup, id.SiteName)
-			if err != nil {
+			if _, err = client.DeleteBackupConfiguration(ctx, id.ResourceGroup, id.SiteName); err != nil {
 				return fmt.Errorf("Error removing Backup Settings for App Service %q (Resource Group %q): %s", id.SiteName, id.ResourceGroup, err)
 			}
 		}
@@ -567,10 +564,10 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	return resourceArmAppServiceRead(d, meta)
+	return resourceAppServiceRead(d, meta)
 }
 
-func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -728,7 +725,10 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error setting `site_credential`: %s", err)
 	}
 
-	identity := flattenAppServiceIdentity(resp.Identity)
+	identity, err := flattenAppServiceIdentity(resp.Identity)
+	if err != nil {
+		return err
+	}
 	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("Error setting `identity`: %s", err)
 	}
@@ -736,7 +736,7 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmAppServiceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

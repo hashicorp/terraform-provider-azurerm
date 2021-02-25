@@ -18,7 +18,7 @@ import (
 
 type FunctionAppSlotResource struct{}
 
-func TestAccAzureRMFunctionAppSlot_basic(t *testing.T) {
+func TestAccFunctionAppSlot_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
 	r := FunctionAppSlotResource{}
 
@@ -33,7 +33,7 @@ func TestAccAzureRMFunctionAppSlot_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionAppSlot_requiresImport(t *testing.T) {
+func TestAccFunctionAppSlot_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
 	r := FunctionAppSlotResource{}
 
@@ -48,7 +48,7 @@ func TestAccAzureRMFunctionAppSlot_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionAppSlot_32Bit(t *testing.T) {
+func TestAccFunctionAppSlot_32Bit(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
 	r := FunctionAppSlotResource{}
 
@@ -64,7 +64,7 @@ func TestAccAzureRMFunctionAppSlot_32Bit(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionAppSlot_alwaysOn(t *testing.T) {
+func TestAccFunctionAppSlot_alwaysOn(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
 	r := FunctionAppSlotResource{}
 
@@ -80,7 +80,7 @@ func TestAccAzureRMFunctionAppSlot_alwaysOn(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionAppSlot_appSettings(t *testing.T) {
+func TestAccFunctionAppSlot_appSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
 	r := FunctionAppSlotResource{}
 
@@ -96,7 +96,7 @@ func TestAccAzureRMFunctionAppSlot_appSettings(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionAppSlot_clientAffinityEnabled(t *testing.T) {
+func TestAccFunctionAppSlot_clientAffinityEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
 	r := FunctionAppSlotResource{}
 
@@ -111,7 +111,7 @@ func TestAccAzureRMFunctionAppSlot_clientAffinityEnabled(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionAppSlot_clientAffinityEnabledUpdate(t *testing.T) {
+func TestAccFunctionAppSlot_clientAffinityEnabledUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
 	r := FunctionAppSlotResource{}
 
@@ -134,7 +134,7 @@ func TestAccAzureRMFunctionAppSlot_clientAffinityEnabledUpdate(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionAppSlot_connectionStrings(t *testing.T) {
+func TestAccFunctionAppSlot_connectionStrings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
 	r := FunctionAppSlotResource{}
 
@@ -167,7 +167,7 @@ func TestAccAzureRMFunctionAppSlot_connectionStrings(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionAppSlot_corsSettings(t *testing.T) {
+func TestAccFunctionAppSlot_corsSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
 	r := FunctionAppSlotResource{}
 
@@ -182,7 +182,7 @@ func TestAccAzureRMFunctionAppSlot_corsSettings(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionAppSlot_autoSwap(t *testing.T) {
+func TestAccFunctionAppSlot_autoSwap(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
 	r := FunctionAppSlotResource{}
 
@@ -198,7 +198,7 @@ func TestAccAzureRMFunctionAppSlot_autoSwap(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionAppSlot_authSettings(t *testing.T) {
+func TestAccFunctionAppSlot_authSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
 	tenantID := os.Getenv("ARM_TENANT_ID")
 	r := FunctionAppSlotResource{}
@@ -226,7 +226,7 @@ func TestAccAzureRMFunctionAppSlot_authSettings(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionAppSlot_enabled(t *testing.T) {
+func TestAccFunctionAppSlot_enabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
 	r := FunctionAppSlotResource{}
 
@@ -241,7 +241,7 @@ func TestAccAzureRMFunctionAppSlot_enabled(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionAppSlot_enabledUpdate(t *testing.T) {
+func TestAccFunctionAppSlot_enabledUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
 	r := FunctionAppSlotResource{}
 
@@ -263,7 +263,7 @@ func TestAccAzureRMFunctionAppSlot_enabledUpdate(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionAppSlot_httpsOnly(t *testing.T) {
+func TestAccFunctionAppSlot_httpsOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
 	r := FunctionAppSlotResource{}
 
@@ -278,7 +278,7 @@ func TestAccAzureRMFunctionAppSlot_httpsOnly(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionAppSlot_httpsOnlyUpdate(t *testing.T) {
+func TestAccFunctionAppSlot_httpsOnlyUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
 	r := FunctionAppSlotResource{}
 
@@ -300,7 +300,7 @@ func TestAccAzureRMFunctionAppSlot_httpsOnlyUpdate(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionAppSlot_http2Enabled(t *testing.T) {
+func TestAccFunctionAppSlot_http2Enabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
 	r := FunctionAppSlotResource{}
 
@@ -315,7 +315,7 @@ func TestAccAzureRMFunctionAppSlot_http2Enabled(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionAppSlot_oneIpRestriction(t *testing.T) {
+func TestAccFunctionAppSlot_oneIpRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
 	r := FunctionAppSlotResource{}
 
@@ -330,7 +330,7 @@ func TestAccAzureRMFunctionAppSlot_oneIpRestriction(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionAppSlot_oneVNetSubnetIpRestriction(t *testing.T) {
+func TestAccFunctionAppSlot_oneVNetSubnetIpRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
 	r := FunctionAppSlotResource{}
 
@@ -345,7 +345,7 @@ func TestAccAzureRMFunctionAppSlot_oneVNetSubnetIpRestriction(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionAppSlot_zeroedIpRestriction(t *testing.T) {
+func TestAccFunctionAppSlot_zeroedIpRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
 	r := FunctionAppSlotResource{}
 
@@ -377,7 +377,7 @@ func TestAccAzureRMFunctionAppSlot_zeroedIpRestriction(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionAppSlot_manyIpRestrictions(t *testing.T) {
+func TestAccFunctionAppSlot_manyIpRestrictions(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
 	r := FunctionAppSlotResource{}
 
@@ -392,7 +392,7 @@ func TestAccAzureRMFunctionAppSlot_manyIpRestrictions(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionAppSlot_scmUseMainIPRestriction(t *testing.T) {
+func TestAccFunctionAppSlot_scmUseMainIPRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
 	r := FunctionAppSlotResource{}
 
@@ -407,7 +407,7 @@ func TestAccAzureRMFunctionAppSlot_scmUseMainIPRestriction(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionAppSlot_scmIPRestrictionComplete(t *testing.T) {
+func TestAccFunctionAppSlot_scmIPRestrictionComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
 	r := FunctionAppSlotResource{}
 
@@ -422,7 +422,7 @@ func TestAccAzureRMFunctionAppSlot_scmIPRestrictionComplete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionAppSlot_tagsUpdate(t *testing.T) {
+func TestAccFunctionAppSlot_tagsUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
 	r := FunctionAppSlotResource{}
 
@@ -447,7 +447,7 @@ func TestAccAzureRMFunctionAppSlot_tagsUpdate(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionAppSlot_updateManageServiceIdentity(t *testing.T) {
+func TestAccFunctionAppSlot_updateManageServiceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
 	r := FunctionAppSlotResource{}
 
@@ -470,7 +470,7 @@ func TestAccAzureRMFunctionAppSlot_updateManageServiceIdentity(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionAppSlot_updateVersion(t *testing.T) {
+func TestAccFunctionAppSlot_updateVersion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
 	r := FunctionAppSlotResource{}
 
@@ -492,7 +492,7 @@ func TestAccAzureRMFunctionAppSlot_updateVersion(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionAppSlot_userAssignedIdentity(t *testing.T) {
+func TestAccFunctionAppSlot_userAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
 	r := FunctionAppSlotResource{}
 
@@ -510,7 +510,7 @@ func TestAccAzureRMFunctionAppSlot_userAssignedIdentity(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionAppSlot_webSockets(t *testing.T) {
+func TestAccFunctionAppSlot_webSockets(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
 	r := FunctionAppSlotResource{}
 
@@ -525,7 +525,7 @@ func TestAccAzureRMFunctionAppSlot_webSockets(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionAppSlot_enableManageServiceIdentity(t *testing.T) {
+func TestAccFunctionAppSlot_enableManageServiceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
 	r := FunctionAppSlotResource{}
 
@@ -542,7 +542,7 @@ func TestAccAzureRMFunctionAppSlot_enableManageServiceIdentity(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionAppSlot_minTls(t *testing.T) {
+func TestAccFunctionAppSlot_minTls(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
 	r := FunctionAppSlotResource{}
 
@@ -565,7 +565,7 @@ func TestAccAzureRMFunctionAppSlot_minTls(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionAppSlot_preWarmedInstanceCount(t *testing.T) {
+func TestAccFunctionAppSlot_preWarmedInstanceCount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
 	r := FunctionAppSlotResource{}
 
@@ -581,13 +581,13 @@ func TestAccAzureRMFunctionAppSlot_preWarmedInstanceCount(t *testing.T) {
 	})
 }
 
-func (r FunctionAppSlotResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r FunctionAppSlotResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.FunctionAppSlotID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Web.AppServicesClient.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+	resp, err := clients.Web.AppServicesClient.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil

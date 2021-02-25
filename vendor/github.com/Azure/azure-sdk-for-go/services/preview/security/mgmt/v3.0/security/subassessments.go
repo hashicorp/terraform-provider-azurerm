@@ -74,6 +74,7 @@ func (client SubAssessmentsClient) Get(ctx context.Context, scope string, assess
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.SubAssessmentsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -151,9 +152,11 @@ func (client SubAssessmentsClient) List(ctx context.Context, scope string, asses
 	result.sal, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.SubAssessmentsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.sal.hasNextLink() && result.sal.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -266,9 +269,11 @@ func (client SubAssessmentsClient) ListAll(ctx context.Context, scope string) (r
 	result.sal, err = client.ListAllResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.SubAssessmentsClient", "ListAll", resp, "Failure responding to request")
+		return
 	}
 	if result.sal.hasNextLink() && result.sal.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

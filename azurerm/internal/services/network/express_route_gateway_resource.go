@@ -17,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmExpressRouteGateway() *schema.Resource {
+func resourceExpressRouteGateway() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmExpressRouteGatewayCreateUpdate,
-		Read:   resourceArmExpressRouteGatewayRead,
-		Update: resourceArmExpressRouteGatewayCreateUpdate,
-		Delete: resourceArmExpressRouteGatewayDelete,
+		Create: resourceExpressRouteGatewayCreateUpdate,
+		Read:   resourceExpressRouteGatewayRead,
+		Update: resourceExpressRouteGatewayCreateUpdate,
+		Delete: resourceExpressRouteGatewayDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -64,7 +64,7 @@ func resourceArmExpressRouteGateway() *schema.Resource {
 	}
 }
 
-func resourceArmExpressRouteGatewayCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceExpressRouteGatewayCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ExpressRouteGatewaysClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -123,10 +123,10 @@ func resourceArmExpressRouteGatewayCreateUpdate(d *schema.ResourceData, meta int
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmExpressRouteGatewayRead(d, meta)
+	return resourceExpressRouteGatewayRead(d, meta)
 }
 
-func resourceArmExpressRouteGatewayRead(d *schema.ResourceData, meta interface{}) error {
+func resourceExpressRouteGatewayRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ExpressRouteGatewaysClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -171,7 +171,7 @@ func resourceArmExpressRouteGatewayRead(d *schema.ResourceData, meta interface{}
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmExpressRouteGatewayDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceExpressRouteGatewayDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ExpressRouteGatewaysClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

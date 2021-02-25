@@ -75,6 +75,7 @@ func (client DataSetMappingsClient) Create(ctx context.Context, resourceGroupNam
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.DataSetMappingsClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -156,6 +157,7 @@ func (client DataSetMappingsClient) Delete(ctx context.Context, resourceGroupNam
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.DataSetMappingsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -234,6 +236,7 @@ func (client DataSetMappingsClient) Get(ctx context.Context, resourceGroupName s
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.DataSetMappingsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -316,9 +319,11 @@ func (client DataSetMappingsClient) ListByShareSubscription(ctx context.Context,
 	result.dsml, err = client.ListByShareSubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.DataSetMappingsClient", "ListByShareSubscription", resp, "Failure responding to request")
+		return
 	}
 	if result.dsml.hasNextLink() && result.dsml.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

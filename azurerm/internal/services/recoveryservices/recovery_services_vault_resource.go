@@ -12,20 +12,20 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmRecoveryServicesVault() *schema.Resource {
+func resourceRecoveryServicesVault() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmRecoveryServicesVaultCreateUpdate,
-		Read:   resourceArmRecoveryServicesVaultRead,
-		Update: resourceArmRecoveryServicesVaultCreateUpdate,
-		Delete: resourceArmRecoveryServicesVaultDelete,
+		Create: resourceRecoveryServicesVaultCreateUpdate,
+		Read:   resourceRecoveryServicesVaultRead,
+		Update: resourceRecoveryServicesVaultCreateUpdate,
+		Delete: resourceRecoveryServicesVaultDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -43,7 +43,7 @@ func resourceArmRecoveryServicesVault() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateRecoveryServicesVaultName,
+				ValidateFunc: validateRecoveryServicesVaultName,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -98,7 +98,7 @@ func resourceArmRecoveryServicesVault() *schema.Resource {
 	}
 }
 
-func resourceArmRecoveryServicesVaultCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceRecoveryServicesVaultCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).RecoveryServices.VaultsClient
 	cfgsClient := meta.(*clients.Client).RecoveryServices.VaultsConfigsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -188,10 +188,10 @@ func resourceArmRecoveryServicesVaultCreateUpdate(d *schema.ResourceData, meta i
 
 	d.SetId(*vault.ID)
 
-	return resourceArmRecoveryServicesVaultRead(d, meta)
+	return resourceRecoveryServicesVaultRead(d, meta)
 }
 
-func resourceArmRecoveryServicesVaultRead(d *schema.ResourceData, meta interface{}) error {
+func resourceRecoveryServicesVaultRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).RecoveryServices.VaultsClient
 	cfgsClient := meta.(*clients.Client).RecoveryServices.VaultsConfigsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -243,7 +243,7 @@ func resourceArmRecoveryServicesVaultRead(d *schema.ResourceData, meta interface
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmRecoveryServicesVaultDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceRecoveryServicesVaultDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).RecoveryServices.VaultsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

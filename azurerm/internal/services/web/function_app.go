@@ -69,6 +69,7 @@ func schemaAppServiceFunctionAppSiteConfig() *schema.Schema {
 				"pre_warmed_instance_count": {
 					Type:         schema.TypeInt,
 					Optional:     true,
+					Computed:     true,
 					ValidateFunc: validation.IntBetween(0, 10),
 				},
 
@@ -439,6 +440,7 @@ func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
 
 	result["min_tls_version"] = string(input.MinTLSVersion)
 	result["ftps_state"] = string(input.FtpsState)
+	result["scm_type"] = string(input.ScmType)
 
 	result["cors"] = FlattenWebCorsSettings(input.Cors)
 

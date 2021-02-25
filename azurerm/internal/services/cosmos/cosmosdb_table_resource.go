@@ -10,21 +10,21 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/common"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmCosmosDbTable() *schema.Resource {
+func resourceCosmosDbTable() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmCosmosDbTableCreate,
-		Read:   resourceArmCosmosDbTableRead,
-		Update: resourceArmCosmosDbTableUpdate,
-		Delete: resourceArmCosmosDbTableDelete,
+		Create: resourceCosmosDbTableCreate,
+		Read:   resourceCosmosDbTableRead,
+		Update: resourceCosmosDbTableUpdate,
+		Delete: resourceCosmosDbTableDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -75,7 +75,7 @@ func resourceArmCosmosDbTable() *schema.Resource {
 	}
 }
 
-func resourceArmCosmosDbTableCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosDbTableCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.TableClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -136,10 +136,10 @@ func resourceArmCosmosDbTableCreate(d *schema.ResourceData, meta interface{}) er
 
 	d.SetId(*resp.ID)
 
-	return resourceArmCosmosDbTableRead(d, meta)
+	return resourceCosmosDbTableRead(d, meta)
 }
 
-func resourceArmCosmosDbTableUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosDbTableUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.TableClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -187,11 +187,12 @@ func resourceArmCosmosDbTableUpdate(d *schema.ResourceData, meta interface{}) er
 		}
 	}
 
-	return resourceArmCosmosDbTableRead(d, meta)
+	return resourceCosmosDbTableRead(d, meta)
 }
 
-func resourceArmCosmosDbTableRead(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosDbTableRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.TableClient
+	accountClient := meta.(*clients.Client).Cosmos.DatabaseClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -219,22 +220,42 @@ func resourceArmCosmosDbTableRead(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	throughputResp, err := client.GetTableThroughput(ctx, id.ResourceGroup, id.DatabaseAccountName, id.Name)
+	accResp, err := accountClient.Get(ctx, id.ResourceGroup, id.DatabaseAccountName)
 	if err != nil {
-		if !utils.ResponseWasNotFound(throughputResp.Response) {
-			return fmt.Errorf("Error reading Throughput on Cosmos Table %q (Account: %q) ID: %v", id.Name, id.DatabaseAccountName, err)
-		} else {
-			d.Set("throughput", nil)
-			d.Set("autoscale_settings", nil)
+		return fmt.Errorf("reading CosmosDB Account %q (Resource Group %q): %+v", id.DatabaseAccountName, id.ResourceGroup, err)
+	}
+
+	if accResp.ID == nil || *accResp.ID == "" {
+		return fmt.Errorf("cosmosDB Account %q (Resource Group %q) ID is empty or nil", id.DatabaseAccountName, id.ResourceGroup)
+	}
+
+	if props := accResp.DatabaseAccountGetProperties; props != nil && props.Capabilities != nil {
+		serverless := false
+		for _, v := range *props.Capabilities {
+			if *v.Name == "EnableServerless" {
+				serverless = true
+			}
 		}
-	} else {
-		common.SetResourceDataThroughputFromResponse(throughputResp, d)
+
+		if !serverless {
+			throughputResp, err := client.GetTableThroughput(ctx, id.ResourceGroup, id.DatabaseAccountName, id.Name)
+			if err != nil {
+				if !utils.ResponseWasNotFound(throughputResp.Response) {
+					return fmt.Errorf("Error reading Throughput on Cosmos Table %q (Account: %q) ID: %v", id.Name, id.DatabaseAccountName, err)
+				} else {
+					d.Set("throughput", nil)
+					d.Set("autoscale_settings", nil)
+				}
+			} else {
+				common.SetResourceDataThroughputFromResponse(throughputResp, d)
+			}
+		}
 	}
 
 	return nil
 }
 
-func resourceArmCosmosDbTableDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosDbTableDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.TableClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

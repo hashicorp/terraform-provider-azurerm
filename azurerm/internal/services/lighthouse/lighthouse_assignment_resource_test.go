@@ -1,6 +1,7 @@
 package lighthouse_test
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"testing"
@@ -9,135 +10,90 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/lighthouse/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMLighthouseAssignment_basic(t *testing.T) {
+type LighthouseAssignmentResource struct {
+}
+
+func TestAccLighthouseAssignment_basic(t *testing.T) {
 	// Multiple tenants are needed to test this resource.
 	// Second tenant ID needs to be set as a environment variable ARM_TENANT_ID_ALT.
 	// ObjectId for user, usergroup or service principal from second Tenant needs to be set as a environment variable ARM_PRINCIPAL_ID_ALT_TENANT.
 	secondTenantID := os.Getenv("ARM_TENANT_ID_ALT")
 	principalID := os.Getenv("ARM_PRINCIPAL_ID_ALT_TENANT")
 	data := acceptance.BuildTestData(t, "azurerm_lighthouse_assignment", "test")
+	r := LighthouseAssignmentResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLighthouseAssignmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLighthouseAssignment_basic(uuid.New().String(), secondTenantID, principalID, data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLighthouseAssignmentExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(uuid.New().String(), secondTenantID, principalID, data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("name").Exists(),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMLighthouseAssignment_requiresImport(t *testing.T) {
+func TestAccLighthouseAssignment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lighthouse_assignment", "test")
+	r := LighthouseAssignmentResource{}
 	secondTenantID := os.Getenv("ARM_TENANT_ID_ALT")
 	principalID := os.Getenv("ARM_PRINCIPAL_ID_ALT_TENANT")
 	id := uuid.New().String()
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLighthouseAssignmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLighthouseAssignment_basic(id, secondTenantID, principalID, data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLighthouseAssignmentExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
-				),
-			},
-			{
-				Config:      testAccAzureRMLighthouseAssignment_requiresImport(id, secondTenantID, principalID, data),
-				ExpectError: acceptance.RequiresImportError("azurerm_lighthouse_assignment"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(id, secondTenantID, principalID, data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("name").Exists(),
+			),
+		},
+		{
+			Config:      r.requiresImport(id, secondTenantID, principalID, data),
+			ExpectError: acceptance.RequiresImportError("azurerm_lighthouse_assignment"),
 		},
 	})
 }
 
-func TestAccAzureRMLighthouseAssignment_emptyID(t *testing.T) {
+func TestAccLighthouseAssignment_emptyID(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lighthouse_assignment", "test")
+	r := LighthouseAssignmentResource{}
 	secondTenantID := os.Getenv("ARM_TENANT_ID_ALT")
 	principalID := os.Getenv("ARM_PRINCIPAL_ID_ALT_TENANT")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLighthouseAssignmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLighthouseAssignment_emptyId(secondTenantID, principalID, data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLighthouseAssignmentExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.emptyId(secondTenantID, principalID, data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("id").Exists(),
+				check.That(data.ResourceName).Key("name").Exists(),
+			),
 		},
 	})
 }
 
-func testCheckAzureRMLighthouseAssignmentExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Lighthouse.AssignmentsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %q", resourceName)
-		}
-
-		scope := rs.Primary.Attributes["scope"]
-		lighthouseAssignmentName := rs.Primary.Attributes["name"]
-		expandLighthouseDefinition := true
-
-		resp, err := client.Get(ctx, scope, lighthouseAssignmentName, &expandLighthouseDefinition)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Lighthouse Assignment %q (Scope: %q) does not exist", lighthouseAssignmentName, scope)
-			}
-			return fmt.Errorf("Bad: Get on LighthouseAssignmentsClient: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMLighthouseAssignmentDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Lighthouse.AssignmentsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_lighthouse_assignment" {
-			continue
-		}
-
-		scope := rs.Primary.Attributes["scope"]
-		lighthouseAssignmentName := rs.Primary.Attributes["name"]
-		expandLighthouseDefinition := true
-
-		resp, err := client.Get(ctx, scope, lighthouseAssignmentName, &expandLighthouseDefinition)
-		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return err
-			}
-		}
-
-		return nil
+func (LighthouseAssignmentResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.LighthouseAssignmentID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.Lighthouse.AssignmentsClient.Get(ctx, id.Scope, id.Name, utils.Bool(false))
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Lighthouse Assignment %q (Scope: %q) does not exist", id.Name, id.Scope)
+	}
+
+	return utils.Bool(resp.Properties != nil), nil
 }
 
-func testAccAzureRMLighthouseAssignment_basic(id string, secondTenantID string, principalID string, data acceptance.TestData) string {
+func (LighthouseAssignmentResource) basic(id string, secondTenantID string, principalID string, data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -170,7 +126,7 @@ resource "azurerm_lighthouse_assignment" "test" {
 `, data.RandomInteger, secondTenantID, principalID, id)
 }
 
-func testAccAzureRMLighthouseAssignment_requiresImport(id string, secondTenantID string, principalID string, data acceptance.TestData) string {
+func (r LighthouseAssignmentResource) requiresImport(id string, secondTenantID string, principalID string, data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -179,10 +135,10 @@ resource "azurerm_lighthouse_assignment" "import" {
   lighthouse_definition_id = azurerm_lighthouse_assignment.test.lighthouse_definition_id
   scope                    = azurerm_lighthouse_assignment.test.scope
 }
-`, testAccAzureRMLighthouseAssignment_basic(id, secondTenantID, principalID, data))
+`, r.basic(id, secondTenantID, principalID, data))
 }
 
-func testAccAzureRMLighthouseAssignment_emptyId(secondTenantID string, principalID string, data acceptance.TestData) string {
+func (LighthouseAssignmentResource) emptyId(secondTenantID string, principalID string, data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

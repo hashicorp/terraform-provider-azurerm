@@ -69,7 +69,7 @@ func (client SyncAgentsClient) CreateOrUpdate(ctx context.Context, resourceGroup
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.SyncAgentsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.SyncAgentsClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -108,7 +108,33 @@ func (client SyncAgentsClient) CreateOrUpdateSender(req *http.Request) (future S
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client SyncAgentsClient) (sa SyncAgent, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.SyncAgentsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.SyncAgentsCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		sa.Response.Response, err = future.GetResult(sender)
+		if sa.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "sql.SyncAgentsCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && sa.Response.Response.StatusCode != http.StatusNoContent {
+			sa, err = client.CreateOrUpdateResponder(sa.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "sql.SyncAgentsCreateOrUpdateFuture", "Result", sa.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -149,7 +175,7 @@ func (client SyncAgentsClient) Delete(ctx context.Context, resourceGroupName str
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.SyncAgentsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.SyncAgentsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -186,7 +212,23 @@ func (client SyncAgentsClient) DeleteSender(req *http.Request) (future SyncAgent
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client SyncAgentsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.SyncAgentsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.SyncAgentsDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -234,6 +276,7 @@ func (client SyncAgentsClient) GenerateKey(ctx context.Context, resourceGroupNam
 	result, err = client.GenerateKeyResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SyncAgentsClient", "GenerateKey", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -312,6 +355,7 @@ func (client SyncAgentsClient) Get(ctx context.Context, resourceGroupName string
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SyncAgentsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -390,9 +434,11 @@ func (client SyncAgentsClient) ListByServer(ctx context.Context, resourceGroupNa
 	result.salr, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SyncAgentsClient", "ListByServer", resp, "Failure responding to request")
+		return
 	}
 	if result.salr.hasNextLink() && result.salr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -508,9 +554,11 @@ func (client SyncAgentsClient) ListLinkedDatabases(ctx context.Context, resource
 	result.saldlr, err = client.ListLinkedDatabasesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SyncAgentsClient", "ListLinkedDatabases", resp, "Failure responding to request")
+		return
 	}
 	if result.saldlr.hasNextLink() && result.saldlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

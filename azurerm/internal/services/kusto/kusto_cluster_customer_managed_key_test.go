@@ -39,7 +39,7 @@ func TestAccKustoClusterCustomerManagedKey_basic(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				// Then ensure the encryption settings on the Kusto cluster
 				// have been reverted to their default state
-				testCheckKustoClusterExistsWithoutCustomerManagedKey("azurerm_kusto_cluster.test"),
+				data.CheckWithClient(r.clusterIsNotUsingCustomerManagedKey),
 			),
 		},
 	})
@@ -106,39 +106,26 @@ func (KustoClusterCustomerManagedKeyResource) Exists(ctx context.Context, client
 	return utils.Bool(true), nil
 }
 
-func testCheckKustoClusterExistsWithoutCustomerManagedKey(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Kusto.ClustersClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		id, err := parse.ClusterID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Kusto Cluster %q (resource group: %q) does not exist", id.Name, id.ResourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on kustoClustersClient: %+v", err)
-		}
-
-		if props := resp.ClusterProperties; props != nil {
-			if encryption := props.KeyVaultProperties; encryption != nil {
-				return fmt.Errorf("Kusto Cluster encryption properties still found: %s", resourceName)
-			}
-		}
-
-		return nil
+func (r KustoClusterCustomerManagedKeyResource) clusterIsNotUsingCustomerManagedKey(ctx context.Context, client *clients.Client, state *terraform.InstanceState) error {
+	id, err := parse.ClusterID(state.ID)
+	if err != nil {
+		return err
 	}
+
+	resp, err := client.Kusto.ClustersClient.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %v", id.String(), err)
+	}
+
+	if resp.ClusterProperties == nil {
+		return fmt.Errorf("properties nil for %s", id.String())
+	}
+
+	if resp.ClusterProperties.KeyVaultProperties != nil {
+		return fmt.Errorf("keyVaultProperties was non-nil")
+	}
+
+	return nil
 }
 
 func (KustoClusterCustomerManagedKeyResource) basic(data acceptance.TestData) string {
@@ -236,7 +223,14 @@ resource "azurerm_key_vault_access_policy" "client" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = data.azurerm_client_config.current.object_id
 
-  key_permissions = ["get", "list", "create", "delete", "recover"]
+  key_permissions = [
+    "create",
+    "delete",
+    "get",
+    "list",
+    "purge",
+    "recover",
+  ]
 }
 
 resource "azurerm_key_vault_key" "first" {

@@ -82,6 +82,7 @@ func (client AccountsClient) CheckNameAvailability(ctx context.Context, accountN
 	result, err = client.CheckNameAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.AccountsClient", "CheckNameAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -187,7 +188,7 @@ func (client AccountsClient) Create(ctx context.Context, resourceGroupName strin
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.AccountsClient", "Create", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storage.AccountsClient", "Create", nil, "Failure sending request")
 		return
 	}
 
@@ -225,7 +226,33 @@ func (client AccountsClient) CreateSender(req *http.Request) (future AccountsCre
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client AccountsClient) (a Account, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "storage.AccountsCreateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("storage.AccountsCreateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		a.Response.Response, err = future.GetResult(sender)
+		if a.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "storage.AccountsCreateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && a.Response.Response.StatusCode != http.StatusNoContent {
+			a, err = client.CreateResponder(a.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "storage.AccountsCreateFuture", "Result", a.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -287,6 +314,7 @@ func (client AccountsClient) Delete(ctx context.Context, resourceGroupName strin
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.AccountsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -370,7 +398,7 @@ func (client AccountsClient) Failover(ctx context.Context, resourceGroupName str
 
 	result, err = client.FailoverSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.AccountsClient", "Failover", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storage.AccountsClient", "Failover", nil, "Failure sending request")
 		return
 	}
 
@@ -406,7 +434,23 @@ func (client AccountsClient) FailoverSender(req *http.Request) (future AccountsF
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client AccountsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "storage.AccountsFailoverFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("storage.AccountsFailoverFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -470,6 +514,7 @@ func (client AccountsClient) GetProperties(ctx context.Context, resourceGroupNam
 	result, err = client.GetPropertiesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.AccountsClient", "GetProperties", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -553,9 +598,11 @@ func (client AccountsClient) List(ctx context.Context) (result AccountListResult
 	result.alr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.AccountsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.alr.hasNextLink() && result.alr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -684,6 +731,7 @@ func (client AccountsClient) ListAccountSAS(ctx context.Context, resourceGroupNa
 	result, err = client.ListAccountSASResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.AccountsClient", "ListAccountSAS", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -772,6 +820,7 @@ func (client AccountsClient) ListByResourceGroup(ctx context.Context, resourceGr
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.AccountsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -862,6 +911,7 @@ func (client AccountsClient) ListKeys(ctx context.Context, resourceGroupName str
 	result, err = client.ListKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.AccountsClient", "ListKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -960,6 +1010,7 @@ func (client AccountsClient) ListServiceSAS(ctx context.Context, resourceGroupNa
 	result, err = client.ListServiceSASResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.AccountsClient", "ListServiceSAS", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1055,6 +1106,7 @@ func (client AccountsClient) RegenerateKey(ctx context.Context, resourceGroupNam
 	result, err = client.RegenerateKeyResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.AccountsClient", "RegenerateKey", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1143,7 +1195,7 @@ func (client AccountsClient) RestoreBlobRanges(ctx context.Context, resourceGrou
 
 	result, err = client.RestoreBlobRangesSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.AccountsClient", "RestoreBlobRanges", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storage.AccountsClient", "RestoreBlobRanges", nil, "Failure sending request")
 		return
 	}
 
@@ -1181,7 +1233,33 @@ func (client AccountsClient) RestoreBlobRangesSender(req *http.Request) (future 
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client AccountsClient) (brs BlobRestoreStatus, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "storage.AccountsRestoreBlobRangesFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("storage.AccountsRestoreBlobRangesFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		brs.Response.Response, err = future.GetResult(sender)
+		if brs.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "storage.AccountsRestoreBlobRangesFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && brs.Response.Response.StatusCode != http.StatusNoContent {
+			brs, err = client.RestoreBlobRangesResponder(brs.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "storage.AccountsRestoreBlobRangesFuture", "Result", brs.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -1243,6 +1321,7 @@ func (client AccountsClient) RevokeUserDelegationKeys(ctx context.Context, resou
 	result, err = client.RevokeUserDelegationKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.AccountsClient", "RevokeUserDelegationKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1338,6 +1417,7 @@ func (client AccountsClient) Update(ctx context.Context, resourceGroupName strin
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.AccountsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

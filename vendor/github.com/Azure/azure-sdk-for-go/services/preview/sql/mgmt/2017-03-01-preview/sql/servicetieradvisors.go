@@ -78,6 +78,7 @@ func (client ServiceTierAdvisorsClient) Get(ctx context.Context, resourceGroupNa
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServiceTierAdvisorsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -157,6 +158,7 @@ func (client ServiceTierAdvisorsClient) ListByDatabase(ctx context.Context, reso
 	result, err = client.ListByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServiceTierAdvisorsClient", "ListByDatabase", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -25,7 +25,7 @@ import (
 	"net/http"
 )
 
-// ApplyUpdatesClient is the azure Maintenance Management Client
+// ApplyUpdatesClient is the maintenance Client
 type ApplyUpdatesClient struct {
 	BaseClient
 }
@@ -74,6 +74,7 @@ func (client ApplyUpdatesClient) CreateOrUpdate(ctx context.Context, resourceGro
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "maintenance.ApplyUpdatesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -155,6 +156,7 @@ func (client ApplyUpdatesClient) CreateOrUpdateParent(ctx context.Context, resou
 	result, err = client.CreateOrUpdateParentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "maintenance.ApplyUpdatesClient", "CreateOrUpdateParent", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -237,6 +239,7 @@ func (client ApplyUpdatesClient) Get(ctx context.Context, resourceGroupName stri
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "maintenance.ApplyUpdatesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -320,6 +323,7 @@ func (client ApplyUpdatesClient) GetParent(ctx context.Context, resourceGroupNam
 	result, err = client.GetParentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "maintenance.ApplyUpdatesClient", "GetParent", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -102,6 +102,7 @@ func (client APIIssueCommentClient) CreateOrUpdate(ctx context.Context, resource
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APIIssueCommentClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -210,6 +211,7 @@ func (client APIIssueCommentClient) Delete(ctx context.Context, resourceGroupNam
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APIIssueCommentClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -310,6 +312,7 @@ func (client APIIssueCommentClient) Get(ctx context.Context, resourceGroupName s
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APIIssueCommentClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -410,6 +413,7 @@ func (client APIIssueCommentClient) GetEntityTag(ctx context.Context, resourceGr
 	result, err = client.GetEntityTagResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APIIssueCommentClient", "GetEntityTag", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -517,9 +521,11 @@ func (client APIIssueCommentClient) ListByService(ctx context.Context, resourceG
 	result.icc, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APIIssueCommentClient", "ListByService", resp, "Failure responding to request")
+		return
 	}
 	if result.icc.hasNextLink() && result.icc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

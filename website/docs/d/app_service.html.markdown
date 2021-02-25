@@ -91,6 +91,8 @@ An `ip_restriction` block exports the following:
 
 * `ip_address` - The IP Address used for this IP Restriction.
 
+* `service_tag` - The Service Tag used for this IP Restriction.
+
 * `subnet_mask` - The Subnet mask used for this IP Restriction.
 
 * `name` - The name for this IP Restriction.
@@ -103,6 +105,8 @@ An `ip_restriction` block exports the following:
 An `scm_ip_restriction` block exports the following:  
 
 * `ip_address` - The IP Address used for this IP Restriction in CIDR notation.
+
+* `service_tag` - The Service Tag used for this IP Restriction.
 
 * `virtual_network_subnet_id` - The Virtual Network Subnet ID used for this IP Restriction.
 
@@ -131,6 +135,8 @@ A `site_config` block exports the following:
 * `ftps_state` - State of FTP / FTPS service for this AppService.
 
 * `health_check_path` - The health check path to be pinged by App Service.
+
+* `number_of_workers` - The scaled number of workers (for per site scaling) of this App Service.
 
 * `ip_restriction` - One or more `ip_restriction` blocks as defined above.
 

@@ -80,9 +80,11 @@ func (client RegionsClient) ListBySku(ctx context.Context, sku string) (result P
 	result.pmrlr, err = client.ListBySkuResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.RegionsClient", "ListBySku", resp, "Failure responding to request")
+		return
 	}
 	if result.pmrlr.hasNextLink() && result.pmrlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

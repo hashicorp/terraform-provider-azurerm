@@ -10,21 +10,21 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/common"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmCosmosGremlinDatabase() *schema.Resource {
+func resourceCosmosGremlinDatabase() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmCosmosGremlinDatabaseCreate,
-		Update: resourceArmCosmosGremlinDatabaseUpdate,
-		Read:   resourceArmCosmosGremlinDatabaseRead,
-		Delete: resourceArmCosmosGremlinDatabaseDelete,
+		Create: resourceCosmosGremlinDatabaseCreate,
+		Update: resourceCosmosGremlinDatabaseUpdate,
+		Read:   resourceCosmosGremlinDatabaseRead,
+		Delete: resourceCosmosGremlinDatabaseDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -75,7 +75,7 @@ func resourceArmCosmosGremlinDatabase() *schema.Resource {
 	}
 }
 
-func resourceArmCosmosGremlinDatabaseCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosGremlinDatabaseCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.GremlinClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -136,10 +136,10 @@ func resourceArmCosmosGremlinDatabaseCreate(d *schema.ResourceData, meta interfa
 
 	d.SetId(*resp.ID)
 
-	return resourceArmCosmosGremlinDatabaseRead(d, meta)
+	return resourceCosmosGremlinDatabaseRead(d, meta)
 }
 
-func resourceArmCosmosGremlinDatabaseUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosGremlinDatabaseUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.GremlinClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -191,10 +191,10 @@ func resourceArmCosmosGremlinDatabaseUpdate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error making get request for Cosmos Gremlin Database %q (Account: %q): %+v", id.Name, id.DatabaseAccountName, err)
 	}
 
-	return resourceArmCosmosGremlinDatabaseRead(d, meta)
+	return resourceCosmosGremlinDatabaseRead(d, meta)
 }
 
-func resourceArmCosmosGremlinDatabaseRead(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosGremlinDatabaseRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.GremlinClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -238,7 +238,7 @@ func resourceArmCosmosGremlinDatabaseRead(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func resourceArmCosmosGremlinDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosGremlinDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.GremlinClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

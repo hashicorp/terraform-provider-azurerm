@@ -88,6 +88,7 @@ func (client WorkspacePurgeClient) GetPurgeStatus(ctx context.Context, resourceG
 	result, err = client.GetPurgeStatusResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "operationalinsights.WorkspacePurgeClient", "GetPurgeStatus", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -187,6 +188,7 @@ func (client WorkspacePurgeClient) Purge(ctx context.Context, resourceGroupName 
 	result, err = client.PurgeResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "operationalinsights.WorkspacePurgeClient", "Purge", resp, "Failure responding to request")
+		return
 	}
 
 	return

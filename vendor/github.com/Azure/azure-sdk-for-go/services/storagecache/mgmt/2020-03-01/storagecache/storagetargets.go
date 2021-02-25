@@ -68,16 +68,7 @@ func (client StorageTargetsClient) CreateOrUpdate(ctx context.Context, resourceG
 		{TargetValue: cacheName,
 			Constraints: []validation.Constraint{{Target: "cacheName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,80}$`, Chain: nil}}},
 		{TargetValue: storageTargetName,
-			Constraints: []validation.Constraint{{Target: "storageTargetName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,80}$`, Chain: nil}}},
-		{TargetValue: storagetarget,
-			Constraints: []validation.Constraint{{Target: "storagetarget", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "storagetarget.BasicStorageTargetProperties", Name: validation.Null, Rule: false,
-					Chain: []validation.Constraint{{Target: "storagetarget.BasicStorageTargetProperties.Nfs3", Name: validation.Null, Rule: false,
-						Chain: []validation.Constraint{{Target: "storagetarget.BasicStorageTargetProperties.Nfs3.Target", Name: validation.Null, Rule: false,
-							Chain: []validation.Constraint{{Target: "storagetarget.BasicStorageTargetProperties.Nfs3.Target", Name: validation.Pattern, Rule: `^[-.0-9a-zA-Z]+$`, Chain: nil}}},
-						}},
-					}},
-				}}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "storageTargetName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,80}$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("storagecache.StorageTargetsClient", "CreateOrUpdate", err.Error())
 	}
 
@@ -89,7 +80,7 @@ func (client StorageTargetsClient) CreateOrUpdate(ctx context.Context, resourceG
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storagecache.StorageTargetsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storagecache.StorageTargetsClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -131,7 +122,33 @@ func (client StorageTargetsClient) CreateOrUpdateSender(req *http.Request) (futu
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client StorageTargetsClient) (st StorageTarget, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "storagecache.StorageTargetsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("storagecache.StorageTargetsCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		st.Response.Response, err = future.GetResult(sender)
+		if st.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "storagecache.StorageTargetsCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && st.Response.Response.StatusCode != http.StatusNoContent {
+			st, err = client.CreateOrUpdateResponder(st.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "storagecache.StorageTargetsCreateOrUpdateFuture", "Result", st.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -140,7 +157,7 @@ func (client StorageTargetsClient) CreateOrUpdateSender(req *http.Request) (futu
 func (client StorageTargetsClient) CreateOrUpdateResponder(resp *http.Response) (result StorageTarget, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
@@ -183,7 +200,7 @@ func (client StorageTargetsClient) Delete(ctx context.Context, resourceGroupName
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storagecache.StorageTargetsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storagecache.StorageTargetsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -220,7 +237,33 @@ func (client StorageTargetsClient) DeleteSender(req *http.Request) (future Stora
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client StorageTargetsClient) (so SetObject, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "storagecache.StorageTargetsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("storagecache.StorageTargetsDeleteFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		so.Response.Response, err = future.GetResult(sender)
+		if so.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "storagecache.StorageTargetsDeleteFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && so.Response.Response.StatusCode != http.StatusNoContent {
+			so, err = client.DeleteResponder(so.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "storagecache.StorageTargetsDeleteFuture", "Result", so.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -278,6 +321,7 @@ func (client StorageTargetsClient) Get(ctx context.Context, resourceGroupName st
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storagecache.StorageTargetsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -362,9 +406,11 @@ func (client StorageTargetsClient) ListByCache(ctx context.Context, resourceGrou
 	result.str, err = client.ListByCacheResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storagecache.StorageTargetsClient", "ListByCache", resp, "Failure responding to request")
+		return
 	}
 	if result.str.hasNextLink() && result.str.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

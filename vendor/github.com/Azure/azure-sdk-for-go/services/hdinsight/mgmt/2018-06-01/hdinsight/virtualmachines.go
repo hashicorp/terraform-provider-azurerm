@@ -73,6 +73,7 @@ func (client VirtualMachinesClient) ListHosts(ctx context.Context, resourceGroup
 	result, err = client.ListHostsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "hdinsight.VirtualMachinesClient", "ListHosts", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -147,7 +148,7 @@ func (client VirtualMachinesClient) RestartHosts(ctx context.Context, resourceGr
 
 	result, err = client.RestartHostsSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.VirtualMachinesClient", "RestartHosts", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "hdinsight.VirtualMachinesClient", "RestartHosts", nil, "Failure sending request")
 		return
 	}
 
@@ -185,7 +186,23 @@ func (client VirtualMachinesClient) RestartHostsSender(req *http.Request) (futur
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client VirtualMachinesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "hdinsight.VirtualMachinesRestartHostsFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("hdinsight.VirtualMachinesRestartHostsFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 

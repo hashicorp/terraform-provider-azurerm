@@ -19,12 +19,12 @@ import (
 
 const azureNetworkProfileResourceName = "azurerm_network_profile"
 
-func resourceArmNetworkProfile() *schema.Resource {
+func resourceNetworkProfile() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmNetworkProfileCreateUpdate,
-		Read:   resourceArmNetworkProfileRead,
-		Update: resourceArmNetworkProfileCreateUpdate,
-		Delete: resourceArmNetworkProfileDelete,
+		Create: resourceNetworkProfileCreateUpdate,
+		Read:   resourceNetworkProfileRead,
+		Update: resourceNetworkProfileCreateUpdate,
+		Delete: resourceNetworkProfileDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -94,7 +94,7 @@ func resourceArmNetworkProfile() *schema.Resource {
 	}
 }
 
-func resourceArmNetworkProfileCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkProfileCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ProfileClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -157,10 +157,10 @@ func resourceArmNetworkProfileCreateUpdate(d *schema.ResourceData, meta interfac
 
 	d.SetId(*profile.ID)
 
-	return resourceArmNetworkProfileRead(d, meta)
+	return resourceNetworkProfileRead(d, meta)
 }
 
-func resourceArmNetworkProfileRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkProfileRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ProfileClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -204,7 +204,7 @@ func resourceArmNetworkProfileRead(d *schema.ResourceData, meta interface{}) err
 	return tags.FlattenAndSet(d, profile.Tags)
 }
 
-func resourceArmNetworkProfileDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkProfileDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ProfileClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -68,9 +68,7 @@ func (client EndpointClient) CreateOrUpdate(ctx context.Context, resourceGroupNa
 				{Target: "resourceName", Name: validation.MinLength, Rule: 3, Chain: nil}}},
 		{TargetValue: endpointName,
 			Constraints: []validation.Constraint{{Target: "endpointName", Name: validation.MaxLength, Rule: 49, Chain: nil},
-				{Target: "endpointName", Name: validation.MinLength, Rule: 2, Chain: nil}}},
-		{TargetValue: endpointDescription,
-			Constraints: []validation.Constraint{{Target: "endpointDescription.Properties", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
+				{Target: "endpointName", Name: validation.MinLength, Rule: 2, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("digitaltwins.EndpointClient", "CreateOrUpdate", err.Error())
 	}
 
@@ -82,7 +80,7 @@ func (client EndpointClient) CreateOrUpdate(ctx context.Context, resourceGroupNa
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "digitaltwins.EndpointClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "digitaltwins.EndpointClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -121,7 +119,33 @@ func (client EndpointClient) CreateOrUpdateSender(req *http.Request) (future End
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client EndpointClient) (er EndpointResource, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "digitaltwins.EndpointCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("digitaltwins.EndpointCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		er.Response.Response, err = future.GetResult(sender)
+		if er.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "digitaltwins.EndpointCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && er.Response.Response.StatusCode != http.StatusNoContent {
+			er, err = client.CreateOrUpdateResponder(er.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "digitaltwins.EndpointCreateOrUpdateFuture", "Result", er.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -174,7 +198,7 @@ func (client EndpointClient) Delete(ctx context.Context, resourceGroupName strin
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "digitaltwins.EndpointClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "digitaltwins.EndpointClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -211,7 +235,33 @@ func (client EndpointClient) DeleteSender(req *http.Request) (future EndpointDel
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client EndpointClient) (er EndpointResource, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "digitaltwins.EndpointDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("digitaltwins.EndpointDeleteFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		er.Response.Response, err = future.GetResult(sender)
+		if er.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "digitaltwins.EndpointDeleteFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && er.Response.Response.StatusCode != http.StatusNoContent {
+			er, err = client.DeleteResponder(er.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "digitaltwins.EndpointDeleteFuture", "Result", er.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -272,6 +322,7 @@ func (client EndpointClient) Get(ctx context.Context, resourceGroupName string, 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "digitaltwins.EndpointClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -359,9 +410,11 @@ func (client EndpointClient) List(ctx context.Context, resourceGroupName string,
 	result.erlr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "digitaltwins.EndpointClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.erlr.hasNextLink() && result.erlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

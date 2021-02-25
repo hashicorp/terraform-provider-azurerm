@@ -80,7 +80,7 @@ func (client WorkloadClassifiersClient) CreateOrUpdate(ctx context.Context, reso
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.WorkloadClassifiersClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.WorkloadClassifiersClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -121,7 +121,33 @@ func (client WorkloadClassifiersClient) CreateOrUpdateSender(req *http.Request) 
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client WorkloadClassifiersClient) (wc WorkloadClassifier, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.WorkloadClassifiersCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.WorkloadClassifiersCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		wc.Response.Response, err = future.GetResult(sender)
+		if wc.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "sql.WorkloadClassifiersCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && wc.Response.Response.StatusCode != http.StatusNoContent {
+			wc, err = client.CreateOrUpdateResponder(wc.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "sql.WorkloadClassifiersCreateOrUpdateFuture", "Result", wc.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -164,7 +190,7 @@ func (client WorkloadClassifiersClient) Delete(ctx context.Context, resourceGrou
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.WorkloadClassifiersClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.WorkloadClassifiersClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -203,7 +229,23 @@ func (client WorkloadClassifiersClient) DeleteSender(req *http.Request) (future 
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client WorkloadClassifiersClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.WorkloadClassifiersDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.WorkloadClassifiersDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -253,6 +295,7 @@ func (client WorkloadClassifiersClient) Get(ctx context.Context, resourceGroupNa
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.WorkloadClassifiersClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -335,9 +378,11 @@ func (client WorkloadClassifiersClient) ListByWorkloadGroup(ctx context.Context,
 	result.wclr, err = client.ListByWorkloadGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.WorkloadClassifiersClient", "ListByWorkloadGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.wclr.hasNextLink() && result.wclr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

@@ -66,7 +66,7 @@ func (client ExtensionsClient) Create(ctx context.Context, resourceGroupName str
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.ExtensionsClient", "Create", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "hdinsight.ExtensionsClient", "Create", nil, "Failure sending request")
 		return
 	}
 
@@ -105,7 +105,23 @@ func (client ExtensionsClient) CreateSender(req *http.Request) (future Extension
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ExtensionsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "hdinsight.ExtensionsCreateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("hdinsight.ExtensionsCreateFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -144,7 +160,7 @@ func (client ExtensionsClient) Delete(ctx context.Context, resourceGroupName str
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.ExtensionsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "hdinsight.ExtensionsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -181,7 +197,23 @@ func (client ExtensionsClient) DeleteSender(req *http.Request) (future Extension
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ExtensionsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "hdinsight.ExtensionsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("hdinsight.ExtensionsDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -190,7 +222,7 @@ func (client ExtensionsClient) DeleteSender(req *http.Request) (future Extension
 func (client ExtensionsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
 	return
@@ -219,7 +251,7 @@ func (client ExtensionsClient) DisableMonitoring(ctx context.Context, resourceGr
 
 	result, err = client.DisableMonitoringSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.ExtensionsClient", "DisableMonitoring", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "hdinsight.ExtensionsClient", "DisableMonitoring", nil, "Failure sending request")
 		return
 	}
 
@@ -255,7 +287,23 @@ func (client ExtensionsClient) DisableMonitoringSender(req *http.Request) (futur
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ExtensionsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "hdinsight.ExtensionsDisableMonitoringFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("hdinsight.ExtensionsDisableMonitoringFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -264,7 +312,7 @@ func (client ExtensionsClient) DisableMonitoringSender(req *http.Request) (futur
 func (client ExtensionsClient) DisableMonitoringResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
 	return
@@ -294,7 +342,7 @@ func (client ExtensionsClient) EnableMonitoring(ctx context.Context, resourceGro
 
 	result, err = client.EnableMonitoringSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.ExtensionsClient", "EnableMonitoring", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "hdinsight.ExtensionsClient", "EnableMonitoring", nil, "Failure sending request")
 		return
 	}
 
@@ -332,7 +380,23 @@ func (client ExtensionsClient) EnableMonitoringSender(req *http.Request) (future
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ExtensionsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "hdinsight.ExtensionsEnableMonitoringFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("hdinsight.ExtensionsEnableMonitoringFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -379,6 +443,7 @@ func (client ExtensionsClient) Get(ctx context.Context, resourceGroupName string
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "hdinsight.ExtensionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -455,6 +520,7 @@ func (client ExtensionsClient) GetMonitoringStatus(ctx context.Context, resource
 	result, err = client.GetMonitoringStatusResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "hdinsight.ExtensionsClient", "GetMonitoringStatus", resp, "Failure responding to request")
+		return
 	}
 
 	return

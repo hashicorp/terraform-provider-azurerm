@@ -139,7 +139,7 @@ func resourceIotCentralAppCreate(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Error creating Iot Central Application.  %v", err)
 	}
 
-	if err = future.Future.WaitForCompletionRef(ctx, client.Client); err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for creating IoT Central Application %q (Resource Group %q):  %+v", name, resourceGroup, err)
 	}
 

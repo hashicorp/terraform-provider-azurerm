@@ -80,6 +80,7 @@ func (client OperationStatusesClient) Get(ctx context.Context, location string, 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "operationalinsights.OperationStatusesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return

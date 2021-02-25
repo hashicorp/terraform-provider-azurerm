@@ -76,7 +76,7 @@ func (client RunsClient) Cancel(ctx context.Context, resourceGroupName string, r
 
 	result, err = client.CancelSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerregistry.RunsClient", "Cancel", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "containerregistry.RunsClient", "Cancel", nil, "Failure sending request")
 		return
 	}
 
@@ -113,7 +113,23 @@ func (client RunsClient) CancelSender(req *http.Request) (future RunsCancelFutur
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client RunsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "containerregistry.RunsCancelFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("containerregistry.RunsCancelFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -170,6 +186,7 @@ func (client RunsClient) Get(ctx context.Context, resourceGroupName string, regi
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerregistry.RunsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -257,6 +274,7 @@ func (client RunsClient) GetLogSasURL(ctx context.Context, resourceGroupName str
 	result, err = client.GetLogSasURLResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerregistry.RunsClient", "GetLogSasURL", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -347,9 +365,11 @@ func (client RunsClient) List(ctx context.Context, resourceGroupName string, reg
 	result.rlr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerregistry.RunsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.rlr.hasNextLink() && result.rlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -472,7 +492,7 @@ func (client RunsClient) Update(ctx context.Context, resourceGroupName string, r
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerregistry.RunsClient", "Update", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "containerregistry.RunsClient", "Update", nil, "Failure sending request")
 		return
 	}
 
@@ -511,7 +531,33 @@ func (client RunsClient) UpdateSender(req *http.Request) (future RunsUpdateFutur
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client RunsClient) (r Run, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "containerregistry.RunsUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("containerregistry.RunsUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		r.Response.Response, err = future.GetResult(sender)
+		if r.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "containerregistry.RunsUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && r.Response.Response.StatusCode != http.StatusNoContent {
+			r, err = client.UpdateResponder(r.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "containerregistry.RunsUpdateFuture", "Result", r.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

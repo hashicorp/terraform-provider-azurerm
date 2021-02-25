@@ -144,6 +144,7 @@ func resourceKustoCluster() *schema.Resource {
 			"virtual_network_configuration": {
 				Type:     schema.TypeList,
 				Optional: true,
+				ForceNew: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -385,7 +386,11 @@ func resourceKustoClusterRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	if err := d.Set("identity", flattenIdentity(clusterResponse.Identity)); err != nil {
+	identity, err := flattenIdentity(clusterResponse.Identity)
+	if err != nil {
+		return err
+	}
+	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("Error setting `identity`: %s", err)
 	}
 

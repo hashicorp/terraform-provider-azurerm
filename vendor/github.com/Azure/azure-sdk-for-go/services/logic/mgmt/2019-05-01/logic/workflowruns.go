@@ -73,6 +73,7 @@ func (client WorkflowRunsClient) Cancel(ctx context.Context, resourceGroupName s
 	result, err = client.CancelResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowRunsClient", "Cancel", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -149,6 +150,7 @@ func (client WorkflowRunsClient) Get(ctx context.Context, resourceGroupName stri
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowRunsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -229,9 +231,11 @@ func (client WorkflowRunsClient) List(ctx context.Context, resourceGroupName str
 	result.wrlr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowRunsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.wrlr.hasNextLink() && result.wrlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

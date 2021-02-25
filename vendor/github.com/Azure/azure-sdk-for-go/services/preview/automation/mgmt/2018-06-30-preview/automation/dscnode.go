@@ -82,6 +82,7 @@ func (client DscNodeClient) Delete(ctx context.Context, resourceGroupName string
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.DscNodeClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -167,6 +168,7 @@ func (client DscNodeClient) Get(ctx context.Context, resourceGroupName string, a
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.DscNodeClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -256,9 +258,11 @@ func (client DscNodeClient) ListByAutomationAccount(ctx context.Context, resourc
 	result.dnlr, err = client.ListByAutomationAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.DscNodeClient", "ListByAutomationAccount", resp, "Failure responding to request")
+		return
 	}
 	if result.dnlr.hasNextLink() && result.dnlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -393,6 +397,7 @@ func (client DscNodeClient) Update(ctx context.Context, resourceGroupName string
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.DscNodeClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -531,8 +531,11 @@ func (page AppCollectionPage) Values() []Site {
 }
 
 // Creates a new instance of the AppCollectionPage type.
-func NewAppCollectionPage(getNextPage func(context.Context, AppCollection) (AppCollection, error)) AppCollectionPage {
-	return AppCollectionPage{fn: getNextPage}
+func NewAppCollectionPage(cur AppCollection, getNextPage func(context.Context, AppCollection) (AppCollection, error)) AppCollectionPage {
+	return AppCollectionPage{
+		fn: getNextPage,
+		ac: cur,
+	}
 }
 
 // AppInstanceStatusCollection collection of app instances.
@@ -696,8 +699,11 @@ func (page AppInstanceStatusCollectionPage) Values() []SiteInstanceStatus {
 }
 
 // Creates a new instance of the AppInstanceStatusCollectionPage type.
-func NewAppInstanceStatusCollectionPage(getNextPage func(context.Context, AppInstanceStatusCollection) (AppInstanceStatusCollection, error)) AppInstanceStatusCollectionPage {
-	return AppInstanceStatusCollectionPage{fn: getNextPage}
+func NewAppInstanceStatusCollectionPage(cur AppInstanceStatusCollection, getNextPage func(context.Context, AppInstanceStatusCollection) (AppInstanceStatusCollection, error)) AppInstanceStatusCollectionPage {
+	return AppInstanceStatusCollectionPage{
+		fn:   getNextPage,
+		aisc: cur,
+	}
 }
 
 // ApplicationLogsConfig application logs configuration.
@@ -742,7 +748,8 @@ func (asc ApplicationStackCollection) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// ApplicationStackCollectionIterator provides access to a complete listing of ApplicationStackResource values.
+// ApplicationStackCollectionIterator provides access to a complete listing of ApplicationStackResource
+// values.
 type ApplicationStackCollectionIterator struct {
 	i    int
 	page ApplicationStackCollectionPage
@@ -885,8 +892,11 @@ func (page ApplicationStackCollectionPage) Values() []ApplicationStackResource {
 }
 
 // Creates a new instance of the ApplicationStackCollectionPage type.
-func NewApplicationStackCollectionPage(getNextPage func(context.Context, ApplicationStackCollection) (ApplicationStackCollection, error)) ApplicationStackCollectionPage {
-	return ApplicationStackCollectionPage{fn: getNextPage}
+func NewApplicationStackCollectionPage(cur ApplicationStackCollection, getNextPage func(context.Context, ApplicationStackCollection) (ApplicationStackCollection, error)) ApplicationStackCollectionPage {
+	return ApplicationStackCollectionPage{
+		fn:  getNextPage,
+		asc: cur,
+	}
 }
 
 // ApplicationStackResource ARM resource for a ApplicationStack.
@@ -1067,397 +1077,130 @@ type AppRegistrationProperties struct {
 	AppSecretSettingName *string `json:"appSecretSettingName,omitempty"`
 }
 
-// AppsApproveOrRejectPrivateEndpointConnectionFuture an abstraction for monitoring and retrieving the results
-// of a long-running operation.
+// AppsApproveOrRejectPrivateEndpointConnectionFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
 type AppsApproveOrRejectPrivateEndpointConnectionFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AppsApproveOrRejectPrivateEndpointConnectionFuture) Result(client AppsClient) (pecr PrivateEndpointConnectionResource, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppsApproveOrRejectPrivateEndpointConnectionFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("web.AppsApproveOrRejectPrivateEndpointConnectionFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if pecr.Response.Response, err = future.GetResult(sender); err == nil && pecr.Response.Response.StatusCode != http.StatusNoContent {
-		pecr, err = client.ApproveOrRejectPrivateEndpointConnectionResponder(pecr.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "web.AppsApproveOrRejectPrivateEndpointConnectionFuture", "Result", pecr.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppsClient) (PrivateEndpointConnectionResource, error)
 }
 
 // AppsCopyProductionSlotFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type AppsCopyProductionSlotFuture struct {
-	azure.Future
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppsClient) (autorest.Response, error)
 }
 
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AppsCopyProductionSlotFuture) Result(client AppsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppsCopyProductionSlotFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("web.AppsCopyProductionSlotFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
-}
-
-// AppsCopySlotSlotFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// AppsCopySlotSlotFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type AppsCopySlotSlotFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AppsCopySlotSlotFuture) Result(client AppsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppsCopySlotSlotFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("web.AppsCopySlotSlotFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppsClient) (autorest.Response, error)
 }
 
 // AppsCreateFunctionFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type AppsCreateFunctionFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AppsCreateFunctionFuture) Result(client AppsClient) (fe FunctionEnvelope, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppsCreateFunctionFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("web.AppsCreateFunctionFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if fe.Response.Response, err = future.GetResult(sender); err == nil && fe.Response.Response.StatusCode != http.StatusNoContent {
-		fe, err = client.CreateFunctionResponder(fe.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "web.AppsCreateFunctionFuture", "Result", fe.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppsClient) (FunctionEnvelope, error)
 }
 
 // AppsCreateInstanceFunctionSlotFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type AppsCreateInstanceFunctionSlotFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AppsCreateInstanceFunctionSlotFuture) Result(client AppsClient) (fe FunctionEnvelope, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppsCreateInstanceFunctionSlotFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("web.AppsCreateInstanceFunctionSlotFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if fe.Response.Response, err = future.GetResult(sender); err == nil && fe.Response.Response.StatusCode != http.StatusNoContent {
-		fe, err = client.CreateInstanceFunctionSlotResponder(fe.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "web.AppsCreateInstanceFunctionSlotFuture", "Result", fe.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppsClient) (FunctionEnvelope, error)
 }
 
 // AppsCreateInstanceMSDeployOperationFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type AppsCreateInstanceMSDeployOperationFuture struct {
-	azure.Future
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppsClient) (MSDeployStatus, error)
 }
 
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AppsCreateInstanceMSDeployOperationFuture) Result(client AppsClient) (mds MSDeployStatus, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppsCreateInstanceMSDeployOperationFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("web.AppsCreateInstanceMSDeployOperationFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if mds.Response.Response, err = future.GetResult(sender); err == nil && mds.Response.Response.StatusCode != http.StatusNoContent {
-		mds, err = client.CreateInstanceMSDeployOperationResponder(mds.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "web.AppsCreateInstanceMSDeployOperationFuture", "Result", mds.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// AppsCreateInstanceMSDeployOperationSlotFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
+// AppsCreateInstanceMSDeployOperationSlotFuture an abstraction for monitoring and retrieving the results
+// of a long-running operation.
 type AppsCreateInstanceMSDeployOperationSlotFuture struct {
-	azure.Future
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppsClient) (MSDeployStatus, error)
 }
 
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AppsCreateInstanceMSDeployOperationSlotFuture) Result(client AppsClient) (mds MSDeployStatus, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppsCreateInstanceMSDeployOperationSlotFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("web.AppsCreateInstanceMSDeployOperationSlotFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if mds.Response.Response, err = future.GetResult(sender); err == nil && mds.Response.Response.StatusCode != http.StatusNoContent {
-		mds, err = client.CreateInstanceMSDeployOperationSlotResponder(mds.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "web.AppsCreateInstanceMSDeployOperationSlotFuture", "Result", mds.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// AppsCreateMSDeployOperationFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// AppsCreateMSDeployOperationFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type AppsCreateMSDeployOperationFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AppsCreateMSDeployOperationFuture) Result(client AppsClient) (mds MSDeployStatus, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppsCreateMSDeployOperationFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("web.AppsCreateMSDeployOperationFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if mds.Response.Response, err = future.GetResult(sender); err == nil && mds.Response.Response.StatusCode != http.StatusNoContent {
-		mds, err = client.CreateMSDeployOperationResponder(mds.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "web.AppsCreateMSDeployOperationFuture", "Result", mds.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppsClient) (MSDeployStatus, error)
 }
 
 // AppsCreateMSDeployOperationSlotFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type AppsCreateMSDeployOperationSlotFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AppsCreateMSDeployOperationSlotFuture) Result(client AppsClient) (mds MSDeployStatus, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppsCreateMSDeployOperationSlotFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("web.AppsCreateMSDeployOperationSlotFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if mds.Response.Response, err = future.GetResult(sender); err == nil && mds.Response.Response.StatusCode != http.StatusNoContent {
-		mds, err = client.CreateMSDeployOperationSlotResponder(mds.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "web.AppsCreateMSDeployOperationSlotFuture", "Result", mds.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppsClient) (MSDeployStatus, error)
 }
 
 // AppsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type AppsCreateOrUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AppsCreateOrUpdateFuture) Result(client AppsClient) (s Site, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("web.AppsCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if s.Response.Response, err = future.GetResult(sender); err == nil && s.Response.Response.StatusCode != http.StatusNoContent {
-		s, err = client.CreateOrUpdateResponder(s.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "web.AppsCreateOrUpdateFuture", "Result", s.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppsClient) (Site, error)
 }
 
 // AppsCreateOrUpdateSlotFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type AppsCreateOrUpdateSlotFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AppsCreateOrUpdateSlotFuture) Result(client AppsClient) (s Site, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppsCreateOrUpdateSlotFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("web.AppsCreateOrUpdateSlotFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if s.Response.Response, err = future.GetResult(sender); err == nil && s.Response.Response.StatusCode != http.StatusNoContent {
-		s, err = client.CreateOrUpdateSlotResponder(s.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "web.AppsCreateOrUpdateSlotFuture", "Result", s.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppsClient) (Site, error)
 }
 
 // AppsCreateOrUpdateSourceControlFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type AppsCreateOrUpdateSourceControlFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AppsCreateOrUpdateSourceControlFuture) Result(client AppsClient) (ssc SiteSourceControl, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppsCreateOrUpdateSourceControlFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("web.AppsCreateOrUpdateSourceControlFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if ssc.Response.Response, err = future.GetResult(sender); err == nil && ssc.Response.Response.StatusCode != http.StatusNoContent {
-		ssc, err = client.CreateOrUpdateSourceControlResponder(ssc.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "web.AppsCreateOrUpdateSourceControlFuture", "Result", ssc.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppsClient) (SiteSourceControl, error)
 }
 
 // AppsCreateOrUpdateSourceControlSlotFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type AppsCreateOrUpdateSourceControlSlotFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AppsCreateOrUpdateSourceControlSlotFuture) Result(client AppsClient) (ssc SiteSourceControl, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppsCreateOrUpdateSourceControlSlotFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("web.AppsCreateOrUpdateSourceControlSlotFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if ssc.Response.Response, err = future.GetResult(sender); err == nil && ssc.Response.Response.StatusCode != http.StatusNoContent {
-		ssc, err = client.CreateOrUpdateSourceControlSlotResponder(ssc.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "web.AppsCreateOrUpdateSourceControlSlotFuture", "Result", ssc.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppsClient) (SiteSourceControl, error)
 }
 
 // AppsDeletePrivateEndpointConnectionFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type AppsDeletePrivateEndpointConnectionFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AppsDeletePrivateEndpointConnectionFuture) Result(client AppsClient) (so SetObject, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppsDeletePrivateEndpointConnectionFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("web.AppsDeletePrivateEndpointConnectionFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if so.Response.Response, err = future.GetResult(sender); err == nil && so.Response.Response.StatusCode != http.StatusNoContent {
-		so, err = client.DeletePrivateEndpointConnectionResponder(so.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "web.AppsDeletePrivateEndpointConnectionFuture", "Result", so.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppsClient) (SetObject, error)
 }
 
 // AppServiceCertificate key Vault container for a certificate that is purchased through Azure.
@@ -1644,8 +1387,11 @@ func (page AppServiceCertificateCollectionPage) Values() []AppServiceCertificate
 }
 
 // Creates a new instance of the AppServiceCertificateCollectionPage type.
-func NewAppServiceCertificateCollectionPage(getNextPage func(context.Context, AppServiceCertificateCollection) (AppServiceCertificateCollection, error)) AppServiceCertificateCollectionPage {
-	return AppServiceCertificateCollectionPage{fn: getNextPage}
+func NewAppServiceCertificateCollectionPage(cur AppServiceCertificateCollection, getNextPage func(context.Context, AppServiceCertificateCollection) (AppServiceCertificateCollection, error)) AppServiceCertificateCollectionPage {
+	return AppServiceCertificateCollectionPage{
+		fn:   getNextPage,
+		ascc: cur,
+	}
 }
 
 // AppServiceCertificateOrder SSL certificate purchase order.
@@ -1925,8 +1671,11 @@ func (page AppServiceCertificateOrderCollectionPage) Values() []AppServiceCertif
 }
 
 // Creates a new instance of the AppServiceCertificateOrderCollectionPage type.
-func NewAppServiceCertificateOrderCollectionPage(getNextPage func(context.Context, AppServiceCertificateOrderCollection) (AppServiceCertificateOrderCollection, error)) AppServiceCertificateOrderCollectionPage {
-	return AppServiceCertificateOrderCollectionPage{fn: getNextPage}
+func NewAppServiceCertificateOrderCollectionPage(cur AppServiceCertificateOrderCollection, getNextPage func(context.Context, AppServiceCertificateOrderCollection) (AppServiceCertificateOrderCollection, error)) AppServiceCertificateOrderCollectionPage {
+	return AppServiceCertificateOrderCollectionPage{
+		fn:    getNextPage,
+		ascoc: cur,
+	}
 }
 
 // AppServiceCertificateOrderPatchResource ARM resource for a certificate order that is purchased through
@@ -2016,8 +1765,8 @@ func (ascopr *AppServiceCertificateOrderPatchResource) UnmarshalJSON(body []byte
 	return nil
 }
 
-// AppServiceCertificateOrderPatchResourceProperties appServiceCertificateOrderPatchResource resource specific
-// properties
+// AppServiceCertificateOrderPatchResourceProperties appServiceCertificateOrderPatchResource resource
+// specific properties
 type AppServiceCertificateOrderPatchResourceProperties struct {
 	// Certificates - State of the Key Vault secret.
 	Certificates map[string]*AppServiceCertificate `json:"certificates"`
@@ -2155,62 +1904,22 @@ func (asco AppServiceCertificateOrderProperties) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// AppServiceCertificateOrdersCreateOrUpdateCertificateFuture an abstraction for monitoring and retrieving the
-// results of a long-running operation.
+// AppServiceCertificateOrdersCreateOrUpdateCertificateFuture an abstraction for monitoring and retrieving
+// the results of a long-running operation.
 type AppServiceCertificateOrdersCreateOrUpdateCertificateFuture struct {
-	azure.Future
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppServiceCertificateOrdersClient) (AppServiceCertificateResource, error)
 }
 
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AppServiceCertificateOrdersCreateOrUpdateCertificateFuture) Result(client AppServiceCertificateOrdersClient) (ascr AppServiceCertificateResource, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppServiceCertificateOrdersCreateOrUpdateCertificateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("web.AppServiceCertificateOrdersCreateOrUpdateCertificateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if ascr.Response.Response, err = future.GetResult(sender); err == nil && ascr.Response.Response.StatusCode != http.StatusNoContent {
-		ascr, err = client.CreateOrUpdateCertificateResponder(ascr.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "web.AppServiceCertificateOrdersCreateOrUpdateCertificateFuture", "Result", ascr.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// AppServiceCertificateOrdersCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of
-// a long-running operation.
+// AppServiceCertificateOrdersCreateOrUpdateFuture an abstraction for monitoring and retrieving the results
+// of a long-running operation.
 type AppServiceCertificateOrdersCreateOrUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AppServiceCertificateOrdersCreateOrUpdateFuture) Result(client AppServiceCertificateOrdersClient) (asco AppServiceCertificateOrder, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppServiceCertificateOrdersCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("web.AppServiceCertificateOrdersCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if asco.Response.Response, err = future.GetResult(sender); err == nil && asco.Response.Response.StatusCode != http.StatusNoContent {
-		asco, err = client.CreateOrUpdateResponder(asco.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "web.AppServiceCertificateOrdersCreateOrUpdateFuture", "Result", asco.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppServiceCertificateOrdersClient) (AppServiceCertificateOrder, error)
 }
 
 // AppServiceCertificatePatchResource key Vault container ARM resource for a certificate that is purchased
@@ -2300,8 +2009,8 @@ func (ascpr *AppServiceCertificatePatchResource) UnmarshalJSON(body []byte) erro
 	return nil
 }
 
-// AppServiceCertificateResource key Vault container ARM resource for a certificate that is purchased through
-// Azure.
+// AppServiceCertificateResource key Vault container ARM resource for a certificate that is purchased
+// through Azure.
 type AppServiceCertificateResource struct {
 	autorest.Response `json:"-"`
 	// AppServiceCertificate - Core resource properties
@@ -2734,8 +2443,11 @@ func (page AppServiceEnvironmentCollectionPage) Values() []AppServiceEnvironment
 }
 
 // Creates a new instance of the AppServiceEnvironmentCollectionPage type.
-func NewAppServiceEnvironmentCollectionPage(getNextPage func(context.Context, AppServiceEnvironmentCollection) (AppServiceEnvironmentCollection, error)) AppServiceEnvironmentCollectionPage {
-	return AppServiceEnvironmentCollectionPage{fn: getNextPage}
+func NewAppServiceEnvironmentCollectionPage(cur AppServiceEnvironmentCollection, getNextPage func(context.Context, AppServiceEnvironmentCollection) (AppServiceEnvironmentCollection, error)) AppServiceEnvironmentCollectionPage {
+	return AppServiceEnvironmentCollectionPage{
+		fn:   getNextPage,
+		asec: cur,
+	}
 }
 
 // AppServiceEnvironmentPatchResource ARM resource for a app service environment.
@@ -2942,285 +2654,91 @@ func (aser *AppServiceEnvironmentResource) UnmarshalJSON(body []byte) error {
 // AppServiceEnvironmentsChangeVnetAllFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type AppServiceEnvironmentsChangeVnetAllFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AppServiceEnvironmentsChangeVnetAllFuture) Result(client AppServiceEnvironmentsClient) (acp AppCollectionPage, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsChangeVnetAllFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("web.AppServiceEnvironmentsChangeVnetAllFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if acp.ac.Response.Response, err = future.GetResult(sender); err == nil && acp.ac.Response.Response.StatusCode != http.StatusNoContent {
-		acp, err = client.ChangeVnetResponder(acp.ac.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsChangeVnetAllFuture", "Result", acp.ac.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppServiceEnvironmentsClient) (AppCollectionPage, error)
 }
 
 // AppServiceEnvironmentsChangeVnetFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type AppServiceEnvironmentsChangeVnetFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AppServiceEnvironmentsChangeVnetFuture) Result(client AppServiceEnvironmentsClient) (acp AppCollectionPage, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsChangeVnetFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("web.AppServiceEnvironmentsChangeVnetFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if acp.ac.Response.Response, err = future.GetResult(sender); err == nil && acp.ac.Response.Response.StatusCode != http.StatusNoContent {
-		acp, err = client.ChangeVnetResponder(acp.ac.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsChangeVnetFuture", "Result", acp.ac.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppServiceEnvironmentsClient) (AppCollectionPage, error)
 }
 
 // AppServiceEnvironmentsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type AppServiceEnvironmentsCreateOrUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AppServiceEnvironmentsCreateOrUpdateFuture) Result(client AppServiceEnvironmentsClient) (aser AppServiceEnvironmentResource, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("web.AppServiceEnvironmentsCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if aser.Response.Response, err = future.GetResult(sender); err == nil && aser.Response.Response.StatusCode != http.StatusNoContent {
-		aser, err = client.CreateOrUpdateResponder(aser.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsCreateOrUpdateFuture", "Result", aser.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppServiceEnvironmentsClient) (AppServiceEnvironmentResource, error)
 }
 
 // AppServiceEnvironmentsCreateOrUpdateMultiRolePoolFuture an abstraction for monitoring and retrieving the
 // results of a long-running operation.
 type AppServiceEnvironmentsCreateOrUpdateMultiRolePoolFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AppServiceEnvironmentsCreateOrUpdateMultiRolePoolFuture) Result(client AppServiceEnvironmentsClient) (wpr WorkerPoolResource, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsCreateOrUpdateMultiRolePoolFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("web.AppServiceEnvironmentsCreateOrUpdateMultiRolePoolFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if wpr.Response.Response, err = future.GetResult(sender); err == nil && wpr.Response.Response.StatusCode != http.StatusNoContent {
-		wpr, err = client.CreateOrUpdateMultiRolePoolResponder(wpr.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsCreateOrUpdateMultiRolePoolFuture", "Result", wpr.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppServiceEnvironmentsClient) (WorkerPoolResource, error)
 }
 
 // AppServiceEnvironmentsCreateOrUpdateWorkerPoolFuture an abstraction for monitoring and retrieving the
 // results of a long-running operation.
 type AppServiceEnvironmentsCreateOrUpdateWorkerPoolFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AppServiceEnvironmentsCreateOrUpdateWorkerPoolFuture) Result(client AppServiceEnvironmentsClient) (wpr WorkerPoolResource, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsCreateOrUpdateWorkerPoolFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("web.AppServiceEnvironmentsCreateOrUpdateWorkerPoolFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if wpr.Response.Response, err = future.GetResult(sender); err == nil && wpr.Response.Response.StatusCode != http.StatusNoContent {
-		wpr, err = client.CreateOrUpdateWorkerPoolResponder(wpr.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsCreateOrUpdateWorkerPoolFuture", "Result", wpr.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppServiceEnvironmentsClient) (WorkerPoolResource, error)
 }
 
 // AppServiceEnvironmentsDeleteFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type AppServiceEnvironmentsDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AppServiceEnvironmentsDeleteFuture) Result(client AppServiceEnvironmentsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("web.AppServiceEnvironmentsDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppServiceEnvironmentsClient) (autorest.Response, error)
 }
 
 // AppServiceEnvironmentsResumeAllFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type AppServiceEnvironmentsResumeAllFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AppServiceEnvironmentsResumeAllFuture) Result(client AppServiceEnvironmentsClient) (acp AppCollectionPage, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsResumeAllFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("web.AppServiceEnvironmentsResumeAllFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if acp.ac.Response.Response, err = future.GetResult(sender); err == nil && acp.ac.Response.Response.StatusCode != http.StatusNoContent {
-		acp, err = client.ResumeResponder(acp.ac.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsResumeAllFuture", "Result", acp.ac.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppServiceEnvironmentsClient) (AppCollectionPage, error)
 }
 
 // AppServiceEnvironmentsResumeFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type AppServiceEnvironmentsResumeFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AppServiceEnvironmentsResumeFuture) Result(client AppServiceEnvironmentsClient) (acp AppCollectionPage, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsResumeFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("web.AppServiceEnvironmentsResumeFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if acp.ac.Response.Response, err = future.GetResult(sender); err == nil && acp.ac.Response.Response.StatusCode != http.StatusNoContent {
-		acp, err = client.ResumeResponder(acp.ac.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsResumeFuture", "Result", acp.ac.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppServiceEnvironmentsClient) (AppCollectionPage, error)
 }
 
 // AppServiceEnvironmentsSuspendAllFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type AppServiceEnvironmentsSuspendAllFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AppServiceEnvironmentsSuspendAllFuture) Result(client AppServiceEnvironmentsClient) (acp AppCollectionPage, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsSuspendAllFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("web.AppServiceEnvironmentsSuspendAllFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if acp.ac.Response.Response, err = future.GetResult(sender); err == nil && acp.ac.Response.Response.StatusCode != http.StatusNoContent {
-		acp, err = client.SuspendResponder(acp.ac.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsSuspendAllFuture", "Result", acp.ac.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppServiceEnvironmentsClient) (AppCollectionPage, error)
 }
 
 // AppServiceEnvironmentsSuspendFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type AppServiceEnvironmentsSuspendFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AppServiceEnvironmentsSuspendFuture) Result(client AppServiceEnvironmentsClient) (acp AppCollectionPage, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsSuspendFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("web.AppServiceEnvironmentsSuspendFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if acp.ac.Response.Response, err = future.GetResult(sender); err == nil && acp.ac.Response.Response.StatusCode != http.StatusNoContent {
-		acp, err = client.SuspendResponder(acp.ac.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsSuspendFuture", "Result", acp.ac.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppServiceEnvironmentsClient) (AppCollectionPage, error)
 }
 
 // AppServicePlan app Service plan.
@@ -3512,8 +3030,11 @@ func (page AppServicePlanCollectionPage) Values() []AppServicePlan {
 }
 
 // Creates a new instance of the AppServicePlanCollectionPage type.
-func NewAppServicePlanCollectionPage(getNextPage func(context.Context, AppServicePlanCollection) (AppServicePlanCollection, error)) AppServicePlanCollectionPage {
-	return AppServicePlanCollectionPage{fn: getNextPage}
+func NewAppServicePlanCollectionPage(cur AppServicePlanCollection, getNextPage func(context.Context, AppServicePlanCollection) (AppServicePlanCollection, error)) AppServicePlanCollectionPage {
+	return AppServicePlanCollectionPage{
+		fn:   getNextPage,
+		aspc: cur,
+	}
 }
 
 // AppServicePlanPatchResource ARM resource for a app service plan.
@@ -3775,546 +3296,189 @@ func (asp AppServicePlanProperties) MarshalJSON() ([]byte, error) {
 // AppServicePlansCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type AppServicePlansCreateOrUpdateFuture struct {
-	azure.Future
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppServicePlansClient) (AppServicePlan, error)
 }
 
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AppServicePlansCreateOrUpdateFuture) Result(client AppServicePlansClient) (asp AppServicePlan, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppServicePlansCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("web.AppServicePlansCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if asp.Response.Response, err = future.GetResult(sender); err == nil && asp.Response.Response.StatusCode != http.StatusNoContent {
-		asp, err = client.CreateOrUpdateResponder(asp.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "web.AppServicePlansCreateOrUpdateFuture", "Result", asp.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// AppsInstallSiteExtensionFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// AppsInstallSiteExtensionFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type AppsInstallSiteExtensionFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AppsInstallSiteExtensionFuture) Result(client AppsClient) (sei SiteExtensionInfo, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppsInstallSiteExtensionFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("web.AppsInstallSiteExtensionFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if sei.Response.Response, err = future.GetResult(sender); err == nil && sei.Response.Response.StatusCode != http.StatusNoContent {
-		sei, err = client.InstallSiteExtensionResponder(sei.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "web.AppsInstallSiteExtensionFuture", "Result", sei.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppsClient) (SiteExtensionInfo, error)
 }
 
 // AppsInstallSiteExtensionSlotFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type AppsInstallSiteExtensionSlotFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AppsInstallSiteExtensionSlotFuture) Result(client AppsClient) (sei SiteExtensionInfo, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppsInstallSiteExtensionSlotFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("web.AppsInstallSiteExtensionSlotFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if sei.Response.Response, err = future.GetResult(sender); err == nil && sei.Response.Response.StatusCode != http.StatusNoContent {
-		sei, err = client.InstallSiteExtensionSlotResponder(sei.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "web.AppsInstallSiteExtensionSlotFuture", "Result", sei.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppsClient) (SiteExtensionInfo, error)
 }
 
 // AppsListPublishingCredentialsFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type AppsListPublishingCredentialsFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AppsListPublishingCredentialsFuture) Result(client AppsClient) (u User, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppsListPublishingCredentialsFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("web.AppsListPublishingCredentialsFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if u.Response.Response, err = future.GetResult(sender); err == nil && u.Response.Response.StatusCode != http.StatusNoContent {
-		u, err = client.ListPublishingCredentialsResponder(u.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "web.AppsListPublishingCredentialsFuture", "Result", u.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppsClient) (User, error)
 }
 
 // AppsListPublishingCredentialsSlotFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type AppsListPublishingCredentialsSlotFuture struct {
-	azure.Future
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppsClient) (User, error)
 }
 
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AppsListPublishingCredentialsSlotFuture) Result(client AppsClient) (u User, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppsListPublishingCredentialsSlotFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("web.AppsListPublishingCredentialsSlotFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if u.Response.Response, err = future.GetResult(sender); err == nil && u.Response.Response.StatusCode != http.StatusNoContent {
-		u, err = client.ListPublishingCredentialsSlotResponder(u.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "web.AppsListPublishingCredentialsSlotFuture", "Result", u.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// AppsMigrateMySQLFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// AppsMigrateMySQLFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type AppsMigrateMySQLFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AppsMigrateMySQLFuture) Result(client AppsClient) (o Operation, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppsMigrateMySQLFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("web.AppsMigrateMySQLFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if o.Response.Response, err = future.GetResult(sender); err == nil && o.Response.Response.StatusCode != http.StatusNoContent {
-		o, err = client.MigrateMySQLResponder(o.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "web.AppsMigrateMySQLFuture", "Result", o.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppsClient) (Operation, error)
 }
 
 // AppsMigrateStorageFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type AppsMigrateStorageFuture struct {
-	azure.Future
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppsClient) (StorageMigrationResponse, error)
 }
 
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AppsMigrateStorageFuture) Result(client AppsClient) (smr StorageMigrationResponse, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppsMigrateStorageFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("web.AppsMigrateStorageFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if smr.Response.Response, err = future.GetResult(sender); err == nil && smr.Response.Response.StatusCode != http.StatusNoContent {
-		smr, err = client.MigrateStorageResponder(smr.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "web.AppsMigrateStorageFuture", "Result", smr.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// AppsRestoreFromBackupBlobFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// AppsRestoreFromBackupBlobFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type AppsRestoreFromBackupBlobFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AppsRestoreFromBackupBlobFuture) Result(client AppsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppsRestoreFromBackupBlobFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("web.AppsRestoreFromBackupBlobFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppsClient) (autorest.Response, error)
 }
 
 // AppsRestoreFromBackupBlobSlotFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type AppsRestoreFromBackupBlobSlotFuture struct {
-	azure.Future
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppsClient) (autorest.Response, error)
 }
 
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AppsRestoreFromBackupBlobSlotFuture) Result(client AppsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppsRestoreFromBackupBlobSlotFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("web.AppsRestoreFromBackupBlobSlotFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
-}
-
-// AppsRestoreFromDeletedAppFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// AppsRestoreFromDeletedAppFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type AppsRestoreFromDeletedAppFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AppsRestoreFromDeletedAppFuture) Result(client AppsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppsRestoreFromDeletedAppFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("web.AppsRestoreFromDeletedAppFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppsClient) (autorest.Response, error)
 }
 
 // AppsRestoreFromDeletedAppSlotFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type AppsRestoreFromDeletedAppSlotFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AppsRestoreFromDeletedAppSlotFuture) Result(client AppsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppsRestoreFromDeletedAppSlotFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("web.AppsRestoreFromDeletedAppSlotFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppsClient) (autorest.Response, error)
 }
 
 // AppsRestoreFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type AppsRestoreFuture struct {
-	azure.Future
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppsClient) (autorest.Response, error)
 }
 
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AppsRestoreFuture) Result(client AppsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppsRestoreFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("web.AppsRestoreFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
-}
-
-// AppsRestoreSlotFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// AppsRestoreSlotFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type AppsRestoreSlotFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AppsRestoreSlotFuture) Result(client AppsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppsRestoreSlotFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("web.AppsRestoreSlotFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppsClient) (autorest.Response, error)
 }
 
 // AppsRestoreSnapshotFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type AppsRestoreSnapshotFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AppsRestoreSnapshotFuture) Result(client AppsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppsRestoreSnapshotFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("web.AppsRestoreSnapshotFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppsClient) (autorest.Response, error)
 }
 
 // AppsRestoreSnapshotSlotFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type AppsRestoreSnapshotSlotFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AppsRestoreSnapshotSlotFuture) Result(client AppsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppsRestoreSnapshotSlotFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("web.AppsRestoreSnapshotSlotFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppsClient) (autorest.Response, error)
 }
 
 // AppsStartNetworkTraceFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type AppsStartNetworkTraceFuture struct {
-	azure.Future
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppsClient) (ListNetworkTrace, error)
 }
 
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AppsStartNetworkTraceFuture) Result(client AppsClient) (lnt ListNetworkTrace, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppsStartNetworkTraceFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("web.AppsStartNetworkTraceFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if lnt.Response.Response, err = future.GetResult(sender); err == nil && lnt.Response.Response.StatusCode != http.StatusNoContent {
-		lnt, err = client.StartNetworkTraceResponder(lnt.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "web.AppsStartNetworkTraceFuture", "Result", lnt.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// AppsStartNetworkTraceSlotFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
-type AppsStartNetworkTraceSlotFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AppsStartNetworkTraceSlotFuture) Result(client AppsClient) (lnt ListNetworkTrace, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppsStartNetworkTraceSlotFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("web.AppsStartNetworkTraceSlotFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if lnt.Response.Response, err = future.GetResult(sender); err == nil && lnt.Response.Response.StatusCode != http.StatusNoContent {
-		lnt, err = client.StartNetworkTraceSlotResponder(lnt.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "web.AppsStartNetworkTraceSlotFuture", "Result", lnt.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// AppsStartWebSiteNetworkTraceOperationFuture an abstraction for monitoring and retrieving the results of a
+// AppsStartNetworkTraceSlotFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
-type AppsStartWebSiteNetworkTraceOperationFuture struct {
-	azure.Future
+type AppsStartNetworkTraceSlotFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppsClient) (ListNetworkTrace, error)
 }
 
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AppsStartWebSiteNetworkTraceOperationFuture) Result(client AppsClient) (lnt ListNetworkTrace, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppsStartWebSiteNetworkTraceOperationFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("web.AppsStartWebSiteNetworkTraceOperationFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if lnt.Response.Response, err = future.GetResult(sender); err == nil && lnt.Response.Response.StatusCode != http.StatusNoContent {
-		lnt, err = client.StartWebSiteNetworkTraceOperationResponder(lnt.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "web.AppsStartWebSiteNetworkTraceOperationFuture", "Result", lnt.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// AppsStartWebSiteNetworkTraceOperationSlotFuture an abstraction for monitoring and retrieving the results of
+// AppsStartWebSiteNetworkTraceOperationFuture an abstraction for monitoring and retrieving the results of
 // a long-running operation.
+type AppsStartWebSiteNetworkTraceOperationFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppsClient) (ListNetworkTrace, error)
+}
+
+// AppsStartWebSiteNetworkTraceOperationSlotFuture an abstraction for monitoring and retrieving the results
+// of a long-running operation.
 type AppsStartWebSiteNetworkTraceOperationSlotFuture struct {
-	azure.Future
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppsClient) (ListNetworkTrace, error)
 }
 
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AppsStartWebSiteNetworkTraceOperationSlotFuture) Result(client AppsClient) (lnt ListNetworkTrace, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppsStartWebSiteNetworkTraceOperationSlotFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("web.AppsStartWebSiteNetworkTraceOperationSlotFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if lnt.Response.Response, err = future.GetResult(sender); err == nil && lnt.Response.Response.StatusCode != http.StatusNoContent {
-		lnt, err = client.StartWebSiteNetworkTraceOperationSlotResponder(lnt.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "web.AppsStartWebSiteNetworkTraceOperationSlotFuture", "Result", lnt.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// AppsSwapSlotSlotFuture an abstraction for monitoring and retrieving the results of a long-running operation.
-type AppsSwapSlotSlotFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AppsSwapSlotSlotFuture) Result(client AppsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppsSwapSlotSlotFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("web.AppsSwapSlotSlotFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
-}
-
-// AppsSwapSlotWithProductionFuture an abstraction for monitoring and retrieving the results of a long-running
+// AppsSwapSlotSlotFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
-type AppsSwapSlotWithProductionFuture struct {
-	azure.Future
+type AppsSwapSlotSlotFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppsClient) (autorest.Response, error)
 }
 
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AppsSwapSlotWithProductionFuture) Result(client AppsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppsSwapSlotWithProductionFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("web.AppsSwapSlotWithProductionFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+// AppsSwapSlotWithProductionFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type AppsSwapSlotWithProductionFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppsClient) (autorest.Response, error)
 }
 
 // ArmIDWrapper a wrapper for an ARM resource id
@@ -5173,8 +4337,11 @@ func (page BackupItemCollectionPage) Values() []BackupItem {
 }
 
 // Creates a new instance of the BackupItemCollectionPage type.
-func NewBackupItemCollectionPage(getNextPage func(context.Context, BackupItemCollection) (BackupItemCollection, error)) BackupItemCollectionPage {
-	return BackupItemCollectionPage{fn: getNextPage}
+func NewBackupItemCollectionPage(cur BackupItemCollection, getNextPage func(context.Context, BackupItemCollection) (BackupItemCollection, error)) BackupItemCollectionPage {
+	return BackupItemCollectionPage{
+		fn:  getNextPage,
+		bic: cur,
+	}
 }
 
 // BackupItemProperties backupItem resource specific properties
@@ -5310,8 +4477,8 @@ type BackupRequestProperties struct {
 	Databases *[]DatabaseBackupSetting `json:"databases,omitempty"`
 }
 
-// BackupSchedule description of a backup schedule. Describes how often should be the backup performed and what
-// should be the retention policy.
+// BackupSchedule description of a backup schedule. Describes how often should be the backup performed and
+// what should be the retention policy.
 type BackupSchedule struct {
 	// FrequencyInterval - How often the backup should be executed (e.g. for weekly backup, this should be set to 7 and FrequencyUnit should be set to Day)
 	FrequencyInterval *int32 `json:"frequencyInterval,omitempty"`
@@ -5348,8 +4515,8 @@ func (bs BackupSchedule) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// BillingMeter app Service billing entity that contains information about meter which the Azure billing system
-// utilizes to charge users for services.
+// BillingMeter app Service billing entity that contains information about meter which the Azure billing
+// system utilizes to charge users for services.
 type BillingMeter struct {
 	// BillingMeterProperties - BillingMeter resource specific properties
 	*BillingMeterProperties `json:"properties,omitempty"`
@@ -5596,8 +4763,11 @@ func (page BillingMeterCollectionPage) Values() []BillingMeter {
 }
 
 // Creates a new instance of the BillingMeterCollectionPage type.
-func NewBillingMeterCollectionPage(getNextPage func(context.Context, BillingMeterCollection) (BillingMeterCollection, error)) BillingMeterCollectionPage {
-	return BillingMeterCollectionPage{fn: getNextPage}
+func NewBillingMeterCollectionPage(cur BillingMeterCollection, getNextPage func(context.Context, BillingMeterCollection) (BillingMeterCollection, error)) BillingMeterCollectionPage {
+	return BillingMeterCollectionPage{
+		fn:  getNextPage,
+		bmc: cur,
+	}
 }
 
 // BillingMeterProperties billingMeter resource specific properties
@@ -5993,8 +5163,11 @@ func (page CertificateCollectionPage) Values() []Certificate {
 }
 
 // Creates a new instance of the CertificateCollectionPage type.
-func NewCertificateCollectionPage(getNextPage func(context.Context, CertificateCollection) (CertificateCollection, error)) CertificateCollectionPage {
-	return CertificateCollectionPage{fn: getNextPage}
+func NewCertificateCollectionPage(cur CertificateCollection, getNextPage func(context.Context, CertificateCollection) (CertificateCollection, error)) CertificateCollectionPage {
+	return CertificateCollectionPage{
+		fn: getNextPage,
+		cc: cur,
+	}
 }
 
 // CertificateDetails SSL certificate details.
@@ -6968,8 +6141,11 @@ func (page ContinuousWebJobCollectionPage) Values() []ContinuousWebJob {
 }
 
 // Creates a new instance of the ContinuousWebJobCollectionPage type.
-func NewContinuousWebJobCollectionPage(getNextPage func(context.Context, ContinuousWebJobCollection) (ContinuousWebJobCollection, error)) ContinuousWebJobCollectionPage {
-	return ContinuousWebJobCollectionPage{fn: getNextPage}
+func NewContinuousWebJobCollectionPage(cur ContinuousWebJobCollection, getNextPage func(context.Context, ContinuousWebJobCollection) (ContinuousWebJobCollection, error)) ContinuousWebJobCollectionPage {
+	return ContinuousWebJobCollectionPage{
+		fn:   getNextPage,
+		cwjc: cur,
+	}
 }
 
 // ContinuousWebJobProperties continuousWebJob resource specific properties
@@ -7315,8 +6491,11 @@ func (page CsmOperationCollectionPage) Values() []CsmOperationDescription {
 }
 
 // Creates a new instance of the CsmOperationCollectionPage type.
-func NewCsmOperationCollectionPage(getNextPage func(context.Context, CsmOperationCollection) (CsmOperationCollection, error)) CsmOperationCollectionPage {
-	return CsmOperationCollectionPage{fn: getNextPage}
+func NewCsmOperationCollectionPage(cur CsmOperationCollection, getNextPage func(context.Context, CsmOperationCollection) (CsmOperationCollection, error)) CsmOperationCollectionPage {
+	return CsmOperationCollectionPage{
+		fn:  getNextPage,
+		coc: cur,
+	}
 }
 
 // CsmOperationDescription description of an operation available for Microsoft.Web resource provider.
@@ -7523,8 +6702,8 @@ func (cpcpe *CsmPublishingCredentialsPoliciesEntity) UnmarshalJSON(body []byte) 
 	return nil
 }
 
-// CsmPublishingCredentialsPoliciesEntityProperties csmPublishingCredentialsPoliciesEntity resource specific
-// properties
+// CsmPublishingCredentialsPoliciesEntityProperties csmPublishingCredentialsPoliciesEntity resource
+// specific properties
 type CsmPublishingCredentialsPoliciesEntityProperties struct {
 	// Allow - <code>true</code> to allow access to a publishing method; otherwise, <code>false</code>.
 	Allow *bool `json:"allow,omitempty"`
@@ -7724,8 +6903,11 @@ func (page CsmUsageQuotaCollectionPage) Values() []CsmUsageQuota {
 }
 
 // Creates a new instance of the CsmUsageQuotaCollectionPage type.
-func NewCsmUsageQuotaCollectionPage(getNextPage func(context.Context, CsmUsageQuotaCollection) (CsmUsageQuotaCollection, error)) CsmUsageQuotaCollectionPage {
-	return CsmUsageQuotaCollectionPage{fn: getNextPage}
+func NewCsmUsageQuotaCollectionPage(cur CsmUsageQuotaCollection, getNextPage func(context.Context, CsmUsageQuotaCollection) (CsmUsageQuotaCollection, error)) CsmUsageQuotaCollectionPage {
+	return CsmUsageQuotaCollectionPage{
+		fn:   getNextPage,
+		cuqc: cur,
+	}
 }
 
 // CustomHostnameAnalysisResult custom domain analysis.
@@ -8401,8 +7583,11 @@ func (page DeletedWebAppCollectionPage) Values() []DeletedSite {
 }
 
 // Creates a new instance of the DeletedWebAppCollectionPage type.
-func NewDeletedWebAppCollectionPage(getNextPage func(context.Context, DeletedWebAppCollection) (DeletedWebAppCollection, error)) DeletedWebAppCollectionPage {
-	return DeletedWebAppCollectionPage{fn: getNextPage}
+func NewDeletedWebAppCollectionPage(cur DeletedWebAppCollection, getNextPage func(context.Context, DeletedWebAppCollection) (DeletedWebAppCollection, error)) DeletedWebAppCollectionPage {
+	return DeletedWebAppCollectionPage{
+		fn:   getNextPage,
+		dwac: cur,
+	}
 }
 
 // Deployment user credentials used for publishing activity.
@@ -8653,8 +7838,11 @@ func (page DeploymentCollectionPage) Values() []Deployment {
 }
 
 // Creates a new instance of the DeploymentCollectionPage type.
-func NewDeploymentCollectionPage(getNextPage func(context.Context, DeploymentCollection) (DeploymentCollection, error)) DeploymentCollectionPage {
-	return DeploymentCollectionPage{fn: getNextPage}
+func NewDeploymentCollectionPage(cur DeploymentCollection, getNextPage func(context.Context, DeploymentCollection) (DeploymentCollection, error)) DeploymentCollectionPage {
+	return DeploymentCollectionPage{
+		fn: getNextPage,
+		dc: cur,
+	}
 }
 
 // DeploymentLocations list of available locations (regions or App Service Environments) for
@@ -9070,8 +8258,11 @@ func (page DetectorResponseCollectionPage) Values() []DetectorResponse {
 }
 
 // Creates a new instance of the DetectorResponseCollectionPage type.
-func NewDetectorResponseCollectionPage(getNextPage func(context.Context, DetectorResponseCollection) (DetectorResponseCollection, error)) DetectorResponseCollectionPage {
-	return DetectorResponseCollectionPage{fn: getNextPage}
+func NewDetectorResponseCollectionPage(cur DetectorResponseCollection, getNextPage func(context.Context, DetectorResponseCollection) (DetectorResponseCollection, error)) DetectorResponseCollectionPage {
+	return DetectorResponseCollectionPage{
+		fn:  getNextPage,
+		drc: cur,
+	}
 }
 
 // DetectorResponseProperties detectorResponse resource specific properties
@@ -9330,8 +8521,11 @@ func (page DiagnosticAnalysisCollectionPage) Values() []AnalysisDefinition {
 }
 
 // Creates a new instance of the DiagnosticAnalysisCollectionPage type.
-func NewDiagnosticAnalysisCollectionPage(getNextPage func(context.Context, DiagnosticAnalysisCollection) (DiagnosticAnalysisCollection, error)) DiagnosticAnalysisCollectionPage {
-	return DiagnosticAnalysisCollectionPage{fn: getNextPage}
+func NewDiagnosticAnalysisCollectionPage(cur DiagnosticAnalysisCollection, getNextPage func(context.Context, DiagnosticAnalysisCollection) (DiagnosticAnalysisCollection, error)) DiagnosticAnalysisCollectionPage {
+	return DiagnosticAnalysisCollectionPage{
+		fn:  getNextPage,
+		dac: cur,
+	}
 }
 
 // DiagnosticAnalysisProperties diagnosticAnalysis resource specific properties
@@ -9596,8 +8790,11 @@ func (page DiagnosticCategoryCollectionPage) Values() []DiagnosticCategory {
 }
 
 // Creates a new instance of the DiagnosticCategoryCollectionPage type.
-func NewDiagnosticCategoryCollectionPage(getNextPage func(context.Context, DiagnosticCategoryCollection) (DiagnosticCategoryCollection, error)) DiagnosticCategoryCollectionPage {
-	return DiagnosticCategoryCollectionPage{fn: getNextPage}
+func NewDiagnosticCategoryCollectionPage(cur DiagnosticCategoryCollection, getNextPage func(context.Context, DiagnosticCategoryCollection) (DiagnosticCategoryCollection, error)) DiagnosticCategoryCollectionPage {
+	return DiagnosticCategoryCollectionPage{
+		fn:  getNextPage,
+		dcc: cur,
+	}
 }
 
 // DiagnosticCategoryProperties diagnosticCategory resource specific properties
@@ -9775,8 +8972,11 @@ func (page DiagnosticDetectorCollectionPage) Values() []DetectorDefinition {
 }
 
 // Creates a new instance of the DiagnosticDetectorCollectionPage type.
-func NewDiagnosticDetectorCollectionPage(getNextPage func(context.Context, DiagnosticDetectorCollection) (DiagnosticDetectorCollection, error)) DiagnosticDetectorCollectionPage {
-	return DiagnosticDetectorCollectionPage{fn: getNextPage}
+func NewDiagnosticDetectorCollectionPage(cur DiagnosticDetectorCollection, getNextPage func(context.Context, DiagnosticDetectorCollection) (DiagnosticDetectorCollection, error)) DiagnosticDetectorCollectionPage {
+	return DiagnosticDetectorCollectionPage{
+		fn:  getNextPage,
+		ddc: cur,
+	}
 }
 
 // DiagnosticDetectorResponse class representing Response from Diagnostic Detectors
@@ -10217,8 +9417,11 @@ func (page DomainCollectionPage) Values() []Domain {
 }
 
 // Creates a new instance of the DomainCollectionPage type.
-func NewDomainCollectionPage(getNextPage func(context.Context, DomainCollection) (DomainCollection, error)) DomainCollectionPage {
-	return DomainCollectionPage{fn: getNextPage}
+func NewDomainCollectionPage(cur DomainCollection, getNextPage func(context.Context, DomainCollection) (DomainCollection, error)) DomainCollectionPage {
+	return DomainCollectionPage{
+		fn: getNextPage,
+		dc: cur,
+	}
 }
 
 // DomainControlCenterSsoRequest single sign-on request information for domain management.
@@ -10481,8 +9684,11 @@ func (page DomainOwnershipIdentifierCollectionPage) Values() []DomainOwnershipId
 }
 
 // Creates a new instance of the DomainOwnershipIdentifierCollectionPage type.
-func NewDomainOwnershipIdentifierCollectionPage(getNextPage func(context.Context, DomainOwnershipIdentifierCollection) (DomainOwnershipIdentifierCollection, error)) DomainOwnershipIdentifierCollectionPage {
-	return DomainOwnershipIdentifierCollectionPage{fn: getNextPage}
+func NewDomainOwnershipIdentifierCollectionPage(cur DomainOwnershipIdentifierCollection, getNextPage func(context.Context, DomainOwnershipIdentifierCollection) (DomainOwnershipIdentifierCollection, error)) DomainOwnershipIdentifierCollectionPage {
+	return DomainOwnershipIdentifierCollectionPage{
+		fn:   getNextPage,
+		doic: cur,
+	}
 }
 
 // DomainOwnershipIdentifierProperties domainOwnershipIdentifier resource specific properties
@@ -10765,30 +9971,10 @@ type DomainRecommendationSearchParameters struct {
 // DomainsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type DomainsCreateOrUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *DomainsCreateOrUpdateFuture) Result(client DomainsClient) (d Domain, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.DomainsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("web.DomainsCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if d.Response.Response, err = future.GetResult(sender); err == nil && d.Response.Response.StatusCode != http.StatusNoContent {
-		d, err = client.CreateOrUpdateResponder(d.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "web.DomainsCreateOrUpdateFuture", "Result", d.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(DomainsClient) (Domain, error)
 }
 
 // EnabledConfig enabled configuration.
@@ -10797,8 +9983,8 @@ type EnabledConfig struct {
 	Enabled *bool `json:"enabled,omitempty"`
 }
 
-// EndpointDependency a domain name that a service is reached at, including details of the current connection
-// status.
+// EndpointDependency a domain name that a service is reached at, including details of the current
+// connection status.
 type EndpointDependency struct {
 	// DomainName - The domain name of the dependency.
 	DomainName *string `json:"domainName,omitempty"`
@@ -10806,7 +9992,8 @@ type EndpointDependency struct {
 	EndpointDetails *[]EndpointDetail `json:"endpointDetails,omitempty"`
 }
 
-// EndpointDetail current TCP connectivity information from the App Service Environment to a single endpoint.
+// EndpointDetail current TCP connectivity information from the App Service Environment to a single
+// endpoint.
 type EndpointDetail struct {
 	// IPAddress - An IP Address that Domain Name currently resolves to.
 	IPAddress *string `json:"ipAddress,omitempty"`
@@ -11387,8 +10574,11 @@ func (page FunctionEnvelopeCollectionPage) Values() []FunctionEnvelope {
 }
 
 // Creates a new instance of the FunctionEnvelopeCollectionPage type.
-func NewFunctionEnvelopeCollectionPage(getNextPage func(context.Context, FunctionEnvelopeCollection) (FunctionEnvelopeCollection, error)) FunctionEnvelopeCollectionPage {
-	return FunctionEnvelopeCollectionPage{fn: getNextPage}
+func NewFunctionEnvelopeCollectionPage(cur FunctionEnvelopeCollection, getNextPage func(context.Context, FunctionEnvelopeCollection) (FunctionEnvelopeCollection, error)) FunctionEnvelopeCollectionPage {
+	return FunctionEnvelopeCollectionPage{
+		fn:  getNextPage,
+		fec: cur,
+	}
 }
 
 // FunctionEnvelopeProperties functionEnvelope resource specific properties
@@ -11722,8 +10912,11 @@ func (page GeoRegionCollectionPage) Values() []GeoRegion {
 }
 
 // Creates a new instance of the GeoRegionCollectionPage type.
-func NewGeoRegionCollectionPage(getNextPage func(context.Context, GeoRegionCollection) (GeoRegionCollection, error)) GeoRegionCollectionPage {
-	return GeoRegionCollectionPage{fn: getNextPage}
+func NewGeoRegionCollectionPage(cur GeoRegionCollection, getNextPage func(context.Context, GeoRegionCollection) (GeoRegionCollection, error)) GeoRegionCollectionPage {
+	return GeoRegionCollectionPage{
+		fn:  getNextPage,
+		grc: cur,
+	}
 }
 
 // GeoRegionProperties geoRegion resource specific properties
@@ -12036,9 +11229,10 @@ type GoogleProperties struct {
 	Validation   *AllowedAudiencesValidation `json:"validation,omitempty"`
 }
 
-// HandlerMapping the IIS handler mappings used to define which handler processes HTTP requests with certain
+// HandlerMapping the IIS handler mappings used to define which handler processes HTTP requests with
+// certain extension.
+// For example, it is used to configure php-cgi.exe process to handle all HTTP requests with *.php
 // extension.
-// For example, it is used to configure php-cgi.exe process to handle all HTTP requests with *.php extension.
 type HandlerMapping struct {
 	// Extension - Requests with this extension will be handled using the specified FastCGI application.
 	Extension *string `json:"extension,omitempty"`
@@ -12374,8 +11568,11 @@ func (page HostNameBindingCollectionPage) Values() []HostNameBinding {
 }
 
 // Creates a new instance of the HostNameBindingCollectionPage type.
-func NewHostNameBindingCollectionPage(getNextPage func(context.Context, HostNameBindingCollection) (HostNameBindingCollection, error)) HostNameBindingCollectionPage {
-	return HostNameBindingCollectionPage{fn: getNextPage}
+func NewHostNameBindingCollectionPage(cur HostNameBindingCollection, getNextPage func(context.Context, HostNameBindingCollection) (HostNameBindingCollection, error)) HostNameBindingCollectionPage {
+	return HostNameBindingCollectionPage{
+		fn:   getNextPage,
+		hnbc: cur,
+	}
 }
 
 // HostNameBindingProperties hostNameBinding resource specific properties
@@ -12886,8 +12083,11 @@ func (page HybridConnectionCollectionPage) Values() []HybridConnection {
 }
 
 // Creates a new instance of the HybridConnectionCollectionPage type.
-func NewHybridConnectionCollectionPage(getNextPage func(context.Context, HybridConnectionCollection) (HybridConnectionCollection, error)) HybridConnectionCollectionPage {
-	return HybridConnectionCollectionPage{fn: getNextPage}
+func NewHybridConnectionCollectionPage(cur HybridConnectionCollection, getNextPage func(context.Context, HybridConnectionCollection) (HybridConnectionCollection, error)) HybridConnectionCollectionPage {
+	return HybridConnectionCollectionPage{
+		fn:  getNextPage,
+		hcc: cur,
+	}
 }
 
 // HybridConnectionKey hybrid Connection key contract. This has the send key name and value for a Hybrid
@@ -12986,8 +12186,8 @@ type HybridConnectionKeyProperties struct {
 	SendKeyValue *string `json:"sendKeyValue,omitempty"`
 }
 
-// HybridConnectionLimits hybrid Connection limits contract. This is used to return the plan limits of Hybrid
-// Connections.
+// HybridConnectionLimits hybrid Connection limits contract. This is used to return the plan limits of
+// Hybrid Connections.
 type HybridConnectionLimits struct {
 	autorest.Response `json:"-"`
 	// HybridConnectionLimitsProperties - HybridConnectionLimits resource specific properties
@@ -13351,8 +12551,11 @@ func (page IdentifierCollectionPage) Values() []Identifier {
 }
 
 // Creates a new instance of the IdentifierCollectionPage type.
-func NewIdentifierCollectionPage(getNextPage func(context.Context, IdentifierCollection) (IdentifierCollection, error)) IdentifierCollectionPage {
-	return IdentifierCollectionPage{fn: getNextPage}
+func NewIdentifierCollectionPage(cur IdentifierCollection, getNextPage func(context.Context, IdentifierCollection) (IdentifierCollection, error)) IdentifierCollectionPage {
+	return IdentifierCollectionPage{
+		fn: getNextPage,
+		ic: cur,
+	}
 }
 
 // IdentifierProperties identifier resource specific properties
@@ -13481,8 +12684,8 @@ func (IP IdentityProvidersProperties) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// InboundEnvironmentEndpoint the IP Addresses and Ports that require inbound network access to and within the
-// subnet of the App Service Environment.
+// InboundEnvironmentEndpoint the IP Addresses and Ports that require inbound network access to and within
+// the subnet of the App Service Environment.
 type InboundEnvironmentEndpoint struct {
 	// Description - Short text describing the purpose of the network traffic.
 	Description *string `json:"description,omitempty"`
@@ -13654,8 +12857,11 @@ func (page InboundEnvironmentEndpointCollectionPage) Values() []InboundEnvironme
 }
 
 // Creates a new instance of the InboundEnvironmentEndpointCollectionPage type.
-func NewInboundEnvironmentEndpointCollectionPage(getNextPage func(context.Context, InboundEnvironmentEndpointCollection) (InboundEnvironmentEndpointCollection, error)) InboundEnvironmentEndpointCollectionPage {
-	return InboundEnvironmentEndpointCollectionPage{fn: getNextPage}
+func NewInboundEnvironmentEndpointCollectionPage(cur InboundEnvironmentEndpointCollection, getNextPage func(context.Context, InboundEnvironmentEndpointCollection) (InboundEnvironmentEndpointCollection, error)) InboundEnvironmentEndpointCollectionPage {
+	return InboundEnvironmentEndpointCollectionPage{
+		fn:   getNextPage,
+		ieec: cur,
+	}
 }
 
 // IPSecurityRestriction IP security restriction on an app.
@@ -13987,8 +13193,11 @@ func (page JobCollectionPage) Values() []Job {
 }
 
 // Creates a new instance of the JobCollectionPage type.
-func NewJobCollectionPage(getNextPage func(context.Context, JobCollection) (JobCollection, error)) JobCollectionPage {
-	return JobCollectionPage{fn: getNextPage}
+func NewJobCollectionPage(cur JobCollection, getNextPage func(context.Context, JobCollection) (JobCollection, error)) JobCollectionPage {
+	return JobCollectionPage{
+		fn: getNextPage,
+		jc: cur,
+	}
 }
 
 // JobProperties webJob resource specific properties
@@ -15235,8 +14444,11 @@ func (page NameIdentifierCollectionPage) Values() []NameIdentifier {
 }
 
 // Creates a new instance of the NameIdentifierCollectionPage type.
-func NewNameIdentifierCollectionPage(getNextPage func(context.Context, NameIdentifierCollection) (NameIdentifierCollection, error)) NameIdentifierCollectionPage {
-	return NameIdentifierCollectionPage{fn: getNextPage}
+func NewNameIdentifierCollectionPage(cur NameIdentifierCollection, getNextPage func(context.Context, NameIdentifierCollection) (NameIdentifierCollection, error)) NameIdentifierCollectionPage {
+	return NameIdentifierCollectionPage{
+		fn:  getNextPage,
+		nic: cur,
+	}
 }
 
 // NameValuePair name value pair.
@@ -16026,8 +15238,11 @@ func (page OutboundEnvironmentEndpointCollectionPage) Values() []OutboundEnviron
 }
 
 // Creates a new instance of the OutboundEnvironmentEndpointCollectionPage type.
-func NewOutboundEnvironmentEndpointCollectionPage(getNextPage func(context.Context, OutboundEnvironmentEndpointCollection) (OutboundEnvironmentEndpointCollection, error)) OutboundEnvironmentEndpointCollectionPage {
-	return OutboundEnvironmentEndpointCollectionPage{fn: getNextPage}
+func NewOutboundEnvironmentEndpointCollectionPage(cur OutboundEnvironmentEndpointCollection, getNextPage func(context.Context, OutboundEnvironmentEndpointCollection) (OutboundEnvironmentEndpointCollection, error)) OutboundEnvironmentEndpointCollectionPage {
+	return OutboundEnvironmentEndpointCollectionPage{
+		fn:   getNextPage,
+		oeec: cur,
+	}
 }
 
 // PerfMonCounterCollection collection of performance monitor counters.
@@ -16191,8 +15406,11 @@ func (page PerfMonCounterCollectionPage) Values() []PerfMonResponse {
 }
 
 // Creates a new instance of the PerfMonCounterCollectionPage type.
-func NewPerfMonCounterCollectionPage(getNextPage func(context.Context, PerfMonCounterCollection) (PerfMonCounterCollection, error)) PerfMonCounterCollectionPage {
-	return PerfMonCounterCollectionPage{fn: getNextPage}
+func NewPerfMonCounterCollectionPage(cur PerfMonCounterCollection, getNextPage func(context.Context, PerfMonCounterCollection) (PerfMonCounterCollection, error)) PerfMonCounterCollectionPage {
+	return PerfMonCounterCollectionPage{
+		fn:   getNextPage,
+		pmcc: cur,
+	}
 }
 
 // PerfMonResponse performance monitor API response.
@@ -16591,8 +15809,11 @@ func (page PremierAddOnOfferCollectionPage) Values() []PremierAddOnOffer {
 }
 
 // Creates a new instance of the PremierAddOnOfferCollectionPage type.
-func NewPremierAddOnOfferCollectionPage(getNextPage func(context.Context, PremierAddOnOfferCollection) (PremierAddOnOfferCollection, error)) PremierAddOnOfferCollectionPage {
-	return PremierAddOnOfferCollectionPage{fn: getNextPage}
+func NewPremierAddOnOfferCollectionPage(cur PremierAddOnOfferCollection, getNextPage func(context.Context, PremierAddOnOfferCollection) (PremierAddOnOfferCollection, error)) PremierAddOnOfferCollectionPage {
+	return PremierAddOnOfferCollectionPage{
+		fn:    getNextPage,
+		paooc: cur,
+	}
 }
 
 // PremierAddOnOfferProperties premierAddOnOffer resource specific properties
@@ -17310,8 +16531,11 @@ func (page ProcessInfoCollectionPage) Values() []ProcessInfo {
 }
 
 // Creates a new instance of the ProcessInfoCollectionPage type.
-func NewProcessInfoCollectionPage(getNextPage func(context.Context, ProcessInfoCollection) (ProcessInfoCollection, error)) ProcessInfoCollectionPage {
-	return ProcessInfoCollectionPage{fn: getNextPage}
+func NewProcessInfoCollectionPage(cur ProcessInfoCollection, getNextPage func(context.Context, ProcessInfoCollection) (ProcessInfoCollection, error)) ProcessInfoCollectionPage {
+	return ProcessInfoCollectionPage{
+		fn:  getNextPage,
+		pic: cur,
+	}
 }
 
 // ProcessInfoProperties processInfo resource specific properties
@@ -17749,8 +16973,11 @@ func (page ProcessModuleInfoCollectionPage) Values() []ProcessModuleInfo {
 }
 
 // Creates a new instance of the ProcessModuleInfoCollectionPage type.
-func NewProcessModuleInfoCollectionPage(getNextPage func(context.Context, ProcessModuleInfoCollection) (ProcessModuleInfoCollection, error)) ProcessModuleInfoCollectionPage {
-	return ProcessModuleInfoCollectionPage{fn: getNextPage}
+func NewProcessModuleInfoCollectionPage(cur ProcessModuleInfoCollection, getNextPage func(context.Context, ProcessModuleInfoCollection) (ProcessModuleInfoCollection, error)) ProcessModuleInfoCollectionPage {
+	return ProcessModuleInfoCollectionPage{
+		fn:   getNextPage,
+		pmic: cur,
+	}
 }
 
 // ProcessModuleInfoProperties processModuleInfo resource specific properties
@@ -18026,8 +17253,11 @@ func (page ProcessThreadInfoCollectionPage) Values() []ProcessThreadInfo {
 }
 
 // Creates a new instance of the ProcessThreadInfoCollectionPage type.
-func NewProcessThreadInfoCollectionPage(getNextPage func(context.Context, ProcessThreadInfoCollection) (ProcessThreadInfoCollection, error)) ProcessThreadInfoCollectionPage {
-	return ProcessThreadInfoCollectionPage{fn: getNextPage}
+func NewProcessThreadInfoCollectionPage(cur ProcessThreadInfoCollection, getNextPage func(context.Context, ProcessThreadInfoCollection) (ProcessThreadInfoCollection, error)) ProcessThreadInfoCollectionPage {
+	return ProcessThreadInfoCollectionPage{
+		fn:   getNextPage,
+		ptic: cur,
+	}
 }
 
 // ProcessThreadInfoProperties processThreadInfo resource specific properties
@@ -18366,8 +17596,11 @@ func (page PublicCertificateCollectionPage) Values() []PublicCertificate {
 }
 
 // Creates a new instance of the PublicCertificateCollectionPage type.
-func NewPublicCertificateCollectionPage(getNextPage func(context.Context, PublicCertificateCollection) (PublicCertificateCollection, error)) PublicCertificateCollectionPage {
-	return PublicCertificateCollectionPage{fn: getNextPage}
+func NewPublicCertificateCollectionPage(cur PublicCertificateCollection, getNextPage func(context.Context, PublicCertificateCollection) (PublicCertificateCollection, error)) PublicCertificateCollectionPage {
+	return PublicCertificateCollectionPage{
+		fn:  getNextPage,
+		pcc: cur,
+	}
 }
 
 // PublicCertificateProperties publicCertificate resource specific properties
@@ -18494,8 +17727,8 @@ type PushSettingsProperties struct {
 	DynamicTagsJSON *string `json:"dynamicTagsJson,omitempty"`
 }
 
-// RampUpRule routing rules for ramp up testing. This rule allows to redirect static traffic % to a slot or to
-// gradually change routing % based on performance.
+// RampUpRule routing rules for ramp up testing. This rule allows to redirect static traffic % to a slot or
+// to gradually change routing % based on performance.
 type RampUpRule struct {
 	// ActionHostName - Hostname of a slot to which the traffic will be redirected if decided to. E.g. myapp-stage.azurewebsites.net.
 	ActionHostName *string `json:"actionHostName,omitempty"`
@@ -18771,8 +18004,11 @@ func (page RecommendationCollectionPage) Values() []Recommendation {
 }
 
 // Creates a new instance of the RecommendationCollectionPage type.
-func NewRecommendationCollectionPage(getNextPage func(context.Context, RecommendationCollection) (RecommendationCollection, error)) RecommendationCollectionPage {
-	return RecommendationCollectionPage{fn: getNextPage}
+func NewRecommendationCollectionPage(cur RecommendationCollection, getNextPage func(context.Context, RecommendationCollection) (RecommendationCollection, error)) RecommendationCollectionPage {
+	return RecommendationCollectionPage{
+		fn: getNextPage,
+		rc: cur,
+	}
 }
 
 // RecommendationProperties recommendation resource specific properties
@@ -19580,8 +18816,11 @@ func (page ResourceCollectionPage) Values() []string {
 }
 
 // Creates a new instance of the ResourceCollectionPage type.
-func NewResourceCollectionPage(getNextPage func(context.Context, ResourceCollection) (ResourceCollection, error)) ResourceCollectionPage {
-	return ResourceCollectionPage{fn: getNextPage}
+func NewResourceCollectionPage(cur ResourceCollection, getNextPage func(context.Context, ResourceCollection) (ResourceCollection, error)) ResourceCollectionPage {
+	return ResourceCollectionPage{
+		fn: getNextPage,
+		rc: cur,
+	}
 }
 
 // ResourceHealthMetadata used for getting ResourceHealthCheck settings.
@@ -19833,8 +19072,11 @@ func (page ResourceHealthMetadataCollectionPage) Values() []ResourceHealthMetada
 }
 
 // Creates a new instance of the ResourceHealthMetadataCollectionPage type.
-func NewResourceHealthMetadataCollectionPage(getNextPage func(context.Context, ResourceHealthMetadataCollection) (ResourceHealthMetadataCollection, error)) ResourceHealthMetadataCollectionPage {
-	return ResourceHealthMetadataCollectionPage{fn: getNextPage}
+func NewResourceHealthMetadataCollectionPage(cur ResourceHealthMetadataCollection, getNextPage func(context.Context, ResourceHealthMetadataCollection) (ResourceHealthMetadataCollection, error)) ResourceHealthMetadataCollectionPage {
+	return ResourceHealthMetadataCollectionPage{
+		fn:   getNextPage,
+		rhmc: cur,
+	}
 }
 
 // ResourceHealthMetadataProperties resourceHealthMetadata resource specific properties
@@ -19957,8 +19199,8 @@ func (rmdc ResourceMetricDefinitionCollection) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// ResourceMetricDefinitionCollectionIterator provides access to a complete listing of ResourceMetricDefinition
-// values.
+// ResourceMetricDefinitionCollectionIterator provides access to a complete listing of
+// ResourceMetricDefinition values.
 type ResourceMetricDefinitionCollectionIterator struct {
 	i    int
 	page ResourceMetricDefinitionCollectionPage
@@ -20101,8 +19343,11 @@ func (page ResourceMetricDefinitionCollectionPage) Values() []ResourceMetricDefi
 }
 
 // Creates a new instance of the ResourceMetricDefinitionCollectionPage type.
-func NewResourceMetricDefinitionCollectionPage(getNextPage func(context.Context, ResourceMetricDefinitionCollection) (ResourceMetricDefinitionCollection, error)) ResourceMetricDefinitionCollectionPage {
-	return ResourceMetricDefinitionCollectionPage{fn: getNextPage}
+func NewResourceMetricDefinitionCollectionPage(cur ResourceMetricDefinitionCollection, getNextPage func(context.Context, ResourceMetricDefinitionCollection) (ResourceMetricDefinitionCollection, error)) ResourceMetricDefinitionCollectionPage {
+	return ResourceMetricDefinitionCollectionPage{
+		fn:   getNextPage,
+		rmdc: cur,
+	}
 }
 
 // ResourceMetricDefinitionProperties resourceMetricDefinition resource specific properties
@@ -20406,7 +19651,8 @@ func (s *Site) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// SiteAuthSettings configuration settings for the Azure App Service Authentication / Authorization feature.
+// SiteAuthSettings configuration settings for the Azure App Service Authentication / Authorization
+// feature.
 type SiteAuthSettings struct {
 	autorest.Response `json:"-"`
 	// SiteAuthSettingsProperties - SiteAuthSettings resource specific properties
@@ -20820,6 +20066,10 @@ type SiteConfig struct {
 	TracingOptions *string `json:"tracingOptions,omitempty"`
 	// VnetName - Virtual Network name.
 	VnetName *string `json:"vnetName,omitempty"`
+	// VnetRouteAllEnabled - Virtual Network Route All enabled. This causes all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied.
+	VnetRouteAllEnabled *bool `json:"vnetRouteAllEnabled,omitempty"`
+	// VnetPrivatePortsCount - The number of private ports assigned to this app. These will be assigned dynamically on runtime.
+	VnetPrivatePortsCount *int32 `json:"vnetPrivatePortsCount,omitempty"`
 	// Cors - Cross-Origin Resource Sharing (CORS) settings.
 	Cors *CorsSettings `json:"cors,omitempty"`
 	// Push - Push endpoint settings.
@@ -20846,6 +20096,8 @@ type SiteConfig struct {
 	HTTP20Enabled *bool `json:"http20Enabled,omitempty"`
 	// MinTLSVersion - MinTlsVersion: configures the minimum version of TLS required for SSL requests. Possible values include: 'OneFullStopZero', 'OneFullStopOne', 'OneFullStopTwo'
 	MinTLSVersion SupportedTLSVersions `json:"minTlsVersion,omitempty"`
+	// ScmMinTLSVersion - ScmMinTlsVersion: configures the minimum version of TLS required for SSL requests for SCM site. Possible values include: 'OneFullStopZero', 'OneFullStopOne', 'OneFullStopTwo'
+	ScmMinTLSVersion SupportedTLSVersions `json:"scmMinTlsVersion,omitempty"`
 	// FtpsState - State of FTP / FTPS service. Possible values include: 'AllAllowed', 'FtpsOnly', 'Disabled'
 	FtpsState FtpsState `json:"ftpsState,omitempty"`
 	// PreWarmedInstanceCount - Number of preWarmed instances.
@@ -20972,6 +20224,12 @@ func (sc SiteConfig) MarshalJSON() ([]byte, error) {
 	if sc.VnetName != nil {
 		objectMap["vnetName"] = sc.VnetName
 	}
+	if sc.VnetRouteAllEnabled != nil {
+		objectMap["vnetRouteAllEnabled"] = sc.VnetRouteAllEnabled
+	}
+	if sc.VnetPrivatePortsCount != nil {
+		objectMap["vnetPrivatePortsCount"] = sc.VnetPrivatePortsCount
+	}
 	if sc.Cors != nil {
 		objectMap["cors"] = sc.Cors
 	}
@@ -21010,6 +20268,9 @@ func (sc SiteConfig) MarshalJSON() ([]byte, error) {
 	}
 	if sc.MinTLSVersion != "" {
 		objectMap["minTlsVersion"] = sc.MinTLSVersion
+	}
+	if sc.ScmMinTLSVersion != "" {
+		objectMap["scmMinTlsVersion"] = sc.ScmMinTLSVersion
 	}
 	if sc.FtpsState != "" {
 		objectMap["ftpsState"] = sc.FtpsState
@@ -21271,8 +20532,11 @@ func (page SiteConfigResourceCollectionPage) Values() []SiteConfigResource {
 }
 
 // Creates a new instance of the SiteConfigResourceCollectionPage type.
-func NewSiteConfigResourceCollectionPage(getNextPage func(context.Context, SiteConfigResourceCollection) (SiteConfigResourceCollection, error)) SiteConfigResourceCollectionPage {
-	return SiteConfigResourceCollectionPage{fn: getNextPage}
+func NewSiteConfigResourceCollectionPage(cur SiteConfigResourceCollection, getNextPage func(context.Context, SiteConfigResourceCollection) (SiteConfigResourceCollection, error)) SiteConfigResourceCollectionPage {
+	return SiteConfigResourceCollectionPage{
+		fn:   getNextPage,
+		scrc: cur,
+	}
 }
 
 // SiteConfigurationSnapshotInfo a snapshot of a web app configuration.
@@ -21361,8 +20625,8 @@ func (scsi *SiteConfigurationSnapshotInfo) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// SiteConfigurationSnapshotInfoCollection collection of metadata for the app configuration snapshots that can
-// be restored.
+// SiteConfigurationSnapshotInfoCollection collection of metadata for the app configuration snapshots that
+// can be restored.
 type SiteConfigurationSnapshotInfoCollection struct {
 	autorest.Response `json:"-"`
 	// Value - Collection of resources.
@@ -21524,8 +20788,11 @@ func (page SiteConfigurationSnapshotInfoCollectionPage) Values() []SiteConfigura
 }
 
 // Creates a new instance of the SiteConfigurationSnapshotInfoCollectionPage type.
-func NewSiteConfigurationSnapshotInfoCollectionPage(getNextPage func(context.Context, SiteConfigurationSnapshotInfoCollection) (SiteConfigurationSnapshotInfoCollection, error)) SiteConfigurationSnapshotInfoCollectionPage {
-	return SiteConfigurationSnapshotInfoCollectionPage{fn: getNextPage}
+func NewSiteConfigurationSnapshotInfoCollectionPage(cur SiteConfigurationSnapshotInfoCollection, getNextPage func(context.Context, SiteConfigurationSnapshotInfoCollection) (SiteConfigurationSnapshotInfoCollection, error)) SiteConfigurationSnapshotInfoCollectionPage {
+	return SiteConfigurationSnapshotInfoCollectionPage{
+		fn:    getNextPage,
+		scsic: cur,
+	}
 }
 
 // SiteConfigurationSnapshotInfoProperties siteConfigurationSnapshotInfo resource specific properties
@@ -21784,8 +21051,11 @@ func (page SiteExtensionInfoCollectionPage) Values() []SiteExtensionInfo {
 }
 
 // Creates a new instance of the SiteExtensionInfoCollectionPage type.
-func NewSiteExtensionInfoCollectionPage(getNextPage func(context.Context, SiteExtensionInfoCollection) (SiteExtensionInfoCollection, error)) SiteExtensionInfoCollectionPage {
-	return SiteExtensionInfoCollectionPage{fn: getNextPage}
+func NewSiteExtensionInfoCollectionPage(cur SiteExtensionInfoCollection, getNextPage func(context.Context, SiteExtensionInfoCollection) (SiteExtensionInfoCollection, error)) SiteExtensionInfoCollectionPage {
+	return SiteExtensionInfoCollectionPage{
+		fn:   getNextPage,
+		seic: cur,
+	}
 }
 
 // SiteExtensionInfoProperties siteExtensionInfo resource specific properties
@@ -22903,8 +22173,11 @@ func (page SkuInfoCollectionPage) Values() []SkuInfo {
 }
 
 // Creates a new instance of the SkuInfoCollectionPage type.
-func NewSkuInfoCollectionPage(getNextPage func(context.Context, SkuInfoCollection) (SkuInfoCollection, error)) SkuInfoCollectionPage {
-	return SkuInfoCollectionPage{fn: getNextPage}
+func NewSkuInfoCollectionPage(cur SkuInfoCollection, getNextPage func(context.Context, SkuInfoCollection) (SkuInfoCollection, error)) SkuInfoCollectionPage {
+	return SkuInfoCollectionPage{
+		fn:  getNextPage,
+		sic: cur,
+	}
 }
 
 // SkuInfos collection of SKU information.
@@ -23263,8 +22536,11 @@ func (page SlotDifferenceCollectionPage) Values() []SlotDifference {
 }
 
 // Creates a new instance of the SlotDifferenceCollectionPage type.
-func NewSlotDifferenceCollectionPage(getNextPage func(context.Context, SlotDifferenceCollection) (SlotDifferenceCollection, error)) SlotDifferenceCollectionPage {
-	return SlotDifferenceCollectionPage{fn: getNextPage}
+func NewSlotDifferenceCollectionPage(cur SlotDifferenceCollection, getNextPage func(context.Context, SlotDifferenceCollection) (SlotDifferenceCollection, error)) SlotDifferenceCollectionPage {
+	return SlotDifferenceCollectionPage{
+		fn:  getNextPage,
+		sdc: cur,
+	}
 }
 
 // SlotDifferenceProperties slotDifference resource specific properties
@@ -23552,8 +22828,11 @@ func (page SnapshotCollectionPage) Values() []Snapshot {
 }
 
 // Creates a new instance of the SnapshotCollectionPage type.
-func NewSnapshotCollectionPage(getNextPage func(context.Context, SnapshotCollection) (SnapshotCollection, error)) SnapshotCollectionPage {
-	return SnapshotCollectionPage{fn: getNextPage}
+func NewSnapshotCollectionPage(cur SnapshotCollection, getNextPage func(context.Context, SnapshotCollection) (SnapshotCollection, error)) SnapshotCollectionPage {
+	return SnapshotCollectionPage{
+		fn: getNextPage,
+		sc: cur,
+	}
 }
 
 // SnapshotProperties snapshot resource specific properties
@@ -23942,8 +23221,11 @@ func (page SourceControlCollectionPage) Values() []SourceControl {
 }
 
 // Creates a new instance of the SourceControlCollectionPage type.
-func NewSourceControlCollectionPage(getNextPage func(context.Context, SourceControlCollection) (SourceControlCollection, error)) SourceControlCollectionPage {
-	return SourceControlCollectionPage{fn: getNextPage}
+func NewSourceControlCollectionPage(cur SourceControlCollection, getNextPage func(context.Context, SourceControlCollection) (SourceControlCollection, error)) SourceControlCollectionPage {
+	return SourceControlCollectionPage{
+		fn:  getNextPage,
+		scc: cur,
+	}
 }
 
 // SourceControlProperties sourceControl resource specific properties
@@ -24181,8 +23463,11 @@ func (page StampCapacityCollectionPage) Values() []StampCapacity {
 }
 
 // Creates a new instance of the StampCapacityCollectionPage type.
-func NewStampCapacityCollectionPage(getNextPage func(context.Context, StampCapacityCollection) (StampCapacityCollection, error)) StampCapacityCollectionPage {
-	return StampCapacityCollectionPage{fn: getNextPage}
+func NewStampCapacityCollectionPage(cur StampCapacityCollection, getNextPage func(context.Context, StampCapacityCollection) (StampCapacityCollection, error)) StampCapacityCollectionPage {
+	return StampCapacityCollectionPage{
+		fn:  getNextPage,
+		scc: cur,
+	}
 }
 
 // StaticSite a static site.
@@ -24614,8 +23899,11 @@ func (page StaticSiteBuildCollectionPage) Values() []StaticSiteBuildARMResource 
 }
 
 // Creates a new instance of the StaticSiteBuildCollectionPage type.
-func NewStaticSiteBuildCollectionPage(getNextPage func(context.Context, StaticSiteBuildCollection) (StaticSiteBuildCollection, error)) StaticSiteBuildCollectionPage {
-	return StaticSiteBuildCollectionPage{fn: getNextPage}
+func NewStaticSiteBuildCollectionPage(cur StaticSiteBuildCollection, getNextPage func(context.Context, StaticSiteBuildCollection) (StaticSiteBuildCollection, error)) StaticSiteBuildCollectionPage {
+	return StaticSiteBuildCollectionPage{
+		fn:   getNextPage,
+		ssbc: cur,
+	}
 }
 
 // StaticSiteBuildProperties build properties for the static site.
@@ -24789,8 +24077,11 @@ func (page StaticSiteCollectionPage) Values() []StaticSiteARMResource {
 }
 
 // Creates a new instance of the StaticSiteCollectionPage type.
-func NewStaticSiteCollectionPage(getNextPage func(context.Context, StaticSiteCollection) (StaticSiteCollection, error)) StaticSiteCollectionPage {
-	return StaticSiteCollectionPage{fn: getNextPage}
+func NewStaticSiteCollectionPage(cur StaticSiteCollection, getNextPage func(context.Context, StaticSiteCollection) (StaticSiteCollection, error)) StaticSiteCollectionPage {
+	return StaticSiteCollectionPage{
+		fn:  getNextPage,
+		ssc: cur,
+	}
 }
 
 // StaticSiteCustomDomainOverviewARMResource static Site Custom Domain Overview ARM resource.
@@ -24993,8 +24284,8 @@ func (sscdoc StaticSiteCustomDomainOverviewCollection) staticSiteCustomDomainOve
 		autorest.WithBaseURL(to.String(sscdoc.NextLink)))
 }
 
-// StaticSiteCustomDomainOverviewCollectionPage contains a page of StaticSiteCustomDomainOverviewARMResource
-// values.
+// StaticSiteCustomDomainOverviewCollectionPage contains a page of
+// StaticSiteCustomDomainOverviewARMResource values.
 type StaticSiteCustomDomainOverviewCollectionPage struct {
 	fn     func(context.Context, StaticSiteCustomDomainOverviewCollection) (StaticSiteCustomDomainOverviewCollection, error)
 	sscdoc StaticSiteCustomDomainOverviewCollection
@@ -25052,8 +24343,11 @@ func (page StaticSiteCustomDomainOverviewCollectionPage) Values() []StaticSiteCu
 }
 
 // Creates a new instance of the StaticSiteCustomDomainOverviewCollectionPage type.
-func NewStaticSiteCustomDomainOverviewCollectionPage(getNextPage func(context.Context, StaticSiteCustomDomainOverviewCollection) (StaticSiteCustomDomainOverviewCollection, error)) StaticSiteCustomDomainOverviewCollectionPage {
-	return StaticSiteCustomDomainOverviewCollectionPage{fn: getNextPage}
+func NewStaticSiteCustomDomainOverviewCollectionPage(cur StaticSiteCustomDomainOverviewCollection, getNextPage func(context.Context, StaticSiteCustomDomainOverviewCollection) (StaticSiteCustomDomainOverviewCollection, error)) StaticSiteCustomDomainOverviewCollectionPage {
+	return StaticSiteCustomDomainOverviewCollectionPage{
+		fn:     getNextPage,
+		sscdoc: cur,
+	}
 }
 
 // StaticSiteFunctionOverviewARMResource static Site Function Overview ARM resource.
@@ -25255,7 +24549,8 @@ func (ssfoc StaticSiteFunctionOverviewCollection) staticSiteFunctionOverviewColl
 		autorest.WithBaseURL(to.String(ssfoc.NextLink)))
 }
 
-// StaticSiteFunctionOverviewCollectionPage contains a page of StaticSiteFunctionOverviewARMResource values.
+// StaticSiteFunctionOverviewCollectionPage contains a page of StaticSiteFunctionOverviewARMResource
+// values.
 type StaticSiteFunctionOverviewCollectionPage struct {
 	fn    func(context.Context, StaticSiteFunctionOverviewCollection) (StaticSiteFunctionOverviewCollection, error)
 	ssfoc StaticSiteFunctionOverviewCollection
@@ -25313,8 +24608,11 @@ func (page StaticSiteFunctionOverviewCollectionPage) Values() []StaticSiteFuncti
 }
 
 // Creates a new instance of the StaticSiteFunctionOverviewCollectionPage type.
-func NewStaticSiteFunctionOverviewCollectionPage(getNextPage func(context.Context, StaticSiteFunctionOverviewCollection) (StaticSiteFunctionOverviewCollection, error)) StaticSiteFunctionOverviewCollectionPage {
-	return StaticSiteFunctionOverviewCollectionPage{fn: getNextPage}
+func NewStaticSiteFunctionOverviewCollectionPage(cur StaticSiteFunctionOverviewCollection, getNextPage func(context.Context, StaticSiteFunctionOverviewCollection) (StaticSiteFunctionOverviewCollection, error)) StaticSiteFunctionOverviewCollectionPage {
+	return StaticSiteFunctionOverviewCollectionPage{
+		fn:    getNextPage,
+		ssfoc: cur,
+	}
 }
 
 // StaticSitePatchResource ARM resource for a static site when patching
@@ -25498,6 +24796,198 @@ type StaticSiteResetPropertiesARMResourceProperties struct {
 	ShouldUpdateRepository *bool `json:"shouldUpdateRepository,omitempty"`
 }
 
+// StaticSitesWorkflowPreview preview for the Static Site Workflow to be generated
+type StaticSitesWorkflowPreview struct {
+	autorest.Response `json:"-"`
+	// StaticSitesWorkflowPreviewProperties - StaticSitesWorkflowPreview resource specific properties
+	*StaticSitesWorkflowPreviewProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource Name.
+	Name *string `json:"name,omitempty"`
+	// Kind - Kind of resource.
+	Kind *string `json:"kind,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for StaticSitesWorkflowPreview.
+func (sswp StaticSitesWorkflowPreview) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sswp.StaticSitesWorkflowPreviewProperties != nil {
+		objectMap["properties"] = sswp.StaticSitesWorkflowPreviewProperties
+	}
+	if sswp.Kind != nil {
+		objectMap["kind"] = sswp.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for StaticSitesWorkflowPreview struct.
+func (sswp *StaticSitesWorkflowPreview) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var staticSitesWorkflowPreviewProperties StaticSitesWorkflowPreviewProperties
+				err = json.Unmarshal(*v, &staticSitesWorkflowPreviewProperties)
+				if err != nil {
+					return err
+				}
+				sswp.StaticSitesWorkflowPreviewProperties = &staticSitesWorkflowPreviewProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				sswp.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				sswp.Name = &name
+			}
+		case "kind":
+			if v != nil {
+				var kind string
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				sswp.Kind = &kind
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				sswp.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// StaticSitesWorkflowPreviewProperties staticSitesWorkflowPreview resource specific properties
+type StaticSitesWorkflowPreviewProperties struct {
+	// Path - READ-ONLY; The path for the workflow file to be generated
+	Path *string `json:"path,omitempty"`
+	// Contents - READ-ONLY; The contents for the workflow file to be generated
+	Contents *string `json:"contents,omitempty"`
+}
+
+// StaticSitesWorkflowPreviewRequest request entity for previewing the Static Site workflow
+type StaticSitesWorkflowPreviewRequest struct {
+	// StaticSitesWorkflowPreviewRequestProperties - StaticSitesWorkflowPreviewRequest resource specific properties
+	*StaticSitesWorkflowPreviewRequestProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource Name.
+	Name *string `json:"name,omitempty"`
+	// Kind - Kind of resource.
+	Kind *string `json:"kind,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for StaticSitesWorkflowPreviewRequest.
+func (sswpr StaticSitesWorkflowPreviewRequest) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sswpr.StaticSitesWorkflowPreviewRequestProperties != nil {
+		objectMap["properties"] = sswpr.StaticSitesWorkflowPreviewRequestProperties
+	}
+	if sswpr.Kind != nil {
+		objectMap["kind"] = sswpr.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for StaticSitesWorkflowPreviewRequest struct.
+func (sswpr *StaticSitesWorkflowPreviewRequest) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var staticSitesWorkflowPreviewRequestProperties StaticSitesWorkflowPreviewRequestProperties
+				err = json.Unmarshal(*v, &staticSitesWorkflowPreviewRequestProperties)
+				if err != nil {
+					return err
+				}
+				sswpr.StaticSitesWorkflowPreviewRequestProperties = &staticSitesWorkflowPreviewRequestProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				sswpr.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				sswpr.Name = &name
+			}
+		case "kind":
+			if v != nil {
+				var kind string
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				sswpr.Kind = &kind
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				sswpr.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// StaticSitesWorkflowPreviewRequestProperties staticSitesWorkflowPreviewRequest resource specific
+// properties
+type StaticSitesWorkflowPreviewRequestProperties struct {
+	// RepositoryURL - URL for the repository of the static site.
+	RepositoryURL *string `json:"repositoryUrl,omitempty"`
+	// Branch - The target branch in the repository.
+	Branch *string `json:"branch,omitempty"`
+	// BuildProperties - Build properties to configure on the repository.
+	BuildProperties *StaticSiteBuildProperties `json:"buildProperties,omitempty"`
+}
+
 // StaticSiteUserARMResource static Site User ARM resource.
 type StaticSiteUserARMResource struct {
 	autorest.Response `json:"-"`
@@ -25624,7 +25114,8 @@ func (ssuc StaticSiteUserCollection) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// StaticSiteUserCollectionIterator provides access to a complete listing of StaticSiteUserARMResource values.
+// StaticSiteUserCollectionIterator provides access to a complete listing of StaticSiteUserARMResource
+// values.
 type StaticSiteUserCollectionIterator struct {
 	i    int
 	page StaticSiteUserCollectionPage
@@ -25767,8 +25258,11 @@ func (page StaticSiteUserCollectionPage) Values() []StaticSiteUserARMResource {
 }
 
 // Creates a new instance of the StaticSiteUserCollectionPage type.
-func NewStaticSiteUserCollectionPage(getNextPage func(context.Context, StaticSiteUserCollection) (StaticSiteUserCollection, error)) StaticSiteUserCollectionPage {
-	return StaticSiteUserCollectionPage{fn: getNextPage}
+func NewStaticSiteUserCollectionPage(cur StaticSiteUserCollection, getNextPage func(context.Context, StaticSiteUserCollection) (StaticSiteUserCollection, error)) StaticSiteUserCollectionPage {
+	return StaticSiteUserCollectionPage{
+		fn:   getNextPage,
+		ssuc: cur,
+	}
 }
 
 // StaticSiteUserInvitationRequestResource static sites user roles invitation resource.
@@ -25857,8 +25351,8 @@ func (ssuirr *StaticSiteUserInvitationRequestResource) UnmarshalJSON(body []byte
 	return nil
 }
 
-// StaticSiteUserInvitationRequestResourceProperties staticSiteUserInvitationRequestResource resource specific
-// properties
+// StaticSiteUserInvitationRequestResourceProperties staticSiteUserInvitationRequestResource resource
+// specific properties
 type StaticSiteUserInvitationRequestResourceProperties struct {
 	// Domain - The domain name for the static site custom domain.
 	Domain *string `json:"domain,omitempty"`
@@ -26475,8 +25969,11 @@ func (page TldLegalAgreementCollectionPage) Values() []TldLegalAgreement {
 }
 
 // Creates a new instance of the TldLegalAgreementCollectionPage type.
-func NewTldLegalAgreementCollectionPage(getNextPage func(context.Context, TldLegalAgreementCollection) (TldLegalAgreementCollection, error)) TldLegalAgreementCollectionPage {
-	return TldLegalAgreementCollectionPage{fn: getNextPage}
+func NewTldLegalAgreementCollectionPage(cur TldLegalAgreementCollection, getNextPage func(context.Context, TldLegalAgreementCollection) (TldLegalAgreementCollection, error)) TldLegalAgreementCollectionPage {
+	return TldLegalAgreementCollectionPage{
+		fn:   getNextPage,
+		tlac: cur,
+	}
 }
 
 // TokenStore ...
@@ -26829,8 +26326,11 @@ func (page TopLevelDomainCollectionPage) Values() []TopLevelDomain {
 }
 
 // Creates a new instance of the TopLevelDomainCollectionPage type.
-func NewTopLevelDomainCollectionPage(getNextPage func(context.Context, TopLevelDomainCollection) (TopLevelDomainCollection, error)) TopLevelDomainCollectionPage {
-	return TopLevelDomainCollectionPage{fn: getNextPage}
+func NewTopLevelDomainCollectionPage(cur TopLevelDomainCollection, getNextPage func(context.Context, TopLevelDomainCollection) (TopLevelDomainCollection, error)) TopLevelDomainCollectionPage {
+	return TopLevelDomainCollectionPage{
+		fn:   getNextPage,
+		tldc: cur,
+	}
 }
 
 // TopLevelDomainProperties topLevelDomain resource specific properties
@@ -26944,7 +26444,8 @@ func (tjhc TriggeredJobHistoryCollection) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// TriggeredJobHistoryCollectionIterator provides access to a complete listing of TriggeredJobHistory values.
+// TriggeredJobHistoryCollectionIterator provides access to a complete listing of TriggeredJobHistory
+// values.
 type TriggeredJobHistoryCollectionIterator struct {
 	i    int
 	page TriggeredJobHistoryCollectionPage
@@ -27087,8 +26588,11 @@ func (page TriggeredJobHistoryCollectionPage) Values() []TriggeredJobHistory {
 }
 
 // Creates a new instance of the TriggeredJobHistoryCollectionPage type.
-func NewTriggeredJobHistoryCollectionPage(getNextPage func(context.Context, TriggeredJobHistoryCollection) (TriggeredJobHistoryCollection, error)) TriggeredJobHistoryCollectionPage {
-	return TriggeredJobHistoryCollectionPage{fn: getNextPage}
+func NewTriggeredJobHistoryCollectionPage(cur TriggeredJobHistoryCollection, getNextPage func(context.Context, TriggeredJobHistoryCollection) (TriggeredJobHistoryCollection, error)) TriggeredJobHistoryCollectionPage {
+	return TriggeredJobHistoryCollectionPage{
+		fn:   getNextPage,
+		tjhc: cur,
+	}
 }
 
 // TriggeredJobHistoryProperties triggeredJobHistory resource specific properties
@@ -27457,8 +26961,11 @@ func (page TriggeredWebJobCollectionPage) Values() []TriggeredWebJob {
 }
 
 // Creates a new instance of the TriggeredWebJobCollectionPage type.
-func NewTriggeredWebJobCollectionPage(getNextPage func(context.Context, TriggeredWebJobCollection) (TriggeredWebJobCollection, error)) TriggeredWebJobCollectionPage {
-	return TriggeredWebJobCollectionPage{fn: getNextPage}
+func NewTriggeredWebJobCollectionPage(cur TriggeredWebJobCollection, getNextPage func(context.Context, TriggeredWebJobCollection) (TriggeredWebJobCollection, error)) TriggeredWebJobCollectionPage {
+	return TriggeredWebJobCollectionPage{
+		fn:   getNextPage,
+		twjc: cur,
+	}
 }
 
 // TriggeredWebJobProperties triggeredWebJob resource specific properties
@@ -27952,8 +27459,11 @@ func (page UsageCollectionPage) Values() []Usage {
 }
 
 // Creates a new instance of the UsageCollectionPage type.
-func NewUsageCollectionPage(getNextPage func(context.Context, UsageCollection) (UsageCollection, error)) UsageCollectionPage {
-	return UsageCollectionPage{fn: getNextPage}
+func NewUsageCollectionPage(cur UsageCollection, getNextPage func(context.Context, UsageCollection) (UsageCollection, error)) UsageCollectionPage {
+	return UsageCollectionPage{
+		fn: getNextPage,
+		uc: cur,
+	}
 }
 
 // UsageProperties usage resource specific properties
@@ -28263,8 +27773,8 @@ func (vnp VirtualNetworkProfile) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// VnetGateway the Virtual Network gateway contract. This is used to give the Virtual Network gateway access to
-// the VPN package.
+// VnetGateway the Virtual Network gateway contract. This is used to give the Virtual Network gateway
+// access to the VPN package.
 type VnetGateway struct {
 	autorest.Response `json:"-"`
 	// VnetGatewayProperties - VnetGateway resource specific properties
@@ -29062,8 +28572,11 @@ func (page WorkerPoolCollectionPage) Values() []WorkerPoolResource {
 }
 
 // Creates a new instance of the WorkerPoolCollectionPage type.
-func NewWorkerPoolCollectionPage(getNextPage func(context.Context, WorkerPoolCollection) (WorkerPoolCollection, error)) WorkerPoolCollectionPage {
-	return WorkerPoolCollectionPage{fn: getNextPage}
+func NewWorkerPoolCollectionPage(cur WorkerPoolCollection, getNextPage func(context.Context, WorkerPoolCollection) (WorkerPoolCollection, error)) WorkerPoolCollectionPage {
+	return WorkerPoolCollectionPage{
+		fn:  getNextPage,
+		wpc: cur,
+	}
 }
 
 // WorkerPoolResource worker pool of an App Service Environment ARM resource.

@@ -6,27 +6,28 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccDataSourceAzureRMEventHub_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_eventhub", "test")
+type EventHubDataSource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceEventHub_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "partition_count", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "partition_ids.#", "2"),
-				),
-			},
+func TestAccEventHubDataSource_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_eventhub", "test")
+	r := EventHubDataSource{}
+
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("partition_count").HasValue("2"),
+				check.That(data.ResourceName).Key("partition_ids.#").HasValue("2"),
+			),
 		},
 	})
 }
 
-func testAccDataSourceEventHub_basic(data acceptance.TestData) string {
+func (EventHubDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

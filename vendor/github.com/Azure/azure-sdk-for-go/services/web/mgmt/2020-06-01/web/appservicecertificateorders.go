@@ -82,7 +82,7 @@ func (client AppServiceCertificateOrdersClient) CreateOrUpdate(ctx context.Conte
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppServiceCertificateOrdersClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "web.AppServiceCertificateOrdersClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -120,7 +120,33 @@ func (client AppServiceCertificateOrdersClient) CreateOrUpdateSender(req *http.R
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client AppServiceCertificateOrdersClient) (asco AppServiceCertificateOrder, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "web.AppServiceCertificateOrdersCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("web.AppServiceCertificateOrdersCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		asco.Response.Response, err = future.GetResult(sender)
+		if asco.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "web.AppServiceCertificateOrdersCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && asco.Response.Response.StatusCode != http.StatusNoContent {
+			asco, err = client.CreateOrUpdateResponder(asco.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "web.AppServiceCertificateOrdersCreateOrUpdateFuture", "Result", asco.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -169,7 +195,7 @@ func (client AppServiceCertificateOrdersClient) CreateOrUpdateCertificate(ctx co
 
 	result, err = client.CreateOrUpdateCertificateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppServiceCertificateOrdersClient", "CreateOrUpdateCertificate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "web.AppServiceCertificateOrdersClient", "CreateOrUpdateCertificate", nil, "Failure sending request")
 		return
 	}
 
@@ -208,7 +234,33 @@ func (client AppServiceCertificateOrdersClient) CreateOrUpdateCertificateSender(
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client AppServiceCertificateOrdersClient) (ascr AppServiceCertificateResource, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "web.AppServiceCertificateOrdersCreateOrUpdateCertificateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("web.AppServiceCertificateOrdersCreateOrUpdateCertificateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		ascr.Response.Response, err = future.GetResult(sender)
+		if ascr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "web.AppServiceCertificateOrdersCreateOrUpdateCertificateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && ascr.Response.Response.StatusCode != http.StatusNoContent {
+			ascr, err = client.CreateOrUpdateCertificateResponder(ascr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "web.AppServiceCertificateOrdersCreateOrUpdateCertificateFuture", "Result", ascr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -263,6 +315,7 @@ func (client AppServiceCertificateOrdersClient) Delete(ctx context.Context, reso
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppServiceCertificateOrdersClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -346,6 +399,7 @@ func (client AppServiceCertificateOrdersClient) DeleteCertificate(ctx context.Co
 	result, err = client.DeleteCertificateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppServiceCertificateOrdersClient", "DeleteCertificate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -429,6 +483,7 @@ func (client AppServiceCertificateOrdersClient) Get(ctx context.Context, resourc
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppServiceCertificateOrdersClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -513,6 +568,7 @@ func (client AppServiceCertificateOrdersClient) GetCertificate(ctx context.Conte
 	result, err = client.GetCertificateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppServiceCertificateOrdersClient", "GetCertificate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -587,9 +643,11 @@ func (client AppServiceCertificateOrdersClient) List(ctx context.Context) (resul
 	result.ascoc, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppServiceCertificateOrdersClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.ascoc.hasNextLink() && result.ascoc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -708,9 +766,11 @@ func (client AppServiceCertificateOrdersClient) ListByResourceGroup(ctx context.
 	result.ascoc, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppServiceCertificateOrdersClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.ascoc.hasNextLink() && result.ascoc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -831,9 +891,11 @@ func (client AppServiceCertificateOrdersClient) ListCertificates(ctx context.Con
 	result.ascc, err = client.ListCertificatesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppServiceCertificateOrdersClient", "ListCertificates", resp, "Failure responding to request")
+		return
 	}
 	if result.ascc.hasNextLink() && result.ascc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -955,6 +1017,7 @@ func (client AppServiceCertificateOrdersClient) Reissue(ctx context.Context, res
 	result, err = client.ReissueResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppServiceCertificateOrdersClient", "Reissue", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1040,6 +1103,7 @@ func (client AppServiceCertificateOrdersClient) Renew(ctx context.Context, resou
 	result, err = client.RenewResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppServiceCertificateOrdersClient", "Renew", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1124,6 +1188,7 @@ func (client AppServiceCertificateOrdersClient) ResendEmail(ctx context.Context,
 	result, err = client.ResendEmailResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppServiceCertificateOrdersClient", "ResendEmail", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1207,6 +1272,7 @@ func (client AppServiceCertificateOrdersClient) ResendRequestEmails(ctx context.
 	result, err = client.ResendRequestEmailsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppServiceCertificateOrdersClient", "ResendRequestEmails", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1291,6 +1357,7 @@ func (client AppServiceCertificateOrdersClient) RetrieveCertificateActions(ctx c
 	result, err = client.RetrieveCertificateActionsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppServiceCertificateOrdersClient", "RetrieveCertificateActions", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1374,6 +1441,7 @@ func (client AppServiceCertificateOrdersClient) RetrieveCertificateEmailHistory(
 	result, err = client.RetrieveCertificateEmailHistoryResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppServiceCertificateOrdersClient", "RetrieveCertificateEmailHistory", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1458,6 +1526,7 @@ func (client AppServiceCertificateOrdersClient) RetrieveSiteSeal(ctx context.Con
 	result, err = client.RetrieveSiteSealResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppServiceCertificateOrdersClient", "RetrieveSiteSeal", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1544,6 +1613,7 @@ func (client AppServiceCertificateOrdersClient) Update(ctx context.Context, reso
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppServiceCertificateOrdersClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1631,6 +1701,7 @@ func (client AppServiceCertificateOrdersClient) UpdateCertificate(ctx context.Co
 	result, err = client.UpdateCertificateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppServiceCertificateOrdersClient", "UpdateCertificate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1719,6 +1790,7 @@ func (client AppServiceCertificateOrdersClient) ValidatePurchaseInformation(ctx 
 	result, err = client.ValidatePurchaseInformationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppServiceCertificateOrdersClient", "ValidatePurchaseInformation", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1801,6 +1873,7 @@ func (client AppServiceCertificateOrdersClient) VerifyDomainOwnership(ctx contex
 	result, err = client.VerifyDomainOwnershipResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppServiceCertificateOrdersClient", "VerifyDomainOwnership", resp, "Failure responding to request")
+		return
 	}
 
 	return

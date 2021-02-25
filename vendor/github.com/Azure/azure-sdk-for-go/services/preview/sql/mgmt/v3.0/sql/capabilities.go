@@ -74,6 +74,7 @@ func (client CapabilitiesClient) ListByLocation(ctx context.Context, locationNam
 	result, err = client.ListByLocationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.CapabilitiesClient", "ListByLocation", resp, "Failure responding to request")
+		return
 	}
 
 	return

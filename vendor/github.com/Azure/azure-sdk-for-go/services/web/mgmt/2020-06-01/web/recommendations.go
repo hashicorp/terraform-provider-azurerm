@@ -81,6 +81,7 @@ func (client RecommendationsClient) DisableAllForHostingEnvironment(ctx context.
 	result, err = client.DisableAllForHostingEnvironmentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.RecommendationsClient", "DisableAllForHostingEnvironment", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -164,6 +165,7 @@ func (client RecommendationsClient) DisableAllForWebApp(ctx context.Context, res
 	result, err = client.DisableAllForWebAppResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.RecommendationsClient", "DisableAllForWebApp", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -247,6 +249,7 @@ func (client RecommendationsClient) DisableRecommendationForHostingEnvironment(c
 	result, err = client.DisableRecommendationForHostingEnvironmentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.RecommendationsClient", "DisableRecommendationForHostingEnvironment", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -332,6 +335,7 @@ func (client RecommendationsClient) DisableRecommendationForSite(ctx context.Con
 	result, err = client.DisableRecommendationForSiteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.RecommendationsClient", "DisableRecommendationForSite", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -407,6 +411,7 @@ func (client RecommendationsClient) DisableRecommendationForSubscription(ctx con
 	result, err = client.DisableRecommendationForSubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.RecommendationsClient", "DisableRecommendationForSubscription", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -492,6 +497,7 @@ func (client RecommendationsClient) GetRuleDetailsByHostingEnvironment(ctx conte
 	result, err = client.GetRuleDetailsByHostingEnvironmentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.RecommendationsClient", "GetRuleDetailsByHostingEnvironment", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -586,6 +592,7 @@ func (client RecommendationsClient) GetRuleDetailsByWebApp(ctx context.Context, 
 	result, err = client.GetRuleDetailsByWebAppResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.RecommendationsClient", "GetRuleDetailsByWebApp", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -672,9 +679,11 @@ func (client RecommendationsClient) List(ctx context.Context, featured *bool, fi
 	result.rc, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.RecommendationsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.rc.hasNextLink() && result.rc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -806,9 +815,11 @@ func (client RecommendationsClient) ListHistoryForHostingEnvironment(ctx context
 	result.rc, err = client.ListHistoryForHostingEnvironmentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.RecommendationsClient", "ListHistoryForHostingEnvironment", resp, "Failure responding to request")
+		return
 	}
 	if result.rc.hasNextLink() && result.rc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -941,9 +952,11 @@ func (client RecommendationsClient) ListHistoryForWebApp(ctx context.Context, re
 	result.rc, err = client.ListHistoryForWebAppResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.RecommendationsClient", "ListHistoryForWebApp", resp, "Failure responding to request")
+		return
 	}
 	if result.rc.hasNextLink() && result.rc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -1075,9 +1088,11 @@ func (client RecommendationsClient) ListRecommendedRulesForHostingEnvironment(ct
 	result.rc, err = client.ListRecommendedRulesForHostingEnvironmentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.RecommendationsClient", "ListRecommendedRulesForHostingEnvironment", resp, "Failure responding to request")
+		return
 	}
 	if result.rc.hasNextLink() && result.rc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -1209,9 +1224,11 @@ func (client RecommendationsClient) ListRecommendedRulesForWebApp(ctx context.Co
 	result.rc, err = client.ListRecommendedRulesForWebAppResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.RecommendationsClient", "ListRecommendedRulesForWebApp", resp, "Failure responding to request")
+		return
 	}
 	if result.rc.hasNextLink() && result.rc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -1327,6 +1344,7 @@ func (client RecommendationsClient) ResetAllFilters(ctx context.Context) (result
 	result, err = client.ResetAllFiltersResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.RecommendationsClient", "ResetAllFilters", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1407,6 +1425,7 @@ func (client RecommendationsClient) ResetAllFiltersForHostingEnvironment(ctx con
 	result, err = client.ResetAllFiltersForHostingEnvironmentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.RecommendationsClient", "ResetAllFiltersForHostingEnvironment", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1490,6 +1509,7 @@ func (client RecommendationsClient) ResetAllFiltersForWebApp(ctx context.Context
 	result, err = client.ResetAllFiltersForWebAppResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.RecommendationsClient", "ResetAllFiltersForWebApp", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -82,7 +82,7 @@ func (client RegistrationDefinitionsClient) CreateOrUpdate(ctx context.Context, 
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "managedservices.RegistrationDefinitionsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "managedservices.RegistrationDefinitionsClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -122,7 +122,33 @@ func (client RegistrationDefinitionsClient) CreateOrUpdateSender(req *http.Reque
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client RegistrationDefinitionsClient) (rd RegistrationDefinition, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "managedservices.RegistrationDefinitionsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("managedservices.RegistrationDefinitionsCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		rd.Response.Response, err = future.GetResult(sender)
+		if rd.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "managedservices.RegistrationDefinitionsCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && rd.Response.Response.StatusCode != http.StatusNoContent {
+			rd, err = client.CreateOrUpdateResponder(rd.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "managedservices.RegistrationDefinitionsCreateOrUpdateFuture", "Result", rd.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -169,6 +195,7 @@ func (client RegistrationDefinitionsClient) Delete(ctx context.Context, registra
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managedservices.RegistrationDefinitionsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -242,6 +269,7 @@ func (client RegistrationDefinitionsClient) Get(ctx context.Context, scope strin
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managedservices.RegistrationDefinitionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -316,9 +344,11 @@ func (client RegistrationDefinitionsClient) List(ctx context.Context, scope stri
 	result.rdl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managedservices.RegistrationDefinitionsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.rdl.hasNextLink() && result.rdl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

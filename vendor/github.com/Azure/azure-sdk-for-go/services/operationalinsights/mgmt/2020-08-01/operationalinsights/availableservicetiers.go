@@ -88,6 +88,7 @@ func (client AvailableServiceTiersClient) ListByWorkspace(ctx context.Context, r
 	result, err = client.ListByWorkspaceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "operationalinsights.AvailableServiceTiersClient", "ListByWorkspace", resp, "Failure responding to request")
+		return
 	}
 
 	return

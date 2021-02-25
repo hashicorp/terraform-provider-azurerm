@@ -21,11 +21,11 @@ import (
 
 var appServiceHostnameBindingResourceName = "azurerm_app_service_custom_hostname_binding"
 
-func resourceArmAppServiceCertificateBinding() *schema.Resource {
+func resourceAppServiceCertificateBinding() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAppServiceCertificateBindingCreate,
-		Read:   resourceArmAppServiceCertificateBindingRead,
-		Delete: resourceArmAppServiceCertificateBindingDelete,
+		Create: resourceAppServiceCertificateBindingCreate,
+		Read:   resourceAppServiceCertificateBindingRead,
+		Delete: resourceAppServiceCertificateBindingDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.CertificateBindingID(id)
@@ -82,7 +82,7 @@ func resourceArmAppServiceCertificateBinding() *schema.Resource {
 	}
 }
 
-func resourceArmAppServiceCertificateBindingCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceCertificateBindingCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	certClient := meta.(*clients.Client).Web.CertificatesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -145,10 +145,10 @@ func resourceArmAppServiceCertificateBindingCreate(d *schema.ResourceData, meta 
 
 	d.SetId(id.ID())
 
-	return resourceArmAppServiceCertificateBindingRead(d, meta)
+	return resourceAppServiceCertificateBindingRead(d, meta)
 }
 
-func resourceArmAppServiceCertificateBindingRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceCertificateBindingRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -185,7 +185,7 @@ func resourceArmAppServiceCertificateBindingRead(d *schema.ResourceData, meta in
 	return nil
 }
 
-func resourceArmAppServiceCertificateBindingDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceCertificateBindingDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

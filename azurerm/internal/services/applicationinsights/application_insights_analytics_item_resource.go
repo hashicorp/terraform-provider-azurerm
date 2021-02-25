@@ -209,8 +209,7 @@ func resourceApplicationInsightsAnalyticsItemDelete(d *schema.ResourceData, meta
 		return fmt.Errorf("Error parsing Application Insights Analytics Item ID %s: %s", id, err)
 	}
 
-	_, err = client.Delete(ctx, resourceGroupName, appInsightsName, itemScopePath, itemID, "")
-	if err != nil {
+	if _, err = client.Delete(ctx, resourceGroupName, appInsightsName, itemScopePath, itemID, ""); err != nil {
 		return fmt.Errorf("Error Deleting Application Insights Analytics Item '%s' (Resource Group %s, App Insights Name: %s): %s", itemID, resourceGroupName, appInsightsName, err)
 	}
 

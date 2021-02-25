@@ -83,6 +83,7 @@ func (client StaticSitesClient) CreateOrUpdateStaticSite(ctx context.Context, re
 	result, err = client.CreateOrUpdateStaticSiteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "CreateOrUpdateStaticSite", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -170,6 +171,7 @@ func (client StaticSitesClient) CreateOrUpdateStaticSiteBuildFunctionAppSettings
 	result, err = client.CreateOrUpdateStaticSiteBuildFunctionAppSettingsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "CreateOrUpdateStaticSiteBuildFunctionAppSettings", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -258,6 +260,7 @@ func (client StaticSitesClient) CreateOrUpdateStaticSiteCustomDomain(ctx context
 	result, err = client.CreateOrUpdateStaticSiteCustomDomainResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "CreateOrUpdateStaticSiteCustomDomain", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -343,6 +346,7 @@ func (client StaticSitesClient) CreateOrUpdateStaticSiteFunctionAppSettings(ctx 
 	result, err = client.CreateOrUpdateStaticSiteFunctionAppSettingsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "CreateOrUpdateStaticSiteFunctionAppSettings", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -428,6 +432,7 @@ func (client StaticSitesClient) CreateUserRolesInvitationLink(ctx context.Contex
 	result, err = client.CreateUserRolesInvitationLinkResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "CreateUserRolesInvitationLink", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -513,6 +518,7 @@ func (client StaticSitesClient) DeleteStaticSite(ctx context.Context, resourceGr
 	result, err = client.DeleteStaticSiteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "DeleteStaticSite", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -596,6 +602,7 @@ func (client StaticSitesClient) DeleteStaticSiteBuild(ctx context.Context, resou
 	result, err = client.DeleteStaticSiteBuildResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "DeleteStaticSiteBuild", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -680,6 +687,7 @@ func (client StaticSitesClient) DeleteStaticSiteCustomDomain(ctx context.Context
 	result, err = client.DeleteStaticSiteCustomDomainResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "DeleteStaticSiteCustomDomain", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -765,6 +773,7 @@ func (client StaticSitesClient) DeleteStaticSiteUser(ctx context.Context, resour
 	result, err = client.DeleteStaticSiteUserResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "DeleteStaticSiteUser", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -849,6 +858,7 @@ func (client StaticSitesClient) DetachStaticSite(ctx context.Context, resourceGr
 	result, err = client.DetachStaticSiteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "DetachStaticSite", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -931,6 +941,7 @@ func (client StaticSitesClient) GetStaticSite(ctx context.Context, resourceGroup
 	result, err = client.GetStaticSiteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "GetStaticSite", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1015,6 +1026,7 @@ func (client StaticSitesClient) GetStaticSiteBuild(ctx context.Context, resource
 	result, err = client.GetStaticSiteBuildResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "GetStaticSiteBuild", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1100,9 +1112,11 @@ func (client StaticSitesClient) GetStaticSiteBuilds(ctx context.Context, resourc
 	result.ssbc, err = client.GetStaticSiteBuildsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "GetStaticSiteBuilds", resp, "Failure responding to request")
+		return
 	}
 	if result.ssbc.hasNextLink() && result.ssbc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -1223,9 +1237,11 @@ func (client StaticSitesClient) GetStaticSitesByResourceGroup(ctx context.Contex
 	result.ssc, err = client.GetStaticSitesByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "GetStaticSitesByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.ssc.hasNextLink() && result.ssc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -1335,9 +1351,11 @@ func (client StaticSitesClient) List(ctx context.Context) (result StaticSiteColl
 	result.ssc, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.ssc.hasNextLink() && result.ssc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -1457,6 +1475,7 @@ func (client StaticSitesClient) ListStaticSiteBuildFunctionAppSettings(ctx conte
 	result, err = client.ListStaticSiteBuildFunctionAppSettingsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "ListStaticSiteBuildFunctionAppSettings", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1543,9 +1562,11 @@ func (client StaticSitesClient) ListStaticSiteBuildFunctions(ctx context.Context
 	result.ssfoc, err = client.ListStaticSiteBuildFunctionsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "ListStaticSiteBuildFunctions", resp, "Failure responding to request")
+		return
 	}
 	if result.ssfoc.hasNextLink() && result.ssfoc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -1668,9 +1689,11 @@ func (client StaticSitesClient) ListStaticSiteCustomDomains(ctx context.Context,
 	result.sscdoc, err = client.ListStaticSiteCustomDomainsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "ListStaticSiteCustomDomains", resp, "Failure responding to request")
+		return
 	}
 	if result.sscdoc.hasNextLink() && result.sscdoc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -1791,6 +1814,7 @@ func (client StaticSitesClient) ListStaticSiteFunctionAppSettings(ctx context.Co
 	result, err = client.ListStaticSiteFunctionAppSettingsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "ListStaticSiteFunctionAppSettings", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1875,9 +1899,11 @@ func (client StaticSitesClient) ListStaticSiteFunctions(ctx context.Context, res
 	result.ssfoc, err = client.ListStaticSiteFunctionsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "ListStaticSiteFunctions", resp, "Failure responding to request")
+		return
 	}
 	if result.ssfoc.hasNextLink() && result.ssfoc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -1998,6 +2024,7 @@ func (client StaticSitesClient) ListStaticSiteSecrets(ctx context.Context, resou
 	result, err = client.ListStaticSiteSecretsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "ListStaticSiteSecrets", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -2083,9 +2110,11 @@ func (client StaticSitesClient) ListStaticSiteUsers(ctx context.Context, resourc
 	result.ssuc, err = client.ListStaticSiteUsersResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "ListStaticSiteUsers", resp, "Failure responding to request")
+		return
 	}
 	if result.ssuc.hasNextLink() && result.ssuc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -2168,6 +2197,84 @@ func (client StaticSitesClient) ListStaticSiteUsersComplete(ctx context.Context,
 	return
 }
 
+// PreviewWorkflow description for Generates a preview workflow file for the static site
+// Parameters:
+// location - location where you plan to create the static site.
+// staticSitesWorkflowPreviewRequest - a JSON representation of the StaticSitesWorkflowPreviewRequest
+// properties. See example.
+func (client StaticSitesClient) PreviewWorkflow(ctx context.Context, location string, staticSitesWorkflowPreviewRequest StaticSitesWorkflowPreviewRequest) (result StaticSitesWorkflowPreview, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/StaticSitesClient.PreviewWorkflow")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.PreviewWorkflowPreparer(ctx, location, staticSitesWorkflowPreviewRequest)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "PreviewWorkflow", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.PreviewWorkflowSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "PreviewWorkflow", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.PreviewWorkflowResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "PreviewWorkflow", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// PreviewWorkflowPreparer prepares the PreviewWorkflow request.
+func (client StaticSitesClient) PreviewWorkflowPreparer(ctx context.Context, location string, staticSitesWorkflowPreviewRequest StaticSitesWorkflowPreviewRequest) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"location":       autorest.Encode("path", location),
+		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2020-06-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.Web/locations/{location}/previewStaticSiteWorkflowFile", pathParameters),
+		autorest.WithJSON(staticSitesWorkflowPreviewRequest),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// PreviewWorkflowSender sends the PreviewWorkflow request. The method will close the
+// http.Response Body if it receives an error.
+func (client StaticSitesClient) PreviewWorkflowSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// PreviewWorkflowResponder handles the response to the PreviewWorkflow request. The method always
+// closes the http.Response Body.
+func (client StaticSitesClient) PreviewWorkflowResponder(resp *http.Response) (result StaticSitesWorkflowPreview, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
 // ResetStaticSiteAPIKey description for Resets the api key for an existing static site.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
@@ -2207,6 +2314,7 @@ func (client StaticSitesClient) ResetStaticSiteAPIKey(ctx context.Context, resou
 	result, err = client.ResetStaticSiteAPIKeyResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "ResetStaticSiteAPIKey", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -2293,6 +2401,7 @@ func (client StaticSitesClient) UpdateStaticSite(ctx context.Context, resourceGr
 	result, err = client.UpdateStaticSiteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "UpdateStaticSite", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -2381,6 +2490,7 @@ func (client StaticSitesClient) UpdateStaticSiteUser(ctx context.Context, resour
 	result, err = client.UpdateStaticSiteUserResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "UpdateStaticSiteUser", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -2470,6 +2580,7 @@ func (client StaticSitesClient) ValidateCustomDomainCanBeAddedToStaticSite(ctx c
 	result, err = client.ValidateCustomDomainCanBeAddedToStaticSiteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "ValidateCustomDomainCanBeAddedToStaticSite", resp, "Failure responding to request")
+		return
 	}
 
 	return

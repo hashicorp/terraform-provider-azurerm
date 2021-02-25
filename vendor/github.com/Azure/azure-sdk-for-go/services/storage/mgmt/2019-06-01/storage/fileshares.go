@@ -103,6 +103,7 @@ func (client FileSharesClient) Create(ctx context.Context, resourceGroupName str
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.FileSharesClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -202,6 +203,7 @@ func (client FileSharesClient) Delete(ctx context.Context, resourceGroupName str
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.FileSharesClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -299,6 +301,7 @@ func (client FileSharesClient) Get(ctx context.Context, resourceGroupName string
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.FileSharesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -397,9 +400,11 @@ func (client FileSharesClient) List(ctx context.Context, resourceGroupName strin
 	result.fsi, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.FileSharesClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.fsi.hasNextLink() && result.fsi.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -545,6 +550,7 @@ func (client FileSharesClient) Restore(ctx context.Context, resourceGroupName st
 	result, err = client.RestoreResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.FileSharesClient", "Restore", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -645,6 +651,7 @@ func (client FileSharesClient) Update(ctx context.Context, resourceGroupName str
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.FileSharesClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

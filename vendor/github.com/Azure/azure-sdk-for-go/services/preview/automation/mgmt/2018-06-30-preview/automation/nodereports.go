@@ -83,6 +83,7 @@ func (client NodeReportsClient) Get(ctx context.Context, resourceGroupName strin
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.NodeReportsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -170,6 +171,7 @@ func (client NodeReportsClient) GetContent(ctx context.Context, resourceGroupNam
 	result, err = client.GetContentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.NodeReportsClient", "GetContent", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -258,9 +260,11 @@ func (client NodeReportsClient) ListByNode(ctx context.Context, resourceGroupNam
 	result.dnrlr, err = client.ListByNodeResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.NodeReportsClient", "ListByNode", resp, "Failure responding to request")
+		return
 	}
 	if result.dnrlr.hasNextLink() && result.dnrlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

@@ -87,6 +87,7 @@ func (client SchemaClient) Get(ctx context.Context, resourceGroupName string, wo
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "operationalinsights.SchemaClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return

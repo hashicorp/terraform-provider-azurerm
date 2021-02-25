@@ -35,7 +35,7 @@ const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/securityinsight
 type AADCheckRequirements struct {
 	// AADCheckRequirementsProperties - AAD (Azure Active Directory) requirements check properties.
 	*AADCheckRequirementsProperties `json:"properties,omitempty"`
-	// Kind - Possible values include: 'KindBasicDataConnectorsCheckRequirementsKindDataConnectorsCheckRequirements', 'KindBasicDataConnectorsCheckRequirementsKindAzureActiveDirectory', 'KindBasicDataConnectorsCheckRequirementsKindAzureAdvancedThreatProtection', 'KindBasicDataConnectorsCheckRequirementsKindAzureSecurityCenter', 'KindBasicDataConnectorsCheckRequirementsKindAmazonWebServicesCloudTrail', 'KindBasicDataConnectorsCheckRequirementsKindMicrosoftCloudAppSecurity', 'KindBasicDataConnectorsCheckRequirementsKindMicrosoftDefenderAdvancedThreatProtection', 'KindBasicDataConnectorsCheckRequirementsKindThreatIntelligence', 'KindBasicDataConnectorsCheckRequirementsKindThreatIntelligenceTaxii'
+	// Kind - Possible values include: 'KindBasicDataConnectorsCheckRequirementsKindDataConnectorsCheckRequirements', 'KindBasicDataConnectorsCheckRequirementsKindAzureActiveDirectory', 'KindBasicDataConnectorsCheckRequirementsKindAzureAdvancedThreatProtection', 'KindBasicDataConnectorsCheckRequirementsKindAzureSecurityCenter', 'KindBasicDataConnectorsCheckRequirementsKindAmazonWebServicesCloudTrail', 'KindBasicDataConnectorsCheckRequirementsKindDynamics365', 'KindBasicDataConnectorsCheckRequirementsKindMicrosoftCloudAppSecurity', 'KindBasicDataConnectorsCheckRequirementsKindMicrosoftDefenderAdvancedThreatProtection', 'KindBasicDataConnectorsCheckRequirementsKindOfficeATP', 'KindBasicDataConnectorsCheckRequirementsKindThreatIntelligence', 'KindBasicDataConnectorsCheckRequirementsKindThreatIntelligenceTaxii'
 	Kind KindBasicDataConnectorsCheckRequirements `json:"kind,omitempty"`
 }
 
@@ -72,6 +72,11 @@ func (acr AADCheckRequirements) AsAwsCloudTrailCheckRequirements() (*AwsCloudTra
 	return nil, false
 }
 
+// AsDynamics365CheckRequirements is the BasicDataConnectorsCheckRequirements implementation for AADCheckRequirements.
+func (acr AADCheckRequirements) AsDynamics365CheckRequirements() (*Dynamics365CheckRequirements, bool) {
+	return nil, false
+}
+
 // AsMCASCheckRequirements is the BasicDataConnectorsCheckRequirements implementation for AADCheckRequirements.
 func (acr AADCheckRequirements) AsMCASCheckRequirements() (*MCASCheckRequirements, bool) {
 	return nil, false
@@ -79,6 +84,11 @@ func (acr AADCheckRequirements) AsMCASCheckRequirements() (*MCASCheckRequirement
 
 // AsMDATPCheckRequirements is the BasicDataConnectorsCheckRequirements implementation for AADCheckRequirements.
 func (acr AADCheckRequirements) AsMDATPCheckRequirements() (*MDATPCheckRequirements, bool) {
+	return nil, false
+}
+
+// AsOfficeATPCheckRequirements is the BasicDataConnectorsCheckRequirements implementation for AADCheckRequirements.
+func (acr AADCheckRequirements) AsOfficeATPCheckRequirements() (*OfficeATPCheckRequirements, bool) {
 	return nil, false
 }
 
@@ -153,7 +163,7 @@ type AADDataConnector struct {
 	Type *string `json:"type,omitempty"`
 	// Etag - Etag of the azure resource
 	Etag *string `json:"etag,omitempty"`
-	// Kind - Possible values include: 'KindDataConnector', 'KindAzureActiveDirectory', 'KindAzureAdvancedThreatProtection', 'KindAzureSecurityCenter', 'KindAmazonWebServicesCloudTrail', 'KindMicrosoftCloudAppSecurity', 'KindMicrosoftDefenderAdvancedThreatProtection', 'KindOffice365', 'KindThreatIntelligence', 'KindThreatIntelligenceTaxii'
+	// Kind - Possible values include: 'KindDataConnector', 'KindAzureActiveDirectory', 'KindAzureAdvancedThreatProtection', 'KindAzureSecurityCenter', 'KindAmazonWebServicesCloudTrail', 'KindDynamics365', 'KindMicrosoftCloudAppSecurity', 'KindMicrosoftDefenderAdvancedThreatProtection', 'KindOfficeATP', 'KindOffice365', 'KindThreatIntelligence', 'KindThreatIntelligenceTaxii'
 	Kind KindBasicDataConnector `json:"kind,omitempty"`
 }
 
@@ -193,6 +203,11 @@ func (adc AADDataConnector) AsAwsCloudTrailDataConnector() (*AwsCloudTrailDataCo
 	return nil, false
 }
 
+// AsDynamics365DataConnector is the BasicDataConnector implementation for AADDataConnector.
+func (adc AADDataConnector) AsDynamics365DataConnector() (*Dynamics365DataConnector, bool) {
+	return nil, false
+}
+
 // AsMCASDataConnector is the BasicDataConnector implementation for AADDataConnector.
 func (adc AADDataConnector) AsMCASDataConnector() (*MCASDataConnector, bool) {
 	return nil, false
@@ -200,6 +215,11 @@ func (adc AADDataConnector) AsMCASDataConnector() (*MCASDataConnector, bool) {
 
 // AsMDATPDataConnector is the BasicDataConnector implementation for AADDataConnector.
 func (adc AADDataConnector) AsMDATPDataConnector() (*MDATPDataConnector, bool) {
+	return nil, false
+}
+
+// AsOfficeATPDataConnector is the BasicDataConnector implementation for AADDataConnector.
+func (adc AADDataConnector) AsOfficeATPDataConnector() (*OfficeATPDataConnector, bool) {
 	return nil, false
 }
 
@@ -309,7 +329,7 @@ type AADDataConnectorProperties struct {
 type AATPCheckRequirements struct {
 	// AATPCheckRequirementsProperties - AATP (Azure Advanced Threat Protection) requirements check properties.
 	*AATPCheckRequirementsProperties `json:"properties,omitempty"`
-	// Kind - Possible values include: 'KindBasicDataConnectorsCheckRequirementsKindDataConnectorsCheckRequirements', 'KindBasicDataConnectorsCheckRequirementsKindAzureActiveDirectory', 'KindBasicDataConnectorsCheckRequirementsKindAzureAdvancedThreatProtection', 'KindBasicDataConnectorsCheckRequirementsKindAzureSecurityCenter', 'KindBasicDataConnectorsCheckRequirementsKindAmazonWebServicesCloudTrail', 'KindBasicDataConnectorsCheckRequirementsKindMicrosoftCloudAppSecurity', 'KindBasicDataConnectorsCheckRequirementsKindMicrosoftDefenderAdvancedThreatProtection', 'KindBasicDataConnectorsCheckRequirementsKindThreatIntelligence', 'KindBasicDataConnectorsCheckRequirementsKindThreatIntelligenceTaxii'
+	// Kind - Possible values include: 'KindBasicDataConnectorsCheckRequirementsKindDataConnectorsCheckRequirements', 'KindBasicDataConnectorsCheckRequirementsKindAzureActiveDirectory', 'KindBasicDataConnectorsCheckRequirementsKindAzureAdvancedThreatProtection', 'KindBasicDataConnectorsCheckRequirementsKindAzureSecurityCenter', 'KindBasicDataConnectorsCheckRequirementsKindAmazonWebServicesCloudTrail', 'KindBasicDataConnectorsCheckRequirementsKindDynamics365', 'KindBasicDataConnectorsCheckRequirementsKindMicrosoftCloudAppSecurity', 'KindBasicDataConnectorsCheckRequirementsKindMicrosoftDefenderAdvancedThreatProtection', 'KindBasicDataConnectorsCheckRequirementsKindOfficeATP', 'KindBasicDataConnectorsCheckRequirementsKindThreatIntelligence', 'KindBasicDataConnectorsCheckRequirementsKindThreatIntelligenceTaxii'
 	Kind KindBasicDataConnectorsCheckRequirements `json:"kind,omitempty"`
 }
 
@@ -346,6 +366,11 @@ func (acr AATPCheckRequirements) AsAwsCloudTrailCheckRequirements() (*AwsCloudTr
 	return nil, false
 }
 
+// AsDynamics365CheckRequirements is the BasicDataConnectorsCheckRequirements implementation for AATPCheckRequirements.
+func (acr AATPCheckRequirements) AsDynamics365CheckRequirements() (*Dynamics365CheckRequirements, bool) {
+	return nil, false
+}
+
 // AsMCASCheckRequirements is the BasicDataConnectorsCheckRequirements implementation for AATPCheckRequirements.
 func (acr AATPCheckRequirements) AsMCASCheckRequirements() (*MCASCheckRequirements, bool) {
 	return nil, false
@@ -353,6 +378,11 @@ func (acr AATPCheckRequirements) AsMCASCheckRequirements() (*MCASCheckRequiremen
 
 // AsMDATPCheckRequirements is the BasicDataConnectorsCheckRequirements implementation for AATPCheckRequirements.
 func (acr AATPCheckRequirements) AsMDATPCheckRequirements() (*MDATPCheckRequirements, bool) {
+	return nil, false
+}
+
+// AsOfficeATPCheckRequirements is the BasicDataConnectorsCheckRequirements implementation for AATPCheckRequirements.
+func (acr AATPCheckRequirements) AsOfficeATPCheckRequirements() (*OfficeATPCheckRequirements, bool) {
 	return nil, false
 }
 
@@ -427,7 +457,7 @@ type AATPDataConnector struct {
 	Type *string `json:"type,omitempty"`
 	// Etag - Etag of the azure resource
 	Etag *string `json:"etag,omitempty"`
-	// Kind - Possible values include: 'KindDataConnector', 'KindAzureActiveDirectory', 'KindAzureAdvancedThreatProtection', 'KindAzureSecurityCenter', 'KindAmazonWebServicesCloudTrail', 'KindMicrosoftCloudAppSecurity', 'KindMicrosoftDefenderAdvancedThreatProtection', 'KindOffice365', 'KindThreatIntelligence', 'KindThreatIntelligenceTaxii'
+	// Kind - Possible values include: 'KindDataConnector', 'KindAzureActiveDirectory', 'KindAzureAdvancedThreatProtection', 'KindAzureSecurityCenter', 'KindAmazonWebServicesCloudTrail', 'KindDynamics365', 'KindMicrosoftCloudAppSecurity', 'KindMicrosoftDefenderAdvancedThreatProtection', 'KindOfficeATP', 'KindOffice365', 'KindThreatIntelligence', 'KindThreatIntelligenceTaxii'
 	Kind KindBasicDataConnector `json:"kind,omitempty"`
 }
 
@@ -467,6 +497,11 @@ func (adc AATPDataConnector) AsAwsCloudTrailDataConnector() (*AwsCloudTrailDataC
 	return nil, false
 }
 
+// AsDynamics365DataConnector is the BasicDataConnector implementation for AATPDataConnector.
+func (adc AATPDataConnector) AsDynamics365DataConnector() (*Dynamics365DataConnector, bool) {
+	return nil, false
+}
+
 // AsMCASDataConnector is the BasicDataConnector implementation for AATPDataConnector.
 func (adc AATPDataConnector) AsMCASDataConnector() (*MCASDataConnector, bool) {
 	return nil, false
@@ -474,6 +509,11 @@ func (adc AATPDataConnector) AsMCASDataConnector() (*MCASDataConnector, bool) {
 
 // AsMDATPDataConnector is the BasicDataConnector implementation for AATPDataConnector.
 func (adc AATPDataConnector) AsMDATPDataConnector() (*MDATPDataConnector, bool) {
+	return nil, false
+}
+
+// AsOfficeATPDataConnector is the BasicDataConnector implementation for AATPDataConnector.
+func (adc AATPDataConnector) AsOfficeATPDataConnector() (*OfficeATPDataConnector, bool) {
 	return nil, false
 }
 
@@ -589,7 +629,7 @@ type AccountEntity struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Azure resource type
 	Type *string `json:"type,omitempty"`
-	// Kind - Possible values include: 'KindEntity', 'KindAccount', 'KindAzureResource', 'KindCloudApplication', 'KindDNSResolution', 'KindFile', 'KindFileHash', 'KindHost', 'KindIP', 'KindMalware', 'KindProcess', 'KindRegistryKey', 'KindRegistryValue', 'KindSecurityAlert', 'KindSecurityGroup', 'KindURL', 'KindIoTDevice'
+	// Kind - Possible values include: 'KindEntity', 'KindAccount', 'KindAzureResource', 'KindCloudApplication', 'KindDNSResolution', 'KindFile', 'KindFileHash', 'KindHost', 'KindBookmark', 'KindSecurityAlert', 'KindIP', 'KindMailbox', 'KindMailCluster', 'KindMailMessage', 'KindSubmissionMail', 'KindMalware', 'KindProcess', 'KindRegistryKey', 'KindRegistryValue', 'KindSecurityGroup', 'KindURL', 'KindIoTDevice'
 	Kind KindBasicEntity `json:"kind,omitempty"`
 }
 
@@ -641,8 +681,38 @@ func (ae AccountEntity) AsHostEntity() (*HostEntity, bool) {
 	return nil, false
 }
 
+// AsHuntingBookmark is the BasicEntity implementation for AccountEntity.
+func (ae AccountEntity) AsHuntingBookmark() (*HuntingBookmark, bool) {
+	return nil, false
+}
+
+// AsSecurityAlert is the BasicEntity implementation for AccountEntity.
+func (ae AccountEntity) AsSecurityAlert() (*SecurityAlert, bool) {
+	return nil, false
+}
+
 // AsIPEntity is the BasicEntity implementation for AccountEntity.
 func (ae AccountEntity) AsIPEntity() (*IPEntity, bool) {
+	return nil, false
+}
+
+// AsMailboxEntity is the BasicEntity implementation for AccountEntity.
+func (ae AccountEntity) AsMailboxEntity() (*MailboxEntity, bool) {
+	return nil, false
+}
+
+// AsMailClusterEntity is the BasicEntity implementation for AccountEntity.
+func (ae AccountEntity) AsMailClusterEntity() (*MailClusterEntity, bool) {
+	return nil, false
+}
+
+// AsMailMessageEntity is the BasicEntity implementation for AccountEntity.
+func (ae AccountEntity) AsMailMessageEntity() (*MailMessageEntity, bool) {
+	return nil, false
+}
+
+// AsSubmissionMailEntity is the BasicEntity implementation for AccountEntity.
+func (ae AccountEntity) AsSubmissionMailEntity() (*SubmissionMailEntity, bool) {
 	return nil, false
 }
 
@@ -663,11 +733,6 @@ func (ae AccountEntity) AsRegistryKeyEntity() (*RegistryKeyEntity, bool) {
 
 // AsRegistryValueEntity is the BasicEntity implementation for AccountEntity.
 func (ae AccountEntity) AsRegistryValueEntity() (*RegistryValueEntity, bool) {
-	return nil, false
-}
-
-// AsSecurityAlert is the BasicEntity implementation for AccountEntity.
-func (ae AccountEntity) AsSecurityAlert() (*SecurityAlert, bool) {
 	return nil, false
 }
 
@@ -1150,8 +1215,87 @@ func (page ActionsListPage) Values() []ActionResponse {
 }
 
 // Creates a new instance of the ActionsListPage type.
-func NewActionsListPage(getNextPage func(context.Context, ActionsList) (ActionsList, error)) ActionsListPage {
-	return ActionsListPage{fn: getNextPage}
+func NewActionsListPage(cur ActionsList, getNextPage func(context.Context, ActionsList) (ActionsList, error)) ActionsListPage {
+	return ActionsListPage{
+		fn: getNextPage,
+		al: cur,
+	}
+}
+
+// ActivityTimelineItem represents Activity timeline item.
+type ActivityTimelineItem struct {
+	// QueryID - The activity query id.
+	QueryID *string `json:"queryId,omitempty"`
+	// BucketStartTimeUTC - The grouping bucket start time.
+	BucketStartTimeUTC *date.Time `json:"bucketStartTimeUTC,omitempty"`
+	// BucketEndTimeUTC - The grouping bucket end time.
+	BucketEndTimeUTC *date.Time `json:"bucketEndTimeUTC,omitempty"`
+	// FirstActivityTimeUTC - The time of the first activity in the grouping bucket.
+	FirstActivityTimeUTC *date.Time `json:"firstActivityTimeUTC,omitempty"`
+	// LastActivityTimeUTC - The time of the last activity in the grouping bucket.
+	LastActivityTimeUTC *date.Time `json:"lastActivityTimeUTC,omitempty"`
+	// Content - The activity timeline content.
+	Content *string `json:"content,omitempty"`
+	// Title - The activity timeline title.
+	Title *string `json:"title,omitempty"`
+	// Kind - Possible values include: 'KindBasicEntityTimelineItemKindEntityTimelineItem', 'KindBasicEntityTimelineItemKindActivity', 'KindBasicEntityTimelineItemKindSecurityAlert', 'KindBasicEntityTimelineItemKindBookmark'
+	Kind KindBasicEntityTimelineItem `json:"kind,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ActivityTimelineItem.
+func (ati ActivityTimelineItem) MarshalJSON() ([]byte, error) {
+	ati.Kind = KindBasicEntityTimelineItemKindActivity
+	objectMap := make(map[string]interface{})
+	if ati.QueryID != nil {
+		objectMap["queryId"] = ati.QueryID
+	}
+	if ati.BucketStartTimeUTC != nil {
+		objectMap["bucketStartTimeUTC"] = ati.BucketStartTimeUTC
+	}
+	if ati.BucketEndTimeUTC != nil {
+		objectMap["bucketEndTimeUTC"] = ati.BucketEndTimeUTC
+	}
+	if ati.FirstActivityTimeUTC != nil {
+		objectMap["firstActivityTimeUTC"] = ati.FirstActivityTimeUTC
+	}
+	if ati.LastActivityTimeUTC != nil {
+		objectMap["lastActivityTimeUTC"] = ati.LastActivityTimeUTC
+	}
+	if ati.Content != nil {
+		objectMap["content"] = ati.Content
+	}
+	if ati.Title != nil {
+		objectMap["title"] = ati.Title
+	}
+	if ati.Kind != "" {
+		objectMap["kind"] = ati.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsActivityTimelineItem is the BasicEntityTimelineItem implementation for ActivityTimelineItem.
+func (ati ActivityTimelineItem) AsActivityTimelineItem() (*ActivityTimelineItem, bool) {
+	return &ati, true
+}
+
+// AsSecurityAlertTimelineItem is the BasicEntityTimelineItem implementation for ActivityTimelineItem.
+func (ati ActivityTimelineItem) AsSecurityAlertTimelineItem() (*SecurityAlertTimelineItem, bool) {
+	return nil, false
+}
+
+// AsBookmarkTimelineItem is the BasicEntityTimelineItem implementation for ActivityTimelineItem.
+func (ati ActivityTimelineItem) AsBookmarkTimelineItem() (*BookmarkTimelineItem, bool) {
+	return nil, false
+}
+
+// AsEntityTimelineItem is the BasicEntityTimelineItem implementation for ActivityTimelineItem.
+func (ati ActivityTimelineItem) AsEntityTimelineItem() (*EntityTimelineItem, bool) {
+	return nil, false
+}
+
+// AsBasicEntityTimelineItem is the BasicEntityTimelineItem implementation for ActivityTimelineItem.
+func (ati ActivityTimelineItem) AsBasicEntityTimelineItem() (BasicEntityTimelineItem, bool) {
+	return &ati, true
 }
 
 // BasicAggregations the aggregation.
@@ -1260,6 +1404,7 @@ func (am *AggregationsModel) UnmarshalJSON(body []byte) error {
 
 // BasicAlertRule alert rule.
 type BasicAlertRule interface {
+	AsMLBehaviorAnalyticsAlertRule() (*MLBehaviorAnalyticsAlertRule, bool)
 	AsFusionAlertRule() (*FusionAlertRule, bool)
 	AsMicrosoftSecurityIncidentCreationAlertRule() (*MicrosoftSecurityIncidentCreationAlertRule, bool)
 	AsScheduledAlertRule() (*ScheduledAlertRule, bool)
@@ -1277,7 +1422,7 @@ type AlertRule struct {
 	Type *string `json:"type,omitempty"`
 	// Etag - Etag of the azure resource
 	Etag *string `json:"etag,omitempty"`
-	// Kind - Possible values include: 'KindAlertRule', 'KindFusion', 'KindMicrosoftSecurityIncidentCreation', 'KindScheduled'
+	// Kind - Possible values include: 'KindAlertRule', 'KindMLBehaviorAnalytics', 'KindFusion', 'KindMicrosoftSecurityIncidentCreation', 'KindScheduled'
 	Kind KindBasicAlertRule `json:"kind,omitempty"`
 }
 
@@ -1289,6 +1434,10 @@ func unmarshalBasicAlertRule(body []byte) (BasicAlertRule, error) {
 	}
 
 	switch m["kind"] {
+	case string(KindMLBehaviorAnalytics):
+		var mbaar MLBehaviorAnalyticsAlertRule
+		err := json.Unmarshal(body, &mbaar)
+		return mbaar, err
 	case string(KindFusion):
 		var far FusionAlertRule
 		err := json.Unmarshal(body, &far)
@@ -1339,6 +1488,11 @@ func (ar AlertRule) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
+// AsMLBehaviorAnalyticsAlertRule is the BasicAlertRule implementation for AlertRule.
+func (ar AlertRule) AsMLBehaviorAnalyticsAlertRule() (*MLBehaviorAnalyticsAlertRule, bool) {
+	return nil, false
+}
+
 // AsFusionAlertRule is the BasicAlertRule implementation for AlertRule.
 func (ar AlertRule) AsFusionAlertRule() (*FusionAlertRule, bool) {
 	return nil, false
@@ -1366,7 +1520,7 @@ func (ar AlertRule) AsBasicAlertRule() (BasicAlertRule, bool) {
 
 // AlertRuleKind1 describes an Azure resource with kind.
 type AlertRuleKind1 struct {
-	// Kind - The kind of the alert rule. Possible values include: 'Scheduled', 'MicrosoftSecurityIncidentCreation', 'Fusion'
+	// Kind - The kind of the alert rule. Possible values include: 'AlertRuleKindScheduled', 'AlertRuleKindMicrosoftSecurityIncidentCreation', 'AlertRuleKindFusion', 'AlertRuleKindMLBehaviorAnalytics', 'AlertRuleKindThreatIntelligence', 'AlertRuleKindAnomaly'
 	Kind AlertRuleKind `json:"kind,omitempty"`
 }
 
@@ -1580,12 +1734,16 @@ func (page AlertRulesListPage) Values() []BasicAlertRule {
 }
 
 // Creates a new instance of the AlertRulesListPage type.
-func NewAlertRulesListPage(getNextPage func(context.Context, AlertRulesList) (AlertRulesList, error)) AlertRulesListPage {
-	return AlertRulesListPage{fn: getNextPage}
+func NewAlertRulesListPage(cur AlertRulesList, getNextPage func(context.Context, AlertRulesList) (AlertRulesList, error)) AlertRulesListPage {
+	return AlertRulesListPage{
+		fn:  getNextPage,
+		arl: cur,
+	}
 }
 
 // BasicAlertRuleTemplate alert rule template.
 type BasicAlertRuleTemplate interface {
+	AsMLBehaviorAnalyticsAlertRuleTemplate() (*MLBehaviorAnalyticsAlertRuleTemplate, bool)
 	AsFusionAlertRuleTemplate() (*FusionAlertRuleTemplate, bool)
 	AsMicrosoftSecurityIncidentCreationAlertRuleTemplate() (*MicrosoftSecurityIncidentCreationAlertRuleTemplate, bool)
 	AsScheduledAlertRuleTemplate() (*ScheduledAlertRuleTemplate, bool)
@@ -1601,7 +1759,7 @@ type AlertRuleTemplate struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Azure resource type
 	Type *string `json:"type,omitempty"`
-	// Kind - Possible values include: 'KindBasicAlertRuleTemplateKindAlertRuleTemplate', 'KindBasicAlertRuleTemplateKindFusion', 'KindBasicAlertRuleTemplateKindMicrosoftSecurityIncidentCreation', 'KindBasicAlertRuleTemplateKindScheduled'
+	// Kind - Possible values include: 'KindBasicAlertRuleTemplateKindAlertRuleTemplate', 'KindBasicAlertRuleTemplateKindMLBehaviorAnalytics', 'KindBasicAlertRuleTemplateKindFusion', 'KindBasicAlertRuleTemplateKindMicrosoftSecurityIncidentCreation', 'KindBasicAlertRuleTemplateKindScheduled'
 	Kind KindBasicAlertRuleTemplate `json:"kind,omitempty"`
 }
 
@@ -1613,6 +1771,10 @@ func unmarshalBasicAlertRuleTemplate(body []byte) (BasicAlertRuleTemplate, error
 	}
 
 	switch m["kind"] {
+	case string(KindBasicAlertRuleTemplateKindMLBehaviorAnalytics):
+		var mbaart MLBehaviorAnalyticsAlertRuleTemplate
+		err := json.Unmarshal(body, &mbaart)
+		return mbaart, err
 	case string(KindBasicAlertRuleTemplateKindFusion):
 		var fart FusionAlertRuleTemplate
 		err := json.Unmarshal(body, &fart)
@@ -1658,6 +1820,11 @@ func (art AlertRuleTemplate) MarshalJSON() ([]byte, error) {
 		objectMap["kind"] = art.Kind
 	}
 	return json.Marshal(objectMap)
+}
+
+// AsMLBehaviorAnalyticsAlertRuleTemplate is the BasicAlertRuleTemplate implementation for AlertRuleTemplate.
+func (art AlertRuleTemplate) AsMLBehaviorAnalyticsAlertRuleTemplate() (*MLBehaviorAnalyticsAlertRuleTemplate, bool) {
+	return nil, false
 }
 
 // AsFusionAlertRuleTemplate is the BasicAlertRuleTemplate implementation for AlertRuleTemplate.
@@ -1714,6 +1881,8 @@ func (artm *AlertRuleTemplateModel) UnmarshalJSON(body []byte) error {
 type AlertRuleTemplatePropertiesBase struct {
 	// AlertRulesCreatedByTemplateCount - the number of alert rules that were created by this template
 	AlertRulesCreatedByTemplateCount *int32 `json:"alertRulesCreatedByTemplateCount,omitempty"`
+	// LastUpdatedDateUTC - READ-ONLY; The last time that this alert rule template has been updated.
+	LastUpdatedDateUTC *date.Time `json:"lastUpdatedDateUTC,omitempty"`
 	// CreatedDateUTC - READ-ONLY; The time that this alert rule template has been added.
 	CreatedDateUTC *date.Time `json:"createdDateUTC,omitempty"`
 	// Description - The description of the alert rule template.
@@ -1940,8 +2109,11 @@ func (page AlertRuleTemplatesListPage) Values() []BasicAlertRuleTemplate {
 }
 
 // Creates a new instance of the AlertRuleTemplatesListPage type.
-func NewAlertRuleTemplatesListPage(getNextPage func(context.Context, AlertRuleTemplatesList) (AlertRuleTemplatesList, error)) AlertRuleTemplatesListPage {
-	return AlertRuleTemplatesListPage{fn: getNextPage}
+func NewAlertRuleTemplatesListPage(cur AlertRuleTemplatesList, getNextPage func(context.Context, AlertRuleTemplatesList) (AlertRuleTemplatesList, error)) AlertRuleTemplatesListPage {
+	return AlertRuleTemplatesListPage{
+		fn:   getNextPage,
+		artl: cur,
+	}
 }
 
 // AlertsDataTypeOfDataConnector alerts data type for data connectors.
@@ -1960,7 +2132,7 @@ type AlertsDataTypeOfDataConnectorAlerts struct {
 type ASCCheckRequirements struct {
 	// ASCCheckRequirementsProperties - ASC (Azure Security Center) requirements check properties.
 	*ASCCheckRequirementsProperties `json:"properties,omitempty"`
-	// Kind - Possible values include: 'KindBasicDataConnectorsCheckRequirementsKindDataConnectorsCheckRequirements', 'KindBasicDataConnectorsCheckRequirementsKindAzureActiveDirectory', 'KindBasicDataConnectorsCheckRequirementsKindAzureAdvancedThreatProtection', 'KindBasicDataConnectorsCheckRequirementsKindAzureSecurityCenter', 'KindBasicDataConnectorsCheckRequirementsKindAmazonWebServicesCloudTrail', 'KindBasicDataConnectorsCheckRequirementsKindMicrosoftCloudAppSecurity', 'KindBasicDataConnectorsCheckRequirementsKindMicrosoftDefenderAdvancedThreatProtection', 'KindBasicDataConnectorsCheckRequirementsKindThreatIntelligence', 'KindBasicDataConnectorsCheckRequirementsKindThreatIntelligenceTaxii'
+	// Kind - Possible values include: 'KindBasicDataConnectorsCheckRequirementsKindDataConnectorsCheckRequirements', 'KindBasicDataConnectorsCheckRequirementsKindAzureActiveDirectory', 'KindBasicDataConnectorsCheckRequirementsKindAzureAdvancedThreatProtection', 'KindBasicDataConnectorsCheckRequirementsKindAzureSecurityCenter', 'KindBasicDataConnectorsCheckRequirementsKindAmazonWebServicesCloudTrail', 'KindBasicDataConnectorsCheckRequirementsKindDynamics365', 'KindBasicDataConnectorsCheckRequirementsKindMicrosoftCloudAppSecurity', 'KindBasicDataConnectorsCheckRequirementsKindMicrosoftDefenderAdvancedThreatProtection', 'KindBasicDataConnectorsCheckRequirementsKindOfficeATP', 'KindBasicDataConnectorsCheckRequirementsKindThreatIntelligence', 'KindBasicDataConnectorsCheckRequirementsKindThreatIntelligenceTaxii'
 	Kind KindBasicDataConnectorsCheckRequirements `json:"kind,omitempty"`
 }
 
@@ -1997,6 +2169,11 @@ func (acr ASCCheckRequirements) AsAwsCloudTrailCheckRequirements() (*AwsCloudTra
 	return nil, false
 }
 
+// AsDynamics365CheckRequirements is the BasicDataConnectorsCheckRequirements implementation for ASCCheckRequirements.
+func (acr ASCCheckRequirements) AsDynamics365CheckRequirements() (*Dynamics365CheckRequirements, bool) {
+	return nil, false
+}
+
 // AsMCASCheckRequirements is the BasicDataConnectorsCheckRequirements implementation for ASCCheckRequirements.
 func (acr ASCCheckRequirements) AsMCASCheckRequirements() (*MCASCheckRequirements, bool) {
 	return nil, false
@@ -2004,6 +2181,11 @@ func (acr ASCCheckRequirements) AsMCASCheckRequirements() (*MCASCheckRequirement
 
 // AsMDATPCheckRequirements is the BasicDataConnectorsCheckRequirements implementation for ASCCheckRequirements.
 func (acr ASCCheckRequirements) AsMDATPCheckRequirements() (*MDATPCheckRequirements, bool) {
+	return nil, false
+}
+
+// AsOfficeATPCheckRequirements is the BasicDataConnectorsCheckRequirements implementation for ASCCheckRequirements.
+func (acr ASCCheckRequirements) AsOfficeATPCheckRequirements() (*OfficeATPCheckRequirements, bool) {
 	return nil, false
 }
 
@@ -2078,7 +2260,7 @@ type ASCDataConnector struct {
 	Type *string `json:"type,omitempty"`
 	// Etag - Etag of the azure resource
 	Etag *string `json:"etag,omitempty"`
-	// Kind - Possible values include: 'KindDataConnector', 'KindAzureActiveDirectory', 'KindAzureAdvancedThreatProtection', 'KindAzureSecurityCenter', 'KindAmazonWebServicesCloudTrail', 'KindMicrosoftCloudAppSecurity', 'KindMicrosoftDefenderAdvancedThreatProtection', 'KindOffice365', 'KindThreatIntelligence', 'KindThreatIntelligenceTaxii'
+	// Kind - Possible values include: 'KindDataConnector', 'KindAzureActiveDirectory', 'KindAzureAdvancedThreatProtection', 'KindAzureSecurityCenter', 'KindAmazonWebServicesCloudTrail', 'KindDynamics365', 'KindMicrosoftCloudAppSecurity', 'KindMicrosoftDefenderAdvancedThreatProtection', 'KindOfficeATP', 'KindOffice365', 'KindThreatIntelligence', 'KindThreatIntelligenceTaxii'
 	Kind KindBasicDataConnector `json:"kind,omitempty"`
 }
 
@@ -2118,6 +2300,11 @@ func (adc ASCDataConnector) AsAwsCloudTrailDataConnector() (*AwsCloudTrailDataCo
 	return nil, false
 }
 
+// AsDynamics365DataConnector is the BasicDataConnector implementation for ASCDataConnector.
+func (adc ASCDataConnector) AsDynamics365DataConnector() (*Dynamics365DataConnector, bool) {
+	return nil, false
+}
+
 // AsMCASDataConnector is the BasicDataConnector implementation for ASCDataConnector.
 func (adc ASCDataConnector) AsMCASDataConnector() (*MCASDataConnector, bool) {
 	return nil, false
@@ -2125,6 +2312,11 @@ func (adc ASCDataConnector) AsMCASDataConnector() (*MCASDataConnector, bool) {
 
 // AsMDATPDataConnector is the BasicDataConnector implementation for ASCDataConnector.
 func (adc ASCDataConnector) AsMDATPDataConnector() (*MDATPDataConnector, bool) {
+	return nil, false
+}
+
+// AsOfficeATPDataConnector is the BasicDataConnector implementation for ASCDataConnector.
+func (adc ASCDataConnector) AsOfficeATPDataConnector() (*OfficeATPDataConnector, bool) {
 	return nil, false
 }
 
@@ -2232,7 +2424,7 @@ type ASCDataConnectorProperties struct {
 
 // AwsCloudTrailCheckRequirements amazon Web Services CloudTrail requirements check request.
 type AwsCloudTrailCheckRequirements struct {
-	// Kind - Possible values include: 'KindBasicDataConnectorsCheckRequirementsKindDataConnectorsCheckRequirements', 'KindBasicDataConnectorsCheckRequirementsKindAzureActiveDirectory', 'KindBasicDataConnectorsCheckRequirementsKindAzureAdvancedThreatProtection', 'KindBasicDataConnectorsCheckRequirementsKindAzureSecurityCenter', 'KindBasicDataConnectorsCheckRequirementsKindAmazonWebServicesCloudTrail', 'KindBasicDataConnectorsCheckRequirementsKindMicrosoftCloudAppSecurity', 'KindBasicDataConnectorsCheckRequirementsKindMicrosoftDefenderAdvancedThreatProtection', 'KindBasicDataConnectorsCheckRequirementsKindThreatIntelligence', 'KindBasicDataConnectorsCheckRequirementsKindThreatIntelligenceTaxii'
+	// Kind - Possible values include: 'KindBasicDataConnectorsCheckRequirementsKindDataConnectorsCheckRequirements', 'KindBasicDataConnectorsCheckRequirementsKindAzureActiveDirectory', 'KindBasicDataConnectorsCheckRequirementsKindAzureAdvancedThreatProtection', 'KindBasicDataConnectorsCheckRequirementsKindAzureSecurityCenter', 'KindBasicDataConnectorsCheckRequirementsKindAmazonWebServicesCloudTrail', 'KindBasicDataConnectorsCheckRequirementsKindDynamics365', 'KindBasicDataConnectorsCheckRequirementsKindMicrosoftCloudAppSecurity', 'KindBasicDataConnectorsCheckRequirementsKindMicrosoftDefenderAdvancedThreatProtection', 'KindBasicDataConnectorsCheckRequirementsKindOfficeATP', 'KindBasicDataConnectorsCheckRequirementsKindThreatIntelligence', 'KindBasicDataConnectorsCheckRequirementsKindThreatIntelligenceTaxii'
 	Kind KindBasicDataConnectorsCheckRequirements `json:"kind,omitempty"`
 }
 
@@ -2266,6 +2458,11 @@ func (actcr AwsCloudTrailCheckRequirements) AsAwsCloudTrailCheckRequirements() (
 	return &actcr, true
 }
 
+// AsDynamics365CheckRequirements is the BasicDataConnectorsCheckRequirements implementation for AwsCloudTrailCheckRequirements.
+func (actcr AwsCloudTrailCheckRequirements) AsDynamics365CheckRequirements() (*Dynamics365CheckRequirements, bool) {
+	return nil, false
+}
+
 // AsMCASCheckRequirements is the BasicDataConnectorsCheckRequirements implementation for AwsCloudTrailCheckRequirements.
 func (actcr AwsCloudTrailCheckRequirements) AsMCASCheckRequirements() (*MCASCheckRequirements, bool) {
 	return nil, false
@@ -2273,6 +2470,11 @@ func (actcr AwsCloudTrailCheckRequirements) AsMCASCheckRequirements() (*MCASChec
 
 // AsMDATPCheckRequirements is the BasicDataConnectorsCheckRequirements implementation for AwsCloudTrailCheckRequirements.
 func (actcr AwsCloudTrailCheckRequirements) AsMDATPCheckRequirements() (*MDATPCheckRequirements, bool) {
+	return nil, false
+}
+
+// AsOfficeATPCheckRequirements is the BasicDataConnectorsCheckRequirements implementation for AwsCloudTrailCheckRequirements.
+func (actcr AwsCloudTrailCheckRequirements) AsOfficeATPCheckRequirements() (*OfficeATPCheckRequirements, bool) {
 	return nil, false
 }
 
@@ -2308,7 +2510,7 @@ type AwsCloudTrailDataConnector struct {
 	Type *string `json:"type,omitempty"`
 	// Etag - Etag of the azure resource
 	Etag *string `json:"etag,omitempty"`
-	// Kind - Possible values include: 'KindDataConnector', 'KindAzureActiveDirectory', 'KindAzureAdvancedThreatProtection', 'KindAzureSecurityCenter', 'KindAmazonWebServicesCloudTrail', 'KindMicrosoftCloudAppSecurity', 'KindMicrosoftDefenderAdvancedThreatProtection', 'KindOffice365', 'KindThreatIntelligence', 'KindThreatIntelligenceTaxii'
+	// Kind - Possible values include: 'KindDataConnector', 'KindAzureActiveDirectory', 'KindAzureAdvancedThreatProtection', 'KindAzureSecurityCenter', 'KindAmazonWebServicesCloudTrail', 'KindDynamics365', 'KindMicrosoftCloudAppSecurity', 'KindMicrosoftDefenderAdvancedThreatProtection', 'KindOfficeATP', 'KindOffice365', 'KindThreatIntelligence', 'KindThreatIntelligenceTaxii'
 	Kind KindBasicDataConnector `json:"kind,omitempty"`
 }
 
@@ -2348,6 +2550,11 @@ func (actdc AwsCloudTrailDataConnector) AsAwsCloudTrailDataConnector() (*AwsClou
 	return &actdc, true
 }
 
+// AsDynamics365DataConnector is the BasicDataConnector implementation for AwsCloudTrailDataConnector.
+func (actdc AwsCloudTrailDataConnector) AsDynamics365DataConnector() (*Dynamics365DataConnector, bool) {
+	return nil, false
+}
+
 // AsMCASDataConnector is the BasicDataConnector implementation for AwsCloudTrailDataConnector.
 func (actdc AwsCloudTrailDataConnector) AsMCASDataConnector() (*MCASDataConnector, bool) {
 	return nil, false
@@ -2355,6 +2562,11 @@ func (actdc AwsCloudTrailDataConnector) AsMCASDataConnector() (*MCASDataConnecto
 
 // AsMDATPDataConnector is the BasicDataConnector implementation for AwsCloudTrailDataConnector.
 func (actdc AwsCloudTrailDataConnector) AsMDATPDataConnector() (*MDATPDataConnector, bool) {
+	return nil, false
+}
+
+// AsOfficeATPDataConnector is the BasicDataConnector implementation for AwsCloudTrailDataConnector.
+func (actdc AwsCloudTrailDataConnector) AsOfficeATPDataConnector() (*OfficeATPDataConnector, bool) {
 	return nil, false
 }
 
@@ -2483,7 +2695,7 @@ type AzureResourceEntity struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Azure resource type
 	Type *string `json:"type,omitempty"`
-	// Kind - Possible values include: 'KindEntity', 'KindAccount', 'KindAzureResource', 'KindCloudApplication', 'KindDNSResolution', 'KindFile', 'KindFileHash', 'KindHost', 'KindIP', 'KindMalware', 'KindProcess', 'KindRegistryKey', 'KindRegistryValue', 'KindSecurityAlert', 'KindSecurityGroup', 'KindURL', 'KindIoTDevice'
+	// Kind - Possible values include: 'KindEntity', 'KindAccount', 'KindAzureResource', 'KindCloudApplication', 'KindDNSResolution', 'KindFile', 'KindFileHash', 'KindHost', 'KindBookmark', 'KindSecurityAlert', 'KindIP', 'KindMailbox', 'KindMailCluster', 'KindMailMessage', 'KindSubmissionMail', 'KindMalware', 'KindProcess', 'KindRegistryKey', 'KindRegistryValue', 'KindSecurityGroup', 'KindURL', 'KindIoTDevice'
 	Kind KindBasicEntity `json:"kind,omitempty"`
 }
 
@@ -2535,8 +2747,38 @@ func (are AzureResourceEntity) AsHostEntity() (*HostEntity, bool) {
 	return nil, false
 }
 
+// AsHuntingBookmark is the BasicEntity implementation for AzureResourceEntity.
+func (are AzureResourceEntity) AsHuntingBookmark() (*HuntingBookmark, bool) {
+	return nil, false
+}
+
+// AsSecurityAlert is the BasicEntity implementation for AzureResourceEntity.
+func (are AzureResourceEntity) AsSecurityAlert() (*SecurityAlert, bool) {
+	return nil, false
+}
+
 // AsIPEntity is the BasicEntity implementation for AzureResourceEntity.
 func (are AzureResourceEntity) AsIPEntity() (*IPEntity, bool) {
+	return nil, false
+}
+
+// AsMailboxEntity is the BasicEntity implementation for AzureResourceEntity.
+func (are AzureResourceEntity) AsMailboxEntity() (*MailboxEntity, bool) {
+	return nil, false
+}
+
+// AsMailClusterEntity is the BasicEntity implementation for AzureResourceEntity.
+func (are AzureResourceEntity) AsMailClusterEntity() (*MailClusterEntity, bool) {
+	return nil, false
+}
+
+// AsMailMessageEntity is the BasicEntity implementation for AzureResourceEntity.
+func (are AzureResourceEntity) AsMailMessageEntity() (*MailMessageEntity, bool) {
+	return nil, false
+}
+
+// AsSubmissionMailEntity is the BasicEntity implementation for AzureResourceEntity.
+func (are AzureResourceEntity) AsSubmissionMailEntity() (*SubmissionMailEntity, bool) {
 	return nil, false
 }
 
@@ -2557,11 +2799,6 @@ func (are AzureResourceEntity) AsRegistryKeyEntity() (*RegistryKeyEntity, bool) 
 
 // AsRegistryValueEntity is the BasicEntity implementation for AzureResourceEntity.
 func (are AzureResourceEntity) AsRegistryValueEntity() (*RegistryValueEntity, bool) {
-	return nil, false
-}
-
-// AsSecurityAlert is the BasicEntity implementation for AzureResourceEntity.
-func (are AzureResourceEntity) AsSecurityAlert() (*SecurityAlert, bool) {
 	return nil, false
 }
 
@@ -2964,8 +3201,11 @@ func (page BookmarkListPage) Values() []Bookmark {
 }
 
 // Creates a new instance of the BookmarkListPage type.
-func NewBookmarkListPage(getNextPage func(context.Context, BookmarkList) (BookmarkList, error)) BookmarkListPage {
-	return BookmarkListPage{fn: getNextPage}
+func NewBookmarkListPage(cur BookmarkList, getNextPage func(context.Context, BookmarkList) (BookmarkList, error)) BookmarkListPage {
+	return BookmarkListPage{
+		fn: getNextPage,
+		bl: cur,
+	}
 }
 
 // BookmarkProperties describes bookmark properties
@@ -2990,6 +3230,87 @@ type BookmarkProperties struct {
 	UpdatedBy *UserInfo `json:"updatedBy,omitempty"`
 	// IncidentInfo - Describes an incident that relates to bookmark
 	IncidentInfo *IncidentInfo `json:"incidentInfo,omitempty"`
+}
+
+// BookmarkTimelineItem represents bookmark timeline item.
+type BookmarkTimelineItem struct {
+	// AzureResourceID - The bookmark azure resource id.
+	AzureResourceID *string `json:"azureResourceId,omitempty"`
+	// DisplayName - The bookmark display name.
+	DisplayName *string `json:"displayName,omitempty"`
+	// Notes - The notes of the bookmark
+	Notes *string `json:"notes,omitempty"`
+	// EndTimeUtc - The bookmark end time.
+	EndTimeUtc *date.Time `json:"endTimeUtc,omitempty"`
+	// StartTimeUtc - TThe bookmark start time.
+	StartTimeUtc *date.Time `json:"startTimeUtc,omitempty"`
+	// EventTime - The bookmark event time.
+	EventTime *date.Time `json:"eventTime,omitempty"`
+	// CreatedBy - Describes a user that created the bookmark
+	CreatedBy *UserInfo `json:"createdBy,omitempty"`
+	// Labels - List of labels relevant to this bookmark
+	Labels *[]string `json:"labels,omitempty"`
+	// Kind - Possible values include: 'KindBasicEntityTimelineItemKindEntityTimelineItem', 'KindBasicEntityTimelineItemKindActivity', 'KindBasicEntityTimelineItemKindSecurityAlert', 'KindBasicEntityTimelineItemKindBookmark'
+	Kind KindBasicEntityTimelineItem `json:"kind,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for BookmarkTimelineItem.
+func (bti BookmarkTimelineItem) MarshalJSON() ([]byte, error) {
+	bti.Kind = KindBasicEntityTimelineItemKindBookmark
+	objectMap := make(map[string]interface{})
+	if bti.AzureResourceID != nil {
+		objectMap["azureResourceId"] = bti.AzureResourceID
+	}
+	if bti.DisplayName != nil {
+		objectMap["displayName"] = bti.DisplayName
+	}
+	if bti.Notes != nil {
+		objectMap["notes"] = bti.Notes
+	}
+	if bti.EndTimeUtc != nil {
+		objectMap["endTimeUtc"] = bti.EndTimeUtc
+	}
+	if bti.StartTimeUtc != nil {
+		objectMap["startTimeUtc"] = bti.StartTimeUtc
+	}
+	if bti.EventTime != nil {
+		objectMap["eventTime"] = bti.EventTime
+	}
+	if bti.CreatedBy != nil {
+		objectMap["createdBy"] = bti.CreatedBy
+	}
+	if bti.Labels != nil {
+		objectMap["labels"] = bti.Labels
+	}
+	if bti.Kind != "" {
+		objectMap["kind"] = bti.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsActivityTimelineItem is the BasicEntityTimelineItem implementation for BookmarkTimelineItem.
+func (bti BookmarkTimelineItem) AsActivityTimelineItem() (*ActivityTimelineItem, bool) {
+	return nil, false
+}
+
+// AsSecurityAlertTimelineItem is the BasicEntityTimelineItem implementation for BookmarkTimelineItem.
+func (bti BookmarkTimelineItem) AsSecurityAlertTimelineItem() (*SecurityAlertTimelineItem, bool) {
+	return nil, false
+}
+
+// AsBookmarkTimelineItem is the BasicEntityTimelineItem implementation for BookmarkTimelineItem.
+func (bti BookmarkTimelineItem) AsBookmarkTimelineItem() (*BookmarkTimelineItem, bool) {
+	return &bti, true
+}
+
+// AsEntityTimelineItem is the BasicEntityTimelineItem implementation for BookmarkTimelineItem.
+func (bti BookmarkTimelineItem) AsEntityTimelineItem() (*EntityTimelineItem, bool) {
+	return nil, false
+}
+
+// AsBasicEntityTimelineItem is the BasicEntityTimelineItem implementation for BookmarkTimelineItem.
+func (bti BookmarkTimelineItem) AsBasicEntityTimelineItem() (BasicEntityTimelineItem, bool) {
+	return &bti, true
 }
 
 // Case represents a case in Azure Security Insights.
@@ -3313,8 +3634,11 @@ func (page CaseCommentListPage) Values() []CaseComment {
 }
 
 // Creates a new instance of the CaseCommentListPage type.
-func NewCaseCommentListPage(getNextPage func(context.Context, CaseCommentList) (CaseCommentList, error)) CaseCommentListPage {
-	return CaseCommentListPage{fn: getNextPage}
+func NewCaseCommentListPage(cur CaseCommentList, getNextPage func(context.Context, CaseCommentList) (CaseCommentList, error)) CaseCommentListPage {
+	return CaseCommentListPage{
+		fn:  getNextPage,
+		ccl: cur,
+	}
 }
 
 // CaseCommentProperties case comment property bag.
@@ -3497,8 +3821,11 @@ func (page CaseListPage) Values() []Case {
 }
 
 // Creates a new instance of the CaseListPage type.
-func NewCaseListPage(getNextPage func(context.Context, CaseList) (CaseList, error)) CaseListPage {
-	return CaseListPage{fn: getNextPage}
+func NewCaseListPage(cur CaseList, getNextPage func(context.Context, CaseList) (CaseList, error)) CaseListPage {
+	return CaseListPage{
+		fn: getNextPage,
+		cl: cur,
+	}
 }
 
 // CaseProperties describes case properties
@@ -3521,10 +3848,14 @@ type CaseProperties struct {
 	LastComment *string `json:"lastComment,omitempty"`
 	// LastUpdatedTimeUtc - READ-ONLY; The last time the case was updated
 	LastUpdatedTimeUtc *date.Time `json:"lastUpdatedTimeUtc,omitempty"`
+	// Metrics - READ-ONLY; Dictionary of metrics, for example the number of alerts in the case
+	Metrics map[string]*int32 `json:"metrics"`
 	// Owner - Describes a user that the case is assigned to
 	Owner *UserInfo `json:"owner,omitempty"`
 	// RelatedAlertIds - READ-ONLY; List of related alert identifiers
 	RelatedAlertIds *[]string `json:"relatedAlertIds,omitempty"`
+	// RelatedAlertProductNames - READ-ONLY; List of related alert product names
+	RelatedAlertProductNames *[]string `json:"relatedAlertProductNames,omitempty"`
 	// Tactics - READ-ONLY; The tactics associated with case
 	Tactics *[]AttackTactic `json:"tactics,omitempty"`
 	// Severity - The severity of the case. Possible values include: 'CaseSeverityCritical', 'CaseSeverityHigh', 'CaseSeverityMedium', 'CaseSeverityLow', 'CaseSeverityInformational'
@@ -3834,8 +4165,11 @@ func (page CaseRelationListPage) Values() []CaseRelation {
 }
 
 // Creates a new instance of the CaseRelationListPage type.
-func NewCaseRelationListPage(getNextPage func(context.Context, CaseRelationList) (CaseRelationList, error)) CaseRelationListPage {
-	return CaseRelationListPage{fn: getNextPage}
+func NewCaseRelationListPage(cur CaseRelationList, getNextPage func(context.Context, CaseRelationList) (CaseRelationList, error)) CaseRelationListPage {
+	return CaseRelationListPage{
+		fn:  getNextPage,
+		crl: cur,
+	}
 }
 
 // CaseRelationProperties case relation properties
@@ -3968,14 +4302,18 @@ type CasesAggregationBySeverityProperties struct {
 
 // CasesAggregationByStatusProperties aggregative results of cases by status property bag.
 type CasesAggregationByStatusProperties struct {
-	// TotalDismissedStatus - READ-ONLY; Total amount of open cases with status Dismissed
+	// TotalDismissedStatus - READ-ONLY; Total amount of closed cases with status Dismissed
 	TotalDismissedStatus *int32 `json:"totalDismissedStatus,omitempty"`
 	// TotalInProgressStatus - READ-ONLY; Total amount of open cases with status InProgress
 	TotalInProgressStatus *int32 `json:"totalInProgressStatus,omitempty"`
 	// TotalNewStatus - READ-ONLY; Total amount of open cases with status New
 	TotalNewStatus *int32 `json:"totalNewStatus,omitempty"`
-	// TotalResolvedStatus - READ-ONLY; Total amount of open cases with status Resolved
+	// TotalResolvedStatus - READ-ONLY; Total amount of closed cases with status Resolved
 	TotalResolvedStatus *int32 `json:"totalResolvedStatus,omitempty"`
+	// TotalFalsePositiveStatus - READ-ONLY; Total amount of closed cases with status Closed and Close reason of False positive
+	TotalFalsePositiveStatus *int32 `json:"totalFalsePositiveStatus,omitempty"`
+	// TotalTruePositiveStatus - READ-ONLY; Total amount of closed cases with status Closed and Close reason of True positive
+	TotalTruePositiveStatus *int32 `json:"totalTruePositiveStatus,omitempty"`
 }
 
 // CasesAggregationProperties aggregative results of cases property bag.
@@ -4008,7 +4346,7 @@ type CloudApplicationEntity struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Azure resource type
 	Type *string `json:"type,omitempty"`
-	// Kind - Possible values include: 'KindEntity', 'KindAccount', 'KindAzureResource', 'KindCloudApplication', 'KindDNSResolution', 'KindFile', 'KindFileHash', 'KindHost', 'KindIP', 'KindMalware', 'KindProcess', 'KindRegistryKey', 'KindRegistryValue', 'KindSecurityAlert', 'KindSecurityGroup', 'KindURL', 'KindIoTDevice'
+	// Kind - Possible values include: 'KindEntity', 'KindAccount', 'KindAzureResource', 'KindCloudApplication', 'KindDNSResolution', 'KindFile', 'KindFileHash', 'KindHost', 'KindBookmark', 'KindSecurityAlert', 'KindIP', 'KindMailbox', 'KindMailCluster', 'KindMailMessage', 'KindSubmissionMail', 'KindMalware', 'KindProcess', 'KindRegistryKey', 'KindRegistryValue', 'KindSecurityGroup', 'KindURL', 'KindIoTDevice'
 	Kind KindBasicEntity `json:"kind,omitempty"`
 }
 
@@ -4060,8 +4398,38 @@ func (cae CloudApplicationEntity) AsHostEntity() (*HostEntity, bool) {
 	return nil, false
 }
 
+// AsHuntingBookmark is the BasicEntity implementation for CloudApplicationEntity.
+func (cae CloudApplicationEntity) AsHuntingBookmark() (*HuntingBookmark, bool) {
+	return nil, false
+}
+
+// AsSecurityAlert is the BasicEntity implementation for CloudApplicationEntity.
+func (cae CloudApplicationEntity) AsSecurityAlert() (*SecurityAlert, bool) {
+	return nil, false
+}
+
 // AsIPEntity is the BasicEntity implementation for CloudApplicationEntity.
 func (cae CloudApplicationEntity) AsIPEntity() (*IPEntity, bool) {
+	return nil, false
+}
+
+// AsMailboxEntity is the BasicEntity implementation for CloudApplicationEntity.
+func (cae CloudApplicationEntity) AsMailboxEntity() (*MailboxEntity, bool) {
+	return nil, false
+}
+
+// AsMailClusterEntity is the BasicEntity implementation for CloudApplicationEntity.
+func (cae CloudApplicationEntity) AsMailClusterEntity() (*MailClusterEntity, bool) {
+	return nil, false
+}
+
+// AsMailMessageEntity is the BasicEntity implementation for CloudApplicationEntity.
+func (cae CloudApplicationEntity) AsMailMessageEntity() (*MailMessageEntity, bool) {
+	return nil, false
+}
+
+// AsSubmissionMailEntity is the BasicEntity implementation for CloudApplicationEntity.
+func (cae CloudApplicationEntity) AsSubmissionMailEntity() (*SubmissionMailEntity, bool) {
 	return nil, false
 }
 
@@ -4082,11 +4450,6 @@ func (cae CloudApplicationEntity) AsRegistryKeyEntity() (*RegistryKeyEntity, boo
 
 // AsRegistryValueEntity is the BasicEntity implementation for CloudApplicationEntity.
 func (cae CloudApplicationEntity) AsRegistryValueEntity() (*RegistryValueEntity, bool) {
-	return nil, false
-}
-
-// AsSecurityAlert is the BasicEntity implementation for CloudApplicationEntity.
-func (cae CloudApplicationEntity) AsSecurityAlert() (*SecurityAlert, bool) {
 	return nil, false
 }
 
@@ -4248,8 +4611,10 @@ type BasicDataConnector interface {
 	AsAATPDataConnector() (*AATPDataConnector, bool)
 	AsASCDataConnector() (*ASCDataConnector, bool)
 	AsAwsCloudTrailDataConnector() (*AwsCloudTrailDataConnector, bool)
+	AsDynamics365DataConnector() (*Dynamics365DataConnector, bool)
 	AsMCASDataConnector() (*MCASDataConnector, bool)
 	AsMDATPDataConnector() (*MDATPDataConnector, bool)
+	AsOfficeATPDataConnector() (*OfficeATPDataConnector, bool)
 	AsOfficeDataConnector() (*OfficeDataConnector, bool)
 	AsTIDataConnector() (*TIDataConnector, bool)
 	AsTiTaxiiDataConnector() (*TiTaxiiDataConnector, bool)
@@ -4267,7 +4632,7 @@ type DataConnector struct {
 	Type *string `json:"type,omitempty"`
 	// Etag - Etag of the azure resource
 	Etag *string `json:"etag,omitempty"`
-	// Kind - Possible values include: 'KindDataConnector', 'KindAzureActiveDirectory', 'KindAzureAdvancedThreatProtection', 'KindAzureSecurityCenter', 'KindAmazonWebServicesCloudTrail', 'KindMicrosoftCloudAppSecurity', 'KindMicrosoftDefenderAdvancedThreatProtection', 'KindOffice365', 'KindThreatIntelligence', 'KindThreatIntelligenceTaxii'
+	// Kind - Possible values include: 'KindDataConnector', 'KindAzureActiveDirectory', 'KindAzureAdvancedThreatProtection', 'KindAzureSecurityCenter', 'KindAmazonWebServicesCloudTrail', 'KindDynamics365', 'KindMicrosoftCloudAppSecurity', 'KindMicrosoftDefenderAdvancedThreatProtection', 'KindOfficeATP', 'KindOffice365', 'KindThreatIntelligence', 'KindThreatIntelligenceTaxii'
 	Kind KindBasicDataConnector `json:"kind,omitempty"`
 }
 
@@ -4295,6 +4660,10 @@ func unmarshalBasicDataConnector(body []byte) (BasicDataConnector, error) {
 		var actdc AwsCloudTrailDataConnector
 		err := json.Unmarshal(body, &actdc)
 		return actdc, err
+	case string(KindDynamics365):
+		var d3dc Dynamics365DataConnector
+		err := json.Unmarshal(body, &d3dc)
+		return d3dc, err
 	case string(KindMicrosoftCloudAppSecurity):
 		var mdc MCASDataConnector
 		err := json.Unmarshal(body, &mdc)
@@ -4303,6 +4672,10 @@ func unmarshalBasicDataConnector(body []byte) (BasicDataConnector, error) {
 		var mdc MDATPDataConnector
 		err := json.Unmarshal(body, &mdc)
 		return mdc, err
+	case string(KindOfficeATP):
+		var oadc OfficeATPDataConnector
+		err := json.Unmarshal(body, &oadc)
+		return oadc, err
 	case string(KindOffice365):
 		var odc OfficeDataConnector
 		err := json.Unmarshal(body, &odc)
@@ -4373,6 +4746,11 @@ func (dc DataConnector) AsAwsCloudTrailDataConnector() (*AwsCloudTrailDataConnec
 	return nil, false
 }
 
+// AsDynamics365DataConnector is the BasicDataConnector implementation for DataConnector.
+func (dc DataConnector) AsDynamics365DataConnector() (*Dynamics365DataConnector, bool) {
+	return nil, false
+}
+
 // AsMCASDataConnector is the BasicDataConnector implementation for DataConnector.
 func (dc DataConnector) AsMCASDataConnector() (*MCASDataConnector, bool) {
 	return nil, false
@@ -4380,6 +4758,11 @@ func (dc DataConnector) AsMCASDataConnector() (*MCASDataConnector, bool) {
 
 // AsMDATPDataConnector is the BasicDataConnector implementation for DataConnector.
 func (dc DataConnector) AsMDATPDataConnector() (*MDATPDataConnector, bool) {
+	return nil, false
+}
+
+// AsOfficeATPDataConnector is the BasicDataConnector implementation for DataConnector.
+func (dc DataConnector) AsOfficeATPDataConnector() (*OfficeATPDataConnector, bool) {
 	return nil, false
 }
 
@@ -4416,7 +4799,7 @@ type DataConnectorDataTypeCommon struct {
 
 // DataConnectorKind1 describes an Azure resource with kind.
 type DataConnectorKind1 struct {
-	// Kind - The kind of the data connector. Possible values include: 'DataConnectorKindAzureActiveDirectory', 'DataConnectorKindAzureSecurityCenter', 'DataConnectorKindMicrosoftCloudAppSecurity', 'DataConnectorKindThreatIntelligence', 'DataConnectorKindThreatIntelligenceTaxii', 'DataConnectorKindOffice365', 'DataConnectorKindAmazonWebServicesCloudTrail', 'DataConnectorKindAzureAdvancedThreatProtection', 'DataConnectorKindMicrosoftDefenderAdvancedThreatProtection'
+	// Kind - The kind of the data connector. Possible values include: 'DataConnectorKindAzureActiveDirectory', 'DataConnectorKindAzureSecurityCenter', 'DataConnectorKindMicrosoftCloudAppSecurity', 'DataConnectorKindThreatIntelligence', 'DataConnectorKindThreatIntelligenceTaxii', 'DataConnectorKindOffice365', 'DataConnectorKindOfficeATP', 'DataConnectorKindAmazonWebServicesCloudTrail', 'DataConnectorKindAzureAdvancedThreatProtection', 'DataConnectorKindMicrosoftDefenderAdvancedThreatProtection', 'DataConnectorKindDynamics365'
 	Kind DataConnectorKind `json:"kind,omitempty"`
 }
 
@@ -4613,8 +4996,11 @@ func (page DataConnectorListPage) Values() []BasicDataConnector {
 }
 
 // Creates a new instance of the DataConnectorListPage type.
-func NewDataConnectorListPage(getNextPage func(context.Context, DataConnectorList) (DataConnectorList, error)) DataConnectorListPage {
-	return DataConnectorListPage{fn: getNextPage}
+func NewDataConnectorListPage(cur DataConnectorList, getNextPage func(context.Context, DataConnectorList) (DataConnectorList, error)) DataConnectorListPage {
+	return DataConnectorListPage{
+		fn:  getNextPage,
+		dcl: cur,
+	}
 }
 
 // DataConnectorModel ...
@@ -4649,8 +5035,10 @@ type BasicDataConnectorsCheckRequirements interface {
 	AsAATPCheckRequirements() (*AATPCheckRequirements, bool)
 	AsASCCheckRequirements() (*ASCCheckRequirements, bool)
 	AsAwsCloudTrailCheckRequirements() (*AwsCloudTrailCheckRequirements, bool)
+	AsDynamics365CheckRequirements() (*Dynamics365CheckRequirements, bool)
 	AsMCASCheckRequirements() (*MCASCheckRequirements, bool)
 	AsMDATPCheckRequirements() (*MDATPCheckRequirements, bool)
+	AsOfficeATPCheckRequirements() (*OfficeATPCheckRequirements, bool)
 	AsTICheckRequirements() (*TICheckRequirements, bool)
 	AsTiTaxiiCheckRequirements() (*TiTaxiiCheckRequirements, bool)
 	AsDataConnectorsCheckRequirements() (*DataConnectorsCheckRequirements, bool)
@@ -4658,7 +5046,7 @@ type BasicDataConnectorsCheckRequirements interface {
 
 // DataConnectorsCheckRequirements data connector requirements properties.
 type DataConnectorsCheckRequirements struct {
-	// Kind - Possible values include: 'KindBasicDataConnectorsCheckRequirementsKindDataConnectorsCheckRequirements', 'KindBasicDataConnectorsCheckRequirementsKindAzureActiveDirectory', 'KindBasicDataConnectorsCheckRequirementsKindAzureAdvancedThreatProtection', 'KindBasicDataConnectorsCheckRequirementsKindAzureSecurityCenter', 'KindBasicDataConnectorsCheckRequirementsKindAmazonWebServicesCloudTrail', 'KindBasicDataConnectorsCheckRequirementsKindMicrosoftCloudAppSecurity', 'KindBasicDataConnectorsCheckRequirementsKindMicrosoftDefenderAdvancedThreatProtection', 'KindBasicDataConnectorsCheckRequirementsKindThreatIntelligence', 'KindBasicDataConnectorsCheckRequirementsKindThreatIntelligenceTaxii'
+	// Kind - Possible values include: 'KindBasicDataConnectorsCheckRequirementsKindDataConnectorsCheckRequirements', 'KindBasicDataConnectorsCheckRequirementsKindAzureActiveDirectory', 'KindBasicDataConnectorsCheckRequirementsKindAzureAdvancedThreatProtection', 'KindBasicDataConnectorsCheckRequirementsKindAzureSecurityCenter', 'KindBasicDataConnectorsCheckRequirementsKindAmazonWebServicesCloudTrail', 'KindBasicDataConnectorsCheckRequirementsKindDynamics365', 'KindBasicDataConnectorsCheckRequirementsKindMicrosoftCloudAppSecurity', 'KindBasicDataConnectorsCheckRequirementsKindMicrosoftDefenderAdvancedThreatProtection', 'KindBasicDataConnectorsCheckRequirementsKindOfficeATP', 'KindBasicDataConnectorsCheckRequirementsKindThreatIntelligence', 'KindBasicDataConnectorsCheckRequirementsKindThreatIntelligenceTaxii'
 	Kind KindBasicDataConnectorsCheckRequirements `json:"kind,omitempty"`
 }
 
@@ -4686,6 +5074,10 @@ func unmarshalBasicDataConnectorsCheckRequirements(body []byte) (BasicDataConnec
 		var actcr AwsCloudTrailCheckRequirements
 		err := json.Unmarshal(body, &actcr)
 		return actcr, err
+	case string(KindBasicDataConnectorsCheckRequirementsKindDynamics365):
+		var d3cr Dynamics365CheckRequirements
+		err := json.Unmarshal(body, &d3cr)
+		return d3cr, err
 	case string(KindBasicDataConnectorsCheckRequirementsKindMicrosoftCloudAppSecurity):
 		var mcr MCASCheckRequirements
 		err := json.Unmarshal(body, &mcr)
@@ -4694,6 +5086,10 @@ func unmarshalBasicDataConnectorsCheckRequirements(body []byte) (BasicDataConnec
 		var mcr MDATPCheckRequirements
 		err := json.Unmarshal(body, &mcr)
 		return mcr, err
+	case string(KindBasicDataConnectorsCheckRequirementsKindOfficeATP):
+		var oacr OfficeATPCheckRequirements
+		err := json.Unmarshal(body, &oacr)
+		return oacr, err
 	case string(KindBasicDataConnectorsCheckRequirementsKindThreatIntelligence):
 		var tcr TICheckRequirements
 		err := json.Unmarshal(body, &tcr)
@@ -4757,6 +5153,11 @@ func (dccr DataConnectorsCheckRequirements) AsAwsCloudTrailCheckRequirements() (
 	return nil, false
 }
 
+// AsDynamics365CheckRequirements is the BasicDataConnectorsCheckRequirements implementation for DataConnectorsCheckRequirements.
+func (dccr DataConnectorsCheckRequirements) AsDynamics365CheckRequirements() (*Dynamics365CheckRequirements, bool) {
+	return nil, false
+}
+
 // AsMCASCheckRequirements is the BasicDataConnectorsCheckRequirements implementation for DataConnectorsCheckRequirements.
 func (dccr DataConnectorsCheckRequirements) AsMCASCheckRequirements() (*MCASCheckRequirements, bool) {
 	return nil, false
@@ -4764,6 +5165,11 @@ func (dccr DataConnectorsCheckRequirements) AsMCASCheckRequirements() (*MCASChec
 
 // AsMDATPCheckRequirements is the BasicDataConnectorsCheckRequirements implementation for DataConnectorsCheckRequirements.
 func (dccr DataConnectorsCheckRequirements) AsMDATPCheckRequirements() (*MDATPCheckRequirements, bool) {
+	return nil, false
+}
+
+// AsOfficeATPCheckRequirements is the BasicDataConnectorsCheckRequirements implementation for DataConnectorsCheckRequirements.
+func (dccr DataConnectorsCheckRequirements) AsOfficeATPCheckRequirements() (*OfficeATPCheckRequirements, bool) {
 	return nil, false
 }
 
@@ -4809,7 +5215,7 @@ type DNSEntity struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Azure resource type
 	Type *string `json:"type,omitempty"`
-	// Kind - Possible values include: 'KindEntity', 'KindAccount', 'KindAzureResource', 'KindCloudApplication', 'KindDNSResolution', 'KindFile', 'KindFileHash', 'KindHost', 'KindIP', 'KindMalware', 'KindProcess', 'KindRegistryKey', 'KindRegistryValue', 'KindSecurityAlert', 'KindSecurityGroup', 'KindURL', 'KindIoTDevice'
+	// Kind - Possible values include: 'KindEntity', 'KindAccount', 'KindAzureResource', 'KindCloudApplication', 'KindDNSResolution', 'KindFile', 'KindFileHash', 'KindHost', 'KindBookmark', 'KindSecurityAlert', 'KindIP', 'KindMailbox', 'KindMailCluster', 'KindMailMessage', 'KindSubmissionMail', 'KindMalware', 'KindProcess', 'KindRegistryKey', 'KindRegistryValue', 'KindSecurityGroup', 'KindURL', 'KindIoTDevice'
 	Kind KindBasicEntity `json:"kind,omitempty"`
 }
 
@@ -4861,8 +5267,38 @@ func (de DNSEntity) AsHostEntity() (*HostEntity, bool) {
 	return nil, false
 }
 
+// AsHuntingBookmark is the BasicEntity implementation for DNSEntity.
+func (de DNSEntity) AsHuntingBookmark() (*HuntingBookmark, bool) {
+	return nil, false
+}
+
+// AsSecurityAlert is the BasicEntity implementation for DNSEntity.
+func (de DNSEntity) AsSecurityAlert() (*SecurityAlert, bool) {
+	return nil, false
+}
+
 // AsIPEntity is the BasicEntity implementation for DNSEntity.
 func (de DNSEntity) AsIPEntity() (*IPEntity, bool) {
+	return nil, false
+}
+
+// AsMailboxEntity is the BasicEntity implementation for DNSEntity.
+func (de DNSEntity) AsMailboxEntity() (*MailboxEntity, bool) {
+	return nil, false
+}
+
+// AsMailClusterEntity is the BasicEntity implementation for DNSEntity.
+func (de DNSEntity) AsMailClusterEntity() (*MailClusterEntity, bool) {
+	return nil, false
+}
+
+// AsMailMessageEntity is the BasicEntity implementation for DNSEntity.
+func (de DNSEntity) AsMailMessageEntity() (*MailMessageEntity, bool) {
+	return nil, false
+}
+
+// AsSubmissionMailEntity is the BasicEntity implementation for DNSEntity.
+func (de DNSEntity) AsSubmissionMailEntity() (*SubmissionMailEntity, bool) {
 	return nil, false
 }
 
@@ -4883,11 +5319,6 @@ func (de DNSEntity) AsRegistryKeyEntity() (*RegistryKeyEntity, bool) {
 
 // AsRegistryValueEntity is the BasicEntity implementation for DNSEntity.
 func (de DNSEntity) AsRegistryValueEntity() (*RegistryValueEntity, bool) {
-	return nil, false
-}
-
-// AsSecurityAlert is the BasicEntity implementation for DNSEntity.
-func (de DNSEntity) AsSecurityAlert() (*SecurityAlert, bool) {
 	return nil, false
 }
 
@@ -4998,6 +5429,312 @@ func (dep DNSEntityProperties) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
+// Dynamics365CheckRequirements represents Dynamics365 requirements check request.
+type Dynamics365CheckRequirements struct {
+	// Dynamics365CheckRequirementsProperties - Dynamics365 requirements check properties.
+	*Dynamics365CheckRequirementsProperties `json:"properties,omitempty"`
+	// Kind - Possible values include: 'KindBasicDataConnectorsCheckRequirementsKindDataConnectorsCheckRequirements', 'KindBasicDataConnectorsCheckRequirementsKindAzureActiveDirectory', 'KindBasicDataConnectorsCheckRequirementsKindAzureAdvancedThreatProtection', 'KindBasicDataConnectorsCheckRequirementsKindAzureSecurityCenter', 'KindBasicDataConnectorsCheckRequirementsKindAmazonWebServicesCloudTrail', 'KindBasicDataConnectorsCheckRequirementsKindDynamics365', 'KindBasicDataConnectorsCheckRequirementsKindMicrosoftCloudAppSecurity', 'KindBasicDataConnectorsCheckRequirementsKindMicrosoftDefenderAdvancedThreatProtection', 'KindBasicDataConnectorsCheckRequirementsKindOfficeATP', 'KindBasicDataConnectorsCheckRequirementsKindThreatIntelligence', 'KindBasicDataConnectorsCheckRequirementsKindThreatIntelligenceTaxii'
+	Kind KindBasicDataConnectorsCheckRequirements `json:"kind,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Dynamics365CheckRequirements.
+func (d3cr Dynamics365CheckRequirements) MarshalJSON() ([]byte, error) {
+	d3cr.Kind = KindBasicDataConnectorsCheckRequirementsKindDynamics365
+	objectMap := make(map[string]interface{})
+	if d3cr.Dynamics365CheckRequirementsProperties != nil {
+		objectMap["properties"] = d3cr.Dynamics365CheckRequirementsProperties
+	}
+	if d3cr.Kind != "" {
+		objectMap["kind"] = d3cr.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsAADCheckRequirements is the BasicDataConnectorsCheckRequirements implementation for Dynamics365CheckRequirements.
+func (d3cr Dynamics365CheckRequirements) AsAADCheckRequirements() (*AADCheckRequirements, bool) {
+	return nil, false
+}
+
+// AsAATPCheckRequirements is the BasicDataConnectorsCheckRequirements implementation for Dynamics365CheckRequirements.
+func (d3cr Dynamics365CheckRequirements) AsAATPCheckRequirements() (*AATPCheckRequirements, bool) {
+	return nil, false
+}
+
+// AsASCCheckRequirements is the BasicDataConnectorsCheckRequirements implementation for Dynamics365CheckRequirements.
+func (d3cr Dynamics365CheckRequirements) AsASCCheckRequirements() (*ASCCheckRequirements, bool) {
+	return nil, false
+}
+
+// AsAwsCloudTrailCheckRequirements is the BasicDataConnectorsCheckRequirements implementation for Dynamics365CheckRequirements.
+func (d3cr Dynamics365CheckRequirements) AsAwsCloudTrailCheckRequirements() (*AwsCloudTrailCheckRequirements, bool) {
+	return nil, false
+}
+
+// AsDynamics365CheckRequirements is the BasicDataConnectorsCheckRequirements implementation for Dynamics365CheckRequirements.
+func (d3cr Dynamics365CheckRequirements) AsDynamics365CheckRequirements() (*Dynamics365CheckRequirements, bool) {
+	return &d3cr, true
+}
+
+// AsMCASCheckRequirements is the BasicDataConnectorsCheckRequirements implementation for Dynamics365CheckRequirements.
+func (d3cr Dynamics365CheckRequirements) AsMCASCheckRequirements() (*MCASCheckRequirements, bool) {
+	return nil, false
+}
+
+// AsMDATPCheckRequirements is the BasicDataConnectorsCheckRequirements implementation for Dynamics365CheckRequirements.
+func (d3cr Dynamics365CheckRequirements) AsMDATPCheckRequirements() (*MDATPCheckRequirements, bool) {
+	return nil, false
+}
+
+// AsOfficeATPCheckRequirements is the BasicDataConnectorsCheckRequirements implementation for Dynamics365CheckRequirements.
+func (d3cr Dynamics365CheckRequirements) AsOfficeATPCheckRequirements() (*OfficeATPCheckRequirements, bool) {
+	return nil, false
+}
+
+// AsTICheckRequirements is the BasicDataConnectorsCheckRequirements implementation for Dynamics365CheckRequirements.
+func (d3cr Dynamics365CheckRequirements) AsTICheckRequirements() (*TICheckRequirements, bool) {
+	return nil, false
+}
+
+// AsTiTaxiiCheckRequirements is the BasicDataConnectorsCheckRequirements implementation for Dynamics365CheckRequirements.
+func (d3cr Dynamics365CheckRequirements) AsTiTaxiiCheckRequirements() (*TiTaxiiCheckRequirements, bool) {
+	return nil, false
+}
+
+// AsDataConnectorsCheckRequirements is the BasicDataConnectorsCheckRequirements implementation for Dynamics365CheckRequirements.
+func (d3cr Dynamics365CheckRequirements) AsDataConnectorsCheckRequirements() (*DataConnectorsCheckRequirements, bool) {
+	return nil, false
+}
+
+// AsBasicDataConnectorsCheckRequirements is the BasicDataConnectorsCheckRequirements implementation for Dynamics365CheckRequirements.
+func (d3cr Dynamics365CheckRequirements) AsBasicDataConnectorsCheckRequirements() (BasicDataConnectorsCheckRequirements, bool) {
+	return &d3cr, true
+}
+
+// UnmarshalJSON is the custom unmarshaler for Dynamics365CheckRequirements struct.
+func (d3cr *Dynamics365CheckRequirements) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var dynamics365CheckRequirementsProperties Dynamics365CheckRequirementsProperties
+				err = json.Unmarshal(*v, &dynamics365CheckRequirementsProperties)
+				if err != nil {
+					return err
+				}
+				d3cr.Dynamics365CheckRequirementsProperties = &dynamics365CheckRequirementsProperties
+			}
+		case "kind":
+			if v != nil {
+				var kind KindBasicDataConnectorsCheckRequirements
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				d3cr.Kind = kind
+			}
+		}
+	}
+
+	return nil
+}
+
+// Dynamics365CheckRequirementsProperties dynamics365 requirements check properties.
+type Dynamics365CheckRequirementsProperties struct {
+	// TenantID - The tenant id to connect to, and get the data from.
+	TenantID *string `json:"tenantId,omitempty"`
+}
+
+// Dynamics365DataConnector represents Dynamics365 data connector.
+type Dynamics365DataConnector struct {
+	// Dynamics365DataConnectorProperties - Dynamics365 data connector properties.
+	*Dynamics365DataConnectorProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Azure resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Azure resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Azure resource type
+	Type *string `json:"type,omitempty"`
+	// Etag - Etag of the azure resource
+	Etag *string `json:"etag,omitempty"`
+	// Kind - Possible values include: 'KindDataConnector', 'KindAzureActiveDirectory', 'KindAzureAdvancedThreatProtection', 'KindAzureSecurityCenter', 'KindAmazonWebServicesCloudTrail', 'KindDynamics365', 'KindMicrosoftCloudAppSecurity', 'KindMicrosoftDefenderAdvancedThreatProtection', 'KindOfficeATP', 'KindOffice365', 'KindThreatIntelligence', 'KindThreatIntelligenceTaxii'
+	Kind KindBasicDataConnector `json:"kind,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Dynamics365DataConnector.
+func (d3dc Dynamics365DataConnector) MarshalJSON() ([]byte, error) {
+	d3dc.Kind = KindDynamics365
+	objectMap := make(map[string]interface{})
+	if d3dc.Dynamics365DataConnectorProperties != nil {
+		objectMap["properties"] = d3dc.Dynamics365DataConnectorProperties
+	}
+	if d3dc.Etag != nil {
+		objectMap["etag"] = d3dc.Etag
+	}
+	if d3dc.Kind != "" {
+		objectMap["kind"] = d3dc.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsAADDataConnector is the BasicDataConnector implementation for Dynamics365DataConnector.
+func (d3dc Dynamics365DataConnector) AsAADDataConnector() (*AADDataConnector, bool) {
+	return nil, false
+}
+
+// AsAATPDataConnector is the BasicDataConnector implementation for Dynamics365DataConnector.
+func (d3dc Dynamics365DataConnector) AsAATPDataConnector() (*AATPDataConnector, bool) {
+	return nil, false
+}
+
+// AsASCDataConnector is the BasicDataConnector implementation for Dynamics365DataConnector.
+func (d3dc Dynamics365DataConnector) AsASCDataConnector() (*ASCDataConnector, bool) {
+	return nil, false
+}
+
+// AsAwsCloudTrailDataConnector is the BasicDataConnector implementation for Dynamics365DataConnector.
+func (d3dc Dynamics365DataConnector) AsAwsCloudTrailDataConnector() (*AwsCloudTrailDataConnector, bool) {
+	return nil, false
+}
+
+// AsDynamics365DataConnector is the BasicDataConnector implementation for Dynamics365DataConnector.
+func (d3dc Dynamics365DataConnector) AsDynamics365DataConnector() (*Dynamics365DataConnector, bool) {
+	return &d3dc, true
+}
+
+// AsMCASDataConnector is the BasicDataConnector implementation for Dynamics365DataConnector.
+func (d3dc Dynamics365DataConnector) AsMCASDataConnector() (*MCASDataConnector, bool) {
+	return nil, false
+}
+
+// AsMDATPDataConnector is the BasicDataConnector implementation for Dynamics365DataConnector.
+func (d3dc Dynamics365DataConnector) AsMDATPDataConnector() (*MDATPDataConnector, bool) {
+	return nil, false
+}
+
+// AsOfficeATPDataConnector is the BasicDataConnector implementation for Dynamics365DataConnector.
+func (d3dc Dynamics365DataConnector) AsOfficeATPDataConnector() (*OfficeATPDataConnector, bool) {
+	return nil, false
+}
+
+// AsOfficeDataConnector is the BasicDataConnector implementation for Dynamics365DataConnector.
+func (d3dc Dynamics365DataConnector) AsOfficeDataConnector() (*OfficeDataConnector, bool) {
+	return nil, false
+}
+
+// AsTIDataConnector is the BasicDataConnector implementation for Dynamics365DataConnector.
+func (d3dc Dynamics365DataConnector) AsTIDataConnector() (*TIDataConnector, bool) {
+	return nil, false
+}
+
+// AsTiTaxiiDataConnector is the BasicDataConnector implementation for Dynamics365DataConnector.
+func (d3dc Dynamics365DataConnector) AsTiTaxiiDataConnector() (*TiTaxiiDataConnector, bool) {
+	return nil, false
+}
+
+// AsDataConnector is the BasicDataConnector implementation for Dynamics365DataConnector.
+func (d3dc Dynamics365DataConnector) AsDataConnector() (*DataConnector, bool) {
+	return nil, false
+}
+
+// AsBasicDataConnector is the BasicDataConnector implementation for Dynamics365DataConnector.
+func (d3dc Dynamics365DataConnector) AsBasicDataConnector() (BasicDataConnector, bool) {
+	return &d3dc, true
+}
+
+// UnmarshalJSON is the custom unmarshaler for Dynamics365DataConnector struct.
+func (d3dc *Dynamics365DataConnector) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var dynamics365DataConnectorProperties Dynamics365DataConnectorProperties
+				err = json.Unmarshal(*v, &dynamics365DataConnectorProperties)
+				if err != nil {
+					return err
+				}
+				d3dc.Dynamics365DataConnectorProperties = &dynamics365DataConnectorProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				d3dc.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				d3dc.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				d3dc.Type = &typeVar
+			}
+		case "etag":
+			if v != nil {
+				var etag string
+				err = json.Unmarshal(*v, &etag)
+				if err != nil {
+					return err
+				}
+				d3dc.Etag = &etag
+			}
+		case "kind":
+			if v != nil {
+				var kind KindBasicDataConnector
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				d3dc.Kind = kind
+			}
+		}
+	}
+
+	return nil
+}
+
+// Dynamics365DataConnectorDataTypes the available data types for Dynamics365 data connector.
+type Dynamics365DataConnectorDataTypes struct {
+	// Dynamics365CdsActivities - Common Data Service data type connection.
+	Dynamics365CdsActivities *Dynamics365DataConnectorDataTypesDynamics365CdsActivities `json:"dynamics365CdsActivities,omitempty"`
+}
+
+// Dynamics365DataConnectorDataTypesDynamics365CdsActivities common Data Service data type connection.
+type Dynamics365DataConnectorDataTypesDynamics365CdsActivities struct {
+	// State - Describe whether this data type connection is enabled or not. Possible values include: 'Enabled', 'Disabled'
+	State DataTypeState `json:"state,omitempty"`
+}
+
+// Dynamics365DataConnectorProperties dynamics365 data connector properties.
+type Dynamics365DataConnectorProperties struct {
+	// DataTypes - The available data types for the connector.
+	DataTypes *Dynamics365DataConnectorDataTypes `json:"dataTypes,omitempty"`
+	// TenantID - The tenant id to connect to, and get the data from.
+	TenantID *string `json:"tenantId,omitempty"`
+}
+
 // BasicEntity specific entity.
 type BasicEntity interface {
 	AsAccountEntity() (*AccountEntity, bool)
@@ -5007,12 +5744,17 @@ type BasicEntity interface {
 	AsFileEntity() (*FileEntity, bool)
 	AsFileHashEntity() (*FileHashEntity, bool)
 	AsHostEntity() (*HostEntity, bool)
+	AsHuntingBookmark() (*HuntingBookmark, bool)
+	AsSecurityAlert() (*SecurityAlert, bool)
 	AsIPEntity() (*IPEntity, bool)
+	AsMailboxEntity() (*MailboxEntity, bool)
+	AsMailClusterEntity() (*MailClusterEntity, bool)
+	AsMailMessageEntity() (*MailMessageEntity, bool)
+	AsSubmissionMailEntity() (*SubmissionMailEntity, bool)
 	AsMalwareEntity() (*MalwareEntity, bool)
 	AsProcessEntity() (*ProcessEntity, bool)
 	AsRegistryKeyEntity() (*RegistryKeyEntity, bool)
 	AsRegistryValueEntity() (*RegistryValueEntity, bool)
-	AsSecurityAlert() (*SecurityAlert, bool)
 	AsSecurityGroupEntity() (*SecurityGroupEntity, bool)
 	AsURLEntity() (*URLEntity, bool)
 	AsIoTDeviceEntity() (*IoTDeviceEntity, bool)
@@ -5028,7 +5770,7 @@ type Entity struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Azure resource type
 	Type *string `json:"type,omitempty"`
-	// Kind - Possible values include: 'KindEntity', 'KindAccount', 'KindAzureResource', 'KindCloudApplication', 'KindDNSResolution', 'KindFile', 'KindFileHash', 'KindHost', 'KindIP', 'KindMalware', 'KindProcess', 'KindRegistryKey', 'KindRegistryValue', 'KindSecurityAlert', 'KindSecurityGroup', 'KindURL', 'KindIoTDevice'
+	// Kind - Possible values include: 'KindEntity', 'KindAccount', 'KindAzureResource', 'KindCloudApplication', 'KindDNSResolution', 'KindFile', 'KindFileHash', 'KindHost', 'KindBookmark', 'KindSecurityAlert', 'KindIP', 'KindMailbox', 'KindMailCluster', 'KindMailMessage', 'KindSubmissionMail', 'KindMalware', 'KindProcess', 'KindRegistryKey', 'KindRegistryValue', 'KindSecurityGroup', 'KindURL', 'KindIoTDevice'
 	Kind KindBasicEntity `json:"kind,omitempty"`
 }
 
@@ -5068,10 +5810,34 @@ func unmarshalBasicEntity(body []byte) (BasicEntity, error) {
 		var he HostEntity
 		err := json.Unmarshal(body, &he)
 		return he, err
+	case string(KindBookmark):
+		var hb HuntingBookmark
+		err := json.Unmarshal(body, &hb)
+		return hb, err
+	case string(KindSecurityAlert):
+		var sa SecurityAlert
+		err := json.Unmarshal(body, &sa)
+		return sa, err
 	case string(KindIP):
 		var ie IPEntity
 		err := json.Unmarshal(body, &ie)
 		return ie, err
+	case string(KindMailbox):
+		var me MailboxEntity
+		err := json.Unmarshal(body, &me)
+		return me, err
+	case string(KindMailCluster):
+		var mce MailClusterEntity
+		err := json.Unmarshal(body, &mce)
+		return mce, err
+	case string(KindMailMessage):
+		var mme MailMessageEntity
+		err := json.Unmarshal(body, &mme)
+		return mme, err
+	case string(KindSubmissionMail):
+		var sme SubmissionMailEntity
+		err := json.Unmarshal(body, &sme)
+		return sme, err
 	case string(KindMalware):
 		var me MalwareEntity
 		err := json.Unmarshal(body, &me)
@@ -5088,10 +5854,6 @@ func unmarshalBasicEntity(body []byte) (BasicEntity, error) {
 		var rve RegistryValueEntity
 		err := json.Unmarshal(body, &rve)
 		return rve, err
-	case string(KindSecurityAlert):
-		var sa SecurityAlert
-		err := json.Unmarshal(body, &sa)
-		return sa, err
 	case string(KindSecurityGroup):
 		var sge SecurityGroupEntity
 		err := json.Unmarshal(body, &sge)
@@ -5174,8 +5936,38 @@ func (e Entity) AsHostEntity() (*HostEntity, bool) {
 	return nil, false
 }
 
+// AsHuntingBookmark is the BasicEntity implementation for Entity.
+func (e Entity) AsHuntingBookmark() (*HuntingBookmark, bool) {
+	return nil, false
+}
+
+// AsSecurityAlert is the BasicEntity implementation for Entity.
+func (e Entity) AsSecurityAlert() (*SecurityAlert, bool) {
+	return nil, false
+}
+
 // AsIPEntity is the BasicEntity implementation for Entity.
 func (e Entity) AsIPEntity() (*IPEntity, bool) {
+	return nil, false
+}
+
+// AsMailboxEntity is the BasicEntity implementation for Entity.
+func (e Entity) AsMailboxEntity() (*MailboxEntity, bool) {
+	return nil, false
+}
+
+// AsMailClusterEntity is the BasicEntity implementation for Entity.
+func (e Entity) AsMailClusterEntity() (*MailClusterEntity, bool) {
+	return nil, false
+}
+
+// AsMailMessageEntity is the BasicEntity implementation for Entity.
+func (e Entity) AsMailMessageEntity() (*MailMessageEntity, bool) {
+	return nil, false
+}
+
+// AsSubmissionMailEntity is the BasicEntity implementation for Entity.
+func (e Entity) AsSubmissionMailEntity() (*SubmissionMailEntity, bool) {
 	return nil, false
 }
 
@@ -5196,11 +5988,6 @@ func (e Entity) AsRegistryKeyEntity() (*RegistryKeyEntity, bool) {
 
 // AsRegistryValueEntity is the BasicEntity implementation for Entity.
 func (e Entity) AsRegistryValueEntity() (*RegistryValueEntity, bool) {
-	return nil, false
-}
-
-// AsSecurityAlert is the BasicEntity implementation for Entity.
-func (e Entity) AsSecurityAlert() (*SecurityAlert, bool) {
 	return nil, false
 }
 
@@ -5227,6 +6014,138 @@ func (e Entity) AsEntity() (*Entity, bool) {
 // AsBasicEntity is the BasicEntity implementation for Entity.
 func (e Entity) AsBasicEntity() (BasicEntity, bool) {
 	return &e, true
+}
+
+// EntityAnalytics settings with single toggle.
+type EntityAnalytics struct {
+	// EntityAnalyticsProperties - EntityAnalytics properties
+	*EntityAnalyticsProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Azure resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Azure resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Azure resource type
+	Type *string `json:"type,omitempty"`
+	// Etag - Etag of the azure resource
+	Etag *string `json:"etag,omitempty"`
+	// Kind - Possible values include: 'KindSettings', 'KindEyesOn', 'KindEntityAnalytics', 'KindUeba'
+	Kind KindBasicSettings `json:"kind,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for EntityAnalytics.
+func (ea EntityAnalytics) MarshalJSON() ([]byte, error) {
+	ea.Kind = KindEntityAnalytics
+	objectMap := make(map[string]interface{})
+	if ea.EntityAnalyticsProperties != nil {
+		objectMap["properties"] = ea.EntityAnalyticsProperties
+	}
+	if ea.Etag != nil {
+		objectMap["etag"] = ea.Etag
+	}
+	if ea.Kind != "" {
+		objectMap["kind"] = ea.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsEyesOn is the BasicSettings implementation for EntityAnalytics.
+func (ea EntityAnalytics) AsEyesOn() (*EyesOn, bool) {
+	return nil, false
+}
+
+// AsEntityAnalytics is the BasicSettings implementation for EntityAnalytics.
+func (ea EntityAnalytics) AsEntityAnalytics() (*EntityAnalytics, bool) {
+	return &ea, true
+}
+
+// AsUeba is the BasicSettings implementation for EntityAnalytics.
+func (ea EntityAnalytics) AsUeba() (*Ueba, bool) {
+	return nil, false
+}
+
+// AsSettings is the BasicSettings implementation for EntityAnalytics.
+func (ea EntityAnalytics) AsSettings() (*Settings, bool) {
+	return nil, false
+}
+
+// AsBasicSettings is the BasicSettings implementation for EntityAnalytics.
+func (ea EntityAnalytics) AsBasicSettings() (BasicSettings, bool) {
+	return &ea, true
+}
+
+// UnmarshalJSON is the custom unmarshaler for EntityAnalytics struct.
+func (ea *EntityAnalytics) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var entityAnalyticsProperties EntityAnalyticsProperties
+				err = json.Unmarshal(*v, &entityAnalyticsProperties)
+				if err != nil {
+					return err
+				}
+				ea.EntityAnalyticsProperties = &entityAnalyticsProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				ea.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				ea.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				ea.Type = &typeVar
+			}
+		case "etag":
+			if v != nil {
+				var etag string
+				err = json.Unmarshal(*v, &etag)
+				if err != nil {
+					return err
+				}
+				ea.Etag = &etag
+			}
+		case "kind":
+			if v != nil {
+				var kind KindBasicSettings
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				ea.Kind = kind
+			}
+		}
+	}
+
+	return nil
+}
+
+// EntityAnalyticsProperties entityAnalytics property bag.
+type EntityAnalyticsProperties struct {
+	// IsEnabled - READ-ONLY; Determines whether the setting is enable or disabled.
+	IsEnabled *bool `json:"isEnabled,omitempty"`
 }
 
 // EntityCommonProperties entity common property bag.
@@ -5291,9 +6210,50 @@ func (eer *EntityExpandResponseValue) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
+// EntityGetInsightsParameters the parameters required to execute insights operation on the given entity.
+type EntityGetInsightsParameters struct {
+	// StartTime - The start timeline date, so the results returned are after this date.
+	StartTime *date.Time `json:"startTime,omitempty"`
+	// EndTime - The end timeline date, so the results returned are before this date.
+	EndTime *date.Time `json:"endTime,omitempty"`
+	// AddDefaultExtendedTimeRange - Indicates if query time range should be extended with default time range of the query. Default value is false
+	AddDefaultExtendedTimeRange *bool `json:"addDefaultExtendedTimeRange,omitempty"`
+	// InsightQueryIds - List of Insights Query Id. If empty, default value is all insights of this entity
+	InsightQueryIds *[]uuid.UUID `json:"insightQueryIds,omitempty"`
+}
+
+// EntityGetInsightsResponse the Get Insights result operation response.
+type EntityGetInsightsResponse struct {
+	autorest.Response `json:"-"`
+	// MetaData - The metadata from the get insights operation results.
+	MetaData *GetInsightsResultsMetadata `json:"metaData,omitempty"`
+	// Value - The insights result values.
+	Value *[]EntityInsightItem `json:"value,omitempty"`
+}
+
+// EntityInsightItem entity insight Item.
+type EntityInsightItem struct {
+	// QueryID - The query id of the insight
+	QueryID *string `json:"queryId,omitempty"`
+	// QueryTimeInterval - The Time interval that the query actually executed on.
+	QueryTimeInterval *EntityInsightItemQueryTimeInterval `json:"queryTimeInterval,omitempty"`
+	// TableQueryResults - Query results for table insights query.
+	TableQueryResults *InsightsTableResult `json:"tableQueryResults,omitempty"`
+	// ChartQueryResults - Query results for table insights query.
+	ChartQueryResults *[]InsightsTableResult `json:"chartQueryResults,omitempty"`
+}
+
+// EntityInsightItemQueryTimeInterval the Time interval that the query actually executed on.
+type EntityInsightItemQueryTimeInterval struct {
+	// StartTime - Insight query start time
+	StartTime *date.Time `json:"startTime,omitempty"`
+	// EndTime - Insight query end time
+	EndTime *date.Time `json:"endTime,omitempty"`
+}
+
 // EntityKind1 describes an entity with kind.
 type EntityKind1 struct {
-	// Kind - The kind of the entity. Possible values include: 'EntityKindAccount', 'EntityKindHost', 'EntityKindFile', 'EntityKindAzureResource', 'EntityKindCloudApplication', 'EntityKindDNSResolution', 'EntityKindFileHash', 'EntityKindIP', 'EntityKindMalware', 'EntityKindProcess', 'EntityKindRegistryKey', 'EntityKindRegistryValue', 'EntityKindSecurityGroup', 'EntityKindURL', 'EntityKindIoTDevice', 'EntityKindSecurityAlert', 'EntityKindBookmark'
+	// Kind - The kind of the entity. Possible values include: 'EntityKindAccount', 'EntityKindHost', 'EntityKindFile', 'EntityKindAzureResource', 'EntityKindCloudApplication', 'EntityKindDNSResolution', 'EntityKindFileHash', 'EntityKindIP', 'EntityKindMalware', 'EntityKindProcess', 'EntityKindRegistryKey', 'EntityKindRegistryValue', 'EntityKindSecurityGroup', 'EntityKindURL', 'EntityKindIoTDevice', 'EntityKindSecurityAlert', 'EntityKindBookmark', 'EntityKindMailCluster', 'EntityKindMailMessage', 'EntityKindMailbox', 'EntityKindSubmissionMail'
 	Kind EntityKind `json:"kind,omitempty"`
 }
 
@@ -5490,8 +6450,11 @@ func (page EntityListPage) Values() []BasicEntity {
 }
 
 // Creates a new instance of the EntityListPage type.
-func NewEntityListPage(getNextPage func(context.Context, EntityList) (EntityList, error)) EntityListPage {
-	return EntityListPage{fn: getNextPage}
+func NewEntityListPage(cur EntityList, getNextPage func(context.Context, EntityList) (EntityList, error)) EntityListPage {
+	return EntityListPage{
+		fn: getNextPage,
+		el: cur,
+	}
 }
 
 // EntityModel ...
@@ -5511,77 +6474,200 @@ func (em *EntityModel) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
+// BasicEntityQuery specific entity query.
+type BasicEntityQuery interface {
+	AsExpansionEntityQuery() (*ExpansionEntityQuery, bool)
+	AsEntityQuery() (*EntityQuery, bool)
+}
+
 // EntityQuery specific entity query.
 type EntityQuery struct {
 	autorest.Response `json:"-"`
-	// EntityQueryProperties - Entity query properties
-	*EntityQueryProperties `json:"properties,omitempty"`
 	// ID - READ-ONLY; Azure resource Id
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; Azure resource name
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Azure resource type
 	Type *string `json:"type,omitempty"`
+	// Etag - Etag of the azure resource
+	Etag *string `json:"etag,omitempty"`
+	// Kind - Possible values include: 'KindEntityQuery', 'KindExpansion'
+	Kind KindBasicEntityQuery `json:"kind,omitempty"`
+}
+
+func unmarshalBasicEntityQuery(body []byte) (BasicEntityQuery, error) {
+	var m map[string]interface{}
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return nil, err
+	}
+
+	switch m["kind"] {
+	case string(KindExpansion):
+		var eeq ExpansionEntityQuery
+		err := json.Unmarshal(body, &eeq)
+		return eeq, err
+	default:
+		var eq EntityQuery
+		err := json.Unmarshal(body, &eq)
+		return eq, err
+	}
+}
+func unmarshalBasicEntityQueryArray(body []byte) ([]BasicEntityQuery, error) {
+	var rawMessages []*json.RawMessage
+	err := json.Unmarshal(body, &rawMessages)
+	if err != nil {
+		return nil, err
+	}
+
+	eqArray := make([]BasicEntityQuery, len(rawMessages))
+
+	for index, rawMessage := range rawMessages {
+		eq, err := unmarshalBasicEntityQuery(*rawMessage)
+		if err != nil {
+			return nil, err
+		}
+		eqArray[index] = eq
+	}
+	return eqArray, nil
 }
 
 // MarshalJSON is the custom marshaler for EntityQuery.
 func (eq EntityQuery) MarshalJSON() ([]byte, error) {
+	eq.Kind = KindEntityQuery
 	objectMap := make(map[string]interface{})
-	if eq.EntityQueryProperties != nil {
-		objectMap["properties"] = eq.EntityQueryProperties
+	if eq.Etag != nil {
+		objectMap["etag"] = eq.Etag
+	}
+	if eq.Kind != "" {
+		objectMap["kind"] = eq.Kind
 	}
 	return json.Marshal(objectMap)
 }
 
-// UnmarshalJSON is the custom unmarshaler for EntityQuery struct.
-func (eq *EntityQuery) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
+// AsExpansionEntityQuery is the BasicEntityQuery implementation for EntityQuery.
+func (eq EntityQuery) AsExpansionEntityQuery() (*ExpansionEntityQuery, bool) {
+	return nil, false
+}
+
+// AsEntityQuery is the BasicEntityQuery implementation for EntityQuery.
+func (eq EntityQuery) AsEntityQuery() (*EntityQuery, bool) {
+	return &eq, true
+}
+
+// AsBasicEntityQuery is the BasicEntityQuery implementation for EntityQuery.
+func (eq EntityQuery) AsBasicEntityQuery() (BasicEntityQuery, bool) {
+	return &eq, true
+}
+
+// BasicEntityQueryItem an abstract Query item for entity
+type BasicEntityQueryItem interface {
+	AsInsightQueryItem() (*InsightQueryItem, bool)
+	AsEntityQueryItem() (*EntityQueryItem, bool)
+}
+
+// EntityQueryItem an abstract Query item for entity
+type EntityQueryItem struct {
+	// ID - READ-ONLY; Query Template ARM ID
+	ID *uuid.UUID `json:"id,omitempty"`
+	// Name - Query Template ARM Name
+	Name *string `json:"name,omitempty"`
+	// Type - ARM Type
+	Type *string `json:"type,omitempty"`
+	// Kind - Possible values include: 'KindEntityQueryItem', 'KindInsight'
+	Kind KindBasicEntityQueryItem `json:"kind,omitempty"`
+}
+
+func unmarshalBasicEntityQueryItem(body []byte) (BasicEntityQueryItem, error) {
+	var m map[string]interface{}
 	err := json.Unmarshal(body, &m)
 	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var entityQueryProperties EntityQueryProperties
-				err = json.Unmarshal(*v, &entityQueryProperties)
-				if err != nil {
-					return err
-				}
-				eq.EntityQueryProperties = &entityQueryProperties
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				eq.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				eq.Name = &name
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				eq.Type = &typeVar
-			}
-		}
+		return nil, err
 	}
 
-	return nil
+	switch m["kind"] {
+	case string(KindInsight):
+		var iqi InsightQueryItem
+		err := json.Unmarshal(body, &iqi)
+		return iqi, err
+	default:
+		var eqi EntityQueryItem
+		err := json.Unmarshal(body, &eqi)
+		return eqi, err
+	}
+}
+func unmarshalBasicEntityQueryItemArray(body []byte) ([]BasicEntityQueryItem, error) {
+	var rawMessages []*json.RawMessage
+	err := json.Unmarshal(body, &rawMessages)
+	if err != nil {
+		return nil, err
+	}
+
+	eqiArray := make([]BasicEntityQueryItem, len(rawMessages))
+
+	for index, rawMessage := range rawMessages {
+		eqi, err := unmarshalBasicEntityQueryItem(*rawMessage)
+		if err != nil {
+			return nil, err
+		}
+		eqiArray[index] = eqi
+	}
+	return eqiArray, nil
+}
+
+// MarshalJSON is the custom marshaler for EntityQueryItem.
+func (eqi EntityQueryItem) MarshalJSON() ([]byte, error) {
+	eqi.Kind = KindEntityQueryItem
+	objectMap := make(map[string]interface{})
+	if eqi.Name != nil {
+		objectMap["name"] = eqi.Name
+	}
+	if eqi.Type != nil {
+		objectMap["type"] = eqi.Type
+	}
+	if eqi.Kind != "" {
+		objectMap["kind"] = eqi.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsInsightQueryItem is the BasicEntityQueryItem implementation for EntityQueryItem.
+func (eqi EntityQueryItem) AsInsightQueryItem() (*InsightQueryItem, bool) {
+	return nil, false
+}
+
+// AsEntityQueryItem is the BasicEntityQueryItem implementation for EntityQueryItem.
+func (eqi EntityQueryItem) AsEntityQueryItem() (*EntityQueryItem, bool) {
+	return &eqi, true
+}
+
+// AsBasicEntityQueryItem is the BasicEntityQueryItem implementation for EntityQueryItem.
+func (eqi EntityQueryItem) AsBasicEntityQueryItem() (BasicEntityQueryItem, bool) {
+	return &eqi, true
+}
+
+// EntityQueryItemProperties an properties abstract Query item for entity
+type EntityQueryItemProperties struct {
+	// DataTypes - Data types for template
+	DataTypes *[]EntityQueryItemPropertiesDataTypesItem `json:"dataTypes,omitempty"`
+	// InputEntityType - The type of the entity. Possible values include: 'EntityTypeAccount', 'EntityTypeHost', 'EntityTypeFile', 'EntityTypeAzureResource', 'EntityTypeCloudApplication', 'EntityTypeDNS', 'EntityTypeFileHash', 'EntityTypeIP', 'EntityTypeMalware', 'EntityTypeProcess', 'EntityTypeRegistryKey', 'EntityTypeRegistryValue', 'EntityTypeSecurityGroup', 'EntityTypeURL', 'EntityTypeIoTDevice', 'EntityTypeSecurityAlert', 'EntityTypeHuntingBookmark', 'EntityTypeMailCluster', 'EntityTypeMailMessage', 'EntityTypeMailbox', 'EntityTypeSubmissionMail'
+	InputEntityType EntityType `json:"inputEntityType,omitempty"`
+	// RequiredInputFieldsSets - Data types for template
+	RequiredInputFieldsSets *[][]string `json:"requiredInputFieldsSets,omitempty"`
+	// EntitiesFilter - The query applied only to entities matching to all filters
+	EntitiesFilter interface{} `json:"entitiesFilter,omitempty"`
+}
+
+// EntityQueryItemPropertiesDataTypesItem ...
+type EntityQueryItemPropertiesDataTypesItem struct {
+	// DataType - Data type name
+	DataType *string `json:"dataType,omitempty"`
+}
+
+// EntityQueryKind1 describes an Entity query resource with kind.
+type EntityQueryKind1 struct {
+	// Kind - The kind of the entity query. Possible values include: 'Expansion', 'Insight'
+	Kind EntityQueryKind `json:"kind,omitempty"`
 }
 
 // EntityQueryList list of all the entity queries.
@@ -5590,7 +6676,7 @@ type EntityQueryList struct {
 	// NextLink - READ-ONLY; URL to fetch the next set of entity queries.
 	NextLink *string `json:"nextLink,omitempty"`
 	// Value - Array of entity queries.
-	Value *[]EntityQuery `json:"value,omitempty"`
+	Value *[]BasicEntityQuery `json:"value,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for EntityQueryList.
@@ -5600,6 +6686,38 @@ func (eql EntityQueryList) MarshalJSON() ([]byte, error) {
 		objectMap["value"] = eql.Value
 	}
 	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for EntityQueryList struct.
+func (eql *EntityQueryList) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "nextLink":
+			if v != nil {
+				var nextLink string
+				err = json.Unmarshal(*v, &nextLink)
+				if err != nil {
+					return err
+				}
+				eql.NextLink = &nextLink
+			}
+		case "value":
+			if v != nil {
+				value, err := unmarshalBasicEntityQueryArray(*v)
+				if err != nil {
+					return err
+				}
+				eql.Value = &value
+			}
+		}
+	}
+
+	return nil
 }
 
 // EntityQueryListIterator provides access to a complete listing of EntityQuery values.
@@ -5653,7 +6771,7 @@ func (iter EntityQueryListIterator) Response() EntityQueryList {
 
 // Value returns the current value or a zero-initialized value if the
 // iterator has advanced beyond the end of the collection.
-func (iter EntityQueryListIterator) Value() EntityQuery {
+func (iter EntityQueryListIterator) Value() BasicEntityQuery {
 	if !iter.page.NotDone() {
 		return EntityQuery{}
 	}
@@ -5687,7 +6805,7 @@ func (eql EntityQueryList) entityQueryListPreparer(ctx context.Context) (*http.R
 		autorest.WithBaseURL(to.String(eql.NextLink)))
 }
 
-// EntityQueryListPage contains a page of EntityQuery values.
+// EntityQueryListPage contains a page of BasicEntityQuery values.
 type EntityQueryListPage struct {
 	fn  func(context.Context, EntityQueryList) (EntityQueryList, error)
 	eql EntityQueryList
@@ -5737,7 +6855,7 @@ func (page EntityQueryListPage) Response() EntityQueryList {
 }
 
 // Values returns the slice of values for the current page or nil if there are no values.
-func (page EntityQueryListPage) Values() []EntityQuery {
+func (page EntityQueryListPage) Values() []BasicEntityQuery {
 	if page.eql.IsEmpty() {
 		return nil
 	}
@@ -5745,17 +6863,190 @@ func (page EntityQueryListPage) Values() []EntityQuery {
 }
 
 // Creates a new instance of the EntityQueryListPage type.
-func NewEntityQueryListPage(getNextPage func(context.Context, EntityQueryList) (EntityQueryList, error)) EntityQueryListPage {
-	return EntityQueryListPage{fn: getNextPage}
+func NewEntityQueryListPage(cur EntityQueryList, getNextPage func(context.Context, EntityQueryList) (EntityQueryList, error)) EntityQueryListPage {
+	return EntityQueryListPage{
+		fn:  getNextPage,
+		eql: cur,
+	}
 }
 
-// EntityQueryProperties describes entity query properties
-type EntityQueryProperties struct {
+// EntityQueryModel ...
+type EntityQueryModel struct {
+	autorest.Response `json:"-"`
+	Value             BasicEntityQuery `json:"value,omitempty"`
+}
+
+// UnmarshalJSON is the custom unmarshaler for EntityQueryModel struct.
+func (eqm *EntityQueryModel) UnmarshalJSON(body []byte) error {
+	eq, err := unmarshalBasicEntityQuery(body)
+	if err != nil {
+		return err
+	}
+	eqm.Value = eq
+
+	return nil
+}
+
+// BasicEntityTimelineItem entity timeline Item.
+type BasicEntityTimelineItem interface {
+	AsActivityTimelineItem() (*ActivityTimelineItem, bool)
+	AsSecurityAlertTimelineItem() (*SecurityAlertTimelineItem, bool)
+	AsBookmarkTimelineItem() (*BookmarkTimelineItem, bool)
+	AsEntityTimelineItem() (*EntityTimelineItem, bool)
+}
+
+// EntityTimelineItem entity timeline Item.
+type EntityTimelineItem struct {
+	// Kind - Possible values include: 'KindBasicEntityTimelineItemKindEntityTimelineItem', 'KindBasicEntityTimelineItemKindActivity', 'KindBasicEntityTimelineItemKindSecurityAlert', 'KindBasicEntityTimelineItemKindBookmark'
+	Kind KindBasicEntityTimelineItem `json:"kind,omitempty"`
+}
+
+func unmarshalBasicEntityTimelineItem(body []byte) (BasicEntityTimelineItem, error) {
+	var m map[string]interface{}
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return nil, err
+	}
+
+	switch m["kind"] {
+	case string(KindBasicEntityTimelineItemKindActivity):
+		var ati ActivityTimelineItem
+		err := json.Unmarshal(body, &ati)
+		return ati, err
+	case string(KindBasicEntityTimelineItemKindSecurityAlert):
+		var sati SecurityAlertTimelineItem
+		err := json.Unmarshal(body, &sati)
+		return sati, err
+	case string(KindBasicEntityTimelineItemKindBookmark):
+		var bti BookmarkTimelineItem
+		err := json.Unmarshal(body, &bti)
+		return bti, err
+	default:
+		var eti EntityTimelineItem
+		err := json.Unmarshal(body, &eti)
+		return eti, err
+	}
+}
+func unmarshalBasicEntityTimelineItemArray(body []byte) ([]BasicEntityTimelineItem, error) {
+	var rawMessages []*json.RawMessage
+	err := json.Unmarshal(body, &rawMessages)
+	if err != nil {
+		return nil, err
+	}
+
+	etiArray := make([]BasicEntityTimelineItem, len(rawMessages))
+
+	for index, rawMessage := range rawMessages {
+		eti, err := unmarshalBasicEntityTimelineItem(*rawMessage)
+		if err != nil {
+			return nil, err
+		}
+		etiArray[index] = eti
+	}
+	return etiArray, nil
+}
+
+// MarshalJSON is the custom marshaler for EntityTimelineItem.
+func (eti EntityTimelineItem) MarshalJSON() ([]byte, error) {
+	eti.Kind = KindBasicEntityTimelineItemKindEntityTimelineItem
+	objectMap := make(map[string]interface{})
+	if eti.Kind != "" {
+		objectMap["kind"] = eti.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsActivityTimelineItem is the BasicEntityTimelineItem implementation for EntityTimelineItem.
+func (eti EntityTimelineItem) AsActivityTimelineItem() (*ActivityTimelineItem, bool) {
+	return nil, false
+}
+
+// AsSecurityAlertTimelineItem is the BasicEntityTimelineItem implementation for EntityTimelineItem.
+func (eti EntityTimelineItem) AsSecurityAlertTimelineItem() (*SecurityAlertTimelineItem, bool) {
+	return nil, false
+}
+
+// AsBookmarkTimelineItem is the BasicEntityTimelineItem implementation for EntityTimelineItem.
+func (eti EntityTimelineItem) AsBookmarkTimelineItem() (*BookmarkTimelineItem, bool) {
+	return nil, false
+}
+
+// AsEntityTimelineItem is the BasicEntityTimelineItem implementation for EntityTimelineItem.
+func (eti EntityTimelineItem) AsEntityTimelineItem() (*EntityTimelineItem, bool) {
+	return &eti, true
+}
+
+// AsBasicEntityTimelineItem is the BasicEntityTimelineItem implementation for EntityTimelineItem.
+func (eti EntityTimelineItem) AsBasicEntityTimelineItem() (BasicEntityTimelineItem, bool) {
+	return &eti, true
+}
+
+// EntityTimelineParameters the parameters required to execute s timeline operation on the given entity.
+type EntityTimelineParameters struct {
+	// Kinds - Array of timeline Item kinds.
+	Kinds *[]EntityTimelineKind `json:"kinds,omitempty"`
+	// StartTime - The start timeline date, so the results returned are after this date.
+	StartTime *date.Time `json:"startTime,omitempty"`
+	// EndTime - The end timeline date, so the results returned are before this date.
+	EndTime *date.Time `json:"endTime,omitempty"`
+	// NumberOfBucket - The number of bucket for timeline queries aggregation.
+	NumberOfBucket *int32 `json:"numberOfBucket,omitempty"`
+}
+
+// EntityTimelineResponse the entity timeline result operation response.
+type EntityTimelineResponse struct {
+	autorest.Response `json:"-"`
+	// MetaData - The metadata from the timeline operation results.
+	MetaData *TimelineResultsMetadata `json:"metaData,omitempty"`
+	// Value - The timeline result values.
+	Value *[]BasicEntityTimelineItem `json:"value,omitempty"`
+}
+
+// UnmarshalJSON is the custom unmarshaler for EntityTimelineResponse struct.
+func (etr *EntityTimelineResponse) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "metaData":
+			if v != nil {
+				var metaData TimelineResultsMetadata
+				err = json.Unmarshal(*v, &metaData)
+				if err != nil {
+					return err
+				}
+				etr.MetaData = &metaData
+			}
+		case "value":
+			if v != nil {
+				value, err := unmarshalBasicEntityTimelineItemArray(*v)
+				if err != nil {
+					return err
+				}
+				etr.Value = &value
+			}
+		}
+	}
+
+	return nil
+}
+
+// EventGroupingSettings event grouping settings property bag.
+type EventGroupingSettings struct {
+	// AggregationKind - Possible values include: 'SingleAlert', 'AlertPerResult'
+	AggregationKind EventGroupingAggregationKind `json:"aggregationKind,omitempty"`
+}
+
+// ExpansionEntityQueriesProperties describes expansion entity query properties
+type ExpansionEntityQueriesProperties struct {
 	// DataSources - List of the data sources that are required to run the query
 	DataSources *[]string `json:"dataSources,omitempty"`
 	// DisplayName - The query display name
 	DisplayName *string `json:"displayName,omitempty"`
-	// InputEntityType - The type of the query's source entity. Possible values include: 'EntityTypeAccount', 'EntityTypeHost', 'EntityTypeFile', 'EntityTypeAzureResource', 'EntityTypeCloudApplication', 'EntityTypeDNS', 'EntityTypeFileHash', 'EntityTypeIP', 'EntityTypeMalware', 'EntityTypeProcess', 'EntityTypeRegistryKey', 'EntityTypeRegistryValue', 'EntityTypeSecurityGroup', 'EntityTypeURL', 'EntityTypeIoTDevice', 'EntityTypeSecurityAlert', 'EntityTypeHuntingBookmark'
+	// InputEntityType - The type of the query's source entity. Possible values include: 'EntityTypeAccount', 'EntityTypeHost', 'EntityTypeFile', 'EntityTypeAzureResource', 'EntityTypeCloudApplication', 'EntityTypeDNS', 'EntityTypeFileHash', 'EntityTypeIP', 'EntityTypeMalware', 'EntityTypeProcess', 'EntityTypeRegistryKey', 'EntityTypeRegistryValue', 'EntityTypeSecurityGroup', 'EntityTypeURL', 'EntityTypeIoTDevice', 'EntityTypeSecurityAlert', 'EntityTypeHuntingBookmark', 'EntityTypeMailCluster', 'EntityTypeMailMessage', 'EntityTypeMailbox', 'EntityTypeSubmissionMail'
 	InputEntityType EntityType `json:"inputEntityType,omitempty"`
 	// InputFields - List of the fields of the source entity that are required to run the query
 	InputFields *[]string `json:"inputFields,omitempty"`
@@ -5763,6 +7054,122 @@ type EntityQueryProperties struct {
 	OutputEntityTypes *[]EntityType `json:"outputEntityTypes,omitempty"`
 	// QueryTemplate - The template query string to be parsed and formatted
 	QueryTemplate *string `json:"queryTemplate,omitempty"`
+}
+
+// ExpansionEntityQuery represents Expansion entity query.
+type ExpansionEntityQuery struct {
+	// ExpansionEntityQueriesProperties - Expansion entity query properties
+	*ExpansionEntityQueriesProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Azure resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Azure resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Azure resource type
+	Type *string `json:"type,omitempty"`
+	// Etag - Etag of the azure resource
+	Etag *string `json:"etag,omitempty"`
+	// Kind - Possible values include: 'KindEntityQuery', 'KindExpansion'
+	Kind KindBasicEntityQuery `json:"kind,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ExpansionEntityQuery.
+func (eeq ExpansionEntityQuery) MarshalJSON() ([]byte, error) {
+	eeq.Kind = KindExpansion
+	objectMap := make(map[string]interface{})
+	if eeq.ExpansionEntityQueriesProperties != nil {
+		objectMap["properties"] = eeq.ExpansionEntityQueriesProperties
+	}
+	if eeq.Etag != nil {
+		objectMap["etag"] = eeq.Etag
+	}
+	if eeq.Kind != "" {
+		objectMap["kind"] = eeq.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsExpansionEntityQuery is the BasicEntityQuery implementation for ExpansionEntityQuery.
+func (eeq ExpansionEntityQuery) AsExpansionEntityQuery() (*ExpansionEntityQuery, bool) {
+	return &eeq, true
+}
+
+// AsEntityQuery is the BasicEntityQuery implementation for ExpansionEntityQuery.
+func (eeq ExpansionEntityQuery) AsEntityQuery() (*EntityQuery, bool) {
+	return nil, false
+}
+
+// AsBasicEntityQuery is the BasicEntityQuery implementation for ExpansionEntityQuery.
+func (eeq ExpansionEntityQuery) AsBasicEntityQuery() (BasicEntityQuery, bool) {
+	return &eeq, true
+}
+
+// UnmarshalJSON is the custom unmarshaler for ExpansionEntityQuery struct.
+func (eeq *ExpansionEntityQuery) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var expansionEntityQueriesProperties ExpansionEntityQueriesProperties
+				err = json.Unmarshal(*v, &expansionEntityQueriesProperties)
+				if err != nil {
+					return err
+				}
+				eeq.ExpansionEntityQueriesProperties = &expansionEntityQueriesProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				eeq.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				eeq.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				eeq.Type = &typeVar
+			}
+		case "etag":
+			if v != nil {
+				var etag string
+				err = json.Unmarshal(*v, &etag)
+				if err != nil {
+					return err
+				}
+				eeq.Etag = &etag
+			}
+		case "kind":
+			if v != nil {
+				var kind KindBasicEntityQuery
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				eeq.Kind = kind
+			}
+		}
+	}
+
+	return nil
 }
 
 // ExpansionResultAggregation information of a specific aggregation in the expansion result.
@@ -5773,7 +7180,7 @@ type ExpansionResultAggregation struct {
 	Count *int32 `json:"count,omitempty"`
 	// DisplayName - The display name of the aggregation by type.
 	DisplayName *string `json:"displayName,omitempty"`
-	// EntityKind - The kind of the aggregated entity. Possible values include: 'EntityKindAccount', 'EntityKindHost', 'EntityKindFile', 'EntityKindAzureResource', 'EntityKindCloudApplication', 'EntityKindDNSResolution', 'EntityKindFileHash', 'EntityKindIP', 'EntityKindMalware', 'EntityKindProcess', 'EntityKindRegistryKey', 'EntityKindRegistryValue', 'EntityKindSecurityGroup', 'EntityKindURL', 'EntityKindIoTDevice', 'EntityKindSecurityAlert', 'EntityKindBookmark'
+	// EntityKind - The kind of the aggregated entity. Possible values include: 'EntityKindAccount', 'EntityKindHost', 'EntityKindFile', 'EntityKindAzureResource', 'EntityKindCloudApplication', 'EntityKindDNSResolution', 'EntityKindFileHash', 'EntityKindIP', 'EntityKindMalware', 'EntityKindProcess', 'EntityKindRegistryKey', 'EntityKindRegistryValue', 'EntityKindSecurityGroup', 'EntityKindURL', 'EntityKindIoTDevice', 'EntityKindSecurityAlert', 'EntityKindBookmark', 'EntityKindMailCluster', 'EntityKindMailMessage', 'EntityKindMailbox', 'EntityKindSubmissionMail'
 	EntityKind EntityKind `json:"entityKind,omitempty"`
 }
 
@@ -5795,7 +7202,7 @@ type EyesOn struct {
 	Type *string `json:"type,omitempty"`
 	// Etag - Etag of the azure resource
 	Etag *string `json:"etag,omitempty"`
-	// Kind - Possible values include: 'KindSettings', 'KindEyesOn'
+	// Kind - Possible values include: 'KindSettings', 'KindEyesOn', 'KindEntityAnalytics', 'KindUeba'
 	Kind KindBasicSettings `json:"kind,omitempty"`
 }
 
@@ -5818,6 +7225,16 @@ func (eo EyesOn) MarshalJSON() ([]byte, error) {
 // AsEyesOn is the BasicSettings implementation for EyesOn.
 func (eo EyesOn) AsEyesOn() (*EyesOn, bool) {
 	return &eo, true
+}
+
+// AsEntityAnalytics is the BasicSettings implementation for EyesOn.
+func (eo EyesOn) AsEntityAnalytics() (*EntityAnalytics, bool) {
+	return nil, false
+}
+
+// AsUeba is the BasicSettings implementation for EyesOn.
+func (eo EyesOn) AsUeba() (*Ueba, bool) {
+	return nil, false
 }
 
 // AsSettings is the BasicSettings implementation for EyesOn.
@@ -5915,7 +7332,7 @@ type FileEntity struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Azure resource type
 	Type *string `json:"type,omitempty"`
-	// Kind - Possible values include: 'KindEntity', 'KindAccount', 'KindAzureResource', 'KindCloudApplication', 'KindDNSResolution', 'KindFile', 'KindFileHash', 'KindHost', 'KindIP', 'KindMalware', 'KindProcess', 'KindRegistryKey', 'KindRegistryValue', 'KindSecurityAlert', 'KindSecurityGroup', 'KindURL', 'KindIoTDevice'
+	// Kind - Possible values include: 'KindEntity', 'KindAccount', 'KindAzureResource', 'KindCloudApplication', 'KindDNSResolution', 'KindFile', 'KindFileHash', 'KindHost', 'KindBookmark', 'KindSecurityAlert', 'KindIP', 'KindMailbox', 'KindMailCluster', 'KindMailMessage', 'KindSubmissionMail', 'KindMalware', 'KindProcess', 'KindRegistryKey', 'KindRegistryValue', 'KindSecurityGroup', 'KindURL', 'KindIoTDevice'
 	Kind KindBasicEntity `json:"kind,omitempty"`
 }
 
@@ -5967,8 +7384,38 @@ func (fe FileEntity) AsHostEntity() (*HostEntity, bool) {
 	return nil, false
 }
 
+// AsHuntingBookmark is the BasicEntity implementation for FileEntity.
+func (fe FileEntity) AsHuntingBookmark() (*HuntingBookmark, bool) {
+	return nil, false
+}
+
+// AsSecurityAlert is the BasicEntity implementation for FileEntity.
+func (fe FileEntity) AsSecurityAlert() (*SecurityAlert, bool) {
+	return nil, false
+}
+
 // AsIPEntity is the BasicEntity implementation for FileEntity.
 func (fe FileEntity) AsIPEntity() (*IPEntity, bool) {
+	return nil, false
+}
+
+// AsMailboxEntity is the BasicEntity implementation for FileEntity.
+func (fe FileEntity) AsMailboxEntity() (*MailboxEntity, bool) {
+	return nil, false
+}
+
+// AsMailClusterEntity is the BasicEntity implementation for FileEntity.
+func (fe FileEntity) AsMailClusterEntity() (*MailClusterEntity, bool) {
+	return nil, false
+}
+
+// AsMailMessageEntity is the BasicEntity implementation for FileEntity.
+func (fe FileEntity) AsMailMessageEntity() (*MailMessageEntity, bool) {
+	return nil, false
+}
+
+// AsSubmissionMailEntity is the BasicEntity implementation for FileEntity.
+func (fe FileEntity) AsSubmissionMailEntity() (*SubmissionMailEntity, bool) {
 	return nil, false
 }
 
@@ -5989,11 +7436,6 @@ func (fe FileEntity) AsRegistryKeyEntity() (*RegistryKeyEntity, bool) {
 
 // AsRegistryValueEntity is the BasicEntity implementation for FileEntity.
 func (fe FileEntity) AsRegistryValueEntity() (*RegistryValueEntity, bool) {
-	return nil, false
-}
-
-// AsSecurityAlert is the BasicEntity implementation for FileEntity.
-func (fe FileEntity) AsSecurityAlert() (*SecurityAlert, bool) {
 	return nil, false
 }
 
@@ -6114,7 +7556,7 @@ type FileHashEntity struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Azure resource type
 	Type *string `json:"type,omitempty"`
-	// Kind - Possible values include: 'KindEntity', 'KindAccount', 'KindAzureResource', 'KindCloudApplication', 'KindDNSResolution', 'KindFile', 'KindFileHash', 'KindHost', 'KindIP', 'KindMalware', 'KindProcess', 'KindRegistryKey', 'KindRegistryValue', 'KindSecurityAlert', 'KindSecurityGroup', 'KindURL', 'KindIoTDevice'
+	// Kind - Possible values include: 'KindEntity', 'KindAccount', 'KindAzureResource', 'KindCloudApplication', 'KindDNSResolution', 'KindFile', 'KindFileHash', 'KindHost', 'KindBookmark', 'KindSecurityAlert', 'KindIP', 'KindMailbox', 'KindMailCluster', 'KindMailMessage', 'KindSubmissionMail', 'KindMalware', 'KindProcess', 'KindRegistryKey', 'KindRegistryValue', 'KindSecurityGroup', 'KindURL', 'KindIoTDevice'
 	Kind KindBasicEntity `json:"kind,omitempty"`
 }
 
@@ -6166,8 +7608,38 @@ func (fhe FileHashEntity) AsHostEntity() (*HostEntity, bool) {
 	return nil, false
 }
 
+// AsHuntingBookmark is the BasicEntity implementation for FileHashEntity.
+func (fhe FileHashEntity) AsHuntingBookmark() (*HuntingBookmark, bool) {
+	return nil, false
+}
+
+// AsSecurityAlert is the BasicEntity implementation for FileHashEntity.
+func (fhe FileHashEntity) AsSecurityAlert() (*SecurityAlert, bool) {
+	return nil, false
+}
+
 // AsIPEntity is the BasicEntity implementation for FileHashEntity.
 func (fhe FileHashEntity) AsIPEntity() (*IPEntity, bool) {
+	return nil, false
+}
+
+// AsMailboxEntity is the BasicEntity implementation for FileHashEntity.
+func (fhe FileHashEntity) AsMailboxEntity() (*MailboxEntity, bool) {
+	return nil, false
+}
+
+// AsMailClusterEntity is the BasicEntity implementation for FileHashEntity.
+func (fhe FileHashEntity) AsMailClusterEntity() (*MailClusterEntity, bool) {
+	return nil, false
+}
+
+// AsMailMessageEntity is the BasicEntity implementation for FileHashEntity.
+func (fhe FileHashEntity) AsMailMessageEntity() (*MailMessageEntity, bool) {
+	return nil, false
+}
+
+// AsSubmissionMailEntity is the BasicEntity implementation for FileHashEntity.
+func (fhe FileHashEntity) AsSubmissionMailEntity() (*SubmissionMailEntity, bool) {
 	return nil, false
 }
 
@@ -6188,11 +7660,6 @@ func (fhe FileHashEntity) AsRegistryKeyEntity() (*RegistryKeyEntity, bool) {
 
 // AsRegistryValueEntity is the BasicEntity implementation for FileHashEntity.
 func (fhe FileHashEntity) AsRegistryValueEntity() (*RegistryValueEntity, bool) {
-	return nil, false
-}
-
-// AsSecurityAlert is the BasicEntity implementation for FileHashEntity.
-func (fhe FileHashEntity) AsSecurityAlert() (*SecurityAlert, bool) {
 	return nil, false
 }
 
@@ -6283,7 +7750,7 @@ func (fhe *FileHashEntity) UnmarshalJSON(body []byte) error {
 
 // FileHashEntityProperties fileHash entity property bag.
 type FileHashEntityProperties struct {
-	// Algorithm - READ-ONLY; The hash algorithm type. Possible values include: 'Unknown', 'MD5', 'SHA1', 'SHA256', 'SHA256AC'
+	// Algorithm - READ-ONLY; The hash algorithm type. Possible values include: 'FileHashAlgorithmUnknown', 'FileHashAlgorithmMD5', 'FileHashAlgorithmSHA1', 'FileHashAlgorithmSHA256', 'FileHashAlgorithmSHA256AC'
 	Algorithm FileHashAlgorithm `json:"algorithm,omitempty"`
 	// HashValue - READ-ONLY; The file hash value.
 	HashValue *string `json:"hashValue,omitempty"`
@@ -6311,7 +7778,7 @@ type FusionAlertRule struct {
 	Type *string `json:"type,omitempty"`
 	// Etag - Etag of the azure resource
 	Etag *string `json:"etag,omitempty"`
-	// Kind - Possible values include: 'KindAlertRule', 'KindFusion', 'KindMicrosoftSecurityIncidentCreation', 'KindScheduled'
+	// Kind - Possible values include: 'KindAlertRule', 'KindMLBehaviorAnalytics', 'KindFusion', 'KindMicrosoftSecurityIncidentCreation', 'KindScheduled'
 	Kind KindBasicAlertRule `json:"kind,omitempty"`
 }
 
@@ -6329,6 +7796,11 @@ func (far FusionAlertRule) MarshalJSON() ([]byte, error) {
 		objectMap["kind"] = far.Kind
 	}
 	return json.Marshal(objectMap)
+}
+
+// AsMLBehaviorAnalyticsAlertRule is the BasicAlertRule implementation for FusionAlertRule.
+func (far FusionAlertRule) AsMLBehaviorAnalyticsAlertRule() (*MLBehaviorAnalyticsAlertRule, bool) {
+	return nil, false
 }
 
 // AsFusionAlertRule is the BasicAlertRule implementation for FusionAlertRule.
@@ -6465,7 +7937,7 @@ type FusionAlertRuleTemplate struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Azure resource type
 	Type *string `json:"type,omitempty"`
-	// Kind - Possible values include: 'KindBasicAlertRuleTemplateKindAlertRuleTemplate', 'KindBasicAlertRuleTemplateKindFusion', 'KindBasicAlertRuleTemplateKindMicrosoftSecurityIncidentCreation', 'KindBasicAlertRuleTemplateKindScheduled'
+	// Kind - Possible values include: 'KindBasicAlertRuleTemplateKindAlertRuleTemplate', 'KindBasicAlertRuleTemplateKindMLBehaviorAnalytics', 'KindBasicAlertRuleTemplateKindFusion', 'KindBasicAlertRuleTemplateKindMicrosoftSecurityIncidentCreation', 'KindBasicAlertRuleTemplateKindScheduled'
 	Kind KindBasicAlertRuleTemplate `json:"kind,omitempty"`
 }
 
@@ -6480,6 +7952,11 @@ func (fart FusionAlertRuleTemplate) MarshalJSON() ([]byte, error) {
 		objectMap["kind"] = fart.Kind
 	}
 	return json.Marshal(objectMap)
+}
+
+// AsMLBehaviorAnalyticsAlertRuleTemplate is the BasicAlertRuleTemplate implementation for FusionAlertRuleTemplate.
+func (fart FusionAlertRuleTemplate) AsMLBehaviorAnalyticsAlertRuleTemplate() (*MLBehaviorAnalyticsAlertRuleTemplate, bool) {
+	return nil, false
 }
 
 // AsFusionAlertRuleTemplate is the BasicAlertRuleTemplate implementation for FusionAlertRuleTemplate.
@@ -6575,6 +8052,8 @@ type FusionAlertRuleTemplateProperties struct {
 	Tactics *[]AttackTactic `json:"tactics,omitempty"`
 	// AlertRulesCreatedByTemplateCount - the number of alert rules that were created by this template
 	AlertRulesCreatedByTemplateCount *int32 `json:"alertRulesCreatedByTemplateCount,omitempty"`
+	// LastUpdatedDateUTC - READ-ONLY; The last time that this alert rule template has been updated.
+	LastUpdatedDateUTC *date.Time `json:"lastUpdatedDateUTC,omitempty"`
 	// CreatedDateUTC - READ-ONLY; The time that this alert rule template has been added.
 	CreatedDateUTC *date.Time `json:"createdDateUTC,omitempty"`
 	// Description - The description of the alert rule template.
@@ -6632,6 +8111,54 @@ type GeoLocation struct {
 	State *string `json:"state,omitempty"`
 }
 
+// GetInsightsError getInsights Query Errors.
+type GetInsightsError struct {
+	// Kind - the query kind
+	Kind *string `json:"kind,omitempty"`
+	// QueryID - the query id
+	QueryID *string `json:"queryId,omitempty"`
+	// ErrorMessage - the error message
+	ErrorMessage *string `json:"errorMessage,omitempty"`
+}
+
+// GetInsightsResultsMetadata get Insights result metadata.
+type GetInsightsResultsMetadata struct {
+	// TotalCount - the total items found for the insights request
+	TotalCount *int32 `json:"totalCount,omitempty"`
+	// Errors - information about the failed queries
+	Errors *[]GetInsightsError `json:"errors,omitempty"`
+}
+
+// GetQueriesResponse retrieve queries for entity result operation response.
+type GetQueriesResponse struct {
+	autorest.Response `json:"-"`
+	// Value - The query result values.
+	Value *[]BasicEntityQueryItem `json:"value,omitempty"`
+}
+
+// UnmarshalJSON is the custom unmarshaler for GetQueriesResponse struct.
+func (gqr *GetQueriesResponse) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "value":
+			if v != nil {
+				value, err := unmarshalBasicEntityQueryItemArray(*v)
+				if err != nil {
+					return err
+				}
+				gqr.Value = &value
+			}
+		}
+	}
+
+	return nil
+}
+
 // GroupingConfiguration grouping configuration property bag.
 type GroupingConfiguration struct {
 	// Enabled - Grouping enabled
@@ -6656,7 +8183,7 @@ type HostEntity struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Azure resource type
 	Type *string `json:"type,omitempty"`
-	// Kind - Possible values include: 'KindEntity', 'KindAccount', 'KindAzureResource', 'KindCloudApplication', 'KindDNSResolution', 'KindFile', 'KindFileHash', 'KindHost', 'KindIP', 'KindMalware', 'KindProcess', 'KindRegistryKey', 'KindRegistryValue', 'KindSecurityAlert', 'KindSecurityGroup', 'KindURL', 'KindIoTDevice'
+	// Kind - Possible values include: 'KindEntity', 'KindAccount', 'KindAzureResource', 'KindCloudApplication', 'KindDNSResolution', 'KindFile', 'KindFileHash', 'KindHost', 'KindBookmark', 'KindSecurityAlert', 'KindIP', 'KindMailbox', 'KindMailCluster', 'KindMailMessage', 'KindSubmissionMail', 'KindMalware', 'KindProcess', 'KindRegistryKey', 'KindRegistryValue', 'KindSecurityGroup', 'KindURL', 'KindIoTDevice'
 	Kind KindBasicEntity `json:"kind,omitempty"`
 }
 
@@ -6708,8 +8235,38 @@ func (he HostEntity) AsHostEntity() (*HostEntity, bool) {
 	return &he, true
 }
 
+// AsHuntingBookmark is the BasicEntity implementation for HostEntity.
+func (he HostEntity) AsHuntingBookmark() (*HuntingBookmark, bool) {
+	return nil, false
+}
+
+// AsSecurityAlert is the BasicEntity implementation for HostEntity.
+func (he HostEntity) AsSecurityAlert() (*SecurityAlert, bool) {
+	return nil, false
+}
+
 // AsIPEntity is the BasicEntity implementation for HostEntity.
 func (he HostEntity) AsIPEntity() (*IPEntity, bool) {
+	return nil, false
+}
+
+// AsMailboxEntity is the BasicEntity implementation for HostEntity.
+func (he HostEntity) AsMailboxEntity() (*MailboxEntity, bool) {
+	return nil, false
+}
+
+// AsMailClusterEntity is the BasicEntity implementation for HostEntity.
+func (he HostEntity) AsMailClusterEntity() (*MailClusterEntity, bool) {
+	return nil, false
+}
+
+// AsMailMessageEntity is the BasicEntity implementation for HostEntity.
+func (he HostEntity) AsMailMessageEntity() (*MailMessageEntity, bool) {
+	return nil, false
+}
+
+// AsSubmissionMailEntity is the BasicEntity implementation for HostEntity.
+func (he HostEntity) AsSubmissionMailEntity() (*SubmissionMailEntity, bool) {
 	return nil, false
 }
 
@@ -6730,11 +8287,6 @@ func (he HostEntity) AsRegistryKeyEntity() (*RegistryKeyEntity, bool) {
 
 // AsRegistryValueEntity is the BasicEntity implementation for HostEntity.
 func (he HostEntity) AsRegistryValueEntity() (*RegistryValueEntity, bool) {
-	return nil, false
-}
-
-// AsSecurityAlert is the BasicEntity implementation for HostEntity.
-func (he HostEntity) AsSecurityAlert() (*SecurityAlert, bool) {
 	return nil, false
 }
 
@@ -6839,7 +8391,7 @@ type HostEntityProperties struct {
 	NtDomain *string `json:"ntDomain,omitempty"`
 	// OmsAgentID - READ-ONLY; The OMS agent id, if the host has OMS agent installed.
 	OmsAgentID *string `json:"omsAgentID,omitempty"`
-	// OsFamily - The operating system type. Possible values include: 'Linux', 'Windows', 'Android', 'IOS'
+	// OsFamily - The operating system type. Possible values include: 'OSFamilyLinux', 'OSFamilyWindows', 'OSFamilyAndroid', 'OSFamilyIOS', 'OSFamilyUnknown'
 	OsFamily OSFamily `json:"osFamily,omitempty"`
 	// OsVersion - READ-ONLY; A free text representation of the operating system. This field is meant to hold specific versions the are more fine grained than OSFamily or future values not supported by OSFamily enumeration
 	OsVersion *string `json:"osVersion,omitempty"`
@@ -6854,6 +8406,277 @@ func (hep HostEntityProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if hep.OsFamily != "" {
 		objectMap["osFamily"] = hep.OsFamily
+	}
+	return json.Marshal(objectMap)
+}
+
+// HuntingBookmark represents a Hunting bookmark entity.
+type HuntingBookmark struct {
+	// HuntingBookmarkProperties - HuntingBookmark entity properties
+	*HuntingBookmarkProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Azure resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Azure resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Azure resource type
+	Type *string `json:"type,omitempty"`
+	// Kind - Possible values include: 'KindEntity', 'KindAccount', 'KindAzureResource', 'KindCloudApplication', 'KindDNSResolution', 'KindFile', 'KindFileHash', 'KindHost', 'KindBookmark', 'KindSecurityAlert', 'KindIP', 'KindMailbox', 'KindMailCluster', 'KindMailMessage', 'KindSubmissionMail', 'KindMalware', 'KindProcess', 'KindRegistryKey', 'KindRegistryValue', 'KindSecurityGroup', 'KindURL', 'KindIoTDevice'
+	Kind KindBasicEntity `json:"kind,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for HuntingBookmark.
+func (hb HuntingBookmark) MarshalJSON() ([]byte, error) {
+	hb.Kind = KindBookmark
+	objectMap := make(map[string]interface{})
+	if hb.HuntingBookmarkProperties != nil {
+		objectMap["properties"] = hb.HuntingBookmarkProperties
+	}
+	if hb.Kind != "" {
+		objectMap["kind"] = hb.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsAccountEntity is the BasicEntity implementation for HuntingBookmark.
+func (hb HuntingBookmark) AsAccountEntity() (*AccountEntity, bool) {
+	return nil, false
+}
+
+// AsAzureResourceEntity is the BasicEntity implementation for HuntingBookmark.
+func (hb HuntingBookmark) AsAzureResourceEntity() (*AzureResourceEntity, bool) {
+	return nil, false
+}
+
+// AsCloudApplicationEntity is the BasicEntity implementation for HuntingBookmark.
+func (hb HuntingBookmark) AsCloudApplicationEntity() (*CloudApplicationEntity, bool) {
+	return nil, false
+}
+
+// AsDNSEntity is the BasicEntity implementation for HuntingBookmark.
+func (hb HuntingBookmark) AsDNSEntity() (*DNSEntity, bool) {
+	return nil, false
+}
+
+// AsFileEntity is the BasicEntity implementation for HuntingBookmark.
+func (hb HuntingBookmark) AsFileEntity() (*FileEntity, bool) {
+	return nil, false
+}
+
+// AsFileHashEntity is the BasicEntity implementation for HuntingBookmark.
+func (hb HuntingBookmark) AsFileHashEntity() (*FileHashEntity, bool) {
+	return nil, false
+}
+
+// AsHostEntity is the BasicEntity implementation for HuntingBookmark.
+func (hb HuntingBookmark) AsHostEntity() (*HostEntity, bool) {
+	return nil, false
+}
+
+// AsHuntingBookmark is the BasicEntity implementation for HuntingBookmark.
+func (hb HuntingBookmark) AsHuntingBookmark() (*HuntingBookmark, bool) {
+	return &hb, true
+}
+
+// AsSecurityAlert is the BasicEntity implementation for HuntingBookmark.
+func (hb HuntingBookmark) AsSecurityAlert() (*SecurityAlert, bool) {
+	return nil, false
+}
+
+// AsIPEntity is the BasicEntity implementation for HuntingBookmark.
+func (hb HuntingBookmark) AsIPEntity() (*IPEntity, bool) {
+	return nil, false
+}
+
+// AsMailboxEntity is the BasicEntity implementation for HuntingBookmark.
+func (hb HuntingBookmark) AsMailboxEntity() (*MailboxEntity, bool) {
+	return nil, false
+}
+
+// AsMailClusterEntity is the BasicEntity implementation for HuntingBookmark.
+func (hb HuntingBookmark) AsMailClusterEntity() (*MailClusterEntity, bool) {
+	return nil, false
+}
+
+// AsMailMessageEntity is the BasicEntity implementation for HuntingBookmark.
+func (hb HuntingBookmark) AsMailMessageEntity() (*MailMessageEntity, bool) {
+	return nil, false
+}
+
+// AsSubmissionMailEntity is the BasicEntity implementation for HuntingBookmark.
+func (hb HuntingBookmark) AsSubmissionMailEntity() (*SubmissionMailEntity, bool) {
+	return nil, false
+}
+
+// AsMalwareEntity is the BasicEntity implementation for HuntingBookmark.
+func (hb HuntingBookmark) AsMalwareEntity() (*MalwareEntity, bool) {
+	return nil, false
+}
+
+// AsProcessEntity is the BasicEntity implementation for HuntingBookmark.
+func (hb HuntingBookmark) AsProcessEntity() (*ProcessEntity, bool) {
+	return nil, false
+}
+
+// AsRegistryKeyEntity is the BasicEntity implementation for HuntingBookmark.
+func (hb HuntingBookmark) AsRegistryKeyEntity() (*RegistryKeyEntity, bool) {
+	return nil, false
+}
+
+// AsRegistryValueEntity is the BasicEntity implementation for HuntingBookmark.
+func (hb HuntingBookmark) AsRegistryValueEntity() (*RegistryValueEntity, bool) {
+	return nil, false
+}
+
+// AsSecurityGroupEntity is the BasicEntity implementation for HuntingBookmark.
+func (hb HuntingBookmark) AsSecurityGroupEntity() (*SecurityGroupEntity, bool) {
+	return nil, false
+}
+
+// AsURLEntity is the BasicEntity implementation for HuntingBookmark.
+func (hb HuntingBookmark) AsURLEntity() (*URLEntity, bool) {
+	return nil, false
+}
+
+// AsIoTDeviceEntity is the BasicEntity implementation for HuntingBookmark.
+func (hb HuntingBookmark) AsIoTDeviceEntity() (*IoTDeviceEntity, bool) {
+	return nil, false
+}
+
+// AsEntity is the BasicEntity implementation for HuntingBookmark.
+func (hb HuntingBookmark) AsEntity() (*Entity, bool) {
+	return nil, false
+}
+
+// AsBasicEntity is the BasicEntity implementation for HuntingBookmark.
+func (hb HuntingBookmark) AsBasicEntity() (BasicEntity, bool) {
+	return &hb, true
+}
+
+// UnmarshalJSON is the custom unmarshaler for HuntingBookmark struct.
+func (hb *HuntingBookmark) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var huntingBookmarkProperties HuntingBookmarkProperties
+				err = json.Unmarshal(*v, &huntingBookmarkProperties)
+				if err != nil {
+					return err
+				}
+				hb.HuntingBookmarkProperties = &huntingBookmarkProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				hb.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				hb.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				hb.Type = &typeVar
+			}
+		case "kind":
+			if v != nil {
+				var kind KindBasicEntity
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				hb.Kind = kind
+			}
+		}
+	}
+
+	return nil
+}
+
+// HuntingBookmarkProperties describes bookmark properties
+type HuntingBookmarkProperties struct {
+	// Created - The time the bookmark was created
+	Created *date.Time `json:"created,omitempty"`
+	// CreatedBy - Describes a user that created the bookmark
+	CreatedBy *UserInfo `json:"createdBy,omitempty"`
+	// DisplayName - The display name of the bookmark
+	DisplayName *string `json:"displayName,omitempty"`
+	// EventTime - The time of the event
+	EventTime *date.Time `json:"eventTime,omitempty"`
+	// Labels - List of labels relevant to this bookmark
+	Labels *[]string `json:"labels,omitempty"`
+	// Notes - The notes of the bookmark
+	Notes *string `json:"notes,omitempty"`
+	// Query - The query of the bookmark.
+	Query *string `json:"query,omitempty"`
+	// QueryResult - The query result of the bookmark.
+	QueryResult *string `json:"queryResult,omitempty"`
+	// Updated - The last time the bookmark was updated
+	Updated *date.Time `json:"updated,omitempty"`
+	// UpdatedBy - Describes a user that updated the bookmark
+	UpdatedBy *UserInfo `json:"updatedBy,omitempty"`
+	// IncidentInfo - Describes an incident that relates to bookmark
+	IncidentInfo *IncidentInfo `json:"incidentInfo,omitempty"`
+	// AdditionalData - READ-ONLY; A bag of custom fields that should be part of the entity and will be presented to the user.
+	AdditionalData map[string]interface{} `json:"additionalData"`
+	// FriendlyName - READ-ONLY; The graph item display name which is a short humanly readable description of the graph item instance. This property is optional and might be system generated.
+	FriendlyName *string `json:"friendlyName,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for HuntingBookmarkProperties.
+func (hbp HuntingBookmarkProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if hbp.Created != nil {
+		objectMap["created"] = hbp.Created
+	}
+	if hbp.CreatedBy != nil {
+		objectMap["createdBy"] = hbp.CreatedBy
+	}
+	if hbp.DisplayName != nil {
+		objectMap["displayName"] = hbp.DisplayName
+	}
+	if hbp.EventTime != nil {
+		objectMap["eventTime"] = hbp.EventTime
+	}
+	if hbp.Labels != nil {
+		objectMap["labels"] = hbp.Labels
+	}
+	if hbp.Notes != nil {
+		objectMap["notes"] = hbp.Notes
+	}
+	if hbp.Query != nil {
+		objectMap["query"] = hbp.Query
+	}
+	if hbp.QueryResult != nil {
+		objectMap["queryResult"] = hbp.QueryResult
+	}
+	if hbp.Updated != nil {
+		objectMap["updated"] = hbp.Updated
+	}
+	if hbp.UpdatedBy != nil {
+		objectMap["updatedBy"] = hbp.UpdatedBy
+	}
+	if hbp.IncidentInfo != nil {
+		objectMap["incidentInfo"] = hbp.IncidentInfo
 	}
 	return json.Marshal(objectMap)
 }
@@ -6959,6 +8782,20 @@ type IncidentAdditionalData struct {
 	Tactics *[]AttackTactic `json:"tactics,omitempty"`
 }
 
+// IncidentAlertList list of incident alerts.
+type IncidentAlertList struct {
+	autorest.Response `json:"-"`
+	// Value - Array of incident alerts.
+	Value *[]SecurityAlert `json:"value,omitempty"`
+}
+
+// IncidentBookmarkList list of incident bookmarks.
+type IncidentBookmarkList struct {
+	autorest.Response `json:"-"`
+	// Value - Array of incident bookmarks.
+	Value *[]HuntingBookmark `json:"value,omitempty"`
+}
+
 // IncidentComment represents an incident comment
 type IncidentComment struct {
 	autorest.Response `json:"-"`
@@ -6970,6 +8807,8 @@ type IncidentComment struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Azure resource type
 	Type *string `json:"type,omitempty"`
+	// Etag - Etag of the azure resource
+	Etag *string `json:"etag,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for IncidentComment.
@@ -6977,6 +8816,9 @@ func (ic IncidentComment) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if ic.IncidentCommentProperties != nil {
 		objectMap["properties"] = ic.IncidentCommentProperties
+	}
+	if ic.Etag != nil {
+		objectMap["etag"] = ic.Etag
 	}
 	return json.Marshal(objectMap)
 }
@@ -7025,6 +8867,15 @@ func (ic *IncidentComment) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				ic.Type = &typeVar
+			}
+		case "etag":
+			if v != nil {
+				var etag string
+				err = json.Unmarshal(*v, &etag)
+				if err != nil {
+					return err
+				}
+				ic.Etag = &etag
 			}
 		}
 	}
@@ -7193,14 +9044,19 @@ func (page IncidentCommentListPage) Values() []IncidentComment {
 }
 
 // Creates a new instance of the IncidentCommentListPage type.
-func NewIncidentCommentListPage(getNextPage func(context.Context, IncidentCommentList) (IncidentCommentList, error)) IncidentCommentListPage {
-	return IncidentCommentListPage{fn: getNextPage}
+func NewIncidentCommentListPage(cur IncidentCommentList, getNextPage func(context.Context, IncidentCommentList) (IncidentCommentList, error)) IncidentCommentListPage {
+	return IncidentCommentListPage{
+		fn:  getNextPage,
+		icl: cur,
+	}
 }
 
 // IncidentCommentProperties incident comment property bag.
 type IncidentCommentProperties struct {
 	// CreatedTimeUtc - READ-ONLY; The time the comment was created
 	CreatedTimeUtc *date.Time `json:"createdTimeUtc,omitempty"`
+	// LastModifiedTimeUtc - READ-ONLY; The time the comment was updated
+	LastModifiedTimeUtc *date.Time `json:"lastModifiedTimeUtc,omitempty"`
 	// Message - The comment message
 	Message *string `json:"message,omitempty"`
 	// Author - READ-ONLY; Describes the client that created the comment
@@ -7222,6 +9078,56 @@ type IncidentConfiguration struct {
 	CreateIncident *bool `json:"createIncident,omitempty"`
 	// GroupingConfiguration - Set how the alerts that are triggered by this analytics rule, are grouped into incidents
 	GroupingConfiguration *GroupingConfiguration `json:"groupingConfiguration,omitempty"`
+}
+
+// IncidentEntitiesResponse the incident related entities response.
+type IncidentEntitiesResponse struct {
+	autorest.Response `json:"-"`
+	// Entities - Array of the incident related entities.
+	Entities *[]BasicEntity `json:"entities,omitempty"`
+	// MetaData - The metadata from the incident related entities results.
+	MetaData *[]IncidentEntitiesResultsMetadata `json:"metaData,omitempty"`
+}
+
+// UnmarshalJSON is the custom unmarshaler for IncidentEntitiesResponse struct.
+func (ier *IncidentEntitiesResponse) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "entities":
+			if v != nil {
+				entities, err := unmarshalBasicEntityArray(*v)
+				if err != nil {
+					return err
+				}
+				ier.Entities = &entities
+			}
+		case "metaData":
+			if v != nil {
+				var metaData []IncidentEntitiesResultsMetadata
+				err = json.Unmarshal(*v, &metaData)
+				if err != nil {
+					return err
+				}
+				ier.MetaData = &metaData
+			}
+		}
+	}
+
+	return nil
+}
+
+// IncidentEntitiesResultsMetadata information of a specific aggregation in the incident related entities
+// result.
+type IncidentEntitiesResultsMetadata struct {
+	// Count - Total number of aggregations of the given kind in the incident related entities result.
+	Count *int32 `json:"count,omitempty"`
+	// EntityKind - The kind of the aggregated entity. Possible values include: 'EntityKindAccount', 'EntityKindHost', 'EntityKindFile', 'EntityKindAzureResource', 'EntityKindCloudApplication', 'EntityKindDNSResolution', 'EntityKindFileHash', 'EntityKindIP', 'EntityKindMalware', 'EntityKindProcess', 'EntityKindRegistryKey', 'EntityKindRegistryValue', 'EntityKindSecurityGroup', 'EntityKindURL', 'EntityKindIoTDevice', 'EntityKindSecurityAlert', 'EntityKindBookmark', 'EntityKindMailCluster', 'EntityKindMailMessage', 'EntityKindMailbox', 'EntityKindSubmissionMail'
+	EntityKind EntityKind `json:"entityKind,omitempty"`
 }
 
 // IncidentInfo describes related incident information for the bookmark
@@ -7414,8 +9320,11 @@ func (page IncidentListPage) Values() []Incident {
 }
 
 // Creates a new instance of the IncidentListPage type.
-func NewIncidentListPage(getNextPage func(context.Context, IncidentList) (IncidentList, error)) IncidentListPage {
-	return IncidentListPage{fn: getNextPage}
+func NewIncidentListPage(cur IncidentList, getNextPage func(context.Context, IncidentList) (IncidentList, error)) IncidentListPage {
+	return IncidentListPage{
+		fn: getNextPage,
+		il: cur,
+	}
 }
 
 // IncidentOwnerInfo information on the user an incident is assigned to
@@ -7452,6 +9361,10 @@ type IncidentProperties struct {
 	IncidentNumber *int32 `json:"incidentNumber,omitempty"`
 	// Labels - List of labels relevant to this incident
 	Labels *[]IncidentLabel `json:"labels,omitempty"`
+	// ProviderName - The name of the source provider that generated the incident
+	ProviderName *string `json:"providerName,omitempty"`
+	// ProviderIncidentID - The incident ID assigned by the incident provider
+	ProviderIncidentID *string `json:"providerIncidentId,omitempty"`
 	// LastActivityTimeUtc - The time of the last activity in the incident
 	LastActivityTimeUtc *date.Time `json:"lastActivityTimeUtc,omitempty"`
 	// LastModifiedTimeUtc - READ-ONLY; The last time the incident was updated
@@ -7489,6 +9402,12 @@ func (IP IncidentProperties) MarshalJSON() ([]byte, error) {
 	if IP.Labels != nil {
 		objectMap["labels"] = IP.Labels
 	}
+	if IP.ProviderName != nil {
+		objectMap["providerName"] = IP.ProviderName
+	}
+	if IP.ProviderIncidentID != nil {
+		objectMap["providerIncidentId"] = IP.ProviderIncidentID
+	}
 	if IP.LastActivityTimeUtc != nil {
 		objectMap["lastActivityTimeUtc"] = IP.LastActivityTimeUtc
 	}
@@ -7507,6 +9426,158 @@ func (IP IncidentProperties) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
+// InsightQueryItem represents Insight Query.
+type InsightQueryItem struct {
+	// Properties - Properties bag for InsightQueryItem
+	Properties *InsightQueryItemProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Query Template ARM ID
+	ID *uuid.UUID `json:"id,omitempty"`
+	// Name - Query Template ARM Name
+	Name *string `json:"name,omitempty"`
+	// Type - ARM Type
+	Type *string `json:"type,omitempty"`
+	// Kind - Possible values include: 'KindEntityQueryItem', 'KindInsight'
+	Kind KindBasicEntityQueryItem `json:"kind,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for InsightQueryItem.
+func (iqi InsightQueryItem) MarshalJSON() ([]byte, error) {
+	iqi.Kind = KindInsight
+	objectMap := make(map[string]interface{})
+	if iqi.Properties != nil {
+		objectMap["properties"] = iqi.Properties
+	}
+	if iqi.Name != nil {
+		objectMap["name"] = iqi.Name
+	}
+	if iqi.Type != nil {
+		objectMap["type"] = iqi.Type
+	}
+	if iqi.Kind != "" {
+		objectMap["kind"] = iqi.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsInsightQueryItem is the BasicEntityQueryItem implementation for InsightQueryItem.
+func (iqi InsightQueryItem) AsInsightQueryItem() (*InsightQueryItem, bool) {
+	return &iqi, true
+}
+
+// AsEntityQueryItem is the BasicEntityQueryItem implementation for InsightQueryItem.
+func (iqi InsightQueryItem) AsEntityQueryItem() (*EntityQueryItem, bool) {
+	return nil, false
+}
+
+// AsBasicEntityQueryItem is the BasicEntityQueryItem implementation for InsightQueryItem.
+func (iqi InsightQueryItem) AsBasicEntityQueryItem() (BasicEntityQueryItem, bool) {
+	return &iqi, true
+}
+
+// InsightQueryItemProperties represents Insight Query.
+type InsightQueryItemProperties struct {
+	// DisplayName - The insight display name.
+	DisplayName *string `json:"displayName,omitempty"`
+	// Description - The insight description.
+	Description *string `json:"description,omitempty"`
+	// BaseQuery - The base query of the insight.
+	BaseQuery *string `json:"baseQuery,omitempty"`
+	// TableQuery - The insight table query.
+	TableQuery *InsightQueryItemPropertiesTableQuery `json:"tableQuery,omitempty"`
+	// ChartQuery - The insight chart query.
+	ChartQuery interface{} `json:"chartQuery,omitempty"`
+	// AdditionalQuery - The activity query definitions.
+	AdditionalQuery *InsightQueryItemPropertiesAdditionalQuery `json:"additionalQuery,omitempty"`
+	// DefaultTimeRange - The insight chart query.
+	DefaultTimeRange *InsightQueryItemPropertiesDefaultTimeRange `json:"defaultTimeRange,omitempty"`
+	// ReferenceTimeRange - The insight chart query.
+	ReferenceTimeRange *InsightQueryItemPropertiesReferenceTimeRange `json:"referenceTimeRange,omitempty"`
+	// DataTypes - Data types for template
+	DataTypes *[]EntityQueryItemPropertiesDataTypesItem `json:"dataTypes,omitempty"`
+	// InputEntityType - The type of the entity. Possible values include: 'EntityTypeAccount', 'EntityTypeHost', 'EntityTypeFile', 'EntityTypeAzureResource', 'EntityTypeCloudApplication', 'EntityTypeDNS', 'EntityTypeFileHash', 'EntityTypeIP', 'EntityTypeMalware', 'EntityTypeProcess', 'EntityTypeRegistryKey', 'EntityTypeRegistryValue', 'EntityTypeSecurityGroup', 'EntityTypeURL', 'EntityTypeIoTDevice', 'EntityTypeSecurityAlert', 'EntityTypeHuntingBookmark', 'EntityTypeMailCluster', 'EntityTypeMailMessage', 'EntityTypeMailbox', 'EntityTypeSubmissionMail'
+	InputEntityType EntityType `json:"inputEntityType,omitempty"`
+	// RequiredInputFieldsSets - Data types for template
+	RequiredInputFieldsSets *[][]string `json:"requiredInputFieldsSets,omitempty"`
+	// EntitiesFilter - The query applied only to entities matching to all filters
+	EntitiesFilter interface{} `json:"entitiesFilter,omitempty"`
+}
+
+// InsightQueryItemPropertiesAdditionalQuery the activity query definitions.
+type InsightQueryItemPropertiesAdditionalQuery struct {
+	// Query - The insight query.
+	Query *string `json:"query,omitempty"`
+	// Text - The insight text.
+	Text *string `json:"text,omitempty"`
+}
+
+// InsightQueryItemPropertiesDefaultTimeRange the insight chart query.
+type InsightQueryItemPropertiesDefaultTimeRange struct {
+	// BeforeRange - The padding for the start time of the query.
+	BeforeRange *string `json:"beforeRange,omitempty"`
+	// AfterRange - The padding for the end time of the query.
+	AfterRange *string `json:"afterRange,omitempty"`
+}
+
+// InsightQueryItemPropertiesReferenceTimeRange the insight chart query.
+type InsightQueryItemPropertiesReferenceTimeRange struct {
+	// BeforeRange - Additional query time for looking back.
+	BeforeRange *string `json:"beforeRange,omitempty"`
+}
+
+// InsightQueryItemPropertiesTableQuery the insight table query.
+type InsightQueryItemPropertiesTableQuery struct {
+	// ColumnsDefinitions - List of insight column definitions.
+	ColumnsDefinitions *[]InsightQueryItemPropertiesTableQueryColumnsDefinitionsItem `json:"columnsDefinitions,omitempty"`
+	// QueriesDefinitions - List of insight queries definitions.
+	QueriesDefinitions *[]InsightQueryItemPropertiesTableQueryQueriesDefinitionsItem `json:"queriesDefinitions,omitempty"`
+}
+
+// InsightQueryItemPropertiesTableQueryColumnsDefinitionsItem ...
+type InsightQueryItemPropertiesTableQueryColumnsDefinitionsItem struct {
+	// Header - Insight column header.
+	Header *string `json:"header,omitempty"`
+	// OutputType - Insights Column type. Possible values include: 'OutputTypeNumber', 'OutputTypeString', 'OutputTypeDate', 'OutputTypeEntity'
+	OutputType OutputType `json:"outputType,omitempty"`
+	// SupportDeepLink - Is query supports deep-link.
+	SupportDeepLink *bool `json:"supportDeepLink,omitempty"`
+}
+
+// InsightQueryItemPropertiesTableQueryQueriesDefinitionsItem ...
+type InsightQueryItemPropertiesTableQueryQueriesDefinitionsItem struct {
+	// Filter - Insight column header.
+	Filter *string `json:"filter,omitempty"`
+	// Summarize - Insight column header.
+	Summarize *string `json:"summarize,omitempty"`
+	// Project - Insight column header.
+	Project *string `json:"project,omitempty"`
+	// LinkColumnsDefinitions - Insight column header.
+	LinkColumnsDefinitions *[]InsightQueryItemPropertiesTableQueryQueriesDefinitionsItemLinkColumnsDefinitionsItem `json:"linkColumnsDefinitions,omitempty"`
+}
+
+// InsightQueryItemPropertiesTableQueryQueriesDefinitionsItemLinkColumnsDefinitionsItem ...
+type InsightQueryItemPropertiesTableQueryQueriesDefinitionsItemLinkColumnsDefinitionsItem struct {
+	// ProjectedName - Insight Link Definition Projected Name.
+	ProjectedName *string `json:"projectedName,omitempty"`
+	// Query - Insight Link Definition Query.
+	Query *string `json:"Query,omitempty"`
+}
+
+// InsightsTableResult query results for table insights query.
+type InsightsTableResult struct {
+	// Columns - Columns Metadata of the table
+	Columns *[]InsightsTableResultColumnsItem `json:"columns,omitempty"`
+	// Rows - Rows data of the table
+	Rows *[][]string `json:"rows,omitempty"`
+}
+
+// InsightsTableResultColumnsItem ...
+type InsightsTableResultColumnsItem struct {
+	// Type - the type of the colum
+	Type *string `json:"type,omitempty"`
+	// Name - the name of the colum
+	Name *string `json:"name,omitempty"`
+}
+
 // IoTDeviceEntity represents an IoT device entity.
 type IoTDeviceEntity struct {
 	// IoTDeviceEntityProperties - IoTDevice entity properties
@@ -7517,7 +9588,7 @@ type IoTDeviceEntity struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Azure resource type
 	Type *string `json:"type,omitempty"`
-	// Kind - Possible values include: 'KindEntity', 'KindAccount', 'KindAzureResource', 'KindCloudApplication', 'KindDNSResolution', 'KindFile', 'KindFileHash', 'KindHost', 'KindIP', 'KindMalware', 'KindProcess', 'KindRegistryKey', 'KindRegistryValue', 'KindSecurityAlert', 'KindSecurityGroup', 'KindURL', 'KindIoTDevice'
+	// Kind - Possible values include: 'KindEntity', 'KindAccount', 'KindAzureResource', 'KindCloudApplication', 'KindDNSResolution', 'KindFile', 'KindFileHash', 'KindHost', 'KindBookmark', 'KindSecurityAlert', 'KindIP', 'KindMailbox', 'KindMailCluster', 'KindMailMessage', 'KindSubmissionMail', 'KindMalware', 'KindProcess', 'KindRegistryKey', 'KindRegistryValue', 'KindSecurityGroup', 'KindURL', 'KindIoTDevice'
 	Kind KindBasicEntity `json:"kind,omitempty"`
 }
 
@@ -7569,8 +9640,38 @@ func (itde IoTDeviceEntity) AsHostEntity() (*HostEntity, bool) {
 	return nil, false
 }
 
+// AsHuntingBookmark is the BasicEntity implementation for IoTDeviceEntity.
+func (itde IoTDeviceEntity) AsHuntingBookmark() (*HuntingBookmark, bool) {
+	return nil, false
+}
+
+// AsSecurityAlert is the BasicEntity implementation for IoTDeviceEntity.
+func (itde IoTDeviceEntity) AsSecurityAlert() (*SecurityAlert, bool) {
+	return nil, false
+}
+
 // AsIPEntity is the BasicEntity implementation for IoTDeviceEntity.
 func (itde IoTDeviceEntity) AsIPEntity() (*IPEntity, bool) {
+	return nil, false
+}
+
+// AsMailboxEntity is the BasicEntity implementation for IoTDeviceEntity.
+func (itde IoTDeviceEntity) AsMailboxEntity() (*MailboxEntity, bool) {
+	return nil, false
+}
+
+// AsMailClusterEntity is the BasicEntity implementation for IoTDeviceEntity.
+func (itde IoTDeviceEntity) AsMailClusterEntity() (*MailClusterEntity, bool) {
+	return nil, false
+}
+
+// AsMailMessageEntity is the BasicEntity implementation for IoTDeviceEntity.
+func (itde IoTDeviceEntity) AsMailMessageEntity() (*MailMessageEntity, bool) {
+	return nil, false
+}
+
+// AsSubmissionMailEntity is the BasicEntity implementation for IoTDeviceEntity.
+func (itde IoTDeviceEntity) AsSubmissionMailEntity() (*SubmissionMailEntity, bool) {
 	return nil, false
 }
 
@@ -7591,11 +9692,6 @@ func (itde IoTDeviceEntity) AsRegistryKeyEntity() (*RegistryKeyEntity, bool) {
 
 // AsRegistryValueEntity is the BasicEntity implementation for IoTDeviceEntity.
 func (itde IoTDeviceEntity) AsRegistryValueEntity() (*RegistryValueEntity, bool) {
-	return nil, false
-}
-
-// AsSecurityAlert is the BasicEntity implementation for IoTDeviceEntity.
-func (itde IoTDeviceEntity) AsSecurityAlert() (*SecurityAlert, bool) {
 	return nil, false
 }
 
@@ -7688,6 +9784,10 @@ func (itde *IoTDeviceEntity) UnmarshalJSON(body []byte) error {
 type IoTDeviceEntityProperties struct {
 	// DeviceID - READ-ONLY; The ID of the IoT Device in the IoT Hub
 	DeviceID *string `json:"deviceId,omitempty"`
+	// DeviceName - READ-ONLY; The friendly name of the device
+	DeviceName *string `json:"deviceName,omitempty"`
+	// Source - READ-ONLY; The source of the device
+	Source *string `json:"source,omitempty"`
 	// IotSecurityAgentID - READ-ONLY; The ID of the security agent running on the device
 	IotSecurityAgentID *uuid.UUID `json:"iotSecurityAgentId,omitempty"`
 	// DeviceType - READ-ONLY; The type of the device
@@ -7696,12 +9796,26 @@ type IoTDeviceEntityProperties struct {
 	Vendor *string `json:"vendor,omitempty"`
 	// EdgeID - READ-ONLY; The ID of the edge device
 	EdgeID *string `json:"edgeId,omitempty"`
+	// MacAddress - READ-ONLY; The MAC address of the device
+	MacAddress *string `json:"macAddress,omitempty"`
+	// Model - READ-ONLY; The model of the device
+	Model *string `json:"model,omitempty"`
+	// SerialNumber - READ-ONLY; The serial number of the device
+	SerialNumber *string `json:"serialNumber,omitempty"`
+	// FirmwareVersion - READ-ONLY; The firmware version of the device
+	FirmwareVersion *string `json:"firmwareVersion,omitempty"`
+	// OperatingSystem - READ-ONLY; The operating system of the device
+	OperatingSystem *string `json:"operatingSystem,omitempty"`
 	// IotHubEntityID - READ-ONLY; The AzureResource entity id of the IoT Hub
 	IotHubEntityID *string `json:"iotHubEntityId,omitempty"`
 	// HostEntityID - READ-ONLY; The Host entity id of this device
 	HostEntityID *string `json:"hostEntityId,omitempty"`
+	// IPAddressEntityID - READ-ONLY; The IP entity if of this device
+	IPAddressEntityID *string `json:"ipAddressEntityId,omitempty"`
 	// ThreatIntelligence - READ-ONLY; A list of TI contexts attached to the IoTDevice entity.
 	ThreatIntelligence *[]ThreatIntelligence `json:"threatIntelligence,omitempty"`
+	// Protocols - READ-ONLY; A list of protocols of the IoTDevice entity.
+	Protocols *[]string `json:"protocols,omitempty"`
 	// AdditionalData - READ-ONLY; A bag of custom fields that should be part of the entity and will be presented to the user.
 	AdditionalData map[string]interface{} `json:"additionalData"`
 	// FriendlyName - READ-ONLY; The graph item display name which is a short humanly readable description of the graph item instance. This property is optional and might be system generated.
@@ -7724,7 +9838,7 @@ type IPEntity struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Azure resource type
 	Type *string `json:"type,omitempty"`
-	// Kind - Possible values include: 'KindEntity', 'KindAccount', 'KindAzureResource', 'KindCloudApplication', 'KindDNSResolution', 'KindFile', 'KindFileHash', 'KindHost', 'KindIP', 'KindMalware', 'KindProcess', 'KindRegistryKey', 'KindRegistryValue', 'KindSecurityAlert', 'KindSecurityGroup', 'KindURL', 'KindIoTDevice'
+	// Kind - Possible values include: 'KindEntity', 'KindAccount', 'KindAzureResource', 'KindCloudApplication', 'KindDNSResolution', 'KindFile', 'KindFileHash', 'KindHost', 'KindBookmark', 'KindSecurityAlert', 'KindIP', 'KindMailbox', 'KindMailCluster', 'KindMailMessage', 'KindSubmissionMail', 'KindMalware', 'KindProcess', 'KindRegistryKey', 'KindRegistryValue', 'KindSecurityGroup', 'KindURL', 'KindIoTDevice'
 	Kind KindBasicEntity `json:"kind,omitempty"`
 }
 
@@ -7776,9 +9890,39 @@ func (ie IPEntity) AsHostEntity() (*HostEntity, bool) {
 	return nil, false
 }
 
+// AsHuntingBookmark is the BasicEntity implementation for IPEntity.
+func (ie IPEntity) AsHuntingBookmark() (*HuntingBookmark, bool) {
+	return nil, false
+}
+
+// AsSecurityAlert is the BasicEntity implementation for IPEntity.
+func (ie IPEntity) AsSecurityAlert() (*SecurityAlert, bool) {
+	return nil, false
+}
+
 // AsIPEntity is the BasicEntity implementation for IPEntity.
 func (ie IPEntity) AsIPEntity() (*IPEntity, bool) {
 	return &ie, true
+}
+
+// AsMailboxEntity is the BasicEntity implementation for IPEntity.
+func (ie IPEntity) AsMailboxEntity() (*MailboxEntity, bool) {
+	return nil, false
+}
+
+// AsMailClusterEntity is the BasicEntity implementation for IPEntity.
+func (ie IPEntity) AsMailClusterEntity() (*MailClusterEntity, bool) {
+	return nil, false
+}
+
+// AsMailMessageEntity is the BasicEntity implementation for IPEntity.
+func (ie IPEntity) AsMailMessageEntity() (*MailMessageEntity, bool) {
+	return nil, false
+}
+
+// AsSubmissionMailEntity is the BasicEntity implementation for IPEntity.
+func (ie IPEntity) AsSubmissionMailEntity() (*SubmissionMailEntity, bool) {
+	return nil, false
 }
 
 // AsMalwareEntity is the BasicEntity implementation for IPEntity.
@@ -7798,11 +9942,6 @@ func (ie IPEntity) AsRegistryKeyEntity() (*RegistryKeyEntity, bool) {
 
 // AsRegistryValueEntity is the BasicEntity implementation for IPEntity.
 func (ie IPEntity) AsRegistryValueEntity() (*RegistryValueEntity, bool) {
-	return nil, false
-}
-
-// AsSecurityAlert is the BasicEntity implementation for IPEntity.
-func (ie IPEntity) AsSecurityAlert() (*SecurityAlert, bool) {
 	return nil, false
 }
 
@@ -7914,6 +10053,766 @@ func (iep IPEntityProperties) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
+// MailboxEntity represents a mailbox entity.
+type MailboxEntity struct {
+	// MailboxEntityProperties - Mailbox entity properties
+	*MailboxEntityProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Azure resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Azure resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Azure resource type
+	Type *string `json:"type,omitempty"`
+	// Kind - Possible values include: 'KindEntity', 'KindAccount', 'KindAzureResource', 'KindCloudApplication', 'KindDNSResolution', 'KindFile', 'KindFileHash', 'KindHost', 'KindBookmark', 'KindSecurityAlert', 'KindIP', 'KindMailbox', 'KindMailCluster', 'KindMailMessage', 'KindSubmissionMail', 'KindMalware', 'KindProcess', 'KindRegistryKey', 'KindRegistryValue', 'KindSecurityGroup', 'KindURL', 'KindIoTDevice'
+	Kind KindBasicEntity `json:"kind,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for MailboxEntity.
+func (me MailboxEntity) MarshalJSON() ([]byte, error) {
+	me.Kind = KindMailbox
+	objectMap := make(map[string]interface{})
+	if me.MailboxEntityProperties != nil {
+		objectMap["properties"] = me.MailboxEntityProperties
+	}
+	if me.Kind != "" {
+		objectMap["kind"] = me.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsAccountEntity is the BasicEntity implementation for MailboxEntity.
+func (me MailboxEntity) AsAccountEntity() (*AccountEntity, bool) {
+	return nil, false
+}
+
+// AsAzureResourceEntity is the BasicEntity implementation for MailboxEntity.
+func (me MailboxEntity) AsAzureResourceEntity() (*AzureResourceEntity, bool) {
+	return nil, false
+}
+
+// AsCloudApplicationEntity is the BasicEntity implementation for MailboxEntity.
+func (me MailboxEntity) AsCloudApplicationEntity() (*CloudApplicationEntity, bool) {
+	return nil, false
+}
+
+// AsDNSEntity is the BasicEntity implementation for MailboxEntity.
+func (me MailboxEntity) AsDNSEntity() (*DNSEntity, bool) {
+	return nil, false
+}
+
+// AsFileEntity is the BasicEntity implementation for MailboxEntity.
+func (me MailboxEntity) AsFileEntity() (*FileEntity, bool) {
+	return nil, false
+}
+
+// AsFileHashEntity is the BasicEntity implementation for MailboxEntity.
+func (me MailboxEntity) AsFileHashEntity() (*FileHashEntity, bool) {
+	return nil, false
+}
+
+// AsHostEntity is the BasicEntity implementation for MailboxEntity.
+func (me MailboxEntity) AsHostEntity() (*HostEntity, bool) {
+	return nil, false
+}
+
+// AsHuntingBookmark is the BasicEntity implementation for MailboxEntity.
+func (me MailboxEntity) AsHuntingBookmark() (*HuntingBookmark, bool) {
+	return nil, false
+}
+
+// AsSecurityAlert is the BasicEntity implementation for MailboxEntity.
+func (me MailboxEntity) AsSecurityAlert() (*SecurityAlert, bool) {
+	return nil, false
+}
+
+// AsIPEntity is the BasicEntity implementation for MailboxEntity.
+func (me MailboxEntity) AsIPEntity() (*IPEntity, bool) {
+	return nil, false
+}
+
+// AsMailboxEntity is the BasicEntity implementation for MailboxEntity.
+func (me MailboxEntity) AsMailboxEntity() (*MailboxEntity, bool) {
+	return &me, true
+}
+
+// AsMailClusterEntity is the BasicEntity implementation for MailboxEntity.
+func (me MailboxEntity) AsMailClusterEntity() (*MailClusterEntity, bool) {
+	return nil, false
+}
+
+// AsMailMessageEntity is the BasicEntity implementation for MailboxEntity.
+func (me MailboxEntity) AsMailMessageEntity() (*MailMessageEntity, bool) {
+	return nil, false
+}
+
+// AsSubmissionMailEntity is the BasicEntity implementation for MailboxEntity.
+func (me MailboxEntity) AsSubmissionMailEntity() (*SubmissionMailEntity, bool) {
+	return nil, false
+}
+
+// AsMalwareEntity is the BasicEntity implementation for MailboxEntity.
+func (me MailboxEntity) AsMalwareEntity() (*MalwareEntity, bool) {
+	return nil, false
+}
+
+// AsProcessEntity is the BasicEntity implementation for MailboxEntity.
+func (me MailboxEntity) AsProcessEntity() (*ProcessEntity, bool) {
+	return nil, false
+}
+
+// AsRegistryKeyEntity is the BasicEntity implementation for MailboxEntity.
+func (me MailboxEntity) AsRegistryKeyEntity() (*RegistryKeyEntity, bool) {
+	return nil, false
+}
+
+// AsRegistryValueEntity is the BasicEntity implementation for MailboxEntity.
+func (me MailboxEntity) AsRegistryValueEntity() (*RegistryValueEntity, bool) {
+	return nil, false
+}
+
+// AsSecurityGroupEntity is the BasicEntity implementation for MailboxEntity.
+func (me MailboxEntity) AsSecurityGroupEntity() (*SecurityGroupEntity, bool) {
+	return nil, false
+}
+
+// AsURLEntity is the BasicEntity implementation for MailboxEntity.
+func (me MailboxEntity) AsURLEntity() (*URLEntity, bool) {
+	return nil, false
+}
+
+// AsIoTDeviceEntity is the BasicEntity implementation for MailboxEntity.
+func (me MailboxEntity) AsIoTDeviceEntity() (*IoTDeviceEntity, bool) {
+	return nil, false
+}
+
+// AsEntity is the BasicEntity implementation for MailboxEntity.
+func (me MailboxEntity) AsEntity() (*Entity, bool) {
+	return nil, false
+}
+
+// AsBasicEntity is the BasicEntity implementation for MailboxEntity.
+func (me MailboxEntity) AsBasicEntity() (BasicEntity, bool) {
+	return &me, true
+}
+
+// UnmarshalJSON is the custom unmarshaler for MailboxEntity struct.
+func (me *MailboxEntity) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var mailboxEntityProperties MailboxEntityProperties
+				err = json.Unmarshal(*v, &mailboxEntityProperties)
+				if err != nil {
+					return err
+				}
+				me.MailboxEntityProperties = &mailboxEntityProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				me.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				me.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				me.Type = &typeVar
+			}
+		case "kind":
+			if v != nil {
+				var kind KindBasicEntity
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				me.Kind = kind
+			}
+		}
+	}
+
+	return nil
+}
+
+// MailboxEntityProperties mailbox entity property bag.
+type MailboxEntityProperties struct {
+	// MailboxPrimaryAddress - READ-ONLY; The mailbox's primary address
+	MailboxPrimaryAddress *string `json:"mailboxPrimaryAddress,omitempty"`
+	// DisplayName - READ-ONLY; The mailbox's display name
+	DisplayName *string `json:"displayName,omitempty"`
+	// Upn - READ-ONLY; The mailbox's UPN
+	Upn *string `json:"upn,omitempty"`
+	// ExternalDirectoryObjectID - READ-ONLY; The AzureAD identifier of mailbox. Similar to AadUserId in account entity but this property is specific to mailbox object on office side
+	ExternalDirectoryObjectID *uuid.UUID `json:"externalDirectoryObjectId,omitempty"`
+	// AdditionalData - READ-ONLY; A bag of custom fields that should be part of the entity and will be presented to the user.
+	AdditionalData map[string]interface{} `json:"additionalData"`
+	// FriendlyName - READ-ONLY; The graph item display name which is a short humanly readable description of the graph item instance. This property is optional and might be system generated.
+	FriendlyName *string `json:"friendlyName,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for MailboxEntityProperties.
+func (mep MailboxEntityProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// MailClusterEntity represents a mail cluster entity.
+type MailClusterEntity struct {
+	// MailClusterEntityProperties - Mail cluster entity properties
+	*MailClusterEntityProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Azure resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Azure resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Azure resource type
+	Type *string `json:"type,omitempty"`
+	// Kind - Possible values include: 'KindEntity', 'KindAccount', 'KindAzureResource', 'KindCloudApplication', 'KindDNSResolution', 'KindFile', 'KindFileHash', 'KindHost', 'KindBookmark', 'KindSecurityAlert', 'KindIP', 'KindMailbox', 'KindMailCluster', 'KindMailMessage', 'KindSubmissionMail', 'KindMalware', 'KindProcess', 'KindRegistryKey', 'KindRegistryValue', 'KindSecurityGroup', 'KindURL', 'KindIoTDevice'
+	Kind KindBasicEntity `json:"kind,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for MailClusterEntity.
+func (mce MailClusterEntity) MarshalJSON() ([]byte, error) {
+	mce.Kind = KindMailCluster
+	objectMap := make(map[string]interface{})
+	if mce.MailClusterEntityProperties != nil {
+		objectMap["properties"] = mce.MailClusterEntityProperties
+	}
+	if mce.Kind != "" {
+		objectMap["kind"] = mce.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsAccountEntity is the BasicEntity implementation for MailClusterEntity.
+func (mce MailClusterEntity) AsAccountEntity() (*AccountEntity, bool) {
+	return nil, false
+}
+
+// AsAzureResourceEntity is the BasicEntity implementation for MailClusterEntity.
+func (mce MailClusterEntity) AsAzureResourceEntity() (*AzureResourceEntity, bool) {
+	return nil, false
+}
+
+// AsCloudApplicationEntity is the BasicEntity implementation for MailClusterEntity.
+func (mce MailClusterEntity) AsCloudApplicationEntity() (*CloudApplicationEntity, bool) {
+	return nil, false
+}
+
+// AsDNSEntity is the BasicEntity implementation for MailClusterEntity.
+func (mce MailClusterEntity) AsDNSEntity() (*DNSEntity, bool) {
+	return nil, false
+}
+
+// AsFileEntity is the BasicEntity implementation for MailClusterEntity.
+func (mce MailClusterEntity) AsFileEntity() (*FileEntity, bool) {
+	return nil, false
+}
+
+// AsFileHashEntity is the BasicEntity implementation for MailClusterEntity.
+func (mce MailClusterEntity) AsFileHashEntity() (*FileHashEntity, bool) {
+	return nil, false
+}
+
+// AsHostEntity is the BasicEntity implementation for MailClusterEntity.
+func (mce MailClusterEntity) AsHostEntity() (*HostEntity, bool) {
+	return nil, false
+}
+
+// AsHuntingBookmark is the BasicEntity implementation for MailClusterEntity.
+func (mce MailClusterEntity) AsHuntingBookmark() (*HuntingBookmark, bool) {
+	return nil, false
+}
+
+// AsSecurityAlert is the BasicEntity implementation for MailClusterEntity.
+func (mce MailClusterEntity) AsSecurityAlert() (*SecurityAlert, bool) {
+	return nil, false
+}
+
+// AsIPEntity is the BasicEntity implementation for MailClusterEntity.
+func (mce MailClusterEntity) AsIPEntity() (*IPEntity, bool) {
+	return nil, false
+}
+
+// AsMailboxEntity is the BasicEntity implementation for MailClusterEntity.
+func (mce MailClusterEntity) AsMailboxEntity() (*MailboxEntity, bool) {
+	return nil, false
+}
+
+// AsMailClusterEntity is the BasicEntity implementation for MailClusterEntity.
+func (mce MailClusterEntity) AsMailClusterEntity() (*MailClusterEntity, bool) {
+	return &mce, true
+}
+
+// AsMailMessageEntity is the BasicEntity implementation for MailClusterEntity.
+func (mce MailClusterEntity) AsMailMessageEntity() (*MailMessageEntity, bool) {
+	return nil, false
+}
+
+// AsSubmissionMailEntity is the BasicEntity implementation for MailClusterEntity.
+func (mce MailClusterEntity) AsSubmissionMailEntity() (*SubmissionMailEntity, bool) {
+	return nil, false
+}
+
+// AsMalwareEntity is the BasicEntity implementation for MailClusterEntity.
+func (mce MailClusterEntity) AsMalwareEntity() (*MalwareEntity, bool) {
+	return nil, false
+}
+
+// AsProcessEntity is the BasicEntity implementation for MailClusterEntity.
+func (mce MailClusterEntity) AsProcessEntity() (*ProcessEntity, bool) {
+	return nil, false
+}
+
+// AsRegistryKeyEntity is the BasicEntity implementation for MailClusterEntity.
+func (mce MailClusterEntity) AsRegistryKeyEntity() (*RegistryKeyEntity, bool) {
+	return nil, false
+}
+
+// AsRegistryValueEntity is the BasicEntity implementation for MailClusterEntity.
+func (mce MailClusterEntity) AsRegistryValueEntity() (*RegistryValueEntity, bool) {
+	return nil, false
+}
+
+// AsSecurityGroupEntity is the BasicEntity implementation for MailClusterEntity.
+func (mce MailClusterEntity) AsSecurityGroupEntity() (*SecurityGroupEntity, bool) {
+	return nil, false
+}
+
+// AsURLEntity is the BasicEntity implementation for MailClusterEntity.
+func (mce MailClusterEntity) AsURLEntity() (*URLEntity, bool) {
+	return nil, false
+}
+
+// AsIoTDeviceEntity is the BasicEntity implementation for MailClusterEntity.
+func (mce MailClusterEntity) AsIoTDeviceEntity() (*IoTDeviceEntity, bool) {
+	return nil, false
+}
+
+// AsEntity is the BasicEntity implementation for MailClusterEntity.
+func (mce MailClusterEntity) AsEntity() (*Entity, bool) {
+	return nil, false
+}
+
+// AsBasicEntity is the BasicEntity implementation for MailClusterEntity.
+func (mce MailClusterEntity) AsBasicEntity() (BasicEntity, bool) {
+	return &mce, true
+}
+
+// UnmarshalJSON is the custom unmarshaler for MailClusterEntity struct.
+func (mce *MailClusterEntity) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var mailClusterEntityProperties MailClusterEntityProperties
+				err = json.Unmarshal(*v, &mailClusterEntityProperties)
+				if err != nil {
+					return err
+				}
+				mce.MailClusterEntityProperties = &mailClusterEntityProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				mce.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				mce.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				mce.Type = &typeVar
+			}
+		case "kind":
+			if v != nil {
+				var kind KindBasicEntity
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				mce.Kind = kind
+			}
+		}
+	}
+
+	return nil
+}
+
+// MailClusterEntityProperties mail cluster entity property bag.
+type MailClusterEntityProperties struct {
+	// NetworkMessageIds - READ-ONLY; The mail message IDs that are part of the mail cluster
+	NetworkMessageIds *[]string `json:"networkMessageIds,omitempty"`
+	// CountByDeliveryStatus - READ-ONLY; Count of mail messages by DeliveryStatus string representation
+	CountByDeliveryStatus interface{} `json:"countByDeliveryStatus,omitempty"`
+	// CountByThreatType - READ-ONLY; Count of mail messages by ThreatType string representation
+	CountByThreatType interface{} `json:"countByThreatType,omitempty"`
+	// CountByProtectionStatus - READ-ONLY; Count of mail messages by ProtectionStatus string representation
+	CountByProtectionStatus interface{} `json:"countByProtectionStatus,omitempty"`
+	// Threats - READ-ONLY; The threats of mail messages that are part of the mail cluster
+	Threats *[]string `json:"threats,omitempty"`
+	// Query - READ-ONLY; The query that was used to identify the messages of the mail cluster
+	Query *string `json:"query,omitempty"`
+	// QueryTime - READ-ONLY; The query time
+	QueryTime *date.Time `json:"queryTime,omitempty"`
+	// MailCount - READ-ONLY; The number of mail messages that are part of the mail cluster
+	MailCount *int32 `json:"mailCount,omitempty"`
+	// IsVolumeAnomaly - READ-ONLY; Is this a volume anomaly mail cluster
+	IsVolumeAnomaly *bool `json:"isVolumeAnomaly,omitempty"`
+	// Source - READ-ONLY; The source of the mail cluster (default is 'O365 ATP')
+	Source *string `json:"source,omitempty"`
+	// ClusterSourceIdentifier - READ-ONLY; The id of the cluster source
+	ClusterSourceIdentifier *string `json:"clusterSourceIdentifier,omitempty"`
+	// ClusterSourceType - READ-ONLY; The type of the cluster source
+	ClusterSourceType *string `json:"clusterSourceType,omitempty"`
+	// ClusterQueryStartTime - READ-ONLY; The cluster query start time
+	ClusterQueryStartTime *date.Time `json:"clusterQueryStartTime,omitempty"`
+	// ClusterQueryEndTime - READ-ONLY; The cluster query end time
+	ClusterQueryEndTime *date.Time `json:"clusterQueryEndTime,omitempty"`
+	// ClusterGroup - READ-ONLY; The cluster group
+	ClusterGroup *string `json:"clusterGroup,omitempty"`
+	// AdditionalData - READ-ONLY; A bag of custom fields that should be part of the entity and will be presented to the user.
+	AdditionalData map[string]interface{} `json:"additionalData"`
+	// FriendlyName - READ-ONLY; The graph item display name which is a short humanly readable description of the graph item instance. This property is optional and might be system generated.
+	FriendlyName *string `json:"friendlyName,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for MailClusterEntityProperties.
+func (mcep MailClusterEntityProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// MailMessageEntity represents a mail message entity.
+type MailMessageEntity struct {
+	// MailMessageEntityProperties - Mail message entity properties
+	*MailMessageEntityProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Azure resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Azure resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Azure resource type
+	Type *string `json:"type,omitempty"`
+	// Kind - Possible values include: 'KindEntity', 'KindAccount', 'KindAzureResource', 'KindCloudApplication', 'KindDNSResolution', 'KindFile', 'KindFileHash', 'KindHost', 'KindBookmark', 'KindSecurityAlert', 'KindIP', 'KindMailbox', 'KindMailCluster', 'KindMailMessage', 'KindSubmissionMail', 'KindMalware', 'KindProcess', 'KindRegistryKey', 'KindRegistryValue', 'KindSecurityGroup', 'KindURL', 'KindIoTDevice'
+	Kind KindBasicEntity `json:"kind,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for MailMessageEntity.
+func (mme MailMessageEntity) MarshalJSON() ([]byte, error) {
+	mme.Kind = KindMailMessage
+	objectMap := make(map[string]interface{})
+	if mme.MailMessageEntityProperties != nil {
+		objectMap["properties"] = mme.MailMessageEntityProperties
+	}
+	if mme.Kind != "" {
+		objectMap["kind"] = mme.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsAccountEntity is the BasicEntity implementation for MailMessageEntity.
+func (mme MailMessageEntity) AsAccountEntity() (*AccountEntity, bool) {
+	return nil, false
+}
+
+// AsAzureResourceEntity is the BasicEntity implementation for MailMessageEntity.
+func (mme MailMessageEntity) AsAzureResourceEntity() (*AzureResourceEntity, bool) {
+	return nil, false
+}
+
+// AsCloudApplicationEntity is the BasicEntity implementation for MailMessageEntity.
+func (mme MailMessageEntity) AsCloudApplicationEntity() (*CloudApplicationEntity, bool) {
+	return nil, false
+}
+
+// AsDNSEntity is the BasicEntity implementation for MailMessageEntity.
+func (mme MailMessageEntity) AsDNSEntity() (*DNSEntity, bool) {
+	return nil, false
+}
+
+// AsFileEntity is the BasicEntity implementation for MailMessageEntity.
+func (mme MailMessageEntity) AsFileEntity() (*FileEntity, bool) {
+	return nil, false
+}
+
+// AsFileHashEntity is the BasicEntity implementation for MailMessageEntity.
+func (mme MailMessageEntity) AsFileHashEntity() (*FileHashEntity, bool) {
+	return nil, false
+}
+
+// AsHostEntity is the BasicEntity implementation for MailMessageEntity.
+func (mme MailMessageEntity) AsHostEntity() (*HostEntity, bool) {
+	return nil, false
+}
+
+// AsHuntingBookmark is the BasicEntity implementation for MailMessageEntity.
+func (mme MailMessageEntity) AsHuntingBookmark() (*HuntingBookmark, bool) {
+	return nil, false
+}
+
+// AsSecurityAlert is the BasicEntity implementation for MailMessageEntity.
+func (mme MailMessageEntity) AsSecurityAlert() (*SecurityAlert, bool) {
+	return nil, false
+}
+
+// AsIPEntity is the BasicEntity implementation for MailMessageEntity.
+func (mme MailMessageEntity) AsIPEntity() (*IPEntity, bool) {
+	return nil, false
+}
+
+// AsMailboxEntity is the BasicEntity implementation for MailMessageEntity.
+func (mme MailMessageEntity) AsMailboxEntity() (*MailboxEntity, bool) {
+	return nil, false
+}
+
+// AsMailClusterEntity is the BasicEntity implementation for MailMessageEntity.
+func (mme MailMessageEntity) AsMailClusterEntity() (*MailClusterEntity, bool) {
+	return nil, false
+}
+
+// AsMailMessageEntity is the BasicEntity implementation for MailMessageEntity.
+func (mme MailMessageEntity) AsMailMessageEntity() (*MailMessageEntity, bool) {
+	return &mme, true
+}
+
+// AsSubmissionMailEntity is the BasicEntity implementation for MailMessageEntity.
+func (mme MailMessageEntity) AsSubmissionMailEntity() (*SubmissionMailEntity, bool) {
+	return nil, false
+}
+
+// AsMalwareEntity is the BasicEntity implementation for MailMessageEntity.
+func (mme MailMessageEntity) AsMalwareEntity() (*MalwareEntity, bool) {
+	return nil, false
+}
+
+// AsProcessEntity is the BasicEntity implementation for MailMessageEntity.
+func (mme MailMessageEntity) AsProcessEntity() (*ProcessEntity, bool) {
+	return nil, false
+}
+
+// AsRegistryKeyEntity is the BasicEntity implementation for MailMessageEntity.
+func (mme MailMessageEntity) AsRegistryKeyEntity() (*RegistryKeyEntity, bool) {
+	return nil, false
+}
+
+// AsRegistryValueEntity is the BasicEntity implementation for MailMessageEntity.
+func (mme MailMessageEntity) AsRegistryValueEntity() (*RegistryValueEntity, bool) {
+	return nil, false
+}
+
+// AsSecurityGroupEntity is the BasicEntity implementation for MailMessageEntity.
+func (mme MailMessageEntity) AsSecurityGroupEntity() (*SecurityGroupEntity, bool) {
+	return nil, false
+}
+
+// AsURLEntity is the BasicEntity implementation for MailMessageEntity.
+func (mme MailMessageEntity) AsURLEntity() (*URLEntity, bool) {
+	return nil, false
+}
+
+// AsIoTDeviceEntity is the BasicEntity implementation for MailMessageEntity.
+func (mme MailMessageEntity) AsIoTDeviceEntity() (*IoTDeviceEntity, bool) {
+	return nil, false
+}
+
+// AsEntity is the BasicEntity implementation for MailMessageEntity.
+func (mme MailMessageEntity) AsEntity() (*Entity, bool) {
+	return nil, false
+}
+
+// AsBasicEntity is the BasicEntity implementation for MailMessageEntity.
+func (mme MailMessageEntity) AsBasicEntity() (BasicEntity, bool) {
+	return &mme, true
+}
+
+// UnmarshalJSON is the custom unmarshaler for MailMessageEntity struct.
+func (mme *MailMessageEntity) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var mailMessageEntityProperties MailMessageEntityProperties
+				err = json.Unmarshal(*v, &mailMessageEntityProperties)
+				if err != nil {
+					return err
+				}
+				mme.MailMessageEntityProperties = &mailMessageEntityProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				mme.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				mme.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				mme.Type = &typeVar
+			}
+		case "kind":
+			if v != nil {
+				var kind KindBasicEntity
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				mme.Kind = kind
+			}
+		}
+	}
+
+	return nil
+}
+
+// MailMessageEntityProperties mail message entity property bag.
+type MailMessageEntityProperties struct {
+	// FileEntityIds - READ-ONLY; The File entity ids of this mail message's attachments
+	FileEntityIds *[]string `json:"fileEntityIds,omitempty"`
+	// Recipient - READ-ONLY; The recipient of this mail message. Note that in case of multiple recipients the mail message is forked and each copy has one recipient
+	Recipient *string `json:"recipient,omitempty"`
+	// Urls - READ-ONLY; The Urls contained in this mail message
+	Urls *string `json:"urls,omitempty"`
+	// Threats - READ-ONLY; The threats of this mail message
+	Threats *[]string `json:"threats,omitempty"`
+	// P1Sender - READ-ONLY; The p1 sender's email address
+	P1Sender *string `json:"p1Sender,omitempty"`
+	// P1SenderDisplayName - READ-ONLY; The p1 sender's display name
+	P1SenderDisplayName *string `json:"p1SenderDisplayName,omitempty"`
+	// P1SenderDomain - READ-ONLY; The p1 sender's domain
+	P1SenderDomain *string `json:"p1SenderDomain,omitempty"`
+	// SenderIP - READ-ONLY; The sender's IP address
+	SenderIP *string `json:"senderIP,omitempty"`
+	// P2Sender - READ-ONLY; The p2 sender's email address
+	P2Sender *string `json:"p2Sender,omitempty"`
+	// P2SenderDisplayName - READ-ONLY; The p2 sender's display name
+	P2SenderDisplayName *string `json:"p2SenderDisplayName,omitempty"`
+	// P2SenderDomain - READ-ONLY; The p2 sender's domain
+	P2SenderDomain *string `json:"p2SenderDomain,omitempty"`
+	// ReceivedDate - READ-ONLY; The received date of this message
+	ReceivedDate *date.Time `json:"receivedDate,omitempty"`
+	// NetworkMessageID - READ-ONLY; The network message id of this mail message
+	NetworkMessageID *uuid.UUID `json:"networkMessageId,omitempty"`
+	// InternetMessageID - READ-ONLY; The internet message id of this mail message
+	InternetMessageID *string `json:"internetMessageId,omitempty"`
+	// Subject - READ-ONLY; The subject of this mail message
+	Subject *string `json:"subject,omitempty"`
+	// Language - READ-ONLY; The language of this mail message
+	Language *string `json:"language,omitempty"`
+	// ThreatDetectionMethods - READ-ONLY; The threat detection methods
+	ThreatDetectionMethods *string `json:"threatDetectionMethods,omitempty"`
+	// BodyFingerprintBin1 - The bodyFingerprintBin1
+	BodyFingerprintBin1 *int32 `json:"bodyFingerprintBin1,omitempty"`
+	// BodyFingerprintBin2 - The bodyFingerprintBin2
+	BodyFingerprintBin2 *int32 `json:"bodyFingerprintBin2,omitempty"`
+	// BodyFingerprintBin3 - The bodyFingerprintBin3
+	BodyFingerprintBin3 *int32 `json:"bodyFingerprintBin3,omitempty"`
+	// BodyFingerprintBin4 - The bodyFingerprintBin4
+	BodyFingerprintBin4 *int32 `json:"bodyFingerprintBin4,omitempty"`
+	// BodyFingerprintBin5 - The bodyFingerprintBin5
+	BodyFingerprintBin5 *int32 `json:"bodyFingerprintBin5,omitempty"`
+	// AntispamDirection - The directionality of this mail message. Possible values include: 'Unknown', 'Inbound', 'Outbound', 'Intraorg'
+	AntispamDirection AntispamMailDirection `json:"antispamDirection,omitempty"`
+	// DeliveryAction - The delivery action of this mail message like Delivered, Blocked, Replaced etc. Possible values include: 'DeliveryActionUnknown', 'DeliveryActionDeliveredAsSpam', 'DeliveryActionDelivered', 'DeliveryActionBlocked', 'DeliveryActionReplaced'
+	DeliveryAction DeliveryAction `json:"deliveryAction,omitempty"`
+	// DeliveryLocation - The delivery location of this mail message like Inbox, JunkFolder etc. Possible values include: 'DeliveryLocationUnknown', 'DeliveryLocationInbox', 'DeliveryLocationJunkFolder', 'DeliveryLocationDeletedFolder', 'DeliveryLocationQuarantine', 'DeliveryLocationExternal', 'DeliveryLocationFailed', 'DeliveryLocationDropped', 'DeliveryLocationForwarded'
+	DeliveryLocation DeliveryLocation `json:"deliveryLocation,omitempty"`
+	// AdditionalData - READ-ONLY; A bag of custom fields that should be part of the entity and will be presented to the user.
+	AdditionalData map[string]interface{} `json:"additionalData"`
+	// FriendlyName - READ-ONLY; The graph item display name which is a short humanly readable description of the graph item instance. This property is optional and might be system generated.
+	FriendlyName *string `json:"friendlyName,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for MailMessageEntityProperties.
+func (mmep MailMessageEntityProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mmep.BodyFingerprintBin1 != nil {
+		objectMap["bodyFingerprintBin1"] = mmep.BodyFingerprintBin1
+	}
+	if mmep.BodyFingerprintBin2 != nil {
+		objectMap["bodyFingerprintBin2"] = mmep.BodyFingerprintBin2
+	}
+	if mmep.BodyFingerprintBin3 != nil {
+		objectMap["bodyFingerprintBin3"] = mmep.BodyFingerprintBin3
+	}
+	if mmep.BodyFingerprintBin4 != nil {
+		objectMap["bodyFingerprintBin4"] = mmep.BodyFingerprintBin4
+	}
+	if mmep.BodyFingerprintBin5 != nil {
+		objectMap["bodyFingerprintBin5"] = mmep.BodyFingerprintBin5
+	}
+	if mmep.AntispamDirection != "" {
+		objectMap["antispamDirection"] = mmep.AntispamDirection
+	}
+	if mmep.DeliveryAction != "" {
+		objectMap["deliveryAction"] = mmep.DeliveryAction
+	}
+	if mmep.DeliveryLocation != "" {
+		objectMap["deliveryLocation"] = mmep.DeliveryLocation
+	}
+	return json.Marshal(objectMap)
+}
+
 // MalwareEntity represents a malware entity.
 type MalwareEntity struct {
 	// MalwareEntityProperties - File entity properties
@@ -7924,7 +10823,7 @@ type MalwareEntity struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Azure resource type
 	Type *string `json:"type,omitempty"`
-	// Kind - Possible values include: 'KindEntity', 'KindAccount', 'KindAzureResource', 'KindCloudApplication', 'KindDNSResolution', 'KindFile', 'KindFileHash', 'KindHost', 'KindIP', 'KindMalware', 'KindProcess', 'KindRegistryKey', 'KindRegistryValue', 'KindSecurityAlert', 'KindSecurityGroup', 'KindURL', 'KindIoTDevice'
+	// Kind - Possible values include: 'KindEntity', 'KindAccount', 'KindAzureResource', 'KindCloudApplication', 'KindDNSResolution', 'KindFile', 'KindFileHash', 'KindHost', 'KindBookmark', 'KindSecurityAlert', 'KindIP', 'KindMailbox', 'KindMailCluster', 'KindMailMessage', 'KindSubmissionMail', 'KindMalware', 'KindProcess', 'KindRegistryKey', 'KindRegistryValue', 'KindSecurityGroup', 'KindURL', 'KindIoTDevice'
 	Kind KindBasicEntity `json:"kind,omitempty"`
 }
 
@@ -7976,8 +10875,38 @@ func (me MalwareEntity) AsHostEntity() (*HostEntity, bool) {
 	return nil, false
 }
 
+// AsHuntingBookmark is the BasicEntity implementation for MalwareEntity.
+func (me MalwareEntity) AsHuntingBookmark() (*HuntingBookmark, bool) {
+	return nil, false
+}
+
+// AsSecurityAlert is the BasicEntity implementation for MalwareEntity.
+func (me MalwareEntity) AsSecurityAlert() (*SecurityAlert, bool) {
+	return nil, false
+}
+
 // AsIPEntity is the BasicEntity implementation for MalwareEntity.
 func (me MalwareEntity) AsIPEntity() (*IPEntity, bool) {
+	return nil, false
+}
+
+// AsMailboxEntity is the BasicEntity implementation for MalwareEntity.
+func (me MalwareEntity) AsMailboxEntity() (*MailboxEntity, bool) {
+	return nil, false
+}
+
+// AsMailClusterEntity is the BasicEntity implementation for MalwareEntity.
+func (me MalwareEntity) AsMailClusterEntity() (*MailClusterEntity, bool) {
+	return nil, false
+}
+
+// AsMailMessageEntity is the BasicEntity implementation for MalwareEntity.
+func (me MalwareEntity) AsMailMessageEntity() (*MailMessageEntity, bool) {
+	return nil, false
+}
+
+// AsSubmissionMailEntity is the BasicEntity implementation for MalwareEntity.
+func (me MalwareEntity) AsSubmissionMailEntity() (*SubmissionMailEntity, bool) {
 	return nil, false
 }
 
@@ -7998,11 +10927,6 @@ func (me MalwareEntity) AsRegistryKeyEntity() (*RegistryKeyEntity, bool) {
 
 // AsRegistryValueEntity is the BasicEntity implementation for MalwareEntity.
 func (me MalwareEntity) AsRegistryValueEntity() (*RegistryValueEntity, bool) {
-	return nil, false
-}
-
-// AsSecurityAlert is the BasicEntity implementation for MalwareEntity.
-func (me MalwareEntity) AsSecurityAlert() (*SecurityAlert, bool) {
 	return nil, false
 }
 
@@ -8117,7 +11041,7 @@ func (mep MalwareEntityProperties) MarshalJSON() ([]byte, error) {
 type MCASCheckRequirements struct {
 	// MCASCheckRequirementsProperties - MCAS (Microsoft Cloud App Security) requirements check properties.
 	*MCASCheckRequirementsProperties `json:"properties,omitempty"`
-	// Kind - Possible values include: 'KindBasicDataConnectorsCheckRequirementsKindDataConnectorsCheckRequirements', 'KindBasicDataConnectorsCheckRequirementsKindAzureActiveDirectory', 'KindBasicDataConnectorsCheckRequirementsKindAzureAdvancedThreatProtection', 'KindBasicDataConnectorsCheckRequirementsKindAzureSecurityCenter', 'KindBasicDataConnectorsCheckRequirementsKindAmazonWebServicesCloudTrail', 'KindBasicDataConnectorsCheckRequirementsKindMicrosoftCloudAppSecurity', 'KindBasicDataConnectorsCheckRequirementsKindMicrosoftDefenderAdvancedThreatProtection', 'KindBasicDataConnectorsCheckRequirementsKindThreatIntelligence', 'KindBasicDataConnectorsCheckRequirementsKindThreatIntelligenceTaxii'
+	// Kind - Possible values include: 'KindBasicDataConnectorsCheckRequirementsKindDataConnectorsCheckRequirements', 'KindBasicDataConnectorsCheckRequirementsKindAzureActiveDirectory', 'KindBasicDataConnectorsCheckRequirementsKindAzureAdvancedThreatProtection', 'KindBasicDataConnectorsCheckRequirementsKindAzureSecurityCenter', 'KindBasicDataConnectorsCheckRequirementsKindAmazonWebServicesCloudTrail', 'KindBasicDataConnectorsCheckRequirementsKindDynamics365', 'KindBasicDataConnectorsCheckRequirementsKindMicrosoftCloudAppSecurity', 'KindBasicDataConnectorsCheckRequirementsKindMicrosoftDefenderAdvancedThreatProtection', 'KindBasicDataConnectorsCheckRequirementsKindOfficeATP', 'KindBasicDataConnectorsCheckRequirementsKindThreatIntelligence', 'KindBasicDataConnectorsCheckRequirementsKindThreatIntelligenceTaxii'
 	Kind KindBasicDataConnectorsCheckRequirements `json:"kind,omitempty"`
 }
 
@@ -8154,6 +11078,11 @@ func (mcr MCASCheckRequirements) AsAwsCloudTrailCheckRequirements() (*AwsCloudTr
 	return nil, false
 }
 
+// AsDynamics365CheckRequirements is the BasicDataConnectorsCheckRequirements implementation for MCASCheckRequirements.
+func (mcr MCASCheckRequirements) AsDynamics365CheckRequirements() (*Dynamics365CheckRequirements, bool) {
+	return nil, false
+}
+
 // AsMCASCheckRequirements is the BasicDataConnectorsCheckRequirements implementation for MCASCheckRequirements.
 func (mcr MCASCheckRequirements) AsMCASCheckRequirements() (*MCASCheckRequirements, bool) {
 	return &mcr, true
@@ -8161,6 +11090,11 @@ func (mcr MCASCheckRequirements) AsMCASCheckRequirements() (*MCASCheckRequiremen
 
 // AsMDATPCheckRequirements is the BasicDataConnectorsCheckRequirements implementation for MCASCheckRequirements.
 func (mcr MCASCheckRequirements) AsMDATPCheckRequirements() (*MDATPCheckRequirements, bool) {
+	return nil, false
+}
+
+// AsOfficeATPCheckRequirements is the BasicDataConnectorsCheckRequirements implementation for MCASCheckRequirements.
+func (mcr MCASCheckRequirements) AsOfficeATPCheckRequirements() (*OfficeATPCheckRequirements, bool) {
 	return nil, false
 }
 
@@ -8235,7 +11169,7 @@ type MCASDataConnector struct {
 	Type *string `json:"type,omitempty"`
 	// Etag - Etag of the azure resource
 	Etag *string `json:"etag,omitempty"`
-	// Kind - Possible values include: 'KindDataConnector', 'KindAzureActiveDirectory', 'KindAzureAdvancedThreatProtection', 'KindAzureSecurityCenter', 'KindAmazonWebServicesCloudTrail', 'KindMicrosoftCloudAppSecurity', 'KindMicrosoftDefenderAdvancedThreatProtection', 'KindOffice365', 'KindThreatIntelligence', 'KindThreatIntelligenceTaxii'
+	// Kind - Possible values include: 'KindDataConnector', 'KindAzureActiveDirectory', 'KindAzureAdvancedThreatProtection', 'KindAzureSecurityCenter', 'KindAmazonWebServicesCloudTrail', 'KindDynamics365', 'KindMicrosoftCloudAppSecurity', 'KindMicrosoftDefenderAdvancedThreatProtection', 'KindOfficeATP', 'KindOffice365', 'KindThreatIntelligence', 'KindThreatIntelligenceTaxii'
 	Kind KindBasicDataConnector `json:"kind,omitempty"`
 }
 
@@ -8275,6 +11209,11 @@ func (mdc MCASDataConnector) AsAwsCloudTrailDataConnector() (*AwsCloudTrailDataC
 	return nil, false
 }
 
+// AsDynamics365DataConnector is the BasicDataConnector implementation for MCASDataConnector.
+func (mdc MCASDataConnector) AsDynamics365DataConnector() (*Dynamics365DataConnector, bool) {
+	return nil, false
+}
+
 // AsMCASDataConnector is the BasicDataConnector implementation for MCASDataConnector.
 func (mdc MCASDataConnector) AsMCASDataConnector() (*MCASDataConnector, bool) {
 	return &mdc, true
@@ -8282,6 +11221,11 @@ func (mdc MCASDataConnector) AsMCASDataConnector() (*MCASDataConnector, bool) {
 
 // AsMDATPDataConnector is the BasicDataConnector implementation for MCASDataConnector.
 func (mdc MCASDataConnector) AsMDATPDataConnector() (*MDATPDataConnector, bool) {
+	return nil, false
+}
+
+// AsOfficeATPDataConnector is the BasicDataConnector implementation for MCASDataConnector.
+func (mdc MCASDataConnector) AsOfficeATPDataConnector() (*OfficeATPDataConnector, bool) {
 	return nil, false
 }
 
@@ -8379,7 +11323,8 @@ func (mdc *MCASDataConnector) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// MCASDataConnectorDataTypes the available data types for MCAS (Microsoft Cloud App Security) data connector.
+// MCASDataConnectorDataTypes the available data types for MCAS (Microsoft Cloud App Security) data
+// connector.
 type MCASDataConnectorDataTypes struct {
 	// DiscoveryLogs - Discovery log data type connection.
 	DiscoveryLogs *MCASDataConnectorDataTypesDiscoveryLogs `json:"discoveryLogs,omitempty"`
@@ -8401,12 +11346,12 @@ type MCASDataConnectorProperties struct {
 	TenantID *string `json:"tenantId,omitempty"`
 }
 
-// MDATPCheckRequirements represents MDATP (Microsoft Defender Advanced Threat Protection) requirements check
-// request.
+// MDATPCheckRequirements represents MDATP (Microsoft Defender Advanced Threat Protection) requirements
+// check request.
 type MDATPCheckRequirements struct {
 	// MDATPCheckRequirementsProperties - MDATP (Microsoft Defender Advanced Threat Protection) requirements check properties.
 	*MDATPCheckRequirementsProperties `json:"properties,omitempty"`
-	// Kind - Possible values include: 'KindBasicDataConnectorsCheckRequirementsKindDataConnectorsCheckRequirements', 'KindBasicDataConnectorsCheckRequirementsKindAzureActiveDirectory', 'KindBasicDataConnectorsCheckRequirementsKindAzureAdvancedThreatProtection', 'KindBasicDataConnectorsCheckRequirementsKindAzureSecurityCenter', 'KindBasicDataConnectorsCheckRequirementsKindAmazonWebServicesCloudTrail', 'KindBasicDataConnectorsCheckRequirementsKindMicrosoftCloudAppSecurity', 'KindBasicDataConnectorsCheckRequirementsKindMicrosoftDefenderAdvancedThreatProtection', 'KindBasicDataConnectorsCheckRequirementsKindThreatIntelligence', 'KindBasicDataConnectorsCheckRequirementsKindThreatIntelligenceTaxii'
+	// Kind - Possible values include: 'KindBasicDataConnectorsCheckRequirementsKindDataConnectorsCheckRequirements', 'KindBasicDataConnectorsCheckRequirementsKindAzureActiveDirectory', 'KindBasicDataConnectorsCheckRequirementsKindAzureAdvancedThreatProtection', 'KindBasicDataConnectorsCheckRequirementsKindAzureSecurityCenter', 'KindBasicDataConnectorsCheckRequirementsKindAmazonWebServicesCloudTrail', 'KindBasicDataConnectorsCheckRequirementsKindDynamics365', 'KindBasicDataConnectorsCheckRequirementsKindMicrosoftCloudAppSecurity', 'KindBasicDataConnectorsCheckRequirementsKindMicrosoftDefenderAdvancedThreatProtection', 'KindBasicDataConnectorsCheckRequirementsKindOfficeATP', 'KindBasicDataConnectorsCheckRequirementsKindThreatIntelligence', 'KindBasicDataConnectorsCheckRequirementsKindThreatIntelligenceTaxii'
 	Kind KindBasicDataConnectorsCheckRequirements `json:"kind,omitempty"`
 }
 
@@ -8443,6 +11388,11 @@ func (mcr MDATPCheckRequirements) AsAwsCloudTrailCheckRequirements() (*AwsCloudT
 	return nil, false
 }
 
+// AsDynamics365CheckRequirements is the BasicDataConnectorsCheckRequirements implementation for MDATPCheckRequirements.
+func (mcr MDATPCheckRequirements) AsDynamics365CheckRequirements() (*Dynamics365CheckRequirements, bool) {
+	return nil, false
+}
+
 // AsMCASCheckRequirements is the BasicDataConnectorsCheckRequirements implementation for MDATPCheckRequirements.
 func (mcr MDATPCheckRequirements) AsMCASCheckRequirements() (*MCASCheckRequirements, bool) {
 	return nil, false
@@ -8451,6 +11401,11 @@ func (mcr MDATPCheckRequirements) AsMCASCheckRequirements() (*MCASCheckRequireme
 // AsMDATPCheckRequirements is the BasicDataConnectorsCheckRequirements implementation for MDATPCheckRequirements.
 func (mcr MDATPCheckRequirements) AsMDATPCheckRequirements() (*MDATPCheckRequirements, bool) {
 	return &mcr, true
+}
+
+// AsOfficeATPCheckRequirements is the BasicDataConnectorsCheckRequirements implementation for MDATPCheckRequirements.
+func (mcr MDATPCheckRequirements) AsOfficeATPCheckRequirements() (*OfficeATPCheckRequirements, bool) {
+	return nil, false
 }
 
 // AsTICheckRequirements is the BasicDataConnectorsCheckRequirements implementation for MDATPCheckRequirements.
@@ -8506,8 +11461,8 @@ func (mcr *MDATPCheckRequirements) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// MDATPCheckRequirementsProperties MDATP (Microsoft Defender Advanced Threat Protection) requirements check
-// properties.
+// MDATPCheckRequirementsProperties MDATP (Microsoft Defender Advanced Threat Protection) requirements
+// check properties.
 type MDATPCheckRequirementsProperties struct {
 	// TenantID - The tenant id to connect to, and get the data from.
 	TenantID *string `json:"tenantId,omitempty"`
@@ -8525,7 +11480,7 @@ type MDATPDataConnector struct {
 	Type *string `json:"type,omitempty"`
 	// Etag - Etag of the azure resource
 	Etag *string `json:"etag,omitempty"`
-	// Kind - Possible values include: 'KindDataConnector', 'KindAzureActiveDirectory', 'KindAzureAdvancedThreatProtection', 'KindAzureSecurityCenter', 'KindAmazonWebServicesCloudTrail', 'KindMicrosoftCloudAppSecurity', 'KindMicrosoftDefenderAdvancedThreatProtection', 'KindOffice365', 'KindThreatIntelligence', 'KindThreatIntelligenceTaxii'
+	// Kind - Possible values include: 'KindDataConnector', 'KindAzureActiveDirectory', 'KindAzureAdvancedThreatProtection', 'KindAzureSecurityCenter', 'KindAmazonWebServicesCloudTrail', 'KindDynamics365', 'KindMicrosoftCloudAppSecurity', 'KindMicrosoftDefenderAdvancedThreatProtection', 'KindOfficeATP', 'KindOffice365', 'KindThreatIntelligence', 'KindThreatIntelligenceTaxii'
 	Kind KindBasicDataConnector `json:"kind,omitempty"`
 }
 
@@ -8565,6 +11520,11 @@ func (mdc MDATPDataConnector) AsAwsCloudTrailDataConnector() (*AwsCloudTrailData
 	return nil, false
 }
 
+// AsDynamics365DataConnector is the BasicDataConnector implementation for MDATPDataConnector.
+func (mdc MDATPDataConnector) AsDynamics365DataConnector() (*Dynamics365DataConnector, bool) {
+	return nil, false
+}
+
 // AsMCASDataConnector is the BasicDataConnector implementation for MDATPDataConnector.
 func (mdc MDATPDataConnector) AsMCASDataConnector() (*MCASDataConnector, bool) {
 	return nil, false
@@ -8573,6 +11533,11 @@ func (mdc MDATPDataConnector) AsMCASDataConnector() (*MCASDataConnector, bool) {
 // AsMDATPDataConnector is the BasicDataConnector implementation for MDATPDataConnector.
 func (mdc MDATPDataConnector) AsMDATPDataConnector() (*MDATPDataConnector, bool) {
 	return &mdc, true
+}
+
+// AsOfficeATPDataConnector is the BasicDataConnector implementation for MDATPDataConnector.
+func (mdc MDATPDataConnector) AsOfficeATPDataConnector() (*OfficeATPDataConnector, bool) {
+	return nil, false
 }
 
 // AsOfficeDataConnector is the BasicDataConnector implementation for MDATPDataConnector.
@@ -8690,7 +11655,7 @@ type MicrosoftSecurityIncidentCreationAlertRule struct {
 	Type *string `json:"type,omitempty"`
 	// Etag - Etag of the azure resource
 	Etag *string `json:"etag,omitempty"`
-	// Kind - Possible values include: 'KindAlertRule', 'KindFusion', 'KindMicrosoftSecurityIncidentCreation', 'KindScheduled'
+	// Kind - Possible values include: 'KindAlertRule', 'KindMLBehaviorAnalytics', 'KindFusion', 'KindMicrosoftSecurityIncidentCreation', 'KindScheduled'
 	Kind KindBasicAlertRule `json:"kind,omitempty"`
 }
 
@@ -8708,6 +11673,11 @@ func (msicar MicrosoftSecurityIncidentCreationAlertRule) MarshalJSON() ([]byte, 
 		objectMap["kind"] = msicar.Kind
 	}
 	return json.Marshal(objectMap)
+}
+
+// AsMLBehaviorAnalyticsAlertRule is the BasicAlertRule implementation for MicrosoftSecurityIncidentCreationAlertRule.
+func (msicar MicrosoftSecurityIncidentCreationAlertRule) AsMLBehaviorAnalyticsAlertRule() (*MLBehaviorAnalyticsAlertRule, bool) {
+	return nil, false
 }
 
 // AsFusionAlertRule is the BasicAlertRule implementation for MicrosoftSecurityIncidentCreationAlertRule.
@@ -8811,13 +11781,14 @@ type MicrosoftSecurityIncidentCreationAlertRuleCommonProperties struct {
 	DisplayNamesFilter *[]string `json:"displayNamesFilter,omitempty"`
 	// DisplayNamesExcludeFilter - the alerts' displayNames on which the cases will not be generated
 	DisplayNamesExcludeFilter *[]string `json:"displayNamesExcludeFilter,omitempty"`
-	// ProductFilter - The alerts' productName on which the cases will be generated. Possible values include: 'MicrosoftCloudAppSecurity', 'AzureSecurityCenter', 'AzureAdvancedThreatProtection', 'AzureActiveDirectoryIdentityProtection', 'AzureSecurityCenterforIoT'
+	// ProductFilter - The alerts' productName on which the cases will be generated. Possible values include: 'MicrosoftCloudAppSecurity', 'AzureSecurityCenter', 'AzureAdvancedThreatProtection', 'AzureActiveDirectoryIdentityProtection', 'AzureSecurityCenterforIoT', 'Office365AdvancedThreatProtection', 'MicrosoftDefenderAdvancedThreatProtection'
 	ProductFilter MicrosoftSecurityProductName `json:"productFilter,omitempty"`
 	// SeveritiesFilter - the alerts' severities on which the cases will be generated
 	SeveritiesFilter *[]AlertSeverity `json:"severitiesFilter,omitempty"`
 }
 
-// MicrosoftSecurityIncidentCreationAlertRuleProperties microsoftSecurityIncidentCreation rule property bag.
+// MicrosoftSecurityIncidentCreationAlertRuleProperties microsoftSecurityIncidentCreation rule property
+// bag.
 type MicrosoftSecurityIncidentCreationAlertRuleProperties struct {
 	// AlertRuleTemplateName - The Name of the alert rule template used to create this rule.
 	AlertRuleTemplateName *string `json:"alertRuleTemplateName,omitempty"`
@@ -8833,7 +11804,7 @@ type MicrosoftSecurityIncidentCreationAlertRuleProperties struct {
 	DisplayNamesFilter *[]string `json:"displayNamesFilter,omitempty"`
 	// DisplayNamesExcludeFilter - the alerts' displayNames on which the cases will not be generated
 	DisplayNamesExcludeFilter *[]string `json:"displayNamesExcludeFilter,omitempty"`
-	// ProductFilter - The alerts' productName on which the cases will be generated. Possible values include: 'MicrosoftCloudAppSecurity', 'AzureSecurityCenter', 'AzureAdvancedThreatProtection', 'AzureActiveDirectoryIdentityProtection', 'AzureSecurityCenterforIoT'
+	// ProductFilter - The alerts' productName on which the cases will be generated. Possible values include: 'MicrosoftCloudAppSecurity', 'AzureSecurityCenter', 'AzureAdvancedThreatProtection', 'AzureActiveDirectoryIdentityProtection', 'AzureSecurityCenterforIoT', 'Office365AdvancedThreatProtection', 'MicrosoftDefenderAdvancedThreatProtection'
 	ProductFilter MicrosoftSecurityProductName `json:"productFilter,omitempty"`
 	// SeveritiesFilter - the alerts' severities on which the cases will be generated
 	SeveritiesFilter *[]AlertSeverity `json:"severitiesFilter,omitempty"`
@@ -8880,7 +11851,7 @@ type MicrosoftSecurityIncidentCreationAlertRuleTemplate struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Azure resource type
 	Type *string `json:"type,omitempty"`
-	// Kind - Possible values include: 'KindBasicAlertRuleTemplateKindAlertRuleTemplate', 'KindBasicAlertRuleTemplateKindFusion', 'KindBasicAlertRuleTemplateKindMicrosoftSecurityIncidentCreation', 'KindBasicAlertRuleTemplateKindScheduled'
+	// Kind - Possible values include: 'KindBasicAlertRuleTemplateKindAlertRuleTemplate', 'KindBasicAlertRuleTemplateKindMLBehaviorAnalytics', 'KindBasicAlertRuleTemplateKindFusion', 'KindBasicAlertRuleTemplateKindMicrosoftSecurityIncidentCreation', 'KindBasicAlertRuleTemplateKindScheduled'
 	Kind KindBasicAlertRuleTemplate `json:"kind,omitempty"`
 }
 
@@ -8895,6 +11866,11 @@ func (msicart MicrosoftSecurityIncidentCreationAlertRuleTemplate) MarshalJSON() 
 		objectMap["kind"] = msicart.Kind
 	}
 	return json.Marshal(objectMap)
+}
+
+// AsMLBehaviorAnalyticsAlertRuleTemplate is the BasicAlertRuleTemplate implementation for MicrosoftSecurityIncidentCreationAlertRuleTemplate.
+func (msicart MicrosoftSecurityIncidentCreationAlertRuleTemplate) AsMLBehaviorAnalyticsAlertRuleTemplate() (*MLBehaviorAnalyticsAlertRuleTemplate, bool) {
+	return nil, false
 }
 
 // AsFusionAlertRuleTemplate is the BasicAlertRuleTemplate implementation for MicrosoftSecurityIncidentCreationAlertRuleTemplate.
@@ -8982,11 +11958,13 @@ func (msicart *MicrosoftSecurityIncidentCreationAlertRuleTemplate) UnmarshalJSON
 	return nil
 }
 
-// MicrosoftSecurityIncidentCreationAlertRuleTemplateProperties microsoftSecurityIncidentCreation rule template
-// properties
+// MicrosoftSecurityIncidentCreationAlertRuleTemplateProperties microsoftSecurityIncidentCreation rule
+// template properties
 type MicrosoftSecurityIncidentCreationAlertRuleTemplateProperties struct {
 	// AlertRulesCreatedByTemplateCount - the number of alert rules that were created by this template
 	AlertRulesCreatedByTemplateCount *int32 `json:"alertRulesCreatedByTemplateCount,omitempty"`
+	// LastUpdatedDateUTC - READ-ONLY; The last time that this alert rule template has been updated.
+	LastUpdatedDateUTC *date.Time `json:"lastUpdatedDateUTC,omitempty"`
 	// CreatedDateUTC - READ-ONLY; The time that this alert rule template has been added.
 	CreatedDateUTC *date.Time `json:"createdDateUTC,omitempty"`
 	// Description - The description of the alert rule template.
@@ -9001,7 +11979,7 @@ type MicrosoftSecurityIncidentCreationAlertRuleTemplateProperties struct {
 	DisplayNamesFilter *[]string `json:"displayNamesFilter,omitempty"`
 	// DisplayNamesExcludeFilter - the alerts' displayNames on which the cases will not be generated
 	DisplayNamesExcludeFilter *[]string `json:"displayNamesExcludeFilter,omitempty"`
-	// ProductFilter - The alerts' productName on which the cases will be generated. Possible values include: 'MicrosoftCloudAppSecurity', 'AzureSecurityCenter', 'AzureAdvancedThreatProtection', 'AzureActiveDirectoryIdentityProtection', 'AzureSecurityCenterforIoT'
+	// ProductFilter - The alerts' productName on which the cases will be generated. Possible values include: 'MicrosoftCloudAppSecurity', 'AzureSecurityCenter', 'AzureAdvancedThreatProtection', 'AzureActiveDirectoryIdentityProtection', 'AzureSecurityCenterforIoT', 'Office365AdvancedThreatProtection', 'MicrosoftDefenderAdvancedThreatProtection'
 	ProductFilter MicrosoftSecurityProductName `json:"productFilter,omitempty"`
 	// SeveritiesFilter - the alerts' severities on which the cases will be generated
 	SeveritiesFilter *[]AlertSeverity `json:"severitiesFilter,omitempty"`
@@ -9038,6 +12016,630 @@ func (msicart MicrosoftSecurityIncidentCreationAlertRuleTemplateProperties) Mars
 		objectMap["severitiesFilter"] = msicart.SeveritiesFilter
 	}
 	return json.Marshal(objectMap)
+}
+
+// MLBehaviorAnalyticsAlertRule represents MLBehaviorAnalytics alert rule.
+type MLBehaviorAnalyticsAlertRule struct {
+	// MLBehaviorAnalyticsAlertRuleProperties - MLBehaviorAnalytics alert rule properties
+	*MLBehaviorAnalyticsAlertRuleProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Azure resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Azure resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Azure resource type
+	Type *string `json:"type,omitempty"`
+	// Etag - Etag of the azure resource
+	Etag *string `json:"etag,omitempty"`
+	// Kind - Possible values include: 'KindAlertRule', 'KindMLBehaviorAnalytics', 'KindFusion', 'KindMicrosoftSecurityIncidentCreation', 'KindScheduled'
+	Kind KindBasicAlertRule `json:"kind,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for MLBehaviorAnalyticsAlertRule.
+func (mbaar MLBehaviorAnalyticsAlertRule) MarshalJSON() ([]byte, error) {
+	mbaar.Kind = KindMLBehaviorAnalytics
+	objectMap := make(map[string]interface{})
+	if mbaar.MLBehaviorAnalyticsAlertRuleProperties != nil {
+		objectMap["properties"] = mbaar.MLBehaviorAnalyticsAlertRuleProperties
+	}
+	if mbaar.Etag != nil {
+		objectMap["etag"] = mbaar.Etag
+	}
+	if mbaar.Kind != "" {
+		objectMap["kind"] = mbaar.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsMLBehaviorAnalyticsAlertRule is the BasicAlertRule implementation for MLBehaviorAnalyticsAlertRule.
+func (mbaar MLBehaviorAnalyticsAlertRule) AsMLBehaviorAnalyticsAlertRule() (*MLBehaviorAnalyticsAlertRule, bool) {
+	return &mbaar, true
+}
+
+// AsFusionAlertRule is the BasicAlertRule implementation for MLBehaviorAnalyticsAlertRule.
+func (mbaar MLBehaviorAnalyticsAlertRule) AsFusionAlertRule() (*FusionAlertRule, bool) {
+	return nil, false
+}
+
+// AsMicrosoftSecurityIncidentCreationAlertRule is the BasicAlertRule implementation for MLBehaviorAnalyticsAlertRule.
+func (mbaar MLBehaviorAnalyticsAlertRule) AsMicrosoftSecurityIncidentCreationAlertRule() (*MicrosoftSecurityIncidentCreationAlertRule, bool) {
+	return nil, false
+}
+
+// AsScheduledAlertRule is the BasicAlertRule implementation for MLBehaviorAnalyticsAlertRule.
+func (mbaar MLBehaviorAnalyticsAlertRule) AsScheduledAlertRule() (*ScheduledAlertRule, bool) {
+	return nil, false
+}
+
+// AsAlertRule is the BasicAlertRule implementation for MLBehaviorAnalyticsAlertRule.
+func (mbaar MLBehaviorAnalyticsAlertRule) AsAlertRule() (*AlertRule, bool) {
+	return nil, false
+}
+
+// AsBasicAlertRule is the BasicAlertRule implementation for MLBehaviorAnalyticsAlertRule.
+func (mbaar MLBehaviorAnalyticsAlertRule) AsBasicAlertRule() (BasicAlertRule, bool) {
+	return &mbaar, true
+}
+
+// UnmarshalJSON is the custom unmarshaler for MLBehaviorAnalyticsAlertRule struct.
+func (mbaar *MLBehaviorAnalyticsAlertRule) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var mLBehaviorAnalyticsAlertRuleProperties MLBehaviorAnalyticsAlertRuleProperties
+				err = json.Unmarshal(*v, &mLBehaviorAnalyticsAlertRuleProperties)
+				if err != nil {
+					return err
+				}
+				mbaar.MLBehaviorAnalyticsAlertRuleProperties = &mLBehaviorAnalyticsAlertRuleProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				mbaar.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				mbaar.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				mbaar.Type = &typeVar
+			}
+		case "etag":
+			if v != nil {
+				var etag string
+				err = json.Unmarshal(*v, &etag)
+				if err != nil {
+					return err
+				}
+				mbaar.Etag = &etag
+			}
+		case "kind":
+			if v != nil {
+				var kind KindBasicAlertRule
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				mbaar.Kind = kind
+			}
+		}
+	}
+
+	return nil
+}
+
+// MLBehaviorAnalyticsAlertRuleProperties mLBehaviorAnalytics alert rule base property bag.
+type MLBehaviorAnalyticsAlertRuleProperties struct {
+	// AlertRuleTemplateName - The Name of the alert rule template used to create this rule.
+	AlertRuleTemplateName *string `json:"alertRuleTemplateName,omitempty"`
+	// Description - READ-ONLY; The description of the alert rule.
+	Description *string `json:"description,omitempty"`
+	// DisplayName - READ-ONLY; The display name for alerts created by this alert rule.
+	DisplayName *string `json:"displayName,omitempty"`
+	// Enabled - Determines whether this alert rule is enabled or disabled.
+	Enabled *bool `json:"enabled,omitempty"`
+	// LastModifiedUtc - READ-ONLY; The last time that this alert rule has been modified.
+	LastModifiedUtc *date.Time `json:"lastModifiedUtc,omitempty"`
+	// Severity - READ-ONLY; The severity for alerts created by this alert rule. Possible values include: 'High', 'Medium', 'Low', 'Informational'
+	Severity AlertSeverity `json:"severity,omitempty"`
+	// Tactics - READ-ONLY; The tactics of the alert rule
+	Tactics *[]AttackTactic `json:"tactics,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for MLBehaviorAnalyticsAlertRuleProperties.
+func (mbaarp MLBehaviorAnalyticsAlertRuleProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mbaarp.AlertRuleTemplateName != nil {
+		objectMap["alertRuleTemplateName"] = mbaarp.AlertRuleTemplateName
+	}
+	if mbaarp.Enabled != nil {
+		objectMap["enabled"] = mbaarp.Enabled
+	}
+	return json.Marshal(objectMap)
+}
+
+// MLBehaviorAnalyticsAlertRuleTemplate represents MLBehaviorAnalytics alert rule template.
+type MLBehaviorAnalyticsAlertRuleTemplate struct {
+	// MLBehaviorAnalyticsAlertRuleTemplateProperties - MLBehaviorAnalytics alert rule template properties.
+	*MLBehaviorAnalyticsAlertRuleTemplateProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Azure resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Azure resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Azure resource type
+	Type *string `json:"type,omitempty"`
+	// Kind - Possible values include: 'KindBasicAlertRuleTemplateKindAlertRuleTemplate', 'KindBasicAlertRuleTemplateKindMLBehaviorAnalytics', 'KindBasicAlertRuleTemplateKindFusion', 'KindBasicAlertRuleTemplateKindMicrosoftSecurityIncidentCreation', 'KindBasicAlertRuleTemplateKindScheduled'
+	Kind KindBasicAlertRuleTemplate `json:"kind,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for MLBehaviorAnalyticsAlertRuleTemplate.
+func (mbaart MLBehaviorAnalyticsAlertRuleTemplate) MarshalJSON() ([]byte, error) {
+	mbaart.Kind = KindBasicAlertRuleTemplateKindMLBehaviorAnalytics
+	objectMap := make(map[string]interface{})
+	if mbaart.MLBehaviorAnalyticsAlertRuleTemplateProperties != nil {
+		objectMap["properties"] = mbaart.MLBehaviorAnalyticsAlertRuleTemplateProperties
+	}
+	if mbaart.Kind != "" {
+		objectMap["kind"] = mbaart.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsMLBehaviorAnalyticsAlertRuleTemplate is the BasicAlertRuleTemplate implementation for MLBehaviorAnalyticsAlertRuleTemplate.
+func (mbaart MLBehaviorAnalyticsAlertRuleTemplate) AsMLBehaviorAnalyticsAlertRuleTemplate() (*MLBehaviorAnalyticsAlertRuleTemplate, bool) {
+	return &mbaart, true
+}
+
+// AsFusionAlertRuleTemplate is the BasicAlertRuleTemplate implementation for MLBehaviorAnalyticsAlertRuleTemplate.
+func (mbaart MLBehaviorAnalyticsAlertRuleTemplate) AsFusionAlertRuleTemplate() (*FusionAlertRuleTemplate, bool) {
+	return nil, false
+}
+
+// AsMicrosoftSecurityIncidentCreationAlertRuleTemplate is the BasicAlertRuleTemplate implementation for MLBehaviorAnalyticsAlertRuleTemplate.
+func (mbaart MLBehaviorAnalyticsAlertRuleTemplate) AsMicrosoftSecurityIncidentCreationAlertRuleTemplate() (*MicrosoftSecurityIncidentCreationAlertRuleTemplate, bool) {
+	return nil, false
+}
+
+// AsScheduledAlertRuleTemplate is the BasicAlertRuleTemplate implementation for MLBehaviorAnalyticsAlertRuleTemplate.
+func (mbaart MLBehaviorAnalyticsAlertRuleTemplate) AsScheduledAlertRuleTemplate() (*ScheduledAlertRuleTemplate, bool) {
+	return nil, false
+}
+
+// AsAlertRuleTemplate is the BasicAlertRuleTemplate implementation for MLBehaviorAnalyticsAlertRuleTemplate.
+func (mbaart MLBehaviorAnalyticsAlertRuleTemplate) AsAlertRuleTemplate() (*AlertRuleTemplate, bool) {
+	return nil, false
+}
+
+// AsBasicAlertRuleTemplate is the BasicAlertRuleTemplate implementation for MLBehaviorAnalyticsAlertRuleTemplate.
+func (mbaart MLBehaviorAnalyticsAlertRuleTemplate) AsBasicAlertRuleTemplate() (BasicAlertRuleTemplate, bool) {
+	return &mbaart, true
+}
+
+// UnmarshalJSON is the custom unmarshaler for MLBehaviorAnalyticsAlertRuleTemplate struct.
+func (mbaart *MLBehaviorAnalyticsAlertRuleTemplate) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var mLBehaviorAnalyticsAlertRuleTemplateProperties MLBehaviorAnalyticsAlertRuleTemplateProperties
+				err = json.Unmarshal(*v, &mLBehaviorAnalyticsAlertRuleTemplateProperties)
+				if err != nil {
+					return err
+				}
+				mbaart.MLBehaviorAnalyticsAlertRuleTemplateProperties = &mLBehaviorAnalyticsAlertRuleTemplateProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				mbaart.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				mbaart.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				mbaart.Type = &typeVar
+			}
+		case "kind":
+			if v != nil {
+				var kind KindBasicAlertRuleTemplate
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				mbaart.Kind = kind
+			}
+		}
+	}
+
+	return nil
+}
+
+// MLBehaviorAnalyticsAlertRuleTemplateProperties mLBehaviorAnalytics alert rule template properties.
+type MLBehaviorAnalyticsAlertRuleTemplateProperties struct {
+	// Severity - The severity for alerts created by this alert rule. Possible values include: 'High', 'Medium', 'Low', 'Informational'
+	Severity AlertSeverity `json:"severity,omitempty"`
+	// Tactics - The tactics of the alert rule template.
+	Tactics *[]AttackTactic `json:"tactics,omitempty"`
+	// AlertRulesCreatedByTemplateCount - the number of alert rules that were created by this template
+	AlertRulesCreatedByTemplateCount *int32 `json:"alertRulesCreatedByTemplateCount,omitempty"`
+	// LastUpdatedDateUTC - READ-ONLY; The last time that this alert rule template has been updated.
+	LastUpdatedDateUTC *date.Time `json:"lastUpdatedDateUTC,omitempty"`
+	// CreatedDateUTC - READ-ONLY; The time that this alert rule template has been added.
+	CreatedDateUTC *date.Time `json:"createdDateUTC,omitempty"`
+	// Description - The description of the alert rule template.
+	Description *string `json:"description,omitempty"`
+	// DisplayName - The display name for alert rule template.
+	DisplayName *string `json:"displayName,omitempty"`
+	// RequiredDataConnectors - The required data sources for this template
+	RequiredDataConnectors *[]AlertRuleTemplateDataSource `json:"requiredDataConnectors,omitempty"`
+	// Status - The alert rule template status. Possible values include: 'Installed', 'Available', 'NotAvailable'
+	Status TemplateStatus `json:"status,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for MLBehaviorAnalyticsAlertRuleTemplateProperties.
+func (mbaart MLBehaviorAnalyticsAlertRuleTemplateProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mbaart.Severity != "" {
+		objectMap["severity"] = mbaart.Severity
+	}
+	if mbaart.Tactics != nil {
+		objectMap["tactics"] = mbaart.Tactics
+	}
+	if mbaart.AlertRulesCreatedByTemplateCount != nil {
+		objectMap["alertRulesCreatedByTemplateCount"] = mbaart.AlertRulesCreatedByTemplateCount
+	}
+	if mbaart.Description != nil {
+		objectMap["description"] = mbaart.Description
+	}
+	if mbaart.DisplayName != nil {
+		objectMap["displayName"] = mbaart.DisplayName
+	}
+	if mbaart.RequiredDataConnectors != nil {
+		objectMap["requiredDataConnectors"] = mbaart.RequiredDataConnectors
+	}
+	if mbaart.Status != "" {
+		objectMap["status"] = mbaart.Status
+	}
+	return json.Marshal(objectMap)
+}
+
+// OfficeATPCheckRequirements represents OfficeATP (Office 365 Advanced Threat Protection) requirements
+// check request.
+type OfficeATPCheckRequirements struct {
+	// OfficeATPCheckRequirementsProperties - OfficeATP (Office 365 Advanced Threat Protection) requirements check properties.
+	*OfficeATPCheckRequirementsProperties `json:"properties,omitempty"`
+	// Kind - Possible values include: 'KindBasicDataConnectorsCheckRequirementsKindDataConnectorsCheckRequirements', 'KindBasicDataConnectorsCheckRequirementsKindAzureActiveDirectory', 'KindBasicDataConnectorsCheckRequirementsKindAzureAdvancedThreatProtection', 'KindBasicDataConnectorsCheckRequirementsKindAzureSecurityCenter', 'KindBasicDataConnectorsCheckRequirementsKindAmazonWebServicesCloudTrail', 'KindBasicDataConnectorsCheckRequirementsKindDynamics365', 'KindBasicDataConnectorsCheckRequirementsKindMicrosoftCloudAppSecurity', 'KindBasicDataConnectorsCheckRequirementsKindMicrosoftDefenderAdvancedThreatProtection', 'KindBasicDataConnectorsCheckRequirementsKindOfficeATP', 'KindBasicDataConnectorsCheckRequirementsKindThreatIntelligence', 'KindBasicDataConnectorsCheckRequirementsKindThreatIntelligenceTaxii'
+	Kind KindBasicDataConnectorsCheckRequirements `json:"kind,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for OfficeATPCheckRequirements.
+func (oacr OfficeATPCheckRequirements) MarshalJSON() ([]byte, error) {
+	oacr.Kind = KindBasicDataConnectorsCheckRequirementsKindOfficeATP
+	objectMap := make(map[string]interface{})
+	if oacr.OfficeATPCheckRequirementsProperties != nil {
+		objectMap["properties"] = oacr.OfficeATPCheckRequirementsProperties
+	}
+	if oacr.Kind != "" {
+		objectMap["kind"] = oacr.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsAADCheckRequirements is the BasicDataConnectorsCheckRequirements implementation for OfficeATPCheckRequirements.
+func (oacr OfficeATPCheckRequirements) AsAADCheckRequirements() (*AADCheckRequirements, bool) {
+	return nil, false
+}
+
+// AsAATPCheckRequirements is the BasicDataConnectorsCheckRequirements implementation for OfficeATPCheckRequirements.
+func (oacr OfficeATPCheckRequirements) AsAATPCheckRequirements() (*AATPCheckRequirements, bool) {
+	return nil, false
+}
+
+// AsASCCheckRequirements is the BasicDataConnectorsCheckRequirements implementation for OfficeATPCheckRequirements.
+func (oacr OfficeATPCheckRequirements) AsASCCheckRequirements() (*ASCCheckRequirements, bool) {
+	return nil, false
+}
+
+// AsAwsCloudTrailCheckRequirements is the BasicDataConnectorsCheckRequirements implementation for OfficeATPCheckRequirements.
+func (oacr OfficeATPCheckRequirements) AsAwsCloudTrailCheckRequirements() (*AwsCloudTrailCheckRequirements, bool) {
+	return nil, false
+}
+
+// AsDynamics365CheckRequirements is the BasicDataConnectorsCheckRequirements implementation for OfficeATPCheckRequirements.
+func (oacr OfficeATPCheckRequirements) AsDynamics365CheckRequirements() (*Dynamics365CheckRequirements, bool) {
+	return nil, false
+}
+
+// AsMCASCheckRequirements is the BasicDataConnectorsCheckRequirements implementation for OfficeATPCheckRequirements.
+func (oacr OfficeATPCheckRequirements) AsMCASCheckRequirements() (*MCASCheckRequirements, bool) {
+	return nil, false
+}
+
+// AsMDATPCheckRequirements is the BasicDataConnectorsCheckRequirements implementation for OfficeATPCheckRequirements.
+func (oacr OfficeATPCheckRequirements) AsMDATPCheckRequirements() (*MDATPCheckRequirements, bool) {
+	return nil, false
+}
+
+// AsOfficeATPCheckRequirements is the BasicDataConnectorsCheckRequirements implementation for OfficeATPCheckRequirements.
+func (oacr OfficeATPCheckRequirements) AsOfficeATPCheckRequirements() (*OfficeATPCheckRequirements, bool) {
+	return &oacr, true
+}
+
+// AsTICheckRequirements is the BasicDataConnectorsCheckRequirements implementation for OfficeATPCheckRequirements.
+func (oacr OfficeATPCheckRequirements) AsTICheckRequirements() (*TICheckRequirements, bool) {
+	return nil, false
+}
+
+// AsTiTaxiiCheckRequirements is the BasicDataConnectorsCheckRequirements implementation for OfficeATPCheckRequirements.
+func (oacr OfficeATPCheckRequirements) AsTiTaxiiCheckRequirements() (*TiTaxiiCheckRequirements, bool) {
+	return nil, false
+}
+
+// AsDataConnectorsCheckRequirements is the BasicDataConnectorsCheckRequirements implementation for OfficeATPCheckRequirements.
+func (oacr OfficeATPCheckRequirements) AsDataConnectorsCheckRequirements() (*DataConnectorsCheckRequirements, bool) {
+	return nil, false
+}
+
+// AsBasicDataConnectorsCheckRequirements is the BasicDataConnectorsCheckRequirements implementation for OfficeATPCheckRequirements.
+func (oacr OfficeATPCheckRequirements) AsBasicDataConnectorsCheckRequirements() (BasicDataConnectorsCheckRequirements, bool) {
+	return &oacr, true
+}
+
+// UnmarshalJSON is the custom unmarshaler for OfficeATPCheckRequirements struct.
+func (oacr *OfficeATPCheckRequirements) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var officeATPCheckRequirementsProperties OfficeATPCheckRequirementsProperties
+				err = json.Unmarshal(*v, &officeATPCheckRequirementsProperties)
+				if err != nil {
+					return err
+				}
+				oacr.OfficeATPCheckRequirementsProperties = &officeATPCheckRequirementsProperties
+			}
+		case "kind":
+			if v != nil {
+				var kind KindBasicDataConnectorsCheckRequirements
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				oacr.Kind = kind
+			}
+		}
+	}
+
+	return nil
+}
+
+// OfficeATPCheckRequirementsProperties officeATP (Office 365 Advanced Threat Protection) requirements
+// check properties.
+type OfficeATPCheckRequirementsProperties struct {
+	// TenantID - The tenant id to connect to, and get the data from.
+	TenantID *string `json:"tenantId,omitempty"`
+}
+
+// OfficeATPDataConnector represents OfficeATP (Office 365 Advanced Threat Protection) data connector.
+type OfficeATPDataConnector struct {
+	// OfficeATPDataConnectorProperties - OfficeATP (Office 365 Advanced Threat Protection) data connector properties.
+	*OfficeATPDataConnectorProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Azure resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Azure resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Azure resource type
+	Type *string `json:"type,omitempty"`
+	// Etag - Etag of the azure resource
+	Etag *string `json:"etag,omitempty"`
+	// Kind - Possible values include: 'KindDataConnector', 'KindAzureActiveDirectory', 'KindAzureAdvancedThreatProtection', 'KindAzureSecurityCenter', 'KindAmazonWebServicesCloudTrail', 'KindDynamics365', 'KindMicrosoftCloudAppSecurity', 'KindMicrosoftDefenderAdvancedThreatProtection', 'KindOfficeATP', 'KindOffice365', 'KindThreatIntelligence', 'KindThreatIntelligenceTaxii'
+	Kind KindBasicDataConnector `json:"kind,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for OfficeATPDataConnector.
+func (oadc OfficeATPDataConnector) MarshalJSON() ([]byte, error) {
+	oadc.Kind = KindOfficeATP
+	objectMap := make(map[string]interface{})
+	if oadc.OfficeATPDataConnectorProperties != nil {
+		objectMap["properties"] = oadc.OfficeATPDataConnectorProperties
+	}
+	if oadc.Etag != nil {
+		objectMap["etag"] = oadc.Etag
+	}
+	if oadc.Kind != "" {
+		objectMap["kind"] = oadc.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsAADDataConnector is the BasicDataConnector implementation for OfficeATPDataConnector.
+func (oadc OfficeATPDataConnector) AsAADDataConnector() (*AADDataConnector, bool) {
+	return nil, false
+}
+
+// AsAATPDataConnector is the BasicDataConnector implementation for OfficeATPDataConnector.
+func (oadc OfficeATPDataConnector) AsAATPDataConnector() (*AATPDataConnector, bool) {
+	return nil, false
+}
+
+// AsASCDataConnector is the BasicDataConnector implementation for OfficeATPDataConnector.
+func (oadc OfficeATPDataConnector) AsASCDataConnector() (*ASCDataConnector, bool) {
+	return nil, false
+}
+
+// AsAwsCloudTrailDataConnector is the BasicDataConnector implementation for OfficeATPDataConnector.
+func (oadc OfficeATPDataConnector) AsAwsCloudTrailDataConnector() (*AwsCloudTrailDataConnector, bool) {
+	return nil, false
+}
+
+// AsDynamics365DataConnector is the BasicDataConnector implementation for OfficeATPDataConnector.
+func (oadc OfficeATPDataConnector) AsDynamics365DataConnector() (*Dynamics365DataConnector, bool) {
+	return nil, false
+}
+
+// AsMCASDataConnector is the BasicDataConnector implementation for OfficeATPDataConnector.
+func (oadc OfficeATPDataConnector) AsMCASDataConnector() (*MCASDataConnector, bool) {
+	return nil, false
+}
+
+// AsMDATPDataConnector is the BasicDataConnector implementation for OfficeATPDataConnector.
+func (oadc OfficeATPDataConnector) AsMDATPDataConnector() (*MDATPDataConnector, bool) {
+	return nil, false
+}
+
+// AsOfficeATPDataConnector is the BasicDataConnector implementation for OfficeATPDataConnector.
+func (oadc OfficeATPDataConnector) AsOfficeATPDataConnector() (*OfficeATPDataConnector, bool) {
+	return &oadc, true
+}
+
+// AsOfficeDataConnector is the BasicDataConnector implementation for OfficeATPDataConnector.
+func (oadc OfficeATPDataConnector) AsOfficeDataConnector() (*OfficeDataConnector, bool) {
+	return nil, false
+}
+
+// AsTIDataConnector is the BasicDataConnector implementation for OfficeATPDataConnector.
+func (oadc OfficeATPDataConnector) AsTIDataConnector() (*TIDataConnector, bool) {
+	return nil, false
+}
+
+// AsTiTaxiiDataConnector is the BasicDataConnector implementation for OfficeATPDataConnector.
+func (oadc OfficeATPDataConnector) AsTiTaxiiDataConnector() (*TiTaxiiDataConnector, bool) {
+	return nil, false
+}
+
+// AsDataConnector is the BasicDataConnector implementation for OfficeATPDataConnector.
+func (oadc OfficeATPDataConnector) AsDataConnector() (*DataConnector, bool) {
+	return nil, false
+}
+
+// AsBasicDataConnector is the BasicDataConnector implementation for OfficeATPDataConnector.
+func (oadc OfficeATPDataConnector) AsBasicDataConnector() (BasicDataConnector, bool) {
+	return &oadc, true
+}
+
+// UnmarshalJSON is the custom unmarshaler for OfficeATPDataConnector struct.
+func (oadc *OfficeATPDataConnector) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var officeATPDataConnectorProperties OfficeATPDataConnectorProperties
+				err = json.Unmarshal(*v, &officeATPDataConnectorProperties)
+				if err != nil {
+					return err
+				}
+				oadc.OfficeATPDataConnectorProperties = &officeATPDataConnectorProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				oadc.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				oadc.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				oadc.Type = &typeVar
+			}
+		case "etag":
+			if v != nil {
+				var etag string
+				err = json.Unmarshal(*v, &etag)
+				if err != nil {
+					return err
+				}
+				oadc.Etag = &etag
+			}
+		case "kind":
+			if v != nil {
+				var kind KindBasicDataConnector
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				oadc.Kind = kind
+			}
+		}
+	}
+
+	return nil
+}
+
+// OfficeATPDataConnectorProperties officeATP (Office 365 Advanced Threat Protection) data connector
+// properties.
+type OfficeATPDataConnectorProperties struct {
+	// TenantID - The tenant id to connect to, and get the data from.
+	TenantID *string `json:"tenantId,omitempty"`
+	// DataTypes - The available data types for the connector.
+	DataTypes *AlertsDataTypeOfDataConnector `json:"dataTypes,omitempty"`
 }
 
 // OfficeConsent consent for Office365 tenant that already made.
@@ -9274,8 +12876,11 @@ func (page OfficeConsentListPage) Values() []OfficeConsent {
 }
 
 // Creates a new instance of the OfficeConsentListPage type.
-func NewOfficeConsentListPage(getNextPage func(context.Context, OfficeConsentList) (OfficeConsentList, error)) OfficeConsentListPage {
-	return OfficeConsentListPage{fn: getNextPage}
+func NewOfficeConsentListPage(cur OfficeConsentList, getNextPage func(context.Context, OfficeConsentList) (OfficeConsentList, error)) OfficeConsentListPage {
+	return OfficeConsentListPage{
+		fn:  getNextPage,
+		ocl: cur,
+	}
 }
 
 // OfficeConsentProperties consent property bag.
@@ -9307,7 +12912,7 @@ type OfficeDataConnector struct {
 	Type *string `json:"type,omitempty"`
 	// Etag - Etag of the azure resource
 	Etag *string `json:"etag,omitempty"`
-	// Kind - Possible values include: 'KindDataConnector', 'KindAzureActiveDirectory', 'KindAzureAdvancedThreatProtection', 'KindAzureSecurityCenter', 'KindAmazonWebServicesCloudTrail', 'KindMicrosoftCloudAppSecurity', 'KindMicrosoftDefenderAdvancedThreatProtection', 'KindOffice365', 'KindThreatIntelligence', 'KindThreatIntelligenceTaxii'
+	// Kind - Possible values include: 'KindDataConnector', 'KindAzureActiveDirectory', 'KindAzureAdvancedThreatProtection', 'KindAzureSecurityCenter', 'KindAmazonWebServicesCloudTrail', 'KindDynamics365', 'KindMicrosoftCloudAppSecurity', 'KindMicrosoftDefenderAdvancedThreatProtection', 'KindOfficeATP', 'KindOffice365', 'KindThreatIntelligence', 'KindThreatIntelligenceTaxii'
 	Kind KindBasicDataConnector `json:"kind,omitempty"`
 }
 
@@ -9347,6 +12952,11 @@ func (odc OfficeDataConnector) AsAwsCloudTrailDataConnector() (*AwsCloudTrailDat
 	return nil, false
 }
 
+// AsDynamics365DataConnector is the BasicDataConnector implementation for OfficeDataConnector.
+func (odc OfficeDataConnector) AsDynamics365DataConnector() (*Dynamics365DataConnector, bool) {
+	return nil, false
+}
+
 // AsMCASDataConnector is the BasicDataConnector implementation for OfficeDataConnector.
 func (odc OfficeDataConnector) AsMCASDataConnector() (*MCASDataConnector, bool) {
 	return nil, false
@@ -9354,6 +12964,11 @@ func (odc OfficeDataConnector) AsMCASDataConnector() (*MCASDataConnector, bool) 
 
 // AsMDATPDataConnector is the BasicDataConnector implementation for OfficeDataConnector.
 func (odc OfficeDataConnector) AsMDATPDataConnector() (*MDATPDataConnector, bool) {
+	return nil, false
+}
+
+// AsOfficeATPDataConnector is the BasicDataConnector implementation for OfficeDataConnector.
+func (odc OfficeDataConnector) AsOfficeATPDataConnector() (*OfficeATPDataConnector, bool) {
 	return nil, false
 }
 
@@ -9457,6 +13072,8 @@ type OfficeDataConnectorDataTypes struct {
 	Exchange *OfficeDataConnectorDataTypesExchange `json:"exchange,omitempty"`
 	// SharePoint - SharePoint data type connection.
 	SharePoint *OfficeDataConnectorDataTypesSharePoint `json:"sharePoint,omitempty"`
+	// Teams - Teams data type connection.
+	Teams *OfficeDataConnectorDataTypesTeams `json:"teams,omitempty"`
 }
 
 // OfficeDataConnectorDataTypesExchange exchange data type connection.
@@ -9467,6 +13084,12 @@ type OfficeDataConnectorDataTypesExchange struct {
 
 // OfficeDataConnectorDataTypesSharePoint sharePoint data type connection.
 type OfficeDataConnectorDataTypesSharePoint struct {
+	// State - Describe whether this data type connection is enabled or not. Possible values include: 'Enabled', 'Disabled'
+	State DataTypeState `json:"state,omitempty"`
+}
+
+// OfficeDataConnectorDataTypesTeams teams data type connection.
+type OfficeDataConnectorDataTypesTeams struct {
 	// State - Describe whether this data type connection is enabled or not. Possible values include: 'Enabled', 'Disabled'
 	State DataTypeState `json:"state,omitempty"`
 }
@@ -9651,8 +13274,11 @@ func (page OperationsListPage) Values() []Operation {
 }
 
 // Creates a new instance of the OperationsListPage type.
-func NewOperationsListPage(getNextPage func(context.Context, OperationsList) (OperationsList, error)) OperationsListPage {
-	return OperationsListPage{fn: getNextPage}
+func NewOperationsListPage(cur OperationsList, getNextPage func(context.Context, OperationsList) (OperationsList, error)) OperationsListPage {
+	return OperationsListPage{
+		fn: getNextPage,
+		ol: cur,
+	}
 }
 
 // ProcessEntity represents a process entity.
@@ -9665,7 +13291,7 @@ type ProcessEntity struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Azure resource type
 	Type *string `json:"type,omitempty"`
-	// Kind - Possible values include: 'KindEntity', 'KindAccount', 'KindAzureResource', 'KindCloudApplication', 'KindDNSResolution', 'KindFile', 'KindFileHash', 'KindHost', 'KindIP', 'KindMalware', 'KindProcess', 'KindRegistryKey', 'KindRegistryValue', 'KindSecurityAlert', 'KindSecurityGroup', 'KindURL', 'KindIoTDevice'
+	// Kind - Possible values include: 'KindEntity', 'KindAccount', 'KindAzureResource', 'KindCloudApplication', 'KindDNSResolution', 'KindFile', 'KindFileHash', 'KindHost', 'KindBookmark', 'KindSecurityAlert', 'KindIP', 'KindMailbox', 'KindMailCluster', 'KindMailMessage', 'KindSubmissionMail', 'KindMalware', 'KindProcess', 'KindRegistryKey', 'KindRegistryValue', 'KindSecurityGroup', 'KindURL', 'KindIoTDevice'
 	Kind KindBasicEntity `json:"kind,omitempty"`
 }
 
@@ -9717,8 +13343,38 @@ func (peVar ProcessEntity) AsHostEntity() (*HostEntity, bool) {
 	return nil, false
 }
 
+// AsHuntingBookmark is the BasicEntity implementation for ProcessEntity.
+func (peVar ProcessEntity) AsHuntingBookmark() (*HuntingBookmark, bool) {
+	return nil, false
+}
+
+// AsSecurityAlert is the BasicEntity implementation for ProcessEntity.
+func (peVar ProcessEntity) AsSecurityAlert() (*SecurityAlert, bool) {
+	return nil, false
+}
+
 // AsIPEntity is the BasicEntity implementation for ProcessEntity.
 func (peVar ProcessEntity) AsIPEntity() (*IPEntity, bool) {
+	return nil, false
+}
+
+// AsMailboxEntity is the BasicEntity implementation for ProcessEntity.
+func (peVar ProcessEntity) AsMailboxEntity() (*MailboxEntity, bool) {
+	return nil, false
+}
+
+// AsMailClusterEntity is the BasicEntity implementation for ProcessEntity.
+func (peVar ProcessEntity) AsMailClusterEntity() (*MailClusterEntity, bool) {
+	return nil, false
+}
+
+// AsMailMessageEntity is the BasicEntity implementation for ProcessEntity.
+func (peVar ProcessEntity) AsMailMessageEntity() (*MailMessageEntity, bool) {
+	return nil, false
+}
+
+// AsSubmissionMailEntity is the BasicEntity implementation for ProcessEntity.
+func (peVar ProcessEntity) AsSubmissionMailEntity() (*SubmissionMailEntity, bool) {
 	return nil, false
 }
 
@@ -9739,11 +13395,6 @@ func (peVar ProcessEntity) AsRegistryKeyEntity() (*RegistryKeyEntity, bool) {
 
 // AsRegistryValueEntity is the BasicEntity implementation for ProcessEntity.
 func (peVar ProcessEntity) AsRegistryValueEntity() (*RegistryValueEntity, bool) {
-	return nil, false
-}
-
-// AsSecurityAlert is the BasicEntity implementation for ProcessEntity.
-func (peVar ProcessEntity) AsSecurityAlert() (*SecurityAlert, bool) {
 	return nil, false
 }
 
@@ -9877,7 +13528,7 @@ type RegistryKeyEntity struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Azure resource type
 	Type *string `json:"type,omitempty"`
-	// Kind - Possible values include: 'KindEntity', 'KindAccount', 'KindAzureResource', 'KindCloudApplication', 'KindDNSResolution', 'KindFile', 'KindFileHash', 'KindHost', 'KindIP', 'KindMalware', 'KindProcess', 'KindRegistryKey', 'KindRegistryValue', 'KindSecurityAlert', 'KindSecurityGroup', 'KindURL', 'KindIoTDevice'
+	// Kind - Possible values include: 'KindEntity', 'KindAccount', 'KindAzureResource', 'KindCloudApplication', 'KindDNSResolution', 'KindFile', 'KindFileHash', 'KindHost', 'KindBookmark', 'KindSecurityAlert', 'KindIP', 'KindMailbox', 'KindMailCluster', 'KindMailMessage', 'KindSubmissionMail', 'KindMalware', 'KindProcess', 'KindRegistryKey', 'KindRegistryValue', 'KindSecurityGroup', 'KindURL', 'KindIoTDevice'
 	Kind KindBasicEntity `json:"kind,omitempty"`
 }
 
@@ -9929,8 +13580,38 @@ func (rke RegistryKeyEntity) AsHostEntity() (*HostEntity, bool) {
 	return nil, false
 }
 
+// AsHuntingBookmark is the BasicEntity implementation for RegistryKeyEntity.
+func (rke RegistryKeyEntity) AsHuntingBookmark() (*HuntingBookmark, bool) {
+	return nil, false
+}
+
+// AsSecurityAlert is the BasicEntity implementation for RegistryKeyEntity.
+func (rke RegistryKeyEntity) AsSecurityAlert() (*SecurityAlert, bool) {
+	return nil, false
+}
+
 // AsIPEntity is the BasicEntity implementation for RegistryKeyEntity.
 func (rke RegistryKeyEntity) AsIPEntity() (*IPEntity, bool) {
+	return nil, false
+}
+
+// AsMailboxEntity is the BasicEntity implementation for RegistryKeyEntity.
+func (rke RegistryKeyEntity) AsMailboxEntity() (*MailboxEntity, bool) {
+	return nil, false
+}
+
+// AsMailClusterEntity is the BasicEntity implementation for RegistryKeyEntity.
+func (rke RegistryKeyEntity) AsMailClusterEntity() (*MailClusterEntity, bool) {
+	return nil, false
+}
+
+// AsMailMessageEntity is the BasicEntity implementation for RegistryKeyEntity.
+func (rke RegistryKeyEntity) AsMailMessageEntity() (*MailMessageEntity, bool) {
+	return nil, false
+}
+
+// AsSubmissionMailEntity is the BasicEntity implementation for RegistryKeyEntity.
+func (rke RegistryKeyEntity) AsSubmissionMailEntity() (*SubmissionMailEntity, bool) {
 	return nil, false
 }
 
@@ -9951,11 +13632,6 @@ func (rke RegistryKeyEntity) AsRegistryKeyEntity() (*RegistryKeyEntity, bool) {
 
 // AsRegistryValueEntity is the BasicEntity implementation for RegistryKeyEntity.
 func (rke RegistryKeyEntity) AsRegistryValueEntity() (*RegistryValueEntity, bool) {
-	return nil, false
-}
-
-// AsSecurityAlert is the BasicEntity implementation for RegistryKeyEntity.
-func (rke RegistryKeyEntity) AsSecurityAlert() (*SecurityAlert, bool) {
 	return nil, false
 }
 
@@ -10072,7 +13748,7 @@ type RegistryValueEntity struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Azure resource type
 	Type *string `json:"type,omitempty"`
-	// Kind - Possible values include: 'KindEntity', 'KindAccount', 'KindAzureResource', 'KindCloudApplication', 'KindDNSResolution', 'KindFile', 'KindFileHash', 'KindHost', 'KindIP', 'KindMalware', 'KindProcess', 'KindRegistryKey', 'KindRegistryValue', 'KindSecurityAlert', 'KindSecurityGroup', 'KindURL', 'KindIoTDevice'
+	// Kind - Possible values include: 'KindEntity', 'KindAccount', 'KindAzureResource', 'KindCloudApplication', 'KindDNSResolution', 'KindFile', 'KindFileHash', 'KindHost', 'KindBookmark', 'KindSecurityAlert', 'KindIP', 'KindMailbox', 'KindMailCluster', 'KindMailMessage', 'KindSubmissionMail', 'KindMalware', 'KindProcess', 'KindRegistryKey', 'KindRegistryValue', 'KindSecurityGroup', 'KindURL', 'KindIoTDevice'
 	Kind KindBasicEntity `json:"kind,omitempty"`
 }
 
@@ -10124,8 +13800,38 @@ func (rve RegistryValueEntity) AsHostEntity() (*HostEntity, bool) {
 	return nil, false
 }
 
+// AsHuntingBookmark is the BasicEntity implementation for RegistryValueEntity.
+func (rve RegistryValueEntity) AsHuntingBookmark() (*HuntingBookmark, bool) {
+	return nil, false
+}
+
+// AsSecurityAlert is the BasicEntity implementation for RegistryValueEntity.
+func (rve RegistryValueEntity) AsSecurityAlert() (*SecurityAlert, bool) {
+	return nil, false
+}
+
 // AsIPEntity is the BasicEntity implementation for RegistryValueEntity.
 func (rve RegistryValueEntity) AsIPEntity() (*IPEntity, bool) {
+	return nil, false
+}
+
+// AsMailboxEntity is the BasicEntity implementation for RegistryValueEntity.
+func (rve RegistryValueEntity) AsMailboxEntity() (*MailboxEntity, bool) {
+	return nil, false
+}
+
+// AsMailClusterEntity is the BasicEntity implementation for RegistryValueEntity.
+func (rve RegistryValueEntity) AsMailClusterEntity() (*MailClusterEntity, bool) {
+	return nil, false
+}
+
+// AsMailMessageEntity is the BasicEntity implementation for RegistryValueEntity.
+func (rve RegistryValueEntity) AsMailMessageEntity() (*MailMessageEntity, bool) {
+	return nil, false
+}
+
+// AsSubmissionMailEntity is the BasicEntity implementation for RegistryValueEntity.
+func (rve RegistryValueEntity) AsSubmissionMailEntity() (*SubmissionMailEntity, bool) {
 	return nil, false
 }
 
@@ -10147,11 +13853,6 @@ func (rve RegistryValueEntity) AsRegistryKeyEntity() (*RegistryKeyEntity, bool) 
 // AsRegistryValueEntity is the BasicEntity implementation for RegistryValueEntity.
 func (rve RegistryValueEntity) AsRegistryValueEntity() (*RegistryValueEntity, bool) {
 	return &rve, true
-}
-
-// AsSecurityAlert is the BasicEntity implementation for RegistryValueEntity.
-func (rve RegistryValueEntity) AsSecurityAlert() (*SecurityAlert, bool) {
-	return nil, false
 }
 
 // AsSecurityGroupEntity is the BasicEntity implementation for RegistryValueEntity.
@@ -10532,8 +14233,11 @@ func (page RelationListPage) Values() []Relation {
 }
 
 // Creates a new instance of the RelationListPage type.
-func NewRelationListPage(getNextPage func(context.Context, RelationList) (RelationList, error)) RelationListPage {
-	return RelationListPage{fn: getNextPage}
+func NewRelationListPage(cur RelationList, getNextPage func(context.Context, RelationList) (RelationList, error)) RelationListPage {
+	return RelationListPage{
+		fn: getNextPage,
+		rl: cur,
+	}
 }
 
 // RelationNode relation node
@@ -10734,7 +14438,7 @@ type ScheduledAlertRule struct {
 	Type *string `json:"type,omitempty"`
 	// Etag - Etag of the azure resource
 	Etag *string `json:"etag,omitempty"`
-	// Kind - Possible values include: 'KindAlertRule', 'KindFusion', 'KindMicrosoftSecurityIncidentCreation', 'KindScheduled'
+	// Kind - Possible values include: 'KindAlertRule', 'KindMLBehaviorAnalytics', 'KindFusion', 'KindMicrosoftSecurityIncidentCreation', 'KindScheduled'
 	Kind KindBasicAlertRule `json:"kind,omitempty"`
 }
 
@@ -10752,6 +14456,11 @@ func (sar ScheduledAlertRule) MarshalJSON() ([]byte, error) {
 		objectMap["kind"] = sar.Kind
 	}
 	return json.Marshal(objectMap)
+}
+
+// AsMLBehaviorAnalyticsAlertRule is the BasicAlertRule implementation for ScheduledAlertRule.
+func (sar ScheduledAlertRule) AsMLBehaviorAnalyticsAlertRule() (*MLBehaviorAnalyticsAlertRule, bool) {
+	return nil, false
 }
 
 // AsFusionAlertRule is the BasicAlertRule implementation for ScheduledAlertRule.
@@ -10848,7 +14557,7 @@ func (sar *ScheduledAlertRule) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// ScheduledAlertRuleCommonProperties schedule alert rule template property bag.
+// ScheduledAlertRuleCommonProperties scheduled alert rule template property bag.
 type ScheduledAlertRuleCommonProperties struct {
 	// Query - The query that creates alerts for this rule.
 	Query *string `json:"query,omitempty"`
@@ -10862,6 +14571,8 @@ type ScheduledAlertRuleCommonProperties struct {
 	TriggerOperator TriggerOperator `json:"triggerOperator,omitempty"`
 	// TriggerThreshold - The threshold triggers this alert rule.
 	TriggerThreshold *int32 `json:"triggerThreshold,omitempty"`
+	// EventGroupingSettings - The event grouping settings.
+	EventGroupingSettings *EventGroupingSettings `json:"eventGroupingSettings,omitempty"`
 }
 
 // ScheduledAlertRuleProperties scheduled alert rule base property bag.
@@ -10896,6 +14607,8 @@ type ScheduledAlertRuleProperties struct {
 	TriggerOperator TriggerOperator `json:"triggerOperator,omitempty"`
 	// TriggerThreshold - The threshold triggers this alert rule.
 	TriggerThreshold *int32 `json:"triggerThreshold,omitempty"`
+	// EventGroupingSettings - The event grouping settings.
+	EventGroupingSettings *EventGroupingSettings `json:"eventGroupingSettings,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ScheduledAlertRuleProperties.
@@ -10943,6 +14656,9 @@ func (sarp ScheduledAlertRuleProperties) MarshalJSON() ([]byte, error) {
 	if sarp.TriggerThreshold != nil {
 		objectMap["triggerThreshold"] = sarp.TriggerThreshold
 	}
+	if sarp.EventGroupingSettings != nil {
+		objectMap["eventGroupingSettings"] = sarp.EventGroupingSettings
+	}
 	return json.Marshal(objectMap)
 }
 
@@ -10956,7 +14672,7 @@ type ScheduledAlertRuleTemplate struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Azure resource type
 	Type *string `json:"type,omitempty"`
-	// Kind - Possible values include: 'KindBasicAlertRuleTemplateKindAlertRuleTemplate', 'KindBasicAlertRuleTemplateKindFusion', 'KindBasicAlertRuleTemplateKindMicrosoftSecurityIncidentCreation', 'KindBasicAlertRuleTemplateKindScheduled'
+	// Kind - Possible values include: 'KindBasicAlertRuleTemplateKindAlertRuleTemplate', 'KindBasicAlertRuleTemplateKindMLBehaviorAnalytics', 'KindBasicAlertRuleTemplateKindFusion', 'KindBasicAlertRuleTemplateKindMicrosoftSecurityIncidentCreation', 'KindBasicAlertRuleTemplateKindScheduled'
 	Kind KindBasicAlertRuleTemplate `json:"kind,omitempty"`
 }
 
@@ -10971,6 +14687,11 @@ func (sart ScheduledAlertRuleTemplate) MarshalJSON() ([]byte, error) {
 		objectMap["kind"] = sart.Kind
 	}
 	return json.Marshal(objectMap)
+}
+
+// AsMLBehaviorAnalyticsAlertRuleTemplate is the BasicAlertRuleTemplate implementation for ScheduledAlertRuleTemplate.
+func (sart ScheduledAlertRuleTemplate) AsMLBehaviorAnalyticsAlertRuleTemplate() (*MLBehaviorAnalyticsAlertRuleTemplate, bool) {
+	return nil, false
 }
 
 // AsFusionAlertRuleTemplate is the BasicAlertRuleTemplate implementation for ScheduledAlertRuleTemplate.
@@ -11062,6 +14783,8 @@ func (sart *ScheduledAlertRuleTemplate) UnmarshalJSON(body []byte) error {
 type ScheduledAlertRuleTemplateProperties struct {
 	// AlertRulesCreatedByTemplateCount - the number of alert rules that were created by this template
 	AlertRulesCreatedByTemplateCount *int32 `json:"alertRulesCreatedByTemplateCount,omitempty"`
+	// LastUpdatedDateUTC - READ-ONLY; The last time that this alert rule template has been updated.
+	LastUpdatedDateUTC *date.Time `json:"lastUpdatedDateUTC,omitempty"`
 	// CreatedDateUTC - READ-ONLY; The time that this alert rule template has been added.
 	CreatedDateUTC *date.Time `json:"createdDateUTC,omitempty"`
 	// Description - The description of the alert rule template.
@@ -11084,6 +14807,8 @@ type ScheduledAlertRuleTemplateProperties struct {
 	TriggerOperator TriggerOperator `json:"triggerOperator,omitempty"`
 	// TriggerThreshold - The threshold triggers this alert rule.
 	TriggerThreshold *int32 `json:"triggerThreshold,omitempty"`
+	// EventGroupingSettings - The event grouping settings.
+	EventGroupingSettings *EventGroupingSettings `json:"eventGroupingSettings,omitempty"`
 	// Tactics - The tactics of the alert rule template
 	Tactics *[]AttackTactic `json:"tactics,omitempty"`
 }
@@ -11124,6 +14849,9 @@ func (sart ScheduledAlertRuleTemplateProperties) MarshalJSON() ([]byte, error) {
 	if sart.TriggerThreshold != nil {
 		objectMap["triggerThreshold"] = sart.TriggerThreshold
 	}
+	if sart.EventGroupingSettings != nil {
+		objectMap["eventGroupingSettings"] = sart.EventGroupingSettings
+	}
 	if sart.Tactics != nil {
 		objectMap["tactics"] = sart.Tactics
 	}
@@ -11140,7 +14868,7 @@ type SecurityAlert struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Azure resource type
 	Type *string `json:"type,omitempty"`
-	// Kind - Possible values include: 'KindEntity', 'KindAccount', 'KindAzureResource', 'KindCloudApplication', 'KindDNSResolution', 'KindFile', 'KindFileHash', 'KindHost', 'KindIP', 'KindMalware', 'KindProcess', 'KindRegistryKey', 'KindRegistryValue', 'KindSecurityAlert', 'KindSecurityGroup', 'KindURL', 'KindIoTDevice'
+	// Kind - Possible values include: 'KindEntity', 'KindAccount', 'KindAzureResource', 'KindCloudApplication', 'KindDNSResolution', 'KindFile', 'KindFileHash', 'KindHost', 'KindBookmark', 'KindSecurityAlert', 'KindIP', 'KindMailbox', 'KindMailCluster', 'KindMailMessage', 'KindSubmissionMail', 'KindMalware', 'KindProcess', 'KindRegistryKey', 'KindRegistryValue', 'KindSecurityGroup', 'KindURL', 'KindIoTDevice'
 	Kind KindBasicEntity `json:"kind,omitempty"`
 }
 
@@ -11192,8 +14920,38 @@ func (sa SecurityAlert) AsHostEntity() (*HostEntity, bool) {
 	return nil, false
 }
 
+// AsHuntingBookmark is the BasicEntity implementation for SecurityAlert.
+func (sa SecurityAlert) AsHuntingBookmark() (*HuntingBookmark, bool) {
+	return nil, false
+}
+
+// AsSecurityAlert is the BasicEntity implementation for SecurityAlert.
+func (sa SecurityAlert) AsSecurityAlert() (*SecurityAlert, bool) {
+	return &sa, true
+}
+
 // AsIPEntity is the BasicEntity implementation for SecurityAlert.
 func (sa SecurityAlert) AsIPEntity() (*IPEntity, bool) {
+	return nil, false
+}
+
+// AsMailboxEntity is the BasicEntity implementation for SecurityAlert.
+func (sa SecurityAlert) AsMailboxEntity() (*MailboxEntity, bool) {
+	return nil, false
+}
+
+// AsMailClusterEntity is the BasicEntity implementation for SecurityAlert.
+func (sa SecurityAlert) AsMailClusterEntity() (*MailClusterEntity, bool) {
+	return nil, false
+}
+
+// AsMailMessageEntity is the BasicEntity implementation for SecurityAlert.
+func (sa SecurityAlert) AsMailMessageEntity() (*MailMessageEntity, bool) {
+	return nil, false
+}
+
+// AsSubmissionMailEntity is the BasicEntity implementation for SecurityAlert.
+func (sa SecurityAlert) AsSubmissionMailEntity() (*SubmissionMailEntity, bool) {
 	return nil, false
 }
 
@@ -11215,11 +14973,6 @@ func (sa SecurityAlert) AsRegistryKeyEntity() (*RegistryKeyEntity, bool) {
 // AsRegistryValueEntity is the BasicEntity implementation for SecurityAlert.
 func (sa SecurityAlert) AsRegistryValueEntity() (*RegistryValueEntity, bool) {
 	return nil, false
-}
-
-// AsSecurityAlert is the BasicEntity implementation for SecurityAlert.
-func (sa SecurityAlert) AsSecurityAlert() (*SecurityAlert, bool) {
-	return &sa, true
 }
 
 // AsSecurityGroupEntity is the BasicEntity implementation for SecurityAlert.
@@ -11382,6 +15135,87 @@ type SecurityAlertPropertiesConfidenceReasonsItem struct {
 	ReasonType *string `json:"reasonType,omitempty"`
 }
 
+// SecurityAlertTimelineItem represents security alert timeline item.
+type SecurityAlertTimelineItem struct {
+	// AzureResourceID - The alert azure resource id.
+	AzureResourceID *string `json:"azureResourceId,omitempty"`
+	// ProductName - The alert product name.
+	ProductName *string `json:"productName,omitempty"`
+	// DisplayName - The alert name.
+	DisplayName *string `json:"displayName,omitempty"`
+	// Severity - The alert severity. Possible values include: 'High', 'Medium', 'Low', 'Informational'
+	Severity AlertSeverity `json:"severity,omitempty"`
+	// EndTimeUtc - The alert end time.
+	EndTimeUtc *date.Time `json:"endTimeUtc,omitempty"`
+	// StartTimeUtc - The alert start time.
+	StartTimeUtc *date.Time `json:"startTimeUtc,omitempty"`
+	// TimeGenerated - The alert generated time.
+	TimeGenerated *date.Time `json:"timeGenerated,omitempty"`
+	// AlertType - The name of the alert type.
+	AlertType *string `json:"alertType,omitempty"`
+	// Kind - Possible values include: 'KindBasicEntityTimelineItemKindEntityTimelineItem', 'KindBasicEntityTimelineItemKindActivity', 'KindBasicEntityTimelineItemKindSecurityAlert', 'KindBasicEntityTimelineItemKindBookmark'
+	Kind KindBasicEntityTimelineItem `json:"kind,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SecurityAlertTimelineItem.
+func (sati SecurityAlertTimelineItem) MarshalJSON() ([]byte, error) {
+	sati.Kind = KindBasicEntityTimelineItemKindSecurityAlert
+	objectMap := make(map[string]interface{})
+	if sati.AzureResourceID != nil {
+		objectMap["azureResourceId"] = sati.AzureResourceID
+	}
+	if sati.ProductName != nil {
+		objectMap["productName"] = sati.ProductName
+	}
+	if sati.DisplayName != nil {
+		objectMap["displayName"] = sati.DisplayName
+	}
+	if sati.Severity != "" {
+		objectMap["severity"] = sati.Severity
+	}
+	if sati.EndTimeUtc != nil {
+		objectMap["endTimeUtc"] = sati.EndTimeUtc
+	}
+	if sati.StartTimeUtc != nil {
+		objectMap["startTimeUtc"] = sati.StartTimeUtc
+	}
+	if sati.TimeGenerated != nil {
+		objectMap["timeGenerated"] = sati.TimeGenerated
+	}
+	if sati.AlertType != nil {
+		objectMap["alertType"] = sati.AlertType
+	}
+	if sati.Kind != "" {
+		objectMap["kind"] = sati.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsActivityTimelineItem is the BasicEntityTimelineItem implementation for SecurityAlertTimelineItem.
+func (sati SecurityAlertTimelineItem) AsActivityTimelineItem() (*ActivityTimelineItem, bool) {
+	return nil, false
+}
+
+// AsSecurityAlertTimelineItem is the BasicEntityTimelineItem implementation for SecurityAlertTimelineItem.
+func (sati SecurityAlertTimelineItem) AsSecurityAlertTimelineItem() (*SecurityAlertTimelineItem, bool) {
+	return &sati, true
+}
+
+// AsBookmarkTimelineItem is the BasicEntityTimelineItem implementation for SecurityAlertTimelineItem.
+func (sati SecurityAlertTimelineItem) AsBookmarkTimelineItem() (*BookmarkTimelineItem, bool) {
+	return nil, false
+}
+
+// AsEntityTimelineItem is the BasicEntityTimelineItem implementation for SecurityAlertTimelineItem.
+func (sati SecurityAlertTimelineItem) AsEntityTimelineItem() (*EntityTimelineItem, bool) {
+	return nil, false
+}
+
+// AsBasicEntityTimelineItem is the BasicEntityTimelineItem implementation for SecurityAlertTimelineItem.
+func (sati SecurityAlertTimelineItem) AsBasicEntityTimelineItem() (BasicEntityTimelineItem, bool) {
+	return &sati, true
+}
+
 // SecurityGroupEntity represents a security group entity.
 type SecurityGroupEntity struct {
 	// SecurityGroupEntityProperties - SecurityGroup entity properties
@@ -11392,7 +15226,7 @@ type SecurityGroupEntity struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Azure resource type
 	Type *string `json:"type,omitempty"`
-	// Kind - Possible values include: 'KindEntity', 'KindAccount', 'KindAzureResource', 'KindCloudApplication', 'KindDNSResolution', 'KindFile', 'KindFileHash', 'KindHost', 'KindIP', 'KindMalware', 'KindProcess', 'KindRegistryKey', 'KindRegistryValue', 'KindSecurityAlert', 'KindSecurityGroup', 'KindURL', 'KindIoTDevice'
+	// Kind - Possible values include: 'KindEntity', 'KindAccount', 'KindAzureResource', 'KindCloudApplication', 'KindDNSResolution', 'KindFile', 'KindFileHash', 'KindHost', 'KindBookmark', 'KindSecurityAlert', 'KindIP', 'KindMailbox', 'KindMailCluster', 'KindMailMessage', 'KindSubmissionMail', 'KindMalware', 'KindProcess', 'KindRegistryKey', 'KindRegistryValue', 'KindSecurityGroup', 'KindURL', 'KindIoTDevice'
 	Kind KindBasicEntity `json:"kind,omitempty"`
 }
 
@@ -11444,8 +15278,38 @@ func (sge SecurityGroupEntity) AsHostEntity() (*HostEntity, bool) {
 	return nil, false
 }
 
+// AsHuntingBookmark is the BasicEntity implementation for SecurityGroupEntity.
+func (sge SecurityGroupEntity) AsHuntingBookmark() (*HuntingBookmark, bool) {
+	return nil, false
+}
+
+// AsSecurityAlert is the BasicEntity implementation for SecurityGroupEntity.
+func (sge SecurityGroupEntity) AsSecurityAlert() (*SecurityAlert, bool) {
+	return nil, false
+}
+
 // AsIPEntity is the BasicEntity implementation for SecurityGroupEntity.
 func (sge SecurityGroupEntity) AsIPEntity() (*IPEntity, bool) {
+	return nil, false
+}
+
+// AsMailboxEntity is the BasicEntity implementation for SecurityGroupEntity.
+func (sge SecurityGroupEntity) AsMailboxEntity() (*MailboxEntity, bool) {
+	return nil, false
+}
+
+// AsMailClusterEntity is the BasicEntity implementation for SecurityGroupEntity.
+func (sge SecurityGroupEntity) AsMailClusterEntity() (*MailClusterEntity, bool) {
+	return nil, false
+}
+
+// AsMailMessageEntity is the BasicEntity implementation for SecurityGroupEntity.
+func (sge SecurityGroupEntity) AsMailMessageEntity() (*MailMessageEntity, bool) {
+	return nil, false
+}
+
+// AsSubmissionMailEntity is the BasicEntity implementation for SecurityGroupEntity.
+func (sge SecurityGroupEntity) AsSubmissionMailEntity() (*SubmissionMailEntity, bool) {
 	return nil, false
 }
 
@@ -11466,11 +15330,6 @@ func (sge SecurityGroupEntity) AsRegistryKeyEntity() (*RegistryKeyEntity, bool) 
 
 // AsRegistryValueEntity is the BasicEntity implementation for SecurityGroupEntity.
 func (sge SecurityGroupEntity) AsRegistryValueEntity() (*RegistryValueEntity, bool) {
-	return nil, false
-}
-
-// AsSecurityAlert is the BasicEntity implementation for SecurityGroupEntity.
-func (sge SecurityGroupEntity) AsSecurityAlert() (*SecurityAlert, bool) {
 	return nil, false
 }
 
@@ -11612,6 +15471,8 @@ func (sl *SettingList) UnmarshalJSON(body []byte) error {
 // BasicSettings the Setting.
 type BasicSettings interface {
 	AsEyesOn() (*EyesOn, bool)
+	AsEntityAnalytics() (*EntityAnalytics, bool)
+	AsUeba() (*Ueba, bool)
 	AsSettings() (*Settings, bool)
 }
 
@@ -11626,7 +15487,7 @@ type Settings struct {
 	Type *string `json:"type,omitempty"`
 	// Etag - Etag of the azure resource
 	Etag *string `json:"etag,omitempty"`
-	// Kind - Possible values include: 'KindSettings', 'KindEyesOn'
+	// Kind - Possible values include: 'KindSettings', 'KindEyesOn', 'KindEntityAnalytics', 'KindUeba'
 	Kind KindBasicSettings `json:"kind,omitempty"`
 }
 
@@ -11642,6 +15503,14 @@ func unmarshalBasicSettings(body []byte) (BasicSettings, error) {
 		var eo EyesOn
 		err := json.Unmarshal(body, &eo)
 		return eo, err
+	case string(KindEntityAnalytics):
+		var ea EntityAnalytics
+		err := json.Unmarshal(body, &ea)
+		return ea, err
+	case string(KindUeba):
+		var u Ueba
+		err := json.Unmarshal(body, &u)
+		return u, err
 	default:
 		var s Settings
 		err := json.Unmarshal(body, &s)
@@ -11685,6 +15554,16 @@ func (s Settings) AsEyesOn() (*EyesOn, bool) {
 	return nil, false
 }
 
+// AsEntityAnalytics is the BasicSettings implementation for Settings.
+func (s Settings) AsEntityAnalytics() (*EntityAnalytics, bool) {
+	return nil, false
+}
+
+// AsUeba is the BasicSettings implementation for Settings.
+func (s Settings) AsUeba() (*Ueba, bool) {
+	return nil, false
+}
+
 // AsSettings is the BasicSettings implementation for Settings.
 func (s Settings) AsSettings() (*Settings, bool) {
 	return &s, true
@@ -11697,8 +15576,8 @@ func (s Settings) AsBasicSettings() (BasicSettings, bool) {
 
 // SettingsKind describes an Azure resource with kind.
 type SettingsKind struct {
-	// Kind - The kind of the setting
-	Kind *string `json:"kind,omitempty"`
+	// Kind - The kind of the setting. Possible values include: 'SettingKindEyesOn', 'SettingKindEntityAnalytics', 'SettingKindUeba'
+	Kind SettingKind `json:"kind,omitempty"`
 }
 
 // SettingsModel ...
@@ -11718,6 +15597,236 @@ func (sm *SettingsModel) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
+// SubmissionMailEntity represents a submission mail entity.
+type SubmissionMailEntity struct {
+	// SubmissionMailEntityProperties - Submission mail entity properties
+	*SubmissionMailEntityProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Azure resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Azure resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Azure resource type
+	Type *string `json:"type,omitempty"`
+	// Kind - Possible values include: 'KindEntity', 'KindAccount', 'KindAzureResource', 'KindCloudApplication', 'KindDNSResolution', 'KindFile', 'KindFileHash', 'KindHost', 'KindBookmark', 'KindSecurityAlert', 'KindIP', 'KindMailbox', 'KindMailCluster', 'KindMailMessage', 'KindSubmissionMail', 'KindMalware', 'KindProcess', 'KindRegistryKey', 'KindRegistryValue', 'KindSecurityGroup', 'KindURL', 'KindIoTDevice'
+	Kind KindBasicEntity `json:"kind,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SubmissionMailEntity.
+func (sme SubmissionMailEntity) MarshalJSON() ([]byte, error) {
+	sme.Kind = KindSubmissionMail
+	objectMap := make(map[string]interface{})
+	if sme.SubmissionMailEntityProperties != nil {
+		objectMap["properties"] = sme.SubmissionMailEntityProperties
+	}
+	if sme.Kind != "" {
+		objectMap["kind"] = sme.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsAccountEntity is the BasicEntity implementation for SubmissionMailEntity.
+func (sme SubmissionMailEntity) AsAccountEntity() (*AccountEntity, bool) {
+	return nil, false
+}
+
+// AsAzureResourceEntity is the BasicEntity implementation for SubmissionMailEntity.
+func (sme SubmissionMailEntity) AsAzureResourceEntity() (*AzureResourceEntity, bool) {
+	return nil, false
+}
+
+// AsCloudApplicationEntity is the BasicEntity implementation for SubmissionMailEntity.
+func (sme SubmissionMailEntity) AsCloudApplicationEntity() (*CloudApplicationEntity, bool) {
+	return nil, false
+}
+
+// AsDNSEntity is the BasicEntity implementation for SubmissionMailEntity.
+func (sme SubmissionMailEntity) AsDNSEntity() (*DNSEntity, bool) {
+	return nil, false
+}
+
+// AsFileEntity is the BasicEntity implementation for SubmissionMailEntity.
+func (sme SubmissionMailEntity) AsFileEntity() (*FileEntity, bool) {
+	return nil, false
+}
+
+// AsFileHashEntity is the BasicEntity implementation for SubmissionMailEntity.
+func (sme SubmissionMailEntity) AsFileHashEntity() (*FileHashEntity, bool) {
+	return nil, false
+}
+
+// AsHostEntity is the BasicEntity implementation for SubmissionMailEntity.
+func (sme SubmissionMailEntity) AsHostEntity() (*HostEntity, bool) {
+	return nil, false
+}
+
+// AsHuntingBookmark is the BasicEntity implementation for SubmissionMailEntity.
+func (sme SubmissionMailEntity) AsHuntingBookmark() (*HuntingBookmark, bool) {
+	return nil, false
+}
+
+// AsSecurityAlert is the BasicEntity implementation for SubmissionMailEntity.
+func (sme SubmissionMailEntity) AsSecurityAlert() (*SecurityAlert, bool) {
+	return nil, false
+}
+
+// AsIPEntity is the BasicEntity implementation for SubmissionMailEntity.
+func (sme SubmissionMailEntity) AsIPEntity() (*IPEntity, bool) {
+	return nil, false
+}
+
+// AsMailboxEntity is the BasicEntity implementation for SubmissionMailEntity.
+func (sme SubmissionMailEntity) AsMailboxEntity() (*MailboxEntity, bool) {
+	return nil, false
+}
+
+// AsMailClusterEntity is the BasicEntity implementation for SubmissionMailEntity.
+func (sme SubmissionMailEntity) AsMailClusterEntity() (*MailClusterEntity, bool) {
+	return nil, false
+}
+
+// AsMailMessageEntity is the BasicEntity implementation for SubmissionMailEntity.
+func (sme SubmissionMailEntity) AsMailMessageEntity() (*MailMessageEntity, bool) {
+	return nil, false
+}
+
+// AsSubmissionMailEntity is the BasicEntity implementation for SubmissionMailEntity.
+func (sme SubmissionMailEntity) AsSubmissionMailEntity() (*SubmissionMailEntity, bool) {
+	return &sme, true
+}
+
+// AsMalwareEntity is the BasicEntity implementation for SubmissionMailEntity.
+func (sme SubmissionMailEntity) AsMalwareEntity() (*MalwareEntity, bool) {
+	return nil, false
+}
+
+// AsProcessEntity is the BasicEntity implementation for SubmissionMailEntity.
+func (sme SubmissionMailEntity) AsProcessEntity() (*ProcessEntity, bool) {
+	return nil, false
+}
+
+// AsRegistryKeyEntity is the BasicEntity implementation for SubmissionMailEntity.
+func (sme SubmissionMailEntity) AsRegistryKeyEntity() (*RegistryKeyEntity, bool) {
+	return nil, false
+}
+
+// AsRegistryValueEntity is the BasicEntity implementation for SubmissionMailEntity.
+func (sme SubmissionMailEntity) AsRegistryValueEntity() (*RegistryValueEntity, bool) {
+	return nil, false
+}
+
+// AsSecurityGroupEntity is the BasicEntity implementation for SubmissionMailEntity.
+func (sme SubmissionMailEntity) AsSecurityGroupEntity() (*SecurityGroupEntity, bool) {
+	return nil, false
+}
+
+// AsURLEntity is the BasicEntity implementation for SubmissionMailEntity.
+func (sme SubmissionMailEntity) AsURLEntity() (*URLEntity, bool) {
+	return nil, false
+}
+
+// AsIoTDeviceEntity is the BasicEntity implementation for SubmissionMailEntity.
+func (sme SubmissionMailEntity) AsIoTDeviceEntity() (*IoTDeviceEntity, bool) {
+	return nil, false
+}
+
+// AsEntity is the BasicEntity implementation for SubmissionMailEntity.
+func (sme SubmissionMailEntity) AsEntity() (*Entity, bool) {
+	return nil, false
+}
+
+// AsBasicEntity is the BasicEntity implementation for SubmissionMailEntity.
+func (sme SubmissionMailEntity) AsBasicEntity() (BasicEntity, bool) {
+	return &sme, true
+}
+
+// UnmarshalJSON is the custom unmarshaler for SubmissionMailEntity struct.
+func (sme *SubmissionMailEntity) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var submissionMailEntityProperties SubmissionMailEntityProperties
+				err = json.Unmarshal(*v, &submissionMailEntityProperties)
+				if err != nil {
+					return err
+				}
+				sme.SubmissionMailEntityProperties = &submissionMailEntityProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				sme.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				sme.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				sme.Type = &typeVar
+			}
+		case "kind":
+			if v != nil {
+				var kind KindBasicEntity
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				sme.Kind = kind
+			}
+		}
+	}
+
+	return nil
+}
+
+// SubmissionMailEntityProperties submission mail entity property bag.
+type SubmissionMailEntityProperties struct {
+	// NetworkMessageID - READ-ONLY; The network message id of email to which submission belongs
+	NetworkMessageID *uuid.UUID `json:"networkMessageId,omitempty"`
+	// Timestamp - READ-ONLY; The Time stamp when the message is received (Mail)
+	Timestamp *date.Time `json:"timestamp,omitempty"`
+	// Recipient - READ-ONLY; The recipient of the mail
+	Recipient *string `json:"recipient,omitempty"`
+	// Sender - READ-ONLY; The sender of the mail
+	Sender *string `json:"sender,omitempty"`
+	// SenderIP - READ-ONLY; The sender's IP
+	SenderIP *string `json:"senderIp,omitempty"`
+	// Subject - READ-ONLY; The subject of submission mail
+	Subject *string `json:"subject,omitempty"`
+	// ReportType - READ-ONLY; The submission type for the given instance. This maps to Junk, Phish, Malware or NotJunk.
+	ReportType *string `json:"reportType,omitempty"`
+	// AdditionalData - READ-ONLY; A bag of custom fields that should be part of the entity and will be presented to the user.
+	AdditionalData map[string]interface{} `json:"additionalData"`
+	// FriendlyName - READ-ONLY; The graph item display name which is a short humanly readable description of the graph item instance. This property is optional and might be system generated.
+	FriendlyName *string `json:"friendlyName,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SubmissionMailEntityProperties.
+func (smep SubmissionMailEntityProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ThreatIntelligence threatIntelligence property bag.
 type ThreatIntelligence struct {
 	// Confidence - READ-ONLY; Confidence (must be between 0 and 1)
@@ -11734,11 +15843,720 @@ type ThreatIntelligence struct {
 	ThreatType *string `json:"threatType,omitempty"`
 }
 
-// TICheckRequirements represents threat intelligence requirements check request.
+// ThreatIntelligenceAppendTags array of tags to be appended to the threat intelligence indicator.
+type ThreatIntelligenceAppendTags struct {
+	// ThreatIntelligenceTags - List of tags to be appended.
+	ThreatIntelligenceTags *[]string `json:"threatIntelligenceTags,omitempty"`
+}
+
+// ThreatIntelligenceFilteringCriteria filtering criteria for querying threat intelligence indicators.
+type ThreatIntelligenceFilteringCriteria struct {
+	// PageSize - Page size
+	PageSize *int32 `json:"pageSize,omitempty"`
+	// MinConfidence - Minimum confidence.
+	MinConfidence *int32 `json:"minConfidence,omitempty"`
+	// MaxConfidence - Maximum confidence.
+	MaxConfidence *int32 `json:"maxConfidence,omitempty"`
+	// MinValidUntil - Start time for ValidUntil filter.
+	MinValidUntil *string `json:"minValidUntil,omitempty"`
+	// MaxValidUntil - End time for ValidUntil filter.
+	MaxValidUntil *string `json:"maxValidUntil,omitempty"`
+	// IncludeDisabled - Parameter to include/exclude disabled indicators.
+	IncludeDisabled *bool `json:"includeDisabled,omitempty"`
+	// SortBy - Columns to sort by and sorting order
+	SortBy *[]ThreatIntelligenceSortingCriteria1 `json:"sortBy,omitempty"`
+	// Sources - Sources of threat intelligence indicators
+	Sources *[]string `json:"sources,omitempty"`
+	// PatternTypes - Pattern types
+	PatternTypes *[]string `json:"patternTypes,omitempty"`
+	// ThreatTypes - Threat types of threat intelligence indicators
+	ThreatTypes *[]string `json:"threatTypes,omitempty"`
+	// Ids - Ids of threat intelligence indicators
+	Ids *[]string `json:"ids,omitempty"`
+	// Keywords - Keywords for searching threat intelligence indicators
+	Keywords *[]string `json:"keywords,omitempty"`
+	// SkipToken - Skip token.
+	SkipToken *string `json:"skipToken,omitempty"`
+}
+
+// ThreatIntelligenceGranularMarkingModel describes threat granular marking model entity
+type ThreatIntelligenceGranularMarkingModel struct {
+	// Language - Language granular marking model
+	Language *string `json:"language,omitempty"`
+	// MarkingRef - marking reference granular marking model
+	MarkingRef *int32 `json:"markingRef,omitempty"`
+	// Selectors - granular marking model selectors
+	Selectors *[]string `json:"selectors,omitempty"`
+}
+
+// ThreatIntelligenceIndicatorModel threat intelligence indicator entity.
+type ThreatIntelligenceIndicatorModel struct {
+	// ThreatIntelligenceIndicatorProperties - Threat Intelligence Entity properties
+	*ThreatIntelligenceIndicatorProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Azure resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Azure resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Azure resource type
+	Type *string `json:"type,omitempty"`
+	// Etag - Etag of the azure resource
+	Etag *string `json:"etag,omitempty"`
+	// Kind - Possible values include: 'KindThreatIntelligenceInformation', 'KindIndicator'
+	Kind KindBasicThreatIntelligenceInformation `json:"kind,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ThreatIntelligenceIndicatorModel.
+func (tiim ThreatIntelligenceIndicatorModel) MarshalJSON() ([]byte, error) {
+	tiim.Kind = KindIndicator
+	objectMap := make(map[string]interface{})
+	if tiim.ThreatIntelligenceIndicatorProperties != nil {
+		objectMap["properties"] = tiim.ThreatIntelligenceIndicatorProperties
+	}
+	if tiim.Etag != nil {
+		objectMap["etag"] = tiim.Etag
+	}
+	if tiim.Kind != "" {
+		objectMap["kind"] = tiim.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsThreatIntelligenceIndicatorModel is the BasicThreatIntelligenceInformation implementation for ThreatIntelligenceIndicatorModel.
+func (tiim ThreatIntelligenceIndicatorModel) AsThreatIntelligenceIndicatorModel() (*ThreatIntelligenceIndicatorModel, bool) {
+	return &tiim, true
+}
+
+// AsThreatIntelligenceInformation is the BasicThreatIntelligenceInformation implementation for ThreatIntelligenceIndicatorModel.
+func (tiim ThreatIntelligenceIndicatorModel) AsThreatIntelligenceInformation() (*ThreatIntelligenceInformation, bool) {
+	return nil, false
+}
+
+// AsBasicThreatIntelligenceInformation is the BasicThreatIntelligenceInformation implementation for ThreatIntelligenceIndicatorModel.
+func (tiim ThreatIntelligenceIndicatorModel) AsBasicThreatIntelligenceInformation() (BasicThreatIntelligenceInformation, bool) {
+	return &tiim, true
+}
+
+// UnmarshalJSON is the custom unmarshaler for ThreatIntelligenceIndicatorModel struct.
+func (tiim *ThreatIntelligenceIndicatorModel) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var threatIntelligenceIndicatorProperties ThreatIntelligenceIndicatorProperties
+				err = json.Unmarshal(*v, &threatIntelligenceIndicatorProperties)
+				if err != nil {
+					return err
+				}
+				tiim.ThreatIntelligenceIndicatorProperties = &threatIntelligenceIndicatorProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				tiim.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				tiim.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				tiim.Type = &typeVar
+			}
+		case "etag":
+			if v != nil {
+				var etag string
+				err = json.Unmarshal(*v, &etag)
+				if err != nil {
+					return err
+				}
+				tiim.Etag = &etag
+			}
+		case "kind":
+			if v != nil {
+				var kind KindBasicThreatIntelligenceInformation
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				tiim.Kind = kind
+			}
+		}
+	}
+
+	return nil
+}
+
+// ThreatIntelligenceIndicatorModelForRequestBody threat intelligence indicator entity used in request
+// body.
+type ThreatIntelligenceIndicatorModelForRequestBody struct {
+	// Etag - Etag of the azure resource
+	Etag *string `json:"etag,omitempty"`
+	// ThreatIntelligenceIndicatorProperties - Threat Intelligence Entity properties
+	*ThreatIntelligenceIndicatorProperties `json:"properties,omitempty"`
+	// Kind - The kind of the entity.
+	Kind *string `json:"kind,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ThreatIntelligenceIndicatorModelForRequestBody.
+func (tiimfrb ThreatIntelligenceIndicatorModelForRequestBody) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if tiimfrb.Etag != nil {
+		objectMap["etag"] = tiimfrb.Etag
+	}
+	if tiimfrb.ThreatIntelligenceIndicatorProperties != nil {
+		objectMap["properties"] = tiimfrb.ThreatIntelligenceIndicatorProperties
+	}
+	if tiimfrb.Kind != nil {
+		objectMap["kind"] = tiimfrb.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for ThreatIntelligenceIndicatorModelForRequestBody struct.
+func (tiimfrb *ThreatIntelligenceIndicatorModelForRequestBody) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "etag":
+			if v != nil {
+				var etag string
+				err = json.Unmarshal(*v, &etag)
+				if err != nil {
+					return err
+				}
+				tiimfrb.Etag = &etag
+			}
+		case "properties":
+			if v != nil {
+				var threatIntelligenceIndicatorProperties ThreatIntelligenceIndicatorProperties
+				err = json.Unmarshal(*v, &threatIntelligenceIndicatorProperties)
+				if err != nil {
+					return err
+				}
+				tiimfrb.ThreatIntelligenceIndicatorProperties = &threatIntelligenceIndicatorProperties
+			}
+		case "kind":
+			if v != nil {
+				var kind string
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				tiimfrb.Kind = &kind
+			}
+		}
+	}
+
+	return nil
+}
+
+// ThreatIntelligenceIndicatorProperties describes threat intelligence entity properties
+type ThreatIntelligenceIndicatorProperties struct {
+	// ThreatIntelligenceTags - List of tags
+	ThreatIntelligenceTags *[]string `json:"threatIntelligenceTags,omitempty"`
+	// LastUpdatedTimeUtc - Last updated time in UTC
+	LastUpdatedTimeUtc *string `json:"lastUpdatedTimeUtc,omitempty"`
+	// Source - Source of a threat intelligence entity
+	Source *string `json:"source,omitempty"`
+	// DisplayName - Display name of a threat intelligence entity
+	DisplayName *string `json:"displayName,omitempty"`
+	// Description - Description of a threat intelligence entity
+	Description *string `json:"description,omitempty"`
+	// IndicatorTypes - Indicator types of threat intelligence entities
+	IndicatorTypes *[]string `json:"indicatorTypes,omitempty"`
+	// Pattern - Pattern of a threat intelligence entity
+	Pattern *string `json:"pattern,omitempty"`
+	// PatternType - Pattern type of a threat intelligence entity
+	PatternType *string `json:"patternType,omitempty"`
+	// KillChainPhases - Kill chain phases
+	KillChainPhases *[]ThreatIntelligenceKillChainPhase `json:"killChainPhases,omitempty"`
+	// ExternalID - External ID of threat intelligence entity
+	ExternalID *string `json:"externalId,omitempty"`
+	// CreatedByRef - Created by reference of threat intelligence entity
+	CreatedByRef *string `json:"createdByRef,omitempty"`
+	// ExternalReferences - External References
+	ExternalReferences *[]string `json:"externalReferences,omitempty"`
+	// GranularMarkings - Granular Markings
+	GranularMarkings *[]ThreatIntelligenceGranularMarkingModel `json:"granularMarkings,omitempty"`
+	// Revoked - Is threat intelligence entity revoked
+	Revoked *bool `json:"revoked,omitempty"`
+	// Confidence - Confidence of threat intelligence entity
+	Confidence *int32 `json:"confidence,omitempty"`
+	// Labels - Labels  of threat intelligence entity
+	Labels *[]string `json:"labels,omitempty"`
+	// ThreatTypes - Threat types
+	ThreatTypes *[]string `json:"threatTypes,omitempty"`
+	// ValidFrom - Valid from
+	ValidFrom *string `json:"validFrom,omitempty"`
+	// ValidUntil - Valid until
+	ValidUntil *string `json:"validUntil,omitempty"`
+	// Created - Created by
+	Created *string `json:"created,omitempty"`
+	// Modified - Modified by
+	Modified *string `json:"modified,omitempty"`
+	// AdditionalData - READ-ONLY; A bag of custom fields that should be part of the entity and will be presented to the user.
+	AdditionalData map[string]interface{} `json:"additionalData"`
+	// FriendlyName - READ-ONLY; The graph item display name which is a short humanly readable description of the graph item instance. This property is optional and might be system generated.
+	FriendlyName *string `json:"friendlyName,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ThreatIntelligenceIndicatorProperties.
+func (tiip ThreatIntelligenceIndicatorProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if tiip.ThreatIntelligenceTags != nil {
+		objectMap["threatIntelligenceTags"] = tiip.ThreatIntelligenceTags
+	}
+	if tiip.LastUpdatedTimeUtc != nil {
+		objectMap["lastUpdatedTimeUtc"] = tiip.LastUpdatedTimeUtc
+	}
+	if tiip.Source != nil {
+		objectMap["source"] = tiip.Source
+	}
+	if tiip.DisplayName != nil {
+		objectMap["displayName"] = tiip.DisplayName
+	}
+	if tiip.Description != nil {
+		objectMap["description"] = tiip.Description
+	}
+	if tiip.IndicatorTypes != nil {
+		objectMap["indicatorTypes"] = tiip.IndicatorTypes
+	}
+	if tiip.Pattern != nil {
+		objectMap["pattern"] = tiip.Pattern
+	}
+	if tiip.PatternType != nil {
+		objectMap["patternType"] = tiip.PatternType
+	}
+	if tiip.KillChainPhases != nil {
+		objectMap["killChainPhases"] = tiip.KillChainPhases
+	}
+	if tiip.ExternalID != nil {
+		objectMap["externalId"] = tiip.ExternalID
+	}
+	if tiip.CreatedByRef != nil {
+		objectMap["createdByRef"] = tiip.CreatedByRef
+	}
+	if tiip.ExternalReferences != nil {
+		objectMap["externalReferences"] = tiip.ExternalReferences
+	}
+	if tiip.GranularMarkings != nil {
+		objectMap["granularMarkings"] = tiip.GranularMarkings
+	}
+	if tiip.Revoked != nil {
+		objectMap["revoked"] = tiip.Revoked
+	}
+	if tiip.Confidence != nil {
+		objectMap["confidence"] = tiip.Confidence
+	}
+	if tiip.Labels != nil {
+		objectMap["labels"] = tiip.Labels
+	}
+	if tiip.ThreatTypes != nil {
+		objectMap["threatTypes"] = tiip.ThreatTypes
+	}
+	if tiip.ValidFrom != nil {
+		objectMap["validFrom"] = tiip.ValidFrom
+	}
+	if tiip.ValidUntil != nil {
+		objectMap["validUntil"] = tiip.ValidUntil
+	}
+	if tiip.Created != nil {
+		objectMap["created"] = tiip.Created
+	}
+	if tiip.Modified != nil {
+		objectMap["modified"] = tiip.Modified
+	}
+	return json.Marshal(objectMap)
+}
+
+// BasicThreatIntelligenceInformation threat intelligence information object.
+type BasicThreatIntelligenceInformation interface {
+	AsThreatIntelligenceIndicatorModel() (*ThreatIntelligenceIndicatorModel, bool)
+	AsThreatIntelligenceInformation() (*ThreatIntelligenceInformation, bool)
+}
+
+// ThreatIntelligenceInformation threat intelligence information object.
+type ThreatIntelligenceInformation struct {
+	autorest.Response `json:"-"`
+	// ID - READ-ONLY; Azure resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Azure resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Azure resource type
+	Type *string `json:"type,omitempty"`
+	// Etag - Etag of the azure resource
+	Etag *string `json:"etag,omitempty"`
+	// Kind - Possible values include: 'KindThreatIntelligenceInformation', 'KindIndicator'
+	Kind KindBasicThreatIntelligenceInformation `json:"kind,omitempty"`
+}
+
+func unmarshalBasicThreatIntelligenceInformation(body []byte) (BasicThreatIntelligenceInformation, error) {
+	var m map[string]interface{}
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return nil, err
+	}
+
+	switch m["kind"] {
+	case string(KindIndicator):
+		var tiim ThreatIntelligenceIndicatorModel
+		err := json.Unmarshal(body, &tiim)
+		return tiim, err
+	default:
+		var tii ThreatIntelligenceInformation
+		err := json.Unmarshal(body, &tii)
+		return tii, err
+	}
+}
+func unmarshalBasicThreatIntelligenceInformationArray(body []byte) ([]BasicThreatIntelligenceInformation, error) {
+	var rawMessages []*json.RawMessage
+	err := json.Unmarshal(body, &rawMessages)
+	if err != nil {
+		return nil, err
+	}
+
+	tiiArray := make([]BasicThreatIntelligenceInformation, len(rawMessages))
+
+	for index, rawMessage := range rawMessages {
+		tii, err := unmarshalBasicThreatIntelligenceInformation(*rawMessage)
+		if err != nil {
+			return nil, err
+		}
+		tiiArray[index] = tii
+	}
+	return tiiArray, nil
+}
+
+// MarshalJSON is the custom marshaler for ThreatIntelligenceInformation.
+func (tii ThreatIntelligenceInformation) MarshalJSON() ([]byte, error) {
+	tii.Kind = KindThreatIntelligenceInformation
+	objectMap := make(map[string]interface{})
+	if tii.Etag != nil {
+		objectMap["etag"] = tii.Etag
+	}
+	if tii.Kind != "" {
+		objectMap["kind"] = tii.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsThreatIntelligenceIndicatorModel is the BasicThreatIntelligenceInformation implementation for ThreatIntelligenceInformation.
+func (tii ThreatIntelligenceInformation) AsThreatIntelligenceIndicatorModel() (*ThreatIntelligenceIndicatorModel, bool) {
+	return nil, false
+}
+
+// AsThreatIntelligenceInformation is the BasicThreatIntelligenceInformation implementation for ThreatIntelligenceInformation.
+func (tii ThreatIntelligenceInformation) AsThreatIntelligenceInformation() (*ThreatIntelligenceInformation, bool) {
+	return &tii, true
+}
+
+// AsBasicThreatIntelligenceInformation is the BasicThreatIntelligenceInformation implementation for ThreatIntelligenceInformation.
+func (tii ThreatIntelligenceInformation) AsBasicThreatIntelligenceInformation() (BasicThreatIntelligenceInformation, bool) {
+	return &tii, true
+}
+
+// ThreatIntelligenceInformationList list of all the threat intelligence information objects.
+type ThreatIntelligenceInformationList struct {
+	autorest.Response `json:"-"`
+	// NextLink - READ-ONLY; URL to fetch the next set of information objects.
+	NextLink *string `json:"nextLink,omitempty"`
+	// Value - Array of threat intelligence information objects.
+	Value *[]BasicThreatIntelligenceInformation `json:"value,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ThreatIntelligenceInformationList.
+func (tiil ThreatIntelligenceInformationList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if tiil.Value != nil {
+		objectMap["value"] = tiil.Value
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for ThreatIntelligenceInformationList struct.
+func (tiil *ThreatIntelligenceInformationList) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "nextLink":
+			if v != nil {
+				var nextLink string
+				err = json.Unmarshal(*v, &nextLink)
+				if err != nil {
+					return err
+				}
+				tiil.NextLink = &nextLink
+			}
+		case "value":
+			if v != nil {
+				value, err := unmarshalBasicThreatIntelligenceInformationArray(*v)
+				if err != nil {
+					return err
+				}
+				tiil.Value = &value
+			}
+		}
+	}
+
+	return nil
+}
+
+// ThreatIntelligenceInformationListIterator provides access to a complete listing of
+// ThreatIntelligenceInformation values.
+type ThreatIntelligenceInformationListIterator struct {
+	i    int
+	page ThreatIntelligenceInformationListPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *ThreatIntelligenceInformationListIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ThreatIntelligenceInformationListIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *ThreatIntelligenceInformationListIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter ThreatIntelligenceInformationListIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter ThreatIntelligenceInformationListIterator) Response() ThreatIntelligenceInformationList {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter ThreatIntelligenceInformationListIterator) Value() BasicThreatIntelligenceInformation {
+	if !iter.page.NotDone() {
+		return ThreatIntelligenceInformation{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the ThreatIntelligenceInformationListIterator type.
+func NewThreatIntelligenceInformationListIterator(page ThreatIntelligenceInformationListPage) ThreatIntelligenceInformationListIterator {
+	return ThreatIntelligenceInformationListIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (tiil ThreatIntelligenceInformationList) IsEmpty() bool {
+	return tiil.Value == nil || len(*tiil.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (tiil ThreatIntelligenceInformationList) hasNextLink() bool {
+	return tiil.NextLink != nil && len(*tiil.NextLink) != 0
+}
+
+// threatIntelligenceInformationListPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (tiil ThreatIntelligenceInformationList) threatIntelligenceInformationListPreparer(ctx context.Context) (*http.Request, error) {
+	if !tiil.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(tiil.NextLink)))
+}
+
+// ThreatIntelligenceInformationListPage contains a page of BasicThreatIntelligenceInformation values.
+type ThreatIntelligenceInformationListPage struct {
+	fn   func(context.Context, ThreatIntelligenceInformationList) (ThreatIntelligenceInformationList, error)
+	tiil ThreatIntelligenceInformationList
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *ThreatIntelligenceInformationListPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ThreatIntelligenceInformationListPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.tiil)
+		if err != nil {
+			return err
+		}
+		page.tiil = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *ThreatIntelligenceInformationListPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page ThreatIntelligenceInformationListPage) NotDone() bool {
+	return !page.tiil.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page ThreatIntelligenceInformationListPage) Response() ThreatIntelligenceInformationList {
+	return page.tiil
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page ThreatIntelligenceInformationListPage) Values() []BasicThreatIntelligenceInformation {
+	if page.tiil.IsEmpty() {
+		return nil
+	}
+	return *page.tiil.Value
+}
+
+// Creates a new instance of the ThreatIntelligenceInformationListPage type.
+func NewThreatIntelligenceInformationListPage(cur ThreatIntelligenceInformationList, getNextPage func(context.Context, ThreatIntelligenceInformationList) (ThreatIntelligenceInformationList, error)) ThreatIntelligenceInformationListPage {
+	return ThreatIntelligenceInformationListPage{
+		fn:   getNextPage,
+		tiil: cur,
+	}
+}
+
+// ThreatIntelligenceInformationModel ...
+type ThreatIntelligenceInformationModel struct {
+	autorest.Response `json:"-"`
+	Value             BasicThreatIntelligenceInformation `json:"value,omitempty"`
+}
+
+// UnmarshalJSON is the custom unmarshaler for ThreatIntelligenceInformationModel struct.
+func (tiim *ThreatIntelligenceInformationModel) UnmarshalJSON(body []byte) error {
+	tii, err := unmarshalBasicThreatIntelligenceInformation(body)
+	if err != nil {
+		return err
+	}
+	tiim.Value = tii
+
+	return nil
+}
+
+// ThreatIntelligenceKillChainPhase describes threat kill chain phase entity
+type ThreatIntelligenceKillChainPhase struct {
+	// KillChainName - Kill chainName name
+	KillChainName *string `json:"killChainName,omitempty"`
+	// PhaseName - Phase name
+	PhaseName *int32 `json:"phaseName,omitempty"`
+}
+
+// ThreatIntelligenceMetric describes threat intelligence metric
+type ThreatIntelligenceMetric struct {
+	// LastUpdatedTimeUtc - Last updated indicator metric
+	LastUpdatedTimeUtc *string `json:"lastUpdatedTimeUtc,omitempty"`
+	// ThreatTypeMetrics - Threat type metrics
+	ThreatTypeMetrics *[]ThreatIntelligenceMetricEntity `json:"threatTypeMetrics,omitempty"`
+	// PatternTypeMetrics - Pattern type metrics
+	PatternTypeMetrics *[]ThreatIntelligenceMetricEntity `json:"patternTypeMetrics,omitempty"`
+	// SourceMetrics - Source metrics
+	SourceMetrics *[]ThreatIntelligenceMetricEntity `json:"sourceMetrics,omitempty"`
+}
+
+// ThreatIntelligenceMetricEntity describes threat intelligence metric entity
+type ThreatIntelligenceMetricEntity struct {
+	// MetricName - Metric name
+	MetricName *string `json:"metricName,omitempty"`
+	// MetricValue - Metric value
+	MetricValue *int32 `json:"metricValue,omitempty"`
+}
+
+// ThreatIntelligenceMetrics threat intelligence metrics.
+type ThreatIntelligenceMetrics struct {
+	// Properties - Threat intelligence metrics.
+	Properties *ThreatIntelligenceMetric `json:"properties,omitempty"`
+}
+
+// ThreatIntelligenceMetricsList list of all the threat intelligence metric fields (type/threat
+// type/source).
+type ThreatIntelligenceMetricsList struct {
+	autorest.Response `json:"-"`
+	// Value - Array of threat intelligence metric fields (type/threat type/source).
+	Value *[]ThreatIntelligenceMetrics `json:"value,omitempty"`
+}
+
+// ThreatIntelligenceResourceKind1 describes an entity with kind.
+type ThreatIntelligenceResourceKind1 struct {
+	// Kind - The kind of the entity.
+	Kind *string `json:"kind,omitempty"`
+}
+
+// ThreatIntelligenceSortingCriteria1 list of available columns for sorting
+type ThreatIntelligenceSortingCriteria1 struct {
+	// ItemKey - Column name
+	ItemKey *string `json:"itemKey,omitempty"`
+	// SortOrder - Sorting order (ascending/descending/unsorted). Possible values include: 'Unsorted', 'Ascending', 'Descending'
+	SortOrder ThreatIntelligenceSortingCriteria `json:"sortOrder,omitempty"`
+}
+
+// TICheckRequirements threat Intelligence Platforms data connector check requirements
 type TICheckRequirements struct {
-	// TICheckRequirementsProperties - TI (Threat Intelligence) requirements check properties.
+	// TICheckRequirementsProperties - Threat Intelligence Platforms data connector check required properties
 	*TICheckRequirementsProperties `json:"properties,omitempty"`
-	// Kind - Possible values include: 'KindBasicDataConnectorsCheckRequirementsKindDataConnectorsCheckRequirements', 'KindBasicDataConnectorsCheckRequirementsKindAzureActiveDirectory', 'KindBasicDataConnectorsCheckRequirementsKindAzureAdvancedThreatProtection', 'KindBasicDataConnectorsCheckRequirementsKindAzureSecurityCenter', 'KindBasicDataConnectorsCheckRequirementsKindAmazonWebServicesCloudTrail', 'KindBasicDataConnectorsCheckRequirementsKindMicrosoftCloudAppSecurity', 'KindBasicDataConnectorsCheckRequirementsKindMicrosoftDefenderAdvancedThreatProtection', 'KindBasicDataConnectorsCheckRequirementsKindThreatIntelligence', 'KindBasicDataConnectorsCheckRequirementsKindThreatIntelligenceTaxii'
+	// Kind - Possible values include: 'KindBasicDataConnectorsCheckRequirementsKindDataConnectorsCheckRequirements', 'KindBasicDataConnectorsCheckRequirementsKindAzureActiveDirectory', 'KindBasicDataConnectorsCheckRequirementsKindAzureAdvancedThreatProtection', 'KindBasicDataConnectorsCheckRequirementsKindAzureSecurityCenter', 'KindBasicDataConnectorsCheckRequirementsKindAmazonWebServicesCloudTrail', 'KindBasicDataConnectorsCheckRequirementsKindDynamics365', 'KindBasicDataConnectorsCheckRequirementsKindMicrosoftCloudAppSecurity', 'KindBasicDataConnectorsCheckRequirementsKindMicrosoftDefenderAdvancedThreatProtection', 'KindBasicDataConnectorsCheckRequirementsKindOfficeATP', 'KindBasicDataConnectorsCheckRequirementsKindThreatIntelligence', 'KindBasicDataConnectorsCheckRequirementsKindThreatIntelligenceTaxii'
 	Kind KindBasicDataConnectorsCheckRequirements `json:"kind,omitempty"`
 }
 
@@ -11775,6 +16593,11 @@ func (tcr TICheckRequirements) AsAwsCloudTrailCheckRequirements() (*AwsCloudTrai
 	return nil, false
 }
 
+// AsDynamics365CheckRequirements is the BasicDataConnectorsCheckRequirements implementation for TICheckRequirements.
+func (tcr TICheckRequirements) AsDynamics365CheckRequirements() (*Dynamics365CheckRequirements, bool) {
+	return nil, false
+}
+
 // AsMCASCheckRequirements is the BasicDataConnectorsCheckRequirements implementation for TICheckRequirements.
 func (tcr TICheckRequirements) AsMCASCheckRequirements() (*MCASCheckRequirements, bool) {
 	return nil, false
@@ -11782,6 +16605,11 @@ func (tcr TICheckRequirements) AsMCASCheckRequirements() (*MCASCheckRequirements
 
 // AsMDATPCheckRequirements is the BasicDataConnectorsCheckRequirements implementation for TICheckRequirements.
 func (tcr TICheckRequirements) AsMDATPCheckRequirements() (*MDATPCheckRequirements, bool) {
+	return nil, false
+}
+
+// AsOfficeATPCheckRequirements is the BasicDataConnectorsCheckRequirements implementation for TICheckRequirements.
+func (tcr TICheckRequirements) AsOfficeATPCheckRequirements() (*OfficeATPCheckRequirements, bool) {
 	return nil, false
 }
 
@@ -11838,15 +16666,15 @@ func (tcr *TICheckRequirements) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// TICheckRequirementsProperties TI (Threat Intelligence) requirements check properties.
+// TICheckRequirementsProperties threat Intelligence Platforms data connector required properties.
 type TICheckRequirementsProperties struct {
 	// TenantID - The tenant id to connect to, and get the data from.
 	TenantID *string `json:"tenantId,omitempty"`
 }
 
-// TIDataConnector represents threat intelligence data connector.
+// TIDataConnector data connector to pull threat intelligence data from TIP products.
 type TIDataConnector struct {
-	// TIDataConnectorProperties - TI (Threat Intelligence) data connector properties.
+	// TIDataConnectorProperties - Threat Intelligence Platforms data connector properties.
 	*TIDataConnectorProperties `json:"properties,omitempty"`
 	// ID - READ-ONLY; Azure resource Id
 	ID *string `json:"id,omitempty"`
@@ -11856,7 +16684,7 @@ type TIDataConnector struct {
 	Type *string `json:"type,omitempty"`
 	// Etag - Etag of the azure resource
 	Etag *string `json:"etag,omitempty"`
-	// Kind - Possible values include: 'KindDataConnector', 'KindAzureActiveDirectory', 'KindAzureAdvancedThreatProtection', 'KindAzureSecurityCenter', 'KindAmazonWebServicesCloudTrail', 'KindMicrosoftCloudAppSecurity', 'KindMicrosoftDefenderAdvancedThreatProtection', 'KindOffice365', 'KindThreatIntelligence', 'KindThreatIntelligenceTaxii'
+	// Kind - Possible values include: 'KindDataConnector', 'KindAzureActiveDirectory', 'KindAzureAdvancedThreatProtection', 'KindAzureSecurityCenter', 'KindAmazonWebServicesCloudTrail', 'KindDynamics365', 'KindMicrosoftCloudAppSecurity', 'KindMicrosoftDefenderAdvancedThreatProtection', 'KindOfficeATP', 'KindOffice365', 'KindThreatIntelligence', 'KindThreatIntelligenceTaxii'
 	Kind KindBasicDataConnector `json:"kind,omitempty"`
 }
 
@@ -11896,6 +16724,11 @@ func (tdc TIDataConnector) AsAwsCloudTrailDataConnector() (*AwsCloudTrailDataCon
 	return nil, false
 }
 
+// AsDynamics365DataConnector is the BasicDataConnector implementation for TIDataConnector.
+func (tdc TIDataConnector) AsDynamics365DataConnector() (*Dynamics365DataConnector, bool) {
+	return nil, false
+}
+
 // AsMCASDataConnector is the BasicDataConnector implementation for TIDataConnector.
 func (tdc TIDataConnector) AsMCASDataConnector() (*MCASDataConnector, bool) {
 	return nil, false
@@ -11903,6 +16736,11 @@ func (tdc TIDataConnector) AsMCASDataConnector() (*MCASDataConnector, bool) {
 
 // AsMDATPDataConnector is the BasicDataConnector implementation for TIDataConnector.
 func (tdc TIDataConnector) AsMDATPDataConnector() (*MDATPDataConnector, bool) {
+	return nil, false
+}
+
+// AsOfficeATPDataConnector is the BasicDataConnector implementation for TIDataConnector.
+func (tdc TIDataConnector) AsOfficeATPDataConnector() (*OfficeATPDataConnector, bool) {
 	return nil, false
 }
 
@@ -12000,19 +16838,19 @@ func (tdc *TIDataConnector) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// TIDataConnectorDataTypes the available data types for TI (Threat Intelligence) data connector.
+// TIDataConnectorDataTypes the available data types for Threat Intelligence Platforms data connector.
 type TIDataConnectorDataTypes struct {
-	// Indicators - Data type for indicators connection.
+	// Indicators - Data type for Threat Intelligence Platforms data connector.
 	Indicators *TIDataConnectorDataTypesIndicators `json:"indicators,omitempty"`
 }
 
-// TIDataConnectorDataTypesIndicators data type for indicators connection.
+// TIDataConnectorDataTypesIndicators data type for Threat Intelligence Platforms data connector.
 type TIDataConnectorDataTypesIndicators struct {
 	// State - Describe whether this data type connection is enabled or not. Possible values include: 'Enabled', 'Disabled'
 	State DataTypeState `json:"state,omitempty"`
 }
 
-// TIDataConnectorProperties TI (Threat Intelligence) data connector properties.
+// TIDataConnectorProperties threat Intelligence Platforms data connector properties.
 type TIDataConnectorProperties struct {
 	// DataTypes - The available data types for the connector.
 	DataTypes *TIDataConnectorDataTypes `json:"dataTypes,omitempty"`
@@ -12020,11 +16858,39 @@ type TIDataConnectorProperties struct {
 	TenantID *string `json:"tenantId,omitempty"`
 }
 
-// TiTaxiiCheckRequirements represents threat intelligence requirements check request.
+// TimelineAggregation timeline aggregation information per kind
+type TimelineAggregation struct {
+	// Count - the total items found for a kind
+	Count *int32 `json:"count,omitempty"`
+	// Kind - the query kind. Possible values include: 'EntityTimelineKindActivity', 'EntityTimelineKindBookmark', 'EntityTimelineKindSecurityAlert'
+	Kind EntityTimelineKind `json:"kind,omitempty"`
+}
+
+// TimelineError timeline Query Errors.
+type TimelineError struct {
+	// Kind - the query kind. Possible values include: 'EntityTimelineKindActivity', 'EntityTimelineKindBookmark', 'EntityTimelineKindSecurityAlert'
+	Kind EntityTimelineKind `json:"kind,omitempty"`
+	// QueryID - the query id
+	QueryID *string `json:"queryId,omitempty"`
+	// ErrorMessage - the error message
+	ErrorMessage *string `json:"errorMessage,omitempty"`
+}
+
+// TimelineResultsMetadata expansion result metadata.
+type TimelineResultsMetadata struct {
+	// TotalCount - the total items found for the timeline request
+	TotalCount *int32 `json:"totalCount,omitempty"`
+	// Aggregations - timeline aggregation per kind
+	Aggregations *[]TimelineAggregation `json:"aggregations,omitempty"`
+	// Errors - information about the failure queries
+	Errors *[]TimelineError `json:"errors,omitempty"`
+}
+
+// TiTaxiiCheckRequirements threat Intelligence TAXII data connector check requirements
 type TiTaxiiCheckRequirements struct {
-	// TiTaxiiCheckRequirementsProperties - Ti Taxii (Threat Intelligence Taxii) requirements check properties.
+	// TiTaxiiCheckRequirementsProperties - Threat Intelligence TAXII check required properties.
 	*TiTaxiiCheckRequirementsProperties `json:"properties,omitempty"`
-	// Kind - Possible values include: 'KindBasicDataConnectorsCheckRequirementsKindDataConnectorsCheckRequirements', 'KindBasicDataConnectorsCheckRequirementsKindAzureActiveDirectory', 'KindBasicDataConnectorsCheckRequirementsKindAzureAdvancedThreatProtection', 'KindBasicDataConnectorsCheckRequirementsKindAzureSecurityCenter', 'KindBasicDataConnectorsCheckRequirementsKindAmazonWebServicesCloudTrail', 'KindBasicDataConnectorsCheckRequirementsKindMicrosoftCloudAppSecurity', 'KindBasicDataConnectorsCheckRequirementsKindMicrosoftDefenderAdvancedThreatProtection', 'KindBasicDataConnectorsCheckRequirementsKindThreatIntelligence', 'KindBasicDataConnectorsCheckRequirementsKindThreatIntelligenceTaxii'
+	// Kind - Possible values include: 'KindBasicDataConnectorsCheckRequirementsKindDataConnectorsCheckRequirements', 'KindBasicDataConnectorsCheckRequirementsKindAzureActiveDirectory', 'KindBasicDataConnectorsCheckRequirementsKindAzureAdvancedThreatProtection', 'KindBasicDataConnectorsCheckRequirementsKindAzureSecurityCenter', 'KindBasicDataConnectorsCheckRequirementsKindAmazonWebServicesCloudTrail', 'KindBasicDataConnectorsCheckRequirementsKindDynamics365', 'KindBasicDataConnectorsCheckRequirementsKindMicrosoftCloudAppSecurity', 'KindBasicDataConnectorsCheckRequirementsKindMicrosoftDefenderAdvancedThreatProtection', 'KindBasicDataConnectorsCheckRequirementsKindOfficeATP', 'KindBasicDataConnectorsCheckRequirementsKindThreatIntelligence', 'KindBasicDataConnectorsCheckRequirementsKindThreatIntelligenceTaxii'
 	Kind KindBasicDataConnectorsCheckRequirements `json:"kind,omitempty"`
 }
 
@@ -12061,6 +16927,11 @@ func (ttcr TiTaxiiCheckRequirements) AsAwsCloudTrailCheckRequirements() (*AwsClo
 	return nil, false
 }
 
+// AsDynamics365CheckRequirements is the BasicDataConnectorsCheckRequirements implementation for TiTaxiiCheckRequirements.
+func (ttcr TiTaxiiCheckRequirements) AsDynamics365CheckRequirements() (*Dynamics365CheckRequirements, bool) {
+	return nil, false
+}
+
 // AsMCASCheckRequirements is the BasicDataConnectorsCheckRequirements implementation for TiTaxiiCheckRequirements.
 func (ttcr TiTaxiiCheckRequirements) AsMCASCheckRequirements() (*MCASCheckRequirements, bool) {
 	return nil, false
@@ -12068,6 +16939,11 @@ func (ttcr TiTaxiiCheckRequirements) AsMCASCheckRequirements() (*MCASCheckRequir
 
 // AsMDATPCheckRequirements is the BasicDataConnectorsCheckRequirements implementation for TiTaxiiCheckRequirements.
 func (ttcr TiTaxiiCheckRequirements) AsMDATPCheckRequirements() (*MDATPCheckRequirements, bool) {
+	return nil, false
+}
+
+// AsOfficeATPCheckRequirements is the BasicDataConnectorsCheckRequirements implementation for TiTaxiiCheckRequirements.
+func (ttcr TiTaxiiCheckRequirements) AsOfficeATPCheckRequirements() (*OfficeATPCheckRequirements, bool) {
 	return nil, false
 }
 
@@ -12124,15 +17000,15 @@ func (ttcr *TiTaxiiCheckRequirements) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// TiTaxiiCheckRequirementsProperties threat Intelligence taxii client data connector properties.
+// TiTaxiiCheckRequirementsProperties threat Intelligence TAXII data connector required properties.
 type TiTaxiiCheckRequirementsProperties struct {
 	// TenantID - The tenant id to connect to, and get the data from.
 	TenantID *string `json:"tenantId,omitempty"`
 }
 
-// TiTaxiiDataConnector represents threat intelligence taxii data connector.
+// TiTaxiiDataConnector data connector to pull Threat intelligence data from TAXII 2.0/2.1 server
 type TiTaxiiDataConnector struct {
-	// TiTaxiiDataConnectorProperties - Threat intelligence taxii client data connector properties.
+	// TiTaxiiDataConnectorProperties - Threat intelligence TAXII data connector properties.
 	*TiTaxiiDataConnectorProperties `json:"properties,omitempty"`
 	// ID - READ-ONLY; Azure resource Id
 	ID *string `json:"id,omitempty"`
@@ -12142,7 +17018,7 @@ type TiTaxiiDataConnector struct {
 	Type *string `json:"type,omitempty"`
 	// Etag - Etag of the azure resource
 	Etag *string `json:"etag,omitempty"`
-	// Kind - Possible values include: 'KindDataConnector', 'KindAzureActiveDirectory', 'KindAzureAdvancedThreatProtection', 'KindAzureSecurityCenter', 'KindAmazonWebServicesCloudTrail', 'KindMicrosoftCloudAppSecurity', 'KindMicrosoftDefenderAdvancedThreatProtection', 'KindOffice365', 'KindThreatIntelligence', 'KindThreatIntelligenceTaxii'
+	// Kind - Possible values include: 'KindDataConnector', 'KindAzureActiveDirectory', 'KindAzureAdvancedThreatProtection', 'KindAzureSecurityCenter', 'KindAmazonWebServicesCloudTrail', 'KindDynamics365', 'KindMicrosoftCloudAppSecurity', 'KindMicrosoftDefenderAdvancedThreatProtection', 'KindOfficeATP', 'KindOffice365', 'KindThreatIntelligence', 'KindThreatIntelligenceTaxii'
 	Kind KindBasicDataConnector `json:"kind,omitempty"`
 }
 
@@ -12182,6 +17058,11 @@ func (ttdc TiTaxiiDataConnector) AsAwsCloudTrailDataConnector() (*AwsCloudTrailD
 	return nil, false
 }
 
+// AsDynamics365DataConnector is the BasicDataConnector implementation for TiTaxiiDataConnector.
+func (ttdc TiTaxiiDataConnector) AsDynamics365DataConnector() (*Dynamics365DataConnector, bool) {
+	return nil, false
+}
+
 // AsMCASDataConnector is the BasicDataConnector implementation for TiTaxiiDataConnector.
 func (ttdc TiTaxiiDataConnector) AsMCASDataConnector() (*MCASDataConnector, bool) {
 	return nil, false
@@ -12189,6 +17070,11 @@ func (ttdc TiTaxiiDataConnector) AsMCASDataConnector() (*MCASDataConnector, bool
 
 // AsMDATPDataConnector is the BasicDataConnector implementation for TiTaxiiDataConnector.
 func (ttdc TiTaxiiDataConnector) AsMDATPDataConnector() (*MDATPDataConnector, bool) {
+	return nil, false
+}
+
+// AsOfficeATPDataConnector is the BasicDataConnector implementation for TiTaxiiDataConnector.
+func (ttdc TiTaxiiDataConnector) AsOfficeATPDataConnector() (*OfficeATPDataConnector, bool) {
 	return nil, false
 }
 
@@ -12286,36 +17172,168 @@ func (ttdc *TiTaxiiDataConnector) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// TiTaxiiDataConnectorDataTypes the available data types for Threat Intelligence taxii client data connector.
+// TiTaxiiDataConnectorDataTypes the available data types for Threat Intelligence TAXII data connector.
 type TiTaxiiDataConnectorDataTypes struct {
-	// TaxiiClient - Data type for taxii client.
+	// TaxiiClient - Data type for TAXII connector.
 	TaxiiClient *TiTaxiiDataConnectorDataTypesTaxiiClient `json:"taxiiClient,omitempty"`
 }
 
-// TiTaxiiDataConnectorDataTypesTaxiiClient data type for taxii client.
+// TiTaxiiDataConnectorDataTypesTaxiiClient data type for TAXII connector.
 type TiTaxiiDataConnectorDataTypesTaxiiClient struct {
 	// State - Describe whether this data type connection is enabled or not. Possible values include: 'Enabled', 'Disabled'
 	State DataTypeState `json:"state,omitempty"`
 }
 
-// TiTaxiiDataConnectorProperties threat Intelligence taxii client data connector properties.
+// TiTaxiiDataConnectorProperties threat Intelligence TAXII data connector properties.
 type TiTaxiiDataConnectorProperties struct {
 	// WorkspaceID - The workspace id.
 	WorkspaceID *string `json:"workspaceId,omitempty"`
-	// FriendlyName - The friendly name for taxii client connector.
+	// FriendlyName - The friendly name for the TAXII server.
 	FriendlyName *string `json:"friendlyName,omitempty"`
-	// TaxiiServer - The API root server for taxii client.
+	// TaxiiServer - The API root for the TAXII server.
 	TaxiiServer *string `json:"taxiiServer,omitempty"`
-	// CollectionID - The taxii collection id.
+	// CollectionID - The collection id of the TAXII server.
 	CollectionID *string `json:"collectionId,omitempty"`
-	// UserName - The taxii server user name.
+	// UserName - The userName for the TAXII server.
 	UserName *string `json:"userName,omitempty"`
-	// Password - The taxii server password.
+	// Password - The password for the TAXII server.
 	Password *string `json:"password,omitempty"`
-	// DataTypes - The available data types for the connector.
+	// DataTypes - The available data types for Threat Intelligence TAXII data connector.
 	DataTypes *TiTaxiiDataConnectorDataTypes `json:"dataTypes,omitempty"`
 	// TenantID - The tenant id to connect to, and get the data from.
 	TenantID *string `json:"tenantId,omitempty"`
+}
+
+// Ueba settings with single toggle.
+type Ueba struct {
+	// UebaProperties - Ueba properties
+	*UebaProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Azure resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Azure resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Azure resource type
+	Type *string `json:"type,omitempty"`
+	// Etag - Etag of the azure resource
+	Etag *string `json:"etag,omitempty"`
+	// Kind - Possible values include: 'KindSettings', 'KindEyesOn', 'KindEntityAnalytics', 'KindUeba'
+	Kind KindBasicSettings `json:"kind,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Ueba.
+func (u Ueba) MarshalJSON() ([]byte, error) {
+	u.Kind = KindUeba
+	objectMap := make(map[string]interface{})
+	if u.UebaProperties != nil {
+		objectMap["properties"] = u.UebaProperties
+	}
+	if u.Etag != nil {
+		objectMap["etag"] = u.Etag
+	}
+	if u.Kind != "" {
+		objectMap["kind"] = u.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsEyesOn is the BasicSettings implementation for Ueba.
+func (u Ueba) AsEyesOn() (*EyesOn, bool) {
+	return nil, false
+}
+
+// AsEntityAnalytics is the BasicSettings implementation for Ueba.
+func (u Ueba) AsEntityAnalytics() (*EntityAnalytics, bool) {
+	return nil, false
+}
+
+// AsUeba is the BasicSettings implementation for Ueba.
+func (u Ueba) AsUeba() (*Ueba, bool) {
+	return &u, true
+}
+
+// AsSettings is the BasicSettings implementation for Ueba.
+func (u Ueba) AsSettings() (*Settings, bool) {
+	return nil, false
+}
+
+// AsBasicSettings is the BasicSettings implementation for Ueba.
+func (u Ueba) AsBasicSettings() (BasicSettings, bool) {
+	return &u, true
+}
+
+// UnmarshalJSON is the custom unmarshaler for Ueba struct.
+func (u *Ueba) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var uebaProperties UebaProperties
+				err = json.Unmarshal(*v, &uebaProperties)
+				if err != nil {
+					return err
+				}
+				u.UebaProperties = &uebaProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				u.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				u.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				u.Type = &typeVar
+			}
+		case "etag":
+			if v != nil {
+				var etag string
+				err = json.Unmarshal(*v, &etag)
+				if err != nil {
+					return err
+				}
+				u.Etag = &etag
+			}
+		case "kind":
+			if v != nil {
+				var kind KindBasicSettings
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				u.Kind = kind
+			}
+		}
+	}
+
+	return nil
+}
+
+// UebaProperties ueba property bag.
+type UebaProperties struct {
+	// DataSources - The relevant data sources that enriched by ueba
+	DataSources *[]UebaDataSources `json:"dataSources,omitempty"`
 }
 
 // URLEntity represents a url entity.
@@ -12328,7 +17346,7 @@ type URLEntity struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Azure resource type
 	Type *string `json:"type,omitempty"`
-	// Kind - Possible values include: 'KindEntity', 'KindAccount', 'KindAzureResource', 'KindCloudApplication', 'KindDNSResolution', 'KindFile', 'KindFileHash', 'KindHost', 'KindIP', 'KindMalware', 'KindProcess', 'KindRegistryKey', 'KindRegistryValue', 'KindSecurityAlert', 'KindSecurityGroup', 'KindURL', 'KindIoTDevice'
+	// Kind - Possible values include: 'KindEntity', 'KindAccount', 'KindAzureResource', 'KindCloudApplication', 'KindDNSResolution', 'KindFile', 'KindFileHash', 'KindHost', 'KindBookmark', 'KindSecurityAlert', 'KindIP', 'KindMailbox', 'KindMailCluster', 'KindMailMessage', 'KindSubmissionMail', 'KindMalware', 'KindProcess', 'KindRegistryKey', 'KindRegistryValue', 'KindSecurityGroup', 'KindURL', 'KindIoTDevice'
 	Kind KindBasicEntity `json:"kind,omitempty"`
 }
 
@@ -12380,8 +17398,38 @@ func (ue URLEntity) AsHostEntity() (*HostEntity, bool) {
 	return nil, false
 }
 
+// AsHuntingBookmark is the BasicEntity implementation for URLEntity.
+func (ue URLEntity) AsHuntingBookmark() (*HuntingBookmark, bool) {
+	return nil, false
+}
+
+// AsSecurityAlert is the BasicEntity implementation for URLEntity.
+func (ue URLEntity) AsSecurityAlert() (*SecurityAlert, bool) {
+	return nil, false
+}
+
 // AsIPEntity is the BasicEntity implementation for URLEntity.
 func (ue URLEntity) AsIPEntity() (*IPEntity, bool) {
+	return nil, false
+}
+
+// AsMailboxEntity is the BasicEntity implementation for URLEntity.
+func (ue URLEntity) AsMailboxEntity() (*MailboxEntity, bool) {
+	return nil, false
+}
+
+// AsMailClusterEntity is the BasicEntity implementation for URLEntity.
+func (ue URLEntity) AsMailClusterEntity() (*MailClusterEntity, bool) {
+	return nil, false
+}
+
+// AsMailMessageEntity is the BasicEntity implementation for URLEntity.
+func (ue URLEntity) AsMailMessageEntity() (*MailMessageEntity, bool) {
+	return nil, false
+}
+
+// AsSubmissionMailEntity is the BasicEntity implementation for URLEntity.
+func (ue URLEntity) AsSubmissionMailEntity() (*SubmissionMailEntity, bool) {
 	return nil, false
 }
 
@@ -12402,11 +17450,6 @@ func (ue URLEntity) AsRegistryKeyEntity() (*RegistryKeyEntity, bool) {
 
 // AsRegistryValueEntity is the BasicEntity implementation for URLEntity.
 func (ue URLEntity) AsRegistryValueEntity() (*RegistryValueEntity, bool) {
-	return nil, false
-}
-
-// AsSecurityAlert is the BasicEntity implementation for URLEntity.
-func (ue URLEntity) AsSecurityAlert() (*SecurityAlert, bool) {
 	return nil, false
 }
 
@@ -12528,4 +17571,414 @@ func (UI UserInfo) MarshalJSON() ([]byte, error) {
 		objectMap["objectId"] = UI.ObjectID
 	}
 	return json.Marshal(objectMap)
+}
+
+// Watchlist represents a Watchlist in Azure Security Insights.
+type Watchlist struct {
+	autorest.Response `json:"-"`
+	// WatchlistProperties - Watchlist properties
+	*WatchlistProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Azure resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Azure resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Azure resource type
+	Type *string `json:"type,omitempty"`
+	// Etag - Etag of the azure resource
+	Etag *string `json:"etag,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Watchlist.
+func (w Watchlist) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if w.WatchlistProperties != nil {
+		objectMap["properties"] = w.WatchlistProperties
+	}
+	if w.Etag != nil {
+		objectMap["etag"] = w.Etag
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for Watchlist struct.
+func (w *Watchlist) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var watchlistProperties WatchlistProperties
+				err = json.Unmarshal(*v, &watchlistProperties)
+				if err != nil {
+					return err
+				}
+				w.WatchlistProperties = &watchlistProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				w.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				w.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				w.Type = &typeVar
+			}
+		case "etag":
+			if v != nil {
+				var etag string
+				err = json.Unmarshal(*v, &etag)
+				if err != nil {
+					return err
+				}
+				w.Etag = &etag
+			}
+		}
+	}
+
+	return nil
+}
+
+// WatchlistItem represents a Watchlist item in Azure Security Insights.
+type WatchlistItem struct {
+	autorest.Response `json:"-"`
+	// WatchlistItemProperties - Watchlist Item properties
+	*WatchlistItemProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Azure resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Azure resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Azure resource type
+	Type *string `json:"type,omitempty"`
+	// Etag - Etag of the azure resource
+	Etag *string `json:"etag,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for WatchlistItem.
+func (wi WatchlistItem) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if wi.WatchlistItemProperties != nil {
+		objectMap["properties"] = wi.WatchlistItemProperties
+	}
+	if wi.Etag != nil {
+		objectMap["etag"] = wi.Etag
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for WatchlistItem struct.
+func (wi *WatchlistItem) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var watchlistItemProperties WatchlistItemProperties
+				err = json.Unmarshal(*v, &watchlistItemProperties)
+				if err != nil {
+					return err
+				}
+				wi.WatchlistItemProperties = &watchlistItemProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				wi.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				wi.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				wi.Type = &typeVar
+			}
+		case "etag":
+			if v != nil {
+				var etag string
+				err = json.Unmarshal(*v, &etag)
+				if err != nil {
+					return err
+				}
+				wi.Etag = &etag
+			}
+		}
+	}
+
+	return nil
+}
+
+// WatchlistItemProperties describes watchlist item properties
+type WatchlistItemProperties struct {
+	// WatchlistItemType - The type of the watchlist item
+	WatchlistItemType *string `json:"watchlistItemType,omitempty"`
+	// WatchlistItemID - The id (a Guid) of the watchlist item
+	WatchlistItemID *string `json:"watchlistItemId,omitempty"`
+	// TenantID - The tenantId to which the watchlist item belongs to
+	TenantID *string `json:"tenantId,omitempty"`
+	// IsDeleted - A flag that indicates if the watchlist item is deleted or not
+	IsDeleted *bool `json:"isDeleted,omitempty"`
+	// Created - The time the watchlist item was created
+	Created *date.Time `json:"created,omitempty"`
+	// Updated - The last time the watchlist item was updated
+	Updated *date.Time `json:"updated,omitempty"`
+	// CreatedBy - Describes a user that created the watchlist item
+	CreatedBy *UserInfo `json:"createdBy,omitempty"`
+	// UpdatedBy - Describes a user that updated the watchlist item
+	UpdatedBy *UserInfo `json:"updatedBy,omitempty"`
+	// ItemsKeyValue - key-value pairs for a watchlist item
+	ItemsKeyValue interface{} `json:"itemsKeyValue,omitempty"`
+	// EntityMapping - key-value pairs for a watchlist item entity mapping
+	EntityMapping interface{} `json:"entityMapping,omitempty"`
+}
+
+// WatchlistList list all the watchlists.
+type WatchlistList struct {
+	autorest.Response `json:"-"`
+	// NextLink - READ-ONLY; URL to fetch the next set of watchlists.
+	NextLink *string `json:"nextLink,omitempty"`
+	// Value - Array of watchlist.
+	Value *[]Watchlist `json:"value,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for WatchlistList.
+func (wl WatchlistList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if wl.Value != nil {
+		objectMap["value"] = wl.Value
+	}
+	return json.Marshal(objectMap)
+}
+
+// WatchlistListIterator provides access to a complete listing of Watchlist values.
+type WatchlistListIterator struct {
+	i    int
+	page WatchlistListPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *WatchlistListIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/WatchlistListIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *WatchlistListIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter WatchlistListIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter WatchlistListIterator) Response() WatchlistList {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter WatchlistListIterator) Value() Watchlist {
+	if !iter.page.NotDone() {
+		return Watchlist{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the WatchlistListIterator type.
+func NewWatchlistListIterator(page WatchlistListPage) WatchlistListIterator {
+	return WatchlistListIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (wl WatchlistList) IsEmpty() bool {
+	return wl.Value == nil || len(*wl.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (wl WatchlistList) hasNextLink() bool {
+	return wl.NextLink != nil && len(*wl.NextLink) != 0
+}
+
+// watchlistListPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (wl WatchlistList) watchlistListPreparer(ctx context.Context) (*http.Request, error) {
+	if !wl.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(wl.NextLink)))
+}
+
+// WatchlistListPage contains a page of Watchlist values.
+type WatchlistListPage struct {
+	fn func(context.Context, WatchlistList) (WatchlistList, error)
+	wl WatchlistList
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *WatchlistListPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/WatchlistListPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.wl)
+		if err != nil {
+			return err
+		}
+		page.wl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *WatchlistListPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page WatchlistListPage) NotDone() bool {
+	return !page.wl.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page WatchlistListPage) Response() WatchlistList {
+	return page.wl
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page WatchlistListPage) Values() []Watchlist {
+	if page.wl.IsEmpty() {
+		return nil
+	}
+	return *page.wl.Value
+}
+
+// Creates a new instance of the WatchlistListPage type.
+func NewWatchlistListPage(cur WatchlistList, getNextPage func(context.Context, WatchlistList) (WatchlistList, error)) WatchlistListPage {
+	return WatchlistListPage{
+		fn: getNextPage,
+		wl: cur,
+	}
+}
+
+// WatchlistProperties describes watchlist properties
+type WatchlistProperties struct {
+	// WatchlistID - The id (a Guid) of the watchlist
+	WatchlistID *string `json:"watchlistId,omitempty"`
+	// DisplayName - The display name of the watchlist
+	DisplayName *string `json:"displayName,omitempty"`
+	// Provider - The provider of the watchlist
+	Provider *string `json:"provider,omitempty"`
+	// Source - The source of the watchlist. Possible values include: 'Localfile', 'Remotestorage'
+	Source Source `json:"source,omitempty"`
+	// Created - The time the watchlist was created
+	Created *date.Time `json:"created,omitempty"`
+	// Updated - The last time the watchlist was updated
+	Updated *date.Time `json:"updated,omitempty"`
+	// CreatedBy - Describes a user that created the watchlist
+	CreatedBy *UserInfo `json:"createdBy,omitempty"`
+	// UpdatedBy - Describes a user that updated the watchlist
+	UpdatedBy *UserInfo `json:"updatedBy,omitempty"`
+	// Description - A description of the watchlist
+	Description *string `json:"description,omitempty"`
+	// WatchlistType - The type of the watchlist
+	WatchlistType *string `json:"watchlistType,omitempty"`
+	// WatchlistAlias - The alias of the watchlist
+	WatchlistAlias *string `json:"watchlistAlias,omitempty"`
+	// IsDeleted - A flag that indicates if the watchlist is deleted or not
+	IsDeleted *bool `json:"isDeleted,omitempty"`
+	// Labels - List of labels relevant to this watchlist
+	Labels *[]string `json:"labels,omitempty"`
+	// DefaultDuration - The default duration of a watchlist (in ISO 8601 duration format)
+	DefaultDuration *string `json:"defaultDuration,omitempty"`
+	// TenantID - The tenantId where the watchlist belongs to
+	TenantID *string `json:"tenantId,omitempty"`
+	// NumberOfLinesToSkip - The number of lines in a csv/tsv content to skip before the header
+	NumberOfLinesToSkip *int32 `json:"numberOfLinesToSkip,omitempty"`
+	// RawContent - The raw content that represents to watchlist items to create. In case of csv/tsv content type, it's the content of the file that will parsed by the endpoint
+	RawContent *string `json:"rawContent,omitempty"`
+	// ContentType - The content type of the raw content. Example : text/csv or text/tsv
+	ContentType *string `json:"contentType,omitempty"`
+	// UploadStatus - The status of the Watchlist upload : New, InProgress or Complete. Pls note : When a Watchlist upload status is equal to InProgress, the Watchlist cannot be deleted
+	UploadStatus *string `json:"uploadStatus,omitempty"`
+	// WatchlistItemsCount - The number of Watchlist Items in the Watchlist
+	WatchlistItemsCount *int32 `json:"watchlistItemsCount,omitempty"`
 }

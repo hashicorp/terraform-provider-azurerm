@@ -72,6 +72,7 @@ func (client LocationsClient) CheckNameAvailability(ctx context.Context, locatio
 	result, err = client.CheckNameAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.LocationsClient", "CheckNameAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return

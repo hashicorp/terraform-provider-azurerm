@@ -6,31 +6,32 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccDataSourceAzureRMApiManagementUser_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_api_management_user", "test")
+type ApiManagementUserDataSource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceApiManagementUser_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "user_id", "test-user"),
-					resource.TestCheckResourceAttr(data.ResourceName, "first_name", "Acceptance"),
-					resource.TestCheckResourceAttr(data.ResourceName, "last_name", "Test"),
-					resource.TestCheckResourceAttr(data.ResourceName, "email", fmt.Sprintf("azure-acctest%d@example.com", data.RandomInteger)),
-					resource.TestCheckResourceAttr(data.ResourceName, "state", "active"),
-					resource.TestCheckResourceAttr(data.ResourceName, "note", "Used for testing in dimension C-137."),
-				),
-			},
+func TestAccDataSourceApiManagementUser_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_api_management_user", "test")
+	r := ApiManagementUserDataSource{}
+
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("user_id").HasValue("test-user"),
+				check.That(data.ResourceName).Key("first_name").HasValue("Acceptance"),
+				check.That(data.ResourceName).Key("last_name").HasValue("Test"),
+				check.That(data.ResourceName).Key("email").HasValue(fmt.Sprintf("azure-acctest%d@example.com", data.RandomInteger)),
+				check.That(data.ResourceName).Key("state").HasValue("active"),
+				check.That(data.ResourceName).Key("note").HasValue("Used for testing in dimension C-137."),
+			),
 		},
 	})
 }
 
-func testAccDataSourceApiManagementUser_basic(data acceptance.TestData) string {
+func (ApiManagementUserDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

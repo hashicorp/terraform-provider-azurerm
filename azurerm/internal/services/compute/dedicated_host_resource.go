@@ -25,12 +25,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDedicatedHost() *schema.Resource {
+func resourceDedicatedHost() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDedicatedHostCreate,
-		Read:   resourceArmDedicatedHostRead,
-		Update: resourceArmDedicatedHostUpdate,
-		Delete: resourceArmDedicatedHostDelete,
+		Create: resourceDedicatedHostCreate,
+		Read:   resourceDedicatedHostRead,
+		Update: resourceDedicatedHostUpdate,
+		Delete: resourceDedicatedHostDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.DedicatedHostID(id)
@@ -125,7 +125,7 @@ func resourceArmDedicatedHost() *schema.Resource {
 	}
 }
 
-func resourceArmDedicatedHostCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDedicatedHostCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DedicatedHostsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -181,10 +181,10 @@ func resourceArmDedicatedHostCreate(d *schema.ResourceData, meta interface{}) er
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmDedicatedHostRead(d, meta)
+	return resourceDedicatedHostRead(d, meta)
 }
 
-func resourceArmDedicatedHostRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDedicatedHostRead(d *schema.ResourceData, meta interface{}) error {
 	groupsClient := meta.(*clients.Client).Compute.DedicatedHostGroupsClient
 	hostsClient := meta.(*clients.Client).Compute.DedicatedHostsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -238,7 +238,7 @@ func resourceArmDedicatedHostRead(d *schema.ResourceData, meta interface{}) erro
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmDedicatedHostUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDedicatedHostUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DedicatedHostsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -264,10 +264,10 @@ func resourceArmDedicatedHostUpdate(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error waiting for update of Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", id.HostName, id.HostGroupName, id.ResourceGroup, err)
 	}
 
-	return resourceArmDedicatedHostRead(d, meta)
+	return resourceDedicatedHostRead(d, meta)
 }
 
-func resourceArmDedicatedHostDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDedicatedHostDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DedicatedHostsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

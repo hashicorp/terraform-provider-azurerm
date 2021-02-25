@@ -35,82 +35,28 @@ const fqdn = "github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/201
 // AccountsCreateFutureType an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type AccountsCreateFutureType struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AccountsCreateFutureType) Result(client AccountsClient) (dlsa DataLakeStoreAccount, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "account.AccountsCreateFutureType", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("account.AccountsCreateFutureType")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if dlsa.Response.Response, err = future.GetResult(sender); err == nil && dlsa.Response.Response.StatusCode != http.StatusNoContent {
-		dlsa, err = client.CreateResponder(dlsa.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "account.AccountsCreateFutureType", "Result", dlsa.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AccountsClient) (DataLakeStoreAccount, error)
 }
 
 // AccountsDeleteFutureType an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type AccountsDeleteFutureType struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AccountsDeleteFutureType) Result(client AccountsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "account.AccountsDeleteFutureType", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("account.AccountsDeleteFutureType")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AccountsClient) (autorest.Response, error)
 }
 
 // AccountsUpdateFutureType an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type AccountsUpdateFutureType struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AccountsUpdateFutureType) Result(client AccountsClient) (dlsa DataLakeStoreAccount, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "account.AccountsUpdateFutureType", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("account.AccountsUpdateFutureType")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if dlsa.Response.Response, err = future.GetResult(sender); err == nil && dlsa.Response.Response.StatusCode != http.StatusNoContent {
-		dlsa, err = client.UpdateResponder(dlsa.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "account.AccountsUpdateFutureType", "Result", dlsa.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AccountsClient) (DataLakeStoreAccount, error)
 }
 
 // CapabilityInformation subscription-level properties and limits for Data Lake Store.
@@ -241,8 +187,8 @@ type CreateDataLakeStoreAccountProperties struct {
 	NewTier TierType `json:"newTier,omitempty"`
 }
 
-// CreateFirewallRuleWithAccountParameters the parameters used to create a new firewall rule while creating a
-// new Data Lake Store account.
+// CreateFirewallRuleWithAccountParameters the parameters used to create a new firewall rule while creating
+// a new Data Lake Store account.
 type CreateFirewallRuleWithAccountParameters struct {
 	// Name - The unique name of the firewall rule to create.
 	Name *string `json:"name,omitempty"`
@@ -334,7 +280,8 @@ func (coufrp *CreateOrUpdateFirewallRuleParameters) UnmarshalJSON(body []byte) e
 	return nil
 }
 
-// CreateOrUpdateFirewallRuleProperties the firewall rule properties to use when creating a new firewall rule.
+// CreateOrUpdateFirewallRuleProperties the firewall rule properties to use when creating a new firewall
+// rule.
 type CreateOrUpdateFirewallRuleProperties struct {
 	// StartIPAddress - The start IP address for the firewall rule. This can be either ipv4 or ipv6. Start and End should be in the same protocol.
 	StartIPAddress *string `json:"startIpAddress,omitempty"`
@@ -381,8 +328,8 @@ func (coutipp *CreateOrUpdateTrustedIDProviderParameters) UnmarshalJSON(body []b
 	return nil
 }
 
-// CreateOrUpdateTrustedIDProviderProperties the trusted identity provider properties to use when creating a
-// new trusted identity provider.
+// CreateOrUpdateTrustedIDProviderProperties the trusted identity provider properties to use when creating
+// a new trusted identity provider.
 type CreateOrUpdateTrustedIDProviderProperties struct {
 	// IDProvider - The URL of this trusted identity provider.
 	IDProvider *string `json:"idProvider,omitempty"`
@@ -427,15 +374,15 @@ func (couvnrp *CreateOrUpdateVirtualNetworkRuleParameters) UnmarshalJSON(body []
 	return nil
 }
 
-// CreateOrUpdateVirtualNetworkRuleProperties the virtual network rule properties to use when creating a new
-// virtual network rule.
+// CreateOrUpdateVirtualNetworkRuleProperties the virtual network rule properties to use when creating a
+// new virtual network rule.
 type CreateOrUpdateVirtualNetworkRuleProperties struct {
 	// SubnetID - The resource identifier for the subnet.
 	SubnetID *string `json:"subnetId,omitempty"`
 }
 
-// CreateTrustedIDProviderWithAccountParameters the parameters used to create a new trusted identity provider
-// while creating a new Data Lake Store account.
+// CreateTrustedIDProviderWithAccountParameters the parameters used to create a new trusted identity
+// provider while creating a new Data Lake Store account.
 type CreateTrustedIDProviderWithAccountParameters struct {
 	// Name - The unique name of the trusted identity provider to create.
 	Name *string `json:"name,omitempty"`
@@ -488,8 +435,8 @@ func (ctipwap *CreateTrustedIDProviderWithAccountParameters) UnmarshalJSON(body 
 	return nil
 }
 
-// CreateVirtualNetworkRuleWithAccountParameters the parameters used to create a new virtual network rule while
-// creating a new Data Lake Store account.
+// CreateVirtualNetworkRuleWithAccountParameters the parameters used to create a new virtual network rule
+// while creating a new Data Lake Store account.
 type CreateVirtualNetworkRuleWithAccountParameters struct {
 	// Name - The unique name of the virtual network rule to create.
 	Name *string `json:"name,omitempty"`
@@ -745,8 +692,8 @@ type DataLakeStoreAccountListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// DataLakeStoreAccountListResultIterator provides access to a complete listing of DataLakeStoreAccountBasic
-// values.
+// DataLakeStoreAccountListResultIterator provides access to a complete listing of
+// DataLakeStoreAccountBasic values.
 type DataLakeStoreAccountListResultIterator struct {
 	i    int
 	page DataLakeStoreAccountListResultPage
@@ -889,8 +836,11 @@ func (page DataLakeStoreAccountListResultPage) Values() []DataLakeStoreAccountBa
 }
 
 // Creates a new instance of the DataLakeStoreAccountListResultPage type.
-func NewDataLakeStoreAccountListResultPage(getNextPage func(context.Context, DataLakeStoreAccountListResult) (DataLakeStoreAccountListResult, error)) DataLakeStoreAccountListResultPage {
-	return DataLakeStoreAccountListResultPage{fn: getNextPage}
+func NewDataLakeStoreAccountListResultPage(cur DataLakeStoreAccountListResult, getNextPage func(context.Context, DataLakeStoreAccountListResult) (DataLakeStoreAccountListResult, error)) DataLakeStoreAccountListResultPage {
+	return DataLakeStoreAccountListResultPage{
+		fn:     getNextPage,
+		dlsalr: cur,
+	}
 }
 
 // DataLakeStoreAccountProperties data Lake Store account properties information.
@@ -1199,8 +1149,11 @@ func (page FirewallRuleListResultPage) Values() []FirewallRule {
 }
 
 // Creates a new instance of the FirewallRuleListResultPage type.
-func NewFirewallRuleListResultPage(getNextPage func(context.Context, FirewallRuleListResult) (FirewallRuleListResult, error)) FirewallRuleListResultPage {
-	return FirewallRuleListResultPage{fn: getNextPage}
+func NewFirewallRuleListResultPage(cur FirewallRuleListResult, getNextPage func(context.Context, FirewallRuleListResult) (FirewallRuleListResult, error)) FirewallRuleListResultPage {
+	return FirewallRuleListResultPage{
+		fn:   getNextPage,
+		frlr: cur,
+	}
 }
 
 // FirewallRuleProperties the firewall rule properties.
@@ -1524,8 +1477,11 @@ func (page TrustedIDProviderListResultPage) Values() []TrustedIDProvider {
 }
 
 // Creates a new instance of the TrustedIDProviderListResultPage type.
-func NewTrustedIDProviderListResultPage(getNextPage func(context.Context, TrustedIDProviderListResult) (TrustedIDProviderListResult, error)) TrustedIDProviderListResultPage {
-	return TrustedIDProviderListResultPage{fn: getNextPage}
+func NewTrustedIDProviderListResultPage(cur TrustedIDProviderListResult, getNextPage func(context.Context, TrustedIDProviderListResult) (TrustedIDProviderListResult, error)) TrustedIDProviderListResultPage {
+	return TrustedIDProviderListResultPage{
+		fn:    getNextPage,
+		tiplr: cur,
+	}
 }
 
 // TrustedIDProviderProperties the trusted identity provider properties.
@@ -1662,8 +1618,8 @@ type UpdateFirewallRuleProperties struct {
 	EndIPAddress *string `json:"endIpAddress,omitempty"`
 }
 
-// UpdateFirewallRuleWithAccountParameters the parameters used to update a firewall rule while updating a Data
-// Lake Store account.
+// UpdateFirewallRuleWithAccountParameters the parameters used to update a firewall rule while updating a
+// Data Lake Store account.
 type UpdateFirewallRuleWithAccountParameters struct {
 	// Name - The unique name of the firewall rule to update.
 	Name *string `json:"name,omitempty"`
@@ -1761,15 +1717,15 @@ func (utipp *UpdateTrustedIDProviderParameters) UnmarshalJSON(body []byte) error
 	return nil
 }
 
-// UpdateTrustedIDProviderProperties the trusted identity provider properties to use when updating a trusted
-// identity provider.
+// UpdateTrustedIDProviderProperties the trusted identity provider properties to use when updating a
+// trusted identity provider.
 type UpdateTrustedIDProviderProperties struct {
 	// IDProvider - The URL of this trusted identity provider.
 	IDProvider *string `json:"idProvider,omitempty"`
 }
 
-// UpdateTrustedIDProviderWithAccountParameters the parameters used to update a trusted identity provider while
-// updating a Data Lake Store account.
+// UpdateTrustedIDProviderWithAccountParameters the parameters used to update a trusted identity provider
+// while updating a Data Lake Store account.
 type UpdateTrustedIDProviderWithAccountParameters struct {
 	// Name - The unique name of the trusted identity provider to update.
 	Name *string `json:"name,omitempty"`
@@ -2173,8 +2129,11 @@ func (page VirtualNetworkRuleListResultPage) Values() []VirtualNetworkRule {
 }
 
 // Creates a new instance of the VirtualNetworkRuleListResultPage type.
-func NewVirtualNetworkRuleListResultPage(getNextPage func(context.Context, VirtualNetworkRuleListResult) (VirtualNetworkRuleListResult, error)) VirtualNetworkRuleListResultPage {
-	return VirtualNetworkRuleListResultPage{fn: getNextPage}
+func NewVirtualNetworkRuleListResultPage(cur VirtualNetworkRuleListResult, getNextPage func(context.Context, VirtualNetworkRuleListResult) (VirtualNetworkRuleListResult, error)) VirtualNetworkRuleListResultPage {
+	return VirtualNetworkRuleListResultPage{
+		fn:    getNextPage,
+		vnrlr: cur,
+	}
 }
 
 // VirtualNetworkRuleProperties the virtual network rule properties.

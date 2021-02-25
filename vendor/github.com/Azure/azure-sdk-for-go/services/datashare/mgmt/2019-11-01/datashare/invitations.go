@@ -75,6 +75,7 @@ func (client InvitationsClient) Create(ctx context.Context, resourceGroupName st
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.InvitationsClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -156,6 +157,7 @@ func (client InvitationsClient) Delete(ctx context.Context, resourceGroupName st
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.InvitationsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -234,6 +236,7 @@ func (client InvitationsClient) Get(ctx context.Context, resourceGroupName strin
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.InvitationsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -316,9 +319,11 @@ func (client InvitationsClient) ListByShare(ctx context.Context, resourceGroupNa
 	result.il, err = client.ListByShareResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.InvitationsClient", "ListByShare", resp, "Failure responding to request")
+		return
 	}
 	if result.il.hasNextLink() && result.il.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

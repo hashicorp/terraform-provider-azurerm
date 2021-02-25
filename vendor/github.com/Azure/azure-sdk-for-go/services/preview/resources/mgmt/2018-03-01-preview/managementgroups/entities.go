@@ -99,9 +99,11 @@ func (client EntitiesClient) List(ctx context.Context, skiptoken string, skip *i
 	result.elr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managementgroups.EntitiesClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.elr.hasNextLink() && result.elr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

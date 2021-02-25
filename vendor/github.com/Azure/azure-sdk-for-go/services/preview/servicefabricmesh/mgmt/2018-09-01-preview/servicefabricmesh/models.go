@@ -371,8 +371,11 @@ func (page ApplicationResourceDescriptionListPage) Values() []ApplicationResourc
 }
 
 // Creates a new instance of the ApplicationResourceDescriptionListPage type.
-func NewApplicationResourceDescriptionListPage(getNextPage func(context.Context, ApplicationResourceDescriptionList) (ApplicationResourceDescriptionList, error)) ApplicationResourceDescriptionListPage {
-	return ApplicationResourceDescriptionListPage{fn: getNextPage}
+func NewApplicationResourceDescriptionListPage(cur ApplicationResourceDescriptionList, getNextPage func(context.Context, ApplicationResourceDescriptionList) (ApplicationResourceDescriptionList, error)) ApplicationResourceDescriptionListPage {
+	return ApplicationResourceDescriptionListPage{
+		fn:   getNextPage,
+		ardl: cur,
+	}
 }
 
 // ApplicationResourceProperties this type describes properties of an application resource.
@@ -1586,8 +1589,8 @@ type GatewayResourceDescriptionList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// GatewayResourceDescriptionListIterator provides access to a complete listing of GatewayResourceDescription
-// values.
+// GatewayResourceDescriptionListIterator provides access to a complete listing of
+// GatewayResourceDescription values.
 type GatewayResourceDescriptionListIterator struct {
 	i    int
 	page GatewayResourceDescriptionListPage
@@ -1730,8 +1733,11 @@ func (page GatewayResourceDescriptionListPage) Values() []GatewayResourceDescrip
 }
 
 // Creates a new instance of the GatewayResourceDescriptionListPage type.
-func NewGatewayResourceDescriptionListPage(getNextPage func(context.Context, GatewayResourceDescriptionList) (GatewayResourceDescriptionList, error)) GatewayResourceDescriptionListPage {
-	return GatewayResourceDescriptionListPage{fn: getNextPage}
+func NewGatewayResourceDescriptionListPage(cur GatewayResourceDescriptionList, getNextPage func(context.Context, GatewayResourceDescriptionList) (GatewayResourceDescriptionList, error)) GatewayResourceDescriptionListPage {
+	return GatewayResourceDescriptionListPage{
+		fn:   getNextPage,
+		grdl: cur,
+	}
 }
 
 // GatewayResourceProperties this type describes properties of a gateway resource.
@@ -1843,10 +1849,10 @@ type ImageRegistryCredential struct {
 	Password *string `json:"password,omitempty"`
 }
 
-// InlinedValueSecretResourceProperties describes the properties of a secret resource whose value is provided
-// explicitly as plaintext. The secret resource may have multiple values, each being uniquely versioned. The
-// secret value of each version is stored encrypted, and delivered as plaintext into the context of
-// applications referencing it.
+// InlinedValueSecretResourceProperties describes the properties of a secret resource whose value is
+// provided explicitly as plaintext. The secret resource may have multiple values, each being uniquely
+// versioned. The secret value of each version is stored encrypted, and delivered as plaintext into the
+// context of applications referencing it.
 type InlinedValueSecretResourceProperties struct {
 	// Description - User readable description of the secret.
 	Description *string `json:"description,omitempty"`
@@ -1961,9 +1967,9 @@ func (lnrp LocalNetworkResourceProperties) AsBasicNetworkResourcePropertiesBase(
 	return &lnrp, true
 }
 
-// ManagedProxyResource the resource model definition for Azure Resource Manager proxy resource. It will have
-// everything other than required location and tags. This proxy resource is explicitly created or updated by
-// including it in the parent resource.
+// ManagedProxyResource the resource model definition for Azure Resource Manager proxy resource. It will
+// have everything other than required location and tags. This proxy resource is explicitly created or
+// updated by including it in the parent resource.
 type ManagedProxyResource struct {
 	// ID - READ-ONLY; Fully qualified identifier for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
@@ -2097,8 +2103,8 @@ type NetworkResourceDescriptionList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// NetworkResourceDescriptionListIterator provides access to a complete listing of NetworkResourceDescription
-// values.
+// NetworkResourceDescriptionListIterator provides access to a complete listing of
+// NetworkResourceDescription values.
 type NetworkResourceDescriptionListIterator struct {
 	i    int
 	page NetworkResourceDescriptionListPage
@@ -2241,8 +2247,11 @@ func (page NetworkResourceDescriptionListPage) Values() []NetworkResourceDescrip
 }
 
 // Creates a new instance of the NetworkResourceDescriptionListPage type.
-func NewNetworkResourceDescriptionListPage(getNextPage func(context.Context, NetworkResourceDescriptionList) (NetworkResourceDescriptionList, error)) NetworkResourceDescriptionListPage {
-	return NetworkResourceDescriptionListPage{fn: getNextPage}
+func NewNetworkResourceDescriptionListPage(cur NetworkResourceDescriptionList, getNextPage func(context.Context, NetworkResourceDescriptionList) (NetworkResourceDescriptionList, error)) NetworkResourceDescriptionListPage {
+	return NetworkResourceDescriptionListPage{
+		fn:   getNextPage,
+		nrdl: cur,
+	}
 }
 
 // BasicNetworkResourceProperties describes properties of a network resource.
@@ -2593,8 +2602,11 @@ func (page OperationListResultPage) Values() []OperationResult {
 }
 
 // Creates a new instance of the OperationListResultPage type.
-func NewOperationListResultPage(getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
-	return OperationListResultPage{fn: getNextPage}
+func NewOperationListResultPage(cur OperationListResult, getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
+	return OperationListResultPage{
+		fn:  getNextPage,
+		olr: cur,
+	}
 }
 
 // OperationResult list of operations available at the listed Azure resource provider.
@@ -2644,8 +2656,8 @@ type Resource struct {
 	Type *string `json:"type,omitempty"`
 }
 
-// ResourceLimits this type describes the resource limits for a given container. It describes the most amount
-// of resources a container is allowed to use before being restarted.
+// ResourceLimits this type describes the resource limits for a given container. It describes the most
+// amount of resources a container is allowed to use before being restarted.
 type ResourceLimits struct {
 	// MemoryInGB - The memory limit in GB.
 	MemoryInGB *float64 `json:"memoryInGB,omitempty"`
@@ -2653,9 +2665,10 @@ type ResourceLimits struct {
 	CPU *float64 `json:"cpu,omitempty"`
 }
 
-// ResourceRequests this type describes the requested resources for a given container. It describes the least
-// amount of resources required for the container. A container can consume more than requested resources up to
-// the specified limits before being restarted. Currently, the requested resources are treated as limits.
+// ResourceRequests this type describes the requested resources for a given container. It describes the
+// least amount of resources required for the container. A container can consume more than requested
+// resources up to the specified limits before being restarted. Currently, the requested resources are
+// treated as limits.
 type ResourceRequests struct {
 	// MemoryInGB - The memory request in GB for this container.
 	MemoryInGB *float64 `json:"memoryInGB,omitempty"`
@@ -2922,8 +2935,11 @@ func (page SecretResourceDescriptionListPage) Values() []SecretResourceDescripti
 }
 
 // Creates a new instance of the SecretResourceDescriptionListPage type.
-func NewSecretResourceDescriptionListPage(getNextPage func(context.Context, SecretResourceDescriptionList) (SecretResourceDescriptionList, error)) SecretResourceDescriptionListPage {
-	return SecretResourceDescriptionListPage{fn: getNextPage}
+func NewSecretResourceDescriptionListPage(cur SecretResourceDescriptionList, getNextPage func(context.Context, SecretResourceDescriptionList) (SecretResourceDescriptionList, error)) SecretResourceDescriptionListPage {
+	return SecretResourceDescriptionListPage{
+		fn:   getNextPage,
+		srdl: cur,
+	}
 }
 
 // BasicSecretResourceProperties describes the properties of a secret resource.
@@ -3131,8 +3147,8 @@ type SecretValueProperties struct {
 	Value *string `json:"value,omitempty"`
 }
 
-// SecretValueResourceDescription this type describes a value of a secret resource. The name of this resource
-// is the version identifier corresponding to this secret value.
+// SecretValueResourceDescription this type describes a value of a secret resource. The name of this
+// resource is the version identifier corresponding to this secret value.
 type SecretValueResourceDescription struct {
 	autorest.Response `json:"-"`
 	// SecretValueResourceProperties - This type describes properties of a secret value resource.
@@ -3233,8 +3249,8 @@ func (svrd *SecretValueResourceDescription) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// SecretValueResourceDescriptionList a pageable list of values of a secret resource. The information does not
-// include only the name of the value and not the actual unencrypted value.
+// SecretValueResourceDescriptionList a pageable list of values of a secret resource. The information does
+// not include only the name of the value and not the actual unencrypted value.
 type SecretValueResourceDescriptionList struct {
 	autorest.Response `json:"-"`
 	// Value - One page of the list.
@@ -3387,8 +3403,11 @@ func (page SecretValueResourceDescriptionListPage) Values() []SecretValueResourc
 }
 
 // Creates a new instance of the SecretValueResourceDescriptionListPage type.
-func NewSecretValueResourceDescriptionListPage(getNextPage func(context.Context, SecretValueResourceDescriptionList) (SecretValueResourceDescriptionList, error)) SecretValueResourceDescriptionListPage {
-	return SecretValueResourceDescriptionListPage{fn: getNextPage}
+func NewSecretValueResourceDescriptionListPage(cur SecretValueResourceDescriptionList, getNextPage func(context.Context, SecretValueResourceDescriptionList) (SecretValueResourceDescriptionList, error)) SecretValueResourceDescriptionListPage {
+	return SecretValueResourceDescriptionListPage{
+		fn:    getNextPage,
+		svrdl: cur,
+	}
 }
 
 // SecretValueResourceProperties this type describes properties of a secret value resource.
@@ -3609,8 +3628,11 @@ func (page ServiceReplicaDescriptionListPage) Values() []ServiceReplicaDescripti
 }
 
 // Creates a new instance of the ServiceReplicaDescriptionListPage type.
-func NewServiceReplicaDescriptionListPage(getNextPage func(context.Context, ServiceReplicaDescriptionList) (ServiceReplicaDescriptionList, error)) ServiceReplicaDescriptionListPage {
-	return ServiceReplicaDescriptionListPage{fn: getNextPage}
+func NewServiceReplicaDescriptionListPage(cur ServiceReplicaDescriptionList, getNextPage func(context.Context, ServiceReplicaDescriptionList) (ServiceReplicaDescriptionList, error)) ServiceReplicaDescriptionListPage {
+	return ServiceReplicaDescriptionListPage{
+		fn:   getNextPage,
+		srdl: cur,
+	}
 }
 
 // ServiceReplicaProperties describes the properties of a service replica.
@@ -3710,8 +3732,8 @@ type ServiceResourceDescriptionList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// ServiceResourceDescriptionListIterator provides access to a complete listing of ServiceResourceDescription
-// values.
+// ServiceResourceDescriptionListIterator provides access to a complete listing of
+// ServiceResourceDescription values.
 type ServiceResourceDescriptionListIterator struct {
 	i    int
 	page ServiceResourceDescriptionListPage
@@ -3854,8 +3876,11 @@ func (page ServiceResourceDescriptionListPage) Values() []ServiceResourceDescrip
 }
 
 // Creates a new instance of the ServiceResourceDescriptionListPage type.
-func NewServiceResourceDescriptionListPage(getNextPage func(context.Context, ServiceResourceDescriptionList) (ServiceResourceDescriptionList, error)) ServiceResourceDescriptionListPage {
-	return ServiceResourceDescriptionListPage{fn: getNextPage}
+func NewServiceResourceDescriptionListPage(cur ServiceResourceDescriptionList, getNextPage func(context.Context, ServiceResourceDescriptionList) (ServiceResourceDescriptionList, error)) ServiceResourceDescriptionListPage {
+	return ServiceResourceDescriptionListPage{
+		fn:   getNextPage,
+		srdl: cur,
+	}
 }
 
 // ServiceResourceProperties this type describes properties of a service resource.
@@ -3914,8 +3939,8 @@ func (srp ServiceResourceProperties) MarshalJSON() ([]byte, error) {
 }
 
 // Setting describes a setting for the container. The setting file path can be fetched from environment
-// variable "Fabric_SettingPath". The path for Windows container is "C:\\secrets". The path for Linux container
-// is "/var/secrets".
+// variable "Fabric_SettingPath". The path for Windows container is "C:\\secrets". The path for Linux
+// container is "/var/secrets".
 type Setting struct {
 	// Name - The name of the setting.
 	Name *string `json:"name,omitempty"`
@@ -4262,8 +4287,11 @@ func (page VolumeResourceDescriptionListPage) Values() []VolumeResourceDescripti
 }
 
 // Creates a new instance of the VolumeResourceDescriptionListPage type.
-func NewVolumeResourceDescriptionListPage(getNextPage func(context.Context, VolumeResourceDescriptionList) (VolumeResourceDescriptionList, error)) VolumeResourceDescriptionListPage {
-	return VolumeResourceDescriptionListPage{fn: getNextPage}
+func NewVolumeResourceDescriptionListPage(cur VolumeResourceDescriptionList, getNextPage func(context.Context, VolumeResourceDescriptionList) (VolumeResourceDescriptionList, error)) VolumeResourceDescriptionListPage {
+	return VolumeResourceDescriptionListPage{
+		fn:   getNextPage,
+		vrdl: cur,
+	}
 }
 
 // VolumeResourceProperties this type describes properties of a volume resource.

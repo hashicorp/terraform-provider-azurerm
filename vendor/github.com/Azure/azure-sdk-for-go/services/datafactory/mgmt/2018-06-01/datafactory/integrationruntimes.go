@@ -93,6 +93,7 @@ func (client IntegrationRuntimesClient) CreateLinkedIntegrationRuntime(ctx conte
 	result, err = client.CreateLinkedIntegrationRuntimeResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.IntegrationRuntimesClient", "CreateLinkedIntegrationRuntime", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -171,9 +172,7 @@ func (client IntegrationRuntimesClient) CreateOrUpdate(ctx context.Context, reso
 		{TargetValue: integrationRuntimeName,
 			Constraints: []validation.Constraint{{Target: "integrationRuntimeName", Name: validation.MaxLength, Rule: 63, Chain: nil},
 				{Target: "integrationRuntimeName", Name: validation.MinLength, Rule: 3, Chain: nil},
-				{Target: "integrationRuntimeName", Name: validation.Pattern, Rule: `^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$`, Chain: nil}}},
-		{TargetValue: integrationRuntime,
-			Constraints: []validation.Constraint{{Target: "integrationRuntime.Properties", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
+				{Target: "integrationRuntimeName", Name: validation.Pattern, Rule: `^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("datafactory.IntegrationRuntimesClient", "CreateOrUpdate", err.Error())
 	}
 
@@ -193,6 +192,7 @@ func (client IntegrationRuntimesClient) CreateOrUpdate(ctx context.Context, reso
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.IntegrationRuntimesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -292,6 +292,7 @@ func (client IntegrationRuntimesClient) Delete(ctx context.Context, resourceGrou
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.IntegrationRuntimesClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -386,6 +387,7 @@ func (client IntegrationRuntimesClient) Get(ctx context.Context, resourceGroupNa
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.IntegrationRuntimesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -484,6 +486,7 @@ func (client IntegrationRuntimesClient) GetConnectionInfo(ctx context.Context, r
 	result, err = client.GetConnectionInfoResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.IntegrationRuntimesClient", "GetConnectionInfo", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -578,6 +581,7 @@ func (client IntegrationRuntimesClient) GetMonitoringData(ctx context.Context, r
 	result, err = client.GetMonitoringDataResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.IntegrationRuntimesClient", "GetMonitoringData", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -671,6 +675,7 @@ func (client IntegrationRuntimesClient) GetStatus(ctx context.Context, resourceG
 	result, err = client.GetStatusResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.IntegrationRuntimesClient", "GetStatus", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -764,6 +769,7 @@ func (client IntegrationRuntimesClient) ListAuthKeys(ctx context.Context, resour
 	result, err = client.ListAuthKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.IntegrationRuntimesClient", "ListAuthKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -853,9 +859,11 @@ func (client IntegrationRuntimesClient) ListByFactory(ctx context.Context, resou
 	result.irlr, err = client.ListByFactoryResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.IntegrationRuntimesClient", "ListByFactory", resp, "Failure responding to request")
+		return
 	}
 	if result.irlr.hasNextLink() && result.irlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -986,6 +994,7 @@ func (client IntegrationRuntimesClient) RegenerateAuthKey(ctx context.Context, r
 	result, err = client.RegenerateAuthKeyResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.IntegrationRuntimesClient", "RegenerateAuthKey", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1084,6 +1093,7 @@ func (client IntegrationRuntimesClient) RemoveLinks(ctx context.Context, resourc
 	result, err = client.RemoveLinksResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.IntegrationRuntimesClient", "RemoveLinks", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1170,7 +1180,7 @@ func (client IntegrationRuntimesClient) Start(ctx context.Context, resourceGroup
 
 	result, err = client.StartSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "datafactory.IntegrationRuntimesClient", "Start", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "datafactory.IntegrationRuntimesClient", "Start", nil, "Failure sending request")
 		return
 	}
 
@@ -1207,7 +1217,33 @@ func (client IntegrationRuntimesClient) StartSender(req *http.Request) (future I
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client IntegrationRuntimesClient) (irsr IntegrationRuntimeStatusResponse, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "datafactory.IntegrationRuntimesStartFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("datafactory.IntegrationRuntimesStartFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		irsr.Response.Response, err = future.GetResult(sender)
+		if irsr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "datafactory.IntegrationRuntimesStartFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && irsr.Response.Response.StatusCode != http.StatusNoContent {
+			irsr, err = client.StartResponder(irsr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "datafactory.IntegrationRuntimesStartFuture", "Result", irsr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -1263,7 +1299,7 @@ func (client IntegrationRuntimesClient) Stop(ctx context.Context, resourceGroupN
 
 	result, err = client.StopSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "datafactory.IntegrationRuntimesClient", "Stop", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "datafactory.IntegrationRuntimesClient", "Stop", nil, "Failure sending request")
 		return
 	}
 
@@ -1300,7 +1336,23 @@ func (client IntegrationRuntimesClient) StopSender(req *http.Request) (future In
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client IntegrationRuntimesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "datafactory.IntegrationRuntimesStopFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("datafactory.IntegrationRuntimesStopFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -1366,6 +1418,7 @@ func (client IntegrationRuntimesClient) SyncCredentials(ctx context.Context, res
 	result, err = client.SyncCredentialsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.IntegrationRuntimesClient", "SyncCredentials", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1459,6 +1512,7 @@ func (client IntegrationRuntimesClient) Update(ctx context.Context, resourceGrou
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.IntegrationRuntimesClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1554,6 +1608,7 @@ func (client IntegrationRuntimesClient) Upgrade(ctx context.Context, resourceGro
 	result, err = client.UpgradeResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.IntegrationRuntimesClient", "Upgrade", resp, "Failure responding to request")
+		return
 	}
 
 	return

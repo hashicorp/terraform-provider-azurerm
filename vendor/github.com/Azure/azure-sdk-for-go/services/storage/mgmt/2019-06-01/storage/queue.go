@@ -95,6 +95,7 @@ func (client QueueClient) Create(ctx context.Context, resourceGroupName string, 
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.QueueClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -194,6 +195,7 @@ func (client QueueClient) Delete(ctx context.Context, resourceGroupName string, 
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.QueueClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -290,6 +292,7 @@ func (client QueueClient) Get(ctx context.Context, resourceGroupName string, acc
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.QueueClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -385,9 +388,11 @@ func (client QueueClient) List(ctx context.Context, resourceGroupName string, ac
 	result.lqr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.QueueClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.lqr.hasNextLink() && result.lqr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -528,6 +533,7 @@ func (client QueueClient) Update(ctx context.Context, resourceGroupName string, 
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.QueueClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

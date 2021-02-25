@@ -80,7 +80,7 @@ func (client DscCompilationJobClient) Create(ctx context.Context, resourceGroupN
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "automation.DscCompilationJobClient", "Create", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "automation.DscCompilationJobClient", "Create", nil, "Failure sending request")
 		return
 	}
 
@@ -119,7 +119,33 @@ func (client DscCompilationJobClient) CreateSender(req *http.Request) (future Ds
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client DscCompilationJobClient) (dcj DscCompilationJob, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "automation.DscCompilationJobCreateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("automation.DscCompilationJobCreateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		dcj.Response.Response, err = future.GetResult(sender)
+		if dcj.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "automation.DscCompilationJobCreateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && dcj.Response.Response.StatusCode != http.StatusNoContent {
+			dcj, err = client.CreateResponder(dcj.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "automation.DscCompilationJobCreateFuture", "Result", dcj.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -175,6 +201,7 @@ func (client DscCompilationJobClient) Get(ctx context.Context, resourceGroupName
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.DscCompilationJobClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -261,6 +288,7 @@ func (client DscCompilationJobClient) GetStream(ctx context.Context, resourceGro
 	result, err = client.GetStreamResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.DscCompilationJobClient", "GetStream", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -348,9 +376,11 @@ func (client DscCompilationJobClient) ListByAutomationAccount(ctx context.Contex
 	result.dcjlr, err = client.ListByAutomationAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.DscCompilationJobClient", "ListByAutomationAccount", resp, "Failure responding to request")
+		return
 	}
 	if result.dcjlr.hasNextLink() && result.dcjlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

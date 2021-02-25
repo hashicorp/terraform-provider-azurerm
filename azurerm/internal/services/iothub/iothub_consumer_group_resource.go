@@ -15,11 +15,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmIotHubConsumerGroup() *schema.Resource {
+func resourceIotHubConsumerGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmIotHubConsumerGroupCreate,
-		Read:   resourceArmIotHubConsumerGroupRead,
-		Delete: resourceArmIotHubConsumerGroupDelete,
+		Create: resourceIotHubConsumerGroupCreate,
+		Read:   resourceIotHubConsumerGroupRead,
+		Delete: resourceIotHubConsumerGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -57,7 +57,7 @@ func resourceArmIotHubConsumerGroup() *schema.Resource {
 	}
 }
 
-func resourceArmIotHubConsumerGroupCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubConsumerGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -99,10 +99,10 @@ func resourceArmIotHubConsumerGroupCreate(d *schema.ResourceData, meta interface
 
 	d.SetId(*read.ID)
 
-	return resourceArmIotHubConsumerGroupRead(d, meta)
+	return resourceIotHubConsumerGroupRead(d, meta)
 }
 
-func resourceArmIotHubConsumerGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubConsumerGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -134,7 +134,7 @@ func resourceArmIotHubConsumerGroupRead(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceArmIotHubConsumerGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubConsumerGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -11,17 +11,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmVPNServerConfiguration() *schema.Resource {
+func resourceVPNServerConfiguration() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmVPNServerConfigurationCreateUpdate,
-		Read:   resourceArmVPNServerConfigurationRead,
-		Update: resourceArmVPNServerConfigurationCreateUpdate,
-		Delete: resourceArmVPNServerConfigurationDelete,
+		Create: resourceVPNServerConfigurationCreateUpdate,
+		Read:   resourceVPNServerConfigurationRead,
+		Update: resourceVPNServerConfigurationCreateUpdate,
+		Delete: resourceVPNServerConfigurationDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -385,7 +386,7 @@ func resourceArmVPNServerConfiguration() *schema.Resource {
 	}
 }
 
-func resourceArmVPNServerConfigurationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceVPNServerConfigurationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VpnServerConfigurationsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -511,15 +512,15 @@ func resourceArmVPNServerConfigurationCreateUpdate(d *schema.ResourceData, meta 
 
 	d.SetId(*resp.ID)
 
-	return resourceArmVPNServerConfigurationRead(d, meta)
+	return resourceVPNServerConfigurationRead(d, meta)
 }
 
-func resourceArmVPNServerConfigurationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceVPNServerConfigurationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VpnServerConfigurationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseVpnServerConfigurationID(d.Id())
+	id, err := parse.VpnServerConfigurationID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -595,12 +596,12 @@ func resourceArmVPNServerConfigurationRead(d *schema.ResourceData, meta interfac
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmVPNServerConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceVPNServerConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VpnServerConfigurationsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseVpnServerConfigurationID(d.Id())
+	id, err := parse.VpnServerConfigurationID(d.Id())
 	if err != nil {
 		return err
 	}

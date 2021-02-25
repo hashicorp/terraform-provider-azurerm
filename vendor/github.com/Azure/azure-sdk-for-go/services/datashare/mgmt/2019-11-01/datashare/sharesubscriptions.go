@@ -74,7 +74,7 @@ func (client ShareSubscriptionsClient) CancelSynchronization(ctx context.Context
 
 	result, err = client.CancelSynchronizationSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsClient", "CancelSynchronization", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsClient", "CancelSynchronization", nil, "Failure sending request")
 		return
 	}
 
@@ -119,7 +119,33 @@ func (client ShareSubscriptionsClient) CancelSynchronizationSender(req *http.Req
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ShareSubscriptionsClient) (sss ShareSubscriptionSynchronization, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsCancelSynchronizationFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("datashare.ShareSubscriptionsCancelSynchronizationFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		sss.Response.Response, err = future.GetResult(sender)
+		if sss.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsCancelSynchronizationFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && sss.Response.Response.StatusCode != http.StatusNoContent {
+			sss, err = client.CancelSynchronizationResponder(sss.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsCancelSynchronizationFuture", "Result", sss.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -177,6 +203,7 @@ func (client ShareSubscriptionsClient) Create(ctx context.Context, resourceGroup
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -248,7 +275,7 @@ func (client ShareSubscriptionsClient) Delete(ctx context.Context, resourceGroup
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -285,7 +312,33 @@ func (client ShareSubscriptionsClient) DeleteSender(req *http.Request) (future S
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ShareSubscriptionsClient) (or OperationResponse, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("datashare.ShareSubscriptionsDeleteFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		or.Response.Response, err = future.GetResult(sender)
+		if or.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsDeleteFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && or.Response.Response.StatusCode != http.StatusNoContent {
+			or, err = client.DeleteResponder(or.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsDeleteFuture", "Result", or.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -333,6 +386,7 @@ func (client ShareSubscriptionsClient) Get(ctx context.Context, resourceGroupNam
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -413,9 +467,11 @@ func (client ShareSubscriptionsClient) ListByAccount(ctx context.Context, resour
 	result.ssl, err = client.ListByAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsClient", "ListByAccount", resp, "Failure responding to request")
+		return
 	}
 	if result.ssl.hasNextLink() && result.ssl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -540,9 +596,11 @@ func (client ShareSubscriptionsClient) ListSourceShareSynchronizationSettings(ct
 	result.ssssl, err = client.ListSourceShareSynchronizationSettingsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsClient", "ListSourceShareSynchronizationSettings", resp, "Failure responding to request")
+		return
 	}
 	if result.ssssl.hasNextLink() && result.ssssl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -671,9 +729,11 @@ func (client ShareSubscriptionsClient) ListSynchronizationDetails(ctx context.Co
 	result.sdl, err = client.ListSynchronizationDetailsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsClient", "ListSynchronizationDetails", resp, "Failure responding to request")
+		return
 	}
 	if result.sdl.hasNextLink() && result.sdl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -809,9 +869,11 @@ func (client ShareSubscriptionsClient) ListSynchronizations(ctx context.Context,
 	result.sssl, err = client.ListSynchronizationsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsClient", "ListSynchronizations", resp, "Failure responding to request")
+		return
 	}
 	if result.sssl.hasNextLink() && result.sssl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -928,7 +990,7 @@ func (client ShareSubscriptionsClient) SynchronizeMethod(ctx context.Context, re
 
 	result, err = client.SynchronizeMethodSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsClient", "SynchronizeMethod", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsClient", "SynchronizeMethod", nil, "Failure sending request")
 		return
 	}
 
@@ -967,7 +1029,33 @@ func (client ShareSubscriptionsClient) SynchronizeMethodSender(req *http.Request
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ShareSubscriptionsClient) (sss ShareSubscriptionSynchronization, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsSynchronizeMethodFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("datashare.ShareSubscriptionsSynchronizeMethodFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		sss.Response.Response, err = future.GetResult(sender)
+		if sss.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsSynchronizeMethodFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && sss.Response.Response.StatusCode != http.StatusNoContent {
+			sss, err = client.SynchronizeMethodResponder(sss.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsSynchronizeMethodFuture", "Result", sss.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

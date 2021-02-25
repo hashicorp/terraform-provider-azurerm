@@ -73,6 +73,7 @@ func (client EnterpriseChannelsClient) CheckNameAvailability(ctx context.Context
 	result, err = client.CheckNameAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "botservice.EnterpriseChannelsClient", "CheckNameAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -152,7 +153,7 @@ func (client EnterpriseChannelsClient) Create(ctx context.Context, resourceGroup
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "botservice.EnterpriseChannelsClient", "Create", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "botservice.EnterpriseChannelsClient", "Create", nil, "Failure sending request")
 		return
 	}
 
@@ -190,7 +191,33 @@ func (client EnterpriseChannelsClient) CreateSender(req *http.Request) (future E
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client EnterpriseChannelsClient) (ec EnterpriseChannel, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "botservice.EnterpriseChannelsCreateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("botservice.EnterpriseChannelsCreateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		ec.Response.Response, err = future.GetResult(sender)
+		if ec.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "botservice.EnterpriseChannelsCreateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && ec.Response.Response.StatusCode != http.StatusNoContent {
+			ec, err = client.CreateResponder(ec.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "botservice.EnterpriseChannelsCreateFuture", "Result", ec.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -241,7 +268,7 @@ func (client EnterpriseChannelsClient) Delete(ctx context.Context, resourceGroup
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "botservice.EnterpriseChannelsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "botservice.EnterpriseChannelsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -277,7 +304,23 @@ func (client EnterpriseChannelsClient) DeleteSender(req *http.Request) (future E
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client EnterpriseChannelsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "botservice.EnterpriseChannelsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("botservice.EnterpriseChannelsDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -335,6 +378,7 @@ func (client EnterpriseChannelsClient) Get(ctx context.Context, resourceGroupNam
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "botservice.EnterpriseChannelsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -418,9 +462,11 @@ func (client EnterpriseChannelsClient) ListByResourceGroup(ctx context.Context, 
 	result.ecrl, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "botservice.EnterpriseChannelsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.ecrl.hasNextLink() && result.ecrl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -537,7 +583,7 @@ func (client EnterpriseChannelsClient) Update(ctx context.Context, resourceGroup
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "botservice.EnterpriseChannelsClient", "Update", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "botservice.EnterpriseChannelsClient", "Update", nil, "Failure sending request")
 		return
 	}
 
@@ -575,7 +621,33 @@ func (client EnterpriseChannelsClient) UpdateSender(req *http.Request) (future E
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client EnterpriseChannelsClient) (ec EnterpriseChannel, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "botservice.EnterpriseChannelsUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("botservice.EnterpriseChannelsUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		ec.Response.Response, err = future.GetResult(sender)
+		if ec.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "botservice.EnterpriseChannelsUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && ec.Response.Response.StatusCode != http.StatusNoContent {
+			ec, err = client.UpdateResponder(ec.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "botservice.EnterpriseChannelsUpdateFuture", "Result", ec.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

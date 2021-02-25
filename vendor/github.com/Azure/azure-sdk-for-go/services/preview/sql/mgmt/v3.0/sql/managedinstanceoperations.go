@@ -77,6 +77,7 @@ func (client ManagedInstanceOperationsClient) Cancel(ctx context.Context, resour
 	result, err = client.CancelResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceOperationsClient", "Cancel", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -153,6 +154,7 @@ func (client ManagedInstanceOperationsClient) Get(ctx context.Context, resourceG
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceOperationsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -231,9 +233,11 @@ func (client ManagedInstanceOperationsClient) ListByManagedInstance(ctx context.
 	result.miolr, err = client.ListByManagedInstanceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceOperationsClient", "ListByManagedInstance", resp, "Failure responding to request")
+		return
 	}
 	if result.miolr.hasNextLink() && result.miolr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

@@ -76,6 +76,7 @@ func (client AssignmentOperationsClient) Get(ctx context.Context, resourceScope 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "blueprint.AssignmentOperationsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -154,9 +155,11 @@ func (client AssignmentOperationsClient) List(ctx context.Context, resourceScope
 	result.aol, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "blueprint.AssignmentOperationsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.aol.hasNextLink() && result.aol.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

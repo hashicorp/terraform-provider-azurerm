@@ -79,7 +79,7 @@ func (client JobAgentsClient) CreateOrUpdate(ctx context.Context, resourceGroupN
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.JobAgentsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.JobAgentsClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -118,7 +118,33 @@ func (client JobAgentsClient) CreateOrUpdateSender(req *http.Request) (future Jo
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client JobAgentsClient) (ja JobAgent, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.JobAgentsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.JobAgentsCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		ja.Response.Response, err = future.GetResult(sender)
+		if ja.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "sql.JobAgentsCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && ja.Response.Response.StatusCode != http.StatusNoContent {
+			ja, err = client.CreateOrUpdateResponder(ja.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "sql.JobAgentsCreateOrUpdateFuture", "Result", ja.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -159,7 +185,7 @@ func (client JobAgentsClient) Delete(ctx context.Context, resourceGroupName stri
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.JobAgentsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.JobAgentsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -196,7 +222,23 @@ func (client JobAgentsClient) DeleteSender(req *http.Request) (future JobAgentsD
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client JobAgentsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.JobAgentsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.JobAgentsDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -244,6 +286,7 @@ func (client JobAgentsClient) Get(ctx context.Context, resourceGroupName string,
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobAgentsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -322,9 +365,11 @@ func (client JobAgentsClient) ListByServer(ctx context.Context, resourceGroupNam
 	result.jalr, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobAgentsClient", "ListByServer", resp, "Failure responding to request")
+		return
 	}
 	if result.jalr.hasNextLink() && result.jalr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -432,7 +477,7 @@ func (client JobAgentsClient) Update(ctx context.Context, resourceGroupName stri
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.JobAgentsClient", "Update", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.JobAgentsClient", "Update", nil, "Failure sending request")
 		return
 	}
 
@@ -471,7 +516,33 @@ func (client JobAgentsClient) UpdateSender(req *http.Request) (future JobAgentsU
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client JobAgentsClient) (ja JobAgent, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.JobAgentsUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.JobAgentsUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		ja.Response.Response, err = future.GetResult(sender)
+		if ja.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "sql.JobAgentsUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && ja.Response.Response.StatusCode != http.StatusNoContent {
+			ja, err = client.UpdateResponder(ja.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "sql.JobAgentsUpdateFuture", "Result", ja.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

@@ -73,6 +73,7 @@ func (client Client) CheckNameAvailability(ctx context.Context, resourceGroupNam
 	result, err = client.CheckNameAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "recoveryservices.Client", "CheckNameAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return

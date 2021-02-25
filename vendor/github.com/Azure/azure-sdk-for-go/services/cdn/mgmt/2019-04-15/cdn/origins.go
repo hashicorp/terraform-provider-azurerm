@@ -83,6 +83,7 @@ func (client OriginsClient) Get(ctx context.Context, resourceGroupName string, p
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.OriginsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -170,9 +171,11 @@ func (client OriginsClient) ListByEndpoint(ctx context.Context, resourceGroupNam
 	result.olr, err = client.ListByEndpointResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.OriginsClient", "ListByEndpoint", resp, "Failure responding to request")
+		return
 	}
 	if result.olr.hasNextLink() && result.olr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -289,7 +292,7 @@ func (client OriginsClient) Update(ctx context.Context, resourceGroupName string
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "cdn.OriginsClient", "Update", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "cdn.OriginsClient", "Update", nil, "Failure sending request")
 		return
 	}
 
@@ -329,7 +332,33 @@ func (client OriginsClient) UpdateSender(req *http.Request) (future OriginsUpdat
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client OriginsClient) (o Origin, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "cdn.OriginsUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("cdn.OriginsUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		o.Response.Response, err = future.GetResult(sender)
+		if o.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "cdn.OriginsUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && o.Response.Response.StatusCode != http.StatusNoContent {
+			o, err = client.UpdateResponder(o.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "cdn.OriginsUpdateFuture", "Result", o.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

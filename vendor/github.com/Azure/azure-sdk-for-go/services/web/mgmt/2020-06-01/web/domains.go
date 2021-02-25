@@ -72,6 +72,7 @@ func (client DomainsClient) CheckAvailability(ctx context.Context, identifier Na
 	result, err = client.CheckAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DomainsClient", "CheckAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -206,7 +207,7 @@ func (client DomainsClient) CreateOrUpdate(ctx context.Context, resourceGroupNam
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.DomainsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "web.DomainsClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -244,7 +245,33 @@ func (client DomainsClient) CreateOrUpdateSender(req *http.Request) (future Doma
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client DomainsClient) (d Domain, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "web.DomainsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("web.DomainsCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		d.Response.Response, err = future.GetResult(sender)
+		if d.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "web.DomainsCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && d.Response.Response.StatusCode != http.StatusNoContent {
+			d, err = client.CreateOrUpdateResponder(d.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "web.DomainsCreateOrUpdateFuture", "Result", d.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -302,6 +329,7 @@ func (client DomainsClient) CreateOrUpdateOwnershipIdentifier(ctx context.Contex
 	result, err = client.CreateOrUpdateOwnershipIdentifierResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DomainsClient", "CreateOrUpdateOwnershipIdentifier", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -390,6 +418,7 @@ func (client DomainsClient) Delete(ctx context.Context, resourceGroupName string
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DomainsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -476,6 +505,7 @@ func (client DomainsClient) DeleteOwnershipIdentifier(ctx context.Context, resou
 	result, err = client.DeleteOwnershipIdentifierResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DomainsClient", "DeleteOwnershipIdentifier", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -559,6 +589,7 @@ func (client DomainsClient) Get(ctx context.Context, resourceGroupName string, d
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DomainsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -631,6 +662,7 @@ func (client DomainsClient) GetControlCenterSsoRequest(ctx context.Context) (res
 	result, err = client.GetControlCenterSsoRequestResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DomainsClient", "GetControlCenterSsoRequest", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -713,6 +745,7 @@ func (client DomainsClient) GetOwnershipIdentifier(ctx context.Context, resource
 	result, err = client.GetOwnershipIdentifierResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DomainsClient", "GetOwnershipIdentifier", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -787,9 +820,11 @@ func (client DomainsClient) List(ctx context.Context) (result DomainCollectionPa
 	result.dc, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DomainsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.dc.hasNextLink() && result.dc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -908,9 +943,11 @@ func (client DomainsClient) ListByResourceGroup(ctx context.Context, resourceGro
 	result.dc, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DomainsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.dc.hasNextLink() && result.dc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -1031,9 +1068,11 @@ func (client DomainsClient) ListOwnershipIdentifiers(ctx context.Context, resour
 	result.doic, err = client.ListOwnershipIdentifiersResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DomainsClient", "ListOwnershipIdentifiers", resp, "Failure responding to request")
+		return
 	}
 	if result.doic.hasNextLink() && result.doic.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -1146,9 +1185,11 @@ func (client DomainsClient) ListRecommendations(ctx context.Context, parameters 
 	result.nic, err = client.ListRecommendationsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DomainsClient", "ListRecommendations", resp, "Failure responding to request")
+		return
 	}
 	if result.nic.hasNextLink() && result.nic.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -1269,6 +1310,7 @@ func (client DomainsClient) Renew(ctx context.Context, resourceGroupName string,
 	result, err = client.RenewResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DomainsClient", "Renew", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1354,6 +1396,7 @@ func (client DomainsClient) Update(ctx context.Context, resourceGroupName string
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DomainsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1442,6 +1485,7 @@ func (client DomainsClient) UpdateOwnershipIdentifier(ctx context.Context, resou
 	result, err = client.UpdateOwnershipIdentifierResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DomainsClient", "UpdateOwnershipIdentifier", resp, "Failure responding to request")
+		return
 	}
 
 	return

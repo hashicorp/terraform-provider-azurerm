@@ -84,6 +84,7 @@ func (client EventSourcesClient) CreateOrUpdate(ctx context.Context, resourceGro
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "timeseriesinsights.EventSourcesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -166,6 +167,7 @@ func (client EventSourcesClient) Delete(ctx context.Context, resourceGroupName s
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "timeseriesinsights.EventSourcesClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -244,6 +246,7 @@ func (client EventSourcesClient) Get(ctx context.Context, resourceGroupName stri
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "timeseriesinsights.EventSourcesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -322,6 +325,7 @@ func (client EventSourcesClient) ListByEnvironment(ctx context.Context, resource
 	result, err = client.ListByEnvironmentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "timeseriesinsights.EventSourcesClient", "ListByEnvironment", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -402,6 +406,7 @@ func (client EventSourcesClient) Update(ctx context.Context, resourceGroupName s
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "timeseriesinsights.EventSourcesClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

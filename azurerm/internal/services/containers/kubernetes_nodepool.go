@@ -2,14 +2,15 @@ package containers
 
 import (
 	"fmt"
+	"strings"
 
 	computeValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/validate"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-09-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-12-01/containerservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -63,6 +64,12 @@ func SchemaDefaultNodePool() *schema.Schema {
 				},
 
 				"enable_node_public_ip": {
+					Type:     schema.TypeBool,
+					Optional: true,
+					ForceNew: true,
+				},
+
+				"enable_host_encryption": {
 					Type:     schema.TypeBool,
 					Optional: true,
 					ForceNew: true,
@@ -153,6 +160,13 @@ func SchemaDefaultNodePool() *schema.Schema {
 					ForceNew:     true,
 					ValidateFunc: computeValidate.ProximityPlacementGroupID,
 				},
+				"only_critical_addons_enabled": {
+					Type:     schema.TypeBool,
+					Optional: true,
+					ForceNew: true,
+				},
+
+				"upgrade_settings": upgradeSettingsSchema(),
 			},
 		},
 	}
@@ -185,6 +199,7 @@ func ConvertDefaultNodePoolToAgentPool(input *[]containerservice.ManagedClusterA
 			NodeLabels:                defaultCluster.NodeLabels,
 			NodeTaints:                defaultCluster.NodeTaints,
 			Tags:                      defaultCluster.Tags,
+			UpgradeSettings:           defaultCluster.UpgradeSettings,
 		},
 	}
 }
@@ -200,19 +215,26 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 	nodeTaints := utils.ExpandStringSlice(nodeTaintsRaw)
 
 	if len(*nodeTaints) != 0 {
-		return nil, fmt.Errorf("The AKS API has removed support for tainting all nodes in the default node pool and it is no longer possible to configure this. To taint a node pool, create a separate one")
+		return nil, fmt.Errorf("The AKS API has removed support for tainting all nodes in the default node pool and it is no longer possible to configure this. To taint a node pool, create a separate one.")
+	}
+
+	criticalAddonsEnabled := raw["only_critical_addons_enabled"].(bool)
+	if criticalAddonsEnabled {
+		*nodeTaints = append(*nodeTaints, "CriticalAddonsOnly=true:NoSchedule")
 	}
 
 	t := raw["tags"].(map[string]interface{})
 
 	profile := containerservice.ManagedClusterAgentPoolProfile{
-		EnableAutoScaling:  utils.Bool(enableAutoScaling),
-		EnableNodePublicIP: utils.Bool(raw["enable_node_public_ip"].(bool)),
-		Name:               utils.String(raw["name"].(string)),
-		NodeLabels:         nodeLabels,
-		Tags:               tags.Expand(t),
-		Type:               containerservice.AgentPoolType(raw["type"].(string)),
-		VMSize:             containerservice.VMSizeTypes(raw["vm_size"].(string)),
+		EnableAutoScaling:      utils.Bool(enableAutoScaling),
+		EnableNodePublicIP:     utils.Bool(raw["enable_node_public_ip"].(bool)),
+		EnableEncryptionAtHost: utils.Bool(raw["enable_host_encryption"].(bool)),
+		Name:                   utils.String(raw["name"].(string)),
+		NodeLabels:             nodeLabels,
+		NodeTaints:             nodeTaints,
+		Tags:                   tags.Expand(t),
+		Type:                   containerservice.AgentPoolType(raw["type"].(string)),
+		VMSize:                 containerservice.VMSizeTypes(raw["vm_size"].(string)),
 
 		// at this time the default node pool has to be Linux or the AKS cluster fails to provision with:
 		// Pods not in Running status: coredns-7fc597cc45-v5z7x,coredns-autoscaler-7ccc76bfbd-djl7j,metrics-server-cbd95f966-5rl97,tunnelfront-7d9884977b-wpbvn
@@ -223,6 +245,8 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 		// Code="MustDefineAtLeastOneSystemPool" Message="Must define at least one system pool."
 		// since this is the "default" node pool we can assume this is a system node pool
 		Mode: containerservice.System,
+
+		UpgradeSettings: expandUpgradeSettings(raw["upgrade_settings"].([]interface{})),
 
 		// // TODO: support these in time
 		// ScaleSetEvictionPolicy: "",
@@ -344,6 +368,11 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 		enableNodePublicIP = *agentPool.EnableNodePublicIP
 	}
 
+	enableHostEncryption := false
+	if agentPool.EnableEncryptionAtHost != nil {
+		enableHostEncryption = *agentPool.EnableEncryptionAtHost
+	}
+
 	maxCount := 0
 	if agentPool.MaxCount != nil {
 		maxCount = int(*agentPool.MaxCount)
@@ -372,6 +401,15 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 		}
 	}
 
+	criticalAddonsEnabled := false
+	if agentPool.NodeTaints != nil {
+		for _, taint := range *agentPool.NodeTaints {
+			if strings.EqualFold(taint, "CriticalAddonsOnly=true:NoSchedule") {
+				criticalAddonsEnabled = true
+			}
+		}
+	}
+
 	osDiskSizeGB := 0
 	if agentPool.OsDiskSizeGB != nil {
 		osDiskSizeGB = int(*agentPool.OsDiskSizeGB)
@@ -397,11 +435,14 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 		proximityPlacementGroupId = *agentPool.ProximityPlacementGroupID
 	}
 
+	upgradeSettings := flattenUpgradeSettings(agentPool.UpgradeSettings)
+
 	return &[]interface{}{
 		map[string]interface{}{
 			"availability_zones":           availabilityZones,
 			"enable_auto_scaling":          enableAutoScaling,
 			"enable_node_public_ip":        enableNodePublicIP,
+			"enable_host_encryption":       enableHostEncryption,
 			"max_count":                    maxCount,
 			"max_pods":                     maxPods,
 			"min_count":                    minCount,
@@ -416,7 +457,9 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 			"vm_size":                      string(agentPool.VMSize),
 			"orchestrator_version":         orchestratorVersion,
 			"proximity_placement_group_id": proximityPlacementGroupId,
+			"upgrade_settings":             upgradeSettings,
 			"vnet_subnet_id":               vnetSubnetId,
+			"only_critical_addons_enabled": criticalAddonsEnabled,
 		},
 	}, nil
 }

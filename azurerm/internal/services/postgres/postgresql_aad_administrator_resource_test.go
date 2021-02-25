@@ -64,18 +64,14 @@ func TestAccPostgreSqlAdministrator_disappears(t *testing.T) {
 	r := PostgreSqlAdministratorResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckAzurePostgreSqlAdministratorDisappears(data.ResourceName),
-			),
-			ExpectNonEmptyPlan: true,
-		},
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.basic,
+			TestResource: r,
+		}),
 	})
 }
 
-func (t PostgreSqlAdministratorResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r PostgreSqlAdministratorResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.AzureActiveDirectoryAdministratorID(state.ID)
 	if err != nil {
 		return nil, err
@@ -89,25 +85,17 @@ func (t PostgreSqlAdministratorResource) Exists(ctx context.Context, clients *cl
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func testCheckAzurePostgreSqlAdministratorDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Postgres.ServerAdministratorsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		serverName := rs.Primary.Attributes["server_name"]
-
-		if _, err := client.Delete(ctx, resourceGroup, serverName); err != nil {
-			return fmt.Errorf("Bad: Delete on postgresAdministratorClient: %+v", err)
-		}
-
-		return nil
+func (r PostgreSqlAdministratorResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.AzureActiveDirectoryAdministratorID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+
+	if _, err := client.Postgres.ServerAdministratorsClient.Delete(ctx, id.ResourceGroup, id.ServerName); err != nil {
+		return nil, fmt.Errorf("deleting Postgresql AAD Admnistrator (%s): %+v", id.String(), err)
+	}
+
+	return utils.Bool(true), nil
 }
 
 func (PostgreSqlAdministratorResource) basic(data acceptance.TestData) string {

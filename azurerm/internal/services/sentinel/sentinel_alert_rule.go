@@ -28,7 +28,7 @@ func alertRuleID(rule securityinsight.BasicAlertRule) *string {
 
 func importSentinelAlertRule(expectKind securityinsight.AlertRuleKind) func(d *schema.ResourceData, meta interface{}) (data []*schema.ResourceData, err error) {
 	return func(d *schema.ResourceData, meta interface{}) (data []*schema.ResourceData, err error) {
-		id, err := parse.SentinelAlertRuleID(d.Id())
+		id, err := parse.AlertRuleID(d.Id())
 		if err != nil {
 			return nil, err
 		}
@@ -37,9 +37,9 @@ func importSentinelAlertRule(expectKind securityinsight.AlertRuleKind) func(d *s
 		ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 		defer cancel()
 
-		resp, err := client.Get(ctx, id.ResourceGroup, "Microsoft.OperationalInsights", id.Workspace, id.Name)
+		resp, err := client.Get(ctx, id.ResourceGroup, "Microsoft.OperationalInsights", id.WorkspaceName, id.Name)
 		if err != nil {
-			return nil, fmt.Errorf("retrieving Sentinel Alert Rule %q (Resource Group %q / Workspace: %q): %+v", id.Name, id.ResourceGroup, id.Workspace, err)
+			return nil, fmt.Errorf("retrieving Sentinel Alert Rule %q: %+v", id, err)
 		}
 
 		if err := assertAlertRuleKind(resp.Value, expectKind); err != nil {
@@ -53,11 +53,11 @@ func assertAlertRuleKind(rule securityinsight.BasicAlertRule, expectKind securit
 	var kind securityinsight.AlertRuleKind
 	switch rule.(type) {
 	case securityinsight.FusionAlertRule:
-		kind = securityinsight.Fusion
+		kind = securityinsight.AlertRuleKindFusion
 	case securityinsight.MicrosoftSecurityIncidentCreationAlertRule:
-		kind = securityinsight.MicrosoftSecurityIncidentCreation
+		kind = securityinsight.AlertRuleKindMicrosoftSecurityIncidentCreation
 	case securityinsight.ScheduledAlertRule:
-		kind = securityinsight.Scheduled
+		kind = securityinsight.AlertRuleKindScheduled
 	}
 	if expectKind != kind {
 		return fmt.Errorf("Sentinel Alert Rule has mismatched kind, expected: %q, got %q", expectKind, kind)

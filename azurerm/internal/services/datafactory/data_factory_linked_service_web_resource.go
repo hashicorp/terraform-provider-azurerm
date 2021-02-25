@@ -9,18 +9,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataFactoryLinkedServiceWeb() *schema.Resource {
+func resourceDataFactoryLinkedServiceWeb() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryLinkedServiceWebCreateUpdate,
-		Read:   resourceArmDataFactoryLinkedServiceWebRead,
-		Update: resourceArmDataFactoryLinkedServiceWebCreateUpdate,
-		Delete: resourceArmDataFactoryLinkedServiceWebDelete,
+		Create: resourceDataFactoryLinkedServiceWebCreateUpdate,
+		Read:   resourceDataFactoryLinkedServiceWebRead,
+		Update: resourceDataFactoryLinkedServiceWebCreateUpdate,
+		Delete: resourceDataFactoryLinkedServiceWebDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -116,7 +116,7 @@ func resourceArmDataFactoryLinkedServiceWeb() *schema.Resource {
 	}
 }
 
-func resourceArmDataFactoryLinkedServiceWebCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceWebCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -208,10 +208,10 @@ func resourceArmDataFactoryLinkedServiceWebCreateUpdate(d *schema.ResourceData, 
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDataFactoryLinkedServiceWebRead(d, meta)
+	return resourceDataFactoryLinkedServiceWebRead(d, meta)
 }
 
-func resourceArmDataFactoryLinkedServiceWebRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceWebRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -284,7 +284,7 @@ func resourceArmDataFactoryLinkedServiceWebRead(d *schema.ResourceData, meta int
 	return nil
 }
 
-func resourceArmDataFactoryLinkedServiceWebDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceWebDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

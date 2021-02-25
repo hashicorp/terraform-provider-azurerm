@@ -83,6 +83,7 @@ func (client CertificatesClient) CreateOrUpdate(ctx context.Context, resourceGro
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "devices.CertificatesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -173,6 +174,7 @@ func (client CertificatesClient) Delete(ctx context.Context, resourceGroupName s
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "devices.CertificatesClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -258,6 +260,7 @@ func (client CertificatesClient) GenerateVerificationCode(ctx context.Context, r
 	result, err = client.GenerateVerificationCodeResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "devices.CertificatesClient", "GenerateVerificationCode", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -342,6 +345,7 @@ func (client CertificatesClient) Get(ctx context.Context, resourceGroupName stri
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "devices.CertificatesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -418,6 +422,7 @@ func (client CertificatesClient) ListByIotHub(ctx context.Context, resourceGroup
 	result, err = client.ListByIotHubResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "devices.CertificatesClient", "ListByIotHub", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -503,6 +508,7 @@ func (client CertificatesClient) Verify(ctx context.Context, resourceGroupName s
 	result, err = client.VerifyResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "devices.CertificatesClient", "Verify", resp, "Failure responding to request")
+		return
 	}
 
 	return

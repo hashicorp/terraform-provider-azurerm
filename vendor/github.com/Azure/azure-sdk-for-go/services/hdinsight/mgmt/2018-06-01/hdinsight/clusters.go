@@ -66,7 +66,7 @@ func (client ClustersClient) Create(ctx context.Context, resourceGroupName strin
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.ClustersClient", "Create", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "hdinsight.ClustersClient", "Create", nil, "Failure sending request")
 		return
 	}
 
@@ -104,7 +104,33 @@ func (client ClustersClient) CreateSender(req *http.Request) (future ClustersCre
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ClustersClient) (c Cluster, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "hdinsight.ClustersCreateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("hdinsight.ClustersCreateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		c.Response.Response, err = future.GetResult(sender)
+		if c.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "hdinsight.ClustersCreateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && c.Response.Response.StatusCode != http.StatusNoContent {
+			c, err = client.CreateResponder(c.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "hdinsight.ClustersCreateFuture", "Result", c.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -143,7 +169,7 @@ func (client ClustersClient) Delete(ctx context.Context, resourceGroupName strin
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.ClustersClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "hdinsight.ClustersClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -179,7 +205,23 @@ func (client ClustersClient) DeleteSender(req *http.Request) (future ClustersDel
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ClustersClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "hdinsight.ClustersDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("hdinsight.ClustersDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -188,7 +230,7 @@ func (client ClustersClient) DeleteSender(req *http.Request) (future ClustersDel
 func (client ClustersClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
 	return
@@ -224,7 +266,7 @@ func (client ClustersClient) ExecuteScriptActions(ctx context.Context, resourceG
 
 	result, err = client.ExecuteScriptActionsSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.ClustersClient", "ExecuteScriptActions", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "hdinsight.ClustersClient", "ExecuteScriptActions", nil, "Failure sending request")
 		return
 	}
 
@@ -262,7 +304,23 @@ func (client ClustersClient) ExecuteScriptActionsSender(req *http.Request) (futu
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ClustersClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "hdinsight.ClustersExecuteScriptActionsFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("hdinsight.ClustersExecuteScriptActionsFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -308,6 +366,7 @@ func (client ClustersClient) Get(ctx context.Context, resourceGroupName string, 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "hdinsight.ClustersClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -383,6 +442,7 @@ func (client ClustersClient) GetGatewaySettings(ctx context.Context, resourceGro
 	result, err = client.GetGatewaySettingsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "hdinsight.ClustersClient", "GetGatewaySettings", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -456,9 +516,11 @@ func (client ClustersClient) List(ctx context.Context) (result ClusterListResult
 	result.clr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "hdinsight.ClustersClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.clr.hasNextLink() && result.clr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -569,9 +631,11 @@ func (client ClustersClient) ListByResourceGroup(ctx context.Context, resourceGr
 	result.clr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "hdinsight.ClustersClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.clr.hasNextLink() && result.clr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -676,7 +740,7 @@ func (client ClustersClient) Resize(ctx context.Context, resourceGroupName strin
 
 	result, err = client.ResizeSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.ClustersClient", "Resize", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "hdinsight.ClustersClient", "Resize", nil, "Failure sending request")
 		return
 	}
 
@@ -715,7 +779,23 @@ func (client ClustersClient) ResizeSender(req *http.Request) (future ClustersRes
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ClustersClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "hdinsight.ClustersResizeFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("hdinsight.ClustersResizeFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -754,7 +834,7 @@ func (client ClustersClient) RotateDiskEncryptionKey(ctx context.Context, resour
 
 	result, err = client.RotateDiskEncryptionKeySender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.ClustersClient", "RotateDiskEncryptionKey", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "hdinsight.ClustersClient", "RotateDiskEncryptionKey", nil, "Failure sending request")
 		return
 	}
 
@@ -792,7 +872,23 @@ func (client ClustersClient) RotateDiskEncryptionKeySender(req *http.Request) (f
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ClustersClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "hdinsight.ClustersRotateDiskEncryptionKeyFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("hdinsight.ClustersRotateDiskEncryptionKeyFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -839,6 +935,7 @@ func (client ClustersClient) Update(ctx context.Context, resourceGroupName strin
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "hdinsight.ClustersClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -909,7 +1006,7 @@ func (client ClustersClient) UpdateAutoScaleConfiguration(ctx context.Context, r
 
 	result, err = client.UpdateAutoScaleConfigurationSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.ClustersClient", "UpdateAutoScaleConfiguration", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "hdinsight.ClustersClient", "UpdateAutoScaleConfiguration", nil, "Failure sending request")
 		return
 	}
 
@@ -948,7 +1045,23 @@ func (client ClustersClient) UpdateAutoScaleConfigurationSender(req *http.Reques
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ClustersClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "hdinsight.ClustersUpdateAutoScaleConfigurationFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("hdinsight.ClustersUpdateAutoScaleConfigurationFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -987,7 +1100,7 @@ func (client ClustersClient) UpdateGatewaySettings(ctx context.Context, resource
 
 	result, err = client.UpdateGatewaySettingsSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.ClustersClient", "UpdateGatewaySettings", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "hdinsight.ClustersClient", "UpdateGatewaySettings", nil, "Failure sending request")
 		return
 	}
 
@@ -1025,7 +1138,23 @@ func (client ClustersClient) UpdateGatewaySettingsSender(req *http.Request) (fut
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ClustersClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "hdinsight.ClustersUpdateGatewaySettingsFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("hdinsight.ClustersUpdateGatewaySettingsFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 

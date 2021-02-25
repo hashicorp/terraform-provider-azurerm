@@ -7,25 +7,28 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2019-09-01/keyvault"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/client"
+	keyVaultParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
+	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
+	resourcesClient "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/client"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDiskEncryptionSet() *schema.Resource {
+func resourceDiskEncryptionSet() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDiskEncryptionSetCreate,
-		Read:   resourceArmDiskEncryptionSetRead,
-		Update: resourceArmDiskEncryptionSetUpdate,
-		Delete: resourceArmDiskEncryptionSetDelete,
+		Create: resourceDiskEncryptionSetCreate,
+		Read:   resourceDiskEncryptionSetRead,
+		Update: resourceDiskEncryptionSetUpdate,
+		Delete: resourceDiskEncryptionSetDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),
@@ -54,7 +57,7 @@ func resourceArmDiskEncryptionSet() *schema.Resource {
 			"key_vault_key_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: azure.ValidateKeyVaultChildId,
+				ValidateFunc: keyVaultValidate.NestedItemId,
 			},
 
 			"identity": {
@@ -90,9 +93,10 @@ func resourceArmDiskEncryptionSet() *schema.Resource {
 	}
 }
 
-func resourceArmDiskEncryptionSetCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDiskEncryptionSetCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DiskEncryptionSetsClient
-	vaultClient := meta.(*clients.Client).KeyVault.VaultsClient
+	keyVaultsClient := meta.(*clients.Client).KeyVault
+	resourcesClient := meta.(*clients.Client).Resource
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -110,7 +114,7 @@ func resourceArmDiskEncryptionSetCreate(d *schema.ResourceData, meta interface{}
 	}
 
 	keyVaultKeyId := d.Get("key_vault_key_id").(string)
-	keyVaultDetails, err := diskEncryptionSetRetrieveKeyVault(ctx, vaultClient, keyVaultKeyId)
+	keyVaultDetails, err := diskEncryptionSetRetrieveKeyVault(ctx, keyVaultsClient, resourcesClient, keyVaultKeyId)
 	if err != nil {
 		return fmt.Errorf("Error validating Key Vault Key %q for Disk Encryption Set: %+v", keyVaultKeyId, err)
 	}
@@ -135,7 +139,7 @@ func resourceArmDiskEncryptionSetCreate(d *schema.ResourceData, meta interface{}
 				},
 			},
 		},
-		Identity: expandArmDiskEncryptionSetIdentity(identityRaw),
+		Identity: expandDiskEncryptionSetIdentity(identityRaw),
 		Tags:     tags.Expand(t),
 	}
 
@@ -156,10 +160,10 @@ func resourceArmDiskEncryptionSetCreate(d *schema.ResourceData, meta interface{}
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmDiskEncryptionSetRead(d, meta)
+	return resourceDiskEncryptionSetRead(d, meta)
 }
 
-func resourceArmDiskEncryptionSetRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDiskEncryptionSetRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DiskEncryptionSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -193,16 +197,17 @@ func resourceArmDiskEncryptionSetRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("key_vault_key_id", keyVaultKeyId)
 	}
 
-	if err := d.Set("identity", flattenArmDiskEncryptionSetIdentity(resp.Identity)); err != nil {
+	if err := d.Set("identity", flattenDiskEncryptionSetIdentity(resp.Identity)); err != nil {
 		return fmt.Errorf("Error setting `identity`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmDiskEncryptionSetUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDiskEncryptionSetUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DiskEncryptionSetsClient
-	vaultClient := meta.(*clients.Client).KeyVault.VaultsClient
+	keyVaultsClient := meta.(*clients.Client).KeyVault
+	resourcesClient := meta.(*clients.Client).Resource
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -218,7 +223,7 @@ func resourceArmDiskEncryptionSetUpdate(d *schema.ResourceData, meta interface{}
 
 	if d.HasChange("key_vault_key_id") {
 		keyVaultKeyId := d.Get("key_vault_key_id").(string)
-		keyVaultDetails, err := diskEncryptionSetRetrieveKeyVault(ctx, vaultClient, keyVaultKeyId)
+		keyVaultDetails, err := diskEncryptionSetRetrieveKeyVault(ctx, keyVaultsClient, resourcesClient, keyVaultKeyId)
 		if err != nil {
 			return fmt.Errorf("Error validating Key Vault Key %q for Disk Encryption Set: %+v", keyVaultKeyId, err)
 		}
@@ -246,10 +251,10 @@ func resourceArmDiskEncryptionSetUpdate(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("Error waiting for update of Disk Encryption Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	return resourceArmDiskEncryptionSetRead(d, meta)
+	return resourceDiskEncryptionSetRead(d, meta)
 }
 
-func resourceArmDiskEncryptionSetDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDiskEncryptionSetDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DiskEncryptionSetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -271,14 +276,14 @@ func resourceArmDiskEncryptionSetDelete(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func expandArmDiskEncryptionSetIdentity(input []interface{}) *compute.EncryptionSetIdentity {
+func expandDiskEncryptionSetIdentity(input []interface{}) *compute.EncryptionSetIdentity {
 	val := input[0].(map[string]interface{})
 	return &compute.EncryptionSetIdentity{
 		Type: compute.DiskEncryptionSetIdentityType(val["type"].(string)),
 	}
 }
 
-func flattenArmDiskEncryptionSetIdentity(input *compute.EncryptionSetIdentity) []interface{} {
+func flattenDiskEncryptionSetIdentity(input *compute.EncryptionSetIdentity) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
@@ -310,12 +315,12 @@ type diskEncryptionSetKeyVault struct {
 	softDeleteEnabled      bool
 }
 
-func diskEncryptionSetRetrieveKeyVault(ctx context.Context, client *keyvault.VaultsClient, id string) (*diskEncryptionSetKeyVault, error) {
-	keyVaultKeyId, err := azure.ParseKeyVaultChildID(id)
+func diskEncryptionSetRetrieveKeyVault(ctx context.Context, keyVaultsClient *client.Client, resourcesClient *resourcesClient.Client, id string) (*diskEncryptionSetKeyVault, error) {
+	keyVaultKeyId, err := keyVaultParse.ParseNestedItemID(id)
 	if err != nil {
 		return nil, err
 	}
-	keyVaultID, err := azure.GetKeyVaultIDFromBaseUrl(ctx, client, keyVaultKeyId.KeyVaultBaseUrl)
+	keyVaultID, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, keyVaultKeyId.KeyVaultBaseUrl)
 	if err != nil {
 		return nil, fmt.Errorf("Error retrieving the Resource ID the Key Vault at URL %q: %s", keyVaultKeyId.KeyVaultBaseUrl, err)
 	}
@@ -323,17 +328,14 @@ func diskEncryptionSetRetrieveKeyVault(ctx context.Context, client *keyvault.Vau
 		return nil, fmt.Errorf("Unable to determine the Resource ID for the Key Vault at URL %q", keyVaultKeyId.KeyVaultBaseUrl)
 	}
 
-	// TODO: use keyvault's custom ID parse function when implemented
-	parsedKeyVaultID, err := azure.ParseAzureResourceID(*keyVaultID)
+	parsedKeyVaultID, err := keyVaultParse.VaultID(*keyVaultID)
 	if err != nil {
-		return nil, fmt.Errorf("Error parsing ID for keyvault in Disk Encryption Set: %+v", err)
+		return nil, err
 	}
-	resourceGroup := parsedKeyVaultID.ResourceGroup
-	vaultName := parsedKeyVaultID.Path["vaults"]
 
-	resp, err := client.Get(ctx, resourceGroup, vaultName)
+	resp, err := keyVaultsClient.VaultsClient.Get(ctx, parsedKeyVaultID.ResourceGroup, parsedKeyVaultID.Name)
 	if err != nil {
-		return nil, fmt.Errorf("Error retrieving KeyVault %q (Resource Group %q): %+v", vaultName, resourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *parsedKeyVaultID, err)
 	}
 
 	purgeProtectionEnabled := false
@@ -351,8 +353,8 @@ func diskEncryptionSetRetrieveKeyVault(ctx context.Context, client *keyvault.Vau
 
 	return &diskEncryptionSetKeyVault{
 		keyVaultId:             *keyVaultID,
-		resourceGroupName:      resourceGroup,
-		keyVaultName:           vaultName,
+		resourceGroupName:      parsedKeyVaultID.ResourceGroup,
+		keyVaultName:           parsedKeyVaultID.Name,
 		purgeProtectionEnabled: purgeProtectionEnabled,
 		softDeleteEnabled:      softDeleteEnabled,
 	}, nil

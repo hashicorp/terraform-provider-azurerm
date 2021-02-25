@@ -5,10 +5,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
-
 	"github.com/Azure/azure-sdk-for-go/services/preview/alertsmanagement/mgmt/2019-06-01-preview/alertsmanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -17,18 +16,19 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMonitorSmartDetectorAlertRule() *schema.Resource {
+func resourceMonitorSmartDetectorAlertRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMonitorSmartDetectorAlertRuleCreateUpdate,
-		Read:   resourceArmMonitorSmartDetectorAlertRuleRead,
-		Update: resourceArmMonitorSmartDetectorAlertRuleCreateUpdate,
-		Delete: resourceArmMonitorSmartDetectorAlertRuleDelete,
+		Create: resourceMonitorSmartDetectorAlertRuleCreateUpdate,
+		Read:   resourceMonitorSmartDetectorAlertRuleRead,
+		Update: resourceMonitorSmartDetectorAlertRuleCreateUpdate,
+		Delete: resourceMonitorSmartDetectorAlertRuleDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -137,11 +137,13 @@ func resourceArmMonitorSmartDetectorAlertRule() *schema.Resource {
 				Optional:     true,
 				ValidateFunc: commonValidate.ISO8601Duration,
 			},
+
+			"tags": tags.Schema(),
 		},
 	}
 }
 
-func resourceArmMonitorSmartDetectorAlertRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorSmartDetectorAlertRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.SmartDetectorAlertRulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -178,8 +180,9 @@ func resourceArmMonitorSmartDetectorAlertRuleCreateUpdate(d *schema.ResourceData
 				ID: utils.String(d.Get("detector_type").(string)),
 			},
 			Scope:        utils.ExpandStringSlice(d.Get("scope_resource_ids").(*schema.Set).List()),
-			ActionGroups: expandArmMonitorSmartDetectorAlertRuleActionGroup(d.Get("action_group").([]interface{})),
+			ActionGroups: expandMonitorSmartDetectorAlertRuleActionGroup(d.Get("action_group").([]interface{})),
 		},
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if v, ok := d.GetOk("throttling_duration"); ok {
@@ -202,10 +205,10 @@ func resourceArmMonitorSmartDetectorAlertRuleCreateUpdate(d *schema.ResourceData
 	}
 
 	d.SetId(*resp.ID)
-	return resourceArmMonitorSmartDetectorAlertRuleRead(d, meta)
+	return resourceMonitorSmartDetectorAlertRuleRead(d, meta)
 }
 
-func resourceArmMonitorSmartDetectorAlertRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorSmartDetectorAlertRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.SmartDetectorAlertRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -244,15 +247,15 @@ func resourceArmMonitorSmartDetectorAlertRuleRead(d *schema.ResourceData, meta i
 		}
 		d.Set("throttling_duration", throttlingDuration)
 
-		if err := d.Set("action_group", flattenArmMonitorSmartDetectorAlertRuleActionGroup(props.ActionGroups)); err != nil {
+		if err := d.Set("action_group", flattenMonitorSmartDetectorAlertRuleActionGroup(props.ActionGroups)); err != nil {
 			return fmt.Errorf("setting `action_group`: %+v", err)
 		}
 	}
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmMonitorSmartDetectorAlertRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorSmartDetectorAlertRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.SmartDetectorAlertRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -268,7 +271,7 @@ func resourceArmMonitorSmartDetectorAlertRuleDelete(d *schema.ResourceData, meta
 	return nil
 }
 
-func expandArmMonitorSmartDetectorAlertRuleActionGroup(input []interface{}) *alertsmanagement.ActionGroupsInformation {
+func expandMonitorSmartDetectorAlertRuleActionGroup(input []interface{}) *alertsmanagement.ActionGroupsInformation {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
@@ -280,7 +283,7 @@ func expandArmMonitorSmartDetectorAlertRuleActionGroup(input []interface{}) *ale
 	}
 }
 
-func flattenArmMonitorSmartDetectorAlertRuleActionGroup(input *alertsmanagement.ActionGroupsInformation) []interface{} {
+func flattenMonitorSmartDetectorAlertRuleActionGroup(input *alertsmanagement.ActionGroupsInformation) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}

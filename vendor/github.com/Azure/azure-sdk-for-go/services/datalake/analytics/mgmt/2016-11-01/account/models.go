@@ -35,82 +35,28 @@ const fqdn = "github.com/Azure/azure-sdk-for-go/services/datalake/analytics/mgmt
 // AccountsCreateFutureType an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type AccountsCreateFutureType struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AccountsCreateFutureType) Result(client AccountsClient) (dlaa DataLakeAnalyticsAccount, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "account.AccountsCreateFutureType", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("account.AccountsCreateFutureType")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if dlaa.Response.Response, err = future.GetResult(sender); err == nil && dlaa.Response.Response.StatusCode != http.StatusNoContent {
-		dlaa, err = client.CreateResponder(dlaa.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "account.AccountsCreateFutureType", "Result", dlaa.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AccountsClient) (DataLakeAnalyticsAccount, error)
 }
 
 // AccountsDeleteFutureType an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type AccountsDeleteFutureType struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AccountsDeleteFutureType) Result(client AccountsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "account.AccountsDeleteFutureType", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("account.AccountsDeleteFutureType")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AccountsClient) (autorest.Response, error)
 }
 
 // AccountsUpdateFutureType an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type AccountsUpdateFutureType struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AccountsUpdateFutureType) Result(client AccountsClient) (dlaa DataLakeAnalyticsAccount, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "account.AccountsUpdateFutureType", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("account.AccountsUpdateFutureType")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if dlaa.Response.Response, err = future.GetResult(sender); err == nil && dlaa.Response.Response.StatusCode != http.StatusNoContent {
-		dlaa, err = client.UpdateResponder(dlaa.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "account.AccountsUpdateFutureType", "Result", dlaa.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AccountsClient) (DataLakeAnalyticsAccount, error)
 }
 
 // AddDataLakeStoreParameters the parameters used to add a new Data Lake Store account.
@@ -152,8 +98,8 @@ func (adlsp *AddDataLakeStoreParameters) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// AddDataLakeStoreProperties the Data Lake Store account properties to use when adding a new Data Lake Store
-// account.
+// AddDataLakeStoreProperties the Data Lake Store account properties to use when adding a new Data Lake
+// Store account.
 type AddDataLakeStoreProperties struct {
 	// Suffix - The optional suffix for the Data Lake Store account.
 	Suffix *string `json:"suffix,omitempty"`
@@ -261,8 +207,8 @@ type AddStorageAccountProperties struct {
 	Suffix *string `json:"suffix,omitempty"`
 }
 
-// AddStorageAccountWithAccountParameters the parameters used to add a new Azure Storage account while creating
-// a new Data Lake Analytics account.
+// AddStorageAccountWithAccountParameters the parameters used to add a new Azure Storage account while
+// creating a new Data Lake Analytics account.
 type AddStorageAccountWithAccountParameters struct {
 	// Name - The unique name of the Azure Storage account to add.
 	Name *string `json:"name,omitempty"`
@@ -560,8 +506,11 @@ func (page ComputePolicyListResultPage) Values() []ComputePolicy {
 }
 
 // Creates a new instance of the ComputePolicyListResultPage type.
-func NewComputePolicyListResultPage(getNextPage func(context.Context, ComputePolicyListResult) (ComputePolicyListResult, error)) ComputePolicyListResultPage {
-	return ComputePolicyListResultPage{fn: getNextPage}
+func NewComputePolicyListResultPage(cur ComputePolicyListResult, getNextPage func(context.Context, ComputePolicyListResult) (ComputePolicyListResult, error)) ComputePolicyListResultPage {
+	return ComputePolicyListResultPage{
+		fn:   getNextPage,
+		cplr: cur,
+	}
 }
 
 // ComputePolicyProperties the compute policy properties.
@@ -576,8 +525,8 @@ type ComputePolicyProperties struct {
 	MinPriorityPerJob *int32 `json:"minPriorityPerJob,omitempty"`
 }
 
-// CreateComputePolicyWithAccountParameters the parameters used to create a new compute policy while creating a
-// new Data Lake Analytics account.
+// CreateComputePolicyWithAccountParameters the parameters used to create a new compute policy while
+// creating a new Data Lake Analytics account.
 type CreateComputePolicyWithAccountParameters struct {
 	// Name - The unique name of the compute policy to create.
 	Name *string `json:"name,omitempty"`
@@ -630,7 +579,8 @@ func (ccpwap *CreateComputePolicyWithAccountParameters) UnmarshalJSON(body []byt
 	return nil
 }
 
-// CreateDataLakeAnalyticsAccountParameters the parameters to use for creating a Data Lake Analytics account.
+// CreateDataLakeAnalyticsAccountParameters the parameters to use for creating a Data Lake Analytics
+// account.
 type CreateDataLakeAnalyticsAccountParameters struct {
 	// Location - The resource location.
 	Location *string `json:"location,omitempty"`
@@ -727,8 +677,8 @@ type CreateDataLakeAnalyticsAccountProperties struct {
 	QueryStoreRetention *int32 `json:"queryStoreRetention,omitempty"`
 }
 
-// CreateFirewallRuleWithAccountParameters the parameters used to create a new firewall rule while creating a
-// new Data Lake Analytics account.
+// CreateFirewallRuleWithAccountParameters the parameters used to create a new firewall rule while creating
+// a new Data Lake Analytics account.
 type CreateFirewallRuleWithAccountParameters struct {
 	// Name - The unique name of the firewall rule to create.
 	Name *string `json:"name,omitempty"`
@@ -872,7 +822,8 @@ func (coufrp *CreateOrUpdateFirewallRuleParameters) UnmarshalJSON(body []byte) e
 	return nil
 }
 
-// CreateOrUpdateFirewallRuleProperties the firewall rule properties to use when creating a new firewall rule.
+// CreateOrUpdateFirewallRuleProperties the firewall rule properties to use when creating a new firewall
+// rule.
 type CreateOrUpdateFirewallRuleProperties struct {
 	// StartIPAddress - The start IP address for the firewall rule. This can be either ipv4 or ipv6. Start and End should be in the same protocol.
 	StartIPAddress *string `json:"startIpAddress,omitempty"`
@@ -880,8 +831,8 @@ type CreateOrUpdateFirewallRuleProperties struct {
 	EndIPAddress *string `json:"endIpAddress,omitempty"`
 }
 
-// DataLakeAnalyticsAccount a Data Lake Analytics account object, containing all information associated with
-// the named Data Lake Analytics account.
+// DataLakeAnalyticsAccount a Data Lake Analytics account object, containing all information associated
+// with the named Data Lake Analytics account.
 type DataLakeAnalyticsAccount struct {
 	autorest.Response `json:"-"`
 	// DataLakeAnalyticsAccountProperties - READ-ONLY; The properties defined by Data Lake Analytics all properties are specific to each resource provider.
@@ -973,8 +924,8 @@ func (dlaa *DataLakeAnalyticsAccount) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// DataLakeAnalyticsAccountBasic a Data Lake Analytics account object, containing all information associated
-// with the named Data Lake Analytics account.
+// DataLakeAnalyticsAccountBasic a Data Lake Analytics account object, containing all information
+// associated with the named Data Lake Analytics account.
 type DataLakeAnalyticsAccountBasic struct {
 	// DataLakeAnalyticsAccountPropertiesBasic - READ-ONLY; The properties defined by Data Lake Analytics all properties are specific to each resource provider.
 	*DataLakeAnalyticsAccountPropertiesBasic `json:"properties,omitempty"`
@@ -1218,12 +1169,15 @@ func (page DataLakeAnalyticsAccountListResultPage) Values() []DataLakeAnalyticsA
 }
 
 // Creates a new instance of the DataLakeAnalyticsAccountListResultPage type.
-func NewDataLakeAnalyticsAccountListResultPage(getNextPage func(context.Context, DataLakeAnalyticsAccountListResult) (DataLakeAnalyticsAccountListResult, error)) DataLakeAnalyticsAccountListResultPage {
-	return DataLakeAnalyticsAccountListResultPage{fn: getNextPage}
+func NewDataLakeAnalyticsAccountListResultPage(cur DataLakeAnalyticsAccountListResult, getNextPage func(context.Context, DataLakeAnalyticsAccountListResult) (DataLakeAnalyticsAccountListResult, error)) DataLakeAnalyticsAccountListResultPage {
+	return DataLakeAnalyticsAccountListResultPage{
+		fn:     getNextPage,
+		dlaalr: cur,
+	}
 }
 
-// DataLakeAnalyticsAccountProperties the account specific properties that are associated with an underlying
-// Data Lake Analytics account. Returned only when retrieving a specific account.
+// DataLakeAnalyticsAccountProperties the account specific properties that are associated with an
+// underlying Data Lake Analytics account. Returned only when retrieving a specific account.
 type DataLakeAnalyticsAccountProperties struct {
 	// DefaultDataLakeStoreAccount - READ-ONLY; The default Data Lake Store account associated with this account.
 	DefaultDataLakeStoreAccount *string `json:"defaultDataLakeStoreAccount,omitempty"`
@@ -1271,8 +1225,8 @@ type DataLakeAnalyticsAccountProperties struct {
 	Endpoint *string `json:"endpoint,omitempty"`
 }
 
-// DataLakeAnalyticsAccountPropertiesBasic the basic account specific properties that are associated with an
-// underlying Data Lake Analytics account.
+// DataLakeAnalyticsAccountPropertiesBasic the basic account specific properties that are associated with
+// an underlying Data Lake Analytics account.
 type DataLakeAnalyticsAccountPropertiesBasic struct {
 	// AccountID - READ-ONLY; The unique identifier associated with this Data Lake Analytics account.
 	AccountID *uuid.UUID `json:"accountId,omitempty"`
@@ -1511,8 +1465,11 @@ func (page DataLakeStoreAccountInformationListResultPage) Values() []DataLakeSto
 }
 
 // Creates a new instance of the DataLakeStoreAccountInformationListResultPage type.
-func NewDataLakeStoreAccountInformationListResultPage(getNextPage func(context.Context, DataLakeStoreAccountInformationListResult) (DataLakeStoreAccountInformationListResult, error)) DataLakeStoreAccountInformationListResultPage {
-	return DataLakeStoreAccountInformationListResultPage{fn: getNextPage}
+func NewDataLakeStoreAccountInformationListResultPage(cur DataLakeStoreAccountInformationListResult, getNextPage func(context.Context, DataLakeStoreAccountInformationListResult) (DataLakeStoreAccountInformationListResult, error)) DataLakeStoreAccountInformationListResultPage {
+	return DataLakeStoreAccountInformationListResultPage{
+		fn:      getNextPage,
+		dlsailr: cur,
+	}
 }
 
 // DataLakeStoreAccountInformationProperties the Data Lake Store account properties.
@@ -1743,8 +1700,11 @@ func (page FirewallRuleListResultPage) Values() []FirewallRule {
 }
 
 // Creates a new instance of the FirewallRuleListResultPage type.
-func NewFirewallRuleListResultPage(getNextPage func(context.Context, FirewallRuleListResult) (FirewallRuleListResult, error)) FirewallRuleListResultPage {
-	return FirewallRuleListResultPage{fn: getNextPage}
+func NewFirewallRuleListResultPage(cur FirewallRuleListResult, getNextPage func(context.Context, FirewallRuleListResult) (FirewallRuleListResult, error)) FirewallRuleListResultPage {
+	return FirewallRuleListResultPage{
+		fn:   getNextPage,
+		frlr: cur,
+	}
 }
 
 // FirewallRuleProperties the firewall rule properties.
@@ -1823,8 +1783,8 @@ type SasTokenInformation struct {
 	AccessToken *string `json:"accessToken,omitempty"`
 }
 
-// SasTokenInformationListResult the SAS response that contains the storage account, container and associated
-// SAS token for connection use.
+// SasTokenInformationListResult the SAS response that contains the storage account, container and
+// associated SAS token for connection use.
 type SasTokenInformationListResult struct {
 	autorest.Response `json:"-"`
 	// Value - READ-ONLY; The results of the list operation.
@@ -1833,7 +1793,8 @@ type SasTokenInformationListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// SasTokenInformationListResultIterator provides access to a complete listing of SasTokenInformation values.
+// SasTokenInformationListResultIterator provides access to a complete listing of SasTokenInformation
+// values.
 type SasTokenInformationListResultIterator struct {
 	i    int
 	page SasTokenInformationListResultPage
@@ -1976,8 +1937,11 @@ func (page SasTokenInformationListResultPage) Values() []SasTokenInformation {
 }
 
 // Creates a new instance of the SasTokenInformationListResultPage type.
-func NewSasTokenInformationListResultPage(getNextPage func(context.Context, SasTokenInformationListResult) (SasTokenInformationListResult, error)) SasTokenInformationListResultPage {
-	return SasTokenInformationListResultPage{fn: getNextPage}
+func NewSasTokenInformationListResultPage(cur SasTokenInformationListResult, getNextPage func(context.Context, SasTokenInformationListResult) (SasTokenInformationListResult, error)) SasTokenInformationListResultPage {
+	return SasTokenInformationListResultPage{
+		fn:    getNextPage,
+		stilr: cur,
+	}
 }
 
 // StorageAccountInformation azure Storage account information.
@@ -2203,8 +2167,11 @@ func (page StorageAccountInformationListResultPage) Values() []StorageAccountInf
 }
 
 // Creates a new instance of the StorageAccountInformationListResultPage type.
-func NewStorageAccountInformationListResultPage(getNextPage func(context.Context, StorageAccountInformationListResult) (StorageAccountInformationListResult, error)) StorageAccountInformationListResultPage {
-	return StorageAccountInformationListResultPage{fn: getNextPage}
+func NewStorageAccountInformationListResultPage(cur StorageAccountInformationListResult, getNextPage func(context.Context, StorageAccountInformationListResult) (StorageAccountInformationListResult, error)) StorageAccountInformationListResultPage {
+	return StorageAccountInformationListResultPage{
+		fn:    getNextPage,
+		sailr: cur,
+	}
 }
 
 // StorageAccountInformationProperties the Azure Storage account properties.
@@ -2283,8 +2250,8 @@ func (sc *StorageContainer) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// StorageContainerListResult the list of blob containers associated with the storage account attached to the
-// Data Lake Analytics account.
+// StorageContainerListResult the list of blob containers associated with the storage account attached to
+// the Data Lake Analytics account.
 type StorageContainerListResult struct {
 	autorest.Response `json:"-"`
 	// Value - READ-ONLY; The results of the list operation.
@@ -2436,8 +2403,11 @@ func (page StorageContainerListResultPage) Values() []StorageContainer {
 }
 
 // Creates a new instance of the StorageContainerListResultPage type.
-func NewStorageContainerListResultPage(getNextPage func(context.Context, StorageContainerListResult) (StorageContainerListResult, error)) StorageContainerListResultPage {
-	return StorageContainerListResultPage{fn: getNextPage}
+func NewStorageContainerListResultPage(cur StorageContainerListResult, getNextPage func(context.Context, StorageContainerListResult) (StorageContainerListResult, error)) StorageContainerListResultPage {
+	return StorageContainerListResultPage{
+		fn:   getNextPage,
+		sclr: cur,
+	}
 }
 
 // StorageContainerProperties azure Storage blob container properties information.
@@ -2644,8 +2614,8 @@ type UpdateDataLakeAnalyticsAccountProperties struct {
 	QueryStoreRetention *int32 `json:"queryStoreRetention,omitempty"`
 }
 
-// UpdateDataLakeStoreProperties the Data Lake Store account properties to use when updating a Data Lake Store
-// account.
+// UpdateDataLakeStoreProperties the Data Lake Store account properties to use when updating a Data Lake
+// Store account.
 type UpdateDataLakeStoreProperties struct {
 	// Suffix - The optional suffix for the Data Lake Store account.
 	Suffix *string `json:"suffix,omitempty"`
@@ -2752,8 +2722,8 @@ type UpdateFirewallRuleProperties struct {
 	EndIPAddress *string `json:"endIpAddress,omitempty"`
 }
 
-// UpdateFirewallRuleWithAccountParameters the parameters used to update a firewall rule while updating a Data
-// Lake Analytics account.
+// UpdateFirewallRuleWithAccountParameters the parameters used to update a firewall rule while updating a
+// Data Lake Analytics account.
 type UpdateFirewallRuleWithAccountParameters struct {
 	// Name - The unique name of the firewall rule to update.
 	Name *string `json:"name,omitempty"`
@@ -2845,8 +2815,8 @@ func (usap *UpdateStorageAccountParameters) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// UpdateStorageAccountProperties the Azure Storage account properties to use when updating an Azure Storage
-// account.
+// UpdateStorageAccountProperties the Azure Storage account properties to use when updating an Azure
+// Storage account.
 type UpdateStorageAccountProperties struct {
 	// AccessKey - The updated access key associated with this Azure Storage account that will be used to connect to it.
 	AccessKey *string `json:"accessKey,omitempty"`

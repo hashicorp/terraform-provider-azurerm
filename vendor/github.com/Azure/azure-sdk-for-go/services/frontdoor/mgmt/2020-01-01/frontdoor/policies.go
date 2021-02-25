@@ -83,7 +83,7 @@ func (client PoliciesClient) CreateOrUpdate(ctx context.Context, resourceGroupNa
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "frontdoor.PoliciesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "frontdoor.PoliciesClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -121,7 +121,33 @@ func (client PoliciesClient) CreateOrUpdateSender(req *http.Request) (future Pol
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client PoliciesClient) (wafp WebApplicationFirewallPolicy, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "frontdoor.PoliciesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("frontdoor.PoliciesCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		wafp.Response.Response, err = future.GetResult(sender)
+		if wafp.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "frontdoor.PoliciesCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && wafp.Response.Response.StatusCode != http.StatusNoContent {
+			wafp, err = client.CreateOrUpdateResponder(wafp.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "frontdoor.PoliciesCreateOrUpdateFuture", "Result", wafp.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -170,7 +196,7 @@ func (client PoliciesClient) Delete(ctx context.Context, resourceGroupName strin
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "frontdoor.PoliciesClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "frontdoor.PoliciesClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -206,7 +232,23 @@ func (client PoliciesClient) DeleteSender(req *http.Request) (future PoliciesDel
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client PoliciesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "frontdoor.PoliciesDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("frontdoor.PoliciesDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -262,6 +304,7 @@ func (client PoliciesClient) Get(ctx context.Context, resourceGroupName string, 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.PoliciesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -345,9 +388,11 @@ func (client PoliciesClient) List(ctx context.Context, resourceGroupName string)
 	result.wafpl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.PoliciesClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.wafpl.hasNextLink() && result.wafpl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

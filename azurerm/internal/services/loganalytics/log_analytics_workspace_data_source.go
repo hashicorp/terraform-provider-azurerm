@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -91,7 +93,11 @@ func dataSourceLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Error making Read request on AzureRM Log Analytics workspaces '%s': %+v", name, err)
 	}
 
-	d.SetId(*resp.ID)
+	id, err := parse.LogAnalyticsWorkspaceID(*resp.ID)
+	if err != nil {
+		return fmt.Errorf("Error parsing Log Analytics Workspace ID %q", *resp.ID)
+	}
+	d.SetId(id.ID())
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)

@@ -89,6 +89,7 @@ func (client PrivateLinkResourcesClient) Get(ctx context.Context, resourceGroupN
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "documentdb.PrivateLinkResourcesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -179,6 +180,7 @@ func (client PrivateLinkResourcesClient) ListByDatabaseAccount(ctx context.Conte
 	result, err = client.ListByDatabaseAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "documentdb.PrivateLinkResourcesClient", "ListByDatabaseAccount", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -303,8 +303,11 @@ func (page AvailabilityGroupListenerListResultPage) Values() []AvailabilityGroup
 }
 
 // Creates a new instance of the AvailabilityGroupListenerListResultPage type.
-func NewAvailabilityGroupListenerListResultPage(getNextPage func(context.Context, AvailabilityGroupListenerListResult) (AvailabilityGroupListenerListResult, error)) AvailabilityGroupListenerListResultPage {
-	return AvailabilityGroupListenerListResultPage{fn: getNextPage}
+func NewAvailabilityGroupListenerListResultPage(cur AvailabilityGroupListenerListResult, getNextPage func(context.Context, AvailabilityGroupListenerListResult) (AvailabilityGroupListenerListResult, error)) AvailabilityGroupListenerListResultPage {
+	return AvailabilityGroupListenerListResultPage{
+		fn:    getNextPage,
+		agllr: cur,
+	}
 }
 
 // AvailabilityGroupListenerProperties the properties of an availability group listener.
@@ -339,56 +342,22 @@ func (aglp AvailabilityGroupListenerProperties) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// AvailabilityGroupListenersCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
+// AvailabilityGroupListenersCreateOrUpdateFuture an abstraction for monitoring and retrieving the results
+// of a long-running operation.
 type AvailabilityGroupListenersCreateOrUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AvailabilityGroupListenersCreateOrUpdateFuture) Result(client AvailabilityGroupListenersClient) (agl AvailabilityGroupListener, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.AvailabilityGroupListenersCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("sqlvirtualmachine.AvailabilityGroupListenersCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if agl.Response.Response, err = future.GetResult(sender); err == nil && agl.Response.Response.StatusCode != http.StatusNoContent {
-		agl, err = client.CreateOrUpdateResponder(agl.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "sqlvirtualmachine.AvailabilityGroupListenersCreateOrUpdateFuture", "Result", agl.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AvailabilityGroupListenersClient) (AvailabilityGroupListener, error)
 }
 
 // AvailabilityGroupListenersDeleteFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type AvailabilityGroupListenersDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AvailabilityGroupListenersDeleteFuture) Result(client AvailabilityGroupListenersClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.AvailabilityGroupListenersDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("sqlvirtualmachine.AvailabilityGroupListenersDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AvailabilityGroupListenersClient) (autorest.Response, error)
 }
 
 // Group a SQL virtual machine group.
@@ -644,8 +613,11 @@ func (page GroupListResultPage) Values() []Group {
 }
 
 // Creates a new instance of the GroupListResultPage type.
-func NewGroupListResultPage(getNextPage func(context.Context, GroupListResult) (GroupListResult, error)) GroupListResultPage {
-	return GroupListResultPage{fn: getNextPage}
+func NewGroupListResultPage(cur GroupListResult, getNextPage func(context.Context, GroupListResult) (GroupListResult, error)) GroupListResultPage {
+	return GroupListResultPage{
+		fn:  getNextPage,
+		glr: cur,
+	}
 }
 
 // GroupProperties the properties of a SQL virtual machine group.
@@ -684,80 +656,26 @@ func (gp GroupProperties) MarshalJSON() ([]byte, error) {
 // GroupsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type GroupsCreateOrUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *GroupsCreateOrUpdateFuture) Result(client GroupsClient) (g Group, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.GroupsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("sqlvirtualmachine.GroupsCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if g.Response.Response, err = future.GetResult(sender); err == nil && g.Response.Response.StatusCode != http.StatusNoContent {
-		g, err = client.CreateOrUpdateResponder(g.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "sqlvirtualmachine.GroupsCreateOrUpdateFuture", "Result", g.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(GroupsClient) (Group, error)
 }
 
 // GroupsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type GroupsDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *GroupsDeleteFuture) Result(client GroupsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.GroupsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("sqlvirtualmachine.GroupsDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(GroupsClient) (autorest.Response, error)
 }
 
 // GroupsUpdateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type GroupsUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *GroupsUpdateFuture) Result(client GroupsClient) (g Group, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.GroupsUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("sqlvirtualmachine.GroupsUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if g.Response.Response, err = future.GetResult(sender); err == nil && g.Response.Response.StatusCode != http.StatusNoContent {
-		g, err = client.UpdateResponder(g.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "sqlvirtualmachine.GroupsUpdateFuture", "Result", g.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(GroupsClient) (Group, error)
 }
 
 // GroupUpdate an update to a SQL virtual machine group.
@@ -775,8 +693,8 @@ func (gu GroupUpdate) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// KeyVaultCredentialSettings configure your SQL virtual machine to be able to connect to the Azure Key Vault
-// service.
+// KeyVaultCredentialSettings configure your SQL virtual machine to be able to connect to the Azure Key
+// Vault service.
 type KeyVaultCredentialSettings struct {
 	// Enable - Enable or disable key vault credential setting.
 	Enable *bool `json:"enable,omitempty"`
@@ -942,8 +860,11 @@ func (page ListResultPage) Values() []SQLVirtualMachine {
 }
 
 // Creates a new instance of the ListResultPage type.
-func NewListResultPage(getNextPage func(context.Context, ListResult) (ListResult, error)) ListResultPage {
-	return ListResultPage{fn: getNextPage}
+func NewListResultPage(cur ListResult, getNextPage func(context.Context, ListResult) (ListResult, error)) ListResultPage {
+	return ListResultPage{
+		fn: getNextPage,
+		lr: cur,
+	}
 }
 
 // LoadBalancerConfiguration a load balancer configuration for an availability group listener.
@@ -1142,8 +1063,11 @@ func (page OperationListResultPage) Values() []Operation {
 }
 
 // Creates a new instance of the OperationListResultPage type.
-func NewOperationListResultPage(getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
-	return OperationListResultPage{fn: getNextPage}
+func NewOperationListResultPage(cur OperationListResult, getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
+	return OperationListResultPage{
+		fn:  getNextPage,
+		olr: cur,
+	}
 }
 
 // PrivateIPAddress a private IP address bound to the availability group listener.
@@ -1425,82 +1349,28 @@ func (svm *SQLVirtualMachine) UnmarshalJSON(body []byte) error {
 // SQLVirtualMachinesCreateOrUpdateFutureType an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type SQLVirtualMachinesCreateOrUpdateFutureType struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *SQLVirtualMachinesCreateOrUpdateFutureType) Result(client SQLVirtualMachinesClient) (svm SQLVirtualMachine, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.SQLVirtualMachinesCreateOrUpdateFutureType", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("sqlvirtualmachine.SQLVirtualMachinesCreateOrUpdateFutureType")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if svm.Response.Response, err = future.GetResult(sender); err == nil && svm.Response.Response.StatusCode != http.StatusNoContent {
-		svm, err = client.CreateOrUpdateResponder(svm.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "sqlvirtualmachine.SQLVirtualMachinesCreateOrUpdateFutureType", "Result", svm.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(SQLVirtualMachinesClient) (SQLVirtualMachine, error)
 }
 
 // SQLVirtualMachinesDeleteFutureType an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type SQLVirtualMachinesDeleteFutureType struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *SQLVirtualMachinesDeleteFutureType) Result(client SQLVirtualMachinesClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.SQLVirtualMachinesDeleteFutureType", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("sqlvirtualmachine.SQLVirtualMachinesDeleteFutureType")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(SQLVirtualMachinesClient) (autorest.Response, error)
 }
 
 // SQLVirtualMachinesUpdateFutureType an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type SQLVirtualMachinesUpdateFutureType struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *SQLVirtualMachinesUpdateFutureType) Result(client SQLVirtualMachinesClient) (svm SQLVirtualMachine, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.SQLVirtualMachinesUpdateFutureType", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("sqlvirtualmachine.SQLVirtualMachinesUpdateFutureType")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if svm.Response.Response, err = future.GetResult(sender); err == nil && svm.Response.Response.StatusCode != http.StatusNoContent {
-		svm, err = client.UpdateResponder(svm.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "sqlvirtualmachine.SQLVirtualMachinesUpdateFutureType", "Result", svm.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(SQLVirtualMachinesClient) (SQLVirtualMachine, error)
 }
 
 // SQLWorkloadTypeUpdateSettings set workload type to optimize storage for SQL Server.
@@ -1564,8 +1434,8 @@ func (u Update) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// WsfcDomainCredentials domain credentials for setting up Windows Server Failover Cluster for SQL availability
-// group.
+// WsfcDomainCredentials domain credentials for setting up Windows Server Failover Cluster for SQL
+// availability group.
 type WsfcDomainCredentials struct {
 	// ClusterBootstrapAccountPassword - Cluster bootstrap account password.
 	ClusterBootstrapAccountPassword *string `json:"clusterBootstrapAccountPassword,omitempty"`

@@ -70,9 +70,11 @@ func (client OperationsClient) List(ctx context.Context) (result ClientDiscovery
 	result.cdr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.OperationsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.cdr.hasNextLink() && result.cdr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

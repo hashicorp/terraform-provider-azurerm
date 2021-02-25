@@ -92,7 +92,7 @@ func (client CachesClient) CreateOrUpdate(ctx context.Context, resourceGroupName
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storagecache.CachesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storagecache.CachesClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -115,6 +115,7 @@ func (client CachesClient) CreateOrUpdatePreparer(ctx context.Context, resourceG
 	cache.ID = nil
 	cache.Name = nil
 	cache.Type = nil
+	cache.SystemData = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -136,7 +137,33 @@ func (client CachesClient) CreateOrUpdateSender(req *http.Request) (future Cache
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client CachesClient) (c Cache, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "storagecache.CachesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("storagecache.CachesCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		c.Response.Response, err = future.GetResult(sender)
+		if c.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "storagecache.CachesCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && c.Response.Response.StatusCode != http.StatusNoContent {
+			c, err = client.CreateOrUpdateResponder(c.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "storagecache.CachesCreateOrUpdateFuture", "Result", c.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -145,7 +172,7 @@ func (client CachesClient) CreateOrUpdateSender(req *http.Request) (future Cache
 func (client CachesClient) CreateOrUpdateResponder(resp *http.Response) (result Cache, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
@@ -182,7 +209,7 @@ func (client CachesClient) Delete(ctx context.Context, resourceGroupName string,
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storagecache.CachesClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storagecache.CachesClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -218,7 +245,33 @@ func (client CachesClient) DeleteSender(req *http.Request) (future CachesDeleteF
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client CachesClient) (so SetObject, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "storagecache.CachesDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("storagecache.CachesDeleteFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		so.Response.Response, err = future.GetResult(sender)
+		if so.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "storagecache.CachesDeleteFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && so.Response.Response.StatusCode != http.StatusNoContent {
+			so, err = client.DeleteResponder(so.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "storagecache.CachesDeleteFuture", "Result", so.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -265,7 +318,7 @@ func (client CachesClient) Flush(ctx context.Context, resourceGroupName string, 
 
 	result, err = client.FlushSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storagecache.CachesClient", "Flush", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storagecache.CachesClient", "Flush", nil, "Failure sending request")
 		return
 	}
 
@@ -301,7 +354,33 @@ func (client CachesClient) FlushSender(req *http.Request) (future CachesFlushFut
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client CachesClient) (so SetObject, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "storagecache.CachesFlushFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("storagecache.CachesFlushFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		so.Response.Response, err = future.GetResult(sender)
+		if so.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "storagecache.CachesFlushFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && so.Response.Response.StatusCode != http.StatusNoContent {
+			so, err = client.FlushResponder(so.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "storagecache.CachesFlushFuture", "Result", so.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -355,6 +434,7 @@ func (client CachesClient) Get(ctx context.Context, resourceGroupName string, ca
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storagecache.CachesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -428,9 +508,11 @@ func (client CachesClient) List(ctx context.Context) (result CachesListResultPag
 	result.clr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storagecache.CachesClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.clr.hasNextLink() && result.clr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -541,9 +623,11 @@ func (client CachesClient) ListByResourceGroup(ctx context.Context, resourceGrou
 	result.clr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storagecache.CachesClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.clr.hasNextLink() && result.clr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -654,7 +738,7 @@ func (client CachesClient) Start(ctx context.Context, resourceGroupName string, 
 
 	result, err = client.StartSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storagecache.CachesClient", "Start", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storagecache.CachesClient", "Start", nil, "Failure sending request")
 		return
 	}
 
@@ -690,7 +774,33 @@ func (client CachesClient) StartSender(req *http.Request) (future CachesStartFut
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client CachesClient) (so SetObject, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "storagecache.CachesStartFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("storagecache.CachesStartFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		so.Response.Response, err = future.GetResult(sender)
+		if so.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "storagecache.CachesStartFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && so.Response.Response.StatusCode != http.StatusNoContent {
+			so, err = client.StartResponder(so.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "storagecache.CachesStartFuture", "Result", so.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -736,7 +846,7 @@ func (client CachesClient) Stop(ctx context.Context, resourceGroupName string, c
 
 	result, err = client.StopSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storagecache.CachesClient", "Stop", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storagecache.CachesClient", "Stop", nil, "Failure sending request")
 		return
 	}
 
@@ -772,7 +882,33 @@ func (client CachesClient) StopSender(req *http.Request) (future CachesStopFutur
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client CachesClient) (so SetObject, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "storagecache.CachesStopFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("storagecache.CachesStopFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		so.Response.Response, err = future.GetResult(sender)
+		if so.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "storagecache.CachesStopFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && so.Response.Response.StatusCode != http.StatusNoContent {
+			so, err = client.StopResponder(so.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "storagecache.CachesStopFuture", "Result", so.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -828,6 +964,7 @@ func (client CachesClient) Update(ctx context.Context, resourceGroupName string,
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storagecache.CachesClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -849,6 +986,7 @@ func (client CachesClient) UpdatePreparer(ctx context.Context, resourceGroupName
 	cache.ID = nil
 	cache.Name = nil
 	cache.Type = nil
+	cache.SystemData = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
@@ -910,7 +1048,7 @@ func (client CachesClient) UpgradeFirmware(ctx context.Context, resourceGroupNam
 
 	result, err = client.UpgradeFirmwareSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storagecache.CachesClient", "UpgradeFirmware", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storagecache.CachesClient", "UpgradeFirmware", nil, "Failure sending request")
 		return
 	}
 
@@ -946,7 +1084,33 @@ func (client CachesClient) UpgradeFirmwareSender(req *http.Request) (future Cach
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client CachesClient) (so SetObject, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "storagecache.CachesUpgradeFirmwareFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("storagecache.CachesUpgradeFirmwareFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		so.Response.Response, err = future.GetResult(sender)
+		if so.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "storagecache.CachesUpgradeFirmwareFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && so.Response.Response.StatusCode != http.StatusNoContent {
+			so, err = client.UpgradeFirmwareResponder(so.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "storagecache.CachesUpgradeFirmwareFuture", "Result", so.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

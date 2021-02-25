@@ -102,6 +102,7 @@ func (client ExportsClient) CreateOrUpdate(ctx context.Context, scope string, ex
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "costmanagement.ExportsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -194,6 +195,7 @@ func (client ExportsClient) Delete(ctx context.Context, scope string, exportName
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "costmanagement.ExportsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -283,6 +285,7 @@ func (client ExportsClient) Execute(ctx context.Context, scope string, exportNam
 	result, err = client.ExecuteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "costmanagement.ExportsClient", "Execute", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -372,6 +375,7 @@ func (client ExportsClient) Get(ctx context.Context, scope string, exportName st
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "costmanagement.ExportsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -462,6 +466,7 @@ func (client ExportsClient) GetExecutionHistory(ctx context.Context, scope strin
 	result, err = client.GetExecutionHistoryResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "costmanagement.ExportsClient", "GetExecutionHistory", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -551,6 +556,7 @@ func (client ExportsClient) List(ctx context.Context, scope string) (result Expo
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "costmanagement.ExportsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -41,16 +41,16 @@ var hdInsightStormClusterZookeeperNodeDefinition = HDInsightNodeDefinition{
 	FixedTargetInstanceCount: utils.Int32(int32(3)),
 }
 
-func resourceArmHDInsightStormCluster() *schema.Resource {
+func resourceHDInsightStormCluster() *schema.Resource {
 	return &schema.Resource{
 		DeprecationMessage: `HDInsight 3.6 will be retired on 2020-12-31 - Storm is not supported in HDInsight 4.0 and so this resource will be removed in the next major version of the AzureRM Terraform Provider.
 		
 More information on the HDInsight 3.6 deprecation can be found at:
 
 https://docs.microsoft.com/en-us/azure/hdinsight/hdinsight-component-versioning#available-versions`,
-		Create: resourceArmHDInsightStormClusterCreate,
-		Read:   resourceArmHDInsightStormClusterRead,
-		Update: hdinsightClusterUpdate("Storm", resourceArmHDInsightStormClusterRead),
+		Create: resourceHDInsightStormClusterCreate,
+		Read:   resourceHDInsightStormClusterRead,
+		Update: hdinsightClusterUpdate("Storm", resourceHDInsightStormClusterRead),
 		Delete: hdinsightClusterDelete("Storm"),
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -103,11 +103,11 @@ https://docs.microsoft.com/en-us/azure/hdinsight/hdinsight-component-versioning#
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"head_node": SchemaHDInsightNodeDefinition("roles.0.head_node", hdInsightStormClusterHeadNodeDefinition),
+						"head_node": SchemaHDInsightNodeDefinition("roles.0.head_node", hdInsightStormClusterHeadNodeDefinition, true),
 
-						"worker_node": SchemaHDInsightNodeDefinition("roles.0.worker_node", hdInsightStormClusterWorkerNodeDefinition),
+						"worker_node": SchemaHDInsightNodeDefinition("roles.0.worker_node", hdInsightStormClusterWorkerNodeDefinition, true),
 
-						"zookeeper_node": SchemaHDInsightNodeDefinition("roles.0.zookeeper_node", hdInsightStormClusterZookeeperNodeDefinition),
+						"zookeeper_node": SchemaHDInsightNodeDefinition("roles.0.zookeeper_node", hdInsightStormClusterZookeeperNodeDefinition, true),
 					},
 				},
 			},
@@ -129,7 +129,7 @@ https://docs.microsoft.com/en-us/azure/hdinsight/hdinsight-component-versioning#
 	}
 }
 
-func resourceArmHDInsightStormClusterCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceHDInsightStormClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HDInsight.ClustersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
@@ -235,10 +235,10 @@ func resourceArmHDInsightStormClusterCreate(d *schema.ResourceData, meta interfa
 		}
 	}
 
-	return resourceArmHDInsightStormClusterRead(d, meta)
+	return resourceHDInsightStormClusterRead(d, meta)
 }
 
-func resourceArmHDInsightStormClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceHDInsightStormClusterRead(d *schema.ResourceData, meta interface{}) error {
 	clustersClient := meta.(*clients.Client).HDInsight.ClustersClient
 	configurationsClient := meta.(*clients.Client).HDInsight.ConfigurationsClient
 	extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient

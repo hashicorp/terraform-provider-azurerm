@@ -87,6 +87,7 @@ func (client SpatialAnchorsAccountsClient) Create(ctx context.Context, resourceG
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mixedreality.SpatialAnchorsAccountsClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -176,6 +177,7 @@ func (client SpatialAnchorsAccountsClient) Delete(ctx context.Context, resourceG
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mixedreality.SpatialAnchorsAccountsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -262,6 +264,7 @@ func (client SpatialAnchorsAccountsClient) Get(ctx context.Context, resourceGrou
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mixedreality.SpatialAnchorsAccountsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -349,6 +352,7 @@ func (client SpatialAnchorsAccountsClient) GetKeys(ctx context.Context, resource
 	result, err = client.GetKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mixedreality.SpatialAnchorsAccountsClient", "GetKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -432,9 +436,11 @@ func (client SpatialAnchorsAccountsClient) ListByResourceGroup(ctx context.Conte
 	result.saal, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mixedreality.SpatialAnchorsAccountsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.saal.hasNextLink() && result.saal.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -544,9 +550,11 @@ func (client SpatialAnchorsAccountsClient) ListBySubscription(ctx context.Contex
 	result.saal, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mixedreality.SpatialAnchorsAccountsClient", "ListBySubscription", resp, "Failure responding to request")
+		return
 	}
 	if result.saal.hasNextLink() && result.saal.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -670,6 +678,7 @@ func (client SpatialAnchorsAccountsClient) RegenerateKeys(ctx context.Context, r
 	result, err = client.RegenerateKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mixedreality.SpatialAnchorsAccountsClient", "RegenerateKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -760,6 +769,7 @@ func (client SpatialAnchorsAccountsClient) Update(ctx context.Context, resourceG
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mixedreality.SpatialAnchorsAccountsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

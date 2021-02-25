@@ -81,7 +81,7 @@ func (client VNetPeeringClient) CreateOrUpdate(ctx context.Context, virtualNetwo
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "databricks.VNetPeeringClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "databricks.VNetPeeringClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -123,7 +123,33 @@ func (client VNetPeeringClient) CreateOrUpdateSender(req *http.Request) (future 
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client VNetPeeringClient) (vnp VirtualNetworkPeering, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "databricks.VNetPeeringCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("databricks.VNetPeeringCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		vnp.Response.Response, err = future.GetResult(sender)
+		if vnp.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "databricks.VNetPeeringCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && vnp.Response.Response.StatusCode != http.StatusNoContent {
+			vnp, err = client.CreateOrUpdateResponder(vnp.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "databricks.VNetPeeringCreateOrUpdateFuture", "Result", vnp.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -174,7 +200,7 @@ func (client VNetPeeringClient) Delete(ctx context.Context, resourceGroupName st
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "databricks.VNetPeeringClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "databricks.VNetPeeringClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -211,7 +237,23 @@ func (client VNetPeeringClient) DeleteSender(req *http.Request) (future VNetPeer
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client VNetPeeringClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "databricks.VNetPeeringDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("databricks.VNetPeeringDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -269,6 +311,7 @@ func (client VNetPeeringClient) Get(ctx context.Context, resourceGroupName strin
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "databricks.VNetPeeringClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -357,9 +400,11 @@ func (client VNetPeeringClient) ListByWorkspace(ctx context.Context, resourceGro
 	result.vnpl, err = client.ListByWorkspaceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "databricks.VNetPeeringClient", "ListByWorkspace", resp, "Failure responding to request")
+		return
 	}
 	if result.vnpl.hasNextLink() && result.vnpl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

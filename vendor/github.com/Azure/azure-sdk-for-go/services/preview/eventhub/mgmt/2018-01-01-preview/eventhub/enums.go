@@ -64,33 +64,56 @@ func PossibleEncodingCaptureDescriptionValues() []EncodingCaptureDescription {
 	return []EncodingCaptureDescription{Avro, AvroDeflate}
 }
 
+// EndPointProvisioningState enumerates the values for end point provisioning state.
+type EndPointProvisioningState string
+
+const (
+	// Canceled ...
+	Canceled EndPointProvisioningState = "Canceled"
+	// Creating ...
+	Creating EndPointProvisioningState = "Creating"
+	// Deleting ...
+	Deleting EndPointProvisioningState = "Deleting"
+	// Failed ...
+	Failed EndPointProvisioningState = "Failed"
+	// Succeeded ...
+	Succeeded EndPointProvisioningState = "Succeeded"
+	// Updating ...
+	Updating EndPointProvisioningState = "Updating"
+)
+
+// PossibleEndPointProvisioningStateValues returns an array of possible values for the EndPointProvisioningState const type.
+func PossibleEndPointProvisioningStateValues() []EndPointProvisioningState {
+	return []EndPointProvisioningState{Canceled, Creating, Deleting, Failed, Succeeded, Updating}
+}
+
 // EntityStatus enumerates the values for entity status.
 type EntityStatus string
 
 const (
-	// Active ...
-	Active EntityStatus = "Active"
-	// Creating ...
-	Creating EntityStatus = "Creating"
-	// Deleting ...
-	Deleting EntityStatus = "Deleting"
-	// Disabled ...
-	Disabled EntityStatus = "Disabled"
-	// ReceiveDisabled ...
-	ReceiveDisabled EntityStatus = "ReceiveDisabled"
-	// Renaming ...
-	Renaming EntityStatus = "Renaming"
-	// Restoring ...
-	Restoring EntityStatus = "Restoring"
-	// SendDisabled ...
-	SendDisabled EntityStatus = "SendDisabled"
-	// Unknown ...
-	Unknown EntityStatus = "Unknown"
+	// EntityStatusActive ...
+	EntityStatusActive EntityStatus = "Active"
+	// EntityStatusCreating ...
+	EntityStatusCreating EntityStatus = "Creating"
+	// EntityStatusDeleting ...
+	EntityStatusDeleting EntityStatus = "Deleting"
+	// EntityStatusDisabled ...
+	EntityStatusDisabled EntityStatus = "Disabled"
+	// EntityStatusReceiveDisabled ...
+	EntityStatusReceiveDisabled EntityStatus = "ReceiveDisabled"
+	// EntityStatusRenaming ...
+	EntityStatusRenaming EntityStatus = "Renaming"
+	// EntityStatusRestoring ...
+	EntityStatusRestoring EntityStatus = "Restoring"
+	// EntityStatusSendDisabled ...
+	EntityStatusSendDisabled EntityStatus = "SendDisabled"
+	// EntityStatusUnknown ...
+	EntityStatusUnknown EntityStatus = "Unknown"
 )
 
 // PossibleEntityStatusValues returns an array of possible values for the EntityStatus const type.
 func PossibleEntityStatusValues() []EntityStatus {
-	return []EntityStatus{Active, Creating, Deleting, Disabled, ReceiveDisabled, Renaming, Restoring, SendDisabled, Unknown}
+	return []EntityStatus{EntityStatusActive, EntityStatusCreating, EntityStatusDeleting, EntityStatusDisabled, EntityStatusReceiveDisabled, EntityStatusRenaming, EntityStatusRestoring, EntityStatusSendDisabled, EntityStatusUnknown}
 }
 
 // IdentityType enumerates the values for identity type.
@@ -162,21 +185,40 @@ func PossibleNetworkRuleIPActionValues() []NetworkRuleIPAction {
 	return []NetworkRuleIPAction{NetworkRuleIPActionAllow}
 }
 
+// PrivateLinkConnectionStatus enumerates the values for private link connection status.
+type PrivateLinkConnectionStatus string
+
+const (
+	// Approved ...
+	Approved PrivateLinkConnectionStatus = "Approved"
+	// Disconnected ...
+	Disconnected PrivateLinkConnectionStatus = "Disconnected"
+	// Pending ...
+	Pending PrivateLinkConnectionStatus = "Pending"
+	// Rejected ...
+	Rejected PrivateLinkConnectionStatus = "Rejected"
+)
+
+// PossiblePrivateLinkConnectionStatusValues returns an array of possible values for the PrivateLinkConnectionStatus const type.
+func PossiblePrivateLinkConnectionStatusValues() []PrivateLinkConnectionStatus {
+	return []PrivateLinkConnectionStatus{Approved, Disconnected, Pending, Rejected}
+}
+
 // ProvisioningStateDR enumerates the values for provisioning state dr.
 type ProvisioningStateDR string
 
 const (
-	// Accepted ...
-	Accepted ProvisioningStateDR = "Accepted"
-	// Failed ...
-	Failed ProvisioningStateDR = "Failed"
-	// Succeeded ...
-	Succeeded ProvisioningStateDR = "Succeeded"
+	// ProvisioningStateDRAccepted ...
+	ProvisioningStateDRAccepted ProvisioningStateDR = "Accepted"
+	// ProvisioningStateDRFailed ...
+	ProvisioningStateDRFailed ProvisioningStateDR = "Failed"
+	// ProvisioningStateDRSucceeded ...
+	ProvisioningStateDRSucceeded ProvisioningStateDR = "Succeeded"
 )
 
 // PossibleProvisioningStateDRValues returns an array of possible values for the ProvisioningStateDR const type.
 func PossibleProvisioningStateDRValues() []ProvisioningStateDR {
-	return []ProvisioningStateDR{Accepted, Failed, Succeeded}
+	return []ProvisioningStateDR{ProvisioningStateDRAccepted, ProvisioningStateDRFailed, ProvisioningStateDRSucceeded}
 }
 
 // RoleDisasterRecovery enumerates the values for role disaster recovery.

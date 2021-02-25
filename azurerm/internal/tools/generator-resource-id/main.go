@@ -793,6 +793,7 @@ func (id ResourceIdGenerator) ValidatorCode() string {
 
 import (
 	"fmt"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/%[2]s/parse"
 )
 

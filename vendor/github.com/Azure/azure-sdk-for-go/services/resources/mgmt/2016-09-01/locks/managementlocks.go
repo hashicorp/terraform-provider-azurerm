@@ -89,6 +89,7 @@ func (client ManagementLocksClient) CreateOrUpdateAtResourceGroupLevel(ctx conte
 	result, err = client.CreateOrUpdateAtResourceGroupLevelResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "CreateOrUpdateAtResourceGroupLevel", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -187,6 +188,7 @@ func (client ManagementLocksClient) CreateOrUpdateAtResourceLevel(ctx context.Co
 	result, err = client.CreateOrUpdateAtResourceLevelResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "CreateOrUpdateAtResourceLevel", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -281,6 +283,7 @@ func (client ManagementLocksClient) CreateOrUpdateAtSubscriptionLevel(ctx contex
 	result, err = client.CreateOrUpdateAtSubscriptionLevelResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "CreateOrUpdateAtSubscriptionLevel", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -371,6 +374,7 @@ func (client ManagementLocksClient) CreateOrUpdateByScope(ctx context.Context, s
 	result, err = client.CreateOrUpdateByScopeResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "CreateOrUpdateByScope", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -460,6 +464,7 @@ func (client ManagementLocksClient) DeleteAtResourceGroupLevel(ctx context.Conte
 	result, err = client.DeleteAtResourceGroupLevelResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "DeleteAtResourceGroupLevel", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -548,6 +553,7 @@ func (client ManagementLocksClient) DeleteAtResourceLevel(ctx context.Context, r
 	result, err = client.DeleteAtResourceLevelResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "DeleteAtResourceLevel", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -627,6 +633,7 @@ func (client ManagementLocksClient) DeleteAtSubscriptionLevel(ctx context.Contex
 	result, err = client.DeleteAtSubscriptionLevelResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "DeleteAtSubscriptionLevel", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -700,6 +707,7 @@ func (client ManagementLocksClient) DeleteByScope(ctx context.Context, scope str
 	result, err = client.DeleteByScopeResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "DeleteByScope", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -781,6 +789,7 @@ func (client ManagementLocksClient) GetAtResourceGroupLevel(ctx context.Context,
 	result, err = client.GetAtResourceGroupLevelResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "GetAtResourceGroupLevel", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -868,6 +877,7 @@ func (client ManagementLocksClient) GetAtResourceLevel(ctx context.Context, reso
 	result, err = client.GetAtResourceLevelResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "GetAtResourceLevel", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -946,6 +956,7 @@ func (client ManagementLocksClient) GetAtSubscriptionLevel(ctx context.Context, 
 	result, err = client.GetAtSubscriptionLevelResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "GetAtSubscriptionLevel", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1020,6 +1031,7 @@ func (client ManagementLocksClient) GetByScope(ctx context.Context, scope string
 	result, err = client.GetByScopeResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "GetByScope", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1103,9 +1115,11 @@ func (client ManagementLocksClient) ListAtResourceGroupLevel(ctx context.Context
 	result.mllr, err = client.ListAtResourceGroupLevelResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "ListAtResourceGroupLevel", resp, "Failure responding to request")
+		return
 	}
 	if result.mllr.hasNextLink() && result.mllr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -1234,9 +1248,11 @@ func (client ManagementLocksClient) ListAtResourceLevel(ctx context.Context, res
 	result.mllr, err = client.ListAtResourceLevelResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "ListAtResourceLevel", resp, "Failure responding to request")
+		return
 	}
 	if result.mllr.hasNextLink() && result.mllr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -1355,9 +1371,11 @@ func (client ManagementLocksClient) ListAtSubscriptionLevel(ctx context.Context,
 	result.mllr, err = client.ListAtSubscriptionLevelResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "ListAtSubscriptionLevel", resp, "Failure responding to request")
+		return
 	}
 	if result.mllr.hasNextLink() && result.mllr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -1476,9 +1494,11 @@ func (client ManagementLocksClient) ListByScope(ctx context.Context, scope strin
 	result.mllr, err = client.ListByScopeResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "ListByScope", resp, "Failure responding to request")
+		return
 	}
 	if result.mllr.hasNextLink() && result.mllr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

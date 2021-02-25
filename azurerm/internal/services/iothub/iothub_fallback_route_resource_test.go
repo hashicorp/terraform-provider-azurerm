@@ -1,6 +1,7 @@
 package iothub_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -8,122 +9,71 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+type IotHubFallbackRouteResource struct {
+}
+
 // NOTE: this resource intentionally doesn't support Requires Import
 //       since a fallback route is created by default
 
-func TestAccAzureRMIotHubFallbackRoute_basic(t *testing.T) {
+func TestAccIotHubFallbackRoute_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_fallback_route", "test")
+	r := IotHubFallbackRouteResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubFallbackRouteDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMIotHubFallbackRoute_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubFallbackRouteExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMIotHubFallbackRoute_update(t *testing.T) {
+func TestAccIotHubFallbackRoute_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_fallback_route", "test")
+	r := IotHubFallbackRouteResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubFallbackRouteDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMIotHubFallbackRoute_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubFallbackRouteExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMIotHubFallbackRoute_update(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubFallbackRouteExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.update(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMIotHubFallbackRouteDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.ResourceClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_iothub_fallback_route" {
-			continue
-		}
-
-		iothubName := rs.Primary.Attributes["iothub_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		iothub, err := client.Get(ctx, resourceGroup, iothubName)
-		if err != nil {
-			if utils.ResponseWasNotFound(iothub.Response) {
-				return nil
-			}
-
-			return fmt.Errorf("Bad: Get on iothubResourceClient: %+v", err)
-		}
-		if iothub.Properties == nil || iothub.Properties.Routing == nil {
-			return nil
-		}
-		if iothub.Properties.Routing.FallbackRoute != nil {
-			return fmt.Errorf("Bad: fallback route still exists on IoTHb %s", iothubName)
-		}
+func (t IotHubFallbackRouteResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
-	return nil
+	resourceGroup := id.ResourceGroup
+	iothubName := id.Path["IotHubs"]
+
+	resp, err := clients.IoTHub.ResourceClient.Get(ctx, resourceGroup, iothubName)
+	if err != nil || resp.Properties == nil || resp.Properties.Routing == nil || resp.Properties.Routing.FallbackRoute == nil {
+		return nil, fmt.Errorf("reading IotHuB Route (%s): %+v", id, err)
+	}
+
+	return utils.Bool(resp.Properties.Routing.FallbackRoute.Name != nil), nil
 }
 
-func testCheckAzureRMIotHubFallbackRouteExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.ResourceClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-		parsedIothubId, err := azure.ParseAzureResourceID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-		iothubName := parsedIothubId.Path["IotHubs"]
-		resourceGroup := parsedIothubId.ResourceGroup
-
-		iothub, err := client.Get(ctx, resourceGroup, iothubName)
-		if err != nil {
-			if utils.ResponseWasNotFound(iothub.Response) {
-				return fmt.Errorf("IotHub %q (Resource Group %q) was not found", iothubName, resourceGroup)
-			}
-
-			return fmt.Errorf("Error loading IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
-		}
-
-		if iothub.Properties == nil || iothub.Properties.Routing == nil || iothub.Properties.Routing.FallbackRoute == nil {
-			return fmt.Errorf("Bad: No fallbackroute defined for IotHub %s", iothubName)
-		}
-
-		return nil
-	}
-}
-
-func testAccAzureRMIotHubFallbackRoute_basic(data acceptance.TestData) string {
+func (IotHubFallbackRouteResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -187,7 +137,7 @@ resource "azurerm_iothub_fallback_route" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMIotHubFallbackRoute_update(data acceptance.TestData) string {
+func (IotHubFallbackRouteResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -1,193 +1,154 @@
 package keyvault_test
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMKeyVaultAccessPolicy_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_key_vault_access_policy", "test")
+type KeyVaultAccessPolicyResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKeyVaultAccessPolicy_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultAccessPolicyExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "key_permissions.0", "get"),
-					resource.TestCheckResourceAttr(data.ResourceName, "secret_permissions.0", "get"),
-					resource.TestCheckResourceAttr(data.ResourceName, "secret_permissions.1", "set"),
-				),
-			},
-			data.ImportStep(),
+func TestAccKeyVaultAccessPolicy_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_access_policy", "test")
+	r := KeyVaultAccessPolicyResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("key_permissions.0").HasValue("get"),
+				check.That(data.ResourceName).Key("secret_permissions.0").HasValue("get"),
+				check.That(data.ResourceName).Key("secret_permissions.1").HasValue("set"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKeyVaultAccessPolicy_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_access_policy", "test")
+	r := KeyVaultAccessPolicyResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("key_permissions.0").HasValue("get"),
+				check.That(data.ResourceName).Key("secret_permissions.0").HasValue("get"),
+				check.That(data.ResourceName).Key("secret_permissions.1").HasValue("set"),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_key_vault_access_policy"),
 		},
 	})
 }
 
-func TestAccAzureRMKeyVaultAccessPolicy_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_key_vault_access_policy", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKeyVaultAccessPolicy_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultAccessPolicyExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "key_permissions.0", "get"),
-					resource.TestCheckResourceAttr(data.ResourceName, "secret_permissions.0", "get"),
-					resource.TestCheckResourceAttr(data.ResourceName, "secret_permissions.1", "set"),
-				),
-			},
-			{
-				Config:      testAccAzureRMKeyVaultAccessPolicy_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_key_vault_access_policy"),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMKeyVaultAccessPolicy_multiple(t *testing.T) {
+func TestAccKeyVaultAccessPolicy_multiple(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_access_policy", "test_with_application_id")
+	r := KeyVaultAccessPolicyResource{}
 	resourceName2 := "azurerm_key_vault_access_policy.test_no_application_id"
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKeyVaultAccessPolicy_multiple(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultAccessPolicyExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "key_permissions.0", "create"),
-					resource.TestCheckResourceAttr(data.ResourceName, "key_permissions.1", "get"),
-					resource.TestCheckResourceAttr(data.ResourceName, "secret_permissions.0", "get"),
-					resource.TestCheckResourceAttr(data.ResourceName, "secret_permissions.1", "delete"),
-					resource.TestCheckResourceAttr(data.ResourceName, "certificate_permissions.0", "create"),
-					resource.TestCheckResourceAttr(data.ResourceName, "certificate_permissions.1", "delete"),
-
-					testCheckAzureRMKeyVaultAccessPolicyExists(resourceName2),
-					resource.TestCheckResourceAttr(resourceName2, "key_permissions.0", "list"),
-					resource.TestCheckResourceAttr(resourceName2, "key_permissions.1", "encrypt"),
-					resource.TestCheckResourceAttr(resourceName2, "secret_permissions.0", "list"),
-					resource.TestCheckResourceAttr(resourceName2, "secret_permissions.1", "delete"),
-					resource.TestCheckResourceAttr(resourceName2, "certificate_permissions.0", "list"),
-					resource.TestCheckResourceAttr(resourceName2, "certificate_permissions.1", "delete"),
-				),
-			},
-			data.ImportStep(),
-			{
-				ResourceName:      resourceName2,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.multiple(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("key_permissions.0").HasValue("create"),
+				check.That(data.ResourceName).Key("key_permissions.1").HasValue("get"),
+				check.That(data.ResourceName).Key("secret_permissions.0").HasValue("get"),
+				check.That(data.ResourceName).Key("secret_permissions.1").HasValue("delete"),
+				check.That(data.ResourceName).Key("certificate_permissions.0").HasValue("create"),
+				check.That(data.ResourceName).Key("certificate_permissions.1").HasValue("delete"),
+				resource.TestCheckResourceAttr(resourceName2, "key_permissions.0", "list"),
+				resource.TestCheckResourceAttr(resourceName2, "key_permissions.1", "encrypt"),
+				resource.TestCheckResourceAttr(resourceName2, "secret_permissions.0", "list"),
+				resource.TestCheckResourceAttr(resourceName2, "secret_permissions.1", "delete"),
+				resource.TestCheckResourceAttr(resourceName2, "certificate_permissions.0", "list"),
+				resource.TestCheckResourceAttr(resourceName2, "certificate_permissions.1", "delete"),
+			),
+		},
+		data.ImportStep(),
+		{
+			ResourceName:      resourceName2,
+			ImportState:       true,
+			ImportStateVerify: true,
 		},
 	})
 }
 
-func TestAccAzureRMKeyVaultAccessPolicy_update(t *testing.T) {
+func TestAccKeyVaultAccessPolicy_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_access_policy", "test")
+	r := KeyVaultAccessPolicyResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKeyVaultAccessPolicy_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultAccessPolicyExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "key_permissions.0", "get"),
-					resource.TestCheckResourceAttr(data.ResourceName, "secret_permissions.0", "get"),
-					resource.TestCheckResourceAttr(data.ResourceName, "secret_permissions.1", "set"),
-				),
-			},
-			{
-				Config: testAccAzureRMKeyVaultAccessPolicy_update(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultAccessPolicyExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "key_permissions.0", "list"),
-					resource.TestCheckResourceAttr(data.ResourceName, "key_permissions.1", "encrypt"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("key_permissions.0").HasValue("get"),
+				check.That(data.ResourceName).Key("secret_permissions.0").HasValue("get"),
+				check.That(data.ResourceName).Key("secret_permissions.1").HasValue("set"),
+			),
+		},
+		{
+			Config: r.update(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("key_permissions.0").HasValue("list"),
+				check.That(data.ResourceName).Key("key_permissions.1").HasValue("encrypt"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMKeyVaultAccessPolicy_nonExistentVault(t *testing.T) {
+func TestAccKeyVaultAccessPolicy_nonExistentVault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_access_policy", "test")
+	r := KeyVaultAccessPolicyResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config:             testAccAzureRMKeyVaultAccessPolicy_nonExistentVault(data),
-				ExpectNonEmptyPlan: true,
-				ExpectError:        regexp.MustCompile(`Error retrieving Key Vault`),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config:             r.nonExistentVault(data),
+			ExpectNonEmptyPlan: true,
+			ExpectError:        regexp.MustCompile(`Error retrieving Key Vault`),
 		},
 	})
 }
 
-func testCheckAzureRMKeyVaultAccessPolicyExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		id, err := azure.ParseAzureResourceID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-		resGroup := id.ResourceGroup
-		vaultName := id.Path["vaults"]
-
-		objectId := rs.Primary.Attributes["object_id"]
-		applicationId := rs.Primary.Attributes["application_id"]
-
-		resp, err := client.Get(ctx, resGroup, vaultName)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Key Vault %q (resource group: %q) does not exist", vaultName, resGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on keyVaultClient: %+v", err)
-		}
-
-		policy := keyvault.FindKeyVaultAccessPolicy(resp.Properties.AccessPolicies, objectId, applicationId)
-
-		if policy == nil {
-			return fmt.Errorf("Bad: Key Vault Policy %q (resource group: %q, object_id: %s) does not exist", vaultName, resGroup, objectId)
-		}
-
-		return nil
+func (t KeyVaultAccessPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+	resGroup := id.ResourceGroup
+	vaultName := id.Path["vaults"]
+	objectId := id.Path["objectId"]
+	applicationId := id.Path["applicationId"]
+
+	resp, err := clients.KeyVault.VaultsClient.Get(ctx, resGroup, vaultName)
+	if err != nil {
+		return nil, fmt.Errorf("reading Key Vault (%s): %+v", id, err)
+	}
+
+	return utils.Bool(keyvault.FindKeyVaultAccessPolicy(resp.Properties.AccessPolicies, objectId, applicationId) != nil), nil
 }
 
-func testAccAzureRMKeyVaultAccessPolicy_basic(data acceptance.TestData) string {
-	template := testAccAzureRMKeyVaultAccessPolicy_template(data)
+func (r KeyVaultAccessPolicyResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -206,11 +167,10 @@ resource "azurerm_key_vault_access_policy" "test" {
   tenant_id = data.azurerm_client_config.current.tenant_id
   object_id = data.azurerm_client_config.current.object_id
 }
-`, template)
+`, r.template(data))
 }
 
-func testAccAzureRMKeyVaultAccessPolicy_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMKeyVaultAccessPolicy_basic(data)
+func (r KeyVaultAccessPolicyResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -228,11 +188,10 @@ resource "azurerm_key_vault_access_policy" "import" {
     "set",
   ]
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMKeyVaultAccessPolicy_multiple(data acceptance.TestData) string {
-	template := testAccAzureRMKeyVaultAccessPolicy_template(data)
+func (r KeyVaultAccessPolicyResource) multiple(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -297,11 +256,10 @@ resource "azurerm_key_vault_access_policy" "test_no_application_id" {
   tenant_id = data.azurerm_client_config.current.tenant_id
   object_id = data.azurerm_client_config.current.object_id
 }
-`, template)
+`, r.template(data))
 }
 
-func testAccAzureRMKeyVaultAccessPolicy_update(data acceptance.TestData) string {
-	template := testAccAzureRMKeyVaultAccessPolicy_template(data)
+func (r KeyVaultAccessPolicyResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -318,10 +276,10 @@ resource "azurerm_key_vault_access_policy" "test" {
   tenant_id = data.azurerm_client_config.current.tenant_id
   object_id = data.azurerm_client_config.current.object_id
 }
-`, template)
+`, r.template(data))
 }
 
-func testAccAzureRMKeyVaultAccessPolicy_template(data acceptance.TestData) string {
+func (KeyVaultAccessPolicyResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -341,7 +299,7 @@ resource "azurerm_key_vault" "test" {
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
 
-  sku_name = "premium"
+  sku_name = "standard"
 
   tags = {
     environment = "Production"
@@ -350,7 +308,7 @@ resource "azurerm_key_vault" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMKeyVaultAccessPolicy_nonExistentVault(data acceptance.TestData) string {
+func (KeyVaultAccessPolicyResource) nonExistentVault(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -80,6 +80,7 @@ func (client AutoProvisioningSettingsClient) Create(ctx context.Context, setting
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AutoProvisioningSettingsClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -161,6 +162,7 @@ func (client AutoProvisioningSettingsClient) Get(ctx context.Context, settingNam
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AutoProvisioningSettingsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -239,9 +241,11 @@ func (client AutoProvisioningSettingsClient) List(ctx context.Context) (result A
 	result.apsl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AutoProvisioningSettingsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.apsl.hasNextLink() && result.apsl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

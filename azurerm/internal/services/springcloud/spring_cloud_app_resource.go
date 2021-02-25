@@ -5,12 +5,13 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2019-05-01-preview/appplatform"
+	"github.com/Azure/azure-sdk-for-go/services/appplatform/mgmt/2020-07-01/appplatform"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/identity"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/springcloud/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/springcloud/validate"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -18,11 +19,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+type springCloudAppIdentity = identity.SystemAssigned
+
 func resourceSpringCloudApp() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceSpringCloudAppCreateUpdate,
+		Create: resourceSpringCloudAppCreate,
 		Read:   resourceSpringCloudAppRead,
-		Update: resourceSpringCloudAppCreateUpdate,
+		Update: resourceSpringCloudAppUpdate,
 		Delete: resourceSpringCloudAppDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
@@ -54,38 +57,52 @@ func resourceSpringCloudApp() *schema.Resource {
 				ValidateFunc: validate.SpringCloudServiceName,
 			},
 
-			"identity": {
+			"identity": springCloudAppIdentity{}.Schema(),
+
+			"is_public": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"https_only": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"persistent_disk": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"type": {
-							Type:     schema.TypeString,
-							Required: true,
-							// other two enum: 'UserAssigned', 'SystemAssignedUserAssigned' are not supported for now
-							ValidateFunc: validation.StringInSlice([]string{
-								string(appplatform.SystemAssigned),
-							}, false),
+						"size_in_gb": {
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(0, 50),
 						},
 
-						"principal_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"tenant_id": {
-							Type:     schema.TypeString,
-							Computed: true,
+						"mount_path": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      "/persistent",
+							ValidateFunc: validate.MountPath,
 						},
 					},
 				},
+			},
+
+			"url": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 		},
 	}
 }
 
-func resourceSpringCloudAppCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSpringCloudAppCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.AppsClient
 	servicesClient := meta.(*clients.Client).AppPlatform.ServicesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -114,19 +131,72 @@ func resourceSpringCloudAppCreateUpdate(d *schema.ResourceData, meta interface{}
 		}
 	}
 
+	identity, err := expandSpringCloudAppIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return err
+	}
+
 	app := appplatform.AppResource{
 		Location: serviceResp.Location,
-		Identity: expandSpringCloudAppIdentity(d.Get("identity").([]interface{})),
+		Identity: identity,
+		Properties: &appplatform.AppResourceProperties{
+			Public: utils.Bool(d.Get("is_public").(bool)),
+		},
 	}
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, name, app)
 	if err != nil {
-		return fmt.Errorf("creating/update Spring Cloud App %q (Spring Cloud Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
+		return fmt.Errorf("creating Spring Cloud App %q (Spring Cloud Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of Spring Cloud App %q (Spring Cloud Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of Spring Cloud App %q (Spring Cloud Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
+	}
+
+	// HTTPSOnly and PersistentDisk could only be set by update
+	app.Properties.HTTPSOnly = utils.Bool(d.Get("https_only").(bool))
+	app.Properties.PersistentDisk = expandSpringCloudAppPersistentDisk(d.Get("persistent_disk").([]interface{}))
+	future, err = client.CreateOrUpdate(ctx, resourceGroup, serviceName, name, app)
+	if err != nil {
+		return fmt.Errorf("update Spring Cloud App %q (Spring Cloud Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
+	}
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for update of Spring Cloud App %q (Spring Cloud Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
 	}
 
 	d.SetId(resourceId)
+	return resourceSpringCloudAppRead(d, meta)
+}
+
+func resourceSpringCloudAppUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).AppPlatform.AppsClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.SpringCloudAppID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	identity, err := expandSpringCloudAppIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return err
+	}
+
+	app := appplatform.AppResource{
+		Identity: identity,
+		Properties: &appplatform.AppResourceProperties{
+			Public:         utils.Bool(d.Get("is_public").(bool)),
+			HTTPSOnly:      utils.Bool(d.Get("https_only").(bool)),
+			PersistentDisk: expandSpringCloudAppPersistentDisk(d.Get("persistent_disk").([]interface{})),
+		},
+	}
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.AppName, app)
+	if err != nil {
+		return fmt.Errorf("update %s: %+v", id, err)
+	}
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for update of %s: %+v", id, err)
+	}
+
 	return resourceSpringCloudAppRead(d, meta)
 }
 
@@ -158,6 +228,16 @@ func resourceSpringCloudAppRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("setting `identity`: %s", err)
 	}
 
+	if prop := resp.Properties; prop != nil {
+		d.Set("is_public", prop.Public)
+		d.Set("https_only", prop.HTTPSOnly)
+		d.Set("url", prop.URL)
+
+		if err := d.Set("persistent_disk", flattenSpringCloudAppPersistentDisk(prop.PersistentDisk)); err != nil {
+			return fmt.Errorf("setting `persistent_disk`: %s", err)
+		}
+	}
+
 	return nil
 }
 
@@ -172,44 +252,67 @@ func resourceSpringCloudAppDelete(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if _, err := client.Delete(ctx, id.ResourceGroup, id.SpringName, id.AppName); err != nil {
-		return fmt.Errorf("deleting Spring Cloud App %q (Spring Cloud Service %q / Resource Group %q): %+v", id.AppName, id.SpringName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil
 }
 
-func expandSpringCloudAppIdentity(input []interface{}) *appplatform.ManagedIdentityProperties {
-	if len(input) == 0 || input[0] == nil {
-		return &appplatform.ManagedIdentityProperties{
-			Type: appplatform.None,
-		}
+func expandSpringCloudAppIdentity(input []interface{}) (*appplatform.ManagedIdentityProperties, error) {
+	config, err := springCloudAppIdentity{}.Expand(input)
+	if err != nil {
+		return nil, err
 	}
-	identity := input[0].(map[string]interface{})
+
 	return &appplatform.ManagedIdentityProperties{
-		Type: appplatform.ManagedIdentityType(identity["type"].(string)),
+		Type:        appplatform.ManagedIdentityType(config.Type),
+		TenantID:    config.TenantId,
+		PrincipalID: config.PrincipalId,
+	}, nil
+}
+
+func expandSpringCloudAppPersistentDisk(input []interface{}) *appplatform.PersistentDisk {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	raw := input[0].(map[string]interface{})
+	return &appplatform.PersistentDisk{
+		SizeInGB:  utils.Int32(int32(raw["size_in_gb"].(int))),
+		MountPath: utils.String(raw["mount_path"].(string)),
 	}
 }
 
-func flattenSpringCloudAppIdentity(identity *appplatform.ManagedIdentityProperties) []interface{} {
-	if identity == nil {
+func flattenSpringCloudAppIdentity(input *appplatform.ManagedIdentityProperties) []interface{} {
+	var config *identity.ExpandedConfig
+	if input != nil {
+		config = &identity.ExpandedConfig{
+			Type:        string(input.Type),
+			PrincipalId: input.PrincipalID,
+			TenantId:    input.TenantID,
+		}
+	}
+	return springCloudAppIdentity{}.Flatten(config)
+}
+
+func flattenSpringCloudAppPersistentDisk(input *appplatform.PersistentDisk) []interface{} {
+	if input == nil {
 		return make([]interface{}, 0)
 	}
 
-	principalId := ""
-	if identity.PrincipalID != nil {
-		principalId = *identity.PrincipalID
+	sizeInGB := 0
+	if input.SizeInGB != nil {
+		sizeInGB = int(*input.SizeInGB)
 	}
 
-	tenantId := ""
-	if identity.TenantID != nil {
-		tenantId = *identity.TenantID
+	mountPath := ""
+	if input.MountPath != nil {
+		mountPath = *input.MountPath
 	}
 
 	return []interface{}{
 		map[string]interface{}{
-			"principal_id": principalId,
-			"tenant_id":    tenantId,
-			"type":         string(identity.Type),
+			"size_in_gb": sizeInGB,
+			"mount_path": mountPath,
 		},
 	}
 }

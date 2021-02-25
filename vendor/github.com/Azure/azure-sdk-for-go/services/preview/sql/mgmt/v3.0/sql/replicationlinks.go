@@ -78,6 +78,7 @@ func (client ReplicationLinksClient) Delete(ctx context.Context, resourceGroupNa
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ReplicationLinksClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -149,7 +150,7 @@ func (client ReplicationLinksClient) Failover(ctx context.Context, resourceGroup
 
 	result, err = client.FailoverSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ReplicationLinksClient", "Failover", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ReplicationLinksClient", "Failover", nil, "Failure sending request")
 		return
 	}
 
@@ -187,7 +188,23 @@ func (client ReplicationLinksClient) FailoverSender(req *http.Request) (future R
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ReplicationLinksClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ReplicationLinksFailoverFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.ReplicationLinksFailoverFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -229,7 +246,7 @@ func (client ReplicationLinksClient) FailoverAllowDataLoss(ctx context.Context, 
 
 	result, err = client.FailoverAllowDataLossSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ReplicationLinksClient", "FailoverAllowDataLoss", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ReplicationLinksClient", "FailoverAllowDataLoss", nil, "Failure sending request")
 		return
 	}
 
@@ -267,7 +284,23 @@ func (client ReplicationLinksClient) FailoverAllowDataLossSender(req *http.Reque
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ReplicationLinksClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ReplicationLinksFailoverAllowDataLossFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.ReplicationLinksFailoverAllowDataLossFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -316,6 +349,7 @@ func (client ReplicationLinksClient) Get(ctx context.Context, resourceGroupName 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ReplicationLinksClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -395,6 +429,7 @@ func (client ReplicationLinksClient) ListByDatabase(ctx context.Context, resourc
 	result, err = client.ListByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ReplicationLinksClient", "ListByDatabase", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -467,7 +502,7 @@ func (client ReplicationLinksClient) Unlink(ctx context.Context, resourceGroupNa
 
 	result, err = client.UnlinkSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ReplicationLinksClient", "Unlink", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ReplicationLinksClient", "Unlink", nil, "Failure sending request")
 		return
 	}
 
@@ -507,7 +542,23 @@ func (client ReplicationLinksClient) UnlinkSender(req *http.Request) (future Rep
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ReplicationLinksClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ReplicationLinksUnlinkFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.ReplicationLinksUnlinkFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 

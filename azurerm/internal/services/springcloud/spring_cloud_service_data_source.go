@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/springcloud/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/springcloud/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -117,34 +118,37 @@ func dataSourceSpringCloudService() *schema.Resource {
 
 func dataSourceSpringCloudServiceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.ServicesClient
+	configServersClient := meta.(*clients.Client).AppPlatform.ConfigServersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewSpringCloudServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.SpringName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: Spring Cloud %q (Resource Group %q) was not found", name, resourceGroup)
+			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("Error reading Spring Cloud %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.SetId(parse.NewSpringCloudServiceID(subscriptionId, resourceGroup, name).ID())
+	configServer, err := configServersClient.Get(ctx, id.ResourceGroup, id.SpringName)
+	if err != nil {
+		return fmt.Errorf("retrieving config server configuration for %s: %+v", id, err)
+	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
+	d.SetId(id.ID())
+
+	d.Set("name", id.SpringName)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("location", location.NormalizeNilable(resp.Location))
+
+	if err := d.Set("config_server_git_setting", flattenSpringCloudConfigServerGitProperty(configServer.Properties, d)); err != nil {
+		return fmt.Errorf("setting `config_server_git_setting`: %+v", err)
 	}
 
 	if props := resp.Properties; props != nil {
-		if err := d.Set("config_server_git_setting", flattenSpringCloudConfigServerGitProperty(props.ConfigServerProperties, d)); err != nil {
-			return fmt.Errorf("setting `config_server_git_setting`: %+v", err)
-		}
-
 		outboundPublicIPAddresses := flattenOutboundPublicIPAddresses(props.NetworkProfile)
 		if err := d.Set("outbound_public_ip_addresses", outboundPublicIPAddresses); err != nil {
 			return fmt.Errorf("setting `outbound_public_ip_addresses`: %+v", err)

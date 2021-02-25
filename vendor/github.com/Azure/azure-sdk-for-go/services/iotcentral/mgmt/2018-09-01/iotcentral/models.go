@@ -145,8 +145,8 @@ func (a *App) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// AppAvailabilityInfo the properties indicating whether a given IoT Central application name or subdomain is
-// available.
+// AppAvailabilityInfo the properties indicating whether a given IoT Central application name or subdomain
+// is available.
 type AppAvailabilityInfo struct {
 	autorest.Response `json:"-"`
 	// NameAvailable - READ-ONLY; The value which indicates whether the provided name is available.
@@ -309,8 +309,11 @@ func (page AppListResultPage) Values() []App {
 }
 
 // Creates a new instance of the AppListResultPage type.
-func NewAppListResultPage(getNextPage func(context.Context, AppListResult) (AppListResult, error)) AppListResultPage {
-	return AppListResultPage{fn: getNextPage}
+func NewAppListResultPage(cur AppListResult, getNextPage func(context.Context, AppListResult) (AppListResult, error)) AppListResultPage {
+	return AppListResultPage{
+		fn:  getNextPage,
+		alr: cur,
+	}
 }
 
 // AppPatch the description of the IoT Central application.
@@ -410,52 +413,18 @@ func (ap AppProperties) MarshalJSON() ([]byte, error) {
 // AppsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type AppsCreateOrUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AppsCreateOrUpdateFuture) Result(client AppsClient) (a App, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "iotcentral.AppsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("iotcentral.AppsCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if a.Response.Response, err = future.GetResult(sender); err == nil && a.Response.Response.StatusCode != http.StatusNoContent {
-		a, err = client.CreateOrUpdateResponder(a.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "iotcentral.AppsCreateOrUpdateFuture", "Result", a.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppsClient) (App, error)
 }
 
 // AppsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type AppsDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AppsDeleteFuture) Result(client AppsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "iotcentral.AppsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("iotcentral.AppsDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppsClient) (autorest.Response, error)
 }
 
 // AppSkuInfo information about the SKU of the IoT Central application.
@@ -466,30 +435,10 @@ type AppSkuInfo struct {
 
 // AppsUpdateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type AppsUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AppsUpdateFuture) Result(client AppsClient) (a App, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "iotcentral.AppsUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("iotcentral.AppsUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if a.Response.Response, err = future.GetResult(sender); err == nil && a.Response.Response.StatusCode != http.StatusNoContent {
-		a, err = client.UpdateResponder(a.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "iotcentral.AppsUpdateFuture", "Result", a.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AppsClient) (App, error)
 }
 
 // AppTemplate ioT Central Application Template.
@@ -498,14 +447,26 @@ type AppTemplate struct {
 	ManifestID *string `json:"manifestId,omitempty"`
 	// ManifestVersion - READ-ONLY; The version of the template.
 	ManifestVersion *string `json:"manifestVersion,omitempty"`
-	// AppTemplateName - READ-ONLY; The name of the template.
-	AppTemplateName *string `json:"appTemplateName,omitempty"`
+	// Name - READ-ONLY; The name of the template.
+	Name *string `json:"name,omitempty"`
 	// Title - READ-ONLY; The title of the template.
 	Title *string `json:"title,omitempty"`
 	// Order - READ-ONLY; The order of the template in the templates list.
 	Order *float64 `json:"order,omitempty"`
 	// Description - READ-ONLY; The description of the template.
 	Description *string `json:"description,omitempty"`
+	// Industry - READ-ONLY; The industry of the template.
+	Industry *string `json:"industry,omitempty"`
+	// Locations - READ-ONLY; A list of locations that support the template.
+	Locations *[]AppTemplateLocations `json:"locations,omitempty"`
+}
+
+// AppTemplateLocations ioT Central Application Template Locations.
+type AppTemplateLocations struct {
+	// ID - READ-ONLY; The ID of the location.
+	ID *string `json:"id,omitempty"`
+	// DisplayName - READ-ONLY; The display name of the location.
+	DisplayName *string `json:"displayName,omitempty"`
 }
 
 // AppTemplatesResult a list of IoT Central Application Templates with a next link.
@@ -669,8 +630,11 @@ func (page AppTemplatesResultPage) Values() []AppTemplate {
 }
 
 // Creates a new instance of the AppTemplatesResultPage type.
-func NewAppTemplatesResultPage(getNextPage func(context.Context, AppTemplatesResult) (AppTemplatesResult, error)) AppTemplatesResultPage {
-	return AppTemplatesResultPage{fn: getNextPage}
+func NewAppTemplatesResultPage(cur AppTemplatesResult, getNextPage func(context.Context, AppTemplatesResult) (AppTemplatesResult, error)) AppTemplatesResultPage {
+	return AppTemplatesResultPage{
+		fn:  getNextPage,
+		atr: cur,
+	}
 }
 
 // CloudError error details.
@@ -739,6 +703,10 @@ type Operation struct {
 	Name *string `json:"name,omitempty"`
 	// Display - The object that represents the operation.
 	Display *OperationDisplay `json:"display,omitempty"`
+	// Origin - READ-ONLY; The intended executor of the operation.
+	Origin *string `json:"origin,omitempty"`
+	// Properties - READ-ONLY; Additional descriptions for the operation.
+	Properties interface{} `json:"properties,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for Operation.
@@ -770,8 +738,8 @@ type OperationInputs struct {
 	Type *string `json:"type,omitempty"`
 }
 
-// OperationListResult a list of IoT Central operations. It contains a list of operations and a URL link to get
-// the next set of results.
+// OperationListResult a list of IoT Central operations. It contains a list of operations and a URL link to
+// get the next set of results.
 type OperationListResult struct {
 	autorest.Response `json:"-"`
 	// NextLink - The link used to get the next page of IoT Central description objects.
@@ -932,8 +900,11 @@ func (page OperationListResultPage) Values() []Operation {
 }
 
 // Creates a new instance of the OperationListResultPage type.
-func NewOperationListResultPage(getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
-	return OperationListResultPage{fn: getNextPage}
+func NewOperationListResultPage(cur OperationListResult, getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
+	return OperationListResultPage{
+		fn:  getNextPage,
+		olr: cur,
+	}
 }
 
 // Resource the common properties of an ARM resource.

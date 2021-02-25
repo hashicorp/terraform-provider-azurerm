@@ -67,7 +67,7 @@ func (client PrivateEndpointConnectionsClient) Delete(ctx context.Context, resou
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "devices.PrivateEndpointConnectionsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "devices.PrivateEndpointConnectionsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -104,7 +104,33 @@ func (client PrivateEndpointConnectionsClient) DeleteSender(req *http.Request) (
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client PrivateEndpointConnectionsClient) (pec PrivateEndpointConnection, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "devices.PrivateEndpointConnectionsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("devices.PrivateEndpointConnectionsDeleteFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		pec.Response.Response, err = future.GetResult(sender)
+		if pec.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "devices.PrivateEndpointConnectionsDeleteFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && pec.Response.Response.StatusCode != http.StatusNoContent {
+			pec, err = client.DeleteResponder(pec.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "devices.PrivateEndpointConnectionsDeleteFuture", "Result", pec.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -152,6 +178,7 @@ func (client PrivateEndpointConnectionsClient) Get(ctx context.Context, resource
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "devices.PrivateEndpointConnectionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -228,6 +255,7 @@ func (client PrivateEndpointConnectionsClient) List(ctx context.Context, resourc
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "devices.PrivateEndpointConnectionsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -306,7 +334,7 @@ func (client PrivateEndpointConnectionsClient) Update(ctx context.Context, resou
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "devices.PrivateEndpointConnectionsClient", "Update", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "devices.PrivateEndpointConnectionsClient", "Update", nil, "Failure sending request")
 		return
 	}
 
@@ -348,7 +376,33 @@ func (client PrivateEndpointConnectionsClient) UpdateSender(req *http.Request) (
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client PrivateEndpointConnectionsClient) (pec PrivateEndpointConnection, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "devices.PrivateEndpointConnectionsUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("devices.PrivateEndpointConnectionsUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		pec.Response.Response, err = future.GetResult(sender)
+		if pec.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "devices.PrivateEndpointConnectionsUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && pec.Response.Response.StatusCode != http.StatusNoContent {
+			pec, err = client.UpdateResponder(pec.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "devices.PrivateEndpointConnectionsUpdateFuture", "Result", pec.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

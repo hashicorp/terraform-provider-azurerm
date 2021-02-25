@@ -80,6 +80,7 @@ func (client ServicesClient) CheckNameAvailability(ctx context.Context, checkNam
 	result, err = client.CheckNameAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "healthcareapis.ServicesClient", "CheckNameAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -174,7 +175,7 @@ func (client ServicesClient) CreateOrUpdate(ctx context.Context, resourceGroupNa
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "healthcareapis.ServicesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "healthcareapis.ServicesClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -212,7 +213,33 @@ func (client ServicesClient) CreateOrUpdateSender(req *http.Request) (future Ser
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ServicesClient) (sd ServicesDescription, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "healthcareapis.ServicesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("healthcareapis.ServicesCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		sd.Response.Response, err = future.GetResult(sender)
+		if sd.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "healthcareapis.ServicesCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && sd.Response.Response.StatusCode != http.StatusNoContent {
+			sd, err = client.CreateOrUpdateResponder(sd.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "healthcareapis.ServicesCreateOrUpdateFuture", "Result", sd.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -262,7 +289,7 @@ func (client ServicesClient) Delete(ctx context.Context, resourceGroupName strin
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "healthcareapis.ServicesClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "healthcareapis.ServicesClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -298,7 +325,23 @@ func (client ServicesClient) DeleteSender(req *http.Request) (future ServicesDel
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ServicesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "healthcareapis.ServicesDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("healthcareapis.ServicesDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -355,6 +398,7 @@ func (client ServicesClient) Get(ctx context.Context, resourceGroupName string, 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "healthcareapis.ServicesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -428,9 +472,11 @@ func (client ServicesClient) List(ctx context.Context) (result ServicesDescripti
 	result.sdlr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "healthcareapis.ServicesClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.sdlr.hasNextLink() && result.sdlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -549,9 +595,11 @@ func (client ServicesClient) ListByResourceGroup(ctx context.Context, resourceGr
 	result.sdlr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "healthcareapis.ServicesClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.sdlr.hasNextLink() && result.sdlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -667,7 +715,7 @@ func (client ServicesClient) Update(ctx context.Context, resourceGroupName strin
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "healthcareapis.ServicesClient", "Update", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "healthcareapis.ServicesClient", "Update", nil, "Failure sending request")
 		return
 	}
 
@@ -705,7 +753,33 @@ func (client ServicesClient) UpdateSender(req *http.Request) (future ServicesUpd
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ServicesClient) (sd ServicesDescription, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "healthcareapis.ServicesUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("healthcareapis.ServicesUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		sd.Response.Response, err = future.GetResult(sender)
+		if sd.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "healthcareapis.ServicesUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && sd.Response.Response.StatusCode != http.StatusNoContent {
+			sd, err = client.UpdateResponder(sd.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "healthcareapis.ServicesUpdateFuture", "Result", sd.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

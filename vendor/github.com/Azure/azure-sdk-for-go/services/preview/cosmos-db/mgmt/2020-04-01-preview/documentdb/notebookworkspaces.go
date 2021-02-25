@@ -81,7 +81,7 @@ func (client NotebookWorkspacesClient) CreateOrUpdate(ctx context.Context, resou
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.NotebookWorkspacesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "documentdb.NotebookWorkspacesClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -120,7 +120,33 @@ func (client NotebookWorkspacesClient) CreateOrUpdateSender(req *http.Request) (
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client NotebookWorkspacesClient) (nw NotebookWorkspace, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.NotebookWorkspacesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("documentdb.NotebookWorkspacesCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		nw.Response.Response, err = future.GetResult(sender)
+		if nw.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "documentdb.NotebookWorkspacesCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && nw.Response.Response.StatusCode != http.StatusNoContent {
+			nw, err = client.CreateOrUpdateResponder(nw.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "documentdb.NotebookWorkspacesCreateOrUpdateFuture", "Result", nw.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -173,7 +199,7 @@ func (client NotebookWorkspacesClient) Delete(ctx context.Context, resourceGroup
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.NotebookWorkspacesClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "documentdb.NotebookWorkspacesClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -210,7 +236,23 @@ func (client NotebookWorkspacesClient) DeleteSender(req *http.Request) (future N
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client NotebookWorkspacesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.NotebookWorkspacesDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("documentdb.NotebookWorkspacesDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -270,6 +312,7 @@ func (client NotebookWorkspacesClient) Get(ctx context.Context, resourceGroupNam
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "documentdb.NotebookWorkspacesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -360,6 +403,7 @@ func (client NotebookWorkspacesClient) ListByDatabaseAccount(ctx context.Context
 	result, err = client.ListByDatabaseAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "documentdb.NotebookWorkspacesClient", "ListByDatabaseAccount", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -449,6 +493,7 @@ func (client NotebookWorkspacesClient) ListConnectionInfo(ctx context.Context, r
 	result, err = client.ListConnectionInfoResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "documentdb.NotebookWorkspacesClient", "ListConnectionInfo", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -531,7 +576,7 @@ func (client NotebookWorkspacesClient) RegenerateAuthToken(ctx context.Context, 
 
 	result, err = client.RegenerateAuthTokenSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.NotebookWorkspacesClient", "RegenerateAuthToken", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "documentdb.NotebookWorkspacesClient", "RegenerateAuthToken", nil, "Failure sending request")
 		return
 	}
 
@@ -568,7 +613,23 @@ func (client NotebookWorkspacesClient) RegenerateAuthTokenSender(req *http.Reque
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client NotebookWorkspacesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.NotebookWorkspacesRegenerateAuthTokenFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("documentdb.NotebookWorkspacesRegenerateAuthTokenFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -620,7 +681,7 @@ func (client NotebookWorkspacesClient) Start(ctx context.Context, resourceGroupN
 
 	result, err = client.StartSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.NotebookWorkspacesClient", "Start", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "documentdb.NotebookWorkspacesClient", "Start", nil, "Failure sending request")
 		return
 	}
 
@@ -657,7 +718,23 @@ func (client NotebookWorkspacesClient) StartSender(req *http.Request) (future No
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client NotebookWorkspacesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.NotebookWorkspacesStartFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("documentdb.NotebookWorkspacesStartFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 

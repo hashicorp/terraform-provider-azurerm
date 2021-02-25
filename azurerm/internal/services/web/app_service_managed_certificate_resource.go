@@ -19,12 +19,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAppServiceManagedCertificate() *schema.Resource {
+func resourceAppServiceManagedCertificate() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAppServiceManagedCertificateCreateUpdate,
-		Read:   resourceArmAppServiceManagedCertificateRead,
-		Update: resourceArmAppServiceManagedCertificateCreateUpdate,
-		Delete: resourceArmAppServiceManagedCertificateDelete,
+		Create: resourceAppServiceManagedCertificateCreateUpdate,
+		Read:   resourceAppServiceManagedCertificateRead,
+		Update: resourceAppServiceManagedCertificateCreateUpdate,
+		Delete: resourceAppServiceManagedCertificateDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.ManagedCertificateID(id)
 			return err
@@ -93,7 +93,7 @@ func resourceArmAppServiceManagedCertificate() *schema.Resource {
 	}
 }
 
-func resourceArmAppServiceManagedCertificateCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceManagedCertificateCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.CertificatesClient
 	appServiceClient := meta.(*clients.Client).Web.AppServicesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -191,10 +191,10 @@ func resourceArmAppServiceManagedCertificateCreateUpdate(d *schema.ResourceData,
 
 	d.SetId(id.ID())
 
-	return resourceArmAppServiceManagedCertificateRead(d, meta)
+	return resourceAppServiceManagedCertificateRead(d, meta)
 }
 
-func resourceArmAppServiceManagedCertificateRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceManagedCertificateRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.CertificatesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -232,7 +232,7 @@ func resourceArmAppServiceManagedCertificateRead(d *schema.ResourceData, meta in
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmAppServiceManagedCertificateDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceManagedCertificateDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.CertificatesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

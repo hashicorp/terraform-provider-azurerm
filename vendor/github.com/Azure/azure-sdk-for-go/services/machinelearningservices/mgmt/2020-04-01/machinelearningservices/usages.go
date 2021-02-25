@@ -79,9 +79,11 @@ func (client UsagesClient) List(ctx context.Context, location string) (result Li
 	result.lur, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "machinelearningservices.UsagesClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.lur.hasNextLink() && result.lur.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

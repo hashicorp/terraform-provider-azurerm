@@ -89,6 +89,7 @@ func (client PrivateLinkResourcesClient) ListByStorageAccount(ctx context.Contex
 	result, err = client.ListByStorageAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.PrivateLinkResourcesClient", "ListByStorageAccount", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -78,6 +78,7 @@ func (client OperationsClient) CheckNameAvailability(ctx context.Context, reques
 	result, err = client.CheckNameAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.OperationsClient", "CheckNameAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -127,7 +128,7 @@ func (client OperationsClient) CheckNameAvailabilityResponder(resp *http.Respons
 // resourceGroupName - the name of the resource group. The name is case insensitive.
 // workspaceName - the name of the workspace
 // operationID - operation ID
-func (client OperationsClient) GetAzureAsyncHeaderResult(ctx context.Context, resourceGroupName string, workspaceName string, operationID string) (result SetObject, err error) {
+func (client OperationsClient) GetAzureAsyncHeaderResult(ctx context.Context, resourceGroupName string, workspaceName string, operationID string) (result OperationResource, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/OperationsClient.GetAzureAsyncHeaderResult")
 		defer func() {
@@ -164,6 +165,7 @@ func (client OperationsClient) GetAzureAsyncHeaderResult(ctx context.Context, re
 	result, err = client.GetAzureAsyncHeaderResultResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.OperationsClient", "GetAzureAsyncHeaderResult", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -199,11 +201,11 @@ func (client OperationsClient) GetAzureAsyncHeaderResultSender(req *http.Request
 
 // GetAzureAsyncHeaderResultResponder handles the response to the GetAzureAsyncHeaderResult request. The method always
 // closes the http.Response Body.
-func (client OperationsClient) GetAzureAsyncHeaderResultResponder(resp *http.Response) (result SetObject, err error) {
+func (client OperationsClient) GetAzureAsyncHeaderResultResponder(resp *http.Response) (result OperationResource, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound, http.StatusInternalServerError),
-		autorest.ByUnmarshallingJSON(&result.Value),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
+		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
 	return
@@ -251,6 +253,7 @@ func (client OperationsClient) GetLocationHeaderResult(ctx context.Context, reso
 	result, err = client.GetLocationHeaderResultResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.OperationsClient", "GetLocationHeaderResult", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -289,7 +292,7 @@ func (client OperationsClient) GetLocationHeaderResultSender(req *http.Request) 
 func (client OperationsClient) GetLocationHeaderResultResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
 	return
@@ -323,6 +326,7 @@ func (client OperationsClient) List(ctx context.Context) (result ListAvailableRp
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.OperationsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return

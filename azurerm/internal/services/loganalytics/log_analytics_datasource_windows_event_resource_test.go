@@ -1,161 +1,111 @@
 package loganalytics_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMLogAnalyticsDataSourceWindowsEvent_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_log_analytics_datasource_windows_event", "test")
+type LogAnalyticsDataSourceWindowsEventResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogAnalyticsDataSourceWindowsEventDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLogAnalyticsDataSourceWindowsEvent_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsDataSourceWindowsEventExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccLogAnalyticsDataSourceWindowsEvent_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_datasource_windows_event", "test")
+	r := LogAnalyticsDataSourceWindowsEventResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMLogAnalyticsDataSourceWindowsEvent_complete(t *testing.T) {
+func TestAccLogAnalyticsDataSourceWindowsEvent_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_datasource_windows_event", "test")
+	r := LogAnalyticsDataSourceWindowsEventResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogAnalyticsDataSourceWindowsEventDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLogAnalyticsDataSourceWindowsEvent_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsDataSourceWindowsEventExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMLogAnalyticsDataSourceWindowsEvent_update(t *testing.T) {
+func TestAccLogAnalyticsDataSourceWindowsEvent_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_datasource_windows_event", "test")
+	r := LogAnalyticsDataSourceWindowsEventResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogAnalyticsDataSourceWindowsEventDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLogAnalyticsDataSourceWindowsEvent_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsDataSourceWindowsEventExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMLogAnalyticsDataSourceWindowsEvent_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsDataSourceWindowsEventExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMLogAnalyticsDataSourceWindowsEvent_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsDataSourceWindowsEventExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMLogAnalyticsDataSourceWindowsEvent_requiresImport(t *testing.T) {
+func TestAccLogAnalyticsDataSourceWindowsEvent_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_datasource_windows_event", "test")
+	r := LogAnalyticsDataSourceWindowsEventResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogAnalyticsDataSourceWindowsEventDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLogAnalyticsDataSourceWindowsEvent_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsDataSourceWindowsEventExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMLogAnalyticsDataSourceWindowsEvent_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func testCheckAzureRMLogAnalyticsDataSourceWindowsEventExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).LogAnalytics.DataSourcesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Log Analytics Data Source Windows Event not found: %s", resourceName)
-		}
-
-		id, err := parse.LogAnalyticsDataSourceID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.Workspace, id.Name); err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Log Analytics Data Source Windows Event %q (Resource Group %q) does not exist", id.Name, id.ResourceGroup)
-			}
-			return fmt.Errorf("failed to get on LogAnalytics.DataSources: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMLogAnalyticsDataSourceWindowsEventDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).LogAnalytics.DataSourcesClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_log_analytics_datasource_windows_event" {
-			continue
-		}
-
-		id, err := parse.LogAnalyticsDataSourceID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.Workspace, id.Name); err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("failed to get on LogAnalytics.DataSources: %+v", err)
-			}
-		}
-
-		return nil
+func (t LogAnalyticsDataSourceWindowsEventResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.LogAnalyticsDataSourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.LogAnalytics.DataSourcesClient.Get(ctx, id.ResourceGroup, id.Workspace, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("readingLog Analytics Data Source Windows Event (%s): %+v", id, err)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMLogAnalyticsDataSourceWindowsEvent_basic(data acceptance.TestData) string {
-	template := testAccAzureRMLogAnalyticsDataSourceWindowsEvent_template(data)
+func (r LogAnalyticsDataSourceWindowsEventResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -166,11 +116,10 @@ resource "azurerm_log_analytics_datasource_windows_event" "test" {
   event_log_name      = "Application"
   event_types         = ["error"]
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMLogAnalyticsDataSourceWindowsEvent_complete(data acceptance.TestData) string {
-	template := testAccAzureRMLogAnalyticsDataSourceWindowsEvent_template(data)
+func (r LogAnalyticsDataSourceWindowsEventResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -181,11 +130,10 @@ resource "azurerm_log_analytics_datasource_windows_event" "test" {
   event_log_name      = "Application"
   event_types         = ["InforMation", "warning", "Error"]
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMLogAnalyticsDataSourceWindowsEvent_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMLogAnalyticsDataSourceWindowsEvent_basic(data)
+func (r LogAnalyticsDataSourceWindowsEventResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -196,10 +144,10 @@ resource "azurerm_log_analytics_datasource_windows_event" "import" {
   event_log_name      = azurerm_log_analytics_datasource_windows_event.test.event_log_name
   event_types         = azurerm_log_analytics_datasource_windows_event.test.event_types
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMLogAnalyticsDataSourceWindowsEvent_template(data acceptance.TestData) string {
+func (LogAnalyticsDataSourceWindowsEventResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

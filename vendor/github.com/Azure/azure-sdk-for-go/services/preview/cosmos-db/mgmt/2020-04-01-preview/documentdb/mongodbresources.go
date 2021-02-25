@@ -89,7 +89,7 @@ func (client MongoDBResourcesClient) CreateUpdateMongoDBCollection(ctx context.C
 
 	result, err = client.CreateUpdateMongoDBCollectionSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesClient", "CreateUpdateMongoDBCollection", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesClient", "CreateUpdateMongoDBCollection", nil, "Failure sending request")
 		return
 	}
 
@@ -129,7 +129,33 @@ func (client MongoDBResourcesClient) CreateUpdateMongoDBCollectionSender(req *ht
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client MongoDBResourcesClient) (mdcgr MongoDBCollectionGetResults, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesCreateUpdateMongoDBCollectionFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("documentdb.MongoDBResourcesCreateUpdateMongoDBCollectionFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		mdcgr.Response.Response, err = future.GetResult(sender)
+		if mdcgr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesCreateUpdateMongoDBCollectionFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && mdcgr.Response.Response.StatusCode != http.StatusNoContent {
+			mdcgr, err = client.CreateUpdateMongoDBCollectionResponder(mdcgr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesCreateUpdateMongoDBCollectionFuture", "Result", mdcgr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -190,7 +216,7 @@ func (client MongoDBResourcesClient) CreateUpdateMongoDBDatabase(ctx context.Con
 
 	result, err = client.CreateUpdateMongoDBDatabaseSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesClient", "CreateUpdateMongoDBDatabase", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesClient", "CreateUpdateMongoDBDatabase", nil, "Failure sending request")
 		return
 	}
 
@@ -229,7 +255,33 @@ func (client MongoDBResourcesClient) CreateUpdateMongoDBDatabaseSender(req *http
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client MongoDBResourcesClient) (mddgr MongoDBDatabaseGetResults, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesCreateUpdateMongoDBDatabaseFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("documentdb.MongoDBResourcesCreateUpdateMongoDBDatabaseFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		mddgr.Response.Response, err = future.GetResult(sender)
+		if mddgr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesCreateUpdateMongoDBDatabaseFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && mddgr.Response.Response.StatusCode != http.StatusNoContent {
+			mddgr, err = client.CreateUpdateMongoDBDatabaseResponder(mddgr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesCreateUpdateMongoDBDatabaseFuture", "Result", mddgr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -284,7 +336,7 @@ func (client MongoDBResourcesClient) DeleteMongoDBCollection(ctx context.Context
 
 	result, err = client.DeleteMongoDBCollectionSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesClient", "DeleteMongoDBCollection", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesClient", "DeleteMongoDBCollection", nil, "Failure sending request")
 		return
 	}
 
@@ -322,7 +374,23 @@ func (client MongoDBResourcesClient) DeleteMongoDBCollectionSender(req *http.Req
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client MongoDBResourcesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesDeleteMongoDBCollectionFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("documentdb.MongoDBResourcesDeleteMongoDBCollectionFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -375,7 +443,7 @@ func (client MongoDBResourcesClient) DeleteMongoDBDatabase(ctx context.Context, 
 
 	result, err = client.DeleteMongoDBDatabaseSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesClient", "DeleteMongoDBDatabase", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesClient", "DeleteMongoDBDatabase", nil, "Failure sending request")
 		return
 	}
 
@@ -412,7 +480,23 @@ func (client MongoDBResourcesClient) DeleteMongoDBDatabaseSender(req *http.Reque
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client MongoDBResourcesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesDeleteMongoDBDatabaseFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("documentdb.MongoDBResourcesDeleteMongoDBDatabaseFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -474,6 +558,7 @@ func (client MongoDBResourcesClient) GetMongoDBCollection(ctx context.Context, r
 	result, err = client.GetMongoDBCollectionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesClient", "GetMongoDBCollection", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -568,6 +653,7 @@ func (client MongoDBResourcesClient) GetMongoDBCollectionThroughput(ctx context.
 	result, err = client.GetMongoDBCollectionThroughputResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesClient", "GetMongoDBCollectionThroughput", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -661,6 +747,7 @@ func (client MongoDBResourcesClient) GetMongoDBDatabase(ctx context.Context, res
 	result, err = client.GetMongoDBDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesClient", "GetMongoDBDatabase", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -753,6 +840,7 @@ func (client MongoDBResourcesClient) GetMongoDBDatabaseThroughput(ctx context.Co
 	result, err = client.GetMongoDBDatabaseThroughputResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesClient", "GetMongoDBDatabaseThroughput", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -844,6 +932,7 @@ func (client MongoDBResourcesClient) ListMongoDBCollections(ctx context.Context,
 	result, err = client.ListMongoDBCollectionsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesClient", "ListMongoDBCollections", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -934,6 +1023,7 @@ func (client MongoDBResourcesClient) ListMongoDBDatabases(ctx context.Context, r
 	result, err = client.ListMongoDBDatabasesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesClient", "ListMongoDBDatabases", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1018,7 +1108,7 @@ func (client MongoDBResourcesClient) MigrateMongoDBCollectionToAutoscale(ctx con
 
 	result, err = client.MigrateMongoDBCollectionToAutoscaleSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesClient", "MigrateMongoDBCollectionToAutoscale", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesClient", "MigrateMongoDBCollectionToAutoscale", nil, "Failure sending request")
 		return
 	}
 
@@ -1056,7 +1146,33 @@ func (client MongoDBResourcesClient) MigrateMongoDBCollectionToAutoscaleSender(r
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client MongoDBResourcesClient) (tsgr ThroughputSettingsGetResults, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesMigrateMongoDBCollectionToAutoscaleFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("documentdb.MongoDBResourcesMigrateMongoDBCollectionToAutoscaleFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		tsgr.Response.Response, err = future.GetResult(sender)
+		if tsgr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesMigrateMongoDBCollectionToAutoscaleFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && tsgr.Response.Response.StatusCode != http.StatusNoContent {
+			tsgr, err = client.MigrateMongoDBCollectionToAutoscaleResponder(tsgr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesMigrateMongoDBCollectionToAutoscaleFuture", "Result", tsgr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -1112,7 +1228,7 @@ func (client MongoDBResourcesClient) MigrateMongoDBCollectionToManualThroughput(
 
 	result, err = client.MigrateMongoDBCollectionToManualThroughputSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesClient", "MigrateMongoDBCollectionToManualThroughput", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesClient", "MigrateMongoDBCollectionToManualThroughput", nil, "Failure sending request")
 		return
 	}
 
@@ -1150,7 +1266,33 @@ func (client MongoDBResourcesClient) MigrateMongoDBCollectionToManualThroughputS
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client MongoDBResourcesClient) (tsgr ThroughputSettingsGetResults, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesMigrateMongoDBCollectionToManualThroughputFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("documentdb.MongoDBResourcesMigrateMongoDBCollectionToManualThroughputFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		tsgr.Response.Response, err = future.GetResult(sender)
+		if tsgr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesMigrateMongoDBCollectionToManualThroughputFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && tsgr.Response.Response.StatusCode != http.StatusNoContent {
+			tsgr, err = client.MigrateMongoDBCollectionToManualThroughputResponder(tsgr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesMigrateMongoDBCollectionToManualThroughputFuture", "Result", tsgr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -1204,7 +1346,7 @@ func (client MongoDBResourcesClient) MigrateMongoDBDatabaseToAutoscale(ctx conte
 
 	result, err = client.MigrateMongoDBDatabaseToAutoscaleSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesClient", "MigrateMongoDBDatabaseToAutoscale", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesClient", "MigrateMongoDBDatabaseToAutoscale", nil, "Failure sending request")
 		return
 	}
 
@@ -1241,7 +1383,33 @@ func (client MongoDBResourcesClient) MigrateMongoDBDatabaseToAutoscaleSender(req
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client MongoDBResourcesClient) (tsgr ThroughputSettingsGetResults, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesMigrateMongoDBDatabaseToAutoscaleFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("documentdb.MongoDBResourcesMigrateMongoDBDatabaseToAutoscaleFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		tsgr.Response.Response, err = future.GetResult(sender)
+		if tsgr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesMigrateMongoDBDatabaseToAutoscaleFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && tsgr.Response.Response.StatusCode != http.StatusNoContent {
+			tsgr, err = client.MigrateMongoDBDatabaseToAutoscaleResponder(tsgr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesMigrateMongoDBDatabaseToAutoscaleFuture", "Result", tsgr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -1296,7 +1464,7 @@ func (client MongoDBResourcesClient) MigrateMongoDBDatabaseToManualThroughput(ct
 
 	result, err = client.MigrateMongoDBDatabaseToManualThroughputSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesClient", "MigrateMongoDBDatabaseToManualThroughput", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesClient", "MigrateMongoDBDatabaseToManualThroughput", nil, "Failure sending request")
 		return
 	}
 
@@ -1333,7 +1501,33 @@ func (client MongoDBResourcesClient) MigrateMongoDBDatabaseToManualThroughputSen
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client MongoDBResourcesClient) (tsgr ThroughputSettingsGetResults, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesMigrateMongoDBDatabaseToManualThroughputFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("documentdb.MongoDBResourcesMigrateMongoDBDatabaseToManualThroughputFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		tsgr.Response.Response, err = future.GetResult(sender)
+		if tsgr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesMigrateMongoDBDatabaseToManualThroughputFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && tsgr.Response.Response.StatusCode != http.StatusNoContent {
+			tsgr, err = client.MigrateMongoDBDatabaseToManualThroughputResponder(tsgr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesMigrateMongoDBDatabaseToManualThroughputFuture", "Result", tsgr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -1397,7 +1591,7 @@ func (client MongoDBResourcesClient) UpdateMongoDBCollectionThroughput(ctx conte
 
 	result, err = client.UpdateMongoDBCollectionThroughputSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesClient", "UpdateMongoDBCollectionThroughput", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesClient", "UpdateMongoDBCollectionThroughput", nil, "Failure sending request")
 		return
 	}
 
@@ -1437,7 +1631,33 @@ func (client MongoDBResourcesClient) UpdateMongoDBCollectionThroughputSender(req
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client MongoDBResourcesClient) (tsgr ThroughputSettingsGetResults, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesUpdateMongoDBCollectionThroughputFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("documentdb.MongoDBResourcesUpdateMongoDBCollectionThroughputFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		tsgr.Response.Response, err = future.GetResult(sender)
+		if tsgr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesUpdateMongoDBCollectionThroughputFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && tsgr.Response.Response.StatusCode != http.StatusNoContent {
+			tsgr, err = client.UpdateMongoDBCollectionThroughputResponder(tsgr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesUpdateMongoDBCollectionThroughputFuture", "Result", tsgr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -1500,7 +1720,7 @@ func (client MongoDBResourcesClient) UpdateMongoDBDatabaseThroughput(ctx context
 
 	result, err = client.UpdateMongoDBDatabaseThroughputSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesClient", "UpdateMongoDBDatabaseThroughput", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesClient", "UpdateMongoDBDatabaseThroughput", nil, "Failure sending request")
 		return
 	}
 
@@ -1539,7 +1759,33 @@ func (client MongoDBResourcesClient) UpdateMongoDBDatabaseThroughputSender(req *
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client MongoDBResourcesClient) (tsgr ThroughputSettingsGetResults, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesUpdateMongoDBDatabaseThroughputFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("documentdb.MongoDBResourcesUpdateMongoDBDatabaseThroughputFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		tsgr.Response.Response, err = future.GetResult(sender)
+		if tsgr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesUpdateMongoDBDatabaseThroughputFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && tsgr.Response.Response.StatusCode != http.StatusNoContent {
+			tsgr, err = client.UpdateMongoDBDatabaseThroughputResponder(tsgr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesUpdateMongoDBDatabaseThroughputFuture", "Result", tsgr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

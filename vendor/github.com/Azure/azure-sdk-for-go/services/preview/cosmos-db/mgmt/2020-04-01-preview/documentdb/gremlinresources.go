@@ -88,7 +88,7 @@ func (client GremlinResourcesClient) CreateUpdateGremlinDatabase(ctx context.Con
 
 	result, err = client.CreateUpdateGremlinDatabaseSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesClient", "CreateUpdateGremlinDatabase", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesClient", "CreateUpdateGremlinDatabase", nil, "Failure sending request")
 		return
 	}
 
@@ -127,7 +127,33 @@ func (client GremlinResourcesClient) CreateUpdateGremlinDatabaseSender(req *http
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client GremlinResourcesClient) (gdgr GremlinDatabaseGetResults, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesCreateUpdateGremlinDatabaseFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("documentdb.GremlinResourcesCreateUpdateGremlinDatabaseFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		gdgr.Response.Response, err = future.GetResult(sender)
+		if gdgr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesCreateUpdateGremlinDatabaseFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && gdgr.Response.Response.StatusCode != http.StatusNoContent {
+			gdgr, err = client.CreateUpdateGremlinDatabaseResponder(gdgr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesCreateUpdateGremlinDatabaseFuture", "Result", gdgr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -196,7 +222,7 @@ func (client GremlinResourcesClient) CreateUpdateGremlinGraph(ctx context.Contex
 
 	result, err = client.CreateUpdateGremlinGraphSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesClient", "CreateUpdateGremlinGraph", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesClient", "CreateUpdateGremlinGraph", nil, "Failure sending request")
 		return
 	}
 
@@ -236,7 +262,33 @@ func (client GremlinResourcesClient) CreateUpdateGremlinGraphSender(req *http.Re
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client GremlinResourcesClient) (gggr GremlinGraphGetResults, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesCreateUpdateGremlinGraphFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("documentdb.GremlinResourcesCreateUpdateGremlinGraphFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		gggr.Response.Response, err = future.GetResult(sender)
+		if gggr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesCreateUpdateGremlinGraphFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && gggr.Response.Response.StatusCode != http.StatusNoContent {
+			gggr, err = client.CreateUpdateGremlinGraphResponder(gggr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesCreateUpdateGremlinGraphFuture", "Result", gggr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -290,7 +342,7 @@ func (client GremlinResourcesClient) DeleteGremlinDatabase(ctx context.Context, 
 
 	result, err = client.DeleteGremlinDatabaseSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesClient", "DeleteGremlinDatabase", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesClient", "DeleteGremlinDatabase", nil, "Failure sending request")
 		return
 	}
 
@@ -327,7 +379,23 @@ func (client GremlinResourcesClient) DeleteGremlinDatabaseSender(req *http.Reque
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client GremlinResourcesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesDeleteGremlinDatabaseFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("documentdb.GremlinResourcesDeleteGremlinDatabaseFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -381,7 +449,7 @@ func (client GremlinResourcesClient) DeleteGremlinGraph(ctx context.Context, res
 
 	result, err = client.DeleteGremlinGraphSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesClient", "DeleteGremlinGraph", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesClient", "DeleteGremlinGraph", nil, "Failure sending request")
 		return
 	}
 
@@ -419,7 +487,23 @@ func (client GremlinResourcesClient) DeleteGremlinGraphSender(req *http.Request)
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client GremlinResourcesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesDeleteGremlinGraphFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("documentdb.GremlinResourcesDeleteGremlinGraphFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -481,6 +565,7 @@ func (client GremlinResourcesClient) GetGremlinDatabase(ctx context.Context, res
 	result, err = client.GetGremlinDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesClient", "GetGremlinDatabase", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -573,6 +658,7 @@ func (client GremlinResourcesClient) GetGremlinDatabaseThroughput(ctx context.Co
 	result, err = client.GetGremlinDatabaseThroughputResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesClient", "GetGremlinDatabaseThroughput", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -665,6 +751,7 @@ func (client GremlinResourcesClient) GetGremlinGraph(ctx context.Context, resour
 	result, err = client.GetGremlinGraphResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesClient", "GetGremlinGraph", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -759,6 +846,7 @@ func (client GremlinResourcesClient) GetGremlinGraphThroughput(ctx context.Conte
 	result, err = client.GetGremlinGraphThroughputResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesClient", "GetGremlinGraphThroughput", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -850,6 +938,7 @@ func (client GremlinResourcesClient) ListGremlinDatabases(ctx context.Context, r
 	result, err = client.ListGremlinDatabasesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesClient", "ListGremlinDatabases", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -940,6 +1029,7 @@ func (client GremlinResourcesClient) ListGremlinGraphs(ctx context.Context, reso
 	result, err = client.ListGremlinGraphsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesClient", "ListGremlinGraphs", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1023,7 +1113,7 @@ func (client GremlinResourcesClient) MigrateGremlinDatabaseToAutoscale(ctx conte
 
 	result, err = client.MigrateGremlinDatabaseToAutoscaleSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesClient", "MigrateGremlinDatabaseToAutoscale", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesClient", "MigrateGremlinDatabaseToAutoscale", nil, "Failure sending request")
 		return
 	}
 
@@ -1060,7 +1150,33 @@ func (client GremlinResourcesClient) MigrateGremlinDatabaseToAutoscaleSender(req
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client GremlinResourcesClient) (tsgr ThroughputSettingsGetResults, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesMigrateGremlinDatabaseToAutoscaleFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("documentdb.GremlinResourcesMigrateGremlinDatabaseToAutoscaleFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		tsgr.Response.Response, err = future.GetResult(sender)
+		if tsgr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesMigrateGremlinDatabaseToAutoscaleFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && tsgr.Response.Response.StatusCode != http.StatusNoContent {
+			tsgr, err = client.MigrateGremlinDatabaseToAutoscaleResponder(tsgr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesMigrateGremlinDatabaseToAutoscaleFuture", "Result", tsgr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -1115,7 +1231,7 @@ func (client GremlinResourcesClient) MigrateGremlinDatabaseToManualThroughput(ct
 
 	result, err = client.MigrateGremlinDatabaseToManualThroughputSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesClient", "MigrateGremlinDatabaseToManualThroughput", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesClient", "MigrateGremlinDatabaseToManualThroughput", nil, "Failure sending request")
 		return
 	}
 
@@ -1152,7 +1268,33 @@ func (client GremlinResourcesClient) MigrateGremlinDatabaseToManualThroughputSen
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client GremlinResourcesClient) (tsgr ThroughputSettingsGetResults, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesMigrateGremlinDatabaseToManualThroughputFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("documentdb.GremlinResourcesMigrateGremlinDatabaseToManualThroughputFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		tsgr.Response.Response, err = future.GetResult(sender)
+		if tsgr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesMigrateGremlinDatabaseToManualThroughputFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && tsgr.Response.Response.StatusCode != http.StatusNoContent {
+			tsgr, err = client.MigrateGremlinDatabaseToManualThroughputResponder(tsgr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesMigrateGremlinDatabaseToManualThroughputFuture", "Result", tsgr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -1207,7 +1349,7 @@ func (client GremlinResourcesClient) MigrateGremlinGraphToAutoscale(ctx context.
 
 	result, err = client.MigrateGremlinGraphToAutoscaleSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesClient", "MigrateGremlinGraphToAutoscale", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesClient", "MigrateGremlinGraphToAutoscale", nil, "Failure sending request")
 		return
 	}
 
@@ -1245,7 +1387,33 @@ func (client GremlinResourcesClient) MigrateGremlinGraphToAutoscaleSender(req *h
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client GremlinResourcesClient) (tsgr ThroughputSettingsGetResults, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesMigrateGremlinGraphToAutoscaleFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("documentdb.GremlinResourcesMigrateGremlinGraphToAutoscaleFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		tsgr.Response.Response, err = future.GetResult(sender)
+		if tsgr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesMigrateGremlinGraphToAutoscaleFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && tsgr.Response.Response.StatusCode != http.StatusNoContent {
+			tsgr, err = client.MigrateGremlinGraphToAutoscaleResponder(tsgr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesMigrateGremlinGraphToAutoscaleFuture", "Result", tsgr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -1300,7 +1468,7 @@ func (client GremlinResourcesClient) MigrateGremlinGraphToManualThroughput(ctx c
 
 	result, err = client.MigrateGremlinGraphToManualThroughputSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesClient", "MigrateGremlinGraphToManualThroughput", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesClient", "MigrateGremlinGraphToManualThroughput", nil, "Failure sending request")
 		return
 	}
 
@@ -1338,7 +1506,33 @@ func (client GremlinResourcesClient) MigrateGremlinGraphToManualThroughputSender
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client GremlinResourcesClient) (tsgr ThroughputSettingsGetResults, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesMigrateGremlinGraphToManualThroughputFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("documentdb.GremlinResourcesMigrateGremlinGraphToManualThroughputFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		tsgr.Response.Response, err = future.GetResult(sender)
+		if tsgr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesMigrateGremlinGraphToManualThroughputFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && tsgr.Response.Response.StatusCode != http.StatusNoContent {
+			tsgr, err = client.MigrateGremlinGraphToManualThroughputResponder(tsgr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesMigrateGremlinGraphToManualThroughputFuture", "Result", tsgr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -1401,7 +1595,7 @@ func (client GremlinResourcesClient) UpdateGremlinDatabaseThroughput(ctx context
 
 	result, err = client.UpdateGremlinDatabaseThroughputSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesClient", "UpdateGremlinDatabaseThroughput", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesClient", "UpdateGremlinDatabaseThroughput", nil, "Failure sending request")
 		return
 	}
 
@@ -1440,7 +1634,33 @@ func (client GremlinResourcesClient) UpdateGremlinDatabaseThroughputSender(req *
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client GremlinResourcesClient) (tsgr ThroughputSettingsGetResults, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesUpdateGremlinDatabaseThroughputFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("documentdb.GremlinResourcesUpdateGremlinDatabaseThroughputFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		tsgr.Response.Response, err = future.GetResult(sender)
+		if tsgr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesUpdateGremlinDatabaseThroughputFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && tsgr.Response.Response.StatusCode != http.StatusNoContent {
+			tsgr, err = client.UpdateGremlinDatabaseThroughputResponder(tsgr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesUpdateGremlinDatabaseThroughputFuture", "Result", tsgr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -1503,7 +1723,7 @@ func (client GremlinResourcesClient) UpdateGremlinGraphThroughput(ctx context.Co
 
 	result, err = client.UpdateGremlinGraphThroughputSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesClient", "UpdateGremlinGraphThroughput", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesClient", "UpdateGremlinGraphThroughput", nil, "Failure sending request")
 		return
 	}
 
@@ -1543,7 +1763,33 @@ func (client GremlinResourcesClient) UpdateGremlinGraphThroughputSender(req *htt
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client GremlinResourcesClient) (tsgr ThroughputSettingsGetResults, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesUpdateGremlinGraphThroughputFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("documentdb.GremlinResourcesUpdateGremlinGraphThroughputFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		tsgr.Response.Response, err = future.GetResult(sender)
+		if tsgr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesUpdateGremlinGraphThroughputFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && tsgr.Response.Response.StatusCode != http.StatusNoContent {
+			tsgr, err = client.UpdateGremlinGraphThroughputResponder(tsgr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesUpdateGremlinGraphThroughputFuture", "Result", tsgr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

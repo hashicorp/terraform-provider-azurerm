@@ -20,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMonitorActionRuleSuppression() *schema.Resource {
+func resourceMonitorActionRuleSuppression() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMonitorActionRuleSuppressionCreateUpdate,
-		Read:   resourceArmMonitorActionRuleSuppressionRead,
-		Update: resourceArmMonitorActionRuleSuppressionCreateUpdate,
-		Delete: resourceArmMonitorActionRuleSuppressionDelete,
+		Create: resourceMonitorActionRuleSuppressionCreateUpdate,
+		Read:   resourceMonitorActionRuleSuppressionRead,
+		Update: resourceMonitorActionRuleSuppressionCreateUpdate,
+		Delete: resourceMonitorActionRuleSuppressionDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -158,7 +158,7 @@ func resourceArmMonitorActionRuleSuppression() *schema.Resource {
 	}
 }
 
-func resourceArmMonitorActionRuleSuppressionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorActionRuleSuppressionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ActionRulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -183,7 +183,7 @@ func resourceArmMonitorActionRuleSuppressionCreateUpdate(d *schema.ResourceData,
 		actionRuleStatus = alertsmanagement.Disabled
 	}
 
-	suppressionConfig, err := expandArmActionRuleSuppressionConfig(d.Get("suppression").([]interface{}))
+	suppressionConfig, err := expandActionRuleSuppressionConfig(d.Get("suppression").([]interface{}))
 	if err != nil {
 		return err
 	}
@@ -193,8 +193,8 @@ func resourceArmMonitorActionRuleSuppressionCreateUpdate(d *schema.ResourceData,
 		Location: utils.String(location.Normalize("Global")),
 		Properties: &alertsmanagement.Suppression{
 			SuppressionConfig: suppressionConfig,
-			Scope:             expandArmActionRuleScope(d.Get("scope").([]interface{})),
-			Conditions:        expandArmActionRuleConditions(d.Get("condition").([]interface{})),
+			Scope:             expandActionRuleScope(d.Get("scope").([]interface{})),
+			Conditions:        expandActionRuleConditions(d.Get("condition").([]interface{})),
 			Description:       utils.String(d.Get("description").(string)),
 			Status:            actionRuleStatus,
 			Type:              alertsmanagement.TypeSuppression,
@@ -216,10 +216,10 @@ func resourceArmMonitorActionRuleSuppressionCreateUpdate(d *schema.ResourceData,
 	}
 
 	d.SetId(*resp.ID)
-	return resourceArmMonitorActionRuleSuppressionRead(d, meta)
+	return resourceMonitorActionRuleSuppressionRead(d, meta)
 }
 
-func resourceArmMonitorActionRuleSuppressionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorActionRuleSuppressionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ActionRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -245,13 +245,13 @@ func resourceArmMonitorActionRuleSuppressionRead(d *schema.ResourceData, meta in
 		props, _ := resp.Properties.AsSuppression()
 		d.Set("description", props.Description)
 		d.Set("enabled", props.Status == alertsmanagement.Enabled)
-		if err := d.Set("suppression", flattenArmActionRuleSuppression(props.SuppressionConfig)); err != nil {
+		if err := d.Set("suppression", flattenActionRuleSuppression(props.SuppressionConfig)); err != nil {
 			return fmt.Errorf("setting suppression: %+v", err)
 		}
-		if err := d.Set("scope", flattenArmActionRuleScope(props.Scope)); err != nil {
+		if err := d.Set("scope", flattenActionRuleScope(props.Scope)); err != nil {
 			return fmt.Errorf("setting scope: %+v", err)
 		}
-		if err := d.Set("condition", flattenArmActionRuleConditions(props.Conditions)); err != nil {
+		if err := d.Set("condition", flattenActionRuleConditions(props.Conditions)); err != nil {
 			return fmt.Errorf("setting condition: %+v", err)
 		}
 	}
@@ -259,7 +259,7 @@ func resourceArmMonitorActionRuleSuppressionRead(d *schema.ResourceData, meta in
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmMonitorActionRuleSuppressionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorActionRuleSuppressionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ActionRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -275,13 +275,13 @@ func resourceArmMonitorActionRuleSuppressionDelete(d *schema.ResourceData, meta 
 	return nil
 }
 
-func expandArmActionRuleSuppressionConfig(input []interface{}) (*alertsmanagement.SuppressionConfig, error) {
+func expandActionRuleSuppressionConfig(input []interface{}) (*alertsmanagement.SuppressionConfig, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
 	v := input[0].(map[string]interface{})
 	recurrenceType := alertsmanagement.SuppressionType(v["recurrence_type"].(string))
-	schedule, err := expandArmActionRuleSuppressionSchedule(v["schedule"].([]interface{}), recurrenceType)
+	schedule, err := expandActionRuleSuppressionSchedule(v["schedule"].([]interface{}), recurrenceType)
 	if err != nil {
 		return nil, err
 	}
@@ -294,7 +294,7 @@ func expandArmActionRuleSuppressionConfig(input []interface{}) (*alertsmanagemen
 	}, nil
 }
 
-func expandArmActionRuleSuppressionSchedule(input []interface{}, suppressionType alertsmanagement.SuppressionType) (*alertsmanagement.SuppressionSchedule, error) {
+func expandActionRuleSuppressionSchedule(input []interface{}, suppressionType alertsmanagement.SuppressionType) (*alertsmanagement.SuppressionSchedule, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
@@ -304,7 +304,7 @@ func expandArmActionRuleSuppressionSchedule(input []interface{}, suppressionType
 	switch suppressionType {
 	case alertsmanagement.Weekly:
 		if recurrenceWeekly, ok := v["recurrence_weekly"]; ok {
-			recurrence = expandArmActionRuleSuppressionScheduleRecurrenceWeekly(recurrenceWeekly.(*schema.Set).List())
+			recurrence = expandActionRuleSuppressionScheduleRecurrenceWeekly(recurrenceWeekly.(*schema.Set).List())
 		}
 		if len(recurrence) == 0 {
 			return nil, fmt.Errorf("`recurrence_weekly` must be set and should have at least one element when `recurrence_type` is Weekly.")
@@ -329,7 +329,7 @@ func expandArmActionRuleSuppressionSchedule(input []interface{}, suppressionType
 	}, nil
 }
 
-func expandArmActionRuleSuppressionScheduleRecurrenceWeekly(input []interface{}) []interface{} {
+func expandActionRuleSuppressionScheduleRecurrenceWeekly(input []interface{}) []interface{} {
 	result := make([]interface{}, 0, len(input))
 	for _, v := range input {
 		result = append(result, weekDayMap[v.(string)])
@@ -337,7 +337,7 @@ func expandArmActionRuleSuppressionScheduleRecurrenceWeekly(input []interface{})
 	return result
 }
 
-func flattenArmActionRuleSuppression(input *alertsmanagement.SuppressionConfig) []interface{} {
+func flattenActionRuleSuppression(input *alertsmanagement.SuppressionConfig) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
@@ -349,12 +349,12 @@ func flattenArmActionRuleSuppression(input *alertsmanagement.SuppressionConfig) 
 	return []interface{}{
 		map[string]interface{}{
 			"recurrence_type": string(recurrenceType),
-			"schedule":        flattenArmActionRuleSuppressionSchedule(input.Schedule, recurrenceType),
+			"schedule":        flattenActionRuleSuppressionSchedule(input.Schedule, recurrenceType),
 		},
 	}
 }
 
-func flattenArmActionRuleSuppressionSchedule(input *alertsmanagement.SuppressionSchedule, recurrenceType alertsmanagement.SuppressionType) []interface{} {
+func flattenActionRuleSuppressionSchedule(input *alertsmanagement.SuppressionSchedule, recurrenceType alertsmanagement.SuppressionType) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
@@ -374,7 +374,7 @@ func flattenArmActionRuleSuppressionSchedule(input *alertsmanagement.Suppression
 	}
 
 	if recurrenceType == alertsmanagement.Weekly {
-		recurrenceWeekly = flattenArmActionRuleSuppressionScheduleRecurrenceWeekly(input.RecurrenceValues)
+		recurrenceWeekly = flattenActionRuleSuppressionScheduleRecurrenceWeekly(input.RecurrenceValues)
 	}
 	if recurrenceType == alertsmanagement.Monthly {
 		recurrenceMonthly = utils.FlattenInt32Slice(input.RecurrenceValues)
@@ -389,7 +389,7 @@ func flattenArmActionRuleSuppressionSchedule(input *alertsmanagement.Suppression
 	}
 }
 
-func flattenArmActionRuleSuppressionScheduleRecurrenceWeekly(input *[]int32) []interface{} {
+func flattenActionRuleSuppressionScheduleRecurrenceWeekly(input *[]int32) []interface{} {
 	result := make([]interface{}, 0)
 	if input != nil {
 		for _, item := range *input {

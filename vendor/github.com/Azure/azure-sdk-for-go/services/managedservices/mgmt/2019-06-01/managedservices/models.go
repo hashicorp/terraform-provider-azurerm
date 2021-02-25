@@ -24,6 +24,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/Azure/go-autorest/tracing"
+	"github.com/satori/go.uuid"
 	"net/http"
 )
 
@@ -35,23 +36,29 @@ const fqdn = "github.com/Azure/azure-sdk-for-go/services/managedservices/mgmt/20
 type Authorization struct {
 	// PrincipalID - Principal Id of the security group/service principal/user that would be assigned permissions to the projected subscription
 	PrincipalID *string `json:"principalId,omitempty"`
+	// PrincipalIDDisplayName - Display name of the principal Id.
+	PrincipalIDDisplayName *string `json:"principalIdDisplayName,omitempty"`
 	// RoleDefinitionID - The role definition identifier. This role will define all the permissions that the security group/service principal/user must have on the projected subscription. This role cannot be an owner role.
 	RoleDefinitionID *string `json:"roleDefinitionId,omitempty"`
+	// DelegatedRoleDefinitionIds - The delegatedRoleDefinitionIds field is required when the roleDefinitionId refers to the User Access Administrator Role. It is the list of role definition ids which define all the permissions that the user in the authorization can assign to other security groups/service principals/users.
+	DelegatedRoleDefinitionIds *[]uuid.UUID `json:"delegatedRoleDefinitionIds,omitempty"`
 }
 
-// ErrorResponse error response.
-type ErrorResponse struct {
-	// Error - READ-ONLY; Error response indicates Azure Resource Manager is not able to process the incoming request. The reason is provided in the error message.
-	Error *ErrorResponseError `json:"error,omitempty"`
-}
-
-// ErrorResponseError error response indicates Azure Resource Manager is not able to process the incoming
+// ErrorDefinition error response indicates Azure Resource Manager is not able to process the incoming
 // request. The reason is provided in the error message.
-type ErrorResponseError struct {
+type ErrorDefinition struct {
 	// Code - Error code.
 	Code *string `json:"code,omitempty"`
 	// Message - Error message indicating why the operation failed.
 	Message *string `json:"message,omitempty"`
+	// Details - Internal error details.
+	Details *[]ErrorDefinition `json:"details,omitempty"`
+}
+
+// ErrorResponse error response.
+type ErrorResponse struct {
+	// Error - The error details.
+	Error *ErrorDefinition `json:"error,omitempty"`
 }
 
 // Operation object that describes a single Microsoft.ManagedServices operation.
@@ -124,7 +131,8 @@ type RegistrationAssignmentList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// RegistrationAssignmentListIterator provides access to a complete listing of RegistrationAssignment values.
+// RegistrationAssignmentListIterator provides access to a complete listing of RegistrationAssignment
+// values.
 type RegistrationAssignmentListIterator struct {
 	i    int
 	page RegistrationAssignmentListPage
@@ -267,8 +275,11 @@ func (page RegistrationAssignmentListPage) Values() []RegistrationAssignment {
 }
 
 // Creates a new instance of the RegistrationAssignmentListPage type.
-func NewRegistrationAssignmentListPage(getNextPage func(context.Context, RegistrationAssignmentList) (RegistrationAssignmentList, error)) RegistrationAssignmentListPage {
-	return RegistrationAssignmentListPage{fn: getNextPage}
+func NewRegistrationAssignmentListPage(cur RegistrationAssignmentList, getNextPage func(context.Context, RegistrationAssignmentList) (RegistrationAssignmentList, error)) RegistrationAssignmentListPage {
+	return RegistrationAssignmentListPage{
+		fn:  getNextPage,
+		ral: cur,
+	}
 }
 
 // RegistrationAssignmentProperties properties of a registration assignment.
@@ -338,56 +349,22 @@ type RegistrationAssignmentPropertiesRegistrationDefinitionProperties struct {
 	ManagedByTenantName *string `json:"managedByTenantName,omitempty"`
 }
 
-// RegistrationAssignmentsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
+// RegistrationAssignmentsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of
+// a long-running operation.
 type RegistrationAssignmentsCreateOrUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *RegistrationAssignmentsCreateOrUpdateFuture) Result(client RegistrationAssignmentsClient) (ra RegistrationAssignment, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "managedservices.RegistrationAssignmentsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("managedservices.RegistrationAssignmentsCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if ra.Response.Response, err = future.GetResult(sender); err == nil && ra.Response.Response.StatusCode != http.StatusNoContent {
-		ra, err = client.CreateOrUpdateResponder(ra.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "managedservices.RegistrationAssignmentsCreateOrUpdateFuture", "Result", ra.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(RegistrationAssignmentsClient) (RegistrationAssignment, error)
 }
 
 // RegistrationAssignmentsDeleteFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type RegistrationAssignmentsDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *RegistrationAssignmentsDeleteFuture) Result(client RegistrationAssignmentsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "managedservices.RegistrationAssignmentsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("managedservices.RegistrationAssignmentsDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(RegistrationAssignmentsClient) (autorest.Response, error)
 }
 
 // RegistrationDefinition registration definition.
@@ -426,7 +403,8 @@ type RegistrationDefinitionList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// RegistrationDefinitionListIterator provides access to a complete listing of RegistrationDefinition values.
+// RegistrationDefinitionListIterator provides access to a complete listing of RegistrationDefinition
+// values.
 type RegistrationDefinitionListIterator struct {
 	i    int
 	page RegistrationDefinitionListPage
@@ -569,8 +547,11 @@ func (page RegistrationDefinitionListPage) Values() []RegistrationDefinition {
 }
 
 // Creates a new instance of the RegistrationDefinitionListPage type.
-func NewRegistrationDefinitionListPage(getNextPage func(context.Context, RegistrationDefinitionList) (RegistrationDefinitionList, error)) RegistrationDefinitionListPage {
-	return RegistrationDefinitionListPage{fn: getNextPage}
+func NewRegistrationDefinitionListPage(cur RegistrationDefinitionList, getNextPage func(context.Context, RegistrationDefinitionList) (RegistrationDefinitionList, error)) RegistrationDefinitionListPage {
+	return RegistrationDefinitionListPage{
+		fn:  getNextPage,
+		rdl: cur,
+	}
 }
 
 // RegistrationDefinitionProperties properties of a registration definition.
@@ -607,31 +588,11 @@ func (rdp RegistrationDefinitionProperties) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// RegistrationDefinitionsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
+// RegistrationDefinitionsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of
+// a long-running operation.
 type RegistrationDefinitionsCreateOrUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *RegistrationDefinitionsCreateOrUpdateFuture) Result(client RegistrationDefinitionsClient) (rd RegistrationDefinition, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "managedservices.RegistrationDefinitionsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("managedservices.RegistrationDefinitionsCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if rd.Response.Response, err = future.GetResult(sender); err == nil && rd.Response.Response.StatusCode != http.StatusNoContent {
-		rd, err = client.CreateOrUpdateResponder(rd.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "managedservices.RegistrationDefinitionsCreateOrUpdateFuture", "Result", rd.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(RegistrationDefinitionsClient) (RegistrationDefinition, error)
 }

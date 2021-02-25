@@ -16,7 +16,7 @@ import (
 
 type AppServiceEnvironmentResource struct{}
 
-func TestAccAzureRMAppServiceEnvironment_basic(t *testing.T) {
+func TestAccAppServiceEnvironment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
 	r := AppServiceEnvironmentResource{}
 
@@ -33,7 +33,7 @@ func TestAccAzureRMAppServiceEnvironment_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceEnvironment_requiresImport(t *testing.T) {
+func TestAccAppServiceEnvironment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
 	r := AppServiceEnvironmentResource{}
 
@@ -48,7 +48,7 @@ func TestAccAzureRMAppServiceEnvironment_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceEnvironment_update(t *testing.T) {
+func TestAccAppServiceEnvironment_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
 	r := AppServiceEnvironmentResource{}
 
@@ -73,7 +73,7 @@ func TestAccAzureRMAppServiceEnvironment_update(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceEnvironment_tierAndScaleFactor(t *testing.T) {
+func TestAccAppServiceEnvironment_tierAndScaleFactor(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
 	r := AppServiceEnvironmentResource{}
 
@@ -90,7 +90,7 @@ func TestAccAzureRMAppServiceEnvironment_tierAndScaleFactor(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceEnvironment_withAppServicePlan(t *testing.T) {
+func TestAccAppServiceEnvironment_withAppServicePlan(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
 	aspData := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
 	r := AppServiceEnvironmentResource{}
@@ -109,7 +109,7 @@ func TestAccAzureRMAppServiceEnvironment_withAppServicePlan(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceEnvironment_dedicatedResourceGroup(t *testing.T) {
+func TestAccAppServiceEnvironment_dedicatedResourceGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
 	r := AppServiceEnvironmentResource{}
 
@@ -124,7 +124,7 @@ func TestAccAzureRMAppServiceEnvironment_dedicatedResourceGroup(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceEnvironment_withCertificatePfx(t *testing.T) {
+func TestAccAppServiceEnvironment_withCertificatePfx(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
 	certData := acceptance.BuildTestData(t, "azurerm_app_service_certificate", "test")
 	r := AppServiceEnvironmentResource{}
@@ -143,7 +143,7 @@ func TestAccAzureRMAppServiceEnvironment_withCertificatePfx(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceEnvironment_internalLoadBalancer(t *testing.T) {
+func TestAccAppServiceEnvironment_internalLoadBalancer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
 	r := AppServiceEnvironmentResource{}
 
@@ -153,6 +153,38 @@ func TestAccAzureRMAppServiceEnvironment_internalLoadBalancer(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("internal_load_balancing_mode").HasValue("Web, Publishing"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAppServiceEnvironment_clusterSettings(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
+	r := AppServiceEnvironmentResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.clusterSettings(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("cluster_setting.#").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.clusterSettingsUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("cluster_setting.#").HasValue("3"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.clusterSettings(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("cluster_setting.#").HasValue("2"),
 			),
 		},
 		data.ImportStep(),
@@ -172,6 +204,7 @@ func (r AppServiceEnvironmentResource) Exists(ctx context.Context, client *clien
 		}
 		return nil, fmt.Errorf("retrieving App Service Environment %q (Resource Group %q): %+v", id.HostingEnvironmentName, id.ResourceGroup, err)
 	}
+
 	return utils.Bool(true), nil
 }
 
@@ -183,6 +216,55 @@ func (r AppServiceEnvironmentResource) basic(data acceptance.TestData) string {
 resource "azurerm_app_service_environment" "test" {
   name      = "acctest-ase-%d"
   subnet_id = azurerm_subnet.ase.id
+}
+`, template, data.RandomInteger)
+}
+
+func (r AppServiceEnvironmentResource) clusterSettings(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_app_service_environment" "test" {
+  name      = "acctest-ase-%d"
+  subnet_id = azurerm_subnet.ase.id
+
+  cluster_setting {
+    name  = "InternalEncryption"
+    value = "true"
+  }
+
+  cluster_setting {
+    name  = "DisableTls1.0"
+    value = "1"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r AppServiceEnvironmentResource) clusterSettingsUpdate(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_app_service_environment" "test" {
+  name      = "acctest-ase-%d"
+  subnet_id = azurerm_subnet.ase.id
+
+  cluster_setting {
+    name  = "InternalEncryption"
+    value = "true"
+  }
+
+  cluster_setting {
+    name  = "DisableTls1.0"
+    value = "1"
+  }
+
+  cluster_setting {
+    name  = "FrontEndSSLCipherSuiteOrder"
+    value = "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384_P256,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256_P256,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384_P256,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA_P256,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA_P256"
+  }
 }
 `, template, data.RandomInteger)
 }

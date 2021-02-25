@@ -77,7 +77,6 @@ func (client TasksClient) Create(ctx context.Context, resourceGroupName string, 
 						Chain: []validation.Constraint{{Target: "taskCreateParameters.TaskProperties.Timeout", Name: validation.InclusiveMaximum, Rule: int64(28800), Chain: nil},
 							{Target: "taskCreateParameters.TaskProperties.Timeout", Name: validation.InclusiveMinimum, Rule: int64(300), Chain: nil},
 						}},
-					{Target: "taskCreateParameters.TaskProperties.Step", Name: validation.Null, Rule: true, Chain: nil},
 					{Target: "taskCreateParameters.TaskProperties.Trigger", Name: validation.Null, Rule: false,
 						Chain: []validation.Constraint{{Target: "taskCreateParameters.TaskProperties.Trigger.BaseImageTrigger", Name: validation.Null, Rule: false,
 							Chain: []validation.Constraint{{Target: "taskCreateParameters.TaskProperties.Trigger.BaseImageTrigger.Name", Name: validation.Null, Rule: true, Chain: nil}}},
@@ -94,7 +93,7 @@ func (client TasksClient) Create(ctx context.Context, resourceGroupName string, 
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerregistry.TasksClient", "Create", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "containerregistry.TasksClient", "Create", nil, "Failure sending request")
 		return
 	}
 
@@ -133,7 +132,33 @@ func (client TasksClient) CreateSender(req *http.Request) (future TasksCreateFut
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client TasksClient) (t Task, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "containerregistry.TasksCreateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("containerregistry.TasksCreateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		t.Response.Response, err = future.GetResult(sender)
+		if t.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "containerregistry.TasksCreateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && t.Response.Response.StatusCode != http.StatusNoContent {
+			t, err = client.CreateResponder(t.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "containerregistry.TasksCreateFuture", "Result", t.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -187,7 +212,7 @@ func (client TasksClient) Delete(ctx context.Context, resourceGroupName string, 
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerregistry.TasksClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "containerregistry.TasksClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -224,7 +249,23 @@ func (client TasksClient) DeleteSender(req *http.Request) (future TasksDeleteFut
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client TasksClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "containerregistry.TasksDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("containerregistry.TasksDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -285,6 +326,7 @@ func (client TasksClient) Get(ctx context.Context, resourceGroupName string, reg
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerregistry.TasksClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -376,6 +418,7 @@ func (client TasksClient) GetDetails(ctx context.Context, resourceGroupName stri
 	result, err = client.GetDetailsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerregistry.TasksClient", "GetDetails", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -463,9 +506,11 @@ func (client TasksClient) List(ctx context.Context, resourceGroupName string, re
 	result.tlr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerregistry.TasksClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.tlr.hasNextLink() && result.tlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -586,7 +631,7 @@ func (client TasksClient) Update(ctx context.Context, resourceGroupName string, 
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerregistry.TasksClient", "Update", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "containerregistry.TasksClient", "Update", nil, "Failure sending request")
 		return
 	}
 
@@ -625,7 +670,33 @@ func (client TasksClient) UpdateSender(req *http.Request) (future TasksUpdateFut
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client TasksClient) (t Task, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "containerregistry.TasksUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("containerregistry.TasksUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		t.Response.Response, err = future.GetResult(sender)
+		if t.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "containerregistry.TasksUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && t.Response.Response.StatusCode != http.StatusNoContent {
+			t, err = client.UpdateResponder(t.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "containerregistry.TasksUpdateFuture", "Result", t.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

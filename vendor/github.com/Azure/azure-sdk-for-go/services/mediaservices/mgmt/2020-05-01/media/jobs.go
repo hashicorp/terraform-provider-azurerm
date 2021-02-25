@@ -75,6 +75,7 @@ func (client JobsClient) CancelJob(ctx context.Context, resourceGroupName string
 	result, err = client.CancelJobResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.JobsClient", "CancelJob", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -141,9 +142,7 @@ func (client JobsClient) Create(ctx context.Context, resourceGroupName string, a
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.JobProperties", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "parameters.JobProperties.Input", Name: validation.Null, Rule: true, Chain: nil},
-					{Target: "parameters.JobProperties.Outputs", Name: validation.Null, Rule: true, Chain: nil},
-				}}}}}); err != nil {
+				Chain: []validation.Constraint{{Target: "parameters.JobProperties.Outputs", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
 		return result, validation.NewError("media.JobsClient", "Create", err.Error())
 	}
 
@@ -163,6 +162,7 @@ func (client JobsClient) Create(ctx context.Context, resourceGroupName string, a
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.JobsClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -244,6 +244,7 @@ func (client JobsClient) Delete(ctx context.Context, resourceGroupName string, a
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.JobsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -322,6 +323,7 @@ func (client JobsClient) Get(ctx context.Context, resourceGroupName string, acco
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.JobsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -403,9 +405,11 @@ func (client JobsClient) List(ctx context.Context, resourceGroupName string, acc
 	result.jc, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.JobsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.jc.hasNextLink() && result.jc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -529,6 +533,7 @@ func (client JobsClient) Update(ctx context.Context, resourceGroupName string, a
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.JobsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

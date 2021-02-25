@@ -77,7 +77,7 @@ func (client IPFirewallRulesClient) CreateOrUpdate(ctx context.Context, resource
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.IPFirewallRulesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.IPFirewallRulesClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -116,7 +116,33 @@ func (client IPFirewallRulesClient) CreateOrUpdateSender(req *http.Request) (fut
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client IPFirewallRulesClient) (ifri IPFirewallRuleInfo, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "synapse.IPFirewallRulesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("synapse.IPFirewallRulesCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		ifri.Response.Response, err = future.GetResult(sender)
+		if ifri.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "synapse.IPFirewallRulesCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && ifri.Response.Response.StatusCode != http.StatusNoContent {
+			ifri, err = client.CreateOrUpdateResponder(ifri.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "synapse.IPFirewallRulesCreateOrUpdateFuture", "Result", ifri.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -166,7 +192,7 @@ func (client IPFirewallRulesClient) Delete(ctx context.Context, resourceGroupNam
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.IPFirewallRulesClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.IPFirewallRulesClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -203,7 +229,33 @@ func (client IPFirewallRulesClient) DeleteSender(req *http.Request) (future IPFi
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client IPFirewallRulesClient) (so SetObject, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "synapse.IPFirewallRulesDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("synapse.IPFirewallRulesDeleteFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		so.Response.Response, err = future.GetResult(sender)
+		if so.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "synapse.IPFirewallRulesDeleteFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && so.Response.Response.StatusCode != http.StatusNoContent {
+			so, err = client.DeleteResponder(so.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "synapse.IPFirewallRulesDeleteFuture", "Result", so.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -261,6 +313,7 @@ func (client IPFirewallRulesClient) Get(ctx context.Context, resourceGroupName s
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.IPFirewallRulesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -348,9 +401,11 @@ func (client IPFirewallRulesClient) ListByWorkspace(ctx context.Context, resourc
 	result.ifrilr, err = client.ListByWorkspaceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.IPFirewallRulesClient", "ListByWorkspace", resp, "Failure responding to request")
+		return
 	}
 	if result.ifrilr.hasNextLink() && result.ifrilr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -466,7 +521,7 @@ func (client IPFirewallRulesClient) ReplaceAll(ctx context.Context, resourceGrou
 
 	result, err = client.ReplaceAllSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.IPFirewallRulesClient", "ReplaceAll", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.IPFirewallRulesClient", "ReplaceAll", nil, "Failure sending request")
 		return
 	}
 
@@ -504,7 +559,33 @@ func (client IPFirewallRulesClient) ReplaceAllSender(req *http.Request) (future 
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client IPFirewallRulesClient) (rafror ReplaceAllFirewallRulesOperationResponse, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "synapse.IPFirewallRulesReplaceAllFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("synapse.IPFirewallRulesReplaceAllFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		rafror.Response.Response, err = future.GetResult(sender)
+		if rafror.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "synapse.IPFirewallRulesReplaceAllFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && rafror.Response.Response.StatusCode != http.StatusNoContent {
+			rafror, err = client.ReplaceAllResponder(rafror.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "synapse.IPFirewallRulesReplaceAllFuture", "Result", rafror.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

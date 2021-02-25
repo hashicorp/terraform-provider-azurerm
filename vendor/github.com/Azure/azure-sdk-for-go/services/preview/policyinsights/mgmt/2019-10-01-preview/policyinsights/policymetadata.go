@@ -72,6 +72,7 @@ func (client PolicyMetadataClient) GetResource(ctx context.Context, resourceName
 	result, err = client.GetResourceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyMetadataClient", "GetResource", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -152,9 +153,11 @@ func (client PolicyMetadataClient) List(ctx context.Context, top *int32) (result
 	result.pmc, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyMetadataClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.pmc.hasNextLink() && result.pmc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

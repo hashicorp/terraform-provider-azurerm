@@ -26,7 +26,7 @@ import (
 	"net/http"
 )
 
-// DashboardsClient is the allows creation and deletion of Azure Shared Dashboards.
+// DashboardsClient is the client for the Dashboards methods of the Portal service.
 type DashboardsClient struct {
 	BaseClient
 }
@@ -83,6 +83,7 @@ func (client DashboardsClient) CreateOrUpdate(ctx context.Context, resourceGroup
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "portal.DashboardsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -170,6 +171,7 @@ func (client DashboardsClient) Delete(ctx context.Context, resourceGroupName str
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "portal.DashboardsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -251,6 +253,7 @@ func (client DashboardsClient) Get(ctx context.Context, resourceGroupName string
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "portal.DashboardsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -288,7 +291,7 @@ func (client DashboardsClient) GetSender(req *http.Request) (*http.Response, err
 func (client DashboardsClient) GetResponder(resp *http.Response) (result Dashboard, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
@@ -326,9 +329,11 @@ func (client DashboardsClient) ListByResourceGroup(ctx context.Context, resource
 	result.dlr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "portal.DashboardsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.dlr.hasNextLink() && result.dlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -438,9 +443,11 @@ func (client DashboardsClient) ListBySubscription(ctx context.Context) (result D
 	result.dlr, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "portal.DashboardsClient", "ListBySubscription", resp, "Failure responding to request")
+		return
 	}
 	if result.dlr.hasNextLink() && result.dlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -559,6 +566,7 @@ func (client DashboardsClient) Update(ctx context.Context, resourceGroupName str
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "portal.DashboardsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -598,7 +606,7 @@ func (client DashboardsClient) UpdateSender(req *http.Request) (*http.Response, 
 func (client DashboardsClient) UpdateResponder(resp *http.Response) (result Dashboard, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}

@@ -7,9 +7,9 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -24,7 +24,7 @@ func TestAccMySQLConfiguration_characterSetServer(t *testing.T) {
 		{
 			Config: r.characterSetServer(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckMySQLConfigurationValue(data.ResourceName, "hebrew"),
+				data.CheckWithClient(r.checkValue("hebrew")),
 			),
 		},
 		data.ImportStep(),
@@ -32,7 +32,7 @@ func TestAccMySQLConfiguration_characterSetServer(t *testing.T) {
 			Config: r.empty(data),
 			Check: resource.ComposeTestCheckFunc(
 				// "delete" resets back to the default value
-				testCheckMySQLConfigurationValueReset(data, "character_set_server"),
+				data.CheckWithClientForResource(r.checkReset("character_set_server"), "azurerm_mysql_server.test"),
 			),
 		},
 	})
@@ -46,7 +46,7 @@ func TestAccMySQLConfiguration_interactiveTimeout(t *testing.T) {
 		{
 			Config: r.interactiveTimeout(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckMySQLConfigurationValue(data.ResourceName, "30"),
+				data.CheckWithClient(r.checkValue("30")),
 			),
 		},
 		data.ImportStep(),
@@ -54,7 +54,7 @@ func TestAccMySQLConfiguration_interactiveTimeout(t *testing.T) {
 			Config: r.empty(data),
 			Check: resource.ComposeTestCheckFunc(
 				// "delete" resets back to the default value
-				testCheckMySQLConfigurationValueReset(data, "interactive_timeout"),
+				data.CheckWithClientForResource(r.checkReset("interactive_timeout"), "azurerm_mysql_server.test"),
 			),
 		},
 	})
@@ -68,7 +68,7 @@ func TestAccMySQLConfiguration_logSlowAdminStatements(t *testing.T) {
 		{
 			Config: r.logSlowAdminStatements(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckMySQLConfigurationValue(data.ResourceName, "on"),
+				data.CheckWithClient(r.checkValue("on")),
 			),
 		},
 		data.ImportStep(),
@@ -76,22 +76,19 @@ func TestAccMySQLConfiguration_logSlowAdminStatements(t *testing.T) {
 			Config: r.empty(data),
 			Check: resource.ComposeTestCheckFunc(
 				// "delete" resets back to the default value
-				testCheckMySQLConfigurationValueReset(data, "log_slow_admin_statements"),
+				data.CheckWithClientForResource(r.checkReset("log_slow_admin_statements"), "azurerm_mysql_server.test"),
 			),
 		},
 	})
 }
 
 func (t MySQLConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.ConfigurationID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroup
-	serverName := id.Path["servers"]
-	name := id.Path["configurations"]
 
-	resp, err := clients.MySQL.ConfigurationsClient.Get(ctx, resourceGroup, serverName, name)
+	resp, err := clients.MySQL.ConfigurationsClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 	if err != nil {
 		return nil, fmt.Errorf("reading MySQL Configuration (%s): %+v", id, err)
 	}
@@ -99,53 +96,17 @@ func (t MySQLConfigurationResource) Exists(ctx context.Context, clients *clients
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func testCheckMySQLConfigurationValue(resourceName string, value string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).MySQL.ConfigurationsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
+func (r MySQLConfigurationResource) checkReset(configurationName string) acceptance.ClientCheckFunc {
+	return func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+		id, err := parse.ServerID(state.Attributes["id"])
+		if err != nil {
+			return err
 		}
 
-		name := rs.Primary.Attributes["name"]
-		serverName := rs.Primary.Attributes["server_name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for MySQL Configuration: %s", name)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, serverName, name)
+		resp, err := clients.MySQL.ConfigurationsClient.Get(ctx, id.ResourceGroup, id.Name, configurationName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: MySQL Configuration %q (server %q resource group: %q) does not exist", name, serverName, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on mysqlConfigurationsClient: %+v", err)
-		}
-
-		if *resp.Value != value {
-			return fmt.Errorf("MySQL Configuration wasn't set. Expected '%s' - got '%s': \n%+v", value, *resp.Value, resp)
-		}
-
-		return nil
-	}
-}
-
-func testCheckMySQLConfigurationValueReset(data acceptance.TestData, configurationName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).MySQL.ConfigurationsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		resourceGroup := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
-		serverName := fmt.Sprintf("acctestmysqlsvr-%d", data.RandomInteger)
-
-		resp, err := client.Get(ctx, resourceGroup, serverName, configurationName)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: MySQL Configuration %q (server %q resource group: %q) does not exist", configurationName, serverName, resourceGroup)
+				return fmt.Errorf("Bad: MySQL Configuration %q (server %q resource group: %q) does not exist", configurationName, id.Name, id.ResourceGroup)
 			}
 			return fmt.Errorf("Bad: Get on mysqlConfigurationsClient: %+v", err)
 		}
@@ -155,6 +116,30 @@ func testCheckMySQLConfigurationValueReset(data acceptance.TestData, configurati
 
 		if defaultValue != actualValue {
 			return fmt.Errorf("MySQL Configuration wasn't set to the default value. Expected '%s' - got '%s': \n%+v", defaultValue, actualValue, resp)
+		}
+
+		return nil
+	}
+}
+
+func (r MySQLConfigurationResource) checkValue(value string) acceptance.ClientCheckFunc {
+	return func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+		id, err := parse.ConfigurationID(state.Attributes["id"])
+		if err != nil {
+			return err
+		}
+
+		resp, err := clients.MySQL.ConfigurationsClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Bad: MySQL Configuration %q (server %q resource group: %q) does not exist", id.Name, id.ServerName, id.ResourceGroup)
+			}
+
+			return fmt.Errorf("Bad: Get on mysqlConfigurationsClient: %+v", err)
+		}
+
+		if *resp.Value != value {
+			return fmt.Errorf("MySQL Configuration wasn't set. Expected '%s' - got '%s': \n%+v", value, *resp.Value, resp)
 		}
 
 		return nil

@@ -84,6 +84,7 @@ func (client AccountFiltersClient) CreateOrUpdate(ctx context.Context, resourceG
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.AccountFiltersClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -163,6 +164,7 @@ func (client AccountFiltersClient) Delete(ctx context.Context, resourceGroupName
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.AccountFiltersClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -239,6 +241,7 @@ func (client AccountFiltersClient) Get(ctx context.Context, resourceGroupName st
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.AccountFiltersClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -316,9 +319,11 @@ func (client AccountFiltersClient) List(ctx context.Context, resourceGroupName s
 	result.afc, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.AccountFiltersClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.afc.hasNextLink() && result.afc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -433,6 +438,7 @@ func (client AccountFiltersClient) Update(ctx context.Context, resourceGroupName
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.AccountFiltersClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

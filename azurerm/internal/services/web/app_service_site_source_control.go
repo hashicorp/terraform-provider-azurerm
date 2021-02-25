@@ -51,7 +51,7 @@ func schemaAppServiceSiteSourceControl() *schema.Schema {
 	}
 }
 
-func schemaDataSourceAppServiceSiteSourceControl() *schema.Schema {
+func schemaAppServiceSiteSourceControlDataSource() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Computed: true,

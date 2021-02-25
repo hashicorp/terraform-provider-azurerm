@@ -168,6 +168,8 @@ The following arguments are supported:
 
 * `site_config` - (Optional) A `site_config` object as defined below.
 
+* `logs` - (Optional) A `logs` block as defined below.
+
 * `identity` - (Optional) A Managed Service Identity block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
@@ -312,9 +314,11 @@ A `ip_restriction` block supports the following:
 
 * `ip_address` - (Optional) The IP Address used for this IP Restriction in CIDR notation.
 
+* `service_tag` - (Optional) The Service Tag used for this IP Restriction.
+
 * `virtual_network_subnet_id` - (Optional) The Virtual Network Subnet ID used for this IP Restriction.
 
--> **NOTE:** One of either `ip_address` or `virtual_network_subnet_id` must be specified
+-> **NOTE:** One of either `ip_address`, `service_tag` or `virtual_network_subnet_id` must be specified
 
 * `name` - (Optional) The name for this IP Restriction.
 
@@ -349,6 +353,10 @@ A `logs` block supports the following:
 * `application_logs` - (Optional) An `application_logs` block as defined below.
 
 * `http_logs` - (Optional) An `http_logs` block as defined below.
+
+* `detailed_error_messages_enabled` - (Optional) Should `Detailed error messages` be enabled on this App Service slot? Defaults to `false`.
+
+* `failed_request_tracing_enabled` - (Optional) Should `Failed request tracing` be enabled on this App Service slot? Defaults to `false`.
 
 ---
 
