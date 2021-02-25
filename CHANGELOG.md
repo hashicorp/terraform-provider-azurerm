@@ -12,6 +12,8 @@ ENHANCEMENTS:
 * dependencies: updating `github.com/hashicorp/terraform-plugin-sdk` to the latest `1.x` branch [GH-10692]
 * testing: updating the tests to use the Terraform release binaries when running acceptance tests [GH-10523]
 * `azurerm_api_management` - support for the  `tenant_access` block [GH-10475]
+* `azurerm_data_factory_linked_service_azure_blob_storage` - now supports `sas_uri` property [GH-10551]
+* `azurerm_data_factory_linked_service_azure_blob_storage` - now supports Managed Identity and Service Principal auth [GH-10551]
 * `azurerm_monitor_smart_detector_alert_rule` - supports for the `tags` property [GH-10646]
 * `azurerm_netapp_volume` - support for the `data_protection_replication` block [GH-10610]
 * `azurerm_service_fabric_cluster` - Add support for `upgrade policy` [GH-10713]
