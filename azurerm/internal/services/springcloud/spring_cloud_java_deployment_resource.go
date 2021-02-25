@@ -178,17 +178,32 @@ func resourceSpringCloudJavaDeploymentUpdate(d *schema.ResourceData, meta interf
 	if err != nil {
 		return fmt.Errorf("reading existing %s: %+v", id, err)
 	}
-	if existing.Sku == nil || existing.Properties == nil {
-		return fmt.Errorf("nil `sku` or `Properties` for %s: %+v", id, err)
+	if existing.Sku == nil || existing.Properties == nil || existing.Properties.DeploymentSettings == nil {
+		return fmt.Errorf("nil `sku`, `properties` or `properties.deploymentSettings` for %s: %+v", id, err)
 	}
 
-	existing.Sku.Capacity = utils.Int32(int32(d.Get("instance_count").(int)))
-	existing.Properties.DeploymentSettings = &appplatform.DeploymentSettings{
-		CPU:                  utils.Int32(int32(d.Get("cpu").(int))),
-		MemoryInGB:           utils.Int32(int32(d.Get("memory_in_gb").(int))),
-		JvmOptions:           utils.String(d.Get("jvm_options").(string)),
-		EnvironmentVariables: expandSpringCloudDeploymentEnvironmentVariables(d.Get("environment_variables").(map[string]interface{})),
-		RuntimeVersion:       appplatform.RuntimeVersion(d.Get("runtime_version").(string)),
+	if d.HasChange("instance_count") {
+		existing.Sku.Capacity = utils.Int32(int32(d.Get("instance_count").(int)))
+	}
+
+	if d.HasChange("cpu") {
+		existing.Properties.DeploymentSettings.CPU = utils.Int32(int32(d.Get("cpu").(int)))
+	}
+
+	if d.HasChange("environment_variables") {
+		existing.Properties.DeploymentSettings.EnvironmentVariables = expandSpringCloudDeploymentEnvironmentVariables(d.Get("environment_variables").(map[string]interface{}))
+	}
+
+	if d.HasChange("jvm_options") {
+		existing.Properties.DeploymentSettings.JvmOptions = utils.String(d.Get("jvm_options").(string))
+	}
+
+	if d.HasChange("memory_in_gb") {
+		existing.Properties.DeploymentSettings.MemoryInGB = utils.Int32(int32(d.Get("memory_in_gb").(int)))
+	}
+
+	if d.HasChange("runtime_version") {
+		existing.Properties.DeploymentSettings.RuntimeVersion = appplatform.RuntimeVersion(d.Get("runtime_version").(string))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.AppName, id.DeploymentName, existing)
