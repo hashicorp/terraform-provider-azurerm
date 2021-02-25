@@ -309,9 +309,9 @@ func resourceBackupProtectionPolicyFileShareCreateUpdate(d *schema.ResourceData,
 		RetentionPolicy: &backup.LongTermRetentionPolicy{ // SimpleRetentionPolicy only has duration property ¯\_(ツ)_/¯
 			RetentionPolicyType: backup.RetentionPolicyTypeLongTermRetentionPolicy,
 			DailySchedule:       expandBackupProtectionPolicyFileShareRetentionDaily(d, times),
-			WeeklySchedule:      expandBackupProtectionPolicyVMRetentionWeekly(d, times),
-			MonthlySchedule:     expandBackupProtectionPolicyVMRetentionMonthly(d, times),
-			YearlySchedule:      expandBackupProtectionPolicyVMRetentionYearly(d, times),
+			WeeklySchedule:      expandBackupProtectionPolicyFileShareRetentionWeekly(d, times),
+			MonthlySchedule:     expandBackupProtectionPolicyFileShareRetentionMonthly(d, times),
+			YearlySchedule:      expandBackupProtectionPolicyFileShareRetentionYearly(d, times),
 		},
 	}
 
@@ -384,7 +384,7 @@ func resourceBackupProtectionPolicyFileShareRead(d *schema.ResourceData, meta in
 			}
 
 			if s := retention.WeeklySchedule; s != nil {
-				if err := d.Set("retention_weekly", flattenBackupProtectionPolicyVMRetentionWeekly(s)); err != nil {
+				if err := d.Set("retention_weekly", flattenBackupProtectionPolicyFileShareRetentionWeekly(s)); err != nil {
 					return fmt.Errorf("Error setting `retention_weekly`: %+v", err)
 				}
 			} else {
@@ -392,7 +392,7 @@ func resourceBackupProtectionPolicyFileShareRead(d *schema.ResourceData, meta in
 			}
 
 			if s := retention.MonthlySchedule; s != nil {
-				if err := d.Set("retention_monthly", flattenBackupProtectionPolicyVMRetentionMonthly(s)); err != nil {
+				if err := d.Set("retention_monthly", flattenBackupProtectionPolicyFileShareRetentionMonthly(s)); err != nil {
 					return fmt.Errorf("Error setting `retention_monthly`: %+v", err)
 				}
 			} else {
@@ -400,7 +400,7 @@ func resourceBackupProtectionPolicyFileShareRead(d *schema.ResourceData, meta in
 			}
 
 			if s := retention.YearlySchedule; s != nil {
-				if err := d.Set("retention_yearly", flattenBackupProtectionPolicyVMRetentionYearly(s)); err != nil {
+				if err := d.Set("retention_yearly", flattenBackupProtectionPolicyFileShareRetentionYearly(s)); err != nil {
 					return fmt.Errorf("Error setting `retention_yearly`: %+v", err)
 				}
 			} else {
