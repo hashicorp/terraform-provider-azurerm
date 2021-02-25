@@ -6,6 +6,7 @@ import (
 )
 
 type Client struct {
+	AssessmentsMetadataClient      *security.AssessmentsMetadataClient
 	ContactsClient                 *security.ContactsClient
 	DeviceSecurityGroupsClient     *security.DeviceSecurityGroupsClient
 	IotSecuritySolutionClient      *security.IotSecuritySolutionClient
@@ -19,6 +20,9 @@ type Client struct {
 
 func NewClient(o *common.ClientOptions) *Client {
 	ascLocation := "Global"
+
+	AssessmentsMetadataClient := security.NewAssessmentsMetadataClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
+	o.ConfigureClient(&AssessmentsMetadataClient.Client, o.ResourceManagerAuthorizer)
 
 	ContactsClient := security.NewContactsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
 	o.ConfigureClient(&ContactsClient.Client, o.ResourceManagerAuthorizer)
@@ -48,6 +52,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&AutomationsClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
+		AssessmentsMetadataClient:      &AssessmentsMetadataClient,
 		ContactsClient:                 &ContactsClient,
 		DeviceSecurityGroupsClient:     &DeviceSecurityGroupsClient,
 		IotSecuritySolutionClient:      &IotSecuritySolutionClient,
