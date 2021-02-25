@@ -317,7 +317,7 @@ func resourceSqlDatabase() *schema.Resource {
 								string(sql.SecurityAlertPolicyUseServerDefaultDisabled),
 								string(sql.SecurityAlertPolicyUseServerDefaultEnabled),
 							}, true),
-							Deprecated: "This field is non-functional and will be removed in version 3.0 of the Azure Provider",
+							Deprecated: "This field is now non-functional and thus will be removed in version 3.0 of the Azure Provider",
 						},
 					},
 				},
