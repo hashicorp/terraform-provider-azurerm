@@ -10,6 +10,8 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: updating `github.com/hashicorp/terraform-plugin-sdk` to the latest `1.x` branch [GH-10692]
+* dependencies: updating `github.com/hashicorp/go-azure-helpers` to `v0.14.0` [GH-10740]
+* dependencies: updating `github.com/Azure/go-autorest/autorest` to `v0.11.18` [GH-10740]
 * testing: updating the tests to use the Terraform release binaries when running acceptance tests [GH-10523]
 * `azurerm_api_management` - support for the  `tenant_access` block [GH-10475]
 * `azurerm_api_management_logger` - support for configuring a `resource_id` [GH-10652]
@@ -21,6 +23,8 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* provider: fixing support for Azure Cloud Shell [GH-10740]
+* provider: MSI authentication is explicitly unavailable in Azure App Service and Function Apps as these are intentionally not supported [GH-10740]
 * provider: only showing the deprecation message if `skip_credentials_registration` is explicitly configured [GH-10699]
 * `azurerm_batch_certificate` - allow empty `password` when format is pfx [GH-10642]
 * `azurerm_data_factory_integration_runtime_azure_ssis` - the `administrator_login` and `administrator_password` properties are now optional [GH-10474]
