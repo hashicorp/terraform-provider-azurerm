@@ -53,21 +53,19 @@ func resourceDataFactoryLinkedServiceAzureBlobStorage() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"connection_string": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Sensitive:     true,
-				ValidateFunc:  validation.StringIsNotEmpty,
-				ConflictsWith: []string{"sas_uri"},
-				ExactlyOneOf:  []string{"connection_string", "sas_uri"},
+				Type:         schema.TypeString,
+				Optional:     true,
+				Sensitive:    true,
+				ValidateFunc: validation.StringIsNotEmpty,
+				ExactlyOneOf: []string{"connection_string", "sas_uri"},
 			},
 
 			"sas_uri": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Sensitive:     true,
-				ValidateFunc:  validation.StringIsNotEmpty,
-				ConflictsWith: []string{"connection_string"},
-				ExactlyOneOf:  []string{"connection_string", "sas_uri"},
+				Type:         schema.TypeString,
+				Optional:     true,
+				Sensitive:    true,
+				ValidateFunc: validation.StringIsNotEmpty,
+				ExactlyOneOf: []string{"connection_string", "sas_uri"},
 			},
 
 			"description": {
@@ -83,10 +81,12 @@ func resourceDataFactoryLinkedServiceAzureBlobStorage() *schema.Resource {
 			},
 
 			"use_managed_identity": {
-				Type:         schema.TypeBool,
-				Optional:     true,
-				Default:      false,
-				ExactlyOneOf: []string{"service_principal_id", "use_managed_identity"},
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+				ConflictsWith: []string{
+					"service_principal_id",
+				},
 			},
 
 			"service_principal_id": {
@@ -94,15 +94,16 @@ func resourceDataFactoryLinkedServiceAzureBlobStorage() *schema.Resource {
 				Optional:     true,
 				ValidateFunc: validation.IsUUID,
 				RequiredWith: []string{"service_principal_key"},
-				ExactlyOneOf: []string{"service_principal_id", "use_managed_identity"},
+				ConflictsWith: []string{
+					"use_managed_identity",
+				},
 			},
 
 			"service_principal_key": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				ValidateFunc:  validation.StringIsNotEmpty,
-				RequiredWith:  []string{"service_principal_id"},
-				ConflictsWith: []string{"use_managed_identity"},
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+				RequiredWith: []string{"service_principal_id"},
 			},
 
 			"tenant_id": {
