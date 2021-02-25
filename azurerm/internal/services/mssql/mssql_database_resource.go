@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -51,7 +50,7 @@ func resourceMsSqlDatabase() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateMsSqlDatabaseName,
+				ValidateFunc: validate.ValidateMsSqlDatabaseName,
 			},
 
 			"server_id": {
@@ -187,6 +186,18 @@ func resourceMsSqlDatabase() *schema.Resource {
 				ForceNew:     true,
 				Computed:     true,
 				ValidateFunc: validate.DatabaseID,
+			},
+
+			"storage_account_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  string(sql.GRS),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(sql.GRS),
+					string(sql.LRS),
+					string(sql.ZRS),
+				}, false),
 			},
 
 			"zone_redundant": {
@@ -344,14 +355,15 @@ func resourceMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{})
 		Name:     &name,
 		Location: &location,
 		DatabaseProperties: &sql.DatabaseProperties{
-			AutoPauseDelay:   utils.Int32(int32(d.Get("auto_pause_delay_in_minutes").(int))),
-			Collation:        utils.String(d.Get("collation").(string)),
-			ElasticPoolID:    utils.String(d.Get("elastic_pool_id").(string)),
-			LicenseType:      sql.DatabaseLicenseType(d.Get("license_type").(string)),
-			MinCapacity:      utils.Float(d.Get("min_capacity").(float64)),
-			ReadReplicaCount: utils.Int32(int32(d.Get("read_replica_count").(int))),
-			SampleName:       sql.SampleName(d.Get("sample_name").(string)),
-			ZoneRedundant:    utils.Bool(d.Get("zone_redundant").(bool)),
+			AutoPauseDelay:     utils.Int32(int32(d.Get("auto_pause_delay_in_minutes").(int))),
+			Collation:          utils.String(d.Get("collation").(string)),
+			ElasticPoolID:      utils.String(d.Get("elastic_pool_id").(string)),
+			LicenseType:        sql.DatabaseLicenseType(d.Get("license_type").(string)),
+			MinCapacity:        utils.Float(d.Get("min_capacity").(float64)),
+			ReadReplicaCount:   utils.Int32(int32(d.Get("read_replica_count").(int))),
+			SampleName:         sql.SampleName(d.Get("sample_name").(string)),
+			StorageAccountType: sql.StorageAccountType(d.Get("storage_account_type").(string)),
+			ZoneRedundant:      utils.Bool(d.Get("zone_redundant").(bool)),
 		},
 
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -544,6 +556,7 @@ func resourceMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error {
 			skuName = *props.CurrentServiceObjectiveName
 		}
 		d.Set("sku_name", props.CurrentServiceObjectiveName)
+		d.Set("storage_account_type", props.StorageAccountType)
 		d.Set("zone_redundant", props.ZoneRedundant)
 	}
 

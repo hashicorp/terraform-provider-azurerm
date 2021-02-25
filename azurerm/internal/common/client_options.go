@@ -2,7 +2,6 @@ package common
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"strings"
 
@@ -69,6 +68,4 @@ func setUserAgent(client *autorest.Client, tfVersion, partnerID string, disableT
 	if partnerID != "" {
 		client.UserAgent = fmt.Sprintf("%s pid-%s", client.UserAgent, partnerID)
 	}
-
-	log.Printf("[DEBUG] AzureRM Client User Agent: %s\n", client.UserAgent)
 }

@@ -37,7 +37,7 @@ func importSentinelAlertRule(expectKind securityinsight.AlertRuleKind) func(d *s
 		ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 		defer cancel()
 
-		resp, err := client.Get(ctx, id.ResourceGroup, "Microsoft.OperationalInsights", id.WorkspaceName, id.Name)
+		resp, err := client.Get(ctx, id.ResourceGroup, operationalInsightsResourceProvider, id.WorkspaceName, id.Name)
 		if err != nil {
 			return nil, fmt.Errorf("retrieving Sentinel Alert Rule %q: %+v", id, err)
 		}
@@ -53,11 +53,11 @@ func assertAlertRuleKind(rule securityinsight.BasicAlertRule, expectKind securit
 	var kind securityinsight.AlertRuleKind
 	switch rule.(type) {
 	case securityinsight.FusionAlertRule:
-		kind = securityinsight.Fusion
+		kind = securityinsight.AlertRuleKindFusion
 	case securityinsight.MicrosoftSecurityIncidentCreationAlertRule:
-		kind = securityinsight.MicrosoftSecurityIncidentCreation
+		kind = securityinsight.AlertRuleKindMicrosoftSecurityIncidentCreation
 	case securityinsight.ScheduledAlertRule:
-		kind = securityinsight.Scheduled
+		kind = securityinsight.AlertRuleKindScheduled
 	}
 	if expectKind != kind {
 		return fmt.Errorf("Sentinel Alert Rule has mismatched kind, expected: %q, got %q", expectKind, kind)

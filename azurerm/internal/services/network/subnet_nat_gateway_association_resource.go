@@ -11,15 +11,16 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSubnetNatGatewayAssociation() *schema.Resource {
+func resourceSubnetNatGatewayAssociation() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSubnetNatGatewayAssociationCreate,
-		Read:   resourceArmSubnetNatGatewayAssociationRead,
-		Delete: resourceArmSubnetNatGatewayAssociationDelete,
+		Create: resourceSubnetNatGatewayAssociationCreate,
+		Read:   resourceSubnetNatGatewayAssociationRead,
+		Delete: resourceSubnetNatGatewayAssociationDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -48,7 +49,7 @@ func resourceArmSubnetNatGatewayAssociation() *schema.Resource {
 	}
 }
 
-func resourceArmSubnetNatGatewayAssociationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceSubnetNatGatewayAssociationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SubnetsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -56,21 +57,21 @@ func resourceArmSubnetNatGatewayAssociationCreate(d *schema.ResourceData, meta i
 	log.Printf("[INFO] preparing arguments for Subnet <-> NAT Gateway Association creation.")
 	subnetId := d.Get("subnet_id").(string)
 	natGatewayId := d.Get("nat_gateway_id").(string)
-	parsedSubnetId, err := azure.ParseAzureResourceID(subnetId)
+	parsedSubnetId, err := parse.SubnetID(subnetId)
 	if err != nil {
-		return fmt.Errorf("Error parsing subnet id '%s': %+v", subnetId, err)
+		return err
 	}
 
-	subnetName := parsedSubnetId.Path["subnets"]
-	virtualNetworkName := parsedSubnetId.Path["virtualNetworks"]
+	subnetName := parsedSubnetId.Name
+	virtualNetworkName := parsedSubnetId.VirtualNetworkName
 	resourceGroup := parsedSubnetId.ResourceGroup
 
-	parsedGatewayId, err := azure.ParseAzureResourceID(natGatewayId)
+	parsedGatewayId, err := parse.NatGatewayID(natGatewayId)
 	if err != nil {
 		return fmt.Errorf("Error parsing NAT gateway id '%s': %+v", natGatewayId, err)
 	}
 
-	gatewayName := parsedGatewayId.Path["natGateways"]
+	gatewayName := parsedGatewayId.Name
 
 	locks.ByName(gatewayName, natGatewayResourceName)
 	defer locks.UnlockByName(gatewayName, natGatewayResourceName)
@@ -114,22 +115,22 @@ func resourceArmSubnetNatGatewayAssociationCreate(d *schema.ResourceData, meta i
 	}
 	d.SetId(*read.ID)
 
-	return resourceArmSubnetNatGatewayAssociationRead(d, meta)
+	return resourceSubnetNatGatewayAssociationRead(d, meta)
 }
 
-func resourceArmSubnetNatGatewayAssociationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSubnetNatGatewayAssociationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SubnetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.SubnetID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	resourceGroup := id.ResourceGroup
-	virtualNetworkName := id.Path["virtualNetworks"]
-	subnetName := id.Path["subnets"]
+	virtualNetworkName := id.VirtualNetworkName
+	subnetName := id.Name
 
 	subnet, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
 	if err != nil {
@@ -158,19 +159,19 @@ func resourceArmSubnetNatGatewayAssociationRead(d *schema.ResourceData, meta int
 	return nil
 }
 
-func resourceArmSubnetNatGatewayAssociationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSubnetNatGatewayAssociationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SubnetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.SubnetID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	resourceGroup := id.ResourceGroup
-	virtualNetworkName := id.Path["virtualNetworks"]
-	subnetName := id.Path["subnets"]
+	virtualNetworkName := id.VirtualNetworkName
+	subnetName := id.Name
 
 	subnet, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
 	if err != nil {

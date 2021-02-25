@@ -10,6 +10,7 @@ type Client struct {
 	CertificatesClient       *appplatform.CertificatesClient
 	ConfigServersClient      *appplatform.ConfigServersClient
 	MonitoringSettingsClient *appplatform.MonitoringSettingsClient
+	DeploymentsClient        *appplatform.DeploymentsClient
 	ServicesClient           *appplatform.ServicesClient
 }
 
@@ -23,6 +24,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	configServersClient := appplatform.NewConfigServersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&configServersClient.Client, o.ResourceManagerAuthorizer)
 
+	deploymentsClient := appplatform.NewDeploymentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&deploymentsClient.Client, o.ResourceManagerAuthorizer)
+
 	monitoringSettingsClient := appplatform.NewMonitoringSettingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&monitoringSettingsClient.Client, o.ResourceManagerAuthorizer)
 
@@ -33,6 +37,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		AppsClient:               &appsClient,
 		CertificatesClient:       &certificatesClient,
 		ConfigServersClient:      &configServersClient,
+		DeploymentsClient:        &deploymentsClient,
 		MonitoringSettingsClient: &monitoringSettingsClient,
 		ServicesClient:           &servicesClient,
 	}

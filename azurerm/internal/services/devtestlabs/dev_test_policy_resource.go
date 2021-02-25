@@ -10,8 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devtestlabs/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -225,8 +225,7 @@ func resourceArmDevTestPolicyDelete(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error retrieving DevTest Policy %q (Policy Set %q / Lab %q / Resource Group %q): %+v", name, policySetName, labName, resourceGroup, err)
 	}
 
-	_, err = client.Delete(ctx, resourceGroup, labName, policySetName, name)
-	if err != nil {
+	if _, err = client.Delete(ctx, resourceGroup, labName, policySetName, name); err != nil {
 		return fmt.Errorf("Error deleting DevTest Policy %q (Policy Set %q / Lab %q / Resource Group %q): %+v", name, policySetName, labName, resourceGroup, err)
 	}
 

@@ -15,7 +15,7 @@ import (
 type WindowsVirtualMachineScaleSetResource struct {
 }
 
-func (t WindowsVirtualMachineScaleSetResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r WindowsVirtualMachineScaleSetResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.VirtualMachineScaleSetID(state.ID)
 	if err != nil {
 		return nil, err

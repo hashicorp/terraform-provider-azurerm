@@ -72,7 +72,7 @@ func TestAccDataFactoryPipeline_activities(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("activities_json").Exists(),
-				testCheckDataFactoryPipelineHasAppenVarActivity(data.ResourceName, "Append variable1"),
+				check.That(data.ResourceName).Key("activities_json").ContainsJsonValue(r.appendVariableActivityNameIs("Append variable1")),
 			),
 		},
 		data.ImportStep(),
@@ -81,7 +81,7 @@ func TestAccDataFactoryPipeline_activities(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("activities_json").Exists(),
-				testCheckDataFactoryPipelineHasAppenVarActivity(data.ResourceName, "Append variable1"),
+				check.That(data.ResourceName).Key("activities_json").ContainsJsonValue(r.appendVariableActivityNameIs("Append variable1")),
 			),
 		},
 		data.ImportStep(),
@@ -90,7 +90,7 @@ func TestAccDataFactoryPipeline_activities(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("activities_json").Exists(),
-				testCheckDataFactoryPipelineHasAppenVarActivity(data.ResourceName, "Append variable1"),
+				check.That(data.ResourceName).Key("activities_json").ContainsJsonValue(r.appendVariableActivityNameIs("Append variable1")),
 			),
 		},
 		data.ImportStep(),
@@ -114,38 +114,23 @@ func (t PipelineResource) Exists(ctx context.Context, clients *clients.Client, s
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func testCheckDataFactoryPipelineHasAppenVarActivity(resourceName string, activityName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.PipelinesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func (t PipelineResource) appendVariableActivityNameIs(expected string) func(input []interface{}) (*bool, error) {
+	return func(input []interface{}) (*bool, error) {
+		if len(input) == 0 || input[0] == nil {
+			return utils.Bool(false), nil
+		}
 
-		rs, ok := s.RootModule().Resources[resourceName]
+		val, ok := input[0].(map[string]interface{})
 		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
+			return nil, fmt.Errorf("nested item was not a dictionary")
 		}
 
-		name := rs.Primary.Attributes["name"]
-		dataFactoryName := rs.Primary.Attributes["data_factory_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Data Factory Pipeline %q (Resource Group %q / Data Factory %q) does not exist", name, resourceGroup, dataFactoryName)
-			}
-			return fmt.Errorf("Bad: Get on DataFactoryPipelineClient: %+v", err)
+		actual, ok := val["name"].(string)
+		if !ok {
+			return nil, fmt.Errorf("name was not present in the json")
 		}
 
-		activities := *resp.Activities
-		if len(activities) == 0 {
-			return fmt.Errorf("Bad: No activities associated with Data Factory Pipeline %q (Resource Group %q / Data Factory %q)", name, resourceGroup, dataFactoryName)
-		}
-		appvarActivity, _ := activities[0].AsAppendVariableActivity()
-		if *appvarActivity.Name != activityName {
-			return fmt.Errorf("Bad: Data Factory Pipeline %q (Resource Group %q / Data Factory %q) could not cast as activity", name, resourceGroup, dataFactoryName)
-		}
-
-		return nil
+		return utils.Bool(actual == expected), nil
 	}
 }
 

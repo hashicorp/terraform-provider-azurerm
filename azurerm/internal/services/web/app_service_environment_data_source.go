@@ -31,6 +31,24 @@ func dataSourceAppServiceEnvironment() *schema.Resource {
 
 			"location": azure.SchemaLocationForDataSource(),
 
+			"cluster_setting": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"value": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"front_end_scale_factor": {
 				Type:     schema.TypeInt,
 				Computed: true,
@@ -106,6 +124,7 @@ func dataSourceAppServiceEnvironmentRead(d *schema.ResourceData, meta interface{
 			pricingTier = convertToIsolatedSKU(*props.MultiSize)
 		}
 		d.Set("pricing_tier", pricingTier)
+		d.Set("cluster_setting", flattenClusterSettings(props.ClusterSettings))
 	}
 
 	d.Set("internal_ip_address", vipInfo.InternalIPAddress)

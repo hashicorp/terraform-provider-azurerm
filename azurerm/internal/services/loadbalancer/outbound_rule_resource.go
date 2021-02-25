@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -231,19 +231,21 @@ func resourceArmLoadBalancerOutboundRuleRead(d *schema.ResourceData, meta interf
 		d.Set("enable_tcp_reset", props.EnableTCPReset)
 
 		frontendIpConfigurations := make([]interface{}, 0)
-		for _, feConfig := range *props.FrontendIPConfigurations {
-			if feConfig.ID == nil {
-				continue
-			}
-			feid, err := parse.LoadBalancerFrontendIpConfigurationID(*feConfig.ID)
-			if err != nil {
-				return err
-			}
+		if configs := props.FrontendIPConfigurations; configs != nil {
+			for _, feConfig := range *configs {
+				if feConfig.ID == nil {
+					continue
+				}
+				feid, err := parse.LoadBalancerFrontendIpConfigurationID(*feConfig.ID)
+				if err != nil {
+					return err
+				}
 
-			frontendIpConfigurations = append(frontendIpConfigurations, map[string]interface{}{
-				"id":   feid.ID(),
-				"name": feid.FrontendIPConfigurationName,
-			})
+				frontendIpConfigurations = append(frontendIpConfigurations, map[string]interface{}{
+					"id":   feid.ID(),
+					"name": feid.FrontendIPConfigurationName,
+				})
+			}
 		}
 		d.Set("frontend_ip_configuration", frontendIpConfigurations)
 

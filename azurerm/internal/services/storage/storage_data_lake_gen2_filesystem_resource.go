@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
@@ -15,6 +16,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/datalakestore/filesystems"
+	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/datalakestore/paths"
+	"github.com/tombuildsstuff/giovanni/storage/accesscontrol"
 )
 
 func resourceStorageDataLakeGen2FileSystem() *schema.Resource {
@@ -73,6 +76,37 @@ func resourceStorageDataLakeGen2FileSystem() *schema.Resource {
 			},
 
 			"properties": MetaDataSchema(),
+
+			"ace": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"scope": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice([]string{"default", "access"}, false),
+							Default:      "access",
+						},
+						"type": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice([]string{"user", "group", "mask", "other"}, false),
+						},
+						"id": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsUUID,
+						},
+						"permissions": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.ADLSAccessControlPermissions,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -80,12 +114,19 @@ func resourceStorageDataLakeGen2FileSystem() *schema.Resource {
 func resourceStorageDataLakeGen2FileSystemCreate(d *schema.ResourceData, meta interface{}) error {
 	accountsClient := meta.(*clients.Client).Storage.AccountsClient
 	client := meta.(*clients.Client).Storage.FileSystemsClient
+	pathClient := meta.(*clients.Client).Storage.ADLSGen2PathsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	storageID, err := parse.StorageAccountID(d.Get("storage_account_id").(string))
 	if err != nil {
 		return err
+	}
+
+	aceRaw := d.Get("ace").(*schema.Set).List()
+	acl, err := ExpandDataLakeGen2AceList(aceRaw)
+	if err != nil {
+		return fmt.Errorf("Error parsing ace list: %s", err)
 	}
 
 	// confirm the storage account exists, otherwise Data Plane API requests will fail
@@ -96,6 +137,12 @@ func resourceStorageDataLakeGen2FileSystemCreate(d *schema.ResourceData, meta in
 		}
 
 		return fmt.Errorf("Error checking for existence of Storage Account %q (Resource Group %q): %+v", storageID.Name, storageID.ResourceGroup, err)
+	}
+
+	if acl != nil && (storageAccount.AccountProperties == nil ||
+		storageAccount.AccountProperties.IsHnsEnabled == nil ||
+		!*storageAccount.AccountProperties.IsHnsEnabled) {
+		return fmt.Errorf("ACL is enabled only when the Hierarchical Namespace (HNS) feature is turned ON")
 	}
 
 	fileSystemName := d.Get("name").(string)
@@ -123,6 +170,21 @@ func resourceStorageDataLakeGen2FileSystemCreate(d *schema.ResourceData, meta in
 		return fmt.Errorf("Error creating File System %q in Storage Account %q: %s", fileSystemName, storageID.Name, err)
 	}
 
+	if acl != nil {
+		log.Printf("[INFO] Creating acl %q in File System %q in Storage Account %q.", acl, fileSystemName, storageID.Name)
+		var aclString *string
+		v := acl.String()
+		aclString = &v
+		accessControlInput := paths.SetAccessControlInput{
+			ACL:   aclString,
+			Owner: nil,
+			Group: nil,
+		}
+		if _, err := pathClient.SetAccessControl(ctx, storageID.Name, fileSystemName, "/", accessControlInput); err != nil {
+			return fmt.Errorf("Error setting access control for root path in File System %q in Storage Account %q: %s", fileSystemName, storageID.Name, err)
+		}
+	}
+
 	d.SetId(id)
 	return resourceStorageDataLakeGen2FileSystemRead(d, meta)
 }
@@ -130,6 +192,7 @@ func resourceStorageDataLakeGen2FileSystemCreate(d *schema.ResourceData, meta in
 func resourceStorageDataLakeGen2FileSystemUpdate(d *schema.ResourceData, meta interface{}) error {
 	accountsClient := meta.(*clients.Client).Storage.AccountsClient
 	client := meta.(*clients.Client).Storage.FileSystemsClient
+	pathClient := meta.(*clients.Client).Storage.ADLSGen2PathsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -143,6 +206,12 @@ func resourceStorageDataLakeGen2FileSystemUpdate(d *schema.ResourceData, meta in
 		return err
 	}
 
+	aceRaw := d.Get("ace").(*schema.Set).List()
+	acl, err := ExpandDataLakeGen2AceList(aceRaw)
+	if err != nil {
+		return fmt.Errorf("Error parsing ace list: %s", err)
+	}
+
 	// confirm the storage account exists, otherwise Data Plane API requests will fail
 	storageAccount, err := accountsClient.GetProperties(ctx, storageID.ResourceGroup, storageID.Name, "")
 	if err != nil {
@@ -151,6 +220,12 @@ func resourceStorageDataLakeGen2FileSystemUpdate(d *schema.ResourceData, meta in
 		}
 
 		return fmt.Errorf("Error checking for existence of Storage Account %q (Resource Group %q): %+v", storageID.Name, storageID.ResourceGroup, err)
+	}
+
+	if acl != nil && (storageAccount.AccountProperties == nil ||
+		storageAccount.AccountProperties.IsHnsEnabled == nil ||
+		!*storageAccount.AccountProperties.IsHnsEnabled) {
+		return fmt.Errorf("ACL is enabled only when the Hierarchical Namespace (HNS) feature is turned ON")
 	}
 
 	propertiesRaw := d.Get("properties").(map[string]interface{})
@@ -164,12 +239,28 @@ func resourceStorageDataLakeGen2FileSystemUpdate(d *schema.ResourceData, meta in
 		return fmt.Errorf("Error updating Properties for File System %q in Storage Account %q: %s", id.DirectoryName, id.AccountName, err)
 	}
 
+	if acl != nil {
+		log.Printf("[INFO] Creating acl %q in File System %q in Storage Account %q.", acl, id.DirectoryName, id.AccountName)
+		var aclString *string
+		v := acl.String()
+		aclString = &v
+		accessControlInput := paths.SetAccessControlInput{
+			ACL:   aclString,
+			Owner: nil,
+			Group: nil,
+		}
+		if _, err := pathClient.SetAccessControl(ctx, id.AccountName, id.DirectoryName, "/", accessControlInput); err != nil {
+			return fmt.Errorf("Error setting access control for root path in File System %q in Storage Account %q: %s", id.DirectoryName, id.AccountName, err)
+		}
+	}
+
 	return resourceStorageDataLakeGen2FileSystemRead(d, meta)
 }
 
 func resourceStorageDataLakeGen2FileSystemRead(d *schema.ResourceData, meta interface{}) error {
 	accountsClient := meta.(*clients.Client).Storage.AccountsClient
 	client := meta.(*clients.Client).Storage.FileSystemsClient
+	pathClient := meta.(*clients.Client).Storage.ADLSGen2PathsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -212,6 +303,23 @@ func resourceStorageDataLakeGen2FileSystemRead(d *schema.ResourceData, meta inte
 	if err := d.Set("properties", resp.Properties); err != nil {
 		return fmt.Errorf("Error setting `properties`: %+v", err)
 	}
+
+	var ace []interface{}
+	// acl is only enabled when `IsHnsEnabled` is true otherwise the rest api will report error
+	if storageAccount.AccountProperties != nil && storageAccount.AccountProperties.IsHnsEnabled != nil &&
+		*storageAccount.AccountProperties.IsHnsEnabled {
+		// The above `getStatus` API request doesn't return the ACLs
+		// Have to make a `getAccessControl` request, but that doesn't return all fields either!
+		pathResponse, err := pathClient.GetProperties(ctx, id.AccountName, id.DirectoryName, "/", paths.GetPropertiesActionGetAccessControl)
+		if err == nil {
+			acl, err := accesscontrol.ParseACL(pathResponse.ACL)
+			if err != nil {
+				return fmt.Errorf("Error parsing response ACL %q: %s", pathResponse.ACL, err)
+			}
+			ace = FlattenDataLakeGen2AceList(acl)
+		}
+	}
+	d.Set("ace", ace)
 
 	return nil
 }

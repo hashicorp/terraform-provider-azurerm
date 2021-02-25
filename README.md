@@ -9,13 +9,22 @@ Version 2.x of the AzureRM Provider requires Terraform 0.12.x and later.
 
 ## Usage Example
 
-```
+> When using the AzureRM Provider with Terraform 0.13 and later, the recommended approach is to declare Provider versions in the root module Terraform configuration, using a `required_providers` block as per the following example. For previous versions, please continue to pin the version within the provider block.
+
+```hcl
+# We strongly recommend using the required_providers block to set the
+# Azure Provider source and version being used
+terraform {
+  required_providers {
+    azurerm = {
+      source = "hashicorp/azurerm"
+      version = "=2.46.0"
+    }
+  }
+}
+
 # Configure the Microsoft Azure Provider
 provider "azurerm" {
-  # We recommend pinning to the specific version of the Azure Provider you're using
-  # since new versions are released frequently
-  version = "=2.40.0"
-
   features {}
 
   # More information on the authentication methods supported by
@@ -48,7 +57,7 @@ Further [usage documentation is available on the Terraform website](https://www.
 ## Developer Requirements
 
 * [Terraform](https://www.terraform.io/downloads.html) version 0.12.x +
-* [Go](https://golang.org/doc/install) version 1.15.x (to build the provider plugin)
+* [Go](https://golang.org/doc/install) version 1.16.x (to build the provider plugin)
 
 ### On Windows
 
@@ -70,7 +79,7 @@ You must run  `Developing the Provider` commands in `bash` because `sh` scrips a
 
 ## Developing the Provider
 
-If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (version 1.15+ is **required**). You'll also need to correctly setup a [GOPATH](http://golang.org/doc/code.html#GOPATH), as well as adding `$GOPATH/bin` to your `$PATH`.
+If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (version 1.16+ is **required**). You'll also need to correctly setup a [GOPATH](http://golang.org/doc/code.html#GOPATH), as well as adding `$GOPATH/bin` to your `$PATH`.
 
 First clone the repository to: `$GOPATH/src/github.com/terraform-providers/terraform-provider-azurerm`
 

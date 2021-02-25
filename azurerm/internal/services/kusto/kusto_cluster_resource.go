@@ -3,7 +3,6 @@ package kusto
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"strings"
 	"time"
 
@@ -14,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -42,7 +42,7 @@ func resourceKustoCluster() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMKustoClusterName,
+				ValidateFunc: validate.ClusterName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -144,6 +144,7 @@ func resourceKustoCluster() *schema.Resource {
 			"virtual_network_configuration": {
 				Type:     schema.TypeList,
 				Optional: true,
+				ForceNew: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -439,20 +440,6 @@ func resourceKustoClusterDelete(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	return nil
-}
-
-func validateAzureRMKustoClusterName(v interface{}, k string) (warnings []string, errors []error) {
-	name := v.(string)
-
-	if !regexp.MustCompile(`^[a-z][a-z0-9]+$`).MatchString(name) {
-		errors = append(errors, fmt.Errorf("%q must begin with a letter and may only contain alphanumeric characters: %q", k, name))
-	}
-
-	if len(name) < 4 || len(name) > 22 {
-		errors = append(errors, fmt.Errorf("%q must be (inclusive) between 4 and 22 characters long but is %d", k, len(name)))
-	}
-
-	return warnings, errors
 }
 
 func expandOptimizedAutoScale(input []interface{}) *kusto.OptimizedAutoscale {

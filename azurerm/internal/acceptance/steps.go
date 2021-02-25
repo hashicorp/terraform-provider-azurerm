@@ -3,10 +3,12 @@ package acceptance
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/helpers"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/testclient"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/types"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
@@ -29,11 +31,17 @@ func (td TestData) DisappearsStep(data DisappearsStepData) resource.TestStep {
 		Config: config,
 		Check: resource.ComposeTestCheckFunc(
 			func(state *terraform.State) error {
-				client := buildClient()
+				client, err := testclient.Build()
+				if err != nil {
+					return fmt.Errorf("building client: %+v", err)
+				}
 				return helpers.ExistsInAzure(client, data.TestResource, td.ResourceName)(state)
 			},
 			func(state *terraform.State) error {
-				client := buildClient()
+				client, err := testclient.Build()
+				if err != nil {
+					return fmt.Errorf("building client: %+v", err)
+				}
 				return helpers.DeleteResourceFunc(client, data.TestResource, td.ResourceName)(state)
 			},
 		),
@@ -59,8 +67,11 @@ func (td TestData) CheckWithClientForResource(check ClientCheckFunc, resourceNam
 				return fmt.Errorf("Resource not found: %s", resourceName)
 			}
 
-			clients := buildClient()
-			return check(clients.StopContext, clients, rs.Primary)
+			client, err := testclient.Build()
+			if err != nil {
+				return fmt.Errorf("building client: %+v", err)
+			}
+			return check(client.StopContext, client, rs.Primary)
 		},
 	)
 }
@@ -76,6 +87,15 @@ func (td TestData) ImportStep(ignore ...string) resource.TestStep {
 // optionally ignoring any fields which may not be imported (for example, as they're
 // not returned from the API)
 func (td TestData) ImportStepFor(resourceName string, ignore ...string) resource.TestStep {
+	if strings.HasPrefix(resourceName, "data.") {
+		return resource.TestStep{
+			ResourceName: resourceName,
+			SkipFunc: func() (bool, error) {
+				return false, fmt.Errorf("Data Sources (%q) do not support import - remove the ImportStep / ImportStepFor`", resourceName)
+			},
+		}
+	}
+
 	step := resource.TestStep{
 		ResourceName:      resourceName,
 		ImportState:       true,
