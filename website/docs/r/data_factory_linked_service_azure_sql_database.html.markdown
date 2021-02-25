@@ -47,6 +47,14 @@ The following arguments are supported:
 
 * `connection_string` - (Required) The connection string in which to authenticate with Azure SQL Database.
 
+* `use_managed_identity` - (Optional) Whether to use the Data Factory's managed identity to authenticate against the Azure SQL Database. Incompatible with `service_principal_id` and `service_principal_key`
+
+* `service_principal_id` - (Optional) The service principal id in which to authenticate against the Azure SQL Database. Required if `service_principal_key` is set.
+
+* `service_principal_key` - (Optional) The service principal key in which to authenticate against the Azure SQL Database. Required if `service_principal_id` is set.
+
+* `tenant_id` - (Optional) The tenant id or name in which to authenticate against the Azure SQL Database.
+
 * `description` - (Optional) The description for the Data Factory Linked Service Azure SQL Database.
 
 * `integration_runtime_name` - (Optional) The integration runtime reference to associate with the Data Factory Linked Service Azure SQL Database.

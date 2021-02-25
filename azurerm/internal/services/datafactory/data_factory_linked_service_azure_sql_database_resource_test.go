@@ -62,6 +62,21 @@ func TestAccDataFactoryLinkedServiceAzureSQLDatabase_update(t *testing.T) {
 	})
 }
 
+func TestAccDataFactoryLinkedServiceAzureSQLDatabase_managed_id(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_sql_database", "test")
+	r := LinkedServiceAzureSQLDatabaseResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.managed_id(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("connection_string"),
+	})
+}
+
 func (t LinkedServiceAzureSQLDatabaseResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
@@ -177,6 +192,35 @@ resource "azurerm_data_factory_linked_service_azure_sql_database" "test" {
   additional_properties = {
     foo = "test1"
   }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (LinkedServiceAzureSQLDatabaseResource) managed_id(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  identity {
+    type = "SystemAssigned"
+  }
+}
+data "azurerm_client_config" "current" {
+}
+resource "azurerm_data_factory_linked_service_azure_sql_database" "test" {
+  name                 = "acctestlssql%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  data_factory_name    = azurerm_data_factory.test.name
+  connection_string    = "data source=serverhostname;initial catalog=master;user id=testUser;Password=test;integrated security=False;encrypt=True;connection timeout=30"
+  use_managed_identity = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
