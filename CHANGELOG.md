@@ -29,6 +29,7 @@ BUG FIXES:
 * `azurerm_batch_certificate` - allow empty `password` when format is pfx [GH-10642]
 * `azurerm_data_factory_integration_runtime_azure_ssis` - the `administrator_login` and `administrator_password` properties are now optional [GH-10474]
 * `azurerm_data_factory_integration_runtime_managed` - the `administrator_login` and `administrator_password` properties are now optional [GH-10640]
+* `azurerm_eventhub_namespace` - the `capacity` property can now be greater than `50` [GH-10734]
 * `azurerm_key_vault_certificate` - waiting for deletion to complete before purging [GH-10577]
 * `azurerm_key_vault_key` - waiting for deletion to complete before purging [GH-10577]
 * `azurerm_key_vault_secret` - waiting for deletion to complete before purging [GH-10577]
