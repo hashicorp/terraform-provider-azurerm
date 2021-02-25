@@ -65,12 +65,18 @@ resource "azurerm_image_builder_template" "example" {
     version   = "latest"
   }
 
-  distribution_managed_image {
-    name                = "accTestImg1"
-    resource_group_name = azurerm_resource_group.example.name
-    location            = azurerm_resource_group.example.location
-    run_output_name     = "ouputName"
+  distributions {
+    managed_image {
+      name                = "accTestImg1"
+      resource_group_name = azurerm_resource_group.example.name
+      location            = azurerm_resource_group.example.location
+      run_output_name     = "ouputName"
+    }
   }
+
+  depends_on = [
+    azurerm_role_assignment.test
+  ]
 }
 ```
 
@@ -140,7 +146,7 @@ A `customizer` block supports the following:
 
 * `powershell_run_elevated` - (Optional) Whether the PowerShell script will be run with elevated privileges? Changing this forces a new resource to be created.
 
--> **Note** `powershell_run_as_system` can only be true when `powershell_run_elevated` is set to true when the customizer type is `PowerShell`.
+-> **Note** Setting `powershell_run_as_system` only takes effect when `powershell_run_elevated` is set to true when the customizer type is `PowerShell`.
 
 * `powershell_script_uri` - (Optional) URI of the PowerShell script to be run for customizing. Changing this forces a new resource to be created.
 

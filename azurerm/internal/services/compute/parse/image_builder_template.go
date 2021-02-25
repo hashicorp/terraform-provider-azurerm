@@ -1,34 +1,63 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 type ImageBuilderTemplateId struct {
-	Name          string
-	ResourceGroup string
+	SubscriptionId    string
+	ResourceGroup     string
+	ImageTemplateName string
 }
 
-func NewImageBuilderTemplateID(resourceGroup, name string) ImageBuilderTemplateId {
+func NewImageBuilderTemplateID(subscriptionId, resourceGroup, imageTemplateName string) ImageBuilderTemplateId {
 	return ImageBuilderTemplateId{
-		ResourceGroup: resourceGroup,
-		Name:          name,
+		SubscriptionId:    subscriptionId,
+		ResourceGroup:     resourceGroup,
+		ImageTemplateName: imageTemplateName,
 	}
 }
 
+func (id ImageBuilderTemplateId) String() string {
+	segments := []string{
+		fmt.Sprintf("Image Template Name %q", id.ImageTemplateName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+	}
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Image Builder Template", segmentsStr)
+}
+
+func (id ImageBuilderTemplateId) ID() string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.VirtualMachineImages/imageTemplates/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ImageTemplateName)
+}
+
+// ImageBuilderTemplateID parses a ImageBuilderTemplate ID into an ImageBuilderTemplateId struct
 func ImageBuilderTemplateID(input string) (*ImageBuilderTemplateId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("unable to parse Image Builder Template ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	imageBuilderTemplate := ImageBuilderTemplateId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := ImageBuilderTemplateId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if imageBuilderTemplate.Name, err = id.PopSegment("imageTemplates"); err != nil {
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	if resourceId.ImageTemplateName, err = id.PopSegment("imageTemplates"); err != nil {
 		return nil, err
 	}
 
@@ -36,10 +65,5 @@ func ImageBuilderTemplateID(input string) (*ImageBuilderTemplateId, error) {
 		return nil, err
 	}
 
-	return &imageBuilderTemplate, nil
-}
-
-func (id ImageBuilderTemplateId) ID(subscriptionId string) string {
-	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.VirtualMachineImages/imageTemplates/%s",
-		subscriptionId, id.ResourceGroup, id.Name)
+	return &resourceId, nil
 }

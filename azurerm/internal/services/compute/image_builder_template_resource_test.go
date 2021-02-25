@@ -164,7 +164,7 @@ func TestAccAzureRMImageBuilderTemplate_managedImageSource(t *testing.T) {
 			Config: rLinuxVMResource.imageFromExistingMachinePrep(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(linuxVMResourceName).ExistsInAzure(rLinuxVMResource),
-				generalizeLinuxVirtualMachine("azurerm_linux_virtual_machine.source"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_linux_virtual_machine.source"),
 			),
 		},
 		{
@@ -191,7 +191,7 @@ func TestAccAzureRMImageBuilderTemplate_sharedImageGallerySource(t *testing.T) {
 			Config: rLinuxVMResource.imageFromExistingMachinePrep(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(linuxVMResourceName).ExistsInAzure(rLinuxVMResource),
-				generalizeLinuxVirtualMachine("azurerm_linux_virtual_machine.source"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_linux_virtual_machine.source"),
 			),
 		},
 		{
@@ -293,7 +293,7 @@ func (r ImageBuilderTemplateResource) Destroy(ctx context.Context, client *clien
 
 func (r ImageBuilderTemplateResource) basic(data acceptance.TestData) string {
 	roleTemplate := r.roleTemplate(data)
-	distributionManagedImageTemplate := r.distributionMamagedImageTemplate(data)
+	distributionManagedImageTemplate := r.distributionManagedImageTemplate(data)
 
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -328,7 +328,9 @@ resource "azurerm_image_builder_template" "test" {
     ENV = "Test"
   }
 
+  distributions {
 %[4]s
+  }
 
   depends_on = [
     azurerm_role_assignment.test
@@ -339,7 +341,7 @@ resource "azurerm_image_builder_template" "test" {
 
 func (r ImageBuilderTemplateResource) requiresImport(data acceptance.TestData) string {
 	template := r.basic(data)
-	distributionManagedImageTemplate := r.distributionMamagedImageTemplate(data)
+	distributionManagedImageTemplate := r.distributionManagedImageTemplate(data)
 
 	return fmt.Sprintf(`
 %s
@@ -364,15 +366,16 @@ resource "azurerm_image_builder_template" "import" {
   tags = {
     ENV = "Test"
   }
-
+  distributions {
 %s
+  }
 }
 `, template, distributionManagedImageTemplate)
 }
 
 func (r ImageBuilderTemplateResource) tags_update(data acceptance.TestData) string {
 	roleTemplate := r.roleTemplate(data)
-	distributionManagedImageTemplate := r.distributionMamagedImageTemplate(data)
+	distributionManagedImageTemplate := r.distributionManagedImageTemplate(data)
 
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -408,7 +411,9 @@ resource "azurerm_image_builder_template" "test" {
     cost-center = "Ops"
   }
 
+  distributions {
 %s
+  }
 
   depends_on = [
     azurerm_role_assignment.test
@@ -419,7 +424,7 @@ resource "azurerm_image_builder_template" "test" {
 
 func (r ImageBuilderTemplateResource) identity_update(data acceptance.TestData) string {
 	roleTemplate := r.roleTemplate(data)
-	distributionManagedImageTemplate := r.distributionMamagedImageTemplate(data)
+	distributionManagedImageTemplate := r.distributionManagedImageTemplate(data)
 
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -487,8 +492,9 @@ resource "azurerm_image_builder_template" "test" {
   tags = {
     ENV = "Test"
   }
-
+  distributions {
 %s
+  }
 
   depends_on = [
     azurerm_role_assignment.test
@@ -499,7 +505,7 @@ resource "azurerm_image_builder_template" "test" {
 
 func (r ImageBuilderTemplateResource) vnet(data acceptance.TestData) string {
 	roleTemplate := r.roleTemplate(data)
-	distributionManagedImageTemplate := r.distributionMamagedImageTemplate(data)
+	distributionManagedImageTemplate := r.distributionManagedImageTemplate(data)
 
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -604,7 +610,9 @@ resource "azurerm_image_builder_template" "test" {
     ENV = "Test"
   }
 
+  distributions {
 %[4]s
+  }
 
   depends_on = [
     azurerm_role_assignment.test,
@@ -617,7 +625,7 @@ resource "azurerm_image_builder_template" "test" {
 
 func (r ImageBuilderTemplateResource) complete(data acceptance.TestData) string {
 	roleTemplate := r.roleTemplate(data)
-	distributionManagedImageTemplate := r.distributionMamagedImageTemplate(data)
+	distributionManagedImageTemplate := r.distributionManagedImageTemplate(data)
 
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -687,7 +695,9 @@ resource "azurerm_image_builder_template" "test" {
     shell_commands = ["sudo apt install unattended-upgrades"]
   }
 
+  distributions {
 %[4]s
+  }
 
   depends_on = [
     azurerm_role_assignment.test
@@ -698,7 +708,7 @@ resource "azurerm_image_builder_template" "test" {
 
 func (r ImageBuilderTemplateResource) purchasePlanSource(data acceptance.TestData) string {
 	roleTemplate := r.roleTemplate(data)
-	distributionManagedImageTemplate := r.distributionMamagedImageTemplate(data)
+	distributionManagedImageTemplate := r.distributionManagedImageTemplate(data)
 
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -738,7 +748,9 @@ resource "azurerm_image_builder_template" "test" {
     ENV = "Test"
   }
 
+  distributions {
 %[4]s
+  }
 
   depends_on = [
     azurerm_role_assignment.test
@@ -749,7 +761,7 @@ resource "azurerm_image_builder_template" "test" {
 
 func (r ImageBuilderTemplateResource) windowsPlatformSource(data acceptance.TestData) string {
 	roleTemplate := r.roleTemplate(data)
-	distributionManagedImageTemplate := r.distributionMamagedImageTemplate(data)
+	distributionManagedImageTemplate := r.distributionManagedImageTemplate(data)
 
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -809,10 +821,11 @@ resource "azurerm_image_builder_template" "test" {
   }
 
   customizer {
-    type                    = "PowerShell"
-    name                    = "settingUpMgmtAgtPath"
-    powershell_run_elevated = false
-    powershell_commands     = ["mkdir c:\\buildActions", "echo Azure-Image-Builder-Was-Here > c:\\buildActions\\buildActionsOutput.txt"]
+    type                     = "PowerShell"
+    name                     = "settingUpMgmtAgtPath"
+    powershell_run_elevated  = true
+    powershell_run_as_system = true
+    powershell_commands      = ["mkdir c:\\buildActions", "echo Azure-Image-Builder-Was-Here > c:\\buildActions\\buildActionsOutput.txt"]
   }
 
   customizer {
@@ -823,7 +836,9 @@ resource "azurerm_image_builder_template" "test" {
     windows_update_limit           = 20
   }
 
+  distributions {
 %[4]s
+  }
 
   depends_on = [
     azurerm_role_assignment.test
@@ -869,7 +884,9 @@ resource "azurerm_image_builder_template" "test" {
     ENV = "Test"
   }
 
+  distributions {
 %[4]s
+  }
 
   depends_on = [
     azurerm_role_assignment.test
@@ -934,7 +951,9 @@ resource "azurerm_image_builder_template" "test" {
     ENV = "Test"
   }
 
+  distributions {
 %[4]s
+  }
 
   depends_on = [
     azurerm_role_assignment.test
@@ -945,7 +964,7 @@ resource "azurerm_image_builder_template" "test" {
 
 func (r ImageBuilderTemplateResource) multipleDistribution(data acceptance.TestData) string {
 	roleTemplate := r.roleTemplate(data)
-	distributionManagedImageTemplate := r.distributionMamagedImageTemplate(data)
+	distributionManagedImageTemplate := r.distributionManagedImageTemplate(data)
 	distributionVHDTemplate := r.distributionVHDTemplate(data)
 	distributionSharedImageTemplate := r.distributionSharedImageTemplate(data)
 
@@ -1020,30 +1039,32 @@ resource "azurerm_image_builder_template" "test" {
     ENV = "Test"
   }
 
+  distributions {
 %[4]s
 
-  distribution_managed_image {
-    name                = "acctestDistManagedImg-%[1]d-1"
-    resource_group_name = azurerm_resource_group.test.name
-    location            = azurerm_resource_group.test.location
-    run_output_name     = "acctest-managedImage-RunOutputName-%[1]d-1"
-    tags = {
-      ENV = "Test"
+    managed_image {
+      name                = "acctestDistManagedImg-%[1]d-1"
+      resource_group_name = azurerm_resource_group.test.name
+      location            = azurerm_resource_group.test.location
+      run_output_name     = "acctest-managedImage-RunOutputName-%[1]d-1"
+      tags = {
+        ENV = "Test"
+      }
     }
-  }
 
 %[5]s
 
 %[6]s
 
-  distribution_shared_image {
-    id = azurerm_shared_image.test1.id
-    replica_regions {
-      name = azurerm_resource_group.test.location
-    }
-    run_output_name = "acctest-sharedImage-RunOutputName-%[1]d-1"
-    tags = {
-      ENV = "Test"
+    shared_image {
+      id = azurerm_shared_image.test1.id
+      replica_regions {
+        name = azurerm_resource_group.test.location
+      }
+      run_output_name = "acctest-sharedImage-RunOutputName-%[1]d-1"
+      tags = {
+        ENV = "Test"
+      }
     }
   }
 
@@ -1060,7 +1081,7 @@ func (r ImageBuilderTemplateResource) imageBuilderTemplateFromImage(data accepta
 	template := rLinuxVMResource.imageFromExistingMachinePrep(data)
 
 	roleTemplate := r.roleTemplate(data)
-	distributionManagedImageTemplate := r.distributionMamagedImageTemplate(data)
+	distributionManagedImageTemplate := r.distributionManagedImageTemplate(data)
 
 	return fmt.Sprintf(`
 %s
@@ -1090,7 +1111,9 @@ resource "azurerm_image_builder_template" "test" {
     ENV = "Test"
   }
 
+  distributions {
 %s
+  }
 
   depends_on = [
     azurerm_role_assignment.test
@@ -1104,7 +1127,7 @@ func (r ImageBuilderTemplateResource) imageBuilderTemplateFromSharedImageGallery
 	template := rLinuxVMResource.imageFromExistingMachinePrep(data)
 
 	roleTemplate := r.roleTemplate(data)
-	distributionManagedImageTemplate := r.distributionMamagedImageTemplate(data)
+	distributionManagedImageTemplate := r.distributionManagedImageTemplate(data)
 
 	return fmt.Sprintf(`
 %s
@@ -1163,7 +1186,9 @@ resource "azurerm_image_builder_template" "test" {
     ENV = "Test"
   }
 
+  distributions {
 %s
+  }
 
   depends_on = [
     azurerm_role_assignment.test
@@ -1210,9 +1235,9 @@ resource "azurerm_role_assignment" "test" {
 `, data.RandomInteger, data.RandomInteger)
 }
 
-func (r ImageBuilderTemplateResource) distributionMamagedImageTemplate(data acceptance.TestData) string {
+func (r ImageBuilderTemplateResource) distributionManagedImageTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-distribution_managed_image {
+managed_image {
   name                = "acctestDistManagedImg-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -1224,20 +1249,9 @@ distribution_managed_image {
 `, data.RandomInteger)
 }
 
-func (r ImageBuilderTemplateResource) distributionVHDTemplate(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-distribution_vhd {
-  run_output_name = "acctest-vhd-RunOutputName-%[1]d"
-  tags = {
-    ENV = "Test"
-  }
-}
-`, data.RandomInteger)
-}
-
 func (r ImageBuilderTemplateResource) distributionSharedImageTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-distribution_shared_image {
+shared_image {
   id = azurerm_shared_image.test.id
   replica_regions {
     name = azurerm_resource_group.test.location
@@ -1248,6 +1262,17 @@ distribution_shared_image {
   run_output_name      = "acctest-sharedImage-RunOutputName-%[1]d"
   storage_account_type = "Standard_ZRS"
   exclude_from_latest  = true
+  tags = {
+    ENV = "Test"
+  }
+}
+`, data.RandomInteger)
+}
+
+func (r ImageBuilderTemplateResource) distributionVHDTemplate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+vhd {
+  run_output_name = "acctest-vhd-RunOutputName-%[1]d"
   tags = {
     ENV = "Test"
   }

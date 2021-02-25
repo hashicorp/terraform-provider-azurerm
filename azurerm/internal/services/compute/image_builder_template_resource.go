@@ -6,14 +6,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
-
 	"github.com/Azure/azure-sdk-for-go/services/virtualmachineimagebuilder/mgmt/2020-02-01/virtualmachineimagebuilder"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	msiValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
@@ -275,109 +274,116 @@ func resourceImageBuilderTemplate() *schema.Resource {
 				ValidateFunc: validateDiskSizeGB,
 			},
 
-			// The array of this block is order insensitive. But there is a bug preventing using TypeSet for this block having a sub field `location` using StateFunc:
-			// https://github.com/hashicorp/terraform-plugin-sdk/issues/160.
-			// In detail, the symptom is specifying user friendly region say "West US 2" in the sub field `location` generated two blocks even if only specifying one block in .tf.
-			// Using normalized region say "westus2" does not have the symptom.
-			// Given this bug would break the core logic, using TypeList as a workaround.
-			// This justification also applies to the "distribution_shared_image" block below.
-			"distribution_managed_image": {
+			"distributions": {
 				Type:     schema.TypeList,
-				Optional: true,
-				ForceNew: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ForceNew:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"resource_group_name": azure.SchemaResourceGroupName(),
-
-						"location": azure.SchemaLocation(),
-
-						"run_output_name": distributionRunOutputNameSchema(),
-
-						"tags": tags.ForceNewSchema(),
-					},
-				},
-				AtLeastOneOf: []string{"distribution_managed_image", "distribution_shared_image", "distribution_vhd"},
-			},
-
-			"distribution_shared_image": {
-				Type:     schema.TypeList,
-				Optional: true,
-				ForceNew: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ForceNew:     true,
-							ValidateFunc: azure.ValidateResourceID,
-						},
-
-						// The latest swagger (ver: 2020-02-14) defines this type as []string. However, in native SIG Image Version, not only region name but replica count and storage type are supported for each region.
-						// So leave the type of this field as array of object here to serve future possible extensibility without bringing in breaking changes in user facing schema.
-						"replica_regions": {
-							Type:     schema.TypeList,
-							Required: true,
-							MinItems: 1,
-							ForceNew: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"name": {
-										Type:             schema.TypeString,
-										Required:         true,
-										ForceNew:         true,
-										ValidateFunc:     location.EnhancedValidate,
-										StateFunc:        location.StateFunc,
-										DiffSuppressFunc: location.DiffSuppressFunc,
-									},
-								},
-							},
-						},
-
-						"run_output_name": distributionRunOutputNameSchema(),
-
-						"exclude_from_latest": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							ForceNew: true,
-							Default:  false,
-						},
-
-						"storage_account_type": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ForceNew: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(virtualmachineimagebuilder.StandardLRS),
-								string(virtualmachineimagebuilder.StandardZRS),
-							}, false),
-						},
-
-						"tags": tags.ForceNewSchema(),
-					},
-				},
-				AtLeastOneOf: []string{"distribution_managed_image", "distribution_shared_image", "distribution_vhd"},
-			},
-
-			"distribution_vhd": {
-				Type:     schema.TypeList,
-				Optional: true,
+				Required: true,
 				ForceNew: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"run_output_name": distributionRunOutputNameSchema(),
+						// The array of this block is order insensitive. But there is a bug preventing using TypeSet for this block having a sub field `location` using StateFunc:
+						// https://github.com/hashicorp/terraform-plugin-sdk/issues/160.
+						// In detail, the symptom is specifying user friendly region say "West US 2" in the sub field `location` generated two blocks even if only specifying one block in .tf.
+						// Using normalized region say "westus2" does not have the symptom.
+						// Given this bug would break the core logic, use TypeList as a workaround.
+						// This justification also applies to the "distribution_shared_image" block below.
+						"managed_image": {
+							Type:     schema.TypeList,
+							Optional: true,
+							ForceNew: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"name": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ForceNew:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
 
-						"tags": tags.ForceNewSchema(),
+									"resource_group_name": azure.SchemaResourceGroupName(),
+
+									"location": azure.SchemaLocation(),
+
+									"run_output_name": distributionRunOutputNameSchema(),
+
+									"tags": tags.ForceNewSchema(),
+								},
+							},
+						},
+
+						"shared_image": {
+							Type:     schema.TypeList,
+							Optional: true,
+							ForceNew: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"id": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ForceNew:     true,
+										ValidateFunc: azure.ValidateResourceID,
+									},
+
+									// The latest swagger (ver: 2020-02-14) defines this type as []string. However, in native SIG Image Version, not only region name but replica count and storage type are supported for each region.
+									// So leave the type of this field as array of object here to serve future possible extensibility without bringing in breaking changes in user facing schema.
+									"replica_regions": {
+										Type:     schema.TypeList,
+										Required: true,
+										MinItems: 1,
+										ForceNew: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"name": {
+													Type:             schema.TypeString,
+													Required:         true,
+													ForceNew:         true,
+													ValidateFunc:     location.EnhancedValidate,
+													StateFunc:        location.StateFunc,
+													DiffSuppressFunc: location.DiffSuppressFunc,
+												},
+											},
+										},
+									},
+
+									"run_output_name": distributionRunOutputNameSchema(),
+
+									"exclude_from_latest": {
+										Type:     schema.TypeBool,
+										Optional: true,
+										ForceNew: true,
+										Default:  false,
+									},
+
+									"storage_account_type": {
+										Type:     schema.TypeString,
+										Optional: true,
+										ForceNew: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(virtualmachineimagebuilder.StandardLRS),
+											string(virtualmachineimagebuilder.StandardZRS),
+										}, false),
+									},
+
+									"tags": tags.ForceNewSchema(),
+								},
+							},
+						},
+
+						"vhd": {
+							Type:     schema.TypeList,
+							Optional: true,
+							ForceNew: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"run_output_name": distributionRunOutputNameSchema(),
+
+									"tags": tags.ForceNewSchema(),
+								},
+							},
+						},
 					},
 				},
-				AtLeastOneOf: []string{"distribution_managed_image", "distribution_shared_image", "distribution_vhd"},
 			},
 
 			"size": {
@@ -513,10 +519,7 @@ func resourceArmImageBuilderTemplateCreate(d *schema.ResourceData, meta interfac
 
 	location := d.Get("location").(string)
 
-	distribution, err := expandBasicImageTemplateDistributor(d.Get("distribution_managed_image").([]interface{}),
-		d.Get("distribution_shared_image").([]interface{}),
-		d.Get("distribution_vhd").([]interface{}),
-		subscriptionId)
+	distribution, err := expandBasicImageTemplateDistributor(d.Get("distributions").([]interface{}), subscriptionId)
 	if err != nil {
 		return err
 	}
@@ -568,12 +571,7 @@ func resourceArmImageBuilderTemplateCreate(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("empty or nil ID returned for image builder template %q (Resource Group %q)", name, resourceGroup)
 	}
 
-	id, err := parse.ImageBuilderTemplateID(*resp.ID)
-	if err != nil {
-		return err
-	}
-
-	d.SetId(id.ID(subscriptionId))
+	d.SetId(*resp.ID)
 
 	return resourceArmImageBuilderTemplateRead(d, meta)
 }
@@ -588,17 +586,17 @@ func resourceArmImageBuilderTemplateRead(d *schema.ResourceData, meta interface{
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ImageTemplateName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving image builder template %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving image builder template %q (Resource Group %q): %+v", id.ImageTemplateName, id.ResourceGroup, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", resp.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -630,21 +628,13 @@ func resourceArmImageBuilderTemplateRead(d *schema.ResourceData, meta interface{
 			}
 		}
 
-		distributionManagedImages, distributionSharedImages, distributionVhds, err := flattenBasicImageTemplateDistributor(imageTemplateProperties.Distribute)
+		flattenedDistributions, err := flattenBasicImageTemplateDistributor(imageTemplateProperties.Distribute)
 		if err != nil {
 			return err
 		}
 
-		if err := d.Set("distribution_managed_image", distributionManagedImages); err != nil {
-			return fmt.Errorf("setting image template managed image distribution: %+v", err)
-		}
-
-		if err := d.Set("distribution_shared_image", distributionSharedImages); err != nil {
-			return fmt.Errorf("setting image template shared image distribution: %+v", err)
-		}
-
-		if err := d.Set("distribution_vhd", distributionVhds); err != nil {
-			return fmt.Errorf("setting image template vhd distribution: %+v", err)
+		if err := d.Set("distributions", flattenedDistributions); err != nil {
+			return fmt.Errorf("setting image template distribution: %+v", err)
 		}
 
 		if err := d.Set("customizer", flattenBasicImageTemplateCustomizer(imageTemplateProperties.Customize)); err != nil {
@@ -679,15 +669,6 @@ func resourceArmImageBuilderTemplateUpdate(d *schema.ResourceData, meta interfac
 		return err
 	}
 
-	existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		if utils.ResponseWasNotFound(existing.Response) {
-			return nil
-		}
-
-		return fmt.Errorf("retrieving image builder template %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-	}
-
 	parameters := virtualmachineimagebuilder.ImageTemplateUpdateParameters{}
 
 	if d.HasChange("identity") {
@@ -698,13 +679,13 @@ func resourceArmImageBuilderTemplateUpdate(d *schema.ResourceData, meta interfac
 		parameters.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	future, err := client.Update(ctx, parameters, id.ResourceGroup, id.Name)
+	future, err := client.Update(ctx, parameters, id.ResourceGroup, id.ImageTemplateName)
 	if err != nil {
-		return fmt.Errorf("updating image builder template %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("updating image builder template %q (Resource Group %q): %+v", id.ImageTemplateName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update of image builder template %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for update of image builder template %q (Resource Group %q): %+v", id.ImageTemplateName, id.ResourceGroup, err)
 	}
 
 	return resourceArmImageBuilderTemplateRead(d, meta)
@@ -720,13 +701,13 @@ func resourceArmImageBuilderTemplateDelete(d *schema.ResourceData, meta interfac
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.ImageTemplateName)
 	if err != nil {
-		return fmt.Errorf("deleting image builder template %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting image builder template %q (Resource Group %q): %+v", id.ImageTemplateName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of image builder template %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for deletion of image builder template %q (Resource Group %q): %+v", id.ImageTemplateName, id.ResourceGroup, err)
 	}
 
 	return nil
@@ -907,74 +888,87 @@ func flattenSourceSharedImageVersion(input *virtualmachineimagebuilder.ImageTemp
 	return ""
 }
 
-func expandBasicImageTemplateDistributor(distributionManagedImages []interface{}, distributionSharedImages []interface{}, distributionVhds []interface{}, subscriptionId string) (*[]virtualmachineimagebuilder.BasicImageTemplateDistributor, error) {
+func expandBasicImageTemplateDistributor(distributions []interface{}, subscriptionId string) (*[]virtualmachineimagebuilder.BasicImageTemplateDistributor, error) {
 	results := make([]virtualmachineimagebuilder.BasicImageTemplateDistributor, 0)
 	runOutputNameSet := make(map[string]bool)
 
-	if len(distributionManagedImages) > 0 {
-		for _, v := range distributionManagedImages {
+	if len(distributions) > 0 {
+		for _, v := range distributions {
 			if v != nil {
-				distributionManagedImage := v.(map[string]interface{})
-				resourceGroupName := distributionManagedImage["resource_group_name"].(string)
-				runOutputName := distributionManagedImage["run_output_name"].(string)
+				distributionItems := v.(map[string]interface{})
+				managedImages := distributionItems["managed_image"].([]interface{})
+				sharedImages := distributionItems["shared_image"].([]interface{})
+				vhds := distributionItems["vhd"].([]interface{})
 
-				_, existing := runOutputNameSet[runOutputName]
-				if existing {
-					return &results, fmt.Errorf("`run_output_name` must be unique among all distribution destinations. %q already exists", runOutputName)
-				} else {
-					runOutputNameSet[runOutputName] = true
+				if len(managedImages) > 0 {
+					for _, managedImageRaw := range managedImages {
+						if managedImageRaw != nil {
+							managedImage := managedImageRaw.(map[string]interface{})
+							resourceGroupName := managedImage["resource_group_name"].(string)
+							runOutputName := managedImage["run_output_name"].(string)
 
-					results = append(results, virtualmachineimagebuilder.ImageTemplateManagedImageDistributor{
-						ImageID:       utils.String("/subscriptions/" + subscriptionId + "/resourceGroups/" + resourceGroupName + "/providers/Microsoft.Compute/images/" + distributionManagedImage["name"].(string)),
-						Location:      utils.String(distributionManagedImage["location"].(string)),
-						RunOutputName: utils.String(runOutputName),
-						ArtifactTags:  tags.Expand(distributionManagedImage["tags"].(map[string]interface{})),
-					})
+							_, existing := runOutputNameSet[runOutputName]
+							if existing {
+								return &results, fmt.Errorf("`run_output_name` must be unique among all distribution destinations. %q already exists", runOutputName)
+							} else {
+								runOutputNameSet[runOutputName] = true
+
+								results = append(results, virtualmachineimagebuilder.ImageTemplateManagedImageDistributor{
+									ImageID:       utils.String("/subscriptions/" + subscriptionId + "/resourceGroups/" + resourceGroupName + "/providers/Microsoft.Compute/images/" + managedImage["name"].(string)),
+									Location:      utils.String(managedImage["location"].(string)),
+									RunOutputName: utils.String(runOutputName),
+									ArtifactTags:  tags.Expand(managedImage["tags"].(map[string]interface{})),
+								})
+							}
+						}
+					}
 				}
-			}
-		}
-	}
 
-	if len(distributionVhds) > 0 {
-		for _, v := range distributionVhds {
-			if v != nil {
-				distributionVhd := v.(map[string]interface{})
-				runOutputName := distributionVhd["run_output_name"].(string)
+				if len(sharedImages) > 0 {
+					for _, sharedImageRaw := range sharedImages {
+						if sharedImageRaw != nil {
+							sharedImage := sharedImageRaw.(map[string]interface{})
+							runOutputName := sharedImage["run_output_name"].(string)
 
-				_, existing := runOutputNameSet[runOutputName]
-				if existing {
-					return &results, fmt.Errorf("`run_output_name` must be unique among all distribution destinations. %q already exists", runOutputName)
-				} else {
-					runOutputNameSet[runOutputName] = true
-					results = append(results, virtualmachineimagebuilder.ImageTemplateVhdDistributor{
-						RunOutputName: utils.String(distributionVhd["run_output_name"].(string)),
-						ArtifactTags:  tags.Expand(distributionVhd["tags"].(map[string]interface{})),
-					})
+							_, existing := runOutputNameSet[runOutputName]
+							if existing {
+								return &results, fmt.Errorf("`run_output_name` must be unique among all distribution destinations. %q already exists", runOutputName)
+							} else {
+								runOutputNameSet[runOutputName] = true
+								results = append(results, virtualmachineimagebuilder.ImageTemplateSharedImageDistributor{
+									GalleryImageID:     utils.String(sharedImage["id"].(string)),
+									ReplicationRegions: expandImageTemplateSharedImageDistributorReplicaRegions(sharedImage["replica_regions"].([]interface{})),
+									RunOutputName:      utils.String(sharedImage["run_output_name"].(string)),
+									ExcludeFromLatest:  utils.Bool(sharedImage["exclude_from_latest"].(bool)),
+									StorageAccountType: virtualmachineimagebuilder.SharedImageStorageAccountType(sharedImage["storage_account_type"].(string)),
+									ArtifactTags:       tags.Expand(sharedImage["tags"].(map[string]interface{})),
+								})
+							}
+						}
+					}
 				}
-			}
-		}
-	}
 
-	if len(distributionSharedImages) > 0 {
-		for _, v := range distributionSharedImages {
-			if v != nil {
-				distributionSharedImage := v.(map[string]interface{})
-				runOutputName := distributionSharedImage["run_output_name"].(string)
+				if len(vhds) > 0 {
+					for _, vhdRaw := range vhds {
+						if vhdRaw != nil {
+							vhd := v.(map[string]interface{})
+							runOutputName := vhd["run_output_name"].(string)
 
-				_, existing := runOutputNameSet[runOutputName]
-				if existing {
-					return &results, fmt.Errorf("`run_output_name` must be unique among all distribution destinations. %q already exists", runOutputName)
-				} else {
-					runOutputNameSet[runOutputName] = true
-					results = append(results, virtualmachineimagebuilder.ImageTemplateSharedImageDistributor{
-						GalleryImageID:     utils.String(distributionSharedImage["id"].(string)),
-						ReplicationRegions: expandImageTemplateSharedImageDistributorReplicaRegions(distributionSharedImage["replica_regions"].([]interface{})),
-						RunOutputName:      utils.String(distributionSharedImage["run_output_name"].(string)),
-						ExcludeFromLatest:  utils.Bool(distributionSharedImage["exclude_from_latest"].(bool)),
-						StorageAccountType: virtualmachineimagebuilder.SharedImageStorageAccountType(distributionSharedImage["storage_account_type"].(string)),
-						ArtifactTags:       tags.Expand(distributionSharedImage["tags"].(map[string]interface{})),
-					})
+							_, existing := runOutputNameSet[runOutputName]
+							if existing {
+								return &results, fmt.Errorf("`run_output_name` must be unique among all distribution destinations. %q already exists", runOutputName)
+							} else {
+								runOutputNameSet[runOutputName] = true
+								results = append(results, virtualmachineimagebuilder.ImageTemplateVhdDistributor{
+									RunOutputName: utils.String(vhd["run_output_name"].(string)),
+									ArtifactTags:  tags.Expand(vhd["tags"].(map[string]interface{})),
+								})
+							}
+						}
+					}
 				}
+			} else {
+				return &results, fmt.Errorf("at least one of `managed_image`, `shared_image` and `vhd` is required to specify in `distributions`")
 			}
 		}
 	}
@@ -982,10 +976,12 @@ func expandBasicImageTemplateDistributor(distributionManagedImages []interface{}
 	return &results, nil
 }
 
-func flattenBasicImageTemplateDistributor(input *[]virtualmachineimagebuilder.BasicImageTemplateDistributor) ([]interface{}, []interface{}, []interface{}, error) {
-	distributionManagedImages := make([]interface{}, 0)
-	distributionVhds := make([]interface{}, 0)
-	distributionSharedImages := make([]interface{}, 0)
+func flattenBasicImageTemplateDistributor(input *[]virtualmachineimagebuilder.BasicImageTemplateDistributor) ([]interface{}, error) {
+	results := make([]interface{}, 0)
+
+	distributionManagedImagesRaw := make([]interface{}, 0)
+	distributionSharedImagesRaw := make([]interface{}, 0)
+	distributionVhdsRaw := make([]interface{}, 0)
 
 	if input != nil {
 		for _, v := range *input {
@@ -993,20 +989,40 @@ func flattenBasicImageTemplateDistributor(input *[]virtualmachineimagebuilder.Ba
 			case virtualmachineimagebuilder.ImageTemplateManagedImageDistributor:
 				flattenedManagedImg, err := flattenDistributionManagedImage(&distribute)
 				if err != nil {
-					return nil, nil, nil, fmt.Errorf("setting image template managed image source: %+v", err)
+					return nil, fmt.Errorf("setting image template managed image source: %+v", err)
 				}
 
-				distributionManagedImages = append(distributionManagedImages, flattenedManagedImg)
+				distributionManagedImagesRaw = append(distributionManagedImagesRaw, flattenedManagedImg)
 			case virtualmachineimagebuilder.ImageTemplateSharedImageDistributor:
-				distributionSharedImages = append(distributionSharedImages, flattenDistributionSharedImage(&distribute))
+				distributionSharedImagesRaw = append(distributionSharedImagesRaw, flattenDistributionSharedImage(&distribute))
 			case virtualmachineimagebuilder.ImageTemplateVhdDistributor:
-				distributionVhds = append(distributionVhds, flattenDistributionVhd(&distribute))
+				distributionVhdsRaw = append(distributionVhdsRaw, flattenDistributionVhd(&distribute))
 			}
 		}
 	}
 
-	return distributionManagedImages, distributionSharedImages, distributionVhds, nil
+	if len(distributionManagedImagesRaw) > 0 {
+		distributionManagedImages := make(map[string]interface{})
+		distributionManagedImages["managed_image"] = distributionManagedImagesRaw
+		results = append(results, distributionManagedImages)
+	}
+
+	if len(distributionSharedImagesRaw) > 0 {
+		distributionSharedImages := make(map[string]interface{})
+		distributionSharedImages["shared_image"] = distributionSharedImagesRaw
+		results = append(results, distributionSharedImages)
+	}
+
+	if len(distributionVhdsRaw) > 0 {
+		distributionVhds := make(map[string]interface{})
+		distributionVhds["vhd"] = distributionVhdsRaw
+		results = append(results, distributionVhds)
+	}
+
+	return results, nil
 }
+
+
 
 func expandImageTemplateSharedImageDistributorReplicaRegions(input []interface{}) *[]string {
 	if input == nil {
@@ -1444,10 +1460,6 @@ func validateImageTemplateCustomizerInputForPowerShellType(d *schema.ResourceDat
 	if (scriptUri == "" && len(commandsRaw) == 0) ||
 		(scriptUri != "" && len(commandsRaw) > 0) {
 		return fmt.Errorf("exactly one of `powershell_script_uri` and `powershell_commands` must be specified if the customizer type is PowerShell")
-	}
-
-	if customizer["powershell_run_as_system"].(bool) && !customizer["powershell_run_elevated"].(bool) {
-		return fmt.Errorf("`powershell_run_as_system` can only be true when `powershell_run_elevated` is set to true")
 	}
 
 	excludeList := make([]string, 0)
