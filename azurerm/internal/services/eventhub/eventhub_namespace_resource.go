@@ -73,10 +73,9 @@ func resourceEventHubNamespace() *schema.Resource {
 			},
 
 			"capacity": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				Default:      1,
-				ValidateFunc: validation.IntBetween(1, 20),
+				Type:     schema.TypeInt,
+				Optional: true,
+				Default:  1,
 			},
 
 			"auto_inflate_enabled": {
