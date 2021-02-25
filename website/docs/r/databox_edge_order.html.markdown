@@ -30,19 +30,19 @@ resource "azurerm_databox_edge_order" "example" {
   resource_group_name = azurerm_resource_group.example.name
   device_name         = azurerm_databox_edge_device.example.name
 
-  contact_information {
+  contact_info {
     company_name = "Contoso Corporation"
     name         = "Bart"
     email_lists  = ["bart@example.com"]
     phone        = "(800) 867-5309"
   }
 
-  shipping_address {
-    address_line1 = "740 Evergreen Terrace"
-    city          = "Springfield"
-    country       = "United States"
-    postal_code   = "97403"
-    state         = "OR"
+  shipping_info {
+    address     = ["740 Evergreen Terrace"]
+    city        = "Springfield"
+    country     = "United States"
+    postal_code = "97403"
+    state       = "OR"
   }
 }
 ```
@@ -55,13 +55,13 @@ The following arguments are supported:
 
 * `device_name` - (Required) The name of the Databox Edge Device this order is for. Changing this forces a new Databox Edge Order to be created.
 
-* `contact_information` - (Required)  A `contact_information` block as defined below.
+* `contact_info` - (Required)  A `contact_info` block as defined below.
 
-* `shipping_address` - (Required)  A `shipping_address` block as defined below.
+* `shipping_info` - (Required)  A `shipping_info` block as defined below.
 
 ---
 
-An `contact_information` block exports the following:
+An `contact_info` block includes the following:
 
 * `company_name` - (Required) The name of the company. Changing this forces a new Databox Edge Order to be created.
 
@@ -73,9 +73,9 @@ An `contact_information` block exports the following:
 
 ---
 
-An `shipping_address` block exports the following:
+An `shipping_info` block includes the following:
 
-* `address_line1` - (Required) The address line1. Changing this forces a new Databox Edge Order to be created.
+* `address` - (Required) The list of upto 3 lines for address information. Changing this forces a new Databox Edge Order to be created.
 
 * `city` - (Required) The city name. Changing this forces a new Databox Edge Order to be created.
 
@@ -85,10 +85,6 @@ An `shipping_address` block exports the following:
 
 * `state` - (Required) The name of the state to ship the Databox Edge Device to. Changing this forces a new Databox Edge Order to be created.
 
-* `address_line2` - (Optional) The address line2. Changing this forces a new Databox Edge Order to be created.
-
-* `address_line3` - (Optional) The address line3. Changing this forces a new Databox Edge Order to be created.
-
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
@@ -97,19 +93,19 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `name` - The Name of this Databox Edge Order.
 
-* `delivery_tracking_info` - Tracking information for the package delivered to the customer whether it has an original or a replacement device. A `delivery_tracking_info` block as defined below.
+* `shipment_tracking` - Tracking information for the package delivered to the customer whether it has an original or a replacement device. A `shipment_tracking` block as defined below.
 
-* `current_status` - The current status of the order. A `current_status` block as defined below.
+* `status_info` - The current status of the order. A `status_info` block as defined below.
 
-* `order_history` - List of status changes in the order. A `order_history` block as defined below.
+* `shipment_history` - List of status changes in the order. A `shipment_history` block as defined below.
 
-* `return_tracking_info` - Tracking information for the package returned from the customer whether it has an original or a replacement device. A `return_tracking_info` block as defined below.
+* `return_tracking` - Tracking information for the package returned from the customer whether it has an original or a replacement device. A `return_tracking` block as defined below.
 
 * `serial_number` - Serial number of the device.
 
 ---
 
-A `delivery_tracking_info` block exports the following:
+A `shipment_tracking` block exports the following:
 
 * `carrier_name` - Name of the carrier used in the delivery.
 
@@ -121,29 +117,29 @@ A `delivery_tracking_info` block exports the following:
 
 ---
 
-A `current_status` block exports the following:
+A `status_info` block exports the following:
 
  * `status` - The current status of the order. Possible values include `Untracked`, `AwaitingFulfilment`, `AwaitingPreparation`, `AwaitingShipment`, `Shipped`, `Arriving`, `Delivered`, `ReplacementRequested`, `LostDevice`, `Declined`, `ReturnInitiated`, `AwaitingReturnShipment`, `ShippedBack` or `CollectedAtMicrosoft`.
 
-* `additional_order_details` - Dictionary to hold generic information which is not stored by the already existing properties.
+* `additional_details` - Dictionary to hold generic information which is not stored by the already existing properties.
 
 * `comments` - Comments related to this status change.
 
-* `update_date_time` - Time of status update.
+* `last_update` - Time of status update.
 
 ---
 
-A `order_history` block exports the following:
+A `shipment_history` block exports the following:
 
-* `additional_order_details` - Dictionary to hold generic information which is not stored by the already existing properties.
+* `additional_details` - Dictionary to hold generic information which is not stored by the already existing properties.
 
 * `comments` - Comments related to this status change.
 
-* `update_date_time` - Time of status update.
+* `last_update` - Time of status update.
 
 ---
 
-A `return_tracking_info` block exports the following:
+A `return_tracking` block exports the following:
 
 * `carrier_name` - Name of the carrier used in the delivery.
 

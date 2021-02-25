@@ -4,23 +4,43 @@ import "testing"
 
 func TestDataboxEdgeStreetAddress(t *testing.T) {
 	testData := []struct {
-		input    string
+		input    []interface{}
 		expected bool
 	}{
 		{
-			input:    "",
+			input:    make([]interface{}, 0),
 			expected: false,
 		},
 		{
-			input:    "12 Grimmauld Place",
+			input:    []interface{}{""},
+			expected: false,
+		},
+		{
+			input:    []interface{}{"12 Grimmauld Place"},
 			expected: true,
 		},
 		{
-			input:    "740 Evergreen Terrace",
+			input:    []interface{}{"12 Grimmauld Place", "740 Evergreen Terrace"},
 			expected: true,
 		},
 		{
-			input:    "129 West 81st Street , Apartment: 5A",
+			input:    []interface{}{"12 Grimmauld Place", "740 Evergreen Terrace", "129 West 81st Street, Apartment: 5A"},
+			expected: true,
+		},
+		{
+			input:    []interface{}{"129 West 81st Street , Apartment: 5A"},
+			expected: false,
+		},
+		{
+			input:    []interface{}{"740 Evergreen Terrace", "129 West 81st Street , Apartment: 5A"},
+			expected: false,
+		},
+		{
+			input:    []interface{}{"12 Grimmauld Place", "740 Evergreen Terrace", "129 West 81st Street , Apartment: 5A"},
+			expected: false,
+		},
+		{
+			input:    []interface{}{"12 Grimmauld Place", "740 Evergreen Terrace", "129 West 81st Street , Apartment: 5A", "What? Four lines... no!"},
 			expected: false,
 		},
 	}
@@ -28,7 +48,7 @@ func TestDataboxEdgeStreetAddress(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.input)
 
-		_, errors := DataboxEdgeStreetAddress(v.input, "street_address")
+		_, errors := DataboxEdgeStreetAddress(v.input, "address")
 		actual := len(errors) == 0
 		if v.expected != actual {
 			t.Fatalf("Expected %t but got %t", v.expected, actual)

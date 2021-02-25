@@ -111,19 +111,19 @@ resource "azurerm_databox_edge_order" "test" {
   resource_group_name = azurerm_resource_group.test.name
   device_name         = azurerm_databox_edge_device.test.name
 
-  contact_information {
+  contact_info {
     name         = "TerraForm Test"
     emails       = ["creator4983@FlynnsArcade.com"]
     company_name = "Microsoft"
     phone_number = "425-882-8080"
   }
 
-  shipping_address {
-    address_line1 = "One Microsoft Way"
-    city          = "Redmond"
-    postal_code   = "98052"
-    state         = "WA"
-    country       = "United States"
+  shipping_info {
+    address     = ["One Microsoft Way"]
+    city        = "Redmond"
+    postal_code = "98052"
+    state       = "WA"
+    country     = "United States"
   }
 }
 `, r.template(data))
@@ -137,19 +137,19 @@ resource "azurerm_databox_edge_order" "import" {
   resource_group_name = azurerm_databox_edge_order.test.resource_group_name
   device_name         = azurerm_databox_edge_device.test.name
 
-  contact_information {
+  contact_info {
     name         = "TerraForm Test"
     emails       = ["creator4983@FlynnsArcade.com"]
     company_name = "Microsoft"
     phone_number = "425-882-8080"
   }
 
-  shipping_address {
-    address_line1 = "One Microsoft Way"
-    city          = "Redmond"
-    postal_code   = "98052"
-    state         = "WA"
-    country       = "United States"
+  shipping_info {
+    address     = ["One Microsoft Way"]
+    city        = "Redmond"
+    postal_code = "98052"
+    state       = "WA"
+    country     = "United States"
   }
 }
 `, r.basic(data))
@@ -163,19 +163,19 @@ resource "azurerm_databox_edge_order" "test" {
   resource_group_name = azurerm_resource_group.test.name
   device_name         = azurerm_databox_edge_device.test.name
 
-  contact_information {
+  contact_info {
     name         = "TerraForm Test"
     emails       = ["creator4983@FlynnsArcade.com"]
     company_name = "Flynn's Arcade"
     phone_number = "(800) 555-1234"
   }
 
-  shipping_address {
-    address_line1 = "One Microsoft Way"
-    city          = "Redmond"
-    postal_code   = "98052"
-    state         = "WA"
-    country       = "United States"
+  shipping_info {
+    address     = ["One Microsoft Way"]
+    city        = "Redmond"
+    postal_code = "98052"
+    state       = "WA"
+    country     = "United States"
   }
 }
 `, r.template(data))

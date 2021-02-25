@@ -57,62 +57,71 @@ func resourceDataboxEdgeDevice() *schema.Resource {
 				ValidateFunc: validate.DataboxEdgeDeviceSkuName,
 			},
 
-			"configured_role_types": {
-				Type:     schema.TypeSet,
+			"device_properties": {
+				Type:     schema.TypeList,
 				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"configured_role_types": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+
+						"culture": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"hcs_version": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"capacity": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+
+						"model": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"status": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"software_version": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"node_count": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+
+						"serial_number": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"time_zone": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
 				},
-			},
-
-			"culture": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"device_hcs_version": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"device_local_capacity": {
-				Type:     schema.TypeInt,
-				Computed: true,
-			},
-
-			"device_model": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"device_status": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"device_software_version": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"device_type": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"node_count": {
-				Type:     schema.TypeInt,
-				Computed: true,
-			},
-
-			"serial_number": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"time_zone": {
-				Type:     schema.TypeString,
-				Computed: true,
 			},
 
 			"tags": tags.Schema(),
@@ -166,6 +175,7 @@ func resourceDataboxEdgeDeviceCreate(d *schema.ResourceData, meta interface{}) e
 	if err != nil {
 		return err
 	}
+
 	d.SetId(id.ID(subscriptionId))
 
 	return resourceDataboxEdgeDeviceRead(d, meta)
@@ -196,25 +206,10 @@ func resourceDataboxEdgeDeviceRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.DeviceProperties; props != nil {
-		d.Set("device_status", props.DataBoxEdgeDeviceStatus)
-
-		configuredRoleTypes := make([]string, 0)
-		if props.ConfiguredRoleTypes != nil {
-			for _, item := range *props.ConfiguredRoleTypes {
-				configuredRoleTypes = append(configuredRoleTypes, (string)(item))
-			}
+		if err := d.Set("device_properties", flattenDeviceProperties(props)); err != nil {
+			return fmt.Errorf("flattening 'device_properties' Databox Edge Device %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 
-		d.Set("configured_role_types", utils.FlattenStringSlice(&configuredRoleTypes))
-		d.Set("culture", props.Culture)
-		d.Set("device_hcs_version", props.DeviceHcsVersion)
-		d.Set("device_local_capacity", props.DeviceLocalCapacity)
-		d.Set("device_model", props.DeviceModel)
-		d.Set("device_software_version", props.DeviceSoftwareVersion)
-		d.Set("device_type", props.DeviceType)
-		d.Set("node_count", props.NodeCount)
-		d.Set("serial_number", props.SerialNumber)
-		d.Set("time_zone", props.TimeZone)
 	}
 
 	if err := d.Set("sku_name", flattenDeviceSku(resp.Sku)); err != nil {
@@ -281,6 +276,86 @@ func expandDeviceSku(input string) *databoxedge.Sku {
 		Name: databoxedge.SkuName(v.Name),
 		Tier: databoxedge.SkuTier(v.Tier),
 	}
+}
+
+func flattenDeviceProperties(input *databoxedge.DeviceProperties) *[]interface{} {
+	output := make([]interface{}, 0)
+	configuredRoleTypes := make([]string, 0)
+
+	var status string
+	var culture string
+	var hcsVersion string
+	var capacity int64
+	var model string
+	var softwareVersion string
+	var deviceType string
+	var nodeCount int32
+	var serialNumber string
+	var timeZone string
+
+	if input != nil {
+		if input.ConfiguredRoleTypes != nil {
+			for _, item := range *input.ConfiguredRoleTypes {
+				configuredRoleTypes = append(configuredRoleTypes, (string)(item))
+			}
+		}
+
+		if input.DataBoxEdgeDeviceStatus != "" {
+			status = string(databoxedge.DeviceStatus(input.DataBoxEdgeDeviceStatus))
+		}
+
+		if input.Culture != nil {
+			culture = *input.Culture
+		}
+
+		if input.DeviceHcsVersion != nil {
+			hcsVersion = *input.DeviceHcsVersion
+		}
+
+		if input.DeviceLocalCapacity != nil {
+			capacity = *input.DeviceLocalCapacity
+		}
+
+		if input.DeviceModel != nil {
+			model = *input.DeviceModel
+		}
+
+		if input.DeviceSoftwareVersion != nil {
+			softwareVersion = *input.DeviceSoftwareVersion
+		}
+
+		if input.DeviceType != "" {
+			deviceType = string(databoxedge.DeviceType(input.DeviceType))
+		}
+
+		if input.NodeCount != nil {
+			nodeCount = *input.NodeCount
+		}
+
+		if input.SerialNumber != nil {
+			serialNumber = *input.SerialNumber
+		}
+
+		if input.TimeZone != nil {
+			timeZone = *input.TimeZone
+		}
+	}
+
+	output = append(output, map[string]interface{}{
+		"configured_role_types": utils.FlattenStringSlice(&configuredRoleTypes),
+		"culture":               culture,
+		"hcs_version":           hcsVersion,
+		"capacity":              capacity,
+		"model":                 model,
+		"status":                status,
+		"software_version":      softwareVersion,
+		"type":                  deviceType,
+		"node_count":            nodeCount,
+		"serial_number":         serialNumber,
+		"time_zone":             timeZone,
+	})
+
+	return &output
 }
 
 func flattenDeviceSku(input *databoxedge.Sku) *string {

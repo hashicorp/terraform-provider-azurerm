@@ -5,11 +5,22 @@ import (
 	"regexp"
 )
 
-func DataboxEdgeStreetAddress(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
+func DataboxEdgeStreetAddress(v []interface{}, k string) (warnings []string, errors []error) {
+	if len(v) == 0 {
+		errors = append(errors, fmt.Errorf("%q must not be empty", k))
+		return warnings, errors
+	}
 
-	if !regexp.MustCompile(`^[\s\S]{1,35}$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf("%q must be between 1 and 35 characters in length", k))
+	for i, addressLine := range v {
+		if !regexp.MustCompile(`^[\s\S]{1,35}$`).MatchString(addressLine.(string)) {
+			errMsg := fmt.Sprintf("'shipping_info' %q line %d must be between 1 and 35 characters in length", k, (i + 1))
+
+			if len(errors) > 0 {
+				errors = append(errors, fmt.Errorf("\n        %s", errMsg))
+			} else {
+				errors = append(errors, fmt.Errorf("%s", errMsg))
+			}
+		}
 	}
 
 	return warnings, errors

@@ -47,27 +47,35 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Databox Edge Device.
 
+* `device_properties` - A `device_properties` block as defined below.
+
+---
+
+The `device_properties` block exports the following:
+
 * `configured_role_types` - Type of compute roles configured.
 
 * `culture` - The Data Box Edge/Gateway device culture.
 
-* `device_hcs_version` - The device software version number of the device (eg: 1.2.18105.6).
+* `hcs_version` - The device software version number of the device (eg: 1.2.18105.6).
 
-* `device_local_capacity` - The Data Box Edge/Gateway device local capacity in MB.
+* `capacity` - The Data Box Edge/Gateway device local capacity in MB.
 
-* `device_model` - The Data Box Edge/Gateway device model.
+* `model` - The Data Box Edge/Gateway device model.
 
-* `device_software_version` - The Data Box Edge/Gateway device software version.
+* `software_version` - The Data Box Edge/Gateway device software version.
 
-* `device_status` - The status of the Data Box Edge/Gateway device.
+* `status` - The status of the Data Box Edge/Gateway device.
 
-* `device_type` - The type of the Data Box Edge/Gateway device.
+* `type` - The type of the Data Box Edge/Gateway device.
 
 * `node_count` - The number of nodes in the cluster.
 
 * `serial_number` - The Serial Number of Data Box Edge/Gateway device.
 
 * `time_zone` - The Data Box Edge/Gateway device timezone.
+
+---
 
 ## Timeouts
 

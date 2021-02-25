@@ -46,7 +46,7 @@ func resourceDataboxEdgeOrder() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"contact_information": {
+			"contact_info": {
 				Type:     schema.TypeList,
 				Required: true,
 				MaxItems: 1,
@@ -85,7 +85,7 @@ func resourceDataboxEdgeOrder() *schema.Resource {
 				},
 			},
 
-			"current_status": {
+			"status_info": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -100,7 +100,7 @@ func resourceDataboxEdgeOrder() *schema.Resource {
 							Computed: true,
 						},
 
-						"additional_order_details": {
+						"additional_details": {
 							Type:     schema.TypeMap,
 							Computed: true,
 							Elem: &schema.Schema{
@@ -108,7 +108,7 @@ func resourceDataboxEdgeOrder() *schema.Resource {
 							},
 						},
 
-						"update_date_time": {
+						"last_update": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -116,17 +116,19 @@ func resourceDataboxEdgeOrder() *schema.Resource {
 				},
 			},
 
-			"shipping_address": {
+			"shipping_info": {
 				Type:     schema.TypeList,
 				Required: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"address_line1": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ForceNew:     true,
-							ValidateFunc: validate.DataboxEdgeStreetAddress,
+						"address": {
+							Type:     schema.TypeList,
+							Required: true,
+							MaxItems: 3,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
 						},
 
 						"city": {
@@ -156,25 +158,11 @@ func resourceDataboxEdgeOrder() *schema.Resource {
 							ForceNew:     true,
 							ValidateFunc: validate.DataboxEdgePostalCode,
 						},
-
-						"address_line2": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ForceNew:     true,
-							ValidateFunc: validate.DataboxEdgeStreetAddress,
-						},
-
-						"address_line3": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ForceNew:     true,
-							ValidateFunc: validate.DataboxEdgeStreetAddress,
-						},
 					},
 				},
 			},
 
-			"delivery_tracking_info": {
+			"shipment_tracking": {
 				Type:     schema.TypeSet,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -202,12 +190,12 @@ func resourceDataboxEdgeOrder() *schema.Resource {
 				},
 			},
 
-			"order_history": {
+			"shipment_history": {
 				Type:     schema.TypeSet,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"additional_order_details": {
+						"additional_details": {
 							Type:     schema.TypeMap,
 							Computed: true,
 							Elem: &schema.Schema{
@@ -220,7 +208,7 @@ func resourceDataboxEdgeOrder() *schema.Resource {
 							Computed: true,
 						},
 
-						"update_date_time": {
+						"last_update": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -228,7 +216,7 @@ func resourceDataboxEdgeOrder() *schema.Resource {
 				},
 			},
 
-			"return_tracking_info": {
+			"return_tracking": {
 				Type:     schema.TypeSet,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -266,6 +254,8 @@ func resourceDataboxEdgeOrder() *schema.Resource {
 				Computed: true,
 			},
 		},
+
+		CustomizeDiff: databoxEdgeCustomizeDiff,
 	}
 }
 func resourceDataboxEdgeOrderCreateUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -291,8 +281,8 @@ func resourceDataboxEdgeOrderCreateUpdate(d *schema.ResourceData, meta interface
 
 	order := databoxedge.Order{
 		OrderProperties: &databoxedge.OrderProperties{
-			ContactInformation: expandOrderContactDetails(d.Get("contact_information").([]interface{})),
-			ShippingAddress:    expandOrderAddress(d.Get("shipping_address").([]interface{})),
+			ContactInformation: expandOrderContactDetails(d.Get("contact_info").([]interface{})),
+			ShippingAddress:    expandOrderAddress(d.Get("shipping_info").([]interface{})),
 		},
 	}
 
@@ -345,23 +335,23 @@ func resourceDataboxEdgeOrderRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("device_name", id.DeviceName)
 
 	if props := resp.OrderProperties; props != nil {
-		if err := d.Set("contact_information", flattenOrderContactDetails(props.ContactInformation)); err != nil {
-			return fmt.Errorf("setting `contact_information`: %+v", err)
+		if err := d.Set("contact_info", flattenOrderContactDetails(props.ContactInformation)); err != nil {
+			return fmt.Errorf("setting `contact_info`: %+v", err)
 		}
-		if err := d.Set("current_status", flattenOrderStatus(props.CurrentStatus)); err != nil {
-			return fmt.Errorf("setting `current_status`: %+v", err)
+		if err := d.Set("status_info", flattenOrderStatus(props.CurrentStatus)); err != nil {
+			return fmt.Errorf("setting `status_info`: %+v", err)
 		}
-		if err := d.Set("shipping_address", flattenOrderAddress(props.ShippingAddress)); err != nil {
-			return fmt.Errorf("setting `shipping_address`: %+v", err)
+		if err := d.Set("shipping_info", flattenOrderAddress(props.ShippingAddress)); err != nil {
+			return fmt.Errorf("setting `shipping_info`: %+v", err)
 		}
-		if err := d.Set("delivery_tracking_info", flattenOrderTrackingInfoArray(props.DeliveryTrackingInfo)); err != nil {
-			return fmt.Errorf("setting `delivery_tracking_info`: %+v", err)
+		if err := d.Set("shipment_tracking", flattenOrderTrackingInfo(props.DeliveryTrackingInfo)); err != nil {
+			return fmt.Errorf("setting `shipment_tracking`: %+v", err)
 		}
-		if err := d.Set("order_history", flattenOrderStatusArray(props.OrderHistory)); err != nil {
-			return fmt.Errorf("setting `order_history`: %+v", err)
+		if err := d.Set("shipment_history", flattenOrderHistory(props.OrderHistory)); err != nil {
+			return fmt.Errorf("setting `shipment_history`: %+v", err)
 		}
-		if err := d.Set("return_tracking_info", flattenOrderTrackingInfoArray(props.ReturnTrackingInfo)); err != nil {
-			return fmt.Errorf("setting `return_tracking_info`: %+v", err)
+		if err := d.Set("return_tracking", flattenOrderTrackingInfo(props.ReturnTrackingInfo)); err != nil {
+			return fmt.Errorf("setting `return_tracking`: %+v", err)
 		}
 		d.Set("serial_number", props.SerialNumber)
 	}
@@ -408,10 +398,29 @@ func expandOrderAddress(input []interface{}) *databoxedge.Address {
 		return nil
 	}
 	v := input[0].(map[string]interface{})
+
+	var address1 string
+	var address2 string
+	var address3 string
+
+	addressLines := v["address"].([]interface{})
+
+	for i, addressLine := range addressLines {
+		if addressLine != "" {
+			if i == 0 {
+				address1 = addressLine.(string)
+			} else if i == 1 {
+				address2 = addressLine.(string)
+			} else {
+				address3 = addressLine.(string)
+			}
+		}
+	}
+
 	return &databoxedge.Address{
-		AddressLine1: utils.String(v["address_line1"].(string)),
-		AddressLine2: utils.String(v["address_line2"].(string)),
-		AddressLine3: utils.String(v["address_line3"].(string)),
+		AddressLine1: utils.String(address1),
+		AddressLine2: utils.String(address2),
+		AddressLine3: utils.String(address3),
 		PostalCode:   utils.String(v["postal_code"].(string)),
 		City:         utils.String(v["city"].(string)),
 		State:        utils.String(v["state"].(string)),
@@ -470,10 +479,10 @@ func flattenOrderStatus(input *databoxedge.OrderStatus) []interface{} {
 	}
 	return []interface{}{
 		map[string]interface{}{
-			"status":                   status,
-			"comments":                 comments,
-			"additional_order_details": additionalOrderDetails,
-			"update_date_time":         updateDateTime,
+			"status":             status,
+			"comments":           comments,
+			"additional_details": additionalOrderDetails,
+			"last_update":        updateDateTime,
 		},
 	}
 }
@@ -483,48 +492,52 @@ func flattenOrderAddress(input *databoxedge.Address) []interface{} {
 		return make([]interface{}, 0)
 	}
 
-	var addressLine1 string
-	if input.AddressLine1 != nil {
-		addressLine1 = *input.AddressLine1
-	}
 	var city string
 	if input.City != nil {
 		city = *input.City
 	}
+
 	var country string
 	if input.Country != nil {
 		country = *input.Country
 	}
+
 	var postalCode string
 	if input.PostalCode != nil {
 		postalCode = *input.PostalCode
 	}
+
 	var state string
 	if input.State != nil {
 		state = *input.State
 	}
-	var addressLine2 string
-	if input.AddressLine2 != nil {
-		addressLine2 = *input.AddressLine2
+
+	address := make([]interface{}, 0)
+
+	if input.AddressLine1 != nil {
+		address = append(address, *input.AddressLine1)
 	}
-	var addressLine3 string
-	if input.AddressLine3 != nil {
-		addressLine3 = *input.AddressLine3
+
+	if input.AddressLine2 != nil && *input.AddressLine2 != "" {
+		address = append(address, *input.AddressLine2)
 	}
+
+	if input.AddressLine3 != nil && *input.AddressLine3 != "" {
+		address = append(address, *input.AddressLine3)
+	}
+
 	return []interface{}{
 		map[string]interface{}{
-			"address_line1": addressLine1,
-			"address_line2": addressLine2,
-			"address_line3": addressLine3,
-			"city":          city,
-			"country":       country,
-			"postal_code":   postalCode,
-			"state":         state,
+			"address":     address,
+			"city":        city,
+			"country":     country,
+			"postal_code": postalCode,
+			"state":       state,
 		},
 	}
 }
 
-func flattenOrderTrackingInfoArray(input *[]databoxedge.TrackingInfo) []interface{} {
+func flattenOrderTrackingInfo(input *[]databoxedge.TrackingInfo) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -557,7 +570,7 @@ func flattenOrderTrackingInfoArray(input *[]databoxedge.TrackingInfo) []interfac
 	return results
 }
 
-func flattenOrderStatusArray(input *[]databoxedge.OrderStatus) []interface{} {
+func flattenOrderHistory(input *[]databoxedge.OrderStatus) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -577,9 +590,9 @@ func flattenOrderStatusArray(input *[]databoxedge.OrderStatus) []interface{} {
 			updateDateTime = item.UpdateDateTime.Format(time.RFC3339)
 		}
 		results = append(results, map[string]interface{}{
-			"additional_order_details": additionalOrderDetails,
-			"comments":                 comments,
-			"update_date_time":         updateDateTime,
+			"additional_details": additionalOrderDetails,
+			"comments":           comments,
+			"last_update":        updateDateTime,
 		})
 	}
 	return results
