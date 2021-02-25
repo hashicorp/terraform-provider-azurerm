@@ -60,7 +60,6 @@ func resourceDataboxEdgeDevice() *schema.Resource {
 			"device_properties": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"configured_role_types": {
