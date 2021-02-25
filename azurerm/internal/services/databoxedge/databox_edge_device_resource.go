@@ -209,7 +209,6 @@ func resourceDataboxEdgeDeviceRead(d *schema.ResourceData, meta interface{}) err
 		if err := d.Set("device_properties", flattenDeviceProperties(props)); err != nil {
 			return fmt.Errorf("flattening 'device_properties' Databox Edge Device %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
-
 	}
 
 	if err := d.Set("sku_name", flattenDeviceSku(resp.Sku)); err != nil {
@@ -301,7 +300,7 @@ func flattenDeviceProperties(input *databoxedge.DeviceProperties) *[]interface{}
 		}
 
 		if input.DataBoxEdgeDeviceStatus != "" {
-			status = string(databoxedge.DeviceStatus(input.DataBoxEdgeDeviceStatus))
+			status = string(input.DataBoxEdgeDeviceStatus)
 		}
 
 		if input.Culture != nil {
@@ -325,7 +324,7 @@ func flattenDeviceProperties(input *databoxedge.DeviceProperties) *[]interface{}
 		}
 
 		if input.DeviceType != "" {
-			deviceType = string(databoxedge.DeviceType(input.DeviceType))
+			deviceType = string(input.DeviceType)
 		}
 
 		if input.NodeCount != nil {

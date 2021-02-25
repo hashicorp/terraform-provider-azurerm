@@ -407,11 +407,12 @@ func expandOrderAddress(input []interface{}) *databoxedge.Address {
 
 	for i, addressLine := range addressLines {
 		if addressLine != "" {
-			if i == 0 {
+			switch i {
+			case 0:
 				address1 = addressLine.(string)
-			} else if i == 1 {
+			case 1:
 				address2 = addressLine.(string)
-			} else {
+			case 3:
 				address3 = addressLine.(string)
 			}
 		}
