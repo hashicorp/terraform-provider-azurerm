@@ -8,7 +8,7 @@ import (
 )
 
 func databoxEdgeCustomizeDiff(d *schema.ResourceDiff, v interface{}) error {
-	if value, ok := d.GetOk("shipping_info"); ok {
+	if value, ok := d.GetOk("shipment_address"); ok {
 		shippingInfo := (value.([]interface{}))[0].(map[string]interface{})
 
 		_, err := validate.DataboxEdgeStreetAddress(shippingInfo["address"].([]interface{}), "address")

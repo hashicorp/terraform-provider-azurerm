@@ -30,14 +30,14 @@ resource "azurerm_databox_edge_order" "example" {
   resource_group_name = azurerm_resource_group.example.name
   device_name         = azurerm_databox_edge_device.example.name
 
-  contact_info {
+  contact {
     company_name = "Contoso Corporation"
     name         = "Bart"
     email_lists  = ["bart@example.com"]
     phone        = "(800) 867-5309"
   }
 
-  shipping_info {
+  shipment_address {
     address     = ["740 Evergreen Terrace"]
     city        = "Springfield"
     country     = "United States"
@@ -55,13 +55,13 @@ The following arguments are supported:
 
 * `device_name` - (Required) The name of the Databox Edge Device this order is for. Changing this forces a new Databox Edge Order to be created.
 
-* `contact_info` - (Required)  A `contact_info` block as defined below.
+* `contact` - (Required)  A `contact` block as defined below.
 
-* `shipping_info` - (Required)  A `shipping_info` block as defined below.
+* `shipment_address` - (Required)  A `shipment_address block as defined below.
 
 ---
 
-An `contact_info` block includes the following:
+An `contact` block includes the following:
 
 * `company_name` - (Required) The name of the company. Changing this forces a new Databox Edge Order to be created.
 
@@ -73,7 +73,7 @@ An `contact_info` block includes the following:
 
 ---
 
-An `shipping_info` block includes the following:
+An `shipment_address` block includes the following:
 
 * `address` - (Required) The list of upto 3 lines for address information. Changing this forces a new Databox Edge Order to be created.
 
@@ -95,7 +95,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `shipment_tracking` - Tracking information for the package delivered to the customer whether it has an original or a replacement device. A `shipment_tracking` block as defined below.
 
-* `status_info` - The current status of the order. A `status_info` block as defined below.
+* `status` - The current status of the order. A `status` block as defined below.
 
 * `shipment_history` - List of status changes in the order. A `shipment_history` block as defined below.
 
@@ -117,9 +117,9 @@ A `shipment_tracking` block exports the following:
 
 ---
 
-A `status_info` block exports the following:
+A `status` block exports the following:
 
- * `status` - The current status of the order. Possible values include `Untracked`, `AwaitingFulfilment`, `AwaitingPreparation`, `AwaitingShipment`, `Shipped`, `Arriving`, `Delivered`, `ReplacementRequested`, `LostDevice`, `Declined`, `ReturnInitiated`, `AwaitingReturnShipment`, `ShippedBack` or `CollectedAtMicrosoft`.
+ * `info` - The current status of the order. Possible values include `Untracked`, `AwaitingFulfilment`, `AwaitingPreparation`, `AwaitingShipment`, `Shipped`, `Arriving`, `Delivered`, `ReplacementRequested`, `LostDevice`, `Declined`, `ReturnInitiated`, `AwaitingReturnShipment`, `ShippedBack` or `CollectedAtMicrosoft`.
 
 * `additional_details` - Dictionary to hold generic information which is not stored by the already existing properties.
 

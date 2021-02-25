@@ -46,7 +46,7 @@ func resourceDataboxEdgeOrder() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"contact_info": {
+			"contact": {
 				Type:     schema.TypeList,
 				Required: true,
 				MaxItems: 1,
@@ -85,12 +85,12 @@ func resourceDataboxEdgeOrder() *schema.Resource {
 				},
 			},
 
-			"status_info": {
+			"status": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"status": {
+						"info": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -116,7 +116,7 @@ func resourceDataboxEdgeOrder() *schema.Resource {
 				},
 			},
 
-			"shipping_info": {
+			"shipment_address": {
 				Type:     schema.TypeList,
 				Required: true,
 				MaxItems: 1,
@@ -281,8 +281,8 @@ func resourceDataboxEdgeOrderCreateUpdate(d *schema.ResourceData, meta interface
 
 	order := databoxedge.Order{
 		OrderProperties: &databoxedge.OrderProperties{
-			ContactInformation: expandOrderContactDetails(d.Get("contact_info").([]interface{})),
-			ShippingAddress:    expandOrderAddress(d.Get("shipping_info").([]interface{})),
+			ContactInformation: expandOrderContactDetails(d.Get("contact").([]interface{})),
+			ShippingAddress:    expandOrderAddress(d.Get("shipment_address").([]interface{})),
 		},
 	}
 
@@ -335,14 +335,14 @@ func resourceDataboxEdgeOrderRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("device_name", id.DeviceName)
 
 	if props := resp.OrderProperties; props != nil {
-		if err := d.Set("contact_info", flattenOrderContactDetails(props.ContactInformation)); err != nil {
-			return fmt.Errorf("setting `contact_info`: %+v", err)
+		if err := d.Set("contact", flattenOrderContactDetails(props.ContactInformation)); err != nil {
+			return fmt.Errorf("setting `contact`: %+v", err)
 		}
-		if err := d.Set("status_info", flattenOrderStatus(props.CurrentStatus)); err != nil {
-			return fmt.Errorf("setting `status_info`: %+v", err)
+		if err := d.Set("status", flattenOrderStatus(props.CurrentStatus)); err != nil {
+			return fmt.Errorf("setting `status`: %+v", err)
 		}
-		if err := d.Set("shipping_info", flattenOrderAddress(props.ShippingAddress)); err != nil {
-			return fmt.Errorf("setting `shipping_info`: %+v", err)
+		if err := d.Set("shipment_address", flattenOrderAddress(props.ShippingAddress)); err != nil {
+			return fmt.Errorf("setting `shipment_address`: %+v", err)
 		}
 		if err := d.Set("shipment_tracking", flattenOrderTrackingInfo(props.DeliveryTrackingInfo)); err != nil {
 			return fmt.Errorf("setting `shipment_tracking`: %+v", err)
@@ -480,7 +480,7 @@ func flattenOrderStatus(input *databoxedge.OrderStatus) []interface{} {
 	}
 	return []interface{}{
 		map[string]interface{}{
-			"status":             status,
+			"info":               status,
 			"comments":           comments,
 			"additional_details": additionalOrderDetails,
 			"last_update":        updateDateTime,

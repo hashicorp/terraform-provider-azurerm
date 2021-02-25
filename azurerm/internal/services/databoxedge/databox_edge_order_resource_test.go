@@ -111,14 +111,14 @@ resource "azurerm_databox_edge_order" "test" {
   resource_group_name = azurerm_resource_group.test.name
   device_name         = azurerm_databox_edge_device.test.name
 
-  contact_info {
+  contact {
     name         = "TerraForm Test"
     emails       = ["creator4983@FlynnsArcade.com"]
     company_name = "Microsoft"
     phone_number = "425-882-8080"
   }
 
-  shipping_info {
+  shipment_address {
     address     = ["One Microsoft Way"]
     city        = "Redmond"
     postal_code = "98052"
@@ -137,14 +137,14 @@ resource "azurerm_databox_edge_order" "import" {
   resource_group_name = azurerm_databox_edge_order.test.resource_group_name
   device_name         = azurerm_databox_edge_device.test.name
 
-  contact_info {
+  contact {
     name         = "TerraForm Test"
     emails       = ["creator4983@FlynnsArcade.com"]
     company_name = "Microsoft"
     phone_number = "425-882-8080"
   }
 
-  shipping_info {
+  shipment_address {
     address     = ["One Microsoft Way"]
     city        = "Redmond"
     postal_code = "98052"
@@ -163,14 +163,14 @@ resource "azurerm_databox_edge_order" "test" {
   resource_group_name = azurerm_resource_group.test.name
   device_name         = azurerm_databox_edge_device.test.name
 
-  contact_info {
+  contact {
     name         = "TerraForm Test"
     emails       = ["creator4983@FlynnsArcade.com"]
     company_name = "Flynn's Arcade"
     phone_number = "(800) 555-1234"
   }
 
-  shipping_info {
+  shipment_address {
     address     = ["One Microsoft Way"]
     city        = "Redmond"
     postal_code = "98052"
