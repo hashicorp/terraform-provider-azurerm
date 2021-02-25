@@ -60,6 +60,7 @@ func resourceSpringCloudCustomDomain() *schema.Resource {
 			"thumbprint": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
