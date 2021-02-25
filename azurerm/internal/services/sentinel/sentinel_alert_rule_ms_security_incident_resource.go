@@ -67,6 +67,8 @@ func resourceSentinelAlertRuleMsSecurityIncident() *schema.Resource {
 					string(securityinsight.AzureActiveDirectoryIdentityProtection),
 					string(securityinsight.AzureSecurityCenterforIoT),
 					string(securityinsight.AzureAdvancedThreatProtection),
+					string(securityinsight.MicrosoftDefenderAdvancedThreatProtection),
+					string(securityinsight.Office365AdvancedThreatProtection),
 				}, false),
 			},
 
