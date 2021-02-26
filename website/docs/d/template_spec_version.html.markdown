@@ -14,9 +14,9 @@ Use this data source to access information about an existing Template Spec Versi
 
 ```hcl
 data "azurerm_template_spec_version" "example" {
-  name                = "existing"
-  resource_group_name = "existing"
-  version             = "TODO"
+  name                = "exampleTemplateSpec"
+  resource_group_name = "MyResourceGroup"
+  version             = "v1.0.4"
 }
 
 output "id" {
@@ -38,7 +38,7 @@ The following arguments are supported:
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
-* `id` - The ID of the Template.
+* `id` - The ID of the Template Spec version.
 
 * `template_body` - The ARM Template body of the Template Spec Version.
 

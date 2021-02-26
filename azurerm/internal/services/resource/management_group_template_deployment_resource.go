@@ -12,6 +12,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+	mgParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup/parse"
+	mgValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -49,9 +51,11 @@ func managementGroupTemplateDeploymentResource() *schema.Resource {
 				ValidateFunc: validate.TemplateDeploymentName,
 			},
 
-			"management_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
+			"management_group_id": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: mgValidate.ManagementGroupID,
 			},
 
 			"location": location.Schema(),
@@ -110,7 +114,12 @@ func managementGroupTemplateDeploymentResourceCreate(d *schema.ResourceData, met
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewManagementGroupTemplateDeploymentID(d.Get("management_group_name").(string), d.Get("name").(string))
+	managementGroupId, err := mgParse.ManagementGroupID(d.Get("management_group_id").(string))
+	if err != nil {
+		return err
+	}
+
+	id := parse.NewManagementGroupTemplateDeploymentID(managementGroupId.Name, d.Get("name").(string))
 
 	existing, err := client.GetAtManagementGroupScope(ctx, id.ManagementGroupName, id.DeploymentName)
 	if err != nil {
@@ -289,7 +298,8 @@ func managementGroupTemplateDeploymentResourceRead(d *schema.ResourceData, meta 
 	}
 
 	d.Set("name", id.DeploymentName)
-	d.Set("management_group_name", id.ManagementGroupName)
+	managementGroupId := mgParse.NewManagementGroupId(id.ManagementGroupName)
+	d.Set("management_group_id", managementGroupId.ID())
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.Properties; props != nil {
@@ -308,11 +318,13 @@ func managementGroupTemplateDeploymentResourceRead(d *schema.ResourceData, meta 
 		}
 		d.Set("output_content", flattenedOutputs)
 
+		templateLinkId := ""
 		if props.TemplateLink != nil {
 			if props.TemplateLink.ID != nil {
-				d.Set("template_spec_version_id", props.TemplateLink.ID)
+				templateLinkId = *props.TemplateLink.ID
 			}
 		}
+		d.Set("template_spec_version_id", templateLinkId)
 	}
 
 	flattenedTemplate, err := flattenTemplateDeploymentBody(templateContents.Template)

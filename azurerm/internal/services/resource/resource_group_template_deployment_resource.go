@@ -315,11 +315,13 @@ func resourceGroupTemplateDeploymentResourceRead(d *schema.ResourceData, meta in
 		}
 		d.Set("output_content", flattenedOutputs)
 
+		templateLinkId := ""
 		if props.TemplateLink != nil {
 			if props.TemplateLink.ID != nil {
-				d.Set("template_spec_version_id", props.TemplateLink.ID)
+				templateLinkId = *props.TemplateLink.ID
 			}
 		}
+		d.Set("template_spec_version_id", templateLinkId)
 	}
 
 	flattenedTemplate, err := flattenTemplateDeploymentBody(templateContents.Template)

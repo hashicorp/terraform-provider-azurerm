@@ -30,6 +30,10 @@ func TestAccDataSourceTemplateSpecVersion(t *testing.T) {
 
 func (TemplateSpecVersionDataSource) basic() string {
 	return `
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_template_spec_version" "test" {
   name                = "acctest-standing-data-empty"
   resource_group_name = "standing-data-for-acctest"

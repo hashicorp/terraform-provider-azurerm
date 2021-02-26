@@ -66,16 +66,22 @@ TEMPLATE
 }
 PARAMS
 }
+```
 
-// NOTE: whilst we show an inline template here, we recommend
-// sourcing this from a file for readability/editor support
-
+```hcl
+resource "azurerm_management_group_template_deployment" "example" {
+  name                  = "example"
+  location              = "West Europe"
+  management_group_name = "example"
+  template_content      = file("templates/example-deploy-template.json")
+  parameters_content    = file("templates/example-deploy-params.json")
+}
 ```
 
 ```hcl
 data "azurerm_template_spec_version" "example" {
-  name                = "myTemplateForManagementGroup"
-  resource_group_name = "myResourceGroup"
+  name                = "exampleTemplateForManagementGroup"
+  resource_group_name = "exampleResourceGroup"
   version             = "v1.0.9"
 }
 
@@ -123,10 +129,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 3 hours) Used when creating the Template.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Template.
-* `update` - (Defaults to 3 hours) Used when updating the Template.
-* `delete` - (Defaults to 3 hours) Used when deleting the Template.
+* `create` - (Defaults to 3 hours) Used when creating the Template Deployment.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Template Deployment.
+* `update` - (Defaults to 3 hours) Used when updating the Template Deployment.
+* `delete` - (Defaults to 3 hours) Used when deleting the Template Deployment.
 
 ## Import
 
