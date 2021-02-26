@@ -17,7 +17,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
-* `azurerm_api_management` - changing the `sku` property no longer forces a new resouce to be created [GH-10747]
+* `azurerm_api_management` - changing the `sku_name` property no longer forces a new resouce to be created [GH-10747]
 
 ## 2.49.0 (February 26, 2021)
 
