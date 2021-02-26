@@ -81,7 +81,9 @@ func resourceSentinelDataConnectorAzureActiveDirectoryCreate(d *schema.ResourceD
 			}
 		}
 
-		return tf.ImportAsExistsError("azurerm_sentinel_data_connector_azure_active_directory", id.ID())
+		if !utils.ResponseWasNotFound(resp.Response) {
+			return tf.ImportAsExistsError("azurerm_sentinel_data_connector_azure_active_directory", id.ID())
+		}
 	}
 
 	tenantId := d.Get("tenant_id").(string)
