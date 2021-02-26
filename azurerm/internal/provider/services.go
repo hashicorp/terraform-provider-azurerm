@@ -22,6 +22,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/costmanagement"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/customproviders"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databasemigration"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databoxedge"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake"
@@ -70,6 +71,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/recoveryservices"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redisenterprise"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/search"
@@ -125,6 +127,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 		datafactory.Registration{},
 		datalake.Registration{},
 		databasemigration.Registration{},
+		databoxedge.Registration{},
 		datashare.Registration{},
 		desktopvirtualization.Registration{},
 		devspace.Registration{},
@@ -169,6 +172,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 		privatedns.Registration{},
 		recoveryservices.Registration{},
 		redis.Registration{},
+		redisenterprise.Registration{},
 		relay.Registration{},
 		resource.Registration{},
 		search.Registration{},

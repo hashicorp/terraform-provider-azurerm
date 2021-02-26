@@ -130,13 +130,15 @@ An `azuread_administrator` block supports the following:
 
 An `extended_auditing_policy` block supports the following:
 
-* `storage_account_access_key` - (Required)  Specifies the access key to use for the auditing storage account.
+* `storage_account_access_key` - (Optional)  Specifies the access key to use for the auditing storage account.
 
-* `storage_endpoint` - (Required) Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net).
+* `storage_endpoint` - (Optional) Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net).
 
 * `storage_account_access_key_is_secondary` - (Optional) Specifies whether `storage_account_access_key` value is the storage's secondary key.
 
 * `retention_in_days` - (Optional) Specifies the number of days to retain logs for in the storage account.
+
+* `monitor_enabled` - (Optional) Enable audit events to Azure Monitor? To enable server audit events to Azure Monitor, please enable its master database audit events to Azure Monitor.
 
 ### Timeouts
 

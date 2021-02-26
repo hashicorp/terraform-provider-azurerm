@@ -792,7 +792,6 @@ resource "azurerm_sql_database" "test" {
     email_account_admins       = "Enabled"
     storage_account_access_key = azurerm_storage_account.test.primary_access_key
     storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
-    use_server_default         = "Disabled"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, state)
