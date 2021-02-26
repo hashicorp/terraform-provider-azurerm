@@ -356,6 +356,7 @@ func (client HcxEnterpriseSitesClient) List(ctx context.Context, resourceGroupNa
 	}
 	if result.hesl.hasNextLink() && result.hesl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -417,7 +418,6 @@ func (client HcxEnterpriseSitesClient) listNextResults(ctx context.Context, last
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "avs.HcxEnterpriseSitesClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

@@ -9,7 +9,6 @@ cloud.google.com/go/internal/version
 # cloud.google.com/go/storage v1.10.0
 cloud.google.com/go/storage
 # github.com/Azure/azure-sdk-for-go v51.2.0+incompatible
-## explicit
 github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources
 github.com/Azure/azure-sdk-for-go/services/advisor/mgmt/2020-01-01/advisor
 github.com/Azure/azure-sdk-for-go/services/analysisservices/mgmt/2017-08-01/analysisservices
@@ -123,7 +122,6 @@ github.com/Azure/azure-sdk-for-go/version
 # github.com/Azure/go-autorest v14.2.0+incompatible
 github.com/Azure/go-autorest
 # github.com/Azure/go-autorest/autorest v0.11.18
-## explicit
 github.com/Azure/go-autorest/autorest
 github.com/Azure/go-autorest/autorest/azure
 # github.com/Azure/go-autorest/autorest/adal v0.9.13
@@ -131,12 +129,10 @@ github.com/Azure/go-autorest/autorest/adal
 # github.com/Azure/go-autorest/autorest/azure/cli v0.4.2
 github.com/Azure/go-autorest/autorest/azure/cli
 # github.com/Azure/go-autorest/autorest/date v0.3.0
-## explicit
 github.com/Azure/go-autorest/autorest/date
 # github.com/Azure/go-autorest/autorest/to v0.4.0
 github.com/Azure/go-autorest/autorest/to
 # github.com/Azure/go-autorest/autorest/validation v0.3.1
-## explicit
 github.com/Azure/go-autorest/autorest/validation
 # github.com/Azure/go-autorest/logger v0.2.1
 github.com/Azure/go-autorest/logger
@@ -205,10 +201,8 @@ github.com/bgentry/go-netrc/netrc
 # github.com/bgentry/speakeasy v0.1.0
 github.com/bgentry/speakeasy
 # github.com/btubbs/datetime v0.1.0
-## explicit
 github.com/btubbs/datetime
 # github.com/davecgh/go-spew v1.1.1
-## explicit
 github.com/davecgh/go-spew/spew
 # github.com/dimchansky/utfbom v1.1.1
 github.com/dimchansky/utfbom
@@ -290,21 +284,18 @@ github.com/golang/protobuf/ptypes/duration
 github.com/golang/protobuf/ptypes/empty
 github.com/golang/protobuf/ptypes/timestamp
 # github.com/google/go-cmp v0.5.2
-## explicit
 github.com/google/go-cmp/cmp
 github.com/google/go-cmp/cmp/internal/diff
 github.com/google/go-cmp/cmp/internal/flags
 github.com/google/go-cmp/cmp/internal/function
 github.com/google/go-cmp/cmp/internal/value
 # github.com/google/uuid v1.1.1
-## explicit
 github.com/google/uuid
 # github.com/googleapis/gax-go/v2 v2.0.5
 github.com/googleapis/gax-go/v2
 # github.com/hashicorp/errwrap v1.0.0
 github.com/hashicorp/errwrap
 # github.com/hashicorp/go-azure-helpers v0.14.0
-## explicit
 github.com/hashicorp/go-azure-helpers/authentication
 github.com/hashicorp/go-azure-helpers/resourceproviders
 github.com/hashicorp/go-azure-helpers/response
@@ -315,13 +306,11 @@ github.com/hashicorp/go-checkpoint
 # github.com/hashicorp/go-cleanhttp v0.5.1
 github.com/hashicorp/go-cleanhttp
 # github.com/hashicorp/go-getter v1.5.2
-## explicit
 github.com/hashicorp/go-getter
 github.com/hashicorp/go-getter/helper/url
 # github.com/hashicorp/go-hclog v0.9.2
 github.com/hashicorp/go-hclog
 # github.com/hashicorp/go-multierror v1.0.0
-## explicit
 github.com/hashicorp/go-multierror
 # github.com/hashicorp/go-plugin v1.3.0
 github.com/hashicorp/go-plugin
@@ -329,13 +318,10 @@ github.com/hashicorp/go-plugin/internal/plugin
 # github.com/hashicorp/go-safetemp v1.0.0
 github.com/hashicorp/go-safetemp
 # github.com/hashicorp/go-uuid v1.0.1
-## explicit
 github.com/hashicorp/go-uuid
 # github.com/hashicorp/go-version v1.2.1
-## explicit
 github.com/hashicorp/go-version
 # github.com/hashicorp/hcl v1.0.0
-## explicit
 github.com/hashicorp/hcl
 github.com/hashicorp/hcl/hcl/ast
 github.com/hashicorp/hcl/hcl/parser
@@ -368,7 +354,6 @@ github.com/hashicorp/terraform-exec/tfinstall
 # github.com/hashicorp/terraform-json v0.5.0
 github.com/hashicorp/terraform-json
 # github.com/hashicorp/terraform-plugin-sdk v1.16.1-0.20210222152151-32f0219df5b5
-## explicit
 github.com/hashicorp/terraform-plugin-sdk/acctest
 github.com/hashicorp/terraform-plugin-sdk/helper/acctest
 github.com/hashicorp/terraform-plugin-sdk/helper/customdiff
@@ -470,24 +455,19 @@ github.com/posener/complete/cmd
 github.com/posener/complete/cmd/install
 github.com/posener/complete/match
 # github.com/rickb777/date v1.12.5-0.20200422084442-6300e543c4d9
-## explicit
 github.com/rickb777/date/period
 # github.com/rickb777/plural v1.2.0
 github.com/rickb777/plural
 # github.com/satori/go.uuid v1.2.0
-## explicit
 github.com/satori/go.uuid
 # github.com/satori/uuid v0.0.0-20160927100844-b061729afc07
-## explicit
 github.com/satori/uuid
 # github.com/sergi/go-diff v1.1.0
-## explicit
 github.com/sergi/go-diff/diffmatchpatch
 # github.com/spf13/afero v1.2.2
 github.com/spf13/afero
 github.com/spf13/afero/mem
 # github.com/terraform-providers/terraform-provider-azuread v0.9.0
-## explicit
 github.com/terraform-providers/terraform-provider-azuread/azuread
 github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/ar
 github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/graph
@@ -497,7 +477,6 @@ github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/tf
 github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/validate
 github.com/terraform-providers/terraform-provider-azuread/version
 # github.com/tombuildsstuff/giovanni v0.15.1
-## explicit
 github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/accounts
 github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/blobs
 github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/containers
@@ -556,7 +535,6 @@ go.opencensus.io/trace/internal
 go.opencensus.io/trace/propagation
 go.opencensus.io/trace/tracestate
 # golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83
-## explicit
 golang.org/x/crypto/bcrypt
 golang.org/x/crypto/blowfish
 golang.org/x/crypto/cast5
@@ -585,7 +563,6 @@ golang.org/x/lint/golint
 golang.org/x/mod/module
 golang.org/x/mod/semver
 # golang.org/x/net v0.0.0-20201110031124-69a78807bb2b
-## explicit
 golang.org/x/net/context
 golang.org/x/net/context/ctxhttp
 golang.org/x/net/http/httpguts
@@ -749,5 +726,4 @@ google.golang.org/protobuf/types/pluginpb
 # gopkg.in/warnings.v0 v0.1.2
 gopkg.in/warnings.v0
 # gopkg.in/yaml.v2 v2.2.8
-## explicit
 gopkg.in/yaml.v2

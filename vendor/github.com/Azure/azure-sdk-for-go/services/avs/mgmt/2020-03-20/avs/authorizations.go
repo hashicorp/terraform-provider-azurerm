@@ -77,7 +77,7 @@ func (client AuthorizationsClient) CreateOrUpdate(ctx context.Context, resourceG
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "avs.AuthorizationsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "avs.AuthorizationsClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -117,7 +117,33 @@ func (client AuthorizationsClient) CreateOrUpdateSender(req *http.Request) (futu
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client AuthorizationsClient) (era ExpressRouteAuthorization, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "avs.AuthorizationsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("avs.AuthorizationsCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		era.Response.Response, err = future.GetResult(sender)
+		if era.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "avs.AuthorizationsCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && era.Response.Response.StatusCode != http.StatusNoContent {
+			era, err = client.CreateOrUpdateResponder(era.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "avs.AuthorizationsCreateOrUpdateFuture", "Result", era.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -167,7 +193,7 @@ func (client AuthorizationsClient) Delete(ctx context.Context, resourceGroupName
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "avs.AuthorizationsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "avs.AuthorizationsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -204,7 +230,23 @@ func (client AuthorizationsClient) DeleteSender(req *http.Request) (future Autho
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client AuthorizationsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "avs.AuthorizationsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("avs.AuthorizationsDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -353,6 +395,7 @@ func (client AuthorizationsClient) List(ctx context.Context, resourceGroupName s
 	}
 	if result.eral.hasNextLink() && result.eral.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -414,7 +457,6 @@ func (client AuthorizationsClient) listNextResults(ctx context.Context, lastResu
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "avs.AuthorizationsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
