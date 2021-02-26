@@ -15,6 +15,10 @@ ENHANCEMENTS:
 * `azurerm_mssql_server` - support for the `extended_auditing_policy.log_monitoring_enabled` property [GH-10324]
 * `azurerm_mssql_server_extended_auditing_policy ` - support for the `log_monitoring_enabled` property [GH-10324]
 
+BUG FIXES:
+
+* `azurerm_api_management` - changing the `sku` property no longer forces a new resouce to be created [GH-10747]
+
 ## 2.49.0 (February 26, 2021)
 
 FEATURES:
