@@ -3,7 +3,9 @@
 FEATURES:
 
 * **New Data Source:** `azurerm_spring_cloud_app` [GH-10678]
-* **New Resource:** `azurerm_kusto_iothub_data_connection` [GH-8626]
+** **New Resource:** `azurerm_databox_edge_device` [GH-10730]
+* **New Resource:** `azurerm_databox_edge_order` [GH-10730]
+*  **New Resource:** `azurerm_kusto_iothub_data_connection` [GH-8626]
 * **New Resource:** `azurerm_security_center_assessment_metadata` [GH-10124]
 * **New Resource:** `azurerm_spring_cloud_custom_domain` [GH-10404]
 
