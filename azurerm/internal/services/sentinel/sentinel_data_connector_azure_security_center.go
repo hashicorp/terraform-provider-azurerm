@@ -81,7 +81,9 @@ func resourceSentinelDataConnectorAzureSecurityCenterCreate(d *schema.ResourceDa
 			}
 		}
 
-		return tf.ImportAsExistsError("azurerm_sentinel_data_connector_azure_security_center", id.ID())
+		if !utils.ResponseWasNotFound(resp.Response) {
+			return tf.ImportAsExistsError("azurerm_sentinel_data_connector_azure_security_center", id.ID())
+		}
 	}
 
 	subscriptionId := d.Get("subscription_id").(string)
