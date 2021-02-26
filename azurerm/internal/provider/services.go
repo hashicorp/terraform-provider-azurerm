@@ -22,6 +22,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/costmanagement"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/customproviders"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databasemigration"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databoxedge"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake"
@@ -125,6 +126,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 		datafactory.Registration{},
 		datalake.Registration{},
 		databasemigration.Registration{},
+		databoxedge.Registration{},
 		datashare.Registration{},
 		desktopvirtualization.Registration{},
 		devspace.Registration{},
