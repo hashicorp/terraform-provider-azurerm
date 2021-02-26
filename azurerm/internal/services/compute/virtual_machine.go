@@ -514,7 +514,8 @@ func virtualMachineAttachDataDiskSchema() *schema.Schema {
 					ValidateFunc: validation.IntAtLeast(0),
 				},
 
-				"caching": {Type: schema.TypeString,
+				"caching": {
+					Type:     schema.TypeString,
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(compute.CachingTypesNone),
