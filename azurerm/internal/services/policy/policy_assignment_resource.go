@@ -24,7 +24,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmPolicyAssignment() *schema.Resource {
+func resourcePolicyAssignment() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmPolicyAssignmentCreateUpdate,
 		Update: resourceArmPolicyAssignmentCreateUpdate,

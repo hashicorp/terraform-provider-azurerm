@@ -25,7 +25,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmPolicySetDefinition() *schema.Resource {
+func resourcePolicySetDefinition() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmPolicySetDefinitionCreate,
 		Update: resourceArmPolicySetDefinitionUpdate,

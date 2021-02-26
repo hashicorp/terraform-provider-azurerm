@@ -20,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceGuestConfigurationAssignment() *schema.Resource {
+func resourceVirtualMachineGuestConfigurationAssignment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceGuestConfigurationAssignmentCreateUpdate,
-		Read:   resourceGuestConfigurationAssignmentRead,
-		Update: resourceGuestConfigurationAssignmentCreateUpdate,
-		Delete: resourceGuestConfigurationAssignmentDelete,
+		Create: resourceVirtualMachineGuestConfigurationAssignmentCreateUpdate,
+		Read:   resourceVirtualMachineGuestConfigurationAssignmentRead,
+		Update: resourceVirtualMachineGuestConfigurationAssignmentCreateUpdate,
+		Delete: resourceVirtualMachineGuestConfigurationAssignmentDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -74,13 +74,13 @@ func resourceGuestConfigurationAssignment() *schema.Resource {
 								Schema: map[string]*schema.Schema{
 									"name": {
 										Type:         schema.TypeString,
-										Optional:     true,
+										Required:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"value": {
 										Type:     schema.TypeString,
-										Optional: true,
+										Required: true,
 									},
 								},
 							},
@@ -102,7 +102,7 @@ func resourceGuestConfigurationAssignment() *schema.Resource {
 	}
 }
 
-func resourceGuestConfigurationAssignmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualMachineGuestConfigurationAssignmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Policy.GuestConfigurationAssignmentsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -154,10 +154,10 @@ func resourceGuestConfigurationAssignmentCreateUpdate(d *schema.ResourceData, me
 
 	d.SetId(id.ID())
 
-	return resourceGuestConfigurationAssignmentRead(d, meta)
+	return resourceVirtualMachineGuestConfigurationAssignmentRead(d, meta)
 }
 
-func resourceGuestConfigurationAssignmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualMachineGuestConfigurationAssignmentRead(d *schema.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Policy.GuestConfigurationAssignmentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -191,7 +191,7 @@ func resourceGuestConfigurationAssignmentRead(d *schema.ResourceData, meta inter
 	return nil
 }
 
-func resourceGuestConfigurationAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualMachineGuestConfigurationAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.GuestConfigurationAssignmentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
