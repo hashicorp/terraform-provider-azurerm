@@ -177,6 +177,14 @@ resource "azurerm_linux_virtual_machine" "test" {
     sku       = "16.04-LTS"
     version   = "latest"
   }
+
+  lifecycle {
+    ignore_changes = [
+      # Ignore changes to tags, e.g. because a management agent
+      # updates these based on some ruleset managed elsewhere.
+      tags,
+    ]
+  }
 }
 `, template, data.RandomInteger)
 }
@@ -209,10 +217,9 @@ func (r GuestConfigurationAssignmentResource) requiresImport(data acceptance.Tes
 %s
 
 resource "azurerm_guest_configuration_assignment" "import" {
-  name                = azurerm_guest_configuration_assignment.test.name
-  resource_group_name = azurerm_guest_configuration_assignment.test.resource_group_name
-  location            = azurerm_guest_configuration_assignment.test.location
-  vm_name             = azurerm_guest_configuration_assignment.test.vm_name
+  name               = azurerm_guest_configuration_assignment.test.name
+  location           = azurerm_guest_configuration_assignment.test.location
+  virtual_machine_id = azurerm_guest_configuration_assignment.test.virtual_machine_id
 }
 `, config)
 }
@@ -223,17 +230,22 @@ func (r GuestConfigurationAssignmentResource) complete(data acceptance.TestData)
 %s
 
 resource "azurerm_guest_configuration_assignment" "test" {
-  name                = "acctest-gca-%d"
-  location            = azurerm_resource_group.test.location
+  name               = "acctest-gca-%d"
+  location           = azurerm_resource_group.test.location
   virtual_machine_id = azurerm_linux_virtual_machine.test.id
-  context             = "Azure policy"
+
   guest_configuration {
-    name = "WhitelistedApplication"
+    name    = "WhitelistedApplication"
     version = "1.*"
 
     parameter {
       name  = "[InstalledApplication]bwhitelistedapp;Name"
       value = "NotePad,sql"
+    }
+
+    parameter {
+      name  = "test"
+      value = "value"
     }
   }
 }

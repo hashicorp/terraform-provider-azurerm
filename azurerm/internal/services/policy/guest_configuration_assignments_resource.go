@@ -62,8 +62,9 @@ func resourceGuestConfigurationAssignment() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"parameter": {
@@ -89,23 +90,8 @@ func resourceGuestConfigurationAssignment() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
-
-						"content_hash": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"content_uri": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
 					},
 				},
-			},
-
-			"assignment_hash": {
-				Type:     schema.TypeString,
-				Computed: true,
 			},
 
 			"compliance_status": {
@@ -145,7 +131,7 @@ func resourceGuestConfigurationAssignmentCreateUpdate(d *schema.ResourceData, me
 		Name:     utils.String(d.Get("name").(string)),
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Properties: &guestconfiguration.AssignmentProperties{
-			GuestConfiguration: expandGuestConfigurationAssignmentNavigation(d.Get("guest_configuration").([]interface{})),
+			GuestConfiguration: expandGuestConfigurationAssignment(d.Get("guest_configuration").([]interface{})),
 		},
 	}
 	future, err := client.CreateOrUpdate(ctx, id.Name, parameter, id.ResourceGroup, id.VMName)
@@ -196,7 +182,7 @@ func resourceGuestConfigurationAssignmentRead(d *schema.ResourceData, meta inter
 	d.Set("virtual_machine_id", vmId.ID())
 	d.Set("location", location.NormalizeNilable(resp.Location))
 	if props := resp.Properties; props != nil {
-		if err := d.Set("guest_configuration", flattenGuestConfigurationAssignmentNavigation(props.GuestConfiguration)); err != nil {
+		if err := d.Set("guest_configuration", flattenGuestConfigurationAssignment(props.GuestConfiguration)); err != nil {
 			return fmt.Errorf("setting `guest_configuration`: %+v", err)
 		}
 		d.Set("assignment_hash", props.AssignmentHash)
@@ -226,7 +212,7 @@ func resourceGuestConfigurationAssignmentDelete(d *schema.ResourceData, meta int
 	return nil
 }
 
-func expandGuestConfigurationAssignmentNavigation(input []interface{}) *guestconfiguration.Navigation {
+func expandGuestConfigurationAssignment(input []interface{}) *guestconfiguration.Navigation {
 	if len(input) == 0 {
 		return nil
 	}
@@ -234,11 +220,11 @@ func expandGuestConfigurationAssignmentNavigation(input []interface{}) *guestcon
 	return &guestconfiguration.Navigation{
 		Name:                   utils.String(v["name"].(string)),
 		Version:                utils.String(v["version"].(string)),
-		ConfigurationParameter: expandGuestConfigurationAssignmentConfigurationParameterArray(v["parameter"].(*schema.Set).List()),
+		ConfigurationParameter: expandGuestConfigurationAssignmentConfigurationParameters(v["parameter"].(*schema.Set).List()),
 	}
 }
 
-func expandGuestConfigurationAssignmentConfigurationParameterArray(input []interface{}) *[]guestconfiguration.ConfigurationParameter {
+func expandGuestConfigurationAssignmentConfigurationParameters(input []interface{}) *[]guestconfiguration.ConfigurationParameter {
 	results := make([]guestconfiguration.ConfigurationParameter, 0)
 	for _, item := range input {
 		v := item.(map[string]interface{})
@@ -250,30 +236,7 @@ func expandGuestConfigurationAssignmentConfigurationParameterArray(input []inter
 	return &results
 }
 
-func expandGuestConfigurationAssignmentConfigurationSetting(input []interface{}) *guestconfiguration.ConfigurationSetting {
-	if len(input) == 0 {
-		return nil
-	}
-	v := input[0].(map[string]interface{})
-	rebootIfNeeded := guestconfiguration.RebootIfNeededFalse
-	if v["reboot_if_needed"].(bool) {
-		rebootIfNeeded = guestconfiguration.RebootIfNeededTrue
-	}
-	allowModuleOverwrite := guestconfiguration.False
-	if v["allow_module_overwrite"].(bool) {
-		allowModuleOverwrite = guestconfiguration.True
-	}
-	return &guestconfiguration.ConfigurationSetting{
-		ConfigurationMode:              guestconfiguration.ConfigurationMode(v["configuration_mode"].(string)),
-		AllowModuleOverwrite:           allowModuleOverwrite,
-		ActionAfterReboot:              guestconfiguration.ActionAfterReboot(v["action_after_reboot"].(string)),
-		RefreshFrequencyMins:           utils.Float(v["refresh_frequency_in_minute"].(float64)),
-		RebootIfNeeded:                 rebootIfNeeded,
-		ConfigurationModeFrequencyMins: utils.Float(v["configuration_mode_frequency_mins"].(float64)),
-	}
-}
-
-func flattenGuestConfigurationAssignmentNavigation(input *guestconfiguration.Navigation) []interface{} {
+func flattenGuestConfigurationAssignment(input *guestconfiguration.Navigation) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
@@ -297,7 +260,7 @@ func flattenGuestConfigurationAssignmentNavigation(input *guestconfiguration.Nav
 	return []interface{}{
 		map[string]interface{}{
 			"name":         name,
-			"parameter":    flattenGuestConfigurationAssignmentConfigurationParameterArray(input.ConfigurationParameter),
+			"parameter":    flattenGuestConfigurationAssignmentConfigurationParameters(input.ConfigurationParameter),
 			"version":      version,
 			"content_hash": contentHash,
 			"content_uri":  contentUri,
@@ -305,7 +268,7 @@ func flattenGuestConfigurationAssignmentNavigation(input *guestconfiguration.Nav
 	}
 }
 
-func flattenGuestConfigurationAssignmentConfigurationParameterArray(input *[]guestconfiguration.ConfigurationParameter) []interface{} {
+func flattenGuestConfigurationAssignmentConfigurationParameters(input *[]guestconfiguration.ConfigurationParameter) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -326,32 +289,4 @@ func flattenGuestConfigurationAssignmentConfigurationParameterArray(input *[]gue
 		})
 	}
 	return results
-}
-
-func flattenGuestConfigurationAssignmentConfigurationSetting(input *guestconfiguration.ConfigurationSetting) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
-	}
-
-	configurationMode := input.ConfigurationMode
-
-	var configurationModeFrequencyMins float64
-	if input.ConfigurationModeFrequencyMins != nil {
-		configurationModeFrequencyMins = *input.ConfigurationModeFrequencyMins
-	}
-
-	var refreshFrequencyMinute float64
-	if input.RefreshFrequencyMins != nil {
-		refreshFrequencyMinute = *input.RefreshFrequencyMins
-	}
-	return []interface{}{
-		map[string]interface{}{
-			"action_after_reboot":               input.ActionAfterReboot,
-			"allow_module_overwrite":            input.AllowModuleOverwrite == guestconfiguration.True,
-			"configuration_mode":                configurationMode,
-			"configuration_mode_frequency_mins": configurationModeFrequencyMins,
-			"reboot_if_needed":                  input.RebootIfNeeded == guestconfiguration.RebootIfNeededTrue,
-			"refresh_frequency_in_minute":       refreshFrequencyMinute,
-		},
-	}
 }
