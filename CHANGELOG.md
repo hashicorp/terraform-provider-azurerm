@@ -19,12 +19,12 @@ ENHANCEMENTS:
 * testing: updating the tests to use the Terraform release binaries when running acceptance tests ([#10523](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10523))
 * `azurerm_api_management` - support for the  `tenant_access` block ([#10475](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10475))
 * `azurerm_api_management_logger` - support for configuring a `resource_id` ([#10652](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10652))
-* `azurerm_data_factory_linked_service_azure_blob_storage` - now supports `sas_uri` property ([#10551](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10551))
-* `azurerm_data_factory_linked_service_azure_blob_storage` - now supports Managed Identity and Service Principal auth ([#10551](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10551))
+* `azurerm_data_factory_linked_service_azure_blob_storage` - now supports the `sas_uri` property ([#10551](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10551))
+* `azurerm_data_factory_linked_service_azure_blob_storage` - now supports Managed Identity and Service Principal authentication ([#10551](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10551))
 * `azurerm_monitor_smart_detector_alert_rule` - supports for the `tags` property ([#10646](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10646))
 * `azurerm_netapp_volume` - support for the `data_protection_replication` block ([#10610](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10610))
-* `azurerm_sentinel_alert_rule_ms_security_incident` - support `Microsoft Defender Advanced Threat Protection` and `Office 365 Advanced Threat Protection` for the `product_filter` property ([#10725](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10725))
-* `azurerm_service_fabric_cluster` - Add support for `upgrade policy` ([#10713](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10713))
+* `azurerm_sentinel_alert_rule_ms_security_incident` - support `Microsoft Defender Advanced Threat Protection` and `Office 365 Advanced Threat Protection` values for the `product_filter` property ([#10725](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10725))
+* `azurerm_service_fabric_cluster` - Add support for the `upgrade policy` block ([#10713](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10713))
 
 BUG FIXES:
 
@@ -36,9 +36,9 @@ BUG FIXES:
 * `azurerm_data_factory_integration_runtime_managed` - the `administrator_login` and `administrator_password` properties are now optional ([#10640](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10640))
 * `azurerm_eventhub_namespace` - the `capacity` property can now be greater than `50` ([#10734](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10734))
 * `azurerm_key_vault_certificate` - waiting for deletion to complete before purging ([#10577](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10577))
-* `azurerm_key_vault_key` - waiting for deletion to complete before purging ([#10577](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10577))
-* `azurerm_key_vault_secret` - waiting for deletion to complete before purging ([#10577](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10577))
-* `azurerm_kusto_cluster` - changing `virtual_network_configuration` forces a new resource to be created ([#10640](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10640))
+* `azurerm_key_vault_key` - now waits for deletion to complete before purging ([#10577](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10577))
+* `azurerm_key_vault_secret` - now waits for deletion to complete before purging ([#10577](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10577))
+* `azurerm_kusto_cluster` - changing the `virtual_network_configuration` property forces a new resource to be created ([#10640](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10640))
 * `azurerm_lb_outbound_rule` - fixing a crash when `frontendIPConfigurations` is omitted in the API response ([#10696](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10696))
 * `azurerm_media_content_key_policy` - fix an encoding bug which prevented configuring `ask` in the `fairplay_configuration` block ([#10684](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10684))
 
