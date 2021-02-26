@@ -81,14 +81,14 @@ resource "azurerm_eventgrid_event_subscription" "example" {
 }
 
 resource "azurerm_kusto_eventgrid_data_connection" "example" {
-  name                = "my-kusto-eventgrid-data-connection"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
-  cluster_name        = azurerm_kusto_cluster.example.name
-  database_name       = azurerm_kusto_database.example.name
-  storage_account_id  = azurerm_storage_account.example.id
-  eventhub_id         = azurerm_eventhub.example.id
-  consumer_group      = azurerm_eventhub_consumer_group.example.name
+  name                         = "my-kusto-eventgrid-data-connection"
+  resource_group_name          = azurerm_resource_group.example.name
+  location                     = azurerm_resource_group.example.location
+  cluster_name                 = azurerm_kusto_cluster.example.name
+  database_name                = azurerm_kusto_database.example.name
+  storage_account_id           = azurerm_storage_account.example.id
+  eventhub_id                  = azurerm_eventhub.example.id
+  eventhub_consumer_group_name = azurerm_eventhub_consumer_group.example.name
 
   depends_on = [azurerm_eventgrid_event_subscription.example]
 }
@@ -110,13 +110,17 @@ The following arguments are supported:
 
 * `storage_account_id` - (Required) Specifies the resource id of the Storage Account this data connection will use for ingestion. Changing this forces a new resource to be created.
 
-* `eventhub_id` - (Required) Specifies the resource id of the Event Hub this data connection will use for ingestion. Changing this forces a new resource to be created.
+* `eventhub_id` - (Required) Specifies the resource id of the Event Hub this data connection will use for ingestion.
+  Changing this forces a new resource to be created.
 
-* `consumer_group` - (Required) Specifies the Event Hub consumer group this data connection will use for ingestion. Changing this forces a new resource to be created.
+* `eventhub_consumer_group_name` - (Required) Specifies the Event Hub consumer group this data connection will use for
+  ingestion. Changing this forces a new resource to be created.
 
-* `blob_storage_event_type` - (Optional) Specifies the blob storage event type that needs to be processed. Possible Values are `Microsoft.Storage.BlobCreated` and `Microsoft.Storage.BlobRenamed`. Defaults to `Microsoft.Storage.BlobCreated`. Changing this forces a new resource to be created.
+* `blob_storage_event_type` - (Optional) Specifies the blob storage event type that needs to be processed. Possible
+  Values are `Microsoft.Storage.BlobCreated` and `Microsoft.Storage.BlobRenamed`. Defaults
+  to `Microsoft.Storage.BlobCreated`.
 
-* `ignore_first_record` - (Optional) is the first record of every file ignored? Defaults to `false`. Changing this forces a new resource to be created.
+* `skip_first_record` - (Optional) is the first record of every file ignored? Defaults to `false`.
 
 ## Attributes Reference
 
@@ -129,6 +133,7 @@ The following attributes are exported:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `create` - (Defaults to 60 minutes) Used when creating the Kusto Event Grid Data Connection.
+* `update` - (Defaults to 60 minutes) Used when updating the Kusto Event Grid Data Connection.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Kusto Event Grid Data Connection.
 * `delete` - (Defaults to 60 minutes) Used when deleting the Kusto Event Grid Data Connection.
 

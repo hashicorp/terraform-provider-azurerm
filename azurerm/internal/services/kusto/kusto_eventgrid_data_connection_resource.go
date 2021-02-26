@@ -23,7 +23,8 @@ import (
 
 func resourceKustoEventGridDataConnection() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceKustoEventGridDataConnectionCreate,
+		Create: resourceKustoEventGridDataConnectionCreateUpdate,
+		Update: resourceKustoEventGridDataConnectionCreateUpdate,
 		Read:   resourceKustoEventGridDataConnectionRead,
 		Delete: resourceKustoEventGridDataConnectionDelete,
 
@@ -34,6 +35,7 @@ func resourceKustoEventGridDataConnection() *schema.Resource {
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),
+			Update: schema.DefaultTimeout(60 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
 			Delete: schema.DefaultTimeout(60 * time.Minute),
 		},
@@ -78,7 +80,7 @@ func resourceKustoEventGridDataConnection() *schema.Resource {
 				ValidateFunc: eventhubValidate.EventHubID,
 			},
 
-			"consumer_group": {
+			"eventhub_consumer_group_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -88,7 +90,6 @@ func resourceKustoEventGridDataConnection() *schema.Resource {
 			"blob_storage_event_type": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 				Default:  string(kusto.MicrosoftStorageBlobCreated),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(kusto.MicrosoftStorageBlobCreated),
@@ -96,34 +97,35 @@ func resourceKustoEventGridDataConnection() *schema.Resource {
 				}, false),
 			},
 
-			"ignore_first_record": {
+			"skip_first_record": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
-				ForceNew: true,
 			},
 		},
 	}
 }
 
-func resourceKustoEventGridDataConnectionCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoEventGridDataConnectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DataConnectionsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure Kusto Event Grid Data Connection creation.")
 
 	id := parse.NewDataConnectionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("cluster_name").(string), d.Get("database_name").(string), d.Get("name").(string))
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ClusterName, id.DatabaseName, id.Name)
-	if err != nil {
-		if !utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+	if d.IsNewResource() {
+		resp, err := client.Get(ctx, id.ResourceGroup, id.ClusterName, id.DatabaseName, id.Name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			}
 		}
-	}
 
-	if !utils.ResponseWasNotFound(resp.Response) {
-		return tf.ImportAsExistsError("azurerm_kusto_eventgrid_data_connection", id.ID())
+		if !utils.ResponseWasNotFound(resp.Response) {
+			return tf.ImportAsExistsError("azurerm_kusto_eventgrid_data_connection", id.ID())
+		}
 	}
 
 	dataConnection := kusto.EventGridDataConnection{
@@ -131,8 +133,8 @@ func resourceKustoEventGridDataConnectionCreate(d *schema.ResourceData, meta int
 		EventGridConnectionProperties: &kusto.EventGridConnectionProperties{
 			StorageAccountResourceID: utils.String(d.Get("storage_account_id").(string)),
 			EventHubResourceID:       utils.String(d.Get("eventhub_id").(string)),
-			ConsumerGroup:            utils.String(d.Get("consumer_group").(string)),
-			IgnoreFirstRecord:        utils.Bool(d.Get("ignore_first_record").(bool)),
+			ConsumerGroup:            utils.String(d.Get("eventhub_consumer_group_name").(string)),
+			IgnoreFirstRecord:        utils.Bool(d.Get("skip_first_record").(bool)),
 			BlobStorageEventType:     kusto.BlobStorageEventType(d.Get("blob_storage_event_type").(string)),
 		},
 	}
@@ -180,8 +182,8 @@ func resourceKustoEventGridDataConnectionRead(d *schema.ResourceData, meta inter
 		if props := dataConnection.EventGridConnectionProperties; props != nil {
 			d.Set("storage_account_id", props.StorageAccountResourceID)
 			d.Set("eventhub_id", props.EventHubResourceID)
-			d.Set("consumer_group", props.ConsumerGroup)
-			d.Set("ignore_first_record", props.IgnoreFirstRecord)
+			d.Set("eventhub_consumer_group_name", props.ConsumerGroup)
+			d.Set("skip_first_record", props.IgnoreFirstRecord)
 			d.Set("blob_storage_event_type", props.BlobStorageEventType)
 		}
 	}

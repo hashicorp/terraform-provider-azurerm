@@ -62,6 +62,35 @@ func TestAccKustoEventGridDataConnection_complete(t *testing.T) {
 	})
 }
 
+func TestAccKustoEventGridDataConnection_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kusto_eventgrid_data_connection", "test")
+	r := KustoEventGridDataConnectionResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (KustoEventGridDataConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.DataConnectionID(state.ID)
 	if err != nil {
@@ -86,14 +115,14 @@ func (r KustoEventGridDataConnectionResource) basic(data acceptance.TestData) st
 %s
 
 resource "azurerm_kusto_eventgrid_data_connection" "test" {
-  name                = "acctestkrgdc-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  cluster_name        = azurerm_kusto_cluster.test.name
-  database_name       = azurerm_kusto_database.test.name
-  storage_account_id  = azurerm_storage_account.test.id
-  eventhub_id         = azurerm_eventhub.test.id
-  consumer_group      = azurerm_eventhub_consumer_group.test.name
+  name                         = "acctestkrgdc-%d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  cluster_name                 = azurerm_kusto_cluster.test.name
+  database_name                = azurerm_kusto_database.test.name
+  storage_account_id           = azurerm_storage_account.test.id
+  eventhub_id                  = azurerm_eventhub.test.id
+  eventhub_consumer_group_name = azurerm_eventhub_consumer_group.test.name
 
   depends_on = [azurerm_eventgrid_event_subscription.test]
 }
@@ -105,14 +134,14 @@ func (r KustoEventGridDataConnectionResource) requiresImport(data acceptance.Tes
 %s
 
 resource "azurerm_kusto_eventgrid_data_connection" "import" {
-  name                = azurerm_kusto_eventgrid_data_connection.test.name
-  resource_group_name = azurerm_kusto_eventgrid_data_connection.test.resource_group_name
-  location            = azurerm_kusto_eventgrid_data_connection.test.location
-  cluster_name        = azurerm_kusto_eventgrid_data_connection.test.cluster_name
-  database_name       = azurerm_kusto_eventgrid_data_connection.test.database_name
-  storage_account_id  = azurerm_kusto_eventgrid_data_connection.test.storage_account_id
-  eventhub_id         = azurerm_kusto_eventgrid_data_connection.test.eventhub_id
-  consumer_group      = azurerm_kusto_eventgrid_data_connection.test.consumer_group
+  name                         = azurerm_kusto_eventgrid_data_connection.test.name
+  resource_group_name          = azurerm_kusto_eventgrid_data_connection.test.resource_group_name
+  location                     = azurerm_kusto_eventgrid_data_connection.test.location
+  cluster_name                 = azurerm_kusto_eventgrid_data_connection.test.cluster_name
+  database_name                = azurerm_kusto_eventgrid_data_connection.test.database_name
+  storage_account_id           = azurerm_kusto_eventgrid_data_connection.test.storage_account_id
+  eventhub_id                  = azurerm_kusto_eventgrid_data_connection.test.eventhub_id
+  eventhub_consumer_group_name = azurerm_kusto_eventgrid_data_connection.test.eventhub_consumer_group_name
 }
 `, r.basic(data))
 }
@@ -122,17 +151,17 @@ func (r KustoEventGridDataConnectionResource) complete(data acceptance.TestData)
 %s
 
 resource "azurerm_kusto_eventgrid_data_connection" "test" {
-  name                = "acctestkrgdc-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  cluster_name        = azurerm_kusto_cluster.test.name
-  database_name       = azurerm_kusto_database.test.name
-  storage_account_id  = azurerm_storage_account.test.id
-  eventhub_id         = azurerm_eventhub.test.id
-  consumer_group      = azurerm_eventhub_consumer_group.test.name
+  name                         = "acctestkrgdc-%d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  cluster_name                 = azurerm_kusto_cluster.test.name
+  database_name                = azurerm_kusto_database.test.name
+  storage_account_id           = azurerm_storage_account.test.id
+  eventhub_id                  = azurerm_eventhub.test.id
+  eventhub_consumer_group_name = azurerm_eventhub_consumer_group.test.name
 
   blob_storage_event_type = "Microsoft.Storage.BlobRenamed"
-  ignore_first_record     = true
+  skip_first_record       = true
 
   depends_on = [azurerm_eventgrid_event_subscription.test]
 }
