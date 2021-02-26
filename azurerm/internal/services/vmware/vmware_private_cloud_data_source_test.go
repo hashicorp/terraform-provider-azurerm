@@ -12,7 +12,7 @@ import (
 type VmwarePrivateCloudDataSource struct {
 }
 
-func TestAccDataSourceVmwarePrivateCloud_basic(t *testing.T) {
+func TestAccVmwarePrivateCloudDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_vmware_private_cloud", "test")
 	r := VmwarePrivateCloudDataSource{}
 

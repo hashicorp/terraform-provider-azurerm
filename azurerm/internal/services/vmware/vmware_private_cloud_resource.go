@@ -3,7 +3,6 @@ package vmware
 import (
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/avs/mgmt/2020-03-20/avs"
@@ -59,10 +58,7 @@ func resourceVmwarePrivateCloud() *schema.Resource {
 					"av20",
 					"av36",
 					"av36t",
-				}, true),
-				DiffSuppressFunc: func(_, old, new string, _ *schema.ResourceData) bool {
-					return strings.EqualFold(old, new)
-				},
+				}, false),
 			},
 
 			"management_cluster": {

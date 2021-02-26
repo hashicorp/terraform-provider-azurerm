@@ -12,9 +12,12 @@ Manages a Vmware Private Cloud.
 
 ## Example Usage
 
+~> **NOTE :**  Normal `terraform apply` could ignore this note. Please disable correlation request id for continuous operations in one build (like acctest). The continuous operations like `update` or `delete` could not be triggered when it shares the same `correlation-id` with its previous operation. 
+
 ```hcl
 provider "azurerm" {
   features {}
+  disable_correlation_request_id = true
 }
 
 resource "azurerm_resource_group" "example" {
@@ -50,12 +53,14 @@ The following arguments are supported:
 * `location` - (Required) The Azure Region where the Vmware Private Cloud should exist. Changing this forces a new Vmware Private Cloud to be created.
 
 * `management_cluster` - (Required) A `management_cluster` block as defined below.
+~> **NOTE :** `internet_connection_enabled` and `management_cluster.0.size` cannot be updated at the same time.
 
 * `network_subnet_cidr` - (Required) The subnet which should be unique across virtual network in your subscription as well as on-premise. Changing this forces a new Vmware Private Cloud to be created.
 
 * `sku_name` - (Required) The Name of the SKU used for this Private Cloud. Possible values are `av20`, `av36` and `av36t`. Changing this forces a new Vmware Private Cloud to be created.
 
 * `internet_connection_enabled` - (Optional) Is the Private Cluster connected to the internet? This field can not updated with `management_cluster.0.size` together.
+~> **NOTE :** `internet_connection_enabled` and `management_cluster.0.size` cannot be updated at the same time.
 
 * `nsxt_password` - (Optional) The password of the NSX-T Manager. Changing this forces a new Vmware Private Cloud to be created.
 
