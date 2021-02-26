@@ -178,6 +178,7 @@ func (client AdvisorsClient) ListByServer(ctx context.Context, resourceGroupName
 	}
 	if result.arl.hasNextLink() && result.arl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -239,7 +240,6 @@ func (client AdvisorsClient) listByServerNextResults(ctx context.Context, lastRe
 	result, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mariadb.AdvisorsClient", "listByServerNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

@@ -70,7 +70,7 @@ func (client ExtendedServerBlobAuditingPoliciesClient) CreateOrUpdate(ctx contex
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ExtendedServerBlobAuditingPoliciesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ExtendedServerBlobAuditingPoliciesClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -109,7 +109,33 @@ func (client ExtendedServerBlobAuditingPoliciesClient) CreateOrUpdateSender(req 
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ExtendedServerBlobAuditingPoliciesClient) (esbap ExtendedServerBlobAuditingPolicy, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ExtendedServerBlobAuditingPoliciesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.ExtendedServerBlobAuditingPoliciesCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		esbap.Response.Response, err = future.GetResult(sender)
+		if esbap.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "sql.ExtendedServerBlobAuditingPoliciesCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && esbap.Response.Response.StatusCode != http.StatusNoContent {
+			esbap, err = client.CreateOrUpdateResponder(esbap.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "sql.ExtendedServerBlobAuditingPoliciesCreateOrUpdateFuture", "Result", esbap.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -240,6 +266,7 @@ func (client ExtendedServerBlobAuditingPoliciesClient) ListByServer(ctx context.
 	}
 	if result.esbaplr.hasNextLink() && result.esbaplr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -301,7 +328,6 @@ func (client ExtendedServerBlobAuditingPoliciesClient) listByServerNextResults(c
 	result, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ExtendedServerBlobAuditingPoliciesClient", "listByServerNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

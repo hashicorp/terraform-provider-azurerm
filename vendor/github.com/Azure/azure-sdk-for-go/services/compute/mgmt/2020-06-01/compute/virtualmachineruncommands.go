@@ -68,7 +68,7 @@ func (client VirtualMachineRunCommandsClient) CreateOrUpdate(ctx context.Context
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "compute.VirtualMachineRunCommandsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "compute.VirtualMachineRunCommandsClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -107,7 +107,33 @@ func (client VirtualMachineRunCommandsClient) CreateOrUpdateSender(req *http.Req
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client VirtualMachineRunCommandsClient) (vmrc VirtualMachineRunCommand, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "compute.VirtualMachineRunCommandsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("compute.VirtualMachineRunCommandsCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		vmrc.Response.Response, err = future.GetResult(sender)
+		if vmrc.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "compute.VirtualMachineRunCommandsCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && vmrc.Response.Response.StatusCode != http.StatusNoContent {
+			vmrc, err = client.CreateOrUpdateResponder(vmrc.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "compute.VirtualMachineRunCommandsCreateOrUpdateFuture", "Result", vmrc.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -147,7 +173,7 @@ func (client VirtualMachineRunCommandsClient) Delete(ctx context.Context, resour
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "compute.VirtualMachineRunCommandsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "compute.VirtualMachineRunCommandsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -184,7 +210,23 @@ func (client VirtualMachineRunCommandsClient) DeleteSender(req *http.Request) (f
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client VirtualMachineRunCommandsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "compute.VirtualMachineRunCommandsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("compute.VirtualMachineRunCommandsDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -404,6 +446,7 @@ func (client VirtualMachineRunCommandsClient) List(ctx context.Context, location
 	}
 	if result.rclr.hasNextLink() && result.rclr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -464,7 +507,6 @@ func (client VirtualMachineRunCommandsClient) listNextResults(ctx context.Contex
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "compute.VirtualMachineRunCommandsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -522,6 +564,7 @@ func (client VirtualMachineRunCommandsClient) ListByVirtualMachine(ctx context.C
 	}
 	if result.vmrclr.hasNextLink() && result.vmrclr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -586,7 +629,6 @@ func (client VirtualMachineRunCommandsClient) listByVirtualMachineNextResults(ct
 	result, err = client.ListByVirtualMachineResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "compute.VirtualMachineRunCommandsClient", "listByVirtualMachineNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -632,7 +674,7 @@ func (client VirtualMachineRunCommandsClient) Update(ctx context.Context, resour
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "compute.VirtualMachineRunCommandsClient", "Update", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "compute.VirtualMachineRunCommandsClient", "Update", nil, "Failure sending request")
 		return
 	}
 
@@ -671,7 +713,33 @@ func (client VirtualMachineRunCommandsClient) UpdateSender(req *http.Request) (f
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client VirtualMachineRunCommandsClient) (vmrc VirtualMachineRunCommand, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "compute.VirtualMachineRunCommandsUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("compute.VirtualMachineRunCommandsUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		vmrc.Response.Response, err = future.GetResult(sender)
+		if vmrc.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "compute.VirtualMachineRunCommandsUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && vmrc.Response.Response.StatusCode != http.StatusNoContent {
+			vmrc, err = client.UpdateResponder(vmrc.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "compute.VirtualMachineRunCommandsUpdateFuture", "Result", vmrc.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

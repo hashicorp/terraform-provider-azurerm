@@ -71,6 +71,15 @@ resource "azurerm_netapp_volume" "example" {
   subnet_id           = azurerm_subnet.example.id
   protocols           = ["NFSv4.1"]
   storage_quota_in_gb = 100
+
+  # Following section is only required if deploying a data protection volume (secondary)
+  # to enable Cross-Region Replication feature
+  data_protection_replication {
+    endpoint_type             = "dst"
+    remote_volume_location    = azurerm_resource_group.example_primary.location
+    remote_volume_resource_id = azurerm_netapp_volume.example_primary.id
+    replication_frequency     = "_10minutely"
+  }
 }
 ```
 
@@ -123,6 +132,24 @@ An `export_policy_rule` block supports the following:
 * `unix_read_only` - (Optional) Is the file system on unix read only?
 
 * `unix_read_write` - (Optional) Is the file system on unix read and write?
+
+---
+
+An `data_protection_replication` is used when enabling the Cross-Region Replication (CRR) data protection option by deploying two Azure NetApp Files Volumes, one to be a primary volume and the other one will be the secondary, the secondary will have this block and will reference the primary volume, each volume must be in a supported [region pair](https://docs.microsoft.com/en-us/azure/azure-netapp-files/cross-region-replication-introduction#supported-region-pairs) and it supports the following:
+
+* `endpoint_type` - (Optional) The endpoint type, default value is `dst` for destination.
+  
+* `remote_volume_location` - (Required) Primary volume's location.
+
+* `remote_volume_resource_id` - (Required) Primary volume's resource id.
+  
+* `replication_frequency` - (Required) Replication frequency, supported values are '10minutes', 'hourly', 'daily', values are case sensitive.
+
+A full example of the `data_protection_replication` attribute can be found in [the `./examples/netapp/volume_crr` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/netapp/volume_crr)
+
+-> **NOTE:** `data_protection_replication` Is currently in Preview on an opt-in basis. To use it, please refer to [Cross-region replication of Azure NetApp Files volumes](https://docs.microsoft.com/en-us/azure/azure-netapp-files/cross-region-replication-introduction).
+
+~> **NOTE:** `data_protection_replication` can be defined only once per secondary volume, adding a second instance of it is not supported.
 
 ---
 

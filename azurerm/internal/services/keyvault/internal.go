@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -69,8 +70,18 @@ func deleteAndOptionallyPurge(ctx context.Context, description string, shouldPur
 	}
 
 	log.Printf("[DEBUG] Purging %s..", description)
-	if _, err := helper.PurgeNestedItem(ctx); err != nil {
-		return fmt.Errorf("purging %s: %+v", description, err)
+	err := resource.Retry(time.Until(timeout), func() *resource.RetryError {
+		_, err := helper.PurgeNestedItem(ctx)
+		if err == nil {
+			return nil
+		}
+		if strings.Contains(err.Error(), "is currently being deleted") {
+			return resource.RetryableError(fmt.Errorf("%s is currently being deleted, retrying", description))
+		}
+		return resource.NonRetryableError(fmt.Errorf("Error purging of %s : %+v", description, err))
+	})
+	if err != nil {
+		return err
 	}
 
 	log.Printf("[DEBUG] Waiting for %s to finish purging..", description)
@@ -125,16 +136,17 @@ func keyVaultChildItemRefreshFunc(secretUri string) resource.StateRefreshFunc {
 }
 
 func nestedItemResourceImporter(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	client := meta.(*clients.Client).KeyVault.VaultsClient
+	keyVaultsClient := meta.(*clients.Client).KeyVault
+	resourcesClient := meta.(*clients.Client).Resource
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseKeyVaultChildID(d.Id())
+	id, err := parse.ParseNestedItemID(d.Id())
 	if err != nil {
 		return []*schema.ResourceData{d}, fmt.Errorf("parsing ID %q for Key Vault Child import: %v", d.Id(), err)
 	}
 
-	keyVaultId, err := azure.GetKeyVaultIDFromBaseUrl(ctx, client, id.KeyVaultBaseUrl)
+	keyVaultId, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, id.KeyVaultBaseUrl)
 	if err != nil {
 		return []*schema.ResourceData{d}, fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}

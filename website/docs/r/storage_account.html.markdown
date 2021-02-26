@@ -107,7 +107,7 @@ The following arguments are supported:
 
 * `is_hns_enabled` - (Optional) Is Hierarchical Namespace enabled? This can be used with Azure Data Lake Storage Gen 2 ([see here for more information](https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-quickstart-create-account/)). Changing this forces a new resource to be created.
 
--> **NOTE:** This can only be `true` when `account_tier` is `Standard` or `Premium`.
+-> **NOTE:** This can only be `true` when `account_tier` is `Standard` or when `account_tier` is `Premium` *and* `account_kind` is `BlockBlobStorage` 
 
 * `custom_domain` - (Optional) A `custom_domain` block as documented below.
 

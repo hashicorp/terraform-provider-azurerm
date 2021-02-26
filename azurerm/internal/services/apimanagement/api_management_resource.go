@@ -16,26 +16,35 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
 	apimValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/validate"
 	msiparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
-	msivalidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 var (
-	apimBackendProtocolSsl3   = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Ssl30"
-	apimBackendProtocolTls10  = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls10"
-	apimBackendProtocolTls11  = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls11"
-	apimFrontendProtocolSsl3  = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Ssl30"
-	apimFrontendProtocolTls10 = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls10"
-	apimFrontendProtocolTls11 = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls11"
-	apimTripleDesCiphers      = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168"
-	apimHttp2Protocol         = "Microsoft.WindowsAzure.ApiManagement.Gateway.Protocols.Server.Http2"
+	apimBackendProtocolSsl3                  = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Ssl30"
+	apimBackendProtocolTls10                 = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls10"
+	apimBackendProtocolTls11                 = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls11"
+	apimFrontendProtocolSsl3                 = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Ssl30"
+	apimFrontendProtocolTls10                = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls10"
+	apimFrontendProtocolTls11                = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls11"
+	apimTripleDesCiphers                     = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168"
+	apimHttp2Protocol                        = "Microsoft.WindowsAzure.ApiManagement.Gateway.Protocols.Server.Http2"
+	apimTlsEcdheEcdsaWithAes256CbcShaCiphers = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA"
+	apimTlsEcdheEcdsaWithAes128CbcShaCiphers = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA"
+	apimTlsEcdheRsaWithAes256CbcShaCiphers   = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA"
+	apimTlsEcdheRsaWithAes128CbcShaCiphers   = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"
+	apimTlsRsaWithAes128GcmSha256Ciphers     = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_128_GCM_SHA256"
+	apimTlsRsaWithAes256CbcSha256Ciphers     = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_256_CBC_SHA256"
+	apimTlsRsaWithAes128CbcSha256Ciphers     = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_128_CBC_SHA256"
+	apimTlsRsaWithAes256CbcShaCiphers        = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_256_CBC_SHA"
+	apimTlsRsaWithAes128CbcShaCiphers        = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_128_CBC_SHA"
 )
 
 func resourceApiManagementService() *schema.Resource {
@@ -57,7 +66,7 @@ func resourceApiManagementService() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": azure.SchemaApiManagementName(),
+			"name": schemaz.SchemaApiManagementName(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
@@ -66,13 +75,13 @@ func resourceApiManagementService() *schema.Resource {
 			"publisher_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.ApiManagementServicePublisherName,
+				ValidateFunc: apimValidate.ApiManagementServicePublisherName,
 			},
 
 			"publisher_email": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.ApiManagementServicePublisherEmail,
+				ValidateFunc: apimValidate.ApiManagementServicePublisherEmail,
 			},
 
 			"sku_name": {
@@ -113,7 +122,7 @@ func resourceApiManagementService() *schema.Resource {
 							MinItems: 1,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
-								ValidateFunc: msivalidate.UserAssignedIdentityID,
+								ValidateFunc: validate.UserAssignedIdentityID,
 							},
 						},
 					},
@@ -286,7 +295,63 @@ func resourceApiManagementService() *schema.Resource {
 							Default:  false,
 						},
 
+						// TODO: Remove in v3.0
 						"enable_triple_des_ciphers": {
+							Type:          schema.TypeBool,
+							Optional:      true,
+							Computed:      true,
+							ConflictsWith: []string{"security.0.triple_des_ciphers_enabled"},
+							Deprecated:    "this has been renamed to the boolean attribute `triple_des_ciphers_enabled`.",
+						},
+
+						"triple_des_ciphers_enabled": {
+							Type:          schema.TypeBool,
+							Optional:      true,
+							Computed:      true, // TODO: v3.0 remove Computed and set Default: false
+							ConflictsWith: []string{"security.0.enable_triple_des_ciphers"},
+						},
+
+						"tls_ecdhe_ecdsa_with_aes256_cbc_sha_ciphers_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"tls_ecdhe_ecdsa_with_aes128_cbc_sha_ciphers_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"tls_ecdhe_rsa_with_aes256_cbc_sha_ciphers_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"tls_ecdhe_rsa_with_aes128_cbc_sha_ciphers_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"tls_rsa_with_aes128_gcm_sha256_ciphers_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"tls_rsa_with_aes256_cbc_sha256_ciphers_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"tls_rsa_with_aes128_cbc_sha256_ciphers_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"tls_rsa_with_aes256_cbc_sha_ciphers_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"tls_rsa_with_aes128_cbc_sha_ciphers_enabled": {
 							Type:     schema.TypeBool,
 							Optional: true,
 							Default:  false,
@@ -463,6 +528,35 @@ func resourceApiManagementService() *schema.Resource {
 				Computed: true,
 			},
 
+			"tenant_access": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Required: true,
+						},
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"primary_key": {
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+						"secondary_key": {
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+					},
+				},
+			},
+
 			"tags": tags.Schema(),
 		},
 
@@ -637,6 +731,15 @@ func resourceApiManagementServiceCreateUpdate(d *schema.ResourceData, meta inter
 		}
 	}
 
+	if d.HasChange("tenant_access") {
+		tenantAccessInformationParametersRaw := d.Get("tenant_access").([]interface{})
+		tenantAccessInformationParameters := expandApiManagementTenantAccessSettings(tenantAccessInformationParametersRaw)
+		tenantAccessClient := meta.(*clients.Client).ApiManagement.TenantAccessClient
+		if _, err := tenantAccessClient.Update(ctx, resourceGroup, name, tenantAccessInformationParameters, ""); err != nil {
+			return fmt.Errorf(" updating tenant access settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+	}
+
 	return resourceApiManagementServiceRead(d, meta)
 }
 
@@ -644,6 +747,7 @@ func resourceApiManagementServiceRead(d *schema.ResourceData, meta interface{}) 
 	client := meta.(*clients.Client).ApiManagement.ServiceClient
 	signInClient := meta.(*clients.Client).ApiManagement.SignInClient
 	signUpClient := meta.(*clients.Client).ApiManagement.SignUpClient
+	tenantAccessClient := meta.(*clients.Client).ApiManagement.TenantAccessClient
 	environment := meta.(*clients.Client).Account.Environment
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -757,6 +861,14 @@ func resourceApiManagementServiceRead(d *schema.ResourceData, meta interface{}) 
 	} else {
 		d.Set("sign_in", []interface{}{})
 		d.Set("sign_up", []interface{}{})
+	}
+
+	tenantAccessInformationContract, err := tenantAccessClient.ListSecrets(ctx, resourceGroup, name)
+	if err != nil {
+		return fmt.Errorf("retrieving tenant access properties for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+	if err := d.Set("tenant_access", flattenApiManagementTenantAccessSettings(tenantAccessInformationContract)); err != nil {
+		return fmt.Errorf("setting `tenant_access`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -964,7 +1076,7 @@ func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameC
 
 			if valsRaw, ok := v[configType]; ok {
 				vals := valsRaw.([]interface{})
-				azure.CopyCertificateAndPassword(vals, *config.HostName, output)
+				schemaz.CopyCertificateAndPassword(vals, *config.HostName, output)
 			}
 		}
 	}
@@ -1178,6 +1290,15 @@ func expandApiManagementCustomProperties(d *schema.ResourceData, skuIsConsumptio
 	frontendProtocolTls10 := false
 	frontendProtocolTls11 := false
 	tripleDesCiphers := false
+	tlsEcdheEcdsaWithAes256CbcShaCiphers := false
+	tlsEcdheEcdsaWithAes128CbcShaCiphers := false
+	tlsEcdheRsaWithAes256CbcShaCiphers := false
+	tlsEcdheRsaWithAes128CbcShaCiphers := false
+	tlsRsaWithAes128GcmSha256Ciphers := false
+	tlsRsaWithAes256CbcSha256Ciphers := false
+	tlsRsaWithAes128CbcSha256Ciphers := false
+	tlsRsaWithAes256CbcShaCiphers := false
+	tlsRsaWithAes128CbcShaCiphers := false
 
 	if vs := d.Get("security").([]interface{}); len(vs) > 0 {
 		v := vs[0].(map[string]interface{})
@@ -1187,13 +1308,67 @@ func expandApiManagementCustomProperties(d *schema.ResourceData, skuIsConsumptio
 		frontendProtocolSsl3 = v["enable_frontend_ssl30"].(bool)
 		frontendProtocolTls10 = v["enable_frontend_tls10"].(bool)
 		frontendProtocolTls11 = v["enable_frontend_tls11"].(bool)
-		tripleDesCiphers = v["enable_triple_des_ciphers"].(bool)
+
+		// TODO: Remove and simplify after deprecation
+		if v, exists := v["enable_triple_des_ciphers"]; exists {
+			tripleDesCiphers = v.(bool)
+		}
+		if v, exists := v["triple_des_ciphers_enabled"]; exists {
+			tripleDesCiphers = v.(bool)
+		}
+
+		tlsEcdheEcdsaWithAes256CbcShaCiphers = v["tls_ecdhe_ecdsa_with_aes256_cbc_sha_ciphers_enabled"].(bool)
+		tlsEcdheEcdsaWithAes128CbcShaCiphers = v["tls_ecdhe_ecdsa_with_aes128_cbc_sha_ciphers_enabled"].(bool)
+		tlsEcdheRsaWithAes256CbcShaCiphers = v["tls_ecdhe_rsa_with_aes256_cbc_sha_ciphers_enabled"].(bool)
+		tlsEcdheRsaWithAes128CbcShaCiphers = v["tls_ecdhe_rsa_with_aes128_cbc_sha_ciphers_enabled"].(bool)
+		tlsRsaWithAes128GcmSha256Ciphers = v["tls_rsa_with_aes128_gcm_sha256_ciphers_enabled"].(bool)
+		tlsRsaWithAes256CbcSha256Ciphers = v["tls_rsa_with_aes256_cbc_sha256_ciphers_enabled"].(bool)
+		tlsRsaWithAes128CbcSha256Ciphers = v["tls_rsa_with_aes128_cbc_sha256_ciphers_enabled"].(bool)
+		tlsRsaWithAes256CbcShaCiphers = v["tls_rsa_with_aes256_cbc_sha_ciphers_enabled"].(bool)
+		tlsRsaWithAes128CbcShaCiphers = v["tls_rsa_with_aes128_cbc_sha_ciphers_enabled"].(bool)
+
 		if skuIsConsumption && frontendProtocolSsl3 {
 			return nil, fmt.Errorf("`enable_frontend_ssl30` is not support for Sku Tier `Consumption`")
 		}
 
 		if skuIsConsumption && tripleDesCiphers {
 			return nil, fmt.Errorf("`enable_triple_des_ciphers` is not support for Sku Tier `Consumption`")
+		}
+
+		if skuIsConsumption && tlsEcdheEcdsaWithAes256CbcShaCiphers {
+			return nil, fmt.Errorf("`tls_ecdhe_ecdsa_with_aes256_cbc_sha_ciphers_enabled` is not support for Sku Tier `Consumption`")
+		}
+
+		if skuIsConsumption && tlsEcdheEcdsaWithAes128CbcShaCiphers {
+			return nil, fmt.Errorf("`tls_ecdhe_ecdsa_with_aes128_cbc_sha_ciphers_enabled` is not support for Sku Tier `Consumption`")
+		}
+
+		if skuIsConsumption && tlsEcdheRsaWithAes256CbcShaCiphers {
+			return nil, fmt.Errorf("`tls_ecdhe_rsa_with_aes256_cbc_sha_ciphers_enabled` is not support for Sku Tier `Consumption`")
+		}
+
+		if skuIsConsumption && tlsEcdheRsaWithAes128CbcShaCiphers {
+			return nil, fmt.Errorf("`tls_ecdhe_rsa_with_aes128_cbc_sha_ciphers_enabled` is not support for Sku Tier `Consumption`")
+		}
+
+		if skuIsConsumption && tlsRsaWithAes128GcmSha256Ciphers {
+			return nil, fmt.Errorf("`tls_rsa_with_aes128_gcm_sha256_ciphers_enabled` is not support for Sku Tier `Consumption`")
+		}
+
+		if skuIsConsumption && tlsRsaWithAes256CbcSha256Ciphers {
+			return nil, fmt.Errorf("`tls_rsa_with_aes256_cbc_sha256_ciphers_enabled` is not support for Sku Tier `Consumption`")
+		}
+
+		if skuIsConsumption && tlsRsaWithAes128CbcSha256Ciphers {
+			return nil, fmt.Errorf("`tls_rsa_with_aes128_cbc_sha256_ciphers_enabled` is not support for Sku Tier `Consumption`")
+		}
+
+		if skuIsConsumption && tlsRsaWithAes256CbcShaCiphers {
+			return nil, fmt.Errorf("`tls_rsa_with_aes256_cbc_sha_ciphers_enabled` is not support for Sku Tier `Consumption`")
+		}
+
+		if skuIsConsumption && tlsRsaWithAes128CbcShaCiphers {
+			return nil, fmt.Errorf("`tls_rsa_with_aes128_cbc_sha_ciphers_enabled` is not support for Sku Tier `Consumption`")
 		}
 	}
 
@@ -1208,6 +1383,15 @@ func expandApiManagementCustomProperties(d *schema.ResourceData, skuIsConsumptio
 	if !skuIsConsumption {
 		customProperties[apimFrontendProtocolSsl3] = utils.String(strconv.FormatBool(frontendProtocolSsl3))
 		customProperties[apimTripleDesCiphers] = utils.String(strconv.FormatBool(tripleDesCiphers))
+		customProperties[apimTlsEcdheEcdsaWithAes256CbcShaCiphers] = utils.String(strconv.FormatBool(tlsEcdheEcdsaWithAes256CbcShaCiphers))
+		customProperties[apimTlsEcdheEcdsaWithAes128CbcShaCiphers] = utils.String(strconv.FormatBool(tlsEcdheEcdsaWithAes128CbcShaCiphers))
+		customProperties[apimTlsEcdheRsaWithAes256CbcShaCiphers] = utils.String(strconv.FormatBool(tlsEcdheRsaWithAes256CbcShaCiphers))
+		customProperties[apimTlsEcdheRsaWithAes128CbcShaCiphers] = utils.String(strconv.FormatBool(tlsEcdheRsaWithAes128CbcShaCiphers))
+		customProperties[apimTlsRsaWithAes128GcmSha256Ciphers] = utils.String(strconv.FormatBool(tlsRsaWithAes128GcmSha256Ciphers))
+		customProperties[apimTlsRsaWithAes256CbcSha256Ciphers] = utils.String(strconv.FormatBool(tlsRsaWithAes256CbcSha256Ciphers))
+		customProperties[apimTlsRsaWithAes128CbcSha256Ciphers] = utils.String(strconv.FormatBool(tlsRsaWithAes128CbcSha256Ciphers))
+		customProperties[apimTlsRsaWithAes256CbcShaCiphers] = utils.String(strconv.FormatBool(tlsRsaWithAes256CbcShaCiphers))
+		customProperties[apimTlsRsaWithAes128CbcShaCiphers] = utils.String(strconv.FormatBool(tlsRsaWithAes128CbcShaCiphers))
 	}
 
 	if vp := d.Get("protocols").([]interface{}); len(vp) > 0 {
@@ -1244,7 +1428,17 @@ func flattenApiManagementSecurityCustomProperties(input map[string]*string, skuI
 
 	if !skuIsConsumption {
 		output["enable_frontend_ssl30"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolSsl3)
-		output["enable_triple_des_ciphers"] = parseApiManagementNilableDictionary(input, apimTripleDesCiphers)
+		output["triple_des_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTripleDesCiphers)
+		output["enable_triple_des_ciphers"] = output["triple_des_ciphers_enabled"] // TODO: remove in v3.0
+		output["tls_ecdhe_ecdsa_with_aes256_cbc_sha_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsEcdheEcdsaWithAes256CbcShaCiphers)
+		output["tls_ecdhe_ecdsa_with_aes128_cbc_sha_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsEcdheEcdsaWithAes128CbcShaCiphers)
+		output["tls_ecdhe_rsa_with_aes256_cbc_sha_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsEcdheRsaWithAes256CbcShaCiphers)
+		output["tls_ecdhe_rsa_with_aes128_cbc_sha_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsEcdheRsaWithAes128CbcShaCiphers)
+		output["tls_rsa_with_aes128_gcm_sha256_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsRsaWithAes128GcmSha256Ciphers)
+		output["tls_rsa_with_aes256_cbc_sha256_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsRsaWithAes256CbcSha256Ciphers)
+		output["tls_rsa_with_aes128_cbc_sha256_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsRsaWithAes128CbcSha256Ciphers)
+		output["tls_rsa_with_aes256_cbc_sha_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsRsaWithAes256CbcShaCiphers)
+		output["tls_rsa_with_aes128_cbc_sha_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsRsaWithAes128CbcShaCiphers)
 	}
 
 	return []interface{}{output}
@@ -1451,4 +1645,39 @@ func flattenApiManagementPolicies(d *schema.ResourceData, input apimanagement.Po
 	}
 
 	return []interface{}{output}
+}
+
+func expandApiManagementTenantAccessSettings(input []interface{}) apimanagement.AccessInformationUpdateParameters {
+	enabled := false
+
+	if len(input) > 0 {
+		vs := input[0].(map[string]interface{})
+		enabled = vs["enabled"].(bool)
+	}
+
+	return apimanagement.AccessInformationUpdateParameters{
+		AccessInformationUpdateParameterProperties: &apimanagement.AccessInformationUpdateParameterProperties{
+			Enabled: utils.Bool(enabled),
+		},
+	}
+}
+
+func flattenApiManagementTenantAccessSettings(input apimanagement.AccessInformationContract) []interface{} {
+	result := make(map[string]interface{})
+
+	result["enabled"] = *input.Enabled
+
+	if input.ID != nil {
+		result["tenant_id"] = *input.ID
+	}
+
+	if input.PrimaryKey != nil {
+		result["primary_key"] = *input.PrimaryKey
+	}
+
+	if input.SecondaryKey != nil {
+		result["secondary_key"] = *input.SecondaryKey
+	}
+
+	return []interface{}{result}
 }

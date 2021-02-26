@@ -480,6 +480,7 @@ func (client GatewayHostnameConfigurationClient) ListByService(ctx context.Conte
 	}
 	if result.ghcc.hasNextLink() && result.ghcc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -548,7 +549,6 @@ func (client GatewayHostnameConfigurationClient) listByServiceNextResults(ctx co
 	result, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.GatewayHostnameConfigurationClient", "listByServiceNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

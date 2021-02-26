@@ -1409,82 +1409,28 @@ func (mcp MigrationConfigPropertiesProperties) MarshalJSON() ([]byte, error) {
 // MigrationConfigsCreateAndStartMigrationFuture an abstraction for monitoring and retrieving the results
 // of a long-running operation.
 type MigrationConfigsCreateAndStartMigrationFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *MigrationConfigsCreateAndStartMigrationFuture) Result(client MigrationConfigsClient) (mcp MigrationConfigProperties, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "servicebus.MigrationConfigsCreateAndStartMigrationFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("servicebus.MigrationConfigsCreateAndStartMigrationFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if mcp.Response.Response, err = future.GetResult(sender); err == nil && mcp.Response.Response.StatusCode != http.StatusNoContent {
-		mcp, err = client.CreateAndStartMigrationResponder(mcp.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "servicebus.MigrationConfigsCreateAndStartMigrationFuture", "Result", mcp.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(MigrationConfigsClient) (MigrationConfigProperties, error)
 }
 
 // NamespacesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type NamespacesCreateOrUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *NamespacesCreateOrUpdateFuture) Result(client NamespacesClient) (sn SBNamespace, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "servicebus.NamespacesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("servicebus.NamespacesCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if sn.Response.Response, err = future.GetResult(sender); err == nil && sn.Response.Response.StatusCode != http.StatusNoContent {
-		sn, err = client.CreateOrUpdateResponder(sn.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "servicebus.NamespacesCreateOrUpdateFuture", "Result", sn.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(NamespacesClient) (SBNamespace, error)
 }
 
 // NamespacesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type NamespacesDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *NamespacesDeleteFuture) Result(client NamespacesClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "servicebus.NamespacesDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("servicebus.NamespacesDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(NamespacesClient) (autorest.Response, error)
 }
 
 // NetworkRuleSet description of topic resource.
@@ -2232,24 +2178,10 @@ type PrivateEndpointConnectionProperties struct {
 // PrivateEndpointConnectionsDeleteFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type PrivateEndpointConnectionsDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *PrivateEndpointConnectionsDeleteFuture) Result(client PrivateEndpointConnectionsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "servicebus.PrivateEndpointConnectionsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("servicebus.PrivateEndpointConnectionsDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(PrivateEndpointConnectionsClient) (autorest.Response, error)
 }
 
 // PrivateLinkResource information of the private link resource.

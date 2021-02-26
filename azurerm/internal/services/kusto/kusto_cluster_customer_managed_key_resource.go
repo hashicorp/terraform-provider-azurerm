@@ -8,13 +8,13 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-09-18/kusto"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	keyVaultParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -43,13 +43,13 @@ func resourceKustoClusterCustomerManagedKey() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: validate.ClusterID,
 			},
 
 			"key_vault_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: keyVaultValidate.KeyVaultID,
+				ValidateFunc: keyVaultValidate.VaultID,
 			},
 
 			"key_name": {
@@ -69,7 +69,8 @@ func resourceKustoClusterCustomerManagedKey() *schema.Resource {
 
 func resourceKustoClusterCustomerManagedKeyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	clusterClient := meta.(*clients.Client).Kusto.ClustersClient
-	vaultsClient := meta.(*clients.Client).KeyVault.VaultsClient
+	keyVaultsClient := meta.(*clients.Client).KeyVault
+	vaultsClient := keyVaultsClient.VaultsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -126,7 +127,7 @@ func resourceKustoClusterCustomerManagedKeyCreateUpdate(d *schema.ResourceData, 
 		return fmt.Errorf("Key Vault %q (Resource Group %q) must be configured for both Purge Protection and Soft Delete", keyVaultID.Name, keyVaultID.ResourceGroup)
 	}
 
-	keyVaultBaseURL, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultsClient, keyVaultIDRaw)
+	keyVaultBaseURL, err := keyVaultsClient.BaseUriForKeyVault(ctx, *keyVaultID)
 	if err != nil {
 		return fmt.Errorf("Error looking up Key Vault URI from Key Vault %q (Resource Group %q): %+v", keyVaultID.Name, keyVaultID.ResourceGroup, err)
 	}
@@ -138,7 +139,7 @@ func resourceKustoClusterCustomerManagedKeyCreateUpdate(d *schema.ResourceData, 
 			KeyVaultProperties: &kusto.KeyVaultProperties{
 				KeyName:     utils.String(keyName),
 				KeyVersion:  utils.String(keyVersion),
-				KeyVaultURI: utils.String(keyVaultBaseURL),
+				KeyVaultURI: utils.String(*keyVaultBaseURL),
 			},
 		},
 	}
@@ -158,7 +159,8 @@ func resourceKustoClusterCustomerManagedKeyCreateUpdate(d *schema.ResourceData, 
 
 func resourceKustoClusterCustomerManagedKeyRead(d *schema.ResourceData, meta interface{}) error {
 	clusterClient := meta.(*clients.Client).Kusto.ClustersClient
-	vaultsClient := meta.(*clients.Client).KeyVault.VaultsClient
+	keyVaultsClient := meta.(*clients.Client).KeyVault
+	resourcesClient := meta.(*clients.Client).Resource
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -208,7 +210,7 @@ func resourceKustoClusterCustomerManagedKeyRead(d *schema.ResourceData, meta int
 	}
 
 	// now we have the key vault uri we can look up the ID
-	keyVaultID, err := azure.GetKeyVaultIDFromBaseUrl(ctx, vaultsClient, keyVaultURI)
+	keyVaultID, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, keyVaultURI)
 	if err != nil {
 		return fmt.Errorf("Error retrieving Key Vault ID from the Base URI %q: %+v", keyVaultURI, err)
 	}

@@ -153,6 +153,7 @@ func (client ConsumerInvitationsClient) ListInvitations(ctx context.Context, ski
 	}
 	if result.cil.hasNextLink() && result.cil.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -211,7 +212,6 @@ func (client ConsumerInvitationsClient) listInvitationsNextResults(ctx context.C
 	result, err = client.ListInvitationsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.ConsumerInvitationsClient", "listInvitationsNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

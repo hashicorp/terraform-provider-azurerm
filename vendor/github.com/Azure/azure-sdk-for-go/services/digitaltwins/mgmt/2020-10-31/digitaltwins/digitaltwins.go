@@ -165,7 +165,7 @@ func (client Client) CreateOrUpdate(ctx context.Context, resourceGroupName strin
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "digitaltwins.Client", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "digitaltwins.Client", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -203,7 +203,33 @@ func (client Client) CreateOrUpdateSender(req *http.Request) (future CreateOrUpd
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client Client) (d Description, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "digitaltwins.CreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("digitaltwins.CreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		d.Response.Response, err = future.GetResult(sender)
+		if d.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "digitaltwins.CreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && d.Response.Response.StatusCode != http.StatusNoContent {
+			d, err = client.CreateOrUpdateResponder(d.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "digitaltwins.CreateOrUpdateFuture", "Result", d.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -252,7 +278,7 @@ func (client Client) Delete(ctx context.Context, resourceGroupName string, resou
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "digitaltwins.Client", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "digitaltwins.Client", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -288,7 +314,33 @@ func (client Client) DeleteSender(req *http.Request) (future DeleteFuture, err e
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client Client) (d Description, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "digitaltwins.DeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("digitaltwins.DeleteFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		d.Response.Response, err = future.GetResult(sender)
+		if d.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "digitaltwins.DeleteFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && d.Response.Response.StatusCode != http.StatusNoContent {
+			d, err = client.DeleteResponder(d.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "digitaltwins.DeleteFuture", "Result", d.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -423,6 +475,7 @@ func (client Client) List(ctx context.Context) (result DescriptionListResultPage
 	}
 	if result.dlr.hasNextLink() && result.dlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -482,7 +535,6 @@ func (client Client) listNextResults(ctx context.Context, lastResults Descriptio
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "digitaltwins.Client", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -545,6 +597,7 @@ func (client Client) ListByResourceGroup(ctx context.Context, resourceGroupName 
 	}
 	if result.dlr.hasNextLink() && result.dlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -605,7 +658,6 @@ func (client Client) listByResourceGroupNextResults(ctx context.Context, lastRes
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "digitaltwins.Client", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

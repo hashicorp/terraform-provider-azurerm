@@ -418,6 +418,7 @@ func (client BotsClient) List(ctx context.Context) (result BotResponseListPage, 
 	}
 	if result.brl.hasNextLink() && result.brl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -477,7 +478,6 @@ func (client BotsClient) listNextResults(ctx context.Context, lastResults BotRes
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "botservice.BotsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -541,6 +541,7 @@ func (client BotsClient) ListByResourceGroup(ctx context.Context, resourceGroupN
 	}
 	if result.brl.hasNextLink() && result.brl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -601,7 +602,6 @@ func (client BotsClient) listByResourceGroupNextResults(ctx context.Context, las
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "botservice.BotsClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

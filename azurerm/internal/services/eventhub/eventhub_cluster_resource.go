@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -45,7 +46,7 @@ func resourceEventHubCluster() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateEventHubName(),
+				ValidateFunc: validate.ValidateEventHubName(),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -156,6 +157,9 @@ func resourceEventHubClusterDelete(d *schema.ResourceData, meta interface{}) err
 		}
 
 		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			if future.Response().StatusCode == 404 {
+				return nil
+			}
 			return resource.NonRetryableError(fmt.Errorf("deleting EventHub Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err))
 		}
 

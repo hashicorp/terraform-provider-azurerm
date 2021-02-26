@@ -80,6 +80,7 @@ func (client ConsumerSourceDataSetsClient) ListByShareSubscription(ctx context.C
 	}
 	if result.csdsl.hasNextLink() && result.csdsl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -145,7 +146,6 @@ func (client ConsumerSourceDataSetsClient) listByShareSubscriptionNextResults(ct
 	result, err = client.ListByShareSubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.ConsumerSourceDataSetsClient", "listByShareSubscriptionNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

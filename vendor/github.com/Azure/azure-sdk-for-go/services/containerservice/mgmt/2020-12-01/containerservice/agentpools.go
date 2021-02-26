@@ -84,7 +84,7 @@ func (client AgentPoolsClient) CreateOrUpdate(ctx context.Context, resourceGroup
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerservice.AgentPoolsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "containerservice.AgentPoolsClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -123,7 +123,33 @@ func (client AgentPoolsClient) CreateOrUpdateSender(req *http.Request) (future A
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client AgentPoolsClient) (ap AgentPool, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "containerservice.AgentPoolsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("containerservice.AgentPoolsCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		ap.Response.Response, err = future.GetResult(sender)
+		if ap.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "containerservice.AgentPoolsCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && ap.Response.Response.StatusCode != http.StatusNoContent {
+			ap, err = client.CreateOrUpdateResponder(ap.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "containerservice.AgentPoolsCreateOrUpdateFuture", "Result", ap.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -173,7 +199,7 @@ func (client AgentPoolsClient) Delete(ctx context.Context, resourceGroupName str
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerservice.AgentPoolsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "containerservice.AgentPoolsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -210,7 +236,23 @@ func (client AgentPoolsClient) DeleteSender(req *http.Request) (future AgentPool
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client AgentPoolsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "containerservice.AgentPoolsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("containerservice.AgentPoolsDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -651,7 +693,7 @@ func (client AgentPoolsClient) UpgradeNodeImageVersion(ctx context.Context, reso
 
 	result, err = client.UpgradeNodeImageVersionSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerservice.AgentPoolsClient", "UpgradeNodeImageVersion", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "containerservice.AgentPoolsClient", "UpgradeNodeImageVersion", nil, "Failure sending request")
 		return
 	}
 
@@ -688,7 +730,33 @@ func (client AgentPoolsClient) UpgradeNodeImageVersionSender(req *http.Request) 
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client AgentPoolsClient) (ap AgentPool, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "containerservice.AgentPoolsUpgradeNodeImageVersionFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("containerservice.AgentPoolsUpgradeNodeImageVersionFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		ap.Response.Response, err = future.GetResult(sender)
+		if ap.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "containerservice.AgentPoolsUpgradeNodeImageVersionFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && ap.Response.Response.StatusCode != http.StatusNoContent {
+			ap, err = client.UpgradeNodeImageVersionResponder(ap.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "containerservice.AgentPoolsUpgradeNodeImageVersionFuture", "Result", ap.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

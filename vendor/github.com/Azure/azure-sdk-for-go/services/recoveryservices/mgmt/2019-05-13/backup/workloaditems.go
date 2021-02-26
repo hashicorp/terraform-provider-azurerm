@@ -83,6 +83,7 @@ func (client WorkloadItemsClient) List(ctx context.Context, vaultName string, re
 	}
 	if result.wirl.hasNextLink() && result.wirl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -152,7 +153,6 @@ func (client WorkloadItemsClient) listNextResults(ctx context.Context, lastResul
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.WorkloadItemsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

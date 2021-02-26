@@ -77,7 +77,7 @@ func (client SQLPoolsClient) Create(ctx context.Context, resourceGroupName strin
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.SQLPoolsClient", "Create", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.SQLPoolsClient", "Create", nil, "Failure sending request")
 		return
 	}
 
@@ -116,7 +116,33 @@ func (client SQLPoolsClient) CreateSender(req *http.Request) (future SQLPoolsCre
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client SQLPoolsClient) (sp SQLPool, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "synapse.SQLPoolsCreateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("synapse.SQLPoolsCreateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		sp.Response.Response, err = future.GetResult(sender)
+		if sp.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "synapse.SQLPoolsCreateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && sp.Response.Response.StatusCode != http.StatusNoContent {
+			sp, err = client.CreateResponder(sp.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "synapse.SQLPoolsCreateFuture", "Result", sp.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -166,7 +192,7 @@ func (client SQLPoolsClient) Delete(ctx context.Context, resourceGroupName strin
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.SQLPoolsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.SQLPoolsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -203,7 +229,33 @@ func (client SQLPoolsClient) DeleteSender(req *http.Request) (future SQLPoolsDel
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client SQLPoolsClient) (so SetObject, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "synapse.SQLPoolsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("synapse.SQLPoolsDeleteFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		so.Response.Response, err = future.GetResult(sender)
+		if so.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "synapse.SQLPoolsDeleteFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && so.Response.Response.StatusCode != http.StatusNoContent {
+			so, err = client.DeleteResponder(so.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "synapse.SQLPoolsDeleteFuture", "Result", so.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -469,7 +521,7 @@ func (client SQLPoolsClient) Pause(ctx context.Context, resourceGroupName string
 
 	result, err = client.PauseSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.SQLPoolsClient", "Pause", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.SQLPoolsClient", "Pause", nil, "Failure sending request")
 		return
 	}
 
@@ -506,7 +558,33 @@ func (client SQLPoolsClient) PauseSender(req *http.Request) (future SQLPoolsPaus
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client SQLPoolsClient) (so SetObject, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "synapse.SQLPoolsPauseFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("synapse.SQLPoolsPauseFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		so.Response.Response, err = future.GetResult(sender)
+		if so.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "synapse.SQLPoolsPauseFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && so.Response.Response.StatusCode != http.StatusNoContent {
+			so, err = client.PauseResponder(so.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "synapse.SQLPoolsPauseFuture", "Result", so.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -556,7 +634,7 @@ func (client SQLPoolsClient) Resume(ctx context.Context, resourceGroupName strin
 
 	result, err = client.ResumeSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.SQLPoolsClient", "Resume", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.SQLPoolsClient", "Resume", nil, "Failure sending request")
 		return
 	}
 
@@ -593,7 +671,33 @@ func (client SQLPoolsClient) ResumeSender(req *http.Request) (future SQLPoolsRes
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client SQLPoolsClient) (so SetObject, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "synapse.SQLPoolsResumeFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("synapse.SQLPoolsResumeFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		so.Response.Response, err = future.GetResult(sender)
+		if so.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "synapse.SQLPoolsResumeFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && so.Response.Response.StatusCode != http.StatusNoContent {
+			so, err = client.ResumeResponder(so.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "synapse.SQLPoolsResumeFuture", "Result", so.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

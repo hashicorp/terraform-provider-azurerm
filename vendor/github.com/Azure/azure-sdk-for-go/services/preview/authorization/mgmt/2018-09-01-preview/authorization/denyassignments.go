@@ -235,6 +235,7 @@ func (client DenyAssignmentsClient) List(ctx context.Context, filter string) (re
 	}
 	if result.dalr.hasNextLink() && result.dalr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -297,7 +298,6 @@ func (client DenyAssignmentsClient) listNextResults(ctx context.Context, lastRes
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.DenyAssignmentsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -366,6 +366,7 @@ func (client DenyAssignmentsClient) ListForResource(ctx context.Context, resourc
 	}
 	if result.dalr.hasNextLink() && result.dalr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -433,7 +434,6 @@ func (client DenyAssignmentsClient) listForResourceNextResults(ctx context.Conte
 	result, err = client.ListForResourceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.DenyAssignmentsClient", "listForResourceNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -498,6 +498,7 @@ func (client DenyAssignmentsClient) ListForResourceGroup(ctx context.Context, re
 	}
 	if result.dalr.hasNextLink() && result.dalr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -561,7 +562,6 @@ func (client DenyAssignmentsClient) listForResourceGroupNextResults(ctx context.
 	result, err = client.ListForResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.DenyAssignmentsClient", "listForResourceGroupNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -626,6 +626,7 @@ func (client DenyAssignmentsClient) ListForScope(ctx context.Context, scope stri
 	}
 	if result.dalr.hasNextLink() && result.dalr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -688,7 +689,6 @@ func (client DenyAssignmentsClient) listForScopeNextResults(ctx context.Context,
 	result, err = client.ListForScopeResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.DenyAssignmentsClient", "listForScopeNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

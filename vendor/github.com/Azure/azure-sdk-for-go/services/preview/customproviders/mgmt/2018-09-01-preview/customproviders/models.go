@@ -123,53 +123,19 @@ func (a AssociationProperties) MarshalJSON() ([]byte, error) {
 // AssociationsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type AssociationsCreateOrUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AssociationsCreateOrUpdateFuture) Result(client AssociationsClient) (a Association, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "customproviders.AssociationsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("customproviders.AssociationsCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if a.Response.Response, err = future.GetResult(sender); err == nil && a.Response.Response.StatusCode != http.StatusNoContent {
-		a, err = client.CreateOrUpdateResponder(a.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "customproviders.AssociationsCreateOrUpdateFuture", "Result", a.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AssociationsClient) (Association, error)
 }
 
 // AssociationsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type AssociationsDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AssociationsDeleteFuture) Result(client AssociationsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "customproviders.AssociationsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("customproviders.AssociationsDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AssociationsClient) (autorest.Response, error)
 }
 
 // AssociationsList list of associations.
@@ -334,53 +300,19 @@ func NewAssociationsListPage(cur AssociationsList, getNextPage func(context.Cont
 // CustomResourceProviderCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type CustomResourceProviderCreateOrUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *CustomResourceProviderCreateOrUpdateFuture) Result(client CustomResourceProviderClient) (crm CustomRPManifest, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "customproviders.CustomResourceProviderCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("customproviders.CustomResourceProviderCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if crm.Response.Response, err = future.GetResult(sender); err == nil && crm.Response.Response.StatusCode != http.StatusNoContent {
-		crm, err = client.CreateOrUpdateResponder(crm.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "customproviders.CustomResourceProviderCreateOrUpdateFuture", "Result", crm.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(CustomResourceProviderClient) (CustomRPManifest, error)
 }
 
 // CustomResourceProviderDeleteFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type CustomResourceProviderDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *CustomResourceProviderDeleteFuture) Result(client CustomResourceProviderClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "customproviders.CustomResourceProviderDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("customproviders.CustomResourceProviderDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(CustomResourceProviderClient) (autorest.Response, error)
 }
 
 // CustomRPActionRouteDefinition the route definition for an action implemented by the custom resource

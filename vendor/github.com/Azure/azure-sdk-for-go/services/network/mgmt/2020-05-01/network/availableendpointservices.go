@@ -77,6 +77,7 @@ func (client AvailableEndpointServicesClient) List(ctx context.Context, location
 	}
 	if result.eslr.hasNextLink() && result.eslr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -137,7 +138,6 @@ func (client AvailableEndpointServicesClient) listNextResults(ctx context.Contex
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.AvailableEndpointServicesClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

@@ -69,6 +69,8 @@ The following arguments are supported:
 
 * `throttling_duration` - (Optional) Specifies the duration (in ISO8601 format) to wait before notifying on the alert rule again.
 
+* `tags` - (Optional) A mapping of tags to assign to the resource.
+
 ---
 
 The `action_group` block supports the following:

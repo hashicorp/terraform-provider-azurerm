@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_data_factory_linked_service_azure_blob_storage
 
-Manages a Linked Service (connection) between a SFTP Server and Azure Data Factory.
+Manages a Linked Service (connection) between an Azure Blob Storage Account and Azure Data Factory.
 
 ~> **Note:** All arguments including the client secret will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 
@@ -44,7 +44,7 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "example" {
 
 The following supported arguments are common across all Azure Data Factory Linked Services:
 
-* `name` - (Required) Specifies the name of the Data Factory Linked Service. Changing this forces a new resource to be created. Must be globally unique. See the [Microsoft documentation](https://docs.microsoft.com/en-us/azure/data-factory/naming-rules) for all restrictions.
+* `name` - (Required) Specifies the name of the Data Factory Linked Service. Changing this forces a new resource to be created. Must be unique within a data factory. See the [Microsoft documentation](https://docs.microsoft.com/en-us/azure/data-factory/naming-rules) for all restrictions.
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Data Factory Linked Service. Changing this forces a new resource
 
@@ -62,7 +62,17 @@ The following supported arguments are common across all Azure Data Factory Linke
 
 The following supported arguments are specific to Azure Blob Storage Linked Service:
 
-* `connection_string` - (Optional) The connection string. Required if `account_endpoint`, `account_key`, and `database` are unspecified.
+* `connection_string` - (Optional) The connection string. Conflicts with `sas_uri`.
+
+* `sas_uri` - (Optional) The SAS URI. Conflicts with `connection_string`.
+
+* `use_managed_identity` - (Optional) Whether to use the Data Factory's managed identity to authenticate against the Azure Blob Storage account. Incompatible with `service_principal_id` and `service_principal_key`
+
+* `service_principal_id` - (Optional) The service principal id in which to authenticate against the Azure Blob Storage account. Required if `service_principal_key` is set.
+
+* `service_principal_key` - (Optional) The service principal key in which to authenticate against the AAzure Blob Storage account.  Required if `service_principal_id` is set.
+
+* `tenant_id` - (Optional) The tenant id or name in which to authenticate against the Azure Blob Storage account.
 
 ## Attributes Reference
 

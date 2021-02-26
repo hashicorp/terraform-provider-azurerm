@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
+
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -56,14 +57,10 @@ func TestAccProximityPlacementGroup_disappears(t *testing.T) {
 	r := ProximityPlacementGroupResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckAzureRMProximityPlacementGroupDisappears(data.ResourceName),
-			),
-			ExpectNonEmptyPlan: true,
-		},
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.basic,
+			TestResource: r,
+		}),
 	})
 }
 
@@ -94,14 +91,12 @@ func TestAccProximityPlacementGroup_withTags(t *testing.T) {
 }
 
 func (t ProximityPlacementGroupResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.ProximityPlacementGroupID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["proximityPlacementGroups"]
 
-	resp, err := clients.Compute.ProximityPlacementGroupsClient.Get(ctx, resourceGroup, name, "")
+	resp, err := clients.Compute.ProximityPlacementGroupsClient.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Compute Proximity Placement Group %q", id)
 	}
@@ -109,32 +104,20 @@ func (t ProximityPlacementGroupResource) Exists(ctx context.Context, clients *cl
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func testCheckAzureRMProximityPlacementGroupDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.ProximityPlacementGroupsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		ppgName := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for proximity placement group: %s", ppgName)
-		}
-
-		resp, err := client.Delete(ctx, resourceGroup, ppgName)
-		if err != nil {
-			if !response.WasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Delete on Proximity Placement Groups Client: %+v", err)
-			}
-		}
-
-		return nil
+func (ProximityPlacementGroupResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.ProximityPlacementGroupID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+
+	resp, err := client.Compute.ProximityPlacementGroupsClient.Delete(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		if !response.WasNotFound(resp.Response) {
+			return nil, fmt.Errorf("deleting Proximity Placement Group %q: %+v", id, err)
+		}
+	}
+
+	return utils.Bool(true), nil
 }
 
 func (ProximityPlacementGroupResource) basic(data acceptance.TestData) string {

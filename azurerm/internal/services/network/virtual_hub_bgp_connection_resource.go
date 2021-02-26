@@ -18,11 +18,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmVirtualHubBgpConnection() *schema.Resource {
+func resourceVirtualHubBgpConnection() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmVirtualHubBgpConnectionCreate,
-		Read:   resourceArmVirtualHubBgpConnectionRead,
-		Delete: resourceArmVirtualHubBgpConnectionDelete,
+		Create: resourceVirtualHubBgpConnectionCreate,
+		Read:   resourceVirtualHubBgpConnectionRead,
+		Delete: resourceVirtualHubBgpConnectionDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -67,7 +67,7 @@ func resourceArmVirtualHubBgpConnection() *schema.Resource {
 	}
 }
 
-func resourceArmVirtualHubBgpConnectionCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualHubBgpConnectionCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualHubBgpConnectionClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -123,10 +123,10 @@ func resourceArmVirtualHubBgpConnectionCreate(d *schema.ResourceData, meta inter
 
 	d.SetId(*resp.ID)
 
-	return resourceArmVirtualHubBgpConnectionRead(d, meta)
+	return resourceVirtualHubBgpConnectionRead(d, meta)
 }
 
-func resourceArmVirtualHubBgpConnectionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualHubBgpConnectionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualHubBgpConnectionClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -158,7 +158,7 @@ func resourceArmVirtualHubBgpConnectionRead(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func resourceArmVirtualHubBgpConnectionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualHubBgpConnectionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualHubBgpConnectionClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

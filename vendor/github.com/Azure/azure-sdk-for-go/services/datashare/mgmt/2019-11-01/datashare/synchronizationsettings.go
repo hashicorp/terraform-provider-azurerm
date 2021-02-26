@@ -150,7 +150,7 @@ func (client SynchronizationSettingsClient) Delete(ctx context.Context, resource
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "datashare.SynchronizationSettingsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "datashare.SynchronizationSettingsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -188,7 +188,33 @@ func (client SynchronizationSettingsClient) DeleteSender(req *http.Request) (fut
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client SynchronizationSettingsClient) (or OperationResponse, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "datashare.SynchronizationSettingsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("datashare.SynchronizationSettingsDeleteFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		or.Response.Response, err = future.GetResult(sender)
+		if or.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "datashare.SynchronizationSettingsDeleteFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && or.Response.Response.StatusCode != http.StatusNoContent {
+			or, err = client.DeleteResponder(or.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "datashare.SynchronizationSettingsDeleteFuture", "Result", or.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -322,6 +348,7 @@ func (client SynchronizationSettingsClient) ListByShare(ctx context.Context, res
 	}
 	if result.ssl.hasNextLink() && result.ssl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -387,7 +414,6 @@ func (client SynchronizationSettingsClient) listByShareNextResults(ctx context.C
 	result, err = client.ListByShareResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.SynchronizationSettingsClient", "listByShareNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

@@ -817,6 +817,7 @@ func (client Client) List(ctx context.Context, resourceGroupName string, namespa
 	}
 	if result.lr.hasNextLink() && result.lr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -878,7 +879,6 @@ func (client Client) listNextResults(ctx context.Context, lastResults ListResult
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "notificationhubs.Client", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -936,6 +936,7 @@ func (client Client) ListAuthorizationRules(ctx context.Context, resourceGroupNa
 	}
 	if result.saarlr.hasNextLink() && result.saarlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -998,7 +999,6 @@ func (client Client) listAuthorizationRulesNextResults(ctx context.Context, last
 	result, err = client.ListAuthorizationRulesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "notificationhubs.Client", "listAuthorizationRulesNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

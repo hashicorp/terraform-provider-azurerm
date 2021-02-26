@@ -157,6 +157,7 @@ func (client ProviderOperationsMetadataClient) List(ctx context.Context, expand 
 	}
 	if result.pomlr.hasNextLink() && result.pomlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -217,7 +218,6 @@ func (client ProviderOperationsMetadataClient) listNextResults(ctx context.Conte
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.ProviderOperationsMetadataClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

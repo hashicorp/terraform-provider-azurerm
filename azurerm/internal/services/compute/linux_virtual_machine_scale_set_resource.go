@@ -9,15 +9,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/base64"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -143,6 +143,13 @@ func resourceLinuxVirtualMachineScaleSet() *schema.Resource {
 			},
 
 			"extension": VirtualMachineScaleSetExtensionsSchema(),
+
+			"extensions_time_budget": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "PT1H30M",
+				ValidateFunc: azValidate.ISO8601DurationBetween("PT15M", "PT2H"),
+			},
 
 			"health_probe_id": {
 				Type:         schema.TypeString,
@@ -413,13 +420,18 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *schema.ResourceData, meta inte
 		},
 	}
 
-	if features.VMSSExtensionsBeta() {
-		if vmExtensionsRaw, ok := d.GetOk("extension"); ok {
-			virtualMachineProfile.ExtensionProfile, err = expandVirtualMachineScaleSetExtensions(vmExtensionsRaw.([]interface{}))
-			if err != nil {
-				return err
-			}
+	if vmExtensionsRaw, ok := d.GetOk("extension"); ok {
+		virtualMachineProfile.ExtensionProfile, err = expandVirtualMachineScaleSetExtensions(vmExtensionsRaw.([]interface{}))
+		if err != nil {
+			return err
 		}
+	}
+
+	if v, ok := d.GetOk("extensions_time_budget"); ok {
+		if virtualMachineProfile.ExtensionProfile == nil {
+			virtualMachineProfile.ExtensionProfile = &compute.VirtualMachineScaleSetExtensionProfile{}
+		}
+		virtualMachineProfile.ExtensionProfile.ExtensionsTimeBudget = utils.String(v.(string))
 	}
 
 	if adminPassword, ok := d.GetOk("admin_password"); ok {
@@ -789,16 +801,15 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta inte
 		update.Sku = sku
 	}
 
-	if features.VMSSExtensionsBeta() {
-		if d.HasChange("extension") {
-			updateInstances = true
+	if d.HasChanges("extension", "extensions_time_budget") {
+		updateInstances = true
 
-			extensionProfile, err := expandVirtualMachineScaleSetExtensions(d.Get("extension").([]interface{}))
-			if err != nil {
-				return err
-			}
-			updateProps.VirtualMachineProfile.ExtensionProfile = extensionProfile
+		extensionProfile, err := expandVirtualMachineScaleSetExtensions(d.Get("extension").([]interface{}))
+		if err != nil {
+			return err
 		}
+		updateProps.VirtualMachineProfile.ExtensionProfile = extensionProfile
+		updateProps.VirtualMachineProfile.ExtensionProfile.ExtensionsTimeBudget = utils.String(d.Get("extensions_time_budget").(string))
 	}
 
 	if d.HasChange("tags") {
@@ -984,13 +995,17 @@ func resourceLinuxVirtualMachineScaleSetRead(d *schema.ResourceData, meta interf
 			}
 		}
 
-		if features.VMSSExtensionsBeta() {
-			extensionProfile, err := flattenVirtualMachineScaleSetExtensions(profile.ExtensionProfile, d)
-			if err != nil {
-				return fmt.Errorf("failed flattening `extension`: %+v", err)
-			}
-			d.Set("extension", extensionProfile)
+		extensionProfile, err := flattenVirtualMachineScaleSetExtensions(profile.ExtensionProfile, d)
+		if err != nil {
+			return fmt.Errorf("failed flattening `extension`: %+v", err)
 		}
+		d.Set("extension", extensionProfile)
+
+		extensionsTimeBudget := "PT1H30M"
+		if profile.ExtensionProfile != nil && profile.ExtensionProfile.ExtensionsTimeBudget != nil {
+			extensionsTimeBudget = *profile.ExtensionProfile.ExtensionsTimeBudget
+		}
+		d.Set("extensions_time_budget", extensionsTimeBudget)
 
 		encryptionAtHostEnabled := false
 		if profile.SecurityProfile != nil && profile.SecurityProfile.EncryptionAtHost != nil {

@@ -75,6 +75,7 @@ func (client UsageModelsClient) List(ctx context.Context) (result UsageModelsRes
 	}
 	if result.umr.hasNextLink() && result.umr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -134,7 +135,6 @@ func (client UsageModelsClient) listNextResults(ctx context.Context, lastResults
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storagecache.UsageModelsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

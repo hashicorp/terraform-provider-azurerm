@@ -80,7 +80,7 @@ func (client OpenShiftManagedClustersClient) CreateOrUpdate(ctx context.Context,
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerservice.OpenShiftManagedClustersClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "containerservice.OpenShiftManagedClustersClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -118,7 +118,33 @@ func (client OpenShiftManagedClustersClient) CreateOrUpdateSender(req *http.Requ
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client OpenShiftManagedClustersClient) (osmc OpenShiftManagedCluster, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "containerservice.OpenShiftManagedClustersCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("containerservice.OpenShiftManagedClustersCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		osmc.Response.Response, err = future.GetResult(sender)
+		if osmc.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "containerservice.OpenShiftManagedClustersCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && osmc.Response.Response.StatusCode != http.StatusNoContent {
+			osmc, err = client.CreateOrUpdateResponder(osmc.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "containerservice.OpenShiftManagedClustersCreateOrUpdateFuture", "Result", osmc.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -163,7 +189,7 @@ func (client OpenShiftManagedClustersClient) Delete(ctx context.Context, resourc
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerservice.OpenShiftManagedClustersClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "containerservice.OpenShiftManagedClustersClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -199,7 +225,23 @@ func (client OpenShiftManagedClustersClient) DeleteSender(req *http.Request) (fu
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client OpenShiftManagedClustersClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "containerservice.OpenShiftManagedClustersDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("containerservice.OpenShiftManagedClustersDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -330,6 +372,7 @@ func (client OpenShiftManagedClustersClient) List(ctx context.Context) (result O
 	}
 	if result.osmclr.hasNextLink() && result.osmclr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -389,7 +432,6 @@ func (client OpenShiftManagedClustersClient) listNextResults(ctx context.Context
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerservice.OpenShiftManagedClustersClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -452,6 +494,7 @@ func (client OpenShiftManagedClustersClient) ListByResourceGroup(ctx context.Con
 	}
 	if result.osmclr.hasNextLink() && result.osmclr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -512,7 +555,6 @@ func (client OpenShiftManagedClustersClient) listByResourceGroupNextResults(ctx 
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerservice.OpenShiftManagedClustersClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -563,7 +605,7 @@ func (client OpenShiftManagedClustersClient) UpdateTags(ctx context.Context, res
 
 	result, err = client.UpdateTagsSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerservice.OpenShiftManagedClustersClient", "UpdateTags", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "containerservice.OpenShiftManagedClustersClient", "UpdateTags", nil, "Failure sending request")
 		return
 	}
 
@@ -601,7 +643,33 @@ func (client OpenShiftManagedClustersClient) UpdateTagsSender(req *http.Request)
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client OpenShiftManagedClustersClient) (osmc OpenShiftManagedCluster, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "containerservice.OpenShiftManagedClustersUpdateTagsFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("containerservice.OpenShiftManagedClustersUpdateTagsFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		osmc.Response.Response, err = future.GetResult(sender)
+		if osmc.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "containerservice.OpenShiftManagedClustersUpdateTagsFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && osmc.Response.Response.StatusCode != http.StatusNoContent {
+			osmc, err = client.UpdateTagsResponder(osmc.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "containerservice.OpenShiftManagedClustersUpdateTagsFuture", "Result", osmc.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

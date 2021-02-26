@@ -316,6 +316,7 @@ func (client SuppressionsClient) List(ctx context.Context, top *int32, skipToken
 	}
 	if result.sclr.hasNextLink() && result.sclr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -381,7 +382,6 @@ func (client SuppressionsClient) listNextResults(ctx context.Context, lastResult
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "advisor.SuppressionsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

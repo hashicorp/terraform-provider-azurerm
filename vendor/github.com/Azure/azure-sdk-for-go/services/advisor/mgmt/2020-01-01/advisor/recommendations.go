@@ -305,6 +305,7 @@ func (client RecommendationsClient) List(ctx context.Context, filter string, top
 	}
 	if result.rrblr.hasNextLink() && result.rrblr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -373,7 +374,6 @@ func (client RecommendationsClient) listNextResults(ctx context.Context, lastRes
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "advisor.RecommendationsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

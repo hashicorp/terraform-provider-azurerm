@@ -6,7 +6,10 @@ import (
 )
 
 type Client struct {
+	AssessmentsMetadataClient      *security.AssessmentsMetadataClient
 	ContactsClient                 *security.ContactsClient
+	DeviceSecurityGroupsClient     *security.DeviceSecurityGroupsClient
+	IotSecuritySolutionClient      *security.IotSecuritySolutionClient
 	PricingClient                  *security.PricingsClient
 	WorkspaceClient                *security.WorkspaceSettingsClient
 	AdvancedThreatProtectionClient *security.AdvancedThreatProtectionClient
@@ -18,8 +21,17 @@ type Client struct {
 func NewClient(o *common.ClientOptions) *Client {
 	ascLocation := "Global"
 
+	AssessmentsMetadataClient := security.NewAssessmentsMetadataClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
+	o.ConfigureClient(&AssessmentsMetadataClient.Client, o.ResourceManagerAuthorizer)
+
 	ContactsClient := security.NewContactsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
 	o.ConfigureClient(&ContactsClient.Client, o.ResourceManagerAuthorizer)
+
+	DeviceSecurityGroupsClient := security.NewDeviceSecurityGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
+	o.ConfigureClient(&DeviceSecurityGroupsClient.Client, o.ResourceManagerAuthorizer)
+
+	IotSecuritySolutionClient := security.NewIotSecuritySolutionClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
+	o.ConfigureClient(&IotSecuritySolutionClient.Client, o.ResourceManagerAuthorizer)
 
 	PricingClient := security.NewPricingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
 	o.ConfigureClient(&PricingClient.Client, o.ResourceManagerAuthorizer)
@@ -40,7 +52,10 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&AutomationsClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
+		AssessmentsMetadataClient:      &AssessmentsMetadataClient,
 		ContactsClient:                 &ContactsClient,
+		DeviceSecurityGroupsClient:     &DeviceSecurityGroupsClient,
+		IotSecuritySolutionClient:      &IotSecuritySolutionClient,
 		PricingClient:                  &PricingClient,
 		WorkspaceClient:                &WorkspaceClient,
 		AdvancedThreatProtectionClient: &AdvancedThreatProtectionClient,

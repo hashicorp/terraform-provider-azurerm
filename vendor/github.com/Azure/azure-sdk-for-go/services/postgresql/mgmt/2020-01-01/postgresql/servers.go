@@ -73,7 +73,6 @@ func (client ServersClient) Create(ctx context.Context, resourceGroupName string
 					{Target: "parameters.Sku.Capacity", Name: validation.Null, Rule: false,
 						Chain: []validation.Constraint{{Target: "parameters.Sku.Capacity", Name: validation.InclusiveMinimum, Rule: int64(0), Chain: nil}}},
 				}},
-				{Target: "parameters.Properties", Name: validation.Null, Rule: true, Chain: nil},
 				{Target: "parameters.Location", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("postgresql.ServersClient", "Create", err.Error())
 	}
@@ -86,7 +85,7 @@ func (client ServersClient) Create(ctx context.Context, resourceGroupName string
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "postgresql.ServersClient", "Create", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "postgresql.ServersClient", "Create", nil, "Failure sending request")
 		return
 	}
 
@@ -124,7 +123,33 @@ func (client ServersClient) CreateSender(req *http.Request) (future ServersCreat
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ServersClient) (s Server, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "postgresql.ServersCreateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("postgresql.ServersCreateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		s.Response.Response, err = future.GetResult(sender)
+		if s.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "postgresql.ServersCreateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && s.Response.Response.StatusCode != http.StatusNoContent {
+			s, err = client.CreateResponder(s.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "postgresql.ServersCreateFuture", "Result", s.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -173,7 +198,7 @@ func (client ServersClient) Delete(ctx context.Context, resourceGroupName string
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "postgresql.ServersClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "postgresql.ServersClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -209,7 +234,23 @@ func (client ServersClient) DeleteSender(req *http.Request) (future ServersDelet
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ServersClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "postgresql.ServersDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("postgresql.ServersDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -504,7 +545,7 @@ func (client ServersClient) Restart(ctx context.Context, resourceGroupName strin
 
 	result, err = client.RestartSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "postgresql.ServersClient", "Restart", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "postgresql.ServersClient", "Restart", nil, "Failure sending request")
 		return
 	}
 
@@ -540,7 +581,23 @@ func (client ServersClient) RestartSender(req *http.Request) (future ServersRest
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ServersClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "postgresql.ServersRestartFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("postgresql.ServersRestartFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -590,7 +647,7 @@ func (client ServersClient) Update(ctx context.Context, resourceGroupName string
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "postgresql.ServersClient", "Update", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "postgresql.ServersClient", "Update", nil, "Failure sending request")
 		return
 	}
 
@@ -628,7 +685,33 @@ func (client ServersClient) UpdateSender(req *http.Request) (future ServersUpdat
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ServersClient) (s Server, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "postgresql.ServersUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("postgresql.ServersUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		s.Response.Response, err = future.GetResult(sender)
+		if s.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "postgresql.ServersUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && s.Response.Response.StatusCode != http.StatusNoContent {
+			s, err = client.UpdateResponder(s.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "postgresql.ServersUpdateFuture", "Result", s.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

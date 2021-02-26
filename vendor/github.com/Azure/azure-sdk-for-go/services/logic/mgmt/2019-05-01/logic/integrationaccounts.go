@@ -309,6 +309,7 @@ func (client IntegrationAccountsClient) ListByResourceGroup(ctx context.Context,
 	}
 	if result.ialr.hasNextLink() && result.ialr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -372,7 +373,6 @@ func (client IntegrationAccountsClient) listByResourceGroupNextResults(ctx conte
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountsClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -428,6 +428,7 @@ func (client IntegrationAccountsClient) ListBySubscription(ctx context.Context, 
 	}
 	if result.ialr.hasNextLink() && result.ialr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -490,7 +491,6 @@ func (client IntegrationAccountsClient) listBySubscriptionNextResults(ctx contex
 	result, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountsClient", "listBySubscriptionNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

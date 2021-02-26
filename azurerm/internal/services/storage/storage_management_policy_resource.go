@@ -236,8 +236,7 @@ func resourceStorageManagementPolicyDelete(d *schema.ResourceData, meta interfac
 	resourceGroupName := rid.ResourceGroup
 	storageAccountName := rid.Path["storageAccounts"]
 
-	_, err = client.Delete(ctx, resourceGroupName, storageAccountName)
-	if err != nil {
+	if _, err = client.Delete(ctx, resourceGroupName, storageAccountName); err != nil {
 		return err
 	}
 	return nil

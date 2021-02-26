@@ -146,7 +146,7 @@ func (client EventChannelsClient) Delete(ctx context.Context, resourceGroupName 
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.EventChannelsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "eventgrid.EventChannelsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -183,7 +183,23 @@ func (client EventChannelsClient) DeleteSender(req *http.Request) (future EventC
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client EventChannelsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "eventgrid.EventChannelsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("eventgrid.EventChannelsDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -320,6 +336,7 @@ func (client EventChannelsClient) ListByPartnerNamespace(ctx context.Context, re
 	}
 	if result.eclr.hasNextLink() && result.eclr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -387,7 +404,6 @@ func (client EventChannelsClient) listByPartnerNamespaceNextResults(ctx context.
 	result, err = client.ListByPartnerNamespaceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.EventChannelsClient", "listByPartnerNamespaceNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

@@ -78,7 +78,7 @@ func (client ConfigurationStoresClient) Create(ctx context.Context, resourceGrou
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appconfiguration.ConfigurationStoresClient", "Create", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "appconfiguration.ConfigurationStoresClient", "Create", nil, "Failure sending request")
 		return
 	}
 
@@ -116,7 +116,33 @@ func (client ConfigurationStoresClient) CreateSender(req *http.Request) (future 
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ConfigurationStoresClient) (cs ConfigurationStore, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "appconfiguration.ConfigurationStoresCreateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("appconfiguration.ConfigurationStoresCreateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		cs.Response.Response, err = future.GetResult(sender)
+		if cs.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "appconfiguration.ConfigurationStoresCreateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && cs.Response.Response.StatusCode != http.StatusNoContent {
+			cs, err = client.CreateResponder(cs.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "appconfiguration.ConfigurationStoresCreateFuture", "Result", cs.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -163,7 +189,7 @@ func (client ConfigurationStoresClient) Delete(ctx context.Context, resourceGrou
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appconfiguration.ConfigurationStoresClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "appconfiguration.ConfigurationStoresClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -199,7 +225,23 @@ func (client ConfigurationStoresClient) DeleteSender(req *http.Request) (future 
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ConfigurationStoresClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "appconfiguration.ConfigurationStoresDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("appconfiguration.ConfigurationStoresDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -335,6 +377,7 @@ func (client ConfigurationStoresClient) List(ctx context.Context, skipToken stri
 	}
 	if result.cslr.hasNextLink() && result.cslr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -397,7 +440,6 @@ func (client ConfigurationStoresClient) listNextResults(ctx context.Context, las
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appconfiguration.ConfigurationStoresClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -456,6 +498,7 @@ func (client ConfigurationStoresClient) ListByResourceGroup(ctx context.Context,
 	}
 	if result.cslr.hasNextLink() && result.cslr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -519,7 +562,6 @@ func (client ConfigurationStoresClient) listByResourceGroupNextResults(ctx conte
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appconfiguration.ConfigurationStoresClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -587,6 +629,7 @@ func (client ConfigurationStoresClient) ListKeys(ctx context.Context, resourceGr
 	}
 	if result.aklr.hasNextLink() && result.aklr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -651,7 +694,6 @@ func (client ConfigurationStoresClient) listKeysNextResults(ctx context.Context,
 	result, err = client.ListKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appconfiguration.ConfigurationStoresClient", "listKeysNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -880,7 +922,7 @@ func (client ConfigurationStoresClient) Update(ctx context.Context, resourceGrou
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appconfiguration.ConfigurationStoresClient", "Update", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "appconfiguration.ConfigurationStoresClient", "Update", nil, "Failure sending request")
 		return
 	}
 
@@ -918,7 +960,33 @@ func (client ConfigurationStoresClient) UpdateSender(req *http.Request) (future 
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ConfigurationStoresClient) (cs ConfigurationStore, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "appconfiguration.ConfigurationStoresUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("appconfiguration.ConfigurationStoresUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		cs.Response.Response, err = future.GetResult(sender)
+		if cs.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "appconfiguration.ConfigurationStoresUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && cs.Response.Response.StatusCode != http.StatusNoContent {
+			cs, err = client.UpdateResponder(cs.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "appconfiguration.ConfigurationStoresUpdateFuture", "Result", cs.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

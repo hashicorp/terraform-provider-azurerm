@@ -160,8 +160,7 @@ func resourceMySQLAdministratorDelete(d *schema.ResourceData, meta interface{}) 
 	resourceGroup := id.ResourceGroup
 	serverName := id.Path["servers"]
 
-	_, err = client.Delete(ctx, resourceGroup, serverName)
-	if err != nil {
+	if _, err = client.Delete(ctx, resourceGroup, serverName); err != nil {
 		return fmt.Errorf("Error deleting MySQL AD Administrator: %+v", err)
 	}
 

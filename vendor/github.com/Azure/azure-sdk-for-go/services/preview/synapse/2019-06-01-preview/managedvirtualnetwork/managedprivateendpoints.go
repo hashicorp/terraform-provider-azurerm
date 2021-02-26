@@ -313,6 +313,7 @@ func (client ManagedPrivateEndpointsClient) List(ctx context.Context, managedVir
 	}
 	if result.mpelr.hasNextLink() && result.mpelr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -376,7 +377,6 @@ func (client ManagedPrivateEndpointsClient) listNextResults(ctx context.Context,
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managedvirtualnetwork.ManagedPrivateEndpointsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

@@ -68,7 +68,7 @@ func (client BindingsClient) CreateOrUpdate(ctx context.Context, resourceGroupNa
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.BindingsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "appplatform.BindingsClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -108,7 +108,33 @@ func (client BindingsClient) CreateOrUpdateSender(req *http.Request) (future Bin
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client BindingsClient) (br BindingResource, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "appplatform.BindingsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("appplatform.BindingsCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		br.Response.Response, err = future.GetResult(sender)
+		if br.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "appplatform.BindingsCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && br.Response.Response.StatusCode != http.StatusNoContent {
+			br, err = client.CreateOrUpdateResponder(br.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "appplatform.BindingsCreateOrUpdateFuture", "Result", br.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -150,7 +176,7 @@ func (client BindingsClient) Delete(ctx context.Context, resourceGroupName strin
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.BindingsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "appplatform.BindingsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -188,7 +214,23 @@ func (client BindingsClient) DeleteSender(req *http.Request) (future BindingsDel
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client BindingsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "appplatform.BindingsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("appplatform.BindingsDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -322,6 +364,7 @@ func (client BindingsClient) List(ctx context.Context, resourceGroupName string,
 	}
 	if result.brc.hasNextLink() && result.brc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -384,7 +427,6 @@ func (client BindingsClient) listNextResults(ctx context.Context, lastResults Bi
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.BindingsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -432,7 +474,7 @@ func (client BindingsClient) Update(ctx context.Context, resourceGroupName strin
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.BindingsClient", "Update", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "appplatform.BindingsClient", "Update", nil, "Failure sending request")
 		return
 	}
 
@@ -472,7 +514,33 @@ func (client BindingsClient) UpdateSender(req *http.Request) (future BindingsUpd
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client BindingsClient) (br BindingResource, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "appplatform.BindingsUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("appplatform.BindingsUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		br.Response.Response, err = future.GetResult(sender)
+		if br.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "appplatform.BindingsUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && br.Response.Response.StatusCode != http.StatusNoContent {
+			br, err = client.UpdateResponder(br.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "appplatform.BindingsUpdateFuture", "Result", br.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

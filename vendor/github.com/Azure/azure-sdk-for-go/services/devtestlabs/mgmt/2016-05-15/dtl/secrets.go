@@ -335,6 +335,7 @@ func (client SecretsClient) List(ctx context.Context, resourceGroupName string, 
 	}
 	if result.rwcs.hasNextLink() && result.rwcs.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -409,7 +410,6 @@ func (client SecretsClient) listNextResults(ctx context.Context, lastResults Res
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.SecretsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

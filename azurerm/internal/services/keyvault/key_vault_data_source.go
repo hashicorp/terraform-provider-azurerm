@@ -29,7 +29,7 @@ func dataSourceKeyVault() *schema.Resource {
 				"name": {
 					Type:         schema.TypeString,
 					Required:     true,
-					ValidateFunc: validate.KeyVaultName,
+					ValidateFunc: validate.VaultName,
 				},
 
 				"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
@@ -208,7 +208,7 @@ func dataSourceKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 			return fmt.Errorf("Error making Read request on KeyVault %q: Unable to retrieve 'sku' value", *resp.Name)
 		}
 
-		flattenedPolicies := azure.FlattenKeyVaultAccessPolicies(props.AccessPolicies)
+		flattenedPolicies := flattenAccessPolicies(props.AccessPolicies)
 		if err := d.Set("access_policy", flattenedPolicies); err != nil {
 			return fmt.Errorf("Error setting `access_policy` for KeyVault %q: %+v", *resp.Name, err)
 		}
