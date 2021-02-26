@@ -81,7 +81,9 @@ func resourceSentinelDataConnectorAzureAdvancedThreatProtectionCreate(d *schema.
 			}
 		}
 
-		return tf.ImportAsExistsError("azurerm_sentinel_data_connector_azure_advanced_threat_protection", id.ID())
+		if !utils.ResponseWasNotFound(resp.Response) {
+			return tf.ImportAsExistsError("azurerm_sentinel_data_connector_azure_advanced_threat_protection", id.ID())
+		}
 	}
 
 	tenantId := d.Get("tenant_id").(string)
