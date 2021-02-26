@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 	"strings"
@@ -8,25 +10,25 @@ import (
 )
 
 type GuestConfigurationAssignmentId struct {
-	SubscriptionId string
-	ResourceGroup  string
-	VMName         string
-	Name           string
+	SubscriptionId     string
+	ResourceGroup      string
+	VirtualMachineName string
+	Name               string
 }
 
-func NewGuestConfigurationAssignmentID(subscriptionId, resourceGroup, vmName, name string) GuestConfigurationAssignmentId {
+func NewGuestConfigurationAssignmentID(subscriptionId, resourceGroup, virtualMachineName, name string) GuestConfigurationAssignmentId {
 	return GuestConfigurationAssignmentId{
-		SubscriptionId: subscriptionId,
-		ResourceGroup:  resourceGroup,
-		VMName:         vmName,
-		Name:           name,
+		SubscriptionId:     subscriptionId,
+		ResourceGroup:      resourceGroup,
+		VirtualMachineName: virtualMachineName,
+		Name:               name,
 	}
 }
 
 func (id GuestConfigurationAssignmentId) String() string {
 	segments := []string{
 		fmt.Sprintf("Name %q", id.Name),
-		fmt.Sprintf("VM Name %q", id.VMName),
+		fmt.Sprintf("Virtual Machine Name %q", id.VirtualMachineName),
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
@@ -35,27 +37,95 @@ func (id GuestConfigurationAssignmentId) String() string {
 
 func (id GuestConfigurationAssignmentId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/virtualMachines/%s/providers/Microsoft.GuestConfiguration/guestConfigurationAssignments/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.VMName, id.Name)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.VirtualMachineName, id.Name)
 }
 
+// GuestConfigurationAssignmentID parses a GuestConfigurationAssignment ID into an GuestConfigurationAssignmentId struct
 func GuestConfigurationAssignmentID(input string) (*GuestConfigurationAssignmentId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing guestConfigurationAssignment ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	guestConfigurationAssignment := GuestConfigurationAssignmentId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := GuestConfigurationAssignmentId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
-	if guestConfigurationAssignment.VMName, err = id.PopSegment("virtualMachines"); err != nil {
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	if resourceId.VirtualMachineName, err = id.PopSegment("virtualMachines"); err != nil {
 		return nil, err
 	}
-	if guestConfigurationAssignment.Name, err = id.PopSegment("guestConfigurationAssignments"); err != nil {
+	if resourceId.Name, err = id.PopSegment("guestConfigurationAssignments"); err != nil {
 		return nil, err
 	}
+
 	if err := id.ValidateNoEmptySegments(input); err != nil {
 		return nil, err
 	}
 
-	return &guestConfigurationAssignment, nil
+	return &resourceId, nil
+}
+
+// GuestConfigurationAssignmentIDInsensitively parses an GuestConfigurationAssignment ID into an GuestConfigurationAssignmentId struct, insensitively
+// This should only be used to parse an ID for rewriting, the GuestConfigurationAssignmentID
+// method should be used instead for validation etc.
+//
+// Whilst this may seem strange, this enables Terraform have consistent casing
+// which works around issues in Core, whilst handling broken API responses.
+func GuestConfigurationAssignmentIDInsensitively(input string) (*GuestConfigurationAssignmentId, error) {
+	id, err := azure.ParseAzureResourceID(input)
+	if err != nil {
+		return nil, err
+	}
+
+	resourceId := GuestConfigurationAssignmentId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	// find the correct casing for the 'virtualMachines' segment
+	virtualMachinesKey := "virtualMachines"
+	for key := range id.Path {
+		if strings.EqualFold(key, virtualMachinesKey) {
+			virtualMachinesKey = key
+			break
+		}
+	}
+	if resourceId.VirtualMachineName, err = id.PopSegment(virtualMachinesKey); err != nil {
+		return nil, err
+	}
+
+	// find the correct casing for the 'guestConfigurationAssignments' segment
+	guestConfigurationAssignmentsKey := "guestConfigurationAssignments"
+	for key := range id.Path {
+		if strings.EqualFold(key, guestConfigurationAssignmentsKey) {
+			guestConfigurationAssignmentsKey = key
+			break
+		}
+	}
+	if resourceId.Name, err = id.PopSegment(guestConfigurationAssignmentsKey); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &resourceId, nil
 }

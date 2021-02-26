@@ -1,16 +1,18 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
 
 var _ resourceid.Formatter = GuestConfigurationAssignmentId{}
 
 func TestGuestConfigurationAssignmentIDFormatter(t *testing.T) {
-	id := NewGuestConfigurationAssignmentID("12345678-1234-5678-1234-123456789012", "resourceGroup1", "vm1", "guestConfigurationAssignment1")
-	actual := id.ID()
-	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Compute/virtualMachines/vm1/providers/Microsoft.GuestConfiguration/guestConfigurationAssignments/guestConfigurationAssignment1"
+	actual := NewGuestConfigurationAssignmentID("12345678-1234-9876-4563-123456789012", "resGroup1", "vm1", "assignment1").ID()
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/virtualMachines/vm1/providers/Microsoft.GuestConfiguration/guestConfigurationAssignments/assignment1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
@@ -18,76 +20,245 @@ func TestGuestConfigurationAssignmentIDFormatter(t *testing.T) {
 
 func TestGuestConfigurationAssignmentID(t *testing.T) {
 	testData := []struct {
-		Name     string
 		Input    string
+		Error    bool
 		Expected *GuestConfigurationAssignmentId
 	}{
+
 		{
-			Name:     "Empty",
-			Input:    "",
-			Expected: nil,
+			// empty
+			Input: "",
+			Error: true,
 		},
+
 		{
-			Name:     "No Resource Groups Segment",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000",
-			Expected: nil,
+			// missing SubscriptionId
+			Input: "/",
+			Error: true,
 		},
+
 		{
-			Name:     "No Resource Groups Value",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/",
-			Expected: nil,
+			// missing value for SubscriptionId
+			Input: "/subscriptions/",
+			Error: true,
 		},
+
 		{
-			Name:     "Resource Group ID",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/",
-			Expected: nil,
+			// missing ResourceGroup
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/",
+			Error: true,
 		},
+
 		{
-			Name:     "Missing GuestConfigurationAssignment Value",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Compute/virtualMachines/vm1/providers/Microsoft.GuestConfiguration/guestConfigurationAssignments",
-			Expected: nil,
+			// missing value for ResourceGroup
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/",
+			Error: true,
 		},
+
 		{
-			Name:  "guestConfiguration Assignment ID",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Compute/virtualMachines/vm1/providers/Microsoft.GuestConfiguration/guestConfigurationAssignments/guestConfigurationAssignment1",
+			// missing VirtualMachineName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/",
+			Error: true,
+		},
+
+		{
+			// missing value for VirtualMachineName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/virtualMachines/",
+			Error: true,
+		},
+
+		{
+			// missing Name
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/virtualMachines/vm1/providers/Microsoft.GuestConfiguration/",
+			Error: true,
+		},
+
+		{
+			// missing value for Name
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/virtualMachines/vm1/providers/Microsoft.GuestConfiguration/guestConfigurationAssignments/",
+			Error: true,
+		},
+
+		{
+			// valid
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/virtualMachines/vm1/providers/Microsoft.GuestConfiguration/guestConfigurationAssignments/assignment1",
 			Expected: &GuestConfigurationAssignmentId{
-				ResourceGroup: "resourceGroup1",
-				VMName:        "vm1",
-				Name:          "guestConfigurationAssignment1",
+				SubscriptionId:     "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:      "resGroup1",
+				VirtualMachineName: "vm1",
+				Name:               "assignment1",
 			},
 		},
+
 		{
-			Name:     "Wrong Casing",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Compute/virtualMachines/vm1/providers/Microsoft.GuestConfiguration/GuestConfigurationAssignments/guestConfigurationAssignment1",
-			Expected: nil,
+			// upper-cased
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.COMPUTE/VIRTUALMACHINES/VM1/PROVIDERS/MICROSOFT.GUESTCONFIGURATION/GUESTCONFIGURATIONASSIGNMENTS/ASSIGNMENT1",
+			Error: true,
 		},
 	}
 
 	for _, v := range testData {
-		t.Logf("[DEBUG] Testing %q..", v.Name)
+		t.Logf("[DEBUG] Testing %q", v.Input)
 
 		actual, err := GuestConfigurationAssignmentID(v.Input)
 		if err != nil {
-			if v.Expected == nil {
+			if v.Error {
 				continue
 			}
-			t.Fatalf("Expected a value but got an error: %s", err)
+
+			t.Fatalf("Expect a value but got an error: %s", err)
+		}
+		if v.Error {
+			t.Fatal("Expect an error but didn't get one")
 		}
 
 		if actual.SubscriptionId != v.Expected.SubscriptionId {
 			t.Fatalf("Expected %q but got %q for SubscriptionId", v.Expected.SubscriptionId, actual.SubscriptionId)
 		}
-
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
 			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
 		}
-
+		if actual.VirtualMachineName != v.Expected.VirtualMachineName {
+			t.Fatalf("Expected %q but got %q for VirtualMachineName", v.Expected.VirtualMachineName, actual.VirtualMachineName)
+		}
 		if actual.Name != v.Expected.Name {
 			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
 		}
+	}
+}
 
-		if actual.VMName != v.Expected.VMName {
-			t.Fatalf("Expected %q but got %q for VMName", v.Expected.VMName, actual.VMName)
+func TestGuestConfigurationAssignmentIDInsensitively(t *testing.T) {
+	testData := []struct {
+		Input    string
+		Error    bool
+		Expected *GuestConfigurationAssignmentId
+	}{
+
+		{
+			// empty
+			Input: "",
+			Error: true,
+		},
+
+		{
+			// missing SubscriptionId
+			Input: "/",
+			Error: true,
+		},
+
+		{
+			// missing value for SubscriptionId
+			Input: "/subscriptions/",
+			Error: true,
+		},
+
+		{
+			// missing ResourceGroup
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/",
+			Error: true,
+		},
+
+		{
+			// missing value for ResourceGroup
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/",
+			Error: true,
+		},
+
+		{
+			// missing VirtualMachineName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/",
+			Error: true,
+		},
+
+		{
+			// missing value for VirtualMachineName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/virtualMachines/",
+			Error: true,
+		},
+
+		{
+			// missing Name
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/virtualMachines/vm1/providers/Microsoft.GuestConfiguration/",
+			Error: true,
+		},
+
+		{
+			// missing value for Name
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/virtualMachines/vm1/providers/Microsoft.GuestConfiguration/guestConfigurationAssignments/",
+			Error: true,
+		},
+
+		{
+			// valid
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/virtualMachines/vm1/providers/Microsoft.GuestConfiguration/guestConfigurationAssignments/assignment1",
+			Expected: &GuestConfigurationAssignmentId{
+				SubscriptionId:     "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:      "resGroup1",
+				VirtualMachineName: "vm1",
+				Name:               "assignment1",
+			},
+		},
+
+		{
+			// lower-cased segment names
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/virtualmachines/vm1/providers/Microsoft.GuestConfiguration/guestconfigurationassignments/assignment1",
+			Expected: &GuestConfigurationAssignmentId{
+				SubscriptionId:     "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:      "resGroup1",
+				VirtualMachineName: "vm1",
+				Name:               "assignment1",
+			},
+		},
+
+		{
+			// upper-cased segment names
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/VIRTUALMACHINES/vm1/providers/Microsoft.GuestConfiguration/GUESTCONFIGURATIONASSIGNMENTS/assignment1",
+			Expected: &GuestConfigurationAssignmentId{
+				SubscriptionId:     "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:      "resGroup1",
+				VirtualMachineName: "vm1",
+				Name:               "assignment1",
+			},
+		},
+
+		{
+			// mixed-cased segment names
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/ViRtUaLmAcHiNeS/vm1/providers/Microsoft.GuestConfiguration/GuEsTcOnFiGuRaTiOnAsSiGnMeNtS/assignment1",
+			Expected: &GuestConfigurationAssignmentId{
+				SubscriptionId:     "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:      "resGroup1",
+				VirtualMachineName: "vm1",
+				Name:               "assignment1",
+			},
+		},
+	}
+
+	for _, v := range testData {
+		t.Logf("[DEBUG] Testing %q", v.Input)
+
+		actual, err := GuestConfigurationAssignmentIDInsensitively(v.Input)
+		if err != nil {
+			if v.Error {
+				continue
+			}
+
+			t.Fatalf("Expect a value but got an error: %s", err)
+		}
+		if v.Error {
+			t.Fatal("Expect an error but didn't get one")
+		}
+
+		if actual.SubscriptionId != v.Expected.SubscriptionId {
+			t.Fatalf("Expected %q but got %q for SubscriptionId", v.Expected.SubscriptionId, actual.SubscriptionId)
+		}
+		if actual.ResourceGroup != v.Expected.ResourceGroup {
+			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
+		}
+		if actual.VirtualMachineName != v.Expected.VirtualMachineName {
+			t.Fatalf("Expected %q but got %q for VirtualMachineName", v.Expected.VirtualMachineName, actual.VirtualMachineName)
+		}
+		if actual.Name != v.Expected.Name {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
 		}
 	}
 }

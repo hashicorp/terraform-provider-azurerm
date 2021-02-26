@@ -116,7 +116,7 @@ func resourceGuestConfigurationAssignmentCreateUpdate(d *schema.ResourceData, me
 	id := parse.NewGuestConfigurationAssignmentID(subscriptionId, vmId.ResourceGroup, vmId.Name, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, id.VMName)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, id.VirtualMachineName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for present of existing GuestConfiguration GuestConfigurationAssignment %q (Virtual Machine ID %q): %+v", id.Name, vmId.ID(), err)
@@ -134,7 +134,7 @@ func resourceGuestConfigurationAssignmentCreateUpdate(d *schema.ResourceData, me
 			GuestConfiguration: expandGuestConfigurationAssignment(d.Get("guest_configuration").([]interface{})),
 		},
 	}
-	future, err := client.CreateOrUpdate(ctx, id.Name, parameter, id.ResourceGroup, id.VMName)
+	future, err := client.CreateOrUpdate(ctx, id.Name, parameter, id.ResourceGroup, id.VirtualMachineName)
 	if err != nil {
 		return fmt.Errorf("creating/updating GuestConfigurationAssignment %q (Virtual Machine ID %q): %+v", id.Name, vmId.ID(), err)
 	}
@@ -143,7 +143,7 @@ func resourceGuestConfigurationAssignmentCreateUpdate(d *schema.ResourceData, me
 		return fmt.Errorf("waiting on creating/updating future for GuestConfigurationAssignment %q (Virtual Machine ID %q): %+v", id.Name, vmId.ID(), err)
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, id.VMName)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, id.VirtualMachineName)
 	if err != nil {
 		return fmt.Errorf("retrieving GuestConfigurationAssignment %q (Virtual Machine ID %q): %+v", id.Name, vmId.ID(), err)
 	}
@@ -168,16 +168,16 @@ func resourceGuestConfigurationAssignmentRead(d *schema.ResourceData, meta inter
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, id.VMName)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, id.VirtualMachineName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] guestConfiguration %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving GuestConfigurationAssignment %q (Resource Group %q / vmName %q): %+v", id.Name, id.ResourceGroup, id.VMName, err)
+		return fmt.Errorf("retrieving GuestConfigurationAssignment %q (Resource Group %q / Virtual Machine %q): %+v", id.Name, id.ResourceGroup, id.VirtualMachineName, err)
 	}
-	vmId := computeParse.NewVirtualMachineID(subscriptionId, id.ResourceGroup, id.VMName)
+	vmId := computeParse.NewVirtualMachineID(subscriptionId, id.ResourceGroup, id.VirtualMachineName)
 	d.Set("name", id.Name)
 	d.Set("virtual_machine_id", vmId.ID())
 	d.Set("location", location.NormalizeNilable(resp.Location))
@@ -201,13 +201,13 @@ func resourceGuestConfigurationAssignmentDelete(d *schema.ResourceData, meta int
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name, id.VMName)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name, id.VirtualMachineName)
 	if err != nil {
-		return fmt.Errorf("deleting GuestConfiguration GuestConfigurationAssignment %q (Resource Group %q / vmName %q): %+v", id.Name, id.ResourceGroup, id.VMName, err)
+		return fmt.Errorf("deleting GuestConfiguration GuestConfigurationAssignment %q (Resource Group %q / Virtual Machine %q): %+v", id.Name, id.ResourceGroup, id.VirtualMachineName, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on deleting future for GuestConfiguration GuestConfigurationAssignment %q (Resource Group %q / vmName %q): %+v", id.Name, id.ResourceGroup, id.VMName, err)
+		return fmt.Errorf("waiting on deleting future for GuestConfiguration GuestConfigurationAssignment %q (Resource Group %q / Virtual Machine %q): %+v", id.Name, id.ResourceGroup, id.VirtualMachineName, err)
 	}
 	return nil
 }

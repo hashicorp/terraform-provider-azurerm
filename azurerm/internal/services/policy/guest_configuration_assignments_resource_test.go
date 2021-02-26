@@ -95,12 +95,12 @@ func (r GuestConfigurationAssignmentResource) Exists(ctx context.Context, client
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.Policy.GuestConfigurationAssignmentsClient.Get(ctx, id.ResourceGroup, id.Name, id.VMName)
+	resp, err := client.Policy.GuestConfigurationAssignmentsClient.Get(ctx, id.ResourceGroup, id.Name, id.VirtualMachineName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Guest Configuration %q (Resource Group %q / Virtual Machine Name %q): %+v", id.Name, id.ResourceGroup, id.VMName, err)
+		return nil, fmt.Errorf("retrieving Guest Configuration %q (Resource Group %q / Virtual Machine %q): %+v", id.Name, id.ResourceGroup, id.VirtualMachineName, err)
 	}
 	return utils.Bool(true), nil
 }
