@@ -55,11 +55,6 @@ func resourceGuestConfigurationAssignment() *schema.Resource {
 				ValidateFunc: computeValidate.VirtualMachineID,
 			},
 
-			"context": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-
 			"guest_configuration": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -117,11 +112,6 @@ func resourceGuestConfigurationAssignment() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-
-			"target_resource_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 		},
 	}
 }
@@ -155,7 +145,6 @@ func resourceGuestConfigurationAssignmentCreateUpdate(d *schema.ResourceData, me
 		Name:     utils.String(d.Get("name").(string)),
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Properties: &guestconfiguration.AssignmentProperties{
-			Context:            utils.String(d.Get("context").(string)),
 			GuestConfiguration: expandGuestConfigurationAssignmentNavigation(d.Get("guest_configuration").([]interface{})),
 		},
 	}
@@ -207,13 +196,11 @@ func resourceGuestConfigurationAssignmentRead(d *schema.ResourceData, meta inter
 	d.Set("virtual_machine_id", vmId.ID())
 	d.Set("location", location.NormalizeNilable(resp.Location))
 	if props := resp.Properties; props != nil {
-		d.Set("context", props.Context)
 		if err := d.Set("guest_configuration", flattenGuestConfigurationAssignmentNavigation(props.GuestConfiguration)); err != nil {
 			return fmt.Errorf("setting `guest_configuration`: %+v", err)
 		}
 		d.Set("assignment_hash", props.AssignmentHash)
 		d.Set("compliance_status", props.ComplianceStatus)
-		d.Set("target_resource_id", props.TargetResourceID)
 	}
 	return nil
 }
