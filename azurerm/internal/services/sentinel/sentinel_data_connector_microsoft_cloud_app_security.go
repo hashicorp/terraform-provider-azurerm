@@ -95,7 +95,9 @@ func resourceSentinelDataConnectorMicrosoftCloudAppSecurityCreateUpdate(d *schem
 			}
 		}
 
-		return tf.ImportAsExistsError("azurerm_sentinel_data_connector_microsoft_cloud_app_security", id.ID())
+		if !utils.ResponseWasNotFound(resp.Response) {
+			return tf.ImportAsExistsError("azurerm_sentinel_data_connector_microsoft_cloud_app_security", id.ID())
+		}
 	}
 
 	tenantId := d.Get("tenant_id").(string)
