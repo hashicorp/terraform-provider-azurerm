@@ -1,3 +1,7 @@
+## 2.50.0 (Unreleased)
+
+* `azurerm_virtual_network_gateway` - deprecate `peering_address` in favour of `peering_addresses` [GH-10381]
+
 ## 2.49.0 (February 26, 2021)
 
 FEATURES:
