@@ -74,7 +74,7 @@ resource "azurerm_linux_virtual_machine" "example" {
 
 resource "azurerm_virtual_machine_guest_configuration_assignment" "example" {
   name               = "example-gca"
-  location = azurerm_linux_virtual_machine.example.id
+  location           = azurerm_linux_virtual_machine.example.id
   virtual_machine_id = azurerm_linux_virtual_machine.example.id
   guest_configuration {
     name    = "example-assignment"
