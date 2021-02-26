@@ -6,13 +6,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -55,8 +56,8 @@ var expressRoutePortSchema = &schema.Schema{
 				ValidateFunc: validation.StringInSlice([]string{
 					"GcmAes128",
 					"GcmAes256",
-					//string(network.GcmAes128),
-					//string(network.GcmAes256),
+					// string(network.GcmAes128),
+					// string(network.GcmAes256),
 				}, false),
 			},
 			"macsec_ckn_keyvault_identifier": {
@@ -449,18 +450,10 @@ func flattenExpressRoutePortLinks(links *[]network.ExpressRouteLink) ([]interfac
 		return nil, nil, fmt.Errorf("expected two links, but got %d", length)
 	}
 
-	link1, err := flattenExpressRoutePortLink((*links)[0])
-	if err != nil {
-		return nil, nil, err
-	}
-	link2, err := flattenExpressRoutePortLink((*links)[1])
-	if err != nil {
-		return nil, nil, err
-	}
-	return link1, link2, nil
+	return flattenExpressRoutePortLink((*links)[0]), flattenExpressRoutePortLink((*links)[1]), nil
 }
 
-func flattenExpressRoutePortLink(link network.ExpressRouteLink) ([]interface{}, error) {
+func flattenExpressRoutePortLink(link network.ExpressRouteLink) []interface{} {
 	var id string
 	if link.ID != nil {
 		id = *link.ID
@@ -517,5 +510,5 @@ func flattenExpressRoutePortLink(link network.ExpressRouteLink) ([]interface{}, 
 			"macsec_cak_keyvault_identifier": cakSecretId,
 			"macsec_cipher":                  cipher,
 		},
-	}, nil
+	}
 }
