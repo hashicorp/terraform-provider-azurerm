@@ -1022,8 +1022,6 @@ func flattenBasicImageTemplateDistributor(input *[]virtualmachineimagebuilder.Ba
 	return results, nil
 }
 
-
-
 func expandImageTemplateSharedImageDistributorReplicaRegions(input []interface{}) *[]string {
 	if input == nil {
 		return nil
@@ -1176,7 +1174,7 @@ func expandBasicImageTemplateCustomizer(d *schema.ResourceData) (*[]virtualmachi
 				ScriptURI:      utils.String(customizer["powershell_script_uri"].(string)),
 				Sha256Checksum: utils.String(customizer["powershell_sha256_checksum"].(string)),
 				Inline:         utils.ExpandStringSlice(customizer["powershell_commands"].([]interface{})),
-				RunAsSystem:	utils.Bool(customizer["powershell_run_as_system"].(bool)),
+				RunAsSystem:    utils.Bool(customizer["powershell_run_as_system"].(bool)),
 				RunElevated:    utils.Bool(customizer["powershell_run_elevated"].(bool)),
 				ValidExitCodes: utils.ExpandInt32Slice(customizer["powershell_valid_exit_codes"].([]interface{})),
 			})
