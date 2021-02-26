@@ -1,7 +1,11 @@
 ## 2.50.0 (Unreleased)
 
-ENHANCEMENTS:
+FEATURES:
 
+* **New Data Source** `azurerm_vmware_private_cloud` [GH-9284]
+* **New Resource** `azurerm_vmware_private_cloud` [GH-9284]
+
+ENHANCEMENTS:
 
 * `azurerm_virtual_network_gateway` - deprecate `peering_address` in favour of `peering_addresses` [GH-10381]
 * `azurerm_sql_server` - support for the `extended_auditing_policy.log_monitoring_enabled` property [GH-10324]
