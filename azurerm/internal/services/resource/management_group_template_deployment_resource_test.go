@@ -71,9 +71,9 @@ data "azurerm_template_spec_version" "test" {
 }
 
 resource "azurerm_management_group_template_deployment" "test" {
-  name                  = "acctestMGdeploy-%[1]d"
-  management_group_name = azurerm_management_group.test.name
-  location              = %[2]q
+  name                = "acctestMGdeploy-%[1]d"
+  management_group_id = azurerm_management_group.test.id
+  location            = %[2]q
 
   template_spec_version_id = data.azurerm_template_spec_version.test.id
 
@@ -92,9 +92,9 @@ resource "azurerm_management_group" "test" {
 }
 
 resource "azurerm_management_group_template_deployment" "test" {
-  name                  = "acctestMGdeploy-%[1]d"
-  management_group_name = azurerm_management_group.test.name
-  location              = %[2]q
+  name                = "acctestMGdeploy-%[1]d"
+  management_group_id = azurerm_management_group.test.id
+  location            = %[2]q
 
   template_content = <<TEMPLATE
 {
@@ -120,9 +120,9 @@ resource "azurerm_management_group" "test" {
 }
 
 resource "azurerm_management_group_template_deployment" "test" {
-  name                  = "acctestMGdeploy-%[1]d"
-  management_group_name = azurerm_management_group.test.name
-  location              = %q
+  name                = "acctestMGdeploy-%[1]d"
+  management_group_id = azurerm_management_group.test.id
+  location            = %q
   tags = {
     Hello = "World"
   }

@@ -1,7 +1,5 @@
 package parse
 
-// /providers/Microsoft.Management/managementGroups/my-management-group-id/providers/Microsoft.Resources/deployments/deploy1
-
 import (
 	"fmt"
 	"net/url"
