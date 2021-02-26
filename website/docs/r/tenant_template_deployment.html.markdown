@@ -14,6 +14,8 @@ Manages a Template Deployment at the Tenant Scope.
 
 ~> **Note:** Deployments to a Tenant are always Incrementally applied. Existing resources that are not part of the template will not be removed.
 
+~> **Note:** Tenant Template Deployments are always targeted at the Tenant in which the current User, Managed Identity, or Service Principal being used by Terraform is homed.
+
 ## Example Usage
 
 ```hcl
@@ -62,14 +64,14 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 3 hours) Used when creating the Template.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Template.
-* `update` - (Defaults to 3 hours) Used when updating the Template.
-* `delete` - (Defaults to 3 hours) Used when deleting the Template.
+* `create` - (Defaults to 3 hours) Used when creating the Tenant Template Deployment.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Tenant Template Deployment.
+* `update` - (Defaults to 3 hours) Used when updating the Tenant Template Deployment.
+* `delete` - (Defaults to 3 hours) Used when deleting the Tenant Template Deployment.
 
 ## Import
 
-Templates can be imported using the `resource id`, e.g.
+Tenant Template Deployments can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_tenant_template_deployment.example /providers/Microsoft.Resources/deployments/deploy1

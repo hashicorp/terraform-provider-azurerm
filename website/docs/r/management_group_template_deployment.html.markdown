@@ -17,11 +17,15 @@ Manages a Template Deployment at a Management Group Scope.
 ## Example Usage
 
 ```hcl
+data "azurerm_management_group" "example" {
+  name = "00000000-0000-0000-0000-000000000000"
+}
+
 resource "azurerm_management_group_template_deployment" "example" {
-  name                  = "example"
-  location              = "West Europe"
-  management_group_name = "example"
-  template_content      = <<TEMPLATE
+  name                = "example"
+  location            = "West Europe"
+  management_group_id = data.azurerm_management_group.example.id
+  template_content    = <<TEMPLATE
 {
   "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
@@ -69,16 +73,26 @@ PARAMS
 ```
 
 ```hcl
+
+data "azurerm_management_group" "example" {
+  name = "00000000-0000-0000-0000-000000000000"
+}
+
 resource "azurerm_management_group_template_deployment" "example" {
-  name                  = "example"
-  location              = "West Europe"
-  management_group_name = "example"
-  template_content      = file("templates/example-deploy-template.json")
-  parameters_content    = file("templates/example-deploy-params.json")
+  name                = "example"
+  location            = "West Europe"
+  management_group_id = data.azurerm_management_group.example.id
+  template_content    = file("templates/example-deploy-template.json")
+  parameters_content  = file("templates/example-deploy-params.json")
 }
 ```
 
 ```hcl
+
+data "azurerm_management_group" "example" {
+  name = "00000000-0000-0000-0000-000000000000"
+}
+
 data "azurerm_template_spec_version" "example" {
   name                = "exampleTemplateForManagementGroup"
   resource_group_name = "exampleResourceGroup"
@@ -86,10 +100,9 @@ data "azurerm_template_spec_version" "example" {
 }
 
 resource "azurerm_management_group_template_deployment" "example" {
-  name                  = "example"
-  location              = "West Europe"
-  management_group_name = "example"
-
+  name                     = "example"
+  location                 = "West Europe"
+  management_group_id      = data.azurerm_management_group.example.id
   template_spec_version_id = data.azurerm_template_spec_version.example.id
 }
 ```
@@ -129,14 +142,14 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 3 hours) Used when creating the Template Deployment.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Template Deployment.
-* `update` - (Defaults to 3 hours) Used when updating the Template Deployment.
-* `delete` - (Defaults to 3 hours) Used when deleting the Template Deployment.
+* `create` - (Defaults to 3 hours) Used when creating the Management Group Template Deployment.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Management Group Template Deployment.
+* `update` - (Defaults to 3 hours) Used when updating the Management Group Template Deployment.
+* `delete` - (Defaults to 3 hours) Used when deleting the Management Group Template Deployment.
 
 ## Import
 
-Templates can be imported using the `resource id`, e.g.
+Management Group Template Deployments can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_management_group_template_deployment.example /providers/Microsoft.Management/managementGroups/my-management-group-id/providers/Microsoft.Resources/deployments/deploy1
