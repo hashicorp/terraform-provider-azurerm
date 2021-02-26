@@ -41,7 +41,7 @@ func ExtendedAuditingSchema() *schema.Schema {
 					ValidateFunc: validation.IntBetween(0, 3285),
 				},
 
-				"monitor_enabled": {
+				"log_monitoring_enabled": {
 					Type:     schema.TypeBool,
 					Optional: true,
 					Default:  true,
@@ -63,7 +63,7 @@ func ExpandAzureRmSqlServerBlobAuditingPolicies(input []interface{}) *sql.Extend
 		State:                       sql.BlobAuditingPolicyStateEnabled,
 		StorageAccountAccessKey:     utils.String(serverBlobAuditingPolicies["storage_account_access_key"].(string)),
 		StorageEndpoint:             utils.String(serverBlobAuditingPolicies["storage_endpoint"].(string)),
-		IsAzureMonitorTargetEnabled: utils.Bool(serverBlobAuditingPolicies["monitor_enabled"].(bool)),
+		IsAzureMonitorTargetEnabled: utils.Bool(serverBlobAuditingPolicies["log_monitoring_enabled"].(bool)),
 	}
 	if v, ok := serverBlobAuditingPolicies["storage_account_access_key_is_secondary"]; ok {
 		ExtendedServerBlobAuditingPolicyProperties.IsStorageSecondaryKeyInUse = utils.Bool(v.(bool))
@@ -107,7 +107,7 @@ func FlattenAzureRmSqlServerBlobAuditingPolicies(extendedServerBlobAuditingPolic
 			"storage_endpoint":                        storageEndpoint,
 			"storage_account_access_key_is_secondary": secondKeyInUse,
 			"retention_in_days":                       retentionDays,
-			"monitor_enabled":                         monitor,
+			"log_monitoring_enabled":                  monitor,
 		},
 	}
 }
@@ -124,7 +124,7 @@ func ExpandAzureRmSqlDBBlobAuditingPolicies(input []interface{}) *sql.ExtendedDa
 		State:                       sql.BlobAuditingPolicyStateEnabled,
 		StorageAccountAccessKey:     utils.String(dbBlobAuditingPolicies["storage_account_access_key"].(string)),
 		StorageEndpoint:             utils.String(dbBlobAuditingPolicies["storage_endpoint"].(string)),
-		IsAzureMonitorTargetEnabled: utils.Bool(dbBlobAuditingPolicies["monitor_enabled"].(bool)),
+		IsAzureMonitorTargetEnabled: utils.Bool(dbBlobAuditingPolicies["log_monitoring_enabled"].(bool)),
 	}
 	if v, ok := dbBlobAuditingPolicies["storage_account_access_key_is_secondary"]; ok {
 		ExtendedDatabaseBlobAuditingPolicyProperties.IsStorageSecondaryKeyInUse = utils.Bool(v.(bool))
@@ -168,7 +168,7 @@ func FlattenAzureRmSqlDBBlobAuditingPolicies(extendedDatabaseBlobAuditingPolicy 
 			"storage_endpoint":                        storageEndpoint,
 			"storage_account_access_key_is_secondary": secondKeyInUse,
 			"retention_in_days":                       retentionDays,
-			"monitor_enabled":                         monitor,
+			"log_monitoring_enabled":                  monitor,
 		},
 	}
 }
