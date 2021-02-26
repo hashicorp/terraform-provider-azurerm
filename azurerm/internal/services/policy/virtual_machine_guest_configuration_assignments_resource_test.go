@@ -177,14 +177,6 @@ resource "azurerm_linux_virtual_machine" "test" {
     sku       = "16.04-LTS"
     version   = "latest"
   }
-
-  lifecycle {
-    ignore_changes = [
-      # Ignore changes to tags, e.g. because a management agent
-      # updates these based on some ruleset managed elsewhere.
-      tags,
-    ]
-  }
 }
 `, template, data.RandomInteger)
 }
