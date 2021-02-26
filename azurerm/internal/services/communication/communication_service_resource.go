@@ -7,11 +7,13 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/communication/mgmt/2020-08-20-preview/communication"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/communication/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/communication/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -39,25 +41,28 @@ func resourceArmCommunicationService() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.CommunicationServiceName,
 			},
-
-			"location": azure.SchemaLocation(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"data_location": {
 				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Optional: true,
+				Default:  "United States",
+				ValidateFunc: validation.StringInSlice([]string{
+					"United States",
+				}, false),
 			},
 
 			"tags": tags.Schema(),
 		},
 	}
 }
+
 func resourceArmCommunicationServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Communication.ServiceClient
@@ -83,7 +88,8 @@ func resourceArmCommunicationServiceCreateUpdate(d *schema.ResourceData, meta in
 	}
 
 	parameter := communication.ServiceResource{
-		Location: utils.String(location.Normalize(d.Get("location").(string))),
+		// The location is always `global` from the Azure Portal
+		Location: utils.String(location.Normalize("global")),
 		ServiceProperties: &communication.ServiceProperties{
 			DataLocation: utils.String(d.Get("data_location").(string)),
 		},
@@ -127,7 +133,6 @@ func resourceArmCommunicationServiceRead(d *schema.ResourceData, meta interface{
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.ServiceProperties; props != nil {
 		d.Set("data_location", props.DataLocation)
