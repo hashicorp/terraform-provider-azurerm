@@ -1,6 +1,15 @@
 ## 2.50.0 (Unreleased)
 
+ENHANCEMENTS:
+
+
 * `azurerm_virtual_network_gateway` - deprecate `peering_address` in favour of `peering_addresses` [GH-10381]
+* `azurerm_sql_server` - support for the `extended_auditing_policy.log_monitoring_enabled` property [GH-10324]
+* `azurerm_sql_database` - support for the `extended_auditing_policy.log_monitoring_enabled` property [GH-10324]
+* `azurerm_mssql_database` - support for the `extended_auditing_policy.log_monitoring_enabled` property [GH-10324]
+* `azurerm_mssql_database_extended_auditing_policy ` - support for the `log_monitoring_enabled` property [GH-10324]
+* `azurerm_mssql_server` - support for the `extended_auditing_policy.log_monitoring_enabled` property [GH-10324]
+* `azurerm_mssql_server_extended_auditing_policy ` - support for the `log_monitoring_enabled` property [GH-10324]
 
 ## 2.49.0 (February 26, 2021)
 
