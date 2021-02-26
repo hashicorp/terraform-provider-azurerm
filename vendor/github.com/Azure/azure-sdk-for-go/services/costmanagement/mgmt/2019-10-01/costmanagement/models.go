@@ -30,163 +30,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/costmanagement/mgmt/2019-10-01/costmanagement"
 
-// ExecutionStatus enumerates the values for execution status.
-type ExecutionStatus string
-
-const (
-	// Completed ...
-	Completed ExecutionStatus = "Completed"
-	// DataNotAvailable ...
-	DataNotAvailable ExecutionStatus = "DataNotAvailable"
-	// Failed ...
-	Failed ExecutionStatus = "Failed"
-	// InProgress ...
-	InProgress ExecutionStatus = "InProgress"
-	// NewDataNotAvailable ...
-	NewDataNotAvailable ExecutionStatus = "NewDataNotAvailable"
-	// Queued ...
-	Queued ExecutionStatus = "Queued"
-	// Timeout ...
-	Timeout ExecutionStatus = "Timeout"
-)
-
-// PossibleExecutionStatusValues returns an array of possible values for the ExecutionStatus const type.
-func PossibleExecutionStatusValues() []ExecutionStatus {
-	return []ExecutionStatus{Completed, DataNotAvailable, Failed, InProgress, NewDataNotAvailable, Queued, Timeout}
-}
-
-// ExecutionType enumerates the values for execution type.
-type ExecutionType string
-
-const (
-	// OnDemand ...
-	OnDemand ExecutionType = "OnDemand"
-	// Scheduled ...
-	Scheduled ExecutionType = "Scheduled"
-)
-
-// PossibleExecutionTypeValues returns an array of possible values for the ExecutionType const type.
-func PossibleExecutionTypeValues() []ExecutionType {
-	return []ExecutionType{OnDemand, Scheduled}
-}
-
-// FormatType enumerates the values for format type.
-type FormatType string
-
-const (
-	// Csv ...
-	Csv FormatType = "Csv"
-)
-
-// PossibleFormatTypeValues returns an array of possible values for the FormatType const type.
-func PossibleFormatTypeValues() []FormatType {
-	return []FormatType{Csv}
-}
-
-// GranularityType enumerates the values for granularity type.
-type GranularityType string
-
-const (
-	// Daily ...
-	Daily GranularityType = "Daily"
-	// Hourly ...
-	Hourly GranularityType = "Hourly"
-)
-
-// PossibleGranularityTypeValues returns an array of possible values for the GranularityType const type.
-func PossibleGranularityTypeValues() []GranularityType {
-	return []GranularityType{Daily, Hourly}
-}
-
-// QueryColumnType enumerates the values for query column type.
-type QueryColumnType string
-
-const (
-	// QueryColumnTypeDimension ...
-	QueryColumnTypeDimension QueryColumnType = "Dimension"
-	// QueryColumnTypeTag ...
-	QueryColumnTypeTag QueryColumnType = "Tag"
-)
-
-// PossibleQueryColumnTypeValues returns an array of possible values for the QueryColumnType const type.
-func PossibleQueryColumnTypeValues() []QueryColumnType {
-	return []QueryColumnType{QueryColumnTypeDimension, QueryColumnTypeTag}
-}
-
-// RecurrenceType enumerates the values for recurrence type.
-type RecurrenceType string
-
-const (
-	// RecurrenceTypeAnnually ...
-	RecurrenceTypeAnnually RecurrenceType = "Annually"
-	// RecurrenceTypeDaily ...
-	RecurrenceTypeDaily RecurrenceType = "Daily"
-	// RecurrenceTypeMonthly ...
-	RecurrenceTypeMonthly RecurrenceType = "Monthly"
-	// RecurrenceTypeWeekly ...
-	RecurrenceTypeWeekly RecurrenceType = "Weekly"
-)
-
-// PossibleRecurrenceTypeValues returns an array of possible values for the RecurrenceType const type.
-func PossibleRecurrenceTypeValues() []RecurrenceType {
-	return []RecurrenceType{RecurrenceTypeAnnually, RecurrenceTypeDaily, RecurrenceTypeMonthly, RecurrenceTypeWeekly}
-}
-
-// SortDirection enumerates the values for sort direction.
-type SortDirection string
-
-const (
-	// Ascending ...
-	Ascending SortDirection = "Ascending"
-	// Descending ...
-	Descending SortDirection = "Descending"
-)
-
-// PossibleSortDirectionValues returns an array of possible values for the SortDirection const type.
-func PossibleSortDirectionValues() []SortDirection {
-	return []SortDirection{Ascending, Descending}
-}
-
-// StatusType enumerates the values for status type.
-type StatusType string
-
-const (
-	// Active ...
-	Active StatusType = "Active"
-	// Inactive ...
-	Inactive StatusType = "Inactive"
-)
-
-// PossibleStatusTypeValues returns an array of possible values for the StatusType const type.
-func PossibleStatusTypeValues() []StatusType {
-	return []StatusType{Active, Inactive}
-}
-
-// TimeframeType enumerates the values for timeframe type.
-type TimeframeType string
-
-const (
-	// Custom ...
-	Custom TimeframeType = "Custom"
-	// MonthToDate ...
-	MonthToDate TimeframeType = "MonthToDate"
-	// TheLastMonth ...
-	TheLastMonth TimeframeType = "TheLastMonth"
-	// TheLastWeek ...
-	TheLastWeek TimeframeType = "TheLastWeek"
-	// TheLastYear ...
-	TheLastYear TimeframeType = "TheLastYear"
-	// WeekToDate ...
-	WeekToDate TimeframeType = "WeekToDate"
-	// YearToDate ...
-	YearToDate TimeframeType = "YearToDate"
-)
-
-// PossibleTimeframeTypeValues returns an array of possible values for the TimeframeType const type.
-func PossibleTimeframeTypeValues() []TimeframeType {
-	return []TimeframeType{Custom, MonthToDate, TheLastMonth, TheLastWeek, TheLastYear, WeekToDate, YearToDate}
-}
-
 // CommonExportProperties the common properties of the export.
 type CommonExportProperties struct {
 	// Format - The format of the export being delivered. Possible values include: 'Csv'
@@ -298,6 +141,15 @@ type DimensionProperties struct {
 	UsageEnd *date.Time `json:"usageEnd,omitempty"`
 	// NextLink - READ-ONLY; The link (url) to the next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for DimensionProperties.
+func (dp DimensionProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if dp.Data != nil {
+		objectMap["data"] = dp.Data
+	}
+	return json.Marshal(objectMap)
 }
 
 // DimensionsListResult result of listing dimensions. It contains a list of available dimensions.
@@ -575,6 +427,15 @@ type Operation struct {
 	Display *OperationDisplay `json:"display,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for Operation.
+func (o Operation) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if o.Display != nil {
+		objectMap["display"] = o.Display
+	}
+	return json.Marshal(objectMap)
+}
+
 // OperationDisplay the object that represents the operation.
 type OperationDisplay struct {
 	// Provider - READ-ONLY; Service provider: Microsoft.CostManagement.
@@ -663,10 +524,15 @@ func (olr OperationListResult) IsEmpty() bool {
 	return olr.Value == nil || len(*olr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (olr OperationListResult) hasNextLink() bool {
+	return olr.NextLink != nil && len(*olr.NextLink) != 0
+}
+
 // operationListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (olr OperationListResult) operationListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if olr.NextLink == nil || len(to.String(olr.NextLink)) < 1 {
+	if !olr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -694,11 +560,16 @@ func (page *OperationListResultPage) NextWithContext(ctx context.Context) (err e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.olr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.olr)
+		if err != nil {
+			return err
+		}
+		page.olr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.olr = next
 	return nil
 }
 
@@ -728,8 +599,11 @@ func (page OperationListResultPage) Values() []Operation {
 }
 
 // Creates a new instance of the OperationListResultPage type.
-func NewOperationListResultPage(getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
-	return OperationListResultPage{fn: getNextPage}
+func NewOperationListResultPage(cur OperationListResult, getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
+	return OperationListResultPage{
+		fn:  getNextPage,
+		olr: cur,
+	}
 }
 
 // QueryAggregation the aggregation expression to be used in the query.

@@ -4,9 +4,10 @@ Analysis Services
 App Configuration
 App Service (Web Apps)
 Application Insights
+Attestation
 Authorization
 Automation
-Avs
+Azure Stack HCI
 Base
 Batch
 Blueprints
@@ -25,15 +26,19 @@ Data Lake
 Data Share
 Database
 Database Migration
+Databox Edge
 Databricks
+Desktop Virtualization
 Dev Test
 DevSpace
+Digital Twins
 HDInsight
 Hardware Security Module
 Healthcare
 IoT Central
 IoT Hub
 Key Vault
+Lighthouse
 Load Balancer
 Log Analytics
 Logic App
@@ -54,13 +59,16 @@ PowerBI
 Private DNS
 Recovery Services
 Redis
+Redis Enterprise
 Search
 Security Center
 Sentinel
 Service Fabric
+Service Fabric Mesh
 Spring Cloud
 Storage
 Stream Analytics
 Synapse
 Template
 Time Series Insights
+VMware (AVS)

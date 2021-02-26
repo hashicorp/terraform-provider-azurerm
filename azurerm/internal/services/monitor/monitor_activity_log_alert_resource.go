@@ -9,24 +9,22 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMonitorActivityLogAlert() *schema.Resource {
+func resourceMonitorActivityLogAlert() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMonitorActivityLogAlertCreateUpdate,
-		Read:   resourceArmMonitorActivityLogAlertRead,
-		Update: resourceArmMonitorActivityLogAlertCreateUpdate,
-		Delete: resourceArmMonitorActivityLogAlertDelete,
+		Create: resourceMonitorActivityLogAlertCreateUpdate,
+		Read:   resourceMonitorActivityLogAlertRead,
+		Update: resourceMonitorActivityLogAlertCreateUpdate,
+		Delete: resourceMonitorActivityLogAlertDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -176,7 +174,7 @@ func resourceArmMonitorActivityLogAlert() *schema.Resource {
 						},
 					},
 				},
-				Set: resourceArmMonitorActivityLogAlertActionHash,
+				Set: resourceMonitorActivityLogAlertActionHash,
 			},
 
 			"description": {
@@ -195,7 +193,7 @@ func resourceArmMonitorActivityLogAlert() *schema.Resource {
 	}
 }
 
-func resourceArmMonitorActivityLogAlertCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorActivityLogAlertCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ActivityLogAlertsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -203,7 +201,7 @@ func resourceArmMonitorActivityLogAlertCreateUpdate(d *schema.ResourceData, meta
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -250,10 +248,10 @@ func resourceArmMonitorActivityLogAlertCreateUpdate(d *schema.ResourceData, meta
 	}
 	d.SetId(*read.ID)
 
-	return resourceArmMonitorActivityLogAlertRead(d, meta)
+	return resourceMonitorActivityLogAlertRead(d, meta)
 }
 
-func resourceArmMonitorActivityLogAlertRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorActivityLogAlertRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ActivityLogAlertsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -293,7 +291,7 @@ func resourceArmMonitorActivityLogAlertRead(d *schema.ResourceData, meta interfa
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmMonitorActivityLogAlertDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorActivityLogAlertDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ActivityLogAlertsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -486,10 +484,10 @@ func flattenMonitorActivityLogAlertAction(input *insights.ActivityLogAlertAction
 	return result
 }
 
-func resourceArmMonitorActivityLogAlertActionHash(input interface{}) int {
+func resourceMonitorActivityLogAlertActionHash(input interface{}) int {
 	var buf bytes.Buffer
 	if v, ok := input.(map[string]interface{}); ok {
 		buf.WriteString(fmt.Sprintf("%s-", v["action_group_id"].(string)))
 	}
-	return hashcode.String(buf.String())
+	return schema.HashString(buf.String())
 }

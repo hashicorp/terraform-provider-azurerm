@@ -75,6 +75,7 @@ func (client DataSetsClient) Create(ctx context.Context, resourceGroupName strin
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.DataSetsClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -148,7 +149,7 @@ func (client DataSetsClient) Delete(ctx context.Context, resourceGroupName strin
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "datashare.DataSetsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "datashare.DataSetsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -186,7 +187,23 @@ func (client DataSetsClient) DeleteSender(req *http.Request) (future DataSetsDel
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client DataSetsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "datashare.DataSetsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("datashare.DataSetsDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -234,6 +251,7 @@ func (client DataSetsClient) Get(ctx context.Context, resourceGroupName string, 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.DataSetsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -286,7 +304,9 @@ func (client DataSetsClient) GetResponder(resp *http.Response) (result DataSetMo
 // accountName - the name of the share account.
 // shareName - the name of the share.
 // skipToken - continuation token
-func (client DataSetsClient) ListByShare(ctx context.Context, resourceGroupName string, accountName string, shareName string, skipToken string) (result DataSetListPage, err error) {
+// filter - filters the results using OData syntax.
+// orderby - sorts the results using OData syntax.
+func (client DataSetsClient) ListByShare(ctx context.Context, resourceGroupName string, accountName string, shareName string, skipToken string, filter string, orderby string) (result DataSetListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/DataSetsClient.ListByShare")
 		defer func() {
@@ -298,7 +318,7 @@ func (client DataSetsClient) ListByShare(ctx context.Context, resourceGroupName 
 		}()
 	}
 	result.fn = client.listByShareNextResults
-	req, err := client.ListBySharePreparer(ctx, resourceGroupName, accountName, shareName, skipToken)
+	req, err := client.ListBySharePreparer(ctx, resourceGroupName, accountName, shareName, skipToken, filter, orderby)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.DataSetsClient", "ListByShare", nil, "Failure preparing request")
 		return
@@ -314,13 +334,18 @@ func (client DataSetsClient) ListByShare(ctx context.Context, resourceGroupName 
 	result.dsl, err = client.ListByShareResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.DataSetsClient", "ListByShare", resp, "Failure responding to request")
+		return
+	}
+	if result.dsl.hasNextLink() && result.dsl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
 }
 
 // ListBySharePreparer prepares the ListByShare request.
-func (client DataSetsClient) ListBySharePreparer(ctx context.Context, resourceGroupName string, accountName string, shareName string, skipToken string) (*http.Request, error) {
+func (client DataSetsClient) ListBySharePreparer(ctx context.Context, resourceGroupName string, accountName string, shareName string, skipToken string, filter string, orderby string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"accountName":       autorest.Encode("path", accountName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -334,6 +359,12 @@ func (client DataSetsClient) ListBySharePreparer(ctx context.Context, resourceGr
 	}
 	if len(skipToken) > 0 {
 		queryParameters["$skipToken"] = autorest.Encode("query", skipToken)
+	}
+	if len(filter) > 0 {
+		queryParameters["$filter"] = autorest.Encode("query", filter)
+	}
+	if len(orderby) > 0 {
+		queryParameters["$orderby"] = autorest.Encode("query", orderby)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -384,7 +415,7 @@ func (client DataSetsClient) listByShareNextResults(ctx context.Context, lastRes
 }
 
 // ListByShareComplete enumerates all values, automatically crossing page boundaries as required.
-func (client DataSetsClient) ListByShareComplete(ctx context.Context, resourceGroupName string, accountName string, shareName string, skipToken string) (result DataSetListIterator, err error) {
+func (client DataSetsClient) ListByShareComplete(ctx context.Context, resourceGroupName string, accountName string, shareName string, skipToken string, filter string, orderby string) (result DataSetListIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/DataSetsClient.ListByShare")
 		defer func() {
@@ -395,6 +426,6 @@ func (client DataSetsClient) ListByShareComplete(ctx context.Context, resourceGr
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.ListByShare(ctx, resourceGroupName, accountName, shareName, skipToken)
+	result.page, err = client.ListByShare(ctx, resourceGroupName, accountName, shareName, skipToken, filter, orderby)
 	return
 }

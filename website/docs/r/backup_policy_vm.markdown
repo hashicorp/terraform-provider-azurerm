@@ -73,7 +73,9 @@ The following arguments are supported:
 
 * `backup` - (Required) Configures the Policy backup frequency, times & days as documented in the `backup` block below.
 
-* `timezone` - (Optional) Specifies the timezone. Defaults to `UTC`
+* `timezone` - (Optional) Specifies the timezone. [the possible values are defined here](http://jackstromberg.com/2017/01/list-of-time-zones-consumed-by-azure/). Defaults to `UTC`
+
+* `instant_restore_retention_days` - (Optional) Specifies the instant restore retention range in days.
 
 * `retention_daily` - (Optional) Configures the policy daily retention as documented in the `retention_daily` block below. Required when backup frequency is `Daily`.
 
@@ -99,7 +101,9 @@ The `backup` block supports:
 
 The `retention_daily` block supports:
 
-* `count` - (Required) The number of daily backups to keep. Must be between `1` and `9999`
+* `count` - (Required) The number of daily backups to keep. Must be between `7` and `9999`.
+
+~> **Note:** Azure previously allows this field to be set to a minimum of 1 (day) - but for new resources/to update this value on existing Backup Policies - this value must now be at least 7 (days).
 
 ---
 

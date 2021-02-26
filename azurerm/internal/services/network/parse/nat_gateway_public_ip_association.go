@@ -23,7 +23,7 @@ func NatGatewayPublicIPAddressAssociationID(input string) (*NatGatewayPublicIPAd
 
 	// whilst we need the Resource ID, we may as well validate it
 	publicIPAddress := segments[1]
-	if _, err := PublicIPAddressID(publicIPAddress); err != nil {
+	if _, err := PublicIpAddressID(publicIPAddress); err != nil {
 		return nil, fmt.Errorf("parsing Public IP Address ID %q: %+v", publicIPAddress, err)
 	}
 

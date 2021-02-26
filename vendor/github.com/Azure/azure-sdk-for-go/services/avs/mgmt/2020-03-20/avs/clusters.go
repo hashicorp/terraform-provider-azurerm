@@ -81,7 +81,7 @@ func (client ClustersClient) CreateOrUpdate(ctx context.Context, resourceGroupNa
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "avs.ClustersClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "avs.ClustersClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -120,7 +120,33 @@ func (client ClustersClient) CreateOrUpdateSender(req *http.Request) (future Clu
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ClustersClient) (c Cluster, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "avs.ClustersCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("avs.ClustersCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		c.Response.Response, err = future.GetResult(sender)
+		if c.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "avs.ClustersCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && c.Response.Response.StatusCode != http.StatusNoContent {
+			c, err = client.CreateOrUpdateResponder(c.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "avs.ClustersCreateOrUpdateFuture", "Result", c.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -170,7 +196,7 @@ func (client ClustersClient) Delete(ctx context.Context, resourceGroupName strin
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "avs.ClustersClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "avs.ClustersClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -207,7 +233,23 @@ func (client ClustersClient) DeleteSender(req *http.Request) (future ClustersDel
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ClustersClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "avs.ClustersDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("avs.ClustersDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -264,6 +306,7 @@ func (client ClustersClient) Get(ctx context.Context, resourceGroupName string, 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "avs.ClustersClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -351,6 +394,11 @@ func (client ClustersClient) List(ctx context.Context, resourceGroupName string,
 	result.cl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "avs.ClustersClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.cl.hasNextLink() && result.cl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -467,7 +515,7 @@ func (client ClustersClient) Update(ctx context.Context, resourceGroupName strin
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "avs.ClustersClient", "Update", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "avs.ClustersClient", "Update", nil, "Failure sending request")
 		return
 	}
 
@@ -506,7 +554,33 @@ func (client ClustersClient) UpdateSender(req *http.Request) (future ClustersUpd
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ClustersClient) (c Cluster, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "avs.ClustersUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("avs.ClustersUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		c.Response.Response, err = future.GetResult(sender)
+		if c.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "avs.ClustersUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && c.Response.Response.StatusCode != http.StatusNoContent {
+			c, err = client.UpdateResponder(c.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "avs.ClustersUpdateFuture", "Result", c.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 

@@ -74,6 +74,7 @@ func (client SharesClient) Create(ctx context.Context, resourceGroupName string,
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.SharesClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -145,7 +146,7 @@ func (client SharesClient) Delete(ctx context.Context, resourceGroupName string,
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "datashare.SharesClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "datashare.SharesClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -182,7 +183,33 @@ func (client SharesClient) DeleteSender(req *http.Request) (future SharesDeleteF
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client SharesClient) (or OperationResponse, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "datashare.SharesDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("datashare.SharesDeleteFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		or.Response.Response, err = future.GetResult(sender)
+		if or.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "datashare.SharesDeleteFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && or.Response.Response.StatusCode != http.StatusNoContent {
+			or, err = client.DeleteResponder(or.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "datashare.SharesDeleteFuture", "Result", or.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -230,6 +257,7 @@ func (client SharesClient) Get(ctx context.Context, resourceGroupName string, ac
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.SharesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -280,7 +308,9 @@ func (client SharesClient) GetResponder(resp *http.Response) (result Share, err 
 // resourceGroupName - the resource group name.
 // accountName - the name of the share account.
 // skipToken - continuation Token
-func (client SharesClient) ListByAccount(ctx context.Context, resourceGroupName string, accountName string, skipToken string) (result ShareListPage, err error) {
+// filter - filters the results using OData syntax.
+// orderby - sorts the results using OData syntax.
+func (client SharesClient) ListByAccount(ctx context.Context, resourceGroupName string, accountName string, skipToken string, filter string, orderby string) (result ShareListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SharesClient.ListByAccount")
 		defer func() {
@@ -292,7 +322,7 @@ func (client SharesClient) ListByAccount(ctx context.Context, resourceGroupName 
 		}()
 	}
 	result.fn = client.listByAccountNextResults
-	req, err := client.ListByAccountPreparer(ctx, resourceGroupName, accountName, skipToken)
+	req, err := client.ListByAccountPreparer(ctx, resourceGroupName, accountName, skipToken, filter, orderby)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.SharesClient", "ListByAccount", nil, "Failure preparing request")
 		return
@@ -308,13 +338,18 @@ func (client SharesClient) ListByAccount(ctx context.Context, resourceGroupName 
 	result.sl, err = client.ListByAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.SharesClient", "ListByAccount", resp, "Failure responding to request")
+		return
+	}
+	if result.sl.hasNextLink() && result.sl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
 }
 
 // ListByAccountPreparer prepares the ListByAccount request.
-func (client SharesClient) ListByAccountPreparer(ctx context.Context, resourceGroupName string, accountName string, skipToken string) (*http.Request, error) {
+func (client SharesClient) ListByAccountPreparer(ctx context.Context, resourceGroupName string, accountName string, skipToken string, filter string, orderby string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"accountName":       autorest.Encode("path", accountName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -327,6 +362,12 @@ func (client SharesClient) ListByAccountPreparer(ctx context.Context, resourceGr
 	}
 	if len(skipToken) > 0 {
 		queryParameters["$skipToken"] = autorest.Encode("query", skipToken)
+	}
+	if len(filter) > 0 {
+		queryParameters["$filter"] = autorest.Encode("query", filter)
+	}
+	if len(orderby) > 0 {
+		queryParameters["$orderby"] = autorest.Encode("query", orderby)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -377,7 +418,7 @@ func (client SharesClient) listByAccountNextResults(ctx context.Context, lastRes
 }
 
 // ListByAccountComplete enumerates all values, automatically crossing page boundaries as required.
-func (client SharesClient) ListByAccountComplete(ctx context.Context, resourceGroupName string, accountName string, skipToken string) (result ShareListIterator, err error) {
+func (client SharesClient) ListByAccountComplete(ctx context.Context, resourceGroupName string, accountName string, skipToken string, filter string, orderby string) (result ShareListIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SharesClient.ListByAccount")
 		defer func() {
@@ -388,7 +429,7 @@ func (client SharesClient) ListByAccountComplete(ctx context.Context, resourceGr
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.ListByAccount(ctx, resourceGroupName, accountName, skipToken)
+	result.page, err = client.ListByAccount(ctx, resourceGroupName, accountName, skipToken, filter, orderby)
 	return
 }
 
@@ -399,7 +440,9 @@ func (client SharesClient) ListByAccountComplete(ctx context.Context, resourceGr
 // shareName - the name of the share.
 // shareSynchronization - share Synchronization payload.
 // skipToken - continuation token
-func (client SharesClient) ListSynchronizationDetails(ctx context.Context, resourceGroupName string, accountName string, shareName string, shareSynchronization ShareSynchronization, skipToken string) (result SynchronizationDetailsListPage, err error) {
+// filter - filters the results using OData syntax.
+// orderby - sorts the results using OData syntax.
+func (client SharesClient) ListSynchronizationDetails(ctx context.Context, resourceGroupName string, accountName string, shareName string, shareSynchronization ShareSynchronization, skipToken string, filter string, orderby string) (result SynchronizationDetailsListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SharesClient.ListSynchronizationDetails")
 		defer func() {
@@ -411,7 +454,7 @@ func (client SharesClient) ListSynchronizationDetails(ctx context.Context, resou
 		}()
 	}
 	result.fn = client.listSynchronizationDetailsNextResults
-	req, err := client.ListSynchronizationDetailsPreparer(ctx, resourceGroupName, accountName, shareName, shareSynchronization, skipToken)
+	req, err := client.ListSynchronizationDetailsPreparer(ctx, resourceGroupName, accountName, shareName, shareSynchronization, skipToken, filter, orderby)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.SharesClient", "ListSynchronizationDetails", nil, "Failure preparing request")
 		return
@@ -427,13 +470,18 @@ func (client SharesClient) ListSynchronizationDetails(ctx context.Context, resou
 	result.sdl, err = client.ListSynchronizationDetailsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.SharesClient", "ListSynchronizationDetails", resp, "Failure responding to request")
+		return
+	}
+	if result.sdl.hasNextLink() && result.sdl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
 }
 
 // ListSynchronizationDetailsPreparer prepares the ListSynchronizationDetails request.
-func (client SharesClient) ListSynchronizationDetailsPreparer(ctx context.Context, resourceGroupName string, accountName string, shareName string, shareSynchronization ShareSynchronization, skipToken string) (*http.Request, error) {
+func (client SharesClient) ListSynchronizationDetailsPreparer(ctx context.Context, resourceGroupName string, accountName string, shareName string, shareSynchronization ShareSynchronization, skipToken string, filter string, orderby string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"accountName":       autorest.Encode("path", accountName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -447,6 +495,12 @@ func (client SharesClient) ListSynchronizationDetailsPreparer(ctx context.Contex
 	}
 	if len(skipToken) > 0 {
 		queryParameters["$skipToken"] = autorest.Encode("query", skipToken)
+	}
+	if len(filter) > 0 {
+		queryParameters["$filter"] = autorest.Encode("query", filter)
+	}
+	if len(orderby) > 0 {
+		queryParameters["$orderby"] = autorest.Encode("query", orderby)
 	}
 
 	shareSynchronization.SynchronizationMode = ""
@@ -500,7 +554,7 @@ func (client SharesClient) listSynchronizationDetailsNextResults(ctx context.Con
 }
 
 // ListSynchronizationDetailsComplete enumerates all values, automatically crossing page boundaries as required.
-func (client SharesClient) ListSynchronizationDetailsComplete(ctx context.Context, resourceGroupName string, accountName string, shareName string, shareSynchronization ShareSynchronization, skipToken string) (result SynchronizationDetailsListIterator, err error) {
+func (client SharesClient) ListSynchronizationDetailsComplete(ctx context.Context, resourceGroupName string, accountName string, shareName string, shareSynchronization ShareSynchronization, skipToken string, filter string, orderby string) (result SynchronizationDetailsListIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SharesClient.ListSynchronizationDetails")
 		defer func() {
@@ -511,7 +565,7 @@ func (client SharesClient) ListSynchronizationDetailsComplete(ctx context.Contex
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.ListSynchronizationDetails(ctx, resourceGroupName, accountName, shareName, shareSynchronization, skipToken)
+	result.page, err = client.ListSynchronizationDetails(ctx, resourceGroupName, accountName, shareName, shareSynchronization, skipToken, filter, orderby)
 	return
 }
 
@@ -521,7 +575,9 @@ func (client SharesClient) ListSynchronizationDetailsComplete(ctx context.Contex
 // accountName - the name of the share account.
 // shareName - the name of the share.
 // skipToken - continuation token
-func (client SharesClient) ListSynchronizations(ctx context.Context, resourceGroupName string, accountName string, shareName string, skipToken string) (result ShareSynchronizationListPage, err error) {
+// filter - filters the results using OData syntax.
+// orderby - sorts the results using OData syntax.
+func (client SharesClient) ListSynchronizations(ctx context.Context, resourceGroupName string, accountName string, shareName string, skipToken string, filter string, orderby string) (result ShareSynchronizationListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SharesClient.ListSynchronizations")
 		defer func() {
@@ -533,7 +589,7 @@ func (client SharesClient) ListSynchronizations(ctx context.Context, resourceGro
 		}()
 	}
 	result.fn = client.listSynchronizationsNextResults
-	req, err := client.ListSynchronizationsPreparer(ctx, resourceGroupName, accountName, shareName, skipToken)
+	req, err := client.ListSynchronizationsPreparer(ctx, resourceGroupName, accountName, shareName, skipToken, filter, orderby)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.SharesClient", "ListSynchronizations", nil, "Failure preparing request")
 		return
@@ -549,13 +605,18 @@ func (client SharesClient) ListSynchronizations(ctx context.Context, resourceGro
 	result.ssl, err = client.ListSynchronizationsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.SharesClient", "ListSynchronizations", resp, "Failure responding to request")
+		return
+	}
+	if result.ssl.hasNextLink() && result.ssl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
 }
 
 // ListSynchronizationsPreparer prepares the ListSynchronizations request.
-func (client SharesClient) ListSynchronizationsPreparer(ctx context.Context, resourceGroupName string, accountName string, shareName string, skipToken string) (*http.Request, error) {
+func (client SharesClient) ListSynchronizationsPreparer(ctx context.Context, resourceGroupName string, accountName string, shareName string, skipToken string, filter string, orderby string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"accountName":       autorest.Encode("path", accountName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -569,6 +630,12 @@ func (client SharesClient) ListSynchronizationsPreparer(ctx context.Context, res
 	}
 	if len(skipToken) > 0 {
 		queryParameters["$skipToken"] = autorest.Encode("query", skipToken)
+	}
+	if len(filter) > 0 {
+		queryParameters["$filter"] = autorest.Encode("query", filter)
+	}
+	if len(orderby) > 0 {
+		queryParameters["$orderby"] = autorest.Encode("query", orderby)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -619,7 +686,7 @@ func (client SharesClient) listSynchronizationsNextResults(ctx context.Context, 
 }
 
 // ListSynchronizationsComplete enumerates all values, automatically crossing page boundaries as required.
-func (client SharesClient) ListSynchronizationsComplete(ctx context.Context, resourceGroupName string, accountName string, shareName string, skipToken string) (result ShareSynchronizationListIterator, err error) {
+func (client SharesClient) ListSynchronizationsComplete(ctx context.Context, resourceGroupName string, accountName string, shareName string, skipToken string, filter string, orderby string) (result ShareSynchronizationListIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SharesClient.ListSynchronizations")
 		defer func() {
@@ -630,6 +697,6 @@ func (client SharesClient) ListSynchronizationsComplete(ctx context.Context, res
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.ListSynchronizations(ctx, resourceGroupName, accountName, shareName, skipToken)
+	result.page, err = client.ListSynchronizations(ctx, resourceGroupName, accountName, shareName, skipToken, filter, orderby)
 	return
 }

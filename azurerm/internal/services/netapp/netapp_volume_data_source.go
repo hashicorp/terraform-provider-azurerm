@@ -11,9 +11,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmNetAppVolume() *schema.Resource {
+func dataSourceNetAppVolume() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmNetAppVolumeRead,
+		Read: dataSourceNetAppVolumeRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -75,11 +75,36 @@ func dataSourceArmNetAppVolume() *schema.Resource {
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
+
+			"data_protection_replication": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"endpoint_type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"remote_volume_location": azure.SchemaLocationForDataSource(),
+
+						"remote_volume_resource_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"replication_schedule": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
 
-func dataSourceArmNetAppVolumeRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceNetAppVolumeRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.VolumeClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -107,9 +132,11 @@ func dataSourceArmNetAppVolumeRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("account_name", accountName)
 	d.Set("pool_name", poolName)
+
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
+
 	if props := resp.VolumeProperties; props != nil {
 		d.Set("volume_path", props.CreationToken)
 		d.Set("service_level", props.ServiceLevel)
@@ -124,8 +151,14 @@ func dataSourceArmNetAppVolumeRead(d *schema.ResourceData, meta interface{}) err
 		if props.UsageThreshold != nil {
 			d.Set("storage_quota_in_gb", *props.UsageThreshold/1073741824)
 		}
-		if err := d.Set("mount_ip_addresses", flattenArmNetAppVolumeMountIPAddresses(props.MountTargets)); err != nil {
+		if err := d.Set("mount_ip_addresses", flattenNetAppVolumeMountIPAddresses(props.MountTargets)); err != nil {
 			return fmt.Errorf("setting `mount_ip_addresses`: %+v", err)
+		}
+
+		if props.DataProtection.Replication != nil {
+			if err := d.Set("data_protection_replication", flattenNetAppVolumeDataProtectionReplication(props.DataProtection)); err != nil {
+				return fmt.Errorf("setting `data_protection_replication`: %+v", err)
+			}
 		}
 	}
 

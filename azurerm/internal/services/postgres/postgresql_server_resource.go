@@ -7,34 +7,37 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
+	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2020-01-01/postgresql"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmPostgreSQLServer() *schema.Resource {
+const (
+	postgreSQLServerResourceName = "azurerm_postgresql_server"
+)
+
+func resourcePostgreSQLServer() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmPostgreSQLServerCreate,
-		Read:   resourceArmPostgreSQLServerRead,
-		Update: resourceArmPostgreSQLServerUpdate,
-		Delete: resourceArmPostgreSQLServerDelete,
+		Create: resourcePostgreSQLServerCreate,
+		Read:   resourcePostgreSQLServerRead,
+		Update: resourcePostgreSQLServerUpdate,
+		Delete: resourcePostgreSQLServerDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-				if _, err := parse.PostgresServerServerID(d.Id()); err != nil {
+				if _, err := parse.ServerID(d.Id()); err != nil {
 					return []*schema.ResourceData{d}, err
 				}
 
@@ -59,7 +62,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.PostgresServerServerName,
+				ValidateFunc: validate.ServerName,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -151,6 +154,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 							Type:          schema.TypeString,
 							Optional:      true,
 							Computed:      true,
+							ForceNew:      true,
 							ConflictsWith: []string{"geo_redundant_backup_enabled"},
 							Deprecated:    "this has been moved to the top level and will be removed in version 3.0 of the provider.",
 							ValidateFunc: validation.StringInSlice([]string{
@@ -195,6 +199,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 			"geo_redundant_backup_enabled": {
 				Type:          schema.TypeBool,
 				Optional:      true,
+				ForceNew:      true,
 				Computed:      true, // TODO: remove in 2.0 and default to false
 				ConflictsWith: []string{"storage_profile", "storage_profile.0.geo_redundant_backup"},
 			},
@@ -214,7 +219,34 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 			"creation_source_server_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.PostgresServerServerID,
+				ValidateFunc: validate.ServerID,
+			},
+
+			"identity": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(postgresql.SystemAssigned),
+							}, false),
+						},
+
+						"principal_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
 			},
 
 			"infrastructure_encryption_enabled": {
@@ -241,7 +273,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 				Computed:      true,
 				ConflictsWith: []string{"storage_profile", "storage_profile.0.storage_mb"},
 				ValidateFunc: validation.All(
-					validation.IntBetween(5120, 4194304),
+					validation.IntBetween(5120, 16777216),
 					validation.IntDivisibleBy(1024),
 				),
 			},
@@ -367,7 +399,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 	}
 }
 
-func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{}) error {
+func resourcePostgreSQLServerCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Postgres.ServersClient
 	securityClient := meta.(*clients.Client).Postgres.ServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -379,17 +411,15 @@ func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{})
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() {
-		existing, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing PostgreSQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
-			}
+	existing, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("checking for presence of existing PostgreSQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
+	}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_postgresql_server", *existing.ID)
-		}
+	if existing.ID != nil && *existing.ID != "" {
+		return tf.ImportAsExistsError("azurerm_postgresql_server", *existing.ID)
 	}
 
 	mode := postgresql.CreateMode(d.Get("create_mode").(string))
@@ -492,6 +522,7 @@ func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	server := postgresql.ServerForCreate{
+		Identity:   expandServerIdentity(d.Get("identity").([]interface{})),
 		Location:   &location,
 		Properties: props,
 		Sku:        sku,
@@ -532,10 +563,10 @@ func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	return resourceArmPostgreSQLServerRead(d, meta)
+	return resourcePostgreSQLServerRead(d, meta)
 }
 
-func resourceArmPostgreSQLServerUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourcePostgreSQLServerUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Postgres.ServersClient
 	securityClient := meta.(*clients.Client).Postgres.ServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -545,7 +576,7 @@ func resourceArmPostgreSQLServerUpdate(d *schema.ResourceData, meta interface{})
 
 	log.Printf("[INFO] preparing arguments for AzureRM PostgreSQL Server update.")
 
-	id, err := parse.PostgresServerServerID(d.Id())
+	id, err := parse.ServerID(d.Id())
 	if err != nil {
 		return fmt.Errorf("parsing Postgres Server ID : %v", err)
 	}
@@ -565,11 +596,15 @@ func resourceArmPostgreSQLServerUpdate(d *schema.ResourceData, meta interface{})
 		ssl = postgresql.SslEnforcementEnumDisabled
 	}
 
+	tlsMin := postgresql.MinimalTLSVersionEnum(d.Get("ssl_minimal_tls_version_enforced").(string))
+
 	properties := postgresql.ServerUpdateParameters{
+		Identity: expandServerIdentity(d.Get("identity").([]interface{})),
 		ServerUpdateParametersProperties: &postgresql.ServerUpdateParametersProperties{
 			AdministratorLoginPassword: utils.String(d.Get("administrator_login_password").(string)),
 			PublicNetworkAccess:        publicAccess,
 			SslEnforcement:             ssl,
+			MinimalTLSVersion:          tlsMin,
 			StorageProfile:             expandPostgreSQLStorageProfile(d),
 			Version:                    postgresql.ServerVersion(d.Get("version").(string)),
 		},
@@ -600,16 +635,16 @@ func resourceArmPostgreSQLServerUpdate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	return resourceArmPostgreSQLServerRead(d, meta)
+	return resourcePostgreSQLServerRead(d, meta)
 }
 
-func resourceArmPostgreSQLServerRead(d *schema.ResourceData, meta interface{}) error {
+func resourcePostgreSQLServerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Postgres.ServersClient
 	securityClient := meta.(*clients.Client).Postgres.ServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.PostgresServerServerID(d.Id())
+	id, err := parse.ServerID(d.Id())
 	if err != nil {
 		return fmt.Errorf("parsing Postgres Server ID : %v", err)
 	}
@@ -636,6 +671,10 @@ func resourceArmPostgreSQLServerRead(d *schema.ResourceData, meta interface{}) e
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku_name", sku.Name)
 		tier = sku.Tier
+	}
+
+	if err := d.Set("identity", flattenServerIdentity(resp.Identity)); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
 	if props := resp.ServerProperties; props != nil {
@@ -681,12 +720,12 @@ func resourceArmPostgreSQLServerRead(d *schema.ResourceData, meta interface{}) e
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmPostgreSQLServerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourcePostgreSQLServerDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Postgres.ServersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.PostgresServerServerID(d.Id())
+	id, err := parse.ServerID(d.Id())
 	if err != nil {
 		return fmt.Errorf("parsing Postgres Server ID : %v", err)
 	}
@@ -864,8 +903,8 @@ func flattenSecurityAlertPolicy(props *postgresql.SecurityAlertPolicyProperties,
 
 	block["enabled"] = props.State == postgresql.ServerSecurityAlertPolicyStateEnabled
 
-	block["disabled_alerts"] = utils.FlattenStringSlice(props.DisabledAlerts)
-	block["email_addresses"] = utils.FlattenStringSlice(props.EmailAddresses)
+	block["disabled_alerts"] = flattenSecurityAlertPolicySet(props.DisabledAlerts)
+	block["email_addresses"] = flattenSecurityAlertPolicySet(props.EmailAddresses)
 
 	if v := props.EmailAccountAdmins; v != nil {
 		block["email_account_admins"] = *v
@@ -880,4 +919,54 @@ func flattenSecurityAlertPolicy(props *postgresql.SecurityAlertPolicyProperties,
 	block["storage_account_access_key"] = accessKey
 
 	return []interface{}{block}
+}
+
+func expandServerIdentity(input []interface{}) *postgresql.ResourceIdentity {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	return &postgresql.ResourceIdentity{
+		Type: postgresql.IdentityType(v["type"].(string)),
+	}
+}
+
+func flattenServerIdentity(input *postgresql.ResourceIdentity) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	principalID := ""
+	if input.PrincipalID != nil {
+		principalID = input.PrincipalID.String()
+	}
+
+	tenantID := ""
+	if input.TenantID != nil {
+		tenantID = input.TenantID.String()
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"type":         string(input.Type),
+			"principal_id": principalID,
+			"tenant_id":    tenantID,
+		},
+	}
+}
+
+func flattenSecurityAlertPolicySet(input *[]string) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	// When empty, `disabledAlerts` and `emailAddresses` are returned as `[""]` by the api. We'll catch that here and return
+	// an empty interface to set.
+	attr := *input
+	if len(attr) == 1 && attr[0] == "" {
+		return make([]interface{}, 0)
+	}
+
+	return utils.FlattenStringSlice(input)
 }

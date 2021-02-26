@@ -10,7 +10,7 @@ description: |-
 
 Use this data source to access information about an existing Machine Learning Workspace.
 
-# Example Usage
+## Example Usage
 
 ```hcl
 provider "azurerm" {

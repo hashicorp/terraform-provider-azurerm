@@ -1,16 +1,19 @@
 package authorization
 
 import (
+	"context"
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-09-01-preview/authorization"
 	"github.com/hashicorp/go-uuid"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/authorization/parse"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -21,15 +24,27 @@ func resourceArmRoleDefinition() *schema.Resource {
 		Read:   resourceArmRoleDefinitionRead,
 		Update: resourceArmRoleDefinitionCreateUpdate,
 		Delete: resourceArmRoleDefinitionDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.RoleDefinitionId(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
 			Update: schema.DefaultTimeout(30 * time.Minute),
 			Delete: schema.DefaultTimeout(30 * time.Minute),
+		},
+
+		SchemaVersion: 1,
+
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				Type:    resourceArmRoleDefinitionV0().CoreConfigSchema().ImpliedType(),
+				Upgrade: resourceArmRoleDefinitionStateUpgradeV0,
+				Version: 0,
+			},
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -97,10 +112,16 @@ func resourceArmRoleDefinition() *schema.Resource {
 
 			"assignable_scopes": {
 				Type:     schema.TypeList,
-				Required: true,
+				Optional: true,
+				Computed: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
+			},
+
+			"role_definition_resource_id": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 		},
 	}
@@ -115,7 +136,7 @@ func resourceArmRoleDefinitionCreateUpdate(d *schema.ResourceData, meta interfac
 	if roleDefinitionId == "" {
 		uuid, err := uuid.GenerateUUID()
 		if err != nil {
-			return fmt.Errorf("Error generating UUID for Role Assignment: %+v", err)
+			return fmt.Errorf("generating UUID for Role Assignment: %+v", err)
 		}
 
 		roleDefinitionId = uuid
@@ -132,12 +153,13 @@ func resourceArmRoleDefinitionCreateUpdate(d *schema.ResourceData, meta interfac
 		existing, err := client.Get(ctx, scope, roleDefinitionId)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Role Definition ID for %q (Scope %q)", name, scope)
+				return fmt.Errorf("checking for presence of existing Role Definition ID for %q (Scope %q)", name, scope)
 			}
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_role_definition", *existing.ID)
+			importID := fmt.Sprintf("%s|%s", *existing.ID, scope)
+			return tf.ImportAsExistsError("azurerm_role_definition", importID)
 		}
 	}
 
@@ -155,15 +177,39 @@ func resourceArmRoleDefinitionCreateUpdate(d *schema.ResourceData, meta interfac
 		return err
 	}
 
+	// (@jackofallops) - Updates are subject to eventual consistency, and could be read as stale data
+	if !d.IsNewResource() {
+		id, err := parse.RoleDefinitionId(d.Id())
+		if err != nil {
+			return err
+		}
+		stateConf := &resource.StateChangeConf{
+			Pending: []string{
+				"Pending",
+			},
+			Target: []string{
+				"OK",
+			},
+			Refresh:                   roleDefinitionUpdateStateRefreshFunc(ctx, client, id.ResourceID),
+			MinTimeout:                10 * time.Second,
+			ContinuousTargetOccurence: 6,
+			Timeout:                   d.Timeout(schema.TimeoutUpdate),
+		}
+
+		if _, err := stateConf.WaitForState(); err != nil {
+			return fmt.Errorf("waiting for update to Role Definition %q to finish replicating", name)
+		}
+	}
+
 	read, err := client.Get(ctx, scope, roleDefinitionId)
 	if err != nil {
 		return err
 	}
-	if read.ID == nil {
+	if read.ID == nil || *read.ID == "" {
 		return fmt.Errorf("Cannot read Role Definition ID for %q (Scope %q)", name, scope)
 	}
 
-	d.SetId(*read.ID)
+	d.SetId(fmt.Sprintf("%s|%s", *read.ID, scope))
 	return resourceArmRoleDefinitionRead(d, meta)
 }
 
@@ -172,7 +218,16 @@ func resourceArmRoleDefinitionRead(d *schema.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resp, err := client.GetByID(ctx, d.Id())
+	roleDefinitionId, err := parse.RoleDefinitionId(d.Id())
+	if err != nil {
+		return err
+	}
+
+	d.Set("scope", roleDefinitionId.Scope)
+	d.Set("role_definition_id", roleDefinitionId.RoleID)
+	d.Set("role_definition_resource_id", roleDefinitionId.ResourceID)
+
+	resp, err := client.Get(ctx, roleDefinitionId.Scope, roleDefinitionId.RoleID)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Role Definition %q was not found - removing from state", d.Id())
@@ -180,18 +235,7 @@ func resourceArmRoleDefinitionRead(d *schema.ResourceData, meta interface{}) err
 			return nil
 		}
 
-		return fmt.Errorf("Error loading Role Definition %q: %+v", d.Id(), err)
-	}
-
-	if id := resp.ID; id != nil {
-		roleDefinitionId, err := parseRoleDefinitionId(*id)
-		if err != nil {
-			return fmt.Errorf("Error parsing Role Definition ID: %+v", err)
-		}
-		if roleDefinitionId != nil {
-			d.Set("scope", roleDefinitionId.scope)
-			d.Set("role_definition_id", roleDefinitionId.roleDefinitionId)
-		}
+		return fmt.Errorf("loading Role Definition %q: %+v", d.Id(), err)
 	}
 
 	if props := resp.RoleDefinitionProperties; props != nil {
@@ -217,16 +261,31 @@ func resourceArmRoleDefinitionDelete(d *schema.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parseRoleDefinitionId(d.Id())
-	if err != nil {
-		return err
-	}
+	id, _ := parse.RoleDefinitionId(d.Id())
 
-	resp, err := client.Delete(ctx, id.scope, id.roleDefinitionId)
+	resp, err := client.Delete(ctx, id.Scope, id.RoleID)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error deleting Role Definition %q at Scope %q: %+v", id.roleDefinitionId, id.scope, err)
+			return fmt.Errorf("deleting Role Definition %q at Scope %q: %+v", id.RoleID, id.Scope, err)
 		}
+	}
+	// Deletes are not instant and can take time to propagate
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{
+			"Pending",
+		},
+		Target: []string{
+			"Deleted",
+			"NotFound",
+		},
+		Refresh:                   roleDefinitionDeleteStateRefreshFunc(ctx, client, id.ResourceID),
+		MinTimeout:                10 * time.Second,
+		ContinuousTargetOccurence: 6,
+		Timeout:                   d.Timeout(schema.TimeoutDelete),
+	}
+
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("waiting for delete on Role Definition %q to complete", id.RoleID)
 	}
 
 	return nil
@@ -278,8 +337,13 @@ func expandRoleDefinitionAssignableScopes(d *schema.ResourceData) []string {
 	scopes := make([]string, 0)
 
 	assignableScopes := d.Get("assignable_scopes").([]interface{})
-	for _, scope := range assignableScopes {
-		scopes = append(scopes, scope.(string))
+	if len(assignableScopes) == 0 {
+		assignedScope := d.Get("scope").(string)
+		scopes = append(scopes, assignedScope)
+	} else {
+		for _, scope := range assignableScopes {
+			scopes = append(scopes, scope.(string))
+		}
 	}
 
 	return scopes
@@ -341,21 +405,28 @@ func flattenRoleDefinitionAssignableScopes(input *[]string) []interface{} {
 	return scopes
 }
 
-type roleDefinitionId struct {
-	scope            string
-	roleDefinitionId string
+func roleDefinitionUpdateStateRefreshFunc(ctx context.Context, client *authorization.RoleDefinitionsClient, roleDefinitionId string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		resp, err := client.GetByID(ctx, roleDefinitionId)
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return resp, "NotFound", err
+			}
+			return resp, "Error", err
+		}
+		return "OK", "OK", nil
+	}
 }
 
-func parseRoleDefinitionId(input string) (*roleDefinitionId, error) {
-	segments := strings.Split(input, "/providers/Microsoft.Authorization/roleDefinitions/")
-	if len(segments) != 2 {
-		return nil, fmt.Errorf("Expected Role Definition ID to be in the format `{scope}/providers/Microsoft.Authorization/roleDefinitions/{name}` but got %q", input)
+func roleDefinitionDeleteStateRefreshFunc(ctx context.Context, client *authorization.RoleDefinitionsClient, roleDefinitionId string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		resp, err := client.GetByID(ctx, roleDefinitionId)
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return resp, "NotFound", nil
+			}
+			return nil, "Error", err
+		}
+		return "Pending", "Pending", nil
 	}
-
-	// {scope}/providers/Microsoft.Authorization/roleDefinitions/{roleDefinitionId}
-	id := roleDefinitionId{
-		scope:            segments[0],
-		roleDefinitionId: segments[1],
-	}
-	return &id, nil
 }

@@ -12,18 +12,17 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMonitorScheduledQueryRulesLog() *schema.Resource {
+func resourceMonitorScheduledQueryRulesLog() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMonitorScheduledQueryRulesLogCreateUpdate,
-		Read:   resourceArmMonitorScheduledQueryRulesLogRead,
-		Update: resourceArmMonitorScheduledQueryRulesLogCreateUpdate,
-		Delete: resourceArmMonitorScheduledQueryRulesLogDelete,
+		Create: resourceMonitorScheduledQueryRulesLogCreateUpdate,
+		Read:   resourceMonitorScheduledQueryRulesLogRead,
+		Update: resourceMonitorScheduledQueryRulesLogCreateUpdate,
+		Delete: resourceMonitorScheduledQueryRulesLogDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -120,7 +119,7 @@ func resourceArmMonitorScheduledQueryRulesLog() *schema.Resource {
 	}
 }
 
-func resourceArmMonitorScheduledQueryRulesLogCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorScheduledQueryRulesLogCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	action := expandMonitorScheduledQueryRulesLogToMetricAction(d)
 
 	client := meta.(*clients.Client).Monitor.ScheduledQueryRulesClient
@@ -130,7 +129,7 @@ func resourceArmMonitorScheduledQueryRulesLogCreateUpdate(d *schema.ResourceData
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -182,10 +181,10 @@ func resourceArmMonitorScheduledQueryRulesLogCreateUpdate(d *schema.ResourceData
 	}
 	d.SetId(*read.ID)
 
-	return resourceArmMonitorScheduledQueryRulesLogRead(d, meta)
+	return resourceMonitorScheduledQueryRulesLogRead(d, meta)
 }
 
-func resourceArmMonitorScheduledQueryRulesLogRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorScheduledQueryRulesLogRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ScheduledQueryRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -240,7 +239,7 @@ func resourceArmMonitorScheduledQueryRulesLogRead(d *schema.ResourceData, meta i
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmMonitorScheduledQueryRulesLogDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorScheduledQueryRulesLogDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ScheduledQueryRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

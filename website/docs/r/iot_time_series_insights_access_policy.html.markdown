@@ -69,5 +69,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Azure IoT Time Series Insights Access Policy can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_iot_time_series_access_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.TimeSeriesInsights/environments/environment1/accesspolicies/example
+terraform import azurerm_iot_time_series_access_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.TimeSeriesInsights/environments/environment1/accessPolicies/example
 ```

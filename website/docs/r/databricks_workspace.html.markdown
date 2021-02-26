@@ -40,7 +40,9 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource has to be created. Changing this forces a new resource to be created.
 
-* `sku` - (Required) The `sku` to use for the Databricks Workspace. Possible values are `standard`, `premium`, or `trial`. Changing this forces a new resource to be created.
+* `sku` - (Required) The `sku` to use for the Databricks Workspace. Possible values are `standard`, `premium`, or `trial`. Changing this can force a new resource to be created in some circumstances.
+
+~> **NOTE** While downgrading to `trial`, the Databricks Workspace resource would be recreated.
 
 * `managed_resource_group_name` - (Optional) The name of the resource group where Azure should place the managed Databricks resources. Changing this forces a new resource to be created.
 
@@ -62,7 +64,7 @@ The following arguments are supported:
 
 * `virtual_network_id` - (Optional) The ID of a Virtual Network where this Databricks Cluster should be created.
 
-~> **NOTE** Databricks requires that a network security group is associated with public and private subnets when `virtual_network_id` is set.
+~> **NOTE** Databricks requires that a network security group is associated with public and private subnets when `virtual_network_id` is set. Also, both public and private subnets must be delegated to `Microsoft.Databricks/workspaces`.
 
 ## Attributes Reference
 

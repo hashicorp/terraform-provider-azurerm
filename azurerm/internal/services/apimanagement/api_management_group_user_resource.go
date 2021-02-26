@@ -5,20 +5,22 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementGroupUser() *schema.Resource {
+func resourceApiManagementGroupUser() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApiManagementGroupUserCreate,
-		Read:   resourceArmApiManagementGroupUserRead,
-		Delete: resourceArmApiManagementGroupUserDelete,
+		Create: resourceApiManagementGroupUserCreate,
+		Read:   resourceApiManagementGroupUserRead,
+		Delete: resourceApiManagementGroupUserDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -31,18 +33,18 @@ func resourceArmApiManagementGroupUser() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"user_id": azure.SchemaApiManagementChildName(),
+			"user_id": schemaz.SchemaApiManagementChildName(),
 
-			"group_name": azure.SchemaApiManagementChildName(),
+			"group_name": schemaz.SchemaApiManagementChildName(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"api_management_name": azure.SchemaApiManagementName(),
+			"api_management_name": schemaz.SchemaApiManagementName(),
 		},
 	}
 }
 
-func resourceArmApiManagementGroupUserCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementGroupUserCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.GroupUsersClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -52,19 +54,18 @@ func resourceArmApiManagementGroupUserCreate(d *schema.ResourceData, meta interf
 	groupName := d.Get("group_name").(string)
 	userId := d.Get("user_id").(string)
 
-	if features.ShouldResourcesBeImported() {
-		resp, err := client.CheckEntityExists(ctx, resourceGroup, serviceName, groupName, userId)
-		if err != nil {
-			if !utils.ResponseWasNotFound(resp) {
-				return fmt.Errorf("checking for present of existing User %q / Group %q (API Management Service %q / Resource Group %q): %+v", userId, groupName, serviceName, resourceGroup, err)
-			}
+	exists, err := client.CheckEntityExists(ctx, resourceGroup, serviceName, groupName, userId)
+	if err != nil {
+		if !utils.ResponseWasNotFound(exists) {
+			return fmt.Errorf("checking for present of existing User %q / Group %q (API Management Service %q / Resource Group %q): %+v", userId, groupName, serviceName, resourceGroup, err)
 		}
+	}
 
-		if !utils.ResponseWasNotFound(resp) {
-			subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-			resourceId := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ApiManagement/service/%s/groups/%s/users/%s", subscriptionId, resourceGroup, serviceName, groupName, userId)
-			return tf.ImportAsExistsError("azurerm_api_management_group_user", resourceId)
-		}
+	if !utils.ResponseWasNotFound(exists) {
+		// TODO: can we not pull this from somewhere instead?
+		subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+		resourceId := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ApiManagement/service/%s/groups/%s/users/%s", subscriptionId, resourceGroup, serviceName, groupName, userId)
+		return tf.ImportAsExistsError("azurerm_api_management_group_user", resourceId)
 	}
 
 	resp, err := client.Create(ctx, resourceGroup, serviceName, groupName, userId)
@@ -75,22 +76,22 @@ func resourceArmApiManagementGroupUserCreate(d *schema.ResourceData, meta interf
 	// there's no Read so this is best-effort
 	d.SetId(*resp.ID)
 
-	return resourceArmApiManagementGroupUserRead(d, meta)
+	return resourceApiManagementGroupUserRead(d, meta)
 }
 
-func resourceArmApiManagementGroupUserRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementGroupUserRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.GroupUsersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.GroupUserID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	groupName := id.Path["groups"]
-	userId := id.Path["users"]
+	serviceName := id.ServiceName
+	groupName := id.GroupName
+	userId := id.UserName
 
 	resp, err := client.CheckEntityExists(ctx, resourceGroup, serviceName, groupName, userId)
 	if err != nil {
@@ -111,19 +112,19 @@ func resourceArmApiManagementGroupUserRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func resourceArmApiManagementGroupUserDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementGroupUserDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.GroupUsersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.GroupUserID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	groupName := id.Path["groups"]
-	userId := id.Path["users"]
+	serviceName := id.ServiceName
+	groupName := id.GroupName
+	userId := id.UserName
 
 	if resp, err := client.Delete(ctx, resourceGroup, serviceName, groupName, userId); err != nil {
 		if !utils.ResponseWasNotFound(resp) {

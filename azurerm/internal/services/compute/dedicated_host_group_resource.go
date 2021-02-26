@@ -9,7 +9,7 @@ import (
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -18,12 +18,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDedicatedHostGroup() *schema.Resource {
+func resourceDedicatedHostGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDedicatedHostGroupCreate,
-		Read:   resourceArmDedicatedHostGroupRead,
-		Update: resourceArmDedicatedHostGroupUpdate,
-		Delete: resourceArmDedicatedHostGroupDelete,
+		Create: resourceDedicatedHostGroupCreate,
+		Read:   resourceDedicatedHostGroupRead,
+		Update: resourceDedicatedHostGroupUpdate,
+		Delete: resourceDedicatedHostGroupDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -66,7 +66,7 @@ func resourceArmDedicatedHostGroup() *schema.Resource {
 	}
 }
 
-func resourceArmDedicatedHostGroupCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDedicatedHostGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DedicatedHostGroupsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -75,7 +75,7 @@ func resourceArmDedicatedHostGroupCreate(d *schema.ResourceData, meta interface{
 	resourceGroupName := d.Get("resource_group_name").(string)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroupName, name)
+		existing, err := client.Get(ctx, resourceGroupName, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("Error checking for present of existing Dedicated Host Group %q (Resource Group %q): %+v", name, resourceGroupName, err)
@@ -105,7 +105,7 @@ func resourceArmDedicatedHostGroupCreate(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Error creating Dedicated Host Group %q (Resource Group %q): %+v", name, resourceGroupName, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroupName, name)
+	resp, err := client.Get(ctx, resourceGroupName, name, "")
 	if err != nil {
 		return fmt.Errorf("Error retrieving Dedicated Host Group %q (Resource Group %q): %+v", name, resourceGroupName, err)
 	}
@@ -114,10 +114,10 @@ func resourceArmDedicatedHostGroupCreate(d *schema.ResourceData, meta interface{
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmDedicatedHostGroupRead(d, meta)
+	return resourceDedicatedHostGroupRead(d, meta)
 }
 
-func resourceArmDedicatedHostGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDedicatedHostGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DedicatedHostGroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -129,7 +129,7 @@ func resourceArmDedicatedHostGroupRead(d *schema.ResourceData, meta interface{})
 	resourceGroupName := id.ResourceGroup
 	name := id.Path["hostGroups"]
 
-	resp, err := client.Get(ctx, resourceGroupName, name)
+	resp, err := client.Get(ctx, resourceGroupName, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Dedicated Host Group %q does not exist - removing from state", d.Id())
@@ -156,7 +156,7 @@ func resourceArmDedicatedHostGroupRead(d *schema.ResourceData, meta interface{})
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmDedicatedHostGroupUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDedicatedHostGroupUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DedicatedHostGroupsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -173,10 +173,10 @@ func resourceArmDedicatedHostGroupUpdate(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Error updating Dedicated Host Group %q (Resource Group %q): %+v", name, resourceGroupName, err)
 	}
 
-	return resourceArmDedicatedHostGroupRead(d, meta)
+	return resourceDedicatedHostGroupRead(d, meta)
 }
 
-func resourceArmDedicatedHostGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDedicatedHostGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DedicatedHostGroupsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

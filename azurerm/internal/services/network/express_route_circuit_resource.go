@@ -13,24 +13,23 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 var expressRouteCircuitResourceName = "azurerm_express_route_circuit"
 
-func resourceArmExpressRouteCircuit() *schema.Resource {
+func resourceExpressRouteCircuit() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmExpressRouteCircuitCreateUpdate,
-		Read:   resourceArmExpressRouteCircuitRead,
-		Update: resourceArmExpressRouteCircuitCreateUpdate,
-		Delete: resourceArmExpressRouteCircuitDelete,
+		Create: resourceExpressRouteCircuitCreateUpdate,
+		Read:   resourceExpressRouteCircuitRead,
+		Update: resourceExpressRouteCircuitCreateUpdate,
+		Delete: resourceExpressRouteCircuitDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -132,7 +131,7 @@ func resourceArmExpressRouteCircuit() *schema.Resource {
 	}
 }
 
-func resourceArmExpressRouteCircuitCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceExpressRouteCircuitCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ExpressRouteCircuitsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -145,7 +144,7 @@ func resourceArmExpressRouteCircuitCreateUpdate(d *schema.ResourceData, meta int
 	locks.ByName(name, expressRouteCircuitResourceName)
 	defer locks.UnlockByName(name, expressRouteCircuitResourceName)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -248,10 +247,10 @@ func resourceArmExpressRouteCircuitCreateUpdate(d *schema.ResourceData, meta int
 
 	d.SetId(*read.ID)
 
-	return resourceArmExpressRouteCircuitRead(d, meta)
+	return resourceExpressRouteCircuitRead(d, meta)
 }
 
-func resourceArmExpressRouteCircuitRead(d *schema.ResourceData, meta interface{}) error {
+func resourceExpressRouteCircuitRead(d *schema.ResourceData, meta interface{}) error {
 	ercClient := meta.(*clients.Client).Network.ExpressRouteCircuitsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -301,7 +300,7 @@ func resourceArmExpressRouteCircuitRead(d *schema.ResourceData, meta interface{}
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmExpressRouteCircuitDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceExpressRouteCircuitDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ExpressRouteCircuitsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

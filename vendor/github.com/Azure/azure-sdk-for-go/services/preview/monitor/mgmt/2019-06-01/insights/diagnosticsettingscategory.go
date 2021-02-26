@@ -73,6 +73,7 @@ func (client DiagnosticSettingsCategoryClient) Get(ctx context.Context, resource
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.DiagnosticSettingsCategoryClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -146,6 +147,7 @@ func (client DiagnosticSettingsCategoryClient) List(ctx context.Context, resourc
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.DiagnosticSettingsCategoryClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return

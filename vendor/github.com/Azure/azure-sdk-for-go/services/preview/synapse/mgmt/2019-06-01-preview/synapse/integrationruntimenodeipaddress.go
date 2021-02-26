@@ -46,7 +46,7 @@ func NewIntegrationRuntimeNodeIPAddressClientWithBaseURI(baseURI string, subscri
 // Get get the IP address of an integration runtime node
 // Parameters:
 // resourceGroupName - the name of the resource group. The name is case insensitive.
-// workspaceName - the name of the workspace
+// workspaceName - the name of the workspace.
 // integrationRuntimeName - integration runtime name
 // nodeName - integration runtime node name
 func (client IntegrationRuntimeNodeIPAddressClient) Get(ctx context.Context, resourceGroupName string, workspaceName string, integrationRuntimeName string, nodeName string) (result IntegrationRuntimeNodeIPAddress, err error) {
@@ -86,6 +86,7 @@ func (client IntegrationRuntimeNodeIPAddressClient) Get(ctx context.Context, res
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimeNodeIPAddressClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -14,9 +14,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmKubernetesServiceVersions() *schema.Resource {
+func dataSourceKubernetesServiceVersions() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmKubernetesServiceVersionsRead,
+		Read: dataSourceKubernetesServiceVersionsRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -50,7 +50,7 @@ func dataSourceArmKubernetesServiceVersions() *schema.Resource {
 	}
 }
 
-func dataSourceArmKubernetesServiceVersionsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceKubernetesServiceVersionsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.ServicesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

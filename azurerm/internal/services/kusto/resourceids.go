@@ -1,0 +1,9 @@
+package kusto
+
+//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=AttachedDatabaseConfiguration -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Kusto/Clusters/cluster1/AttachedDatabaseConfigurations/config1
+//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=Cluster -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Kusto/Clusters/cluster1
+//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=ClusterPrincipalAssignment -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Kusto/Clusters/cluster1/PrincipalAssignments/assignment1
+//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=Database -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Kusto/Clusters/cluster1/Databases/database1
+//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=DatabasePrincipal -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Kusto/Clusters/cluster1/Databases/database1/Role/Viewer/FQN/aaduser=11111111-1111-1111-1111-111111111111;22222222-2222-2222-2222-222222222222
+//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=DatabasePrincipalAssignment -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Kusto/Clusters/cluster1/Databases/database1/PrincipalAssignments/assignment1
+//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=DataConnection -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Kusto/Clusters/cluster1/Databases/database1/DataConnections/connection1

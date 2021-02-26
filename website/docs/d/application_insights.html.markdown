@@ -34,6 +34,7 @@ output "application_insights_instrumentation_key" {
 * `app_id` - The App ID associated with this Application Insights component.
 * `application_type` - The type of the component.
 * `instrumentation_key` - The instrumentation key of the Application Insights component.
+* `connection_string` - The connection string of the Application Insights component. (Sensitive)
 * `location` - The Azure location where the component exists.
 * `retention_in_days` - The retention period in days.
 * `tags` - Tags applied to the component.

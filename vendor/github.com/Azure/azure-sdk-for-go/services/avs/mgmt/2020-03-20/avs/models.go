@@ -30,151 +30,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/avs/mgmt/2020-03-20/avs"
 
-// ClusterProvisioningState enumerates the values for cluster provisioning state.
-type ClusterProvisioningState string
-
-const (
-	// Cancelled ...
-	Cancelled ClusterProvisioningState = "Cancelled"
-	// Deleting ...
-	Deleting ClusterProvisioningState = "Deleting"
-	// Failed ...
-	Failed ClusterProvisioningState = "Failed"
-	// Succeeded ...
-	Succeeded ClusterProvisioningState = "Succeeded"
-	// Updating ...
-	Updating ClusterProvisioningState = "Updating"
-)
-
-// PossibleClusterProvisioningStateValues returns an array of possible values for the ClusterProvisioningState const type.
-func PossibleClusterProvisioningStateValues() []ClusterProvisioningState {
-	return []ClusterProvisioningState{Cancelled, Deleting, Failed, Succeeded, Updating}
-}
-
-// ExpressRouteAuthorizationProvisioningState enumerates the values for express route authorization
-// provisioning state.
-type ExpressRouteAuthorizationProvisioningState string
-
-const (
-	// ExpressRouteAuthorizationProvisioningStateFailed ...
-	ExpressRouteAuthorizationProvisioningStateFailed ExpressRouteAuthorizationProvisioningState = "Failed"
-	// ExpressRouteAuthorizationProvisioningStateSucceeded ...
-	ExpressRouteAuthorizationProvisioningStateSucceeded ExpressRouteAuthorizationProvisioningState = "Succeeded"
-	// ExpressRouteAuthorizationProvisioningStateUpdating ...
-	ExpressRouteAuthorizationProvisioningStateUpdating ExpressRouteAuthorizationProvisioningState = "Updating"
-)
-
-// PossibleExpressRouteAuthorizationProvisioningStateValues returns an array of possible values for the ExpressRouteAuthorizationProvisioningState const type.
-func PossibleExpressRouteAuthorizationProvisioningStateValues() []ExpressRouteAuthorizationProvisioningState {
-	return []ExpressRouteAuthorizationProvisioningState{ExpressRouteAuthorizationProvisioningStateFailed, ExpressRouteAuthorizationProvisioningStateSucceeded, ExpressRouteAuthorizationProvisioningStateUpdating}
-}
-
-// HcxEnterpriseSiteStatus enumerates the values for hcx enterprise site status.
-type HcxEnterpriseSiteStatus string
-
-const (
-	// Available ...
-	Available HcxEnterpriseSiteStatus = "Available"
-	// Consumed ...
-	Consumed HcxEnterpriseSiteStatus = "Consumed"
-	// Deactivated ...
-	Deactivated HcxEnterpriseSiteStatus = "Deactivated"
-	// Deleted ...
-	Deleted HcxEnterpriseSiteStatus = "Deleted"
-)
-
-// PossibleHcxEnterpriseSiteStatusValues returns an array of possible values for the HcxEnterpriseSiteStatus const type.
-func PossibleHcxEnterpriseSiteStatusValues() []HcxEnterpriseSiteStatus {
-	return []HcxEnterpriseSiteStatus{Available, Consumed, Deactivated, Deleted}
-}
-
-// InternetEnum enumerates the values for internet enum.
-type InternetEnum string
-
-const (
-	// Disabled ...
-	Disabled InternetEnum = "Disabled"
-	// Enabled ...
-	Enabled InternetEnum = "Enabled"
-)
-
-// PossibleInternetEnumValues returns an array of possible values for the InternetEnum const type.
-func PossibleInternetEnumValues() []InternetEnum {
-	return []InternetEnum{Disabled, Enabled}
-}
-
-// PrivateCloudProvisioningState enumerates the values for private cloud provisioning state.
-type PrivateCloudProvisioningState string
-
-const (
-	// PrivateCloudProvisioningStateBuilding ...
-	PrivateCloudProvisioningStateBuilding PrivateCloudProvisioningState = "Building"
-	// PrivateCloudProvisioningStateCancelled ...
-	PrivateCloudProvisioningStateCancelled PrivateCloudProvisioningState = "Cancelled"
-	// PrivateCloudProvisioningStateDeleting ...
-	PrivateCloudProvisioningStateDeleting PrivateCloudProvisioningState = "Deleting"
-	// PrivateCloudProvisioningStateFailed ...
-	PrivateCloudProvisioningStateFailed PrivateCloudProvisioningState = "Failed"
-	// PrivateCloudProvisioningStatePending ...
-	PrivateCloudProvisioningStatePending PrivateCloudProvisioningState = "Pending"
-	// PrivateCloudProvisioningStateSucceeded ...
-	PrivateCloudProvisioningStateSucceeded PrivateCloudProvisioningState = "Succeeded"
-	// PrivateCloudProvisioningStateUpdating ...
-	PrivateCloudProvisioningStateUpdating PrivateCloudProvisioningState = "Updating"
-)
-
-// PossiblePrivateCloudProvisioningStateValues returns an array of possible values for the PrivateCloudProvisioningState const type.
-func PossiblePrivateCloudProvisioningStateValues() []PrivateCloudProvisioningState {
-	return []PrivateCloudProvisioningState{PrivateCloudProvisioningStateBuilding, PrivateCloudProvisioningStateCancelled, PrivateCloudProvisioningStateDeleting, PrivateCloudProvisioningStateFailed, PrivateCloudProvisioningStatePending, PrivateCloudProvisioningStateSucceeded, PrivateCloudProvisioningStateUpdating}
-}
-
-// QuotaEnabled enumerates the values for quota enabled.
-type QuotaEnabled string
-
-const (
-	// QuotaEnabledDisabled ...
-	QuotaEnabledDisabled QuotaEnabled = "Disabled"
-	// QuotaEnabledEnabled ...
-	QuotaEnabledEnabled QuotaEnabled = "Enabled"
-)
-
-// PossibleQuotaEnabledValues returns an array of possible values for the QuotaEnabled const type.
-func PossibleQuotaEnabledValues() []QuotaEnabled {
-	return []QuotaEnabled{QuotaEnabledDisabled, QuotaEnabledEnabled}
-}
-
-// SslEnum enumerates the values for ssl enum.
-type SslEnum string
-
-const (
-	// SslEnumDisabled ...
-	SslEnumDisabled SslEnum = "Disabled"
-	// SslEnumEnabled ...
-	SslEnumEnabled SslEnum = "Enabled"
-)
-
-// PossibleSslEnumValues returns an array of possible values for the SslEnum const type.
-func PossibleSslEnumValues() []SslEnum {
-	return []SslEnum{SslEnumDisabled, SslEnumEnabled}
-}
-
-// TrialStatus enumerates the values for trial status.
-type TrialStatus string
-
-const (
-	// TrialAvailable ...
-	TrialAvailable TrialStatus = "TrialAvailable"
-	// TrialDisabled ...
-	TrialDisabled TrialStatus = "TrialDisabled"
-	// TrialUsed ...
-	TrialUsed TrialStatus = "TrialUsed"
-)
-
-// PossibleTrialStatusValues returns an array of possible values for the TrialStatus const type.
-func PossibleTrialStatusValues() []TrialStatus {
-	return []TrialStatus{TrialAvailable, TrialDisabled, TrialUsed}
-}
-
 // AdminCredentials administrative credentials for accessing vCenter and NSX-T
 type AdminCredentials struct {
 	autorest.Response `json:"-"`
@@ -191,53 +46,19 @@ type AdminCredentials struct {
 // AuthorizationsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type AuthorizationsCreateOrUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AuthorizationsCreateOrUpdateFuture) Result(client AuthorizationsClient) (era ExpressRouteAuthorization, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "avs.AuthorizationsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("avs.AuthorizationsCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if era.Response.Response, err = future.GetResult(sender); err == nil && era.Response.Response.StatusCode != http.StatusNoContent {
-		era, err = client.CreateOrUpdateResponder(era.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "avs.AuthorizationsCreateOrUpdateFuture", "Result", era.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AuthorizationsClient) (ExpressRouteAuthorization, error)
 }
 
 // AuthorizationsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type AuthorizationsDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AuthorizationsDeleteFuture) Result(client AuthorizationsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "avs.AuthorizationsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("avs.AuthorizationsDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AuthorizationsClient) (autorest.Response, error)
 }
 
 // Circuit an ExpressRoute Circuit
@@ -422,10 +243,15 @@ func (cl ClusterList) IsEmpty() bool {
 	return cl.Value == nil || len(*cl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (cl ClusterList) hasNextLink() bool {
+	return cl.NextLink != nil && len(*cl.NextLink) != 0
+}
+
 // clusterListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (cl ClusterList) clusterListPreparer(ctx context.Context) (*http.Request, error) {
-	if cl.NextLink == nil || len(to.String(cl.NextLink)) < 1 {
+	if !cl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -453,11 +279,16 @@ func (page *ClusterListPage) NextWithContext(ctx context.Context) (err error) {
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.cl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.cl)
+		if err != nil {
+			return err
+		}
+		page.cl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.cl = next
 	return nil
 }
 
@@ -487,13 +318,16 @@ func (page ClusterListPage) Values() []Cluster {
 }
 
 // Creates a new instance of the ClusterListPage type.
-func NewClusterListPage(getNextPage func(context.Context, ClusterList) (ClusterList, error)) ClusterListPage {
-	return ClusterListPage{fn: getNextPage}
+func NewClusterListPage(cur ClusterList, getNextPage func(context.Context, ClusterList) (ClusterList, error)) ClusterListPage {
+	return ClusterListPage{
+		fn: getNextPage,
+		cl: cur,
+	}
 }
 
 // ClusterProperties the properties of a cluster
 type ClusterProperties struct {
-	// ProvisioningState - READ-ONLY; The state of the cluster provisioning. Possible values include: 'Succeeded', 'Failed', 'Cancelled', 'Deleting', 'Updating'
+	// ProvisioningState - The state of the cluster provisioning. Possible values include: 'Succeeded', 'Failed', 'Cancelled', 'Deleting', 'Updating'
 	ProvisioningState ClusterProvisioningState `json:"provisioningState,omitempty"`
 	// ClusterID - READ-ONLY; The identity
 	ClusterID *int32 `json:"clusterId,omitempty"`
@@ -503,85 +337,43 @@ type ClusterProperties struct {
 	ClusterSize *int32 `json:"clusterSize,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ClusterProperties.
+func (cp ClusterProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if cp.ProvisioningState != "" {
+		objectMap["provisioningState"] = cp.ProvisioningState
+	}
+	if cp.ClusterSize != nil {
+		objectMap["clusterSize"] = cp.ClusterSize
+	}
+	return json.Marshal(objectMap)
+}
+
 // ClustersCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type ClustersCreateOrUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ClustersCreateOrUpdateFuture) Result(client ClustersClient) (c Cluster, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "avs.ClustersCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("avs.ClustersCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if c.Response.Response, err = future.GetResult(sender); err == nil && c.Response.Response.StatusCode != http.StatusNoContent {
-		c, err = client.CreateOrUpdateResponder(c.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "avs.ClustersCreateOrUpdateFuture", "Result", c.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ClustersClient) (Cluster, error)
 }
 
 // ClustersDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type ClustersDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ClustersDeleteFuture) Result(client ClustersClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "avs.ClustersDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("avs.ClustersDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ClustersClient) (autorest.Response, error)
 }
 
 // ClustersUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type ClustersUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ClustersUpdateFuture) Result(client ClustersClient) (c Cluster, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "avs.ClustersUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("avs.ClustersUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if c.Response.Response, err = future.GetResult(sender); err == nil && c.Response.Response.StatusCode != http.StatusNoContent {
-		c, err = client.UpdateResponder(c.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "avs.ClustersUpdateFuture", "Result", c.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ClustersClient) (Cluster, error)
 }
 
 // ClusterUpdate an update of a cluster resource
@@ -647,7 +439,8 @@ type ErrorAdditionalInfo struct {
 	Info interface{} `json:"info,omitempty"`
 }
 
-// ErrorResponse the resource management error response.
+// ErrorResponse common error response for all Azure Resource Manager APIs to return error details for
+// failed operations. (This also follows the OData error response format.)
 type ErrorResponse struct {
 	// Code - READ-ONLY; The error code.
 	Code *string `json:"code,omitempty"`
@@ -664,7 +457,7 @@ type ErrorResponse struct {
 // ExpressRouteAuthorization expressRoute Circuit Authorization
 type ExpressRouteAuthorization struct {
 	autorest.Response `json:"-"`
-	// ExpressRouteAuthorizationProperties - The properties of an ExpressRoute Circuit Authorization resource
+	// ExpressRouteAuthorizationProperties - READ-ONLY; The properties of an ExpressRoute Circuit Authorization resource
 	*ExpressRouteAuthorizationProperties `json:"properties,omitempty"`
 	// ID - READ-ONLY; Resource ID.
 	ID *string `json:"id,omitempty"`
@@ -677,9 +470,6 @@ type ExpressRouteAuthorization struct {
 // MarshalJSON is the custom marshaler for ExpressRouteAuthorization.
 func (era ExpressRouteAuthorization) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if era.ExpressRouteAuthorizationProperties != nil {
-		objectMap["properties"] = era.ExpressRouteAuthorizationProperties
-	}
 	return json.Marshal(objectMap)
 }
 
@@ -812,10 +602,15 @@ func (eral ExpressRouteAuthorizationList) IsEmpty() bool {
 	return eral.Value == nil || len(*eral.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (eral ExpressRouteAuthorizationList) hasNextLink() bool {
+	return eral.NextLink != nil && len(*eral.NextLink) != 0
+}
+
 // expressRouteAuthorizationListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (eral ExpressRouteAuthorizationList) expressRouteAuthorizationListPreparer(ctx context.Context) (*http.Request, error) {
-	if eral.NextLink == nil || len(to.String(eral.NextLink)) < 1 {
+	if !eral.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -843,11 +638,16 @@ func (page *ExpressRouteAuthorizationListPage) NextWithContext(ctx context.Conte
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.eral)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.eral)
+		if err != nil {
+			return err
+		}
+		page.eral = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.eral = next
 	return nil
 }
 
@@ -877,8 +677,11 @@ func (page ExpressRouteAuthorizationListPage) Values() []ExpressRouteAuthorizati
 }
 
 // Creates a new instance of the ExpressRouteAuthorizationListPage type.
-func NewExpressRouteAuthorizationListPage(getNextPage func(context.Context, ExpressRouteAuthorizationList) (ExpressRouteAuthorizationList, error)) ExpressRouteAuthorizationListPage {
-	return ExpressRouteAuthorizationListPage{fn: getNextPage}
+func NewExpressRouteAuthorizationListPage(cur ExpressRouteAuthorizationList, getNextPage func(context.Context, ExpressRouteAuthorizationList) (ExpressRouteAuthorizationList, error)) ExpressRouteAuthorizationListPage {
+	return ExpressRouteAuthorizationListPage{
+		fn:   getNextPage,
+		eral: cur,
+	}
 }
 
 // ExpressRouteAuthorizationProperties the properties of an ExpressRoute Circuit Authorization resource
@@ -894,7 +697,7 @@ type ExpressRouteAuthorizationProperties struct {
 // HcxEnterpriseSite an HCX Enterprise Site resource
 type HcxEnterpriseSite struct {
 	autorest.Response `json:"-"`
-	// HcxEnterpriseSiteProperties - The properties of an HCX Enterprise Site resource
+	// HcxEnterpriseSiteProperties - READ-ONLY; The properties of an HCX Enterprise Site resource
 	*HcxEnterpriseSiteProperties `json:"properties,omitempty"`
 	// ID - READ-ONLY; Resource ID.
 	ID *string `json:"id,omitempty"`
@@ -907,9 +710,6 @@ type HcxEnterpriseSite struct {
 // MarshalJSON is the custom marshaler for HcxEnterpriseSite.
 func (hes HcxEnterpriseSite) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if hes.HcxEnterpriseSiteProperties != nil {
-		objectMap["properties"] = hes.HcxEnterpriseSiteProperties
-	}
 	return json.Marshal(objectMap)
 }
 
@@ -1041,10 +841,15 @@ func (hesl HcxEnterpriseSiteList) IsEmpty() bool {
 	return hesl.Value == nil || len(*hesl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (hesl HcxEnterpriseSiteList) hasNextLink() bool {
+	return hesl.NextLink != nil && len(*hesl.NextLink) != 0
+}
+
 // hcxEnterpriseSiteListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (hesl HcxEnterpriseSiteList) hcxEnterpriseSiteListPreparer(ctx context.Context) (*http.Request, error) {
-	if hesl.NextLink == nil || len(to.String(hesl.NextLink)) < 1 {
+	if !hesl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1072,11 +877,16 @@ func (page *HcxEnterpriseSiteListPage) NextWithContext(ctx context.Context) (err
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.hesl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.hesl)
+		if err != nil {
+			return err
+		}
+		page.hesl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.hesl = next
 	return nil
 }
 
@@ -1106,8 +916,11 @@ func (page HcxEnterpriseSiteListPage) Values() []HcxEnterpriseSite {
 }
 
 // Creates a new instance of the HcxEnterpriseSiteListPage type.
-func NewHcxEnterpriseSiteListPage(getNextPage func(context.Context, HcxEnterpriseSiteList) (HcxEnterpriseSiteList, error)) HcxEnterpriseSiteListPage {
-	return HcxEnterpriseSiteListPage{fn: getNextPage}
+func NewHcxEnterpriseSiteListPage(cur HcxEnterpriseSiteList, getNextPage func(context.Context, HcxEnterpriseSiteList) (HcxEnterpriseSiteList, error)) HcxEnterpriseSiteListPage {
+	return HcxEnterpriseSiteListPage{
+		fn:   getNextPage,
+		hesl: cur,
+	}
 }
 
 // HcxEnterpriseSiteProperties the properties of an HCX Enterprise Site
@@ -1142,8 +955,20 @@ type IdentitySource struct {
 	Password *string `json:"password,omitempty"`
 }
 
+// LogSpecification specifications of the Log for Azure Monitoring
+type LogSpecification struct {
+	// Name - Name of the log
+	Name *string `json:"name,omitempty"`
+	// DisplayName - Localized friendly display name of the log
+	DisplayName *string `json:"displayName,omitempty"`
+	// BlobDuration - Blob duration of the log
+	BlobDuration *string `json:"blobDuration,omitempty"`
+}
+
 // ManagementCluster the properties of a default cluster
 type ManagementCluster struct {
+	// ProvisioningState - The state of the cluster provisioning. Possible values include: 'Succeeded', 'Failed', 'Cancelled', 'Deleting', 'Updating'
+	ProvisioningState ClusterProvisioningState `json:"provisioningState,omitempty"`
 	// ClusterID - READ-ONLY; The identity
 	ClusterID *int32 `json:"clusterId,omitempty"`
 	// Hosts - READ-ONLY; The hosts
@@ -1152,12 +977,83 @@ type ManagementCluster struct {
 	ClusterSize *int32 `json:"clusterSize,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ManagementCluster.
+func (mc ManagementCluster) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mc.ProvisioningState != "" {
+		objectMap["provisioningState"] = mc.ProvisioningState
+	}
+	if mc.ClusterSize != nil {
+		objectMap["clusterSize"] = mc.ClusterSize
+	}
+	return json.Marshal(objectMap)
+}
+
+// MetricDimension specifications of the Dimension of metrics
+type MetricDimension struct {
+	// Name - Name of the dimension
+	Name *string `json:"name,omitempty"`
+	// DisplayName - Localized friendly display name of the dimension
+	DisplayName *string `json:"displayName,omitempty"`
+}
+
+// MetricSpecification specifications of the Metrics for Azure Monitoring
+type MetricSpecification struct {
+	// Name - Name of the metric
+	Name *string `json:"name,omitempty"`
+	// DisplayName - Localized friendly display name of the metric
+	DisplayName *string `json:"displayName,omitempty"`
+	// DisplayDescription - Localized friendly description of the metric
+	DisplayDescription *string `json:"displayDescription,omitempty"`
+	// Unit - Unit that makes sense for the metric
+	Unit *string `json:"unit,omitempty"`
+	// Category - Name of the metric category that the metric belongs to. A metric can only belong to a single category.
+	Category *string `json:"category,omitempty"`
+	// AggregationType - Only provide one value for this field. Valid values: Average, Minimum, Maximum, Total, Count.
+	AggregationType *string `json:"aggregationType,omitempty"`
+	// SupportedAggregationTypes - Supported aggregation types
+	SupportedAggregationTypes *[]string `json:"supportedAggregationTypes,omitempty"`
+	// SupportedTimeGrainTypes - Supported time grain types
+	SupportedTimeGrainTypes *[]string `json:"supportedTimeGrainTypes,omitempty"`
+	// FillGapWithZero - Optional. If set to true, then zero will be returned for time duration where no metric is emitted/published.
+	FillGapWithZero *bool `json:"fillGapWithZero,omitempty"`
+	// Dimensions - Dimensions of the metric
+	Dimensions *[]MetricDimension `json:"dimensions,omitempty"`
+	// EnableRegionalMdmAccount - Whether or not the service is using regional MDM accounts.
+	EnableRegionalMdmAccount *string `json:"enableRegionalMdmAccount,omitempty"`
+	// SourceMdmAccount - The name of the MDM account.
+	SourceMdmAccount *string `json:"sourceMdmAccount,omitempty"`
+	// SourceMdmNamespace - The name of the MDM namespace.
+	SourceMdmNamespace *string `json:"sourceMdmNamespace,omitempty"`
+}
+
 // Operation a REST API operation
 type Operation struct {
 	// Name - READ-ONLY; Name of the operation being performed on this object
 	Name *string `json:"name,omitempty"`
 	// Display - READ-ONLY; Contains the localized display information for this operation
 	Display *OperationDisplay `json:"display,omitempty"`
+	// IsDataAction - Gets or sets a value indicating whether the operation is a data action or not
+	IsDataAction *bool `json:"isDataAction,omitempty"`
+	// Origin - Origin of the operation
+	Origin *string `json:"origin,omitempty"`
+	// Properties - Properties of the operation
+	Properties *OperationProperties `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Operation.
+func (o Operation) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if o.IsDataAction != nil {
+		objectMap["isDataAction"] = o.IsDataAction
+	}
+	if o.Origin != nil {
+		objectMap["origin"] = o.Origin
+	}
+	if o.Properties != nil {
+		objectMap["properties"] = o.Properties
+	}
+	return json.Marshal(objectMap)
 }
 
 // OperationDisplay contains the localized display information for this operation
@@ -1249,10 +1145,15 @@ func (ol OperationList) IsEmpty() bool {
 	return ol.Value == nil || len(*ol.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (ol OperationList) hasNextLink() bool {
+	return ol.NextLink != nil && len(*ol.NextLink) != 0
+}
+
 // operationListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (ol OperationList) operationListPreparer(ctx context.Context) (*http.Request, error) {
-	if ol.NextLink == nil || len(to.String(ol.NextLink)) < 1 {
+	if !ol.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1280,11 +1181,16 @@ func (page *OperationListPage) NextWithContext(ctx context.Context) (err error) 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.ol)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.ol)
+		if err != nil {
+			return err
+		}
+		page.ol = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.ol = next
 	return nil
 }
 
@@ -1314,8 +1220,17 @@ func (page OperationListPage) Values() []Operation {
 }
 
 // Creates a new instance of the OperationListPage type.
-func NewOperationListPage(getNextPage func(context.Context, OperationList) (OperationList, error)) OperationListPage {
-	return OperationListPage{fn: getNextPage}
+func NewOperationListPage(cur OperationList, getNextPage func(context.Context, OperationList) (OperationList, error)) OperationListPage {
+	return OperationListPage{
+		fn: getNextPage,
+		ol: cur,
+	}
+}
+
+// OperationProperties extra Operation properties
+type OperationProperties struct {
+	// ServiceSpecification - Service specifications of the operation
+	ServiceSpecification *ServiceSpecification `json:"serviceSpecification,omitempty"`
 }
 
 // PrivateCloud a private cloud resource
@@ -1510,10 +1425,15 @@ func (pcl PrivateCloudList) IsEmpty() bool {
 	return pcl.Value == nil || len(*pcl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (pcl PrivateCloudList) hasNextLink() bool {
+	return pcl.NextLink != nil && len(*pcl.NextLink) != 0
+}
+
 // privateCloudListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (pcl PrivateCloudList) privateCloudListPreparer(ctx context.Context) (*http.Request, error) {
-	if pcl.NextLink == nil || len(to.String(pcl.NextLink)) < 1 {
+	if !pcl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1541,11 +1461,16 @@ func (page *PrivateCloudListPage) NextWithContext(ctx context.Context) (err erro
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.pcl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.pcl)
+		if err != nil {
+			return err
+		}
+		page.pcl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.pcl = next
 	return nil
 }
 
@@ -1575,8 +1500,11 @@ func (page PrivateCloudListPage) Values() []PrivateCloud {
 }
 
 // Creates a new instance of the PrivateCloudListPage type.
-func NewPrivateCloudListPage(getNextPage func(context.Context, PrivateCloudList) (PrivateCloudList, error)) PrivateCloudListPage {
-	return PrivateCloudListPage{fn: getNextPage}
+func NewPrivateCloudListPage(cur PrivateCloudList, getNextPage func(context.Context, PrivateCloudList) (PrivateCloudList, error)) PrivateCloudListPage {
+	return PrivateCloudListPage{
+		fn:  getNextPage,
+		pcl: cur,
+	}
 }
 
 // PrivateCloudProperties the properties of a private cloud resource
@@ -1611,85 +1539,58 @@ type PrivateCloudProperties struct {
 	IdentitySources *[]IdentitySource `json:"identitySources,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for PrivateCloudProperties.
+func (pcp PrivateCloudProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if pcp.Circuit != nil {
+		objectMap["circuit"] = pcp.Circuit
+	}
+	if pcp.NetworkBlock != nil {
+		objectMap["networkBlock"] = pcp.NetworkBlock
+	}
+	if pcp.VcenterPassword != nil {
+		objectMap["vcenterPassword"] = pcp.VcenterPassword
+	}
+	if pcp.NsxtPassword != nil {
+		objectMap["nsxtPassword"] = pcp.NsxtPassword
+	}
+	if pcp.ManagementCluster != nil {
+		objectMap["managementCluster"] = pcp.ManagementCluster
+	}
+	if pcp.Internet != "" {
+		objectMap["internet"] = pcp.Internet
+	}
+	if pcp.IdentitySources != nil {
+		objectMap["identitySources"] = pcp.IdentitySources
+	}
+	return json.Marshal(objectMap)
+}
+
 // PrivateCloudsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type PrivateCloudsCreateOrUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *PrivateCloudsCreateOrUpdateFuture) Result(client PrivateCloudsClient) (pc PrivateCloud, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "avs.PrivateCloudsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("avs.PrivateCloudsCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if pc.Response.Response, err = future.GetResult(sender); err == nil && pc.Response.Response.StatusCode != http.StatusNoContent {
-		pc, err = client.CreateOrUpdateResponder(pc.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "avs.PrivateCloudsCreateOrUpdateFuture", "Result", pc.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(PrivateCloudsClient) (PrivateCloud, error)
 }
 
 // PrivateCloudsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type PrivateCloudsDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *PrivateCloudsDeleteFuture) Result(client PrivateCloudsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "avs.PrivateCloudsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("avs.PrivateCloudsDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(PrivateCloudsClient) (autorest.Response, error)
 }
 
 // PrivateCloudsUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type PrivateCloudsUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *PrivateCloudsUpdateFuture) Result(client PrivateCloudsClient) (pc PrivateCloud, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "avs.PrivateCloudsUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("avs.PrivateCloudsUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if pc.Response.Response, err = future.GetResult(sender); err == nil && pc.Response.Response.StatusCode != http.StatusNoContent {
-		pc, err = client.UpdateResponder(pc.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "avs.PrivateCloudsUpdateFuture", "Result", pc.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(PrivateCloudsClient) (PrivateCloud, error)
 }
 
 // PrivateCloudUpdate an update to a private cloud resource
@@ -1778,6 +1679,14 @@ type Resource struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
+}
+
+// ServiceSpecification service specification payload
+type ServiceSpecification struct {
+	// LogSpecifications - Specifications of the Log for Azure Monitoring
+	LogSpecifications *[]LogSpecification `json:"logSpecifications,omitempty"`
+	// MetricSpecifications - Specifications of the Metrics for Azure Monitoring
+	MetricSpecifications *[]MetricSpecification `json:"metricSpecifications,omitempty"`
 }
 
 // Sku the resource model definition representing SKU

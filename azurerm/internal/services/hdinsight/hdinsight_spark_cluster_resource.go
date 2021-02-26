@@ -5,12 +5,13 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight/parse"
+
+	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -18,7 +19,7 @@ import (
 
 // NOTE: this isn't a recommended way of building resources in Terraform
 // this pattern is used to work around a generic but pedantic API endpoint
-var hdInsightSparkClusterHeadNodeDefinition = azure.HDInsightNodeDefinition{
+var hdInsightSparkClusterHeadNodeDefinition = HDInsightNodeDefinition{
 	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         2,
 	MaxInstanceCount:         utils.Int(2),
@@ -26,13 +27,13 @@ var hdInsightSparkClusterHeadNodeDefinition = azure.HDInsightNodeDefinition{
 	FixedTargetInstanceCount: utils.Int32(int32(2)),
 }
 
-var hdInsightSparkClusterWorkerNodeDefinition = azure.HDInsightNodeDefinition{
+var hdInsightSparkClusterWorkerNodeDefinition = HDInsightNodeDefinition{
 	CanSpecifyInstanceCount: true,
 	MinInstanceCount:        1,
 	CanSpecifyDisks:         false,
 }
 
-var hdInsightSparkClusterZookeeperNodeDefinition = azure.HDInsightNodeDefinition{
+var hdInsightSparkClusterZookeeperNodeDefinition = HDInsightNodeDefinition{
 	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         3,
 	MaxInstanceCount:         utils.Int(3),
@@ -40,11 +41,11 @@ var hdInsightSparkClusterZookeeperNodeDefinition = azure.HDInsightNodeDefinition
 	CanSpecifyDisks:          false,
 }
 
-func resourceArmHDInsightSparkCluster() *schema.Resource {
+func resourceHDInsightSparkCluster() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmHDInsightSparkClusterCreate,
-		Read:   resourceArmHDInsightSparkClusterRead,
-		Update: hdinsightClusterUpdate("Spark", resourceArmHDInsightSparkClusterRead),
+		Create: resourceHDInsightSparkClusterCreate,
+		Read:   resourceHDInsightSparkClusterRead,
+		Update: hdinsightClusterUpdate("Spark", resourceHDInsightSparkClusterRead),
 		Delete: hdinsightClusterDelete("Spark"),
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -58,17 +59,17 @@ func resourceArmHDInsightSparkCluster() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": azure.SchemaHDInsightName(),
+			"name": SchemaHDInsightName(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"location": azure.SchemaLocation(),
 
-			"cluster_version": azure.SchemaHDInsightClusterVersion(),
+			"cluster_version": SchemaHDInsightClusterVersion(),
 
-			"tier": azure.SchemaHDInsightTier(),
+			"tier": SchemaHDInsightTier(),
 
-			"tls_min_version": azure.SchemaHDInsightTls(),
+			"tls_min_version": SchemaHDInsightTls(),
 
 			"component_version": {
 				Type:     schema.TypeList,
@@ -85,13 +86,13 @@ func resourceArmHDInsightSparkCluster() *schema.Resource {
 				},
 			},
 
-			"gateway": azure.SchemaHDInsightsGateway(),
+			"gateway": SchemaHDInsightsGateway(),
 
-			"metastores": azure.SchemaHDInsightsExternalMetastores(),
+			"metastores": SchemaHDInsightsExternalMetastores(),
 
-			"storage_account": azure.SchemaHDInsightsStorageAccounts(),
+			"storage_account": SchemaHDInsightsStorageAccounts(),
 
-			"storage_account_gen2": azure.SchemaHDInsightsGen2StorageAccounts(),
+			"storage_account_gen2": SchemaHDInsightsGen2StorageAccounts(),
 
 			"roles": {
 				Type:     schema.TypeList,
@@ -99,11 +100,11 @@ func resourceArmHDInsightSparkCluster() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"head_node": azure.SchemaHDInsightNodeDefinition("roles.0.head_node", hdInsightSparkClusterHeadNodeDefinition),
+						"head_node": SchemaHDInsightNodeDefinition("roles.0.head_node", hdInsightSparkClusterHeadNodeDefinition, true),
 
-						"worker_node": azure.SchemaHDInsightNodeDefinition("roles.0.worker_node", hdInsightSparkClusterWorkerNodeDefinition),
+						"worker_node": SchemaHDInsightNodeDefinition("roles.0.worker_node", hdInsightSparkClusterWorkerNodeDefinition, true),
 
-						"zookeeper_node": azure.SchemaHDInsightNodeDefinition("roles.0.zookeeper_node", hdInsightSparkClusterZookeeperNodeDefinition),
+						"zookeeper_node": SchemaHDInsightNodeDefinition("roles.0.zookeeper_node", hdInsightSparkClusterZookeeperNodeDefinition, true),
 					},
 				},
 			},
@@ -120,19 +121,21 @@ func resourceArmHDInsightSparkCluster() *schema.Resource {
 				Computed: true,
 			},
 
-			"monitor": azure.SchemaHDInsightsMonitor(),
+			"monitor": SchemaHDInsightsMonitor(),
 		},
 	}
 }
 
-func resourceArmHDInsightSparkClusterCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceHDInsightSparkClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HDInsight.ClustersClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewClusterID(subscriptionId, resourceGroup, name)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	clusterVersion := d.Get("cluster_version").(string)
 	t := d.Get("tags").(map[string]interface{})
@@ -143,7 +146,7 @@ func resourceArmHDInsightSparkClusterCreate(d *schema.ResourceData, meta interfa
 	componentVersions := expandHDInsightSparkComponentVersion(componentVersionsRaw)
 
 	gatewayRaw := d.Get("gateway").([]interface{})
-	configurations := azure.ExpandHDInsightsConfigurations(gatewayRaw)
+	configurations := ExpandHDInsightsConfigurations(gatewayRaw)
 
 	metastoresRaw := d.Get("metastores").([]interface{})
 	metastores := expandHDInsightsMetastore(metastoresRaw)
@@ -153,7 +156,7 @@ func resourceArmHDInsightSparkClusterCreate(d *schema.ResourceData, meta interfa
 
 	storageAccountsRaw := d.Get("storage_account").([]interface{})
 	storageAccountsGen2Raw := d.Get("storage_account_gen2").([]interface{})
-	storageAccounts, identity, err := azure.ExpandHDInsightsStorageAccounts(storageAccountsRaw, storageAccountsGen2Raw)
+	storageAccounts, identity, err := ExpandHDInsightsStorageAccounts(storageAccountsRaw, storageAccountsGen2Raw)
 	if err != nil {
 		return fmt.Errorf("failure expanding `storage_account`: %s", err)
 	}
@@ -169,17 +172,15 @@ func resourceArmHDInsightSparkClusterCreate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("failure expanding `roles`: %+v", err)
 	}
 
-	if features.ShouldResourcesBeImported() {
-		existing, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("failure checking for presence of existing HDInsight Spark Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
-			}
+	existing, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("failure checking for presence of existing HDInsight Spark Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
+	}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_hdinsight_spark_cluster", *existing.ID)
-		}
+	if existing.ID != nil && *existing.ID != "" {
+		return tf.ImportAsExistsError("azurerm_hdinsight_spark_cluster", *existing.ID)
 	}
 
 	params := hdinsight.ClusterCreateParametersExtended{
@@ -222,7 +223,7 @@ func resourceArmHDInsightSparkClusterCreate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("failure reading ID for HDInsight Spark Cluster %q (Resource Group %q)", name, resourceGroup)
 	}
 
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	// We can only enable monitoring after creation
 	if v, ok := d.GetOk("monitor"); ok {
@@ -232,23 +233,23 @@ func resourceArmHDInsightSparkClusterCreate(d *schema.ResourceData, meta interfa
 		}
 	}
 
-	return resourceArmHDInsightSparkClusterRead(d, meta)
+	return resourceHDInsightSparkClusterRead(d, meta)
 }
 
-func resourceArmHDInsightSparkClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceHDInsightSparkClusterRead(d *schema.ResourceData, meta interface{}) error {
 	clustersClient := meta.(*clients.Client).HDInsight.ClustersClient
 	configurationsClient := meta.(*clients.Client).HDInsight.ConfigurationsClient
 	extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ClusterID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	resourceGroup := id.ResourceGroup
-	name := id.Path["clusters"]
+	name := id.Name
 
 	resp, err := clustersClient.Get(ctx, resourceGroup, name)
 	if err != nil {
@@ -289,7 +290,7 @@ func resourceArmHDInsightSparkClusterRead(d *schema.ResourceData, meta interface
 				return fmt.Errorf("failure flattening `component_version`: %+v", err)
 			}
 
-			if err := d.Set("gateway", azure.FlattenHDInsightsConfigurations(gateway)); err != nil {
+			if err := d.Set("gateway", FlattenHDInsightsConfigurations(gateway)); err != nil {
 				return fmt.Errorf("failure flattening `gateway`: %+v", err)
 			}
 
@@ -306,9 +307,9 @@ func resourceArmHDInsightSparkClusterRead(d *schema.ResourceData, meta interface
 			return fmt.Errorf("failure flattening `roles`: %+v", err)
 		}
 
-		httpEndpoint := azure.FindHDInsightConnectivityEndpoint("HTTPS", props.ConnectivityEndpoints)
+		httpEndpoint := FindHDInsightConnectivityEndpoint("HTTPS", props.ConnectivityEndpoints)
 		d.Set("https_endpoint", httpEndpoint)
-		sshEndpoint := azure.FindHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints)
+		sshEndpoint := FindHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints)
 		d.Set("ssh_endpoint", sshEndpoint)
 
 		monitor, err := extensionsClient.GetMonitoringStatus(ctx, resourceGroup, name)

@@ -48,7 +48,7 @@ func NewAuthorizationsClientWithBaseURI(baseURI string, subscriptionID string) A
 // privateCloudName - the name of the private cloud.
 // authorizationName - name of the ExpressRoute Circuit Authorization in the private cloud
 // authorization - an ExpressRoute Circuit Authorization
-func (client AuthorizationsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, privateCloudName string, authorizationName string, authorization interface{}) (result AuthorizationsCreateOrUpdateFuture, err error) {
+func (client AuthorizationsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, privateCloudName string, authorizationName string, authorization ExpressRouteAuthorization) (result AuthorizationsCreateOrUpdateFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AuthorizationsClient.CreateOrUpdate")
 		defer func() {
@@ -77,7 +77,7 @@ func (client AuthorizationsClient) CreateOrUpdate(ctx context.Context, resourceG
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "avs.AuthorizationsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "avs.AuthorizationsClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -85,7 +85,7 @@ func (client AuthorizationsClient) CreateOrUpdate(ctx context.Context, resourceG
 }
 
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
-func (client AuthorizationsClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, privateCloudName string, authorizationName string, authorization interface{}) (*http.Request, error) {
+func (client AuthorizationsClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, privateCloudName string, authorizationName string, authorization ExpressRouteAuthorization) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"authorizationName": autorest.Encode("path", authorizationName),
 		"privateCloudName":  autorest.Encode("path", privateCloudName),
@@ -98,6 +98,7 @@ func (client AuthorizationsClient) CreateOrUpdatePreparer(ctx context.Context, r
 		"api-version": APIVersion,
 	}
 
+	authorization.ExpressRouteAuthorizationProperties = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -116,7 +117,33 @@ func (client AuthorizationsClient) CreateOrUpdateSender(req *http.Request) (futu
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client AuthorizationsClient) (era ExpressRouteAuthorization, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "avs.AuthorizationsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("avs.AuthorizationsCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		era.Response.Response, err = future.GetResult(sender)
+		if era.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "avs.AuthorizationsCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && era.Response.Response.StatusCode != http.StatusNoContent {
+			era, err = client.CreateOrUpdateResponder(era.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "avs.AuthorizationsCreateOrUpdateFuture", "Result", era.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -166,7 +193,7 @@ func (client AuthorizationsClient) Delete(ctx context.Context, resourceGroupName
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "avs.AuthorizationsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "avs.AuthorizationsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -203,7 +230,23 @@ func (client AuthorizationsClient) DeleteSender(req *http.Request) (future Autho
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client AuthorizationsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "avs.AuthorizationsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("avs.AuthorizationsDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -260,6 +303,7 @@ func (client AuthorizationsClient) Get(ctx context.Context, resourceGroupName st
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "avs.AuthorizationsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -347,6 +391,11 @@ func (client AuthorizationsClient) List(ctx context.Context, resourceGroupName s
 	result.eral, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "avs.AuthorizationsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.eral.hasNextLink() && result.eral.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

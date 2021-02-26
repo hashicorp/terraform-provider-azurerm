@@ -10,18 +10,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataFactoryDatasetCosmosDbSQLAPI() *schema.Resource {
+func resourceDataFactoryDatasetCosmosDbSQLAPI() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryDatasetCosmosDbSQLAPICreateUpdate,
-		Read:   resourceArmDataFactoryDatasetCosmosDbSQLAPIRead,
-		Update: resourceArmDataFactoryDatasetCosmosDbSQLAPICreateUpdate,
-		Delete: resourceArmDataFactoryDatasetCosmosDbSQLAPIDelete,
+		Create: resourceDataFactoryDatasetCosmosDbSQLAPICreateUpdate,
+		Read:   resourceDataFactoryDatasetCosmosDbSQLAPIRead,
+		Update: resourceDataFactoryDatasetCosmosDbSQLAPICreateUpdate,
+		Delete: resourceDataFactoryDatasetCosmosDbSQLAPIDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -145,7 +145,7 @@ func resourceArmDataFactoryDatasetCosmosDbSQLAPI() *schema.Resource {
 	}
 }
 
-func resourceArmDataFactoryDatasetCosmosDbSQLAPICreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetCosmosDbSQLAPICreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -231,10 +231,10 @@ func resourceArmDataFactoryDatasetCosmosDbSQLAPICreateUpdate(d *schema.ResourceD
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDataFactoryDatasetCosmosDbSQLAPIRead(d, meta)
+	return resourceDataFactoryDatasetCosmosDbSQLAPIRead(d, meta)
 }
 
-func resourceArmDataFactoryDatasetCosmosDbSQLAPIRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetCosmosDbSQLAPIRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -311,7 +311,7 @@ func resourceArmDataFactoryDatasetCosmosDbSQLAPIRead(d *schema.ResourceData, met
 	return nil
 }
 
-func resourceArmDataFactoryDatasetCosmosDbSQLAPIDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetCosmosDbSQLAPIDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

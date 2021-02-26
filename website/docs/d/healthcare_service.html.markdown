@@ -49,7 +49,7 @@ An `authentication_configuration` exports the following:
 
 * `authority` - The Azure Active Directory (tenant) that serves as the authentication authority to access the service. 
 * `audience` - The intended audience to receive authentication tokens for the service. 
-* `smart_proxy_enabled` - Is the 'SMART on FHIR' option for mobile and web implementations enbled?
+* `smart_proxy_enabled` - Is the 'SMART on FHIR' option for mobile and web implementations enabled?
 
 ---
 A `cors_configuration` block exports the following:

@@ -92,6 +92,7 @@ func (client MetricsClient) List(ctx context.Context, resourceURI string, timesp
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.MetricsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return

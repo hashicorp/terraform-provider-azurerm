@@ -37,7 +37,7 @@ output "uai_principal_id" {
 
 The following attributes are exported:
 
-* `id` - The Resource ID of the User Assigned Identity.
+* `id` - The ID of the User Assigned Identity.
 * `location` - The Azure location where the User Assigned Identity exists.
 * `principal_id` - The Service Principal ID of the User Assigned Identity.
 * `client_id` - The Client ID of the User Assigned Identity.

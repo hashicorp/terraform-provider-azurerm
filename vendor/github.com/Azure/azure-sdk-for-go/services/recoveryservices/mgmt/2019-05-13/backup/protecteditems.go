@@ -78,6 +78,7 @@ func (client ProtectedItemsClient) CreateOrUpdate(ctx context.Context, vaultName
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ProtectedItemsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -163,6 +164,7 @@ func (client ProtectedItemsClient) Delete(ctx context.Context, vaultName string,
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ProtectedItemsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -246,6 +248,7 @@ func (client ProtectedItemsClient) Get(ctx context.Context, vaultName string, re
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ProtectedItemsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return

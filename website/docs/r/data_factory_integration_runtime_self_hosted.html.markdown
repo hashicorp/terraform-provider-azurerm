@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_data_factory_integration_runtime_self_hosted
 
-Manages a Data Factory Self-host Integration Runtime.
+Manages a Data Factory Self-hosted Integration Runtime.
 
 ## Example Usage
 
@@ -35,11 +35,11 @@ resource "azurerm_data_factory_integration_runtime_self_hosted" "example" {
 
 The following arguments are supported:
 
-* `data_factory_name` - (Required) Changing this forces a new Data Factory to be created.
+* `data_factory_name` - (Required) Changing this forces a new Data Factory Self-hosted Integration Runtime to be created.
 
-* `name` - (Required) The name which should be used for this Data Factory. Changing this forces a new Data Factory to be created.
+* `name` - (Required) The name which should be used for this Data Factory. Changing this forces a new Data Factory Self-hosted Integration Runtime to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Data Factory should exist. Changing this forces a new Data Factory to be created.
+* `resource_group_name` - (Required) The name of the Resource Group where the Data Factory should exist. Changing this forces a new Data Factory Self-hosted Integration Runtime to be created.
 
 ---
 

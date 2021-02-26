@@ -12,9 +12,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmMonitorActionGroup() *schema.Resource {
+func dataSourceMonitorActionGroup() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmMonitorActionGroupRead,
+		Read: dataSourceMonitorActionGroupRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -284,7 +284,7 @@ func dataSourceArmMonitorActionGroup() *schema.Resource {
 	}
 }
 
-func dataSourceArmMonitorActionGroupRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceMonitorActionGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ActionGroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -340,7 +340,7 @@ func dataSourceArmMonitorActionGroupRead(d *schema.ResourceData, meta interface{
 		if err = d.Set("azure_function_receiver", flattenMonitorActionGroupAzureFunctionReceiver(group.AzureFunctionReceivers)); err != nil {
 			return fmt.Errorf("Error setting `azure_function_receiver`: %+v", err)
 		}
-		if err = d.Set("arm_role_receiver", flattenMonitorActionGroupArmRoleReceiver(group.ArmRoleReceivers)); err != nil {
+		if err = d.Set("arm_role_receiver", flattenMonitorActionGroupRoleReceiver(group.ArmRoleReceivers)); err != nil {
 			return fmt.Errorf("Error setting `arm_role_receiver`: %+v", err)
 		}
 	}

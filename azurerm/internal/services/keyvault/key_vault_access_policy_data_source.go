@@ -4,14 +4,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault"
+	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2019-09-01/keyvault"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceArmKeyVaultAccessPolicy() *schema.Resource {
+func dataSourceKeyVaultAccessPolicy() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmKeyVaultAccessPolicyRead,
+		Read: dataSourceKeyVaultAccessPolicyRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -58,7 +58,7 @@ func dataSourceArmKeyVaultAccessPolicy() *schema.Resource {
 	}
 }
 
-func dataSourceArmKeyVaultAccessPolicyRead(d *schema.ResourceData, _ interface{}) error {
+func dataSourceKeyVaultAccessPolicyRead(d *schema.ResourceData, _ interface{}) error {
 	name := d.Get("name").(string)
 	templateManagementPermissions := map[string][]string{
 		"key": {

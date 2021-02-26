@@ -17,6 +17,7 @@
 //    attr (the default) indicates that the value is to be populated from an attribute
 //    block indicates that the value is to populated from a block
 //    label indicates that the value is to populated from a block label
+//    optional is the same as attr, but the field is optional
 //    remain indicates that the value is to be populated from the remaining body after populating other fields
 //
 // "attr" fields may either be of type *hcl.Expression, in which case the raw
@@ -29,10 +30,20 @@
 // in which case multiple blocks of the corresponding type are decoded into
 // the slice.
 //
+// "body" can be placed on a single field of type hcl.Body to capture
+// the full hcl.Body that was decoded for a block. This does not allow leftover
+// values like "remain", so a decoding error will still be returned if leftover
+// fields are given. If you want to capture the decoding body PLUS leftover
+// fields, you must specify a "remain" field as well to prevent errors. The
+// body field and the remain field will both contain the leftover fields.
+//
 // "label" fields are considered only in a struct used as the type of a field
 // marked as "block", and are used sequentially to capture the labels of
 // the blocks being decoded. In this case, the name token is used only as
 // an identifier for the label in diagnostic messages.
+//
+// "optional" fields behave like "attr" fields, but they are optional
+// and will not give parsing errors if they are missing.
 //
 // "remain" can be placed on a single field that may be either of type
 // hcl.Body or hcl.Attributes, in which case any remaining body content is

@@ -31,108 +31,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/advisor/mgmt/2020-01-01/advisor"
 
-// Category enumerates the values for category.
-type Category string
-
-const (
-	// Cost ...
-	Cost Category = "Cost"
-	// HighAvailability ...
-	HighAvailability Category = "HighAvailability"
-	// OperationalExcellence ...
-	OperationalExcellence Category = "OperationalExcellence"
-	// Performance ...
-	Performance Category = "Performance"
-	// Security ...
-	Security Category = "Security"
-)
-
-// PossibleCategoryValues returns an array of possible values for the Category const type.
-func PossibleCategoryValues() []Category {
-	return []Category{Cost, HighAvailability, OperationalExcellence, Performance, Security}
-}
-
-// CPUThreshold enumerates the values for cpu threshold.
-type CPUThreshold string
-
-const (
-	// Five ...
-	Five CPUThreshold = "5"
-	// OneFive ...
-	OneFive CPUThreshold = "15"
-	// OneZero ...
-	OneZero CPUThreshold = "10"
-	// TwoZero ...
-	TwoZero CPUThreshold = "20"
-)
-
-// PossibleCPUThresholdValues returns an array of possible values for the CPUThreshold const type.
-func PossibleCPUThresholdValues() []CPUThreshold {
-	return []CPUThreshold{Five, OneFive, OneZero, TwoZero}
-}
-
-// DigestConfigState enumerates the values for digest config state.
-type DigestConfigState string
-
-const (
-	// Active ...
-	Active DigestConfigState = "Active"
-	// Disabled ...
-	Disabled DigestConfigState = "Disabled"
-)
-
-// PossibleDigestConfigStateValues returns an array of possible values for the DigestConfigState const type.
-func PossibleDigestConfigStateValues() []DigestConfigState {
-	return []DigestConfigState{Active, Disabled}
-}
-
-// Impact enumerates the values for impact.
-type Impact string
-
-const (
-	// High ...
-	High Impact = "High"
-	// Low ...
-	Low Impact = "Low"
-	// Medium ...
-	Medium Impact = "Medium"
-)
-
-// PossibleImpactValues returns an array of possible values for the Impact const type.
-func PossibleImpactValues() []Impact {
-	return []Impact{High, Low, Medium}
-}
-
-// Risk enumerates the values for risk.
-type Risk string
-
-const (
-	// Error ...
-	Error Risk = "Error"
-	// None ...
-	None Risk = "None"
-	// Warning ...
-	Warning Risk = "Warning"
-)
-
-// PossibleRiskValues returns an array of possible values for the Risk const type.
-func PossibleRiskValues() []Risk {
-	return []Risk{Error, None, Warning}
-}
-
-// Scenario enumerates the values for scenario.
-type Scenario string
-
-const (
-	// Alerts ...
-	Alerts Scenario = "Alerts"
-)
-
-// PossibleScenarioValues returns an array of possible values for the Scenario const type.
-func PossibleScenarioValues() []Scenario {
-	return []Scenario{Alerts}
-}
-
 // ArmErrorResponse ...
 type ArmErrorResponse struct {
 	Error *ARMErrorResponseBody `json:"error,omitempty"`
@@ -306,10 +204,15 @@ func (clr ConfigurationListResult) IsEmpty() bool {
 	return clr.Value == nil || len(*clr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (clr ConfigurationListResult) hasNextLink() bool {
+	return clr.NextLink != nil && len(*clr.NextLink) != 0
+}
+
 // configurationListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (clr ConfigurationListResult) configurationListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if clr.NextLink == nil || len(to.String(clr.NextLink)) < 1 {
+	if !clr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -337,11 +240,16 @@ func (page *ConfigurationListResultPage) NextWithContext(ctx context.Context) (e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.clr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.clr)
+		if err != nil {
+			return err
+		}
+		page.clr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.clr = next
 	return nil
 }
 
@@ -371,8 +279,11 @@ func (page ConfigurationListResultPage) Values() []ConfigData {
 }
 
 // Creates a new instance of the ConfigurationListResultPage type.
-func NewConfigurationListResultPage(getNextPage func(context.Context, ConfigurationListResult) (ConfigurationListResult, error)) ConfigurationListResultPage {
-	return ConfigurationListResultPage{fn: getNextPage}
+func NewConfigurationListResultPage(cur ConfigurationListResult, getNextPage func(context.Context, ConfigurationListResult) (ConfigurationListResult, error)) ConfigurationListResultPage {
+	return ConfigurationListResultPage{
+		fn:  getNextPage,
+		clr: cur,
+	}
 }
 
 // DigestConfig advisor Digest configuration entity
@@ -549,10 +460,15 @@ func (melr MetadataEntityListResult) IsEmpty() bool {
 	return melr.Value == nil || len(*melr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (melr MetadataEntityListResult) hasNextLink() bool {
+	return melr.NextLink != nil && len(*melr.NextLink) != 0
+}
+
 // metadataEntityListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (melr MetadataEntityListResult) metadataEntityListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if melr.NextLink == nil || len(to.String(melr.NextLink)) < 1 {
+	if !melr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -580,11 +496,16 @@ func (page *MetadataEntityListResultPage) NextWithContext(ctx context.Context) (
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.melr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.melr)
+		if err != nil {
+			return err
+		}
+		page.melr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.melr = next
 	return nil
 }
 
@@ -614,8 +535,11 @@ func (page MetadataEntityListResultPage) Values() []MetadataEntity {
 }
 
 // Creates a new instance of the MetadataEntityListResultPage type.
-func NewMetadataEntityListResultPage(getNextPage func(context.Context, MetadataEntityListResult) (MetadataEntityListResult, error)) MetadataEntityListResultPage {
-	return MetadataEntityListResultPage{fn: getNextPage}
+func NewMetadataEntityListResultPage(cur MetadataEntityListResult, getNextPage func(context.Context, MetadataEntityListResult) (MetadataEntityListResult, error)) MetadataEntityListResultPage {
+	return MetadataEntityListResultPage{
+		fn:   getNextPage,
+		melr: cur,
+	}
 }
 
 // MetadataEntityProperties the metadata entity properties
@@ -735,10 +659,15 @@ func (oelr OperationEntityListResult) IsEmpty() bool {
 	return oelr.Value == nil || len(*oelr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (oelr OperationEntityListResult) hasNextLink() bool {
+	return oelr.NextLink != nil && len(*oelr.NextLink) != 0
+}
+
 // operationEntityListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (oelr OperationEntityListResult) operationEntityListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if oelr.NextLink == nil || len(to.String(oelr.NextLink)) < 1 {
+	if !oelr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -766,11 +695,16 @@ func (page *OperationEntityListResultPage) NextWithContext(ctx context.Context) 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.oelr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.oelr)
+		if err != nil {
+			return err
+		}
+		page.oelr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.oelr = next
 	return nil
 }
 
@@ -800,8 +734,11 @@ func (page OperationEntityListResultPage) Values() []OperationEntity {
 }
 
 // Creates a new instance of the OperationEntityListResultPage type.
-func NewOperationEntityListResultPage(getNextPage func(context.Context, OperationEntityListResult) (OperationEntityListResult, error)) OperationEntityListResultPage {
-	return OperationEntityListResultPage{fn: getNextPage}
+func NewOperationEntityListResultPage(cur OperationEntityListResult, getNextPage func(context.Context, OperationEntityListResult) (OperationEntityListResult, error)) OperationEntityListResultPage {
+	return OperationEntityListResultPage{
+		fn:   getNextPage,
+		oelr: cur,
+	}
 }
 
 // RecommendationProperties the properties of the recommendation.
@@ -1043,10 +980,15 @@ func (rrblr ResourceRecommendationBaseListResult) IsEmpty() bool {
 	return rrblr.Value == nil || len(*rrblr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (rrblr ResourceRecommendationBaseListResult) hasNextLink() bool {
+	return rrblr.NextLink != nil && len(*rrblr.NextLink) != 0
+}
+
 // resourceRecommendationBaseListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (rrblr ResourceRecommendationBaseListResult) resourceRecommendationBaseListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if rrblr.NextLink == nil || len(to.String(rrblr.NextLink)) < 1 {
+	if !rrblr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1074,11 +1016,16 @@ func (page *ResourceRecommendationBaseListResultPage) NextWithContext(ctx contex
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.rrblr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.rrblr)
+		if err != nil {
+			return err
+		}
+		page.rrblr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.rrblr = next
 	return nil
 }
 
@@ -1108,8 +1055,11 @@ func (page ResourceRecommendationBaseListResultPage) Values() []ResourceRecommen
 }
 
 // Creates a new instance of the ResourceRecommendationBaseListResultPage type.
-func NewResourceRecommendationBaseListResultPage(getNextPage func(context.Context, ResourceRecommendationBaseListResult) (ResourceRecommendationBaseListResult, error)) ResourceRecommendationBaseListResultPage {
-	return ResourceRecommendationBaseListResultPage{fn: getNextPage}
+func NewResourceRecommendationBaseListResultPage(cur ResourceRecommendationBaseListResult, getNextPage func(context.Context, ResourceRecommendationBaseListResult) (ResourceRecommendationBaseListResult, error)) ResourceRecommendationBaseListResultPage {
+	return ResourceRecommendationBaseListResultPage{
+		fn:    getNextPage,
+		rrblr: cur,
+	}
 }
 
 // SetObject ...
@@ -1278,10 +1228,15 @@ func (sclr SuppressionContractListResult) IsEmpty() bool {
 	return sclr.Value == nil || len(*sclr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (sclr SuppressionContractListResult) hasNextLink() bool {
+	return sclr.NextLink != nil && len(*sclr.NextLink) != 0
+}
+
 // suppressionContractListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (sclr SuppressionContractListResult) suppressionContractListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if sclr.NextLink == nil || len(to.String(sclr.NextLink)) < 1 {
+	if !sclr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1309,11 +1264,16 @@ func (page *SuppressionContractListResultPage) NextWithContext(ctx context.Conte
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.sclr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.sclr)
+		if err != nil {
+			return err
+		}
+		page.sclr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.sclr = next
 	return nil
 }
 
@@ -1343,8 +1303,11 @@ func (page SuppressionContractListResultPage) Values() []SuppressionContract {
 }
 
 // Creates a new instance of the SuppressionContractListResultPage type.
-func NewSuppressionContractListResultPage(getNextPage func(context.Context, SuppressionContractListResult) (SuppressionContractListResult, error)) SuppressionContractListResultPage {
-	return SuppressionContractListResultPage{fn: getNextPage}
+func NewSuppressionContractListResultPage(cur SuppressionContractListResult, getNextPage func(context.Context, SuppressionContractListResult) (SuppressionContractListResult, error)) SuppressionContractListResultPage {
+	return SuppressionContractListResultPage{
+		fn:   getNextPage,
+		sclr: cur,
+	}
 }
 
 // SuppressionProperties the properties of the suppression.
@@ -1353,4 +1316,18 @@ type SuppressionProperties struct {
 	SuppressionID *string `json:"suppressionId,omitempty"`
 	// TTL - The duration for which the suppression is valid.
 	TTL *string `json:"ttl,omitempty"`
+	// ExpirationTimeStamp - READ-ONLY; Gets or sets the expiration time stamp.
+	ExpirationTimeStamp *date.Time `json:"expirationTimeStamp,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SuppressionProperties.
+func (sp SuppressionProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sp.SuppressionID != nil {
+		objectMap["suppressionId"] = sp.SuppressionID
+	}
+	if sp.TTL != nil {
+		objectMap["ttl"] = sp.TTL
+	}
+	return json.Marshal(objectMap)
 }

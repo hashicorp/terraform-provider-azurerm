@@ -5,25 +5,25 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmVirtualWan() *schema.Resource {
+func resourceVirtualWan() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmVirtualWanCreateUpdate,
-		Read:   resourceArmVirtualWanRead,
-		Update: resourceArmVirtualWanCreateUpdate,
-		Delete: resourceArmVirtualWanDelete,
+		Create: resourceVirtualWanCreateUpdate,
+		Read:   resourceVirtualWanRead,
+		Update: resourceVirtualWanCreateUpdate,
+		Delete: resourceVirtualWanDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -59,10 +59,12 @@ func resourceArmVirtualWan() *schema.Resource {
 				Default:  true,
 			},
 
+			// TODO 3.0: remove this property
 			"allow_vnet_to_vnet_traffic": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
+				Type:       schema.TypeBool,
+				Optional:   true,
+				Default:    false,
+				Deprecated: "this property has been removed from the API and will be removed in version 3.0 of the provider",
 			},
 
 			"office365_local_breakout_category": {
@@ -88,7 +90,7 @@ func resourceArmVirtualWan() *schema.Resource {
 	}
 }
 
-func resourceArmVirtualWanCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualWanCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualWanClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -100,12 +102,11 @@ func resourceArmVirtualWanCreateUpdate(d *schema.ResourceData, meta interface{})
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	disableVpnEncryption := d.Get("disable_vpn_encryption").(bool)
 	allowBranchToBranchTraffic := d.Get("allow_branch_to_branch_traffic").(bool)
-	allowVnetToVnetTraffic := d.Get("allow_vnet_to_vnet_traffic").(bool)
 	office365LocalBreakoutCategory := d.Get("office365_local_breakout_category").(string)
 	virtualWanType := d.Get("type").(string)
 	t := d.Get("tags").(map[string]interface{})
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -124,7 +125,6 @@ func resourceArmVirtualWanCreateUpdate(d *schema.ResourceData, meta interface{})
 		VirtualWanProperties: &network.VirtualWanProperties{
 			DisableVpnEncryption:           utils.Bool(disableVpnEncryption),
 			AllowBranchToBranchTraffic:     utils.Bool(allowBranchToBranchTraffic),
-			AllowVnetToVnetTraffic:         utils.Bool(allowVnetToVnetTraffic),
 			Office365LocalBreakoutCategory: network.OfficeTrafficCategory(office365LocalBreakoutCategory),
 			Type:                           utils.String(virtualWanType),
 		},
@@ -150,15 +150,15 @@ func resourceArmVirtualWanCreateUpdate(d *schema.ResourceData, meta interface{})
 
 	d.SetId(*read.ID)
 
-	return resourceArmVirtualWanRead(d, meta)
+	return resourceVirtualWanRead(d, meta)
 }
 
-func resourceArmVirtualWanRead(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualWanRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualWanClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseVirtualWanID(d.Id())
+	id, err := parse.VirtualWanID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -183,20 +183,20 @@ func resourceArmVirtualWanRead(d *schema.ResourceData, meta interface{}) error {
 	if props := resp.VirtualWanProperties; props != nil {
 		d.Set("disable_vpn_encryption", props.DisableVpnEncryption)
 		d.Set("allow_branch_to_branch_traffic", props.AllowBranchToBranchTraffic)
-		d.Set("allow_vnet_to_vnet_traffic", props.AllowVnetToVnetTraffic)
 		d.Set("office365_local_breakout_category", props.Office365LocalBreakoutCategory)
+		d.Set("allow_vnet_to_vnet_traffic", false)
 		d.Set("type", props.Type)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmVirtualWanDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualWanDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualWanClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseVirtualWanID(d.Id())
+	id, err := parse.VirtualWanID(d.Id())
 	if err != nil {
 		return err
 	}

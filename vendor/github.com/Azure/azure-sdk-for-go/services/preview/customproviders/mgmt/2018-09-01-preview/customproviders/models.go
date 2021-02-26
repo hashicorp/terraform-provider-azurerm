@@ -30,68 +30,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/customproviders/mgmt/2018-09-01-preview/customproviders"
 
-// ActionRouting enumerates the values for action routing.
-type ActionRouting string
-
-const (
-	// Proxy ...
-	Proxy ActionRouting = "Proxy"
-)
-
-// PossibleActionRoutingValues returns an array of possible values for the ActionRouting const type.
-func PossibleActionRoutingValues() []ActionRouting {
-	return []ActionRouting{Proxy}
-}
-
-// ProvisioningState enumerates the values for provisioning state.
-type ProvisioningState string
-
-const (
-	// Accepted ...
-	Accepted ProvisioningState = "Accepted"
-	// Deleting ...
-	Deleting ProvisioningState = "Deleting"
-	// Failed ...
-	Failed ProvisioningState = "Failed"
-	// Running ...
-	Running ProvisioningState = "Running"
-	// Succeeded ...
-	Succeeded ProvisioningState = "Succeeded"
-)
-
-// PossibleProvisioningStateValues returns an array of possible values for the ProvisioningState const type.
-func PossibleProvisioningStateValues() []ProvisioningState {
-	return []ProvisioningState{Accepted, Deleting, Failed, Running, Succeeded}
-}
-
-// ResourceTypeRouting enumerates the values for resource type routing.
-type ResourceTypeRouting string
-
-const (
-	// ResourceTypeRoutingProxy ...
-	ResourceTypeRoutingProxy ResourceTypeRouting = "Proxy"
-	// ResourceTypeRoutingProxyCache ...
-	ResourceTypeRoutingProxyCache ResourceTypeRouting = "Proxy,Cache"
-)
-
-// PossibleResourceTypeRoutingValues returns an array of possible values for the ResourceTypeRouting const type.
-func PossibleResourceTypeRoutingValues() []ResourceTypeRouting {
-	return []ResourceTypeRouting{ResourceTypeRoutingProxy, ResourceTypeRoutingProxyCache}
-}
-
-// ValidationType enumerates the values for validation type.
-type ValidationType string
-
-const (
-	// Swagger ...
-	Swagger ValidationType = "Swagger"
-)
-
-// PossibleValidationTypeValues returns an array of possible values for the ValidationType const type.
-func PossibleValidationTypeValues() []ValidationType {
-	return []ValidationType{Swagger}
-}
-
 // Association the resource definition of this association.
 type Association struct {
 	autorest.Response `json:"-"`
@@ -173,56 +111,31 @@ type AssociationProperties struct {
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for AssociationProperties.
+func (a AssociationProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if a.TargetResourceID != nil {
+		objectMap["targetResourceId"] = a.TargetResourceID
+	}
+	return json.Marshal(objectMap)
+}
+
 // AssociationsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type AssociationsCreateOrUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AssociationsCreateOrUpdateFuture) Result(client AssociationsClient) (a Association, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "customproviders.AssociationsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("customproviders.AssociationsCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if a.Response.Response, err = future.GetResult(sender); err == nil && a.Response.Response.StatusCode != http.StatusNoContent {
-		a, err = client.CreateOrUpdateResponder(a.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "customproviders.AssociationsCreateOrUpdateFuture", "Result", a.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AssociationsClient) (Association, error)
 }
 
 // AssociationsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type AssociationsDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AssociationsDeleteFuture) Result(client AssociationsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "customproviders.AssociationsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("customproviders.AssociationsDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AssociationsClient) (autorest.Response, error)
 }
 
 // AssociationsList list of associations.
@@ -302,10 +215,15 @@ func (al AssociationsList) IsEmpty() bool {
 	return al.Value == nil || len(*al.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (al AssociationsList) hasNextLink() bool {
+	return al.NextLink != nil && len(*al.NextLink) != 0
+}
+
 // associationsListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (al AssociationsList) associationsListPreparer(ctx context.Context) (*http.Request, error) {
-	if al.NextLink == nil || len(to.String(al.NextLink)) < 1 {
+	if !al.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -333,11 +251,16 @@ func (page *AssociationsListPage) NextWithContext(ctx context.Context) (err erro
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.al)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.al)
+		if err != nil {
+			return err
+		}
+		page.al = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.al = next
 	return nil
 }
 
@@ -367,60 +290,29 @@ func (page AssociationsListPage) Values() []Association {
 }
 
 // Creates a new instance of the AssociationsListPage type.
-func NewAssociationsListPage(getNextPage func(context.Context, AssociationsList) (AssociationsList, error)) AssociationsListPage {
-	return AssociationsListPage{fn: getNextPage}
+func NewAssociationsListPage(cur AssociationsList, getNextPage func(context.Context, AssociationsList) (AssociationsList, error)) AssociationsListPage {
+	return AssociationsListPage{
+		fn: getNextPage,
+		al: cur,
+	}
 }
 
 // CustomResourceProviderCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type CustomResourceProviderCreateOrUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *CustomResourceProviderCreateOrUpdateFuture) Result(client CustomResourceProviderClient) (crm CustomRPManifest, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "customproviders.CustomResourceProviderCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("customproviders.CustomResourceProviderCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if crm.Response.Response, err = future.GetResult(sender); err == nil && crm.Response.Response.StatusCode != http.StatusNoContent {
-		crm, err = client.CreateOrUpdateResponder(crm.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "customproviders.CustomResourceProviderCreateOrUpdateFuture", "Result", crm.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(CustomResourceProviderClient) (CustomRPManifest, error)
 }
 
 // CustomResourceProviderDeleteFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type CustomResourceProviderDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *CustomResourceProviderDeleteFuture) Result(client CustomResourceProviderClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "customproviders.CustomResourceProviderDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("customproviders.CustomResourceProviderDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(CustomResourceProviderClient) (autorest.Response, error)
 }
 
 // CustomRPActionRouteDefinition the route definition for an action implemented by the custom resource
@@ -547,6 +439,21 @@ type CustomRPManifestProperties struct {
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for CustomRPManifestProperties.
+func (crm CustomRPManifestProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if crm.Actions != nil {
+		objectMap["actions"] = crm.Actions
+	}
+	if crm.ResourceTypes != nil {
+		objectMap["resourceTypes"] = crm.ResourceTypes
+	}
+	if crm.Validations != nil {
+		objectMap["validations"] = crm.Validations
+	}
+	return json.Marshal(objectMap)
+}
+
 // CustomRPResourceTypeRouteDefinition the route definition for a resource implemented by the custom
 // resource provider.
 type CustomRPResourceTypeRouteDefinition struct {
@@ -668,10 +575,15 @@ func (lbcrm ListByCustomRPManifest) IsEmpty() bool {
 	return lbcrm.Value == nil || len(*lbcrm.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (lbcrm ListByCustomRPManifest) hasNextLink() bool {
+	return lbcrm.NextLink != nil && len(*lbcrm.NextLink) != 0
+}
+
 // listByCustomRPManifestPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (lbcrm ListByCustomRPManifest) listByCustomRPManifestPreparer(ctx context.Context) (*http.Request, error) {
-	if lbcrm.NextLink == nil || len(to.String(lbcrm.NextLink)) < 1 {
+	if !lbcrm.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -699,11 +611,16 @@ func (page *ListByCustomRPManifestPage) NextWithContext(ctx context.Context) (er
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.lbcrm)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.lbcrm)
+		if err != nil {
+			return err
+		}
+		page.lbcrm = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.lbcrm = next
 	return nil
 }
 
@@ -733,8 +650,11 @@ func (page ListByCustomRPManifestPage) Values() []CustomRPManifest {
 }
 
 // Creates a new instance of the ListByCustomRPManifestPage type.
-func NewListByCustomRPManifestPage(getNextPage func(context.Context, ListByCustomRPManifest) (ListByCustomRPManifest, error)) ListByCustomRPManifestPage {
-	return ListByCustomRPManifestPage{fn: getNextPage}
+func NewListByCustomRPManifestPage(cur ListByCustomRPManifest, getNextPage func(context.Context, ListByCustomRPManifest) (ListByCustomRPManifest, error)) ListByCustomRPManifestPage {
+	return ListByCustomRPManifestPage{
+		fn:    getNextPage,
+		lbcrm: cur,
+	}
 }
 
 // Resource the resource definition.
@@ -861,10 +781,15 @@ func (rpol ResourceProviderOperationList) IsEmpty() bool {
 	return rpol.Value == nil || len(*rpol.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (rpol ResourceProviderOperationList) hasNextLink() bool {
+	return rpol.NextLink != nil && len(*rpol.NextLink) != 0
+}
+
 // resourceProviderOperationListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (rpol ResourceProviderOperationList) resourceProviderOperationListPreparer(ctx context.Context) (*http.Request, error) {
-	if rpol.NextLink == nil || len(to.String(rpol.NextLink)) < 1 {
+	if !rpol.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -892,11 +817,16 @@ func (page *ResourceProviderOperationListPage) NextWithContext(ctx context.Conte
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.rpol)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.rpol)
+		if err != nil {
+			return err
+		}
+		page.rpol = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.rpol = next
 	return nil
 }
 
@@ -926,8 +856,11 @@ func (page ResourceProviderOperationListPage) Values() []ResourceProviderOperati
 }
 
 // Creates a new instance of the ResourceProviderOperationListPage type.
-func NewResourceProviderOperationListPage(getNextPage func(context.Context, ResourceProviderOperationList) (ResourceProviderOperationList, error)) ResourceProviderOperationListPage {
-	return ResourceProviderOperationListPage{fn: getNextPage}
+func NewResourceProviderOperationListPage(cur ResourceProviderOperationList, getNextPage func(context.Context, ResourceProviderOperationList) (ResourceProviderOperationList, error)) ResourceProviderOperationListPage {
+	return ResourceProviderOperationListPage{
+		fn:   getNextPage,
+		rpol: cur,
+	}
 }
 
 // ResourceProvidersUpdate custom resource provider update information.

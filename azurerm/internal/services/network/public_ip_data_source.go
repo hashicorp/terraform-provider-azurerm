@@ -13,9 +13,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmPublicIP() *schema.Resource {
+func dataSourcePublicIP() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmPublicIPRead,
+		Read: dataSourcePublicIPRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -79,7 +79,7 @@ func dataSourceArmPublicIP() *schema.Resource {
 	}
 }
 
-func dataSourceArmPublicIPRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourcePublicIPRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PublicIPsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

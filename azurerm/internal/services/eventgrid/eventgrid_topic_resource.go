@@ -3,6 +3,7 @@ package eventgrid
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2020-04-01-preview/eventgrid"
@@ -12,7 +13,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -20,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmEventGridTopic() *schema.Resource {
+func resourceEventGridTopic() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmEventGridTopicCreateUpdate,
-		Read:   resourceArmEventGridTopicRead,
-		Update: resourceArmEventGridTopicCreateUpdate,
-		Delete: resourceArmEventGridTopicDelete,
+		Create: resourceEventGridTopicCreateUpdate,
+		Read:   resourceEventGridTopicRead,
+		Update: resourceEventGridTopicCreateUpdate,
+		Delete: resourceEventGridTopicDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -35,16 +35,22 @@ func resourceArmEventGridTopic() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.EventGridTopicID(id)
+			_, err := parse.TopicID(id)
 			return err
 		}),
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.All(
+					validation.StringIsNotEmpty,
+					validation.StringMatch(
+						regexp.MustCompile("^[-a-zA-Z0-9]{3,50}$"),
+						"EventGrid topic name must be 3 - 50 characters long, contain only letters, numbers and hyphens.",
+					),
+				),
 			},
 
 			"location": azure.SchemaLocation(),
@@ -130,6 +136,10 @@ func resourceArmEventGridTopic() *schema.Resource {
 				},
 			},
 
+			"public_network_access_enabled": eventSubscriptionPublicNetworkAccessEnabled(),
+
+			"inbound_ip_rule": eventSubscriptionInboundIPRule(),
+
 			"endpoint": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -152,7 +162,7 @@ func resourceArmEventGridTopic() *schema.Resource {
 	}
 }
 
-func resourceArmEventGridTopicCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceEventGridTopicCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).EventGrid.TopicsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -160,11 +170,11 @@ func resourceArmEventGridTopicCreateUpdate(d *schema.ResourceData, meta interfac
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing EventGrid Topic %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing EventGrid Topic %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
@@ -177,8 +187,10 @@ func resourceArmEventGridTopicCreateUpdate(d *schema.ResourceData, meta interfac
 	t := d.Get("tags").(map[string]interface{})
 
 	topicProperties := &eventgrid.TopicProperties{
-		InputSchemaMapping: expandAzureRmEventgridTopicInputMapping(d),
-		InputSchema:        eventgrid.InputSchema(d.Get("input_schema").(string)),
+		InputSchemaMapping:  expandAzureRmEventgridTopicInputMapping(d),
+		InputSchema:         eventgrid.InputSchema(d.Get("input_schema").(string)),
+		PublicNetworkAccess: expandPublicNetworkAccess(d),
+		InboundIPRules:      expandInboundIPRules(d),
 	}
 
 	properties := eventgrid.Topic{
@@ -203,20 +215,20 @@ func resourceArmEventGridTopicCreateUpdate(d *schema.ResourceData, meta interfac
 		return err
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read EventGrid Topic %s (resource group %s) ID", name, resourceGroup)
+		return fmt.Errorf("reading EventGrid Topic %s (resource group %s) ID", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
 
-	return resourceArmEventGridTopicRead(d, meta)
+	return resourceEventGridTopicRead(d, meta)
 }
 
-func resourceArmEventGridTopicRead(d *schema.ResourceData, meta interface{}) error {
+func resourceEventGridTopicRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).EventGrid.TopicsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.EventGridTopicID(d.Id())
+	id, err := parse.TopicID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -229,7 +241,7 @@ func resourceArmEventGridTopicRead(d *schema.ResourceData, meta interface{}) err
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on EventGrid Topic '%s': %+v", id.Name, err)
+		return fmt.Errorf("making Read request on EventGrid Topic '%s': %+v", id.Name, err)
 	}
 	if props := resp.TopicProperties; props != nil {
 		d.Set("endpoint", props.Endpoint)
@@ -241,7 +253,7 @@ func resourceArmEventGridTopicRead(d *schema.ResourceData, meta interface{}) err
 			return fmt.Errorf("Unable to flatten `input_schema_mapping_fields` for EventGrid Topic %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
 		}
 		if err := d.Set("input_mapping_fields", inputMappingFields); err != nil {
-			return fmt.Errorf("Error setting `input_schema_mapping_fields` for EventGrid Topic %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("setting `input_schema_mapping_fields` for EventGrid Topic %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
 		}
 
 		inputMappingDefaultValues, err := flattenAzureRmEventgridTopicInputMappingDefaultValues(props.InputSchemaMapping)
@@ -249,13 +261,23 @@ func resourceArmEventGridTopicRead(d *schema.ResourceData, meta interface{}) err
 			return fmt.Errorf("Unable to flatten `input_schema_mapping_default_values` for EventGrid Topic %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
 		}
 		if err := d.Set("input_mapping_default_values", inputMappingDefaultValues); err != nil {
-			return fmt.Errorf("Error setting `input_schema_mapping_fields` for EventGrid Topic %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("setting `input_schema_mapping_fields` for EventGrid Topic %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
+		}
+
+		publicNetworkAccessEnabled := flattenPublicNetworkAccess(props.PublicNetworkAccess)
+		if err := d.Set("public_network_access_enabled", publicNetworkAccessEnabled); err != nil {
+			return fmt.Errorf("setting `public_network_access_enabled` in EventGrid Topic %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		}
+
+		inboundIPRules := flattenInboundIPRules(props.InboundIPRules)
+		if err := d.Set("inbound_ip_rule", inboundIPRules); err != nil {
+			return fmt.Errorf("setting `inbound_ip_rule` in EventGrid Topic %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 	}
 
 	keys, err := client.ListSharedAccessKeys(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Shared Access Keys for EventGrid Topic '%s': %+v", id.Name, err)
+		return fmt.Errorf("retrieving Shared Access Keys for EventGrid Topic '%s': %+v", id.Name, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -274,12 +296,12 @@ func resourceArmEventGridTopicRead(d *schema.ResourceData, meta interface{}) err
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmEventGridTopicDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceEventGridTopicDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).EventGrid.TopicsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.EventGridTopicID(d.Id())
+	id, err := parse.TopicID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -289,14 +311,14 @@ func resourceArmEventGridTopicDelete(d *schema.ResourceData, meta interface{}) e
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error deleting EventGrid Topic %q: %+v", id.Name, err)
+		return fmt.Errorf("deleting EventGrid Topic %q: %+v", id.Name, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error deleting EventGrid Topic %q: %+v", id.Name, err)
+		return fmt.Errorf("deleting EventGrid Topic %q: %+v", id.Name, err)
 	}
 
 	return nil

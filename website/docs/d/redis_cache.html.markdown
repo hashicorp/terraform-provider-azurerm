@@ -11,7 +11,8 @@ description: |-
 
 Use this data source to access information about an existing Redis Cache
 
-# Example Usage
+## Example Usage
+
 ```hcl
 data "azurerm_redis_cache" "example" {
   name                = "myrediscache"
@@ -49,7 +50,7 @@ output "hostname" {
 
 * `minimum_tls_version` - The minimum TLS version.
 
-* `patch_schedule` - A list of `patch_schedule` blocks as defined below - only available for Premium SKU's.
+* `patch_schedule` - A list of `patch_schedule` blocks as defined below.
 
 * `private_static_ip_address` The Static IP Address assigned to the Redis Cache when hosted inside the Virtual Network.
 
@@ -71,7 +72,7 @@ output "hostname" {
 
 ---
 
-A `patch_schedule` block supports the following (Requires Premium SKU's, attempting to access this value on Basic or Standard SKU's will result in an error):
+A `patch_schedule` block supports the following:
 
 * `day_of_week` - the Weekday name for the patch item
 

@@ -20,15 +20,15 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDatabaseMigrationService() *schema.Resource {
+func resourceDatabaseMigrationService() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDatabaseMigrationServiceCreate,
-		Read:   resourceArmDatabaseMigrationServiceRead,
-		Update: resourceArmDatabaseMigrationServiceUpdate,
-		Delete: resourceArmDatabaseMigrationServiceDelete,
+		Create: resourceDatabaseMigrationServiceCreate,
+		Read:   resourceDatabaseMigrationServiceRead,
+		Update: resourceDatabaseMigrationServiceUpdate,
+		Delete: resourceDatabaseMigrationServiceDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.DatabaseMigrationServiceID(id)
+			_, err := parse.ServiceID(id)
 			return err
 		}),
 
@@ -77,7 +77,7 @@ func resourceArmDatabaseMigrationService() *schema.Resource {
 	}
 }
 
-func resourceArmDatabaseMigrationServiceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDatabaseMigrationServiceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DatabaseMigration.ServicesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -132,15 +132,15 @@ func resourceArmDatabaseMigrationServiceCreate(d *schema.ResourceData, meta inte
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmDatabaseMigrationServiceRead(d, meta)
+	return resourceDatabaseMigrationServiceRead(d, meta)
 }
 
-func resourceArmDatabaseMigrationServiceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDatabaseMigrationServiceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DatabaseMigration.ServicesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DatabaseMigrationServiceID(d.Id())
+	id, err := parse.ServiceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -175,12 +175,12 @@ func resourceArmDatabaseMigrationServiceRead(d *schema.ResourceData, meta interf
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmDatabaseMigrationServiceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDatabaseMigrationServiceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DatabaseMigration.ServicesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DatabaseMigrationServiceID(d.Id())
+	id, err := parse.ServiceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -197,15 +197,15 @@ func resourceArmDatabaseMigrationServiceUpdate(d *schema.ResourceData, meta inte
 		return fmt.Errorf("Error waiting for update of Database Migration Service (Service Name %q / Group Name %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	return resourceArmDatabaseMigrationServiceRead(d, meta)
+	return resourceDatabaseMigrationServiceRead(d, meta)
 }
 
-func resourceArmDatabaseMigrationServiceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDatabaseMigrationServiceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DatabaseMigration.ServicesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DatabaseMigrationServiceID(d.Id())
+	id, err := parse.ServiceID(d.Id())
 	if err != nil {
 		return err
 	}

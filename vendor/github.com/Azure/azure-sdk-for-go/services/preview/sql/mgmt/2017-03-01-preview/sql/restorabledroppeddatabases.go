@@ -78,6 +78,7 @@ func (client RestorableDroppedDatabasesClient) Get(ctx context.Context, resource
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.RestorableDroppedDatabasesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -155,6 +156,7 @@ func (client RestorableDroppedDatabasesClient) ListByServer(ctx context.Context,
 	result, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.RestorableDroppedDatabasesClient", "ListByServer", resp, "Failure responding to request")
+		return
 	}
 
 	return

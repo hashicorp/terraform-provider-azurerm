@@ -77,7 +77,7 @@ func (client WorkspaceAadAdminsClient) CreateOrUpdate(ctx context.Context, resou
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.WorkspaceAadAdminsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.WorkspaceAadAdminsClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -115,7 +115,33 @@ func (client WorkspaceAadAdminsClient) CreateOrUpdateSender(req *http.Request) (
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client WorkspaceAadAdminsClient) (waai WorkspaceAadAdminInfo, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "synapse.WorkspaceAadAdminsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("synapse.WorkspaceAadAdminsCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		waai.Response.Response, err = future.GetResult(sender)
+		if waai.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "synapse.WorkspaceAadAdminsCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && waai.Response.Response.StatusCode != http.StatusNoContent {
+			waai, err = client.CreateOrUpdateResponder(waai.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "synapse.WorkspaceAadAdminsCreateOrUpdateFuture", "Result", waai.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -164,7 +190,7 @@ func (client WorkspaceAadAdminsClient) Delete(ctx context.Context, resourceGroup
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.WorkspaceAadAdminsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.WorkspaceAadAdminsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -200,7 +226,23 @@ func (client WorkspaceAadAdminsClient) DeleteSender(req *http.Request) (future W
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client WorkspaceAadAdminsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "synapse.WorkspaceAadAdminsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("synapse.WorkspaceAadAdminsDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -209,7 +251,7 @@ func (client WorkspaceAadAdminsClient) DeleteSender(req *http.Request) (future W
 func (client WorkspaceAadAdminsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
 	return
@@ -256,6 +298,7 @@ func (client WorkspaceAadAdminsClient) Get(ctx context.Context, resourceGroupNam
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.WorkspaceAadAdminsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return

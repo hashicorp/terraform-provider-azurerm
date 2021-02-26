@@ -11,21 +11,23 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmPrivateDnsCNameRecord() *schema.Resource {
+func resourcePrivateDnsCNameRecord() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmPrivateDnsCNameRecordCreateUpdate,
-		Read:   resourceArmPrivateDnsCNameRecordRead,
-		Update: resourceArmPrivateDnsCNameRecordCreateUpdate,
-		Delete: resourceArmPrivateDnsCNameRecordDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Create: resourcePrivateDnsCNameRecordCreateUpdate,
+		Read:   resourcePrivateDnsCNameRecordRead,
+		Update: resourcePrivateDnsCNameRecordCreateUpdate,
+		Delete: resourcePrivateDnsCNameRecordDelete,
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.CnameRecordID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -75,24 +77,22 @@ func resourceArmPrivateDnsCNameRecord() *schema.Resource {
 	}
 }
 
-func resourceArmPrivateDnsCNameRecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourcePrivateDnsCNameRecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).PrivateDns.RecordSetsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
-	zoneName := d.Get("zone_name").(string)
-
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, zoneName, privatedns.CNAME, name)
+	resourceId := parse.NewCnameRecordID(subscriptionId, d.Get("resource_group_name").(string), d.Get("zone_name").(string), d.Get("name").(string))
+	if d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.PrivateDnsZoneName, privatedns.CNAME, resourceId.CNAMEName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Private DNS CNAME Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", resourceId, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
+		if !utils.ResponseWasNotFound(existing.Response) {
 			return tf.ImportAsExistsError("azurerm_private_dns_cname_record", *existing.ID)
 		}
 	}
@@ -102,7 +102,7 @@ func resourceArmPrivateDnsCNameRecordCreateUpdate(d *schema.ResourceData, meta i
 	t := d.Get("tags").(map[string]interface{})
 
 	parameters := privatedns.RecordSet{
-		Name: &name,
+		Name: utils.String(resourceId.CNAMEName),
 		RecordSetProperties: &privatedns.RecordSetProperties{
 			Metadata: tags.Expand(t),
 			TTL:      &ttl,
@@ -114,50 +114,38 @@ func resourceArmPrivateDnsCNameRecordCreateUpdate(d *schema.ResourceData, meta i
 
 	eTag := ""
 	ifNoneMatch := "" // set to empty to allow updates to records after creation
-	if _, err := client.CreateOrUpdate(ctx, resGroup, zoneName, privatedns.CNAME, name, parameters, eTag, ifNoneMatch); err != nil {
-		return fmt.Errorf("Error creating/updating Private DNS CNAME Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, resourceId.ResourceGroup, resourceId.PrivateDnsZoneName, privatedns.CNAME, resourceId.CNAMEName, parameters, eTag, ifNoneMatch); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", resourceId, err)
 	}
 
-	resp, err := client.Get(ctx, resGroup, zoneName, privatedns.CNAME, name)
-	if err != nil {
-		return fmt.Errorf("Error retrieving Private DNS CNAME Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
-	}
-
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Private DNS CNAME Record %s (resource group %s) ID", name, resGroup)
-	}
-
-	d.SetId(*resp.ID)
-
-	return resourceArmPrivateDnsCNameRecordRead(d, meta)
+	d.SetId(resourceId.ID())
+	return resourcePrivateDnsCNameRecordRead(d, meta)
 }
 
-func resourceArmPrivateDnsCNameRecordRead(d *schema.ResourceData, meta interface{}) error {
+func resourcePrivateDnsCNameRecordRead(d *schema.ResourceData, meta interface{}) error {
 	dnsClient := meta.(*clients.Client).PrivateDns.RecordSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.CnameRecordID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resGroup := id.ResourceGroup
-	name := id.Path["CNAME"]
-	zoneName := id.Path["privateDnsZones"]
-
-	resp, err := dnsClient.Get(ctx, resGroup, zoneName, privatedns.CNAME, name)
+	resp, err := dnsClient.Get(ctx, id.ResourceGroup, id.PrivateDnsZoneName, privatedns.CNAME, id.CNAMEName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading Private DNS CNAME record %s: %+v", name, err)
+
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resGroup)
-	d.Set("zone_name", zoneName)
+	d.Set("name", id.CNAMEName)
+	d.Set("zone_name", id.PrivateDnsZoneName)
+	d.Set("resource_group_name", id.ResourceGroup)
+
 	d.Set("ttl", resp.TTL)
 	d.Set("fqdn", resp.Fqdn)
 
@@ -170,23 +158,18 @@ func resourceArmPrivateDnsCNameRecordRead(d *schema.ResourceData, meta interface
 	return tags.FlattenAndSet(d, resp.Metadata)
 }
 
-func resourceArmPrivateDnsCNameRecordDelete(d *schema.ResourceData, meta interface{}) error {
+func resourcePrivateDnsCNameRecordDelete(d *schema.ResourceData, meta interface{}) error {
 	dnsClient := meta.(*clients.Client).PrivateDns.RecordSetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.CnameRecordID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resGroup := id.ResourceGroup
-	name := id.Path["CNAME"]
-	zoneName := id.Path["privateDnsZones"]
-
-	_, err = dnsClient.Delete(ctx, resGroup, zoneName, privatedns.CNAME, name, "")
-	if err != nil {
-		return fmt.Errorf("Error deleting Private DNS CNAME Record %s: %+v", name, err)
+	if _, err = dnsClient.Delete(ctx, id.ResourceGroup, id.PrivateDnsZoneName, privatedns.CNAME, id.CNAMEName, ""); err != nil {
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil

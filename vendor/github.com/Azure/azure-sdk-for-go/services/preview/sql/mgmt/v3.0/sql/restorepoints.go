@@ -76,7 +76,7 @@ func (client RestorePointsClient) Create(ctx context.Context, resourceGroupName 
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.RestorePointsClient", "Create", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.RestorePointsClient", "Create", nil, "Failure sending request")
 		return
 	}
 
@@ -115,7 +115,33 @@ func (client RestorePointsClient) CreateSender(req *http.Request) (future Restor
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client RestorePointsClient) (rp RestorePoint, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.RestorePointsCreateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.RestorePointsCreateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		rp.Response.Response, err = future.GetResult(sender)
+		if rp.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "sql.RestorePointsCreateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && rp.Response.Response.StatusCode != http.StatusNoContent {
+			rp, err = client.CreateResponder(rp.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "sql.RestorePointsCreateFuture", "Result", rp.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -165,6 +191,7 @@ func (client RestorePointsClient) Delete(ctx context.Context, resourceGroupName 
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.RestorePointsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -244,6 +271,7 @@ func (client RestorePointsClient) Get(ctx context.Context, resourceGroupName str
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.RestorePointsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -323,6 +351,7 @@ func (client RestorePointsClient) ListByDatabase(ctx context.Context, resourceGr
 	result, err = client.ListByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.RestorePointsClient", "ListByDatabase", resp, "Failure responding to request")
+		return
 	}
 
 	return

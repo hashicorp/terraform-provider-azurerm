@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-03-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-12-01/containerservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -113,6 +113,11 @@ func dataSourceKubernetesClusterNodePool() *schema.Resource {
 				Computed: true,
 			},
 
+			"os_disk_type": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"os_type": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -123,12 +128,19 @@ func dataSourceKubernetesClusterNodePool() *schema.Resource {
 				Computed: true,
 			},
 
+			"proximity_placement_group_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"spot_max_price": {
 				Type:     schema.TypeFloat,
 				Computed: true,
 			},
 
 			"tags": tags.SchemaDataSource(),
+
+			"upgrade_settings": upgradeSettingsForDataSourceSchema(),
 
 			"vm_size": {
 				Type:     schema.TypeString,
@@ -239,6 +251,12 @@ func dataSourceKubernetesClusterNodePoolRead(d *schema.ResourceData, meta interf
 			osDiskSizeGB = int(*props.OsDiskSizeGB)
 		}
 		d.Set("os_disk_size_gb", osDiskSizeGB)
+
+		osDiskType := containerservice.Managed
+		if props.OsDiskType != "" {
+			osDiskType = props.OsDiskType
+		}
+		d.Set("os_disk_type", string(osDiskType))
 		d.Set("os_type", string(props.OsType))
 
 		// not returned from the API if not Spot
@@ -248,11 +266,21 @@ func dataSourceKubernetesClusterNodePoolRead(d *schema.ResourceData, meta interf
 		}
 		d.Set("priority", priority)
 
+		proximityPlacementGroupId := ""
+		if props.ProximityPlacementGroupID != nil {
+			proximityPlacementGroupId = *props.ProximityPlacementGroupID
+		}
+		d.Set("proximity_placement_group_id", proximityPlacementGroupId)
+
 		spotMaxPrice := -1.0
 		if props.SpotMaxPrice != nil {
 			spotMaxPrice = *props.SpotMaxPrice
 		}
 		d.Set("spot_max_price", spotMaxPrice)
+
+		if err := d.Set("upgrade_settings", flattenUpgradeSettings(props.UpgradeSettings)); err != nil {
+			return fmt.Errorf("setting `upgrade_settings`: %+v", err)
+		}
 
 		d.Set("vnet_subnet_id", props.VnetSubnetID)
 		d.Set("vm_size", string(props.VMSize))

@@ -30,44 +30,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/hardwaresecuritymodules/mgmt/2018-10-31-preview/hardwaresecuritymodules"
 
-// JSONWebKeyType enumerates the values for json web key type.
-type JSONWebKeyType string
-
-const (
-	// Allocating A device is currently being allocated for the dedicated HSM resource.
-	Allocating JSONWebKeyType = "Allocating"
-	// CheckingQuota Validating the subscription has sufficient quota to allocate a dedicated HSM device.
-	CheckingQuota JSONWebKeyType = "CheckingQuota"
-	// Connecting The dedicated HSM is being connected to the virtual network.
-	Connecting JSONWebKeyType = "Connecting"
-	// Deleting The dedicated HSM is currently being deleted.
-	Deleting JSONWebKeyType = "Deleting"
-	// Failed Provisioning of the dedicated HSM has failed.
-	Failed JSONWebKeyType = "Failed"
-	// Provisioning The dedicated HSM is currently being provisioned.
-	Provisioning JSONWebKeyType = "Provisioning"
-	// Succeeded The dedicated HSM has been full provisioned.
-	Succeeded JSONWebKeyType = "Succeeded"
-)
-
-// PossibleJSONWebKeyTypeValues returns an array of possible values for the JSONWebKeyType const type.
-func PossibleJSONWebKeyTypeValues() []JSONWebKeyType {
-	return []JSONWebKeyType{Allocating, CheckingQuota, Connecting, Deleting, Failed, Provisioning, Succeeded}
-}
-
-// Name enumerates the values for name.
-type Name string
-
-const (
-	// SafeNetLunaNetworkHSMA790 ...
-	SafeNetLunaNetworkHSMA790 Name = "SafeNet Luna Network HSM A790"
-)
-
-// PossibleNameValues returns an array of possible values for the Name const type.
-func PossibleNameValues() []Name {
-	return []Name{SafeNetLunaNetworkHSMA790}
-}
-
 // APIEntityReference the API entity reference.
 type APIEntityReference struct {
 	// ID - The ARM resource id in the form of /subscriptions/{SubscriptionId}/resourceGroups/{ResourceGroupName}/...
@@ -206,53 +168,19 @@ func (dh *DedicatedHsm) UnmarshalJSON(body []byte) error {
 // DedicatedHsmCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type DedicatedHsmCreateOrUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *DedicatedHsmCreateOrUpdateFuture) Result(client DedicatedHsmClient) (dh DedicatedHsm, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "hardwaresecuritymodules.DedicatedHsmCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("hardwaresecuritymodules.DedicatedHsmCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if dh.Response.Response, err = future.GetResult(sender); err == nil && dh.Response.Response.StatusCode != http.StatusNoContent {
-		dh, err = client.CreateOrUpdateResponder(dh.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "hardwaresecuritymodules.DedicatedHsmCreateOrUpdateFuture", "Result", dh.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(DedicatedHsmClient) (DedicatedHsm, error)
 }
 
 // DedicatedHsmDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type DedicatedHsmDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *DedicatedHsmDeleteFuture) Result(client DedicatedHsmClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "hardwaresecuritymodules.DedicatedHsmDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("hardwaresecuritymodules.DedicatedHsmDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(DedicatedHsmClient) (autorest.Response, error)
 }
 
 // DedicatedHsmError the error exception.
@@ -338,10 +266,15 @@ func (dhlr DedicatedHsmListResult) IsEmpty() bool {
 	return dhlr.Value == nil || len(*dhlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (dhlr DedicatedHsmListResult) hasNextLink() bool {
+	return dhlr.NextLink != nil && len(*dhlr.NextLink) != 0
+}
+
 // dedicatedHsmListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (dhlr DedicatedHsmListResult) dedicatedHsmListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if dhlr.NextLink == nil || len(to.String(dhlr.NextLink)) < 1 {
+	if !dhlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -369,11 +302,16 @@ func (page *DedicatedHsmListResultPage) NextWithContext(ctx context.Context) (er
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.dhlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.dhlr)
+		if err != nil {
+			return err
+		}
+		page.dhlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.dhlr = next
 	return nil
 }
 
@@ -403,8 +341,11 @@ func (page DedicatedHsmListResultPage) Values() []DedicatedHsm {
 }
 
 // Creates a new instance of the DedicatedHsmListResultPage type.
-func NewDedicatedHsmListResultPage(getNextPage func(context.Context, DedicatedHsmListResult) (DedicatedHsmListResult, error)) DedicatedHsmListResultPage {
-	return DedicatedHsmListResultPage{fn: getNextPage}
+func NewDedicatedHsmListResultPage(cur DedicatedHsmListResult, getNextPage func(context.Context, DedicatedHsmListResult) (DedicatedHsmListResult, error)) DedicatedHsmListResultPage {
+	return DedicatedHsmListResultPage{
+		fn:   getNextPage,
+		dhlr: cur,
+	}
 }
 
 // DedicatedHsmOperation REST API operation
@@ -414,6 +355,18 @@ type DedicatedHsmOperation struct {
 	// IsDataAction - READ-ONLY; Gets or sets a value indicating whether it is a data plane action
 	IsDataAction *string                       `json:"isDataAction,omitempty"`
 	Display      *DedicatedHsmOperationDisplay `json:"display,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for DedicatedHsmOperation.
+func (dho DedicatedHsmOperation) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if dho.Name != nil {
+		objectMap["name"] = dho.Name
+	}
+	if dho.Display != nil {
+		objectMap["display"] = dho.Display
+	}
+	return json.Marshal(objectMap)
 }
 
 // DedicatedHsmOperationDisplay ...
@@ -463,33 +416,25 @@ type DedicatedHsmProperties struct {
 	ProvisioningState JSONWebKeyType `json:"provisioningState,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for DedicatedHsmProperties.
+func (dhp DedicatedHsmProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if dhp.NetworkProfile != nil {
+		objectMap["networkProfile"] = dhp.NetworkProfile
+	}
+	if dhp.StampID != nil {
+		objectMap["stampId"] = dhp.StampID
+	}
+	return json.Marshal(objectMap)
+}
+
 // DedicatedHsmUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type DedicatedHsmUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *DedicatedHsmUpdateFuture) Result(client DedicatedHsmClient) (dh DedicatedHsm, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "hardwaresecuritymodules.DedicatedHsmUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("hardwaresecuritymodules.DedicatedHsmUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if dh.Response.Response, err = future.GetResult(sender); err == nil && dh.Response.Response.StatusCode != http.StatusNoContent {
-		dh, err = client.UpdateResponder(dh.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "hardwaresecuritymodules.DedicatedHsmUpdateFuture", "Result", dh.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(DedicatedHsmClient) (DedicatedHsm, error)
 }
 
 // Error the key vault server error.
@@ -508,6 +453,15 @@ type NetworkInterface struct {
 	ID *string `json:"id,omitempty"`
 	// PrivateIPAddress - Private Ip address of the interface
 	PrivateIPAddress *string `json:"privateIpAddress,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for NetworkInterface.
+func (ni NetworkInterface) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ni.PrivateIPAddress != nil {
+		objectMap["privateIpAddress"] = ni.PrivateIPAddress
+	}
+	return json.Marshal(objectMap)
 }
 
 // NetworkProfile ...

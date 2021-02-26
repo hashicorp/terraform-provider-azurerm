@@ -48,8 +48,9 @@ func NewUserClientWithBaseURI(baseURI string, subscriptionID string) UserClient 
 // serviceName - the name of the API Management service.
 // userID - user identifier. Must be unique in the current API Management service instance.
 // parameters - create or update parameters.
+// notify - send an Email notification to the User.
 // ifMatch - eTag of the Entity. Not required when creating an entity, but required when updating an entity.
-func (client UserClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, serviceName string, userID string, parameters UserCreateParameters, ifMatch string) (result UserContract, err error) {
+func (client UserClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, serviceName string, userID string, parameters UserCreateParameters, notify *bool, ifMatch string) (result UserContract, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/UserClient.CreateOrUpdate")
 		defer func() {
@@ -86,7 +87,7 @@ func (client UserClient) CreateOrUpdate(ctx context.Context, resourceGroupName s
 		return result, validation.NewError("apimanagement.UserClient", "CreateOrUpdate", err.Error())
 	}
 
-	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, serviceName, userID, parameters, ifMatch)
+	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, serviceName, userID, parameters, notify, ifMatch)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.UserClient", "CreateOrUpdate", nil, "Failure preparing request")
 		return
@@ -102,13 +103,14 @@ func (client UserClient) CreateOrUpdate(ctx context.Context, resourceGroupName s
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.UserClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
 }
 
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
-func (client UserClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, serviceName string, userID string, parameters UserCreateParameters, ifMatch string) (*http.Request, error) {
+func (client UserClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, serviceName string, userID string, parameters UserCreateParameters, notify *bool, ifMatch string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"serviceName":       autorest.Encode("path", serviceName),
@@ -119,6 +121,9 @@ func (client UserClient) CreateOrUpdatePreparer(ctx context.Context, resourceGro
 	const APIVersion = "2019-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
+	}
+	if notify != nil {
+		queryParameters["notify"] = autorest.Encode("query", *notify)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -162,7 +167,9 @@ func (client UserClient) CreateOrUpdateResponder(resp *http.Response) (result Us
 // request or it should be * for unconditional update.
 // deleteSubscriptions - whether to delete user's subscription or not.
 // notify - send an Account Closed Email notification to the User.
-func (client UserClient) Delete(ctx context.Context, resourceGroupName string, serviceName string, userID string, ifMatch string, deleteSubscriptions *bool, notify *bool) (result autorest.Response, err error) {
+// appType - determines the type of application which send the create user request. Default is legacy publisher
+// portal.
+func (client UserClient) Delete(ctx context.Context, resourceGroupName string, serviceName string, userID string, ifMatch string, deleteSubscriptions *bool, notify *bool, appType AppType) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/UserClient.Delete")
 		defer func() {
@@ -184,7 +191,7 @@ func (client UserClient) Delete(ctx context.Context, resourceGroupName string, s
 		return result, validation.NewError("apimanagement.UserClient", "Delete", err.Error())
 	}
 
-	req, err := client.DeletePreparer(ctx, resourceGroupName, serviceName, userID, ifMatch, deleteSubscriptions, notify)
+	req, err := client.DeletePreparer(ctx, resourceGroupName, serviceName, userID, ifMatch, deleteSubscriptions, notify, appType)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.UserClient", "Delete", nil, "Failure preparing request")
 		return
@@ -200,13 +207,14 @@ func (client UserClient) Delete(ctx context.Context, resourceGroupName string, s
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.UserClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
 }
 
 // DeletePreparer prepares the Delete request.
-func (client UserClient) DeletePreparer(ctx context.Context, resourceGroupName string, serviceName string, userID string, ifMatch string, deleteSubscriptions *bool, notify *bool) (*http.Request, error) {
+func (client UserClient) DeletePreparer(ctx context.Context, resourceGroupName string, serviceName string, userID string, ifMatch string, deleteSubscriptions *bool, notify *bool, appType AppType) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"serviceName":       autorest.Encode("path", serviceName),
@@ -223,6 +231,11 @@ func (client UserClient) DeletePreparer(ctx context.Context, resourceGroupName s
 	}
 	if notify != nil {
 		queryParameters["notify"] = autorest.Encode("query", *notify)
+	}
+	if len(string(appType)) > 0 {
+		queryParameters["appType"] = autorest.Encode("query", appType)
+	} else {
+		queryParameters["appType"] = autorest.Encode("query", "portal")
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -295,6 +308,7 @@ func (client UserClient) GenerateSsoURL(ctx context.Context, resourceGroupName s
 	result, err = client.GenerateSsoURLResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.UserClient", "GenerateSsoURL", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -383,6 +397,7 @@ func (client UserClient) Get(ctx context.Context, resourceGroupName string, serv
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.UserClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -471,6 +486,7 @@ func (client UserClient) GetEntityTag(ctx context.Context, resourceGroupName str
 	result, err = client.GetEntityTagResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.UserClient", "GetEntityTag", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -562,6 +578,7 @@ func (client UserClient) GetSharedAccessToken(ctx context.Context, resourceGroup
 	result, err = client.GetSharedAccessTokenResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.UserClient", "GetSharedAccessToken", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -666,6 +683,11 @@ func (client UserClient) ListByService(ctx context.Context, resourceGroupName st
 	result.uc, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.UserClient", "ListByService", resp, "Failure responding to request")
+		return
+	}
+	if result.uc.hasNextLink() && result.uc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -805,6 +827,7 @@ func (client UserClient) Update(ctx context.Context, resourceGroupName string, s
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.UserClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

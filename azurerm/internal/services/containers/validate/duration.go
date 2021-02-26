@@ -6,7 +6,11 @@ import (
 )
 
 func Duration(i interface{}, k string) (warnings []string, errors []error) {
-	value := i.(string)
+	value, ok := i.(string)
+	if !ok {
+		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
+	}
+
 	duration, err := time.ParseDuration(value)
 	if err != nil {
 		errors = append(errors, fmt.Errorf(

@@ -14,6 +14,8 @@ Manages an IotHub
 
 ~> **NOTE:** Routes can be defined either directly on the `azurerm_iothub` resource, or using the `azurerm_iothub_route` resource - but the two cannot be used together. If both are used against the same IoTHub, spurious changes will occur.
 
+~> **NOTE:** Enrichments can be defined either directly on the `azurerm_iothub` resource, or using the `azurerm_iothub_enrichment` resource - but the two cannot be used together. If both are used against the same IoTHub, spurious changes will occur.
+
 ~> **NOTE:** Fallback route can be defined either directly on the `azurerm_iothub` resource, or using the `azurerm_iothub_fallback_route` resource - but the two cannot be used together. If both are used against the same IoTHub, spurious changes will occur.
 
 ## Example Usage
@@ -104,6 +106,12 @@ resource "azurerm_iothub" "example" {
     enabled        = true
   }
 
+  enrichment {
+    key            = "tenant"
+    value          = "$twin.tags.Tenant"
+    endpoint_names = ["export", "export2"]
+  }
+
   tags = {
     purpose = "testing"
   }
@@ -118,7 +126,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group under which the IotHub resource has to be created. Changing this forces a new resource to be created.
 
-* `location` - (Required) Specifies the supported Azure location where the resource has to be createc. Changing this forces a new resource to be created.
+* `location` - (Required) Specifies the supported Azure location where the resource has to be created. Changing this forces a new resource to be created.
 
 * `sku` - (Required) A `sku` block as defined below.
 
@@ -128,14 +136,21 @@ The following arguments are supported:
 
 * `endpoint` - (Optional) An `endpoint` block as defined below.
 
-
 * `fallback_route` - (Optional) A `fallback_route` block as defined below. If the fallback route is enabled, messages that don't match any of the supplied routes are automatically sent to this route. Defaults to messages/events.
+
+~> **NOTE:** If `fallback_route` isn't explicitly specified, the fallback route wouldn't be enabled by default.
 
 * `file_upload` - (Optional) A `file_upload` block as defined below.
 
 * `ip_filter_rule` - (Optional) One or more `ip_filter_rule` blocks as defined below.
 
 * `route` - (Optional) A `route` block as defined below.
+
+* `enrichment` - (Optional) A `enrichment` block as defined below.
+
+* `public_network_access_enabled` - (Optional) Is the IotHub resource accessible from a public network?
+
+* `min_tls_version` - (Optional) Specifies the minimum TLS version to support for this hub. The only valid value is `1.2`. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -169,6 +184,8 @@ An `endpoint` block supports the following:
 
 * `file_name_format` - (Optional) File name format for the blob. Default format is ``{iothub}/{partition}/{YYYY}/{MM}/{DD}/{HH}/{mm}``. All parameters are mandatory but can be reordered. This attribute is mandatory for endpoint type `AzureIotHub.StorageContainer`.
 
+* `resource_group_name` - (Optional) The resource group in which the endpoint will be created.
+
 ---
 
 An `ip_filter_rule` block supports the following:
@@ -192,6 +209,16 @@ A `route` block supports the following:
 * `endpoint_names` - (Required) The list of endpoints to which messages that satisfy the condition are routed.
 
 * `enabled` - (Required) Used to specify whether a route is enabled.
+
+---
+
+An `enrichment` block supports the following:
+
+* `key` - (Required) The key of the enrichment.
+
+* `value` - (Required) The value of the enrichment. Value can be any static string, the name of the IoT hub sending the message (use `$iothubname`) or information from the device twin (ex: `$twin.tags.latitude`)
+
+* `endpoint_names` - (Required) The list of endpoints which will be enriched.
 
 ---
 
@@ -223,7 +250,6 @@ A `file_upload` block supports the following:
 
 * `max_delivery_count` - (Optional) The number of times the IoT hub attempts to deliver a file upload notification message. It evaluates to 10 by default.
 
-
 ## Attributes Reference
 
 The following attributes are exported:
@@ -254,8 +280,6 @@ A `shared access policy` block contains the following:
 * `permissions` - The permissions assigned to the shared access policy.
 
 ## Timeouts
-
-
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
