@@ -75,7 +75,7 @@ resource "azurerm_image_builder_template" "example" {
   }
 
   depends_on = [
-    azurerm_role_assignment.test
+    azurerm_role_assignment.example
   ]
 }
 ```
@@ -90,6 +90,8 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Image Builder Template should exist. Changing this forces a new resource to be created.
 
+* `distributions` - (Required) A `distributions` block as defined below. Changing this forces a new resource to be created.
+
 * `identity` - (Required) An `identity` block as defined below.
 
 ---
@@ -101,14 +103,6 @@ The following arguments are supported:
 -> **Note** Azure Image Builder will run through the customizers in sequential order. Any failure in any customizer will fail the build process.
 
 * `disk_size_gb` - (Optional) Size of the OS disk in GB. Defaults to 0 to leave the same size as the source image. You can only increase the size of the OS Disk (Win and Linux) but cannot reduce the OS Disk size to smaller than the size from the source image. Changing this forces a new resource to be created.
-
-* `distribution_managed_image` - (Optional) A `distribution_managed_image` block as defined below. Changing this forces a new resource to be created.
-
-* `distribution_shared_image` - (Optional) A `distribution_shared_image` block as defined below. Changing this forces a new resource to be created.
-
-* `distribution_vhd` - (Optional) A `distribution_vhd` block as defined below. Changing this forces a new resource to be created.
-
--> **NOTE** At least one of `distribution_managed_image`, `distribution_shared_image` and `distribution_vhd` is required to specify.
 
 * `size` - (Optional) Size of the virtual machine used to build, customize and capture images. Defaults to `Standard_D1_v2`. Changing this forces a new resource to be created.
 
@@ -178,7 +172,27 @@ A `customizer` block supports the following:
 
 ---
 
-A `distribution_managed_image` block supports the following:
+A `distributions` block supports the following:
+
+* `managed_image` - (Optional) A `managed_image` block as defined below. Changing this forces a new resource to be created.
+
+* `shared_image` - (Optional) A `shared_image` block as defined below. Changing this forces a new resource to be created.
+
+* `vhd` - (Optional) A `vhd` block as defined below. Changing this forces a new resource to be created.
+
+-> **NOTE** At least one of `managed_image`, `shared_image` and `vhd` is required to specify in `distributions`.
+
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) The type of Managed Identity which should be assigned to the Image Builder Template. Currently only `UserAssigned` is supported. Changing this forces a new resource to be created.
+
+* `identity_ids` - (Required) The list of user assigned identities associated with the image template. Currently only 1 id is allowed. Changing this forces a new resource to be created.
+
+---
+
+A `managed_image` block supports the following:
 
 * `name` - (Required) The name of the to be generated image. Changing this forces a new resource to be created.
 
@@ -192,7 +206,17 @@ A `distribution_managed_image` block supports the following:
 
 ---
 
-A `distribution_shared_image` block supports the following:
+A `plan` block supports the following:
+
+* `name` - (Required) The name of the Marketplace Image this Image Builder Template should be created from. Changing this forces a new resource to be created.
+
+* `product` - (Required) The product of the Marketplace Image this Image Builder Template should be created from. Changing this forces a new resource to be created.
+
+* `publisher` - (Required) The publisher of the Marketplace Image this Image Builder Template should be created from. Changing this forces a new resource to be created.
+
+---
+
+A `shared_image` block supports the following:
 
 * `id` - (Required) ID of the shared image gallery image. Changing this forces a new resource to be created.
 
@@ -205,32 +229,6 @@ A `distribution_shared_image` block supports the following:
 * `storage_account_type` - (Optional) The storage account type to store the to be created Image Version. Possible values are `Standard_LRS` and `Standard_ZRS`. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the to be generated shared image version. Changing this forces a new resource to be created.
-
----
-
-A `distribution_vhd` block supports the following:
-
-* `run_output_name` - (Required) The name to be used for the associated RunOutput. Changing this forces a new resource to be created.
-
-* `tags` - (Optional) A mapping of tags to assign to the to be generated vhd. Changing this forces a new resource to be created.
-
----
-
-An `identity` block supports the following:
-
-* `type` - (Required) The type of Managed Identity which should be assigned to the Image Builder Template. Currently only `UserAssigned` is supported. Changing this forces a new resource to be created.
-
-* `identity_ids` - (Required) The list of user assigned identities associated with the image template. Currently only 1 id is allowed. Changing this forces a new resource to be created.
-
----
-
-A `plan` block supports the following:
-
-* `name` - (Required) The name of the Marketplace Image this Image Builder Template should be created from. Changing this forces a new resource to be created.
-
-* `product` - (Required) The product of the Marketplace Image this Image Builder Template should be created from. Changing this forces a new resource to be created.
-
-* `publisher` - (Required) The publisher of the Marketplace Image this Image Builder Template should be created from. Changing this forces a new resource to be created.
 
 ---
 
@@ -251,6 +249,14 @@ A `source_platform_image` block supports the following:
 A `replica_regions` block supports the following:
 
 * `name` - (Required) The Azure Region in which the to be created Shared Image Version should exist. Changing this forces a new resource to be created.
+
+---
+
+A `vhd` block supports the following:
+
+* `run_output_name` - (Required) The name to be used for the associated RunOutput. Changing this forces a new resource to be created.
+
+* `tags` - (Optional) A mapping of tags to assign to the to be generated vhd. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
