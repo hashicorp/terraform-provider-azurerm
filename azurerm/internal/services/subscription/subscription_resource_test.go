@@ -31,6 +31,7 @@ func TestAccSubscriptionResource_basic(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r)),
 		},
+		data.ImportStep("billing_account", "enrollment_account"),
 	})
 }
 
@@ -44,10 +45,34 @@ func TestAccSubscriptionResource_requiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.requiresImport(data),
+			Config: r.basicEnrollmentAccount(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r)),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func TestAccSubscriptionResource_update(t *testing.T) {
+	if os.Getenv("ARM_BILLING_ACCOUNT") == "" {
+		t.Skip("skipping tests - no billing account data provided")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_subscription", "test")
+	r := SubscriptionResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicEnrollmentAccount(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r)),
+		},
+		data.ImportStep("billing_account", "enrollment_account"),
+		{
+			Config: r.basicEnrollmentAccountUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r)),
+		},
+		data.ImportStep("billing_account", "enrollment_account"),
 	})
 }
 
@@ -69,6 +94,8 @@ func (SubscriptionResource) Exists(ctx context.Context, client *clients.Client, 
 
 // TODO - Need Env vars in CI for Billing Account and Enrollment Account - Testing disabled for now
 func (SubscriptionResource) basicEnrollmentAccount(data acceptance.TestData) string {
+	billingAccount := os.Getenv("ARM_BILLING_ACCOUNT")
+	enrollmentAccount := os.Getenv("ARM_BILLING_ENROLLMENT_ACCOUNT")
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -77,11 +104,29 @@ provider "azurerm" {
 resource "azurerm_subscription" "test" {
   alias              = "testAcc-%[1]d"
   subscription_name  = "testAccSubscription %[1]d"
-  billing_account    = ""
-  enrollment_account = ""
+  billing_account    = "%s"
+  enrollment_account = "%s"
 }
-`, data.RandomInteger, data.RandomString)
+`, data.RandomInteger, data.RandomString, billingAccount, enrollmentAccount)
 }
+
+func (SubscriptionResource) basicEnrollmentAccountUpdate(data acceptance.TestData) string {
+	billingAccount := os.Getenv("ARM_BILLING_ACCOUNT")
+	enrollmentAccount := os.Getenv("ARM_BILLING_ENROLLMENT_ACCOUNT")
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_subscription" "test" {
+  alias              = "testAcc-%[1]d"
+  subscription_name  = "testAccSubscription Renamed %[1]d"
+  billing_account    = "%s"
+  enrollment_account = "%s"
+}
+`, data.RandomInteger, data.RandomString, billingAccount, enrollmentAccount)
+}
+
 func (r SubscriptionResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s

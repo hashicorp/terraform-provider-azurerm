@@ -252,8 +252,7 @@ func resourceSubscriptionCreate(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	if reactivate {
-		_, err := subscriptionClient.Enable(ctx, subscriptionId)
-		if err != nil {
+		if _, err := subscriptionClient.Enable(ctx, subscriptionId); err != nil {
 			return fmt.Errorf("enabling Subscription %q: %+v", subscriptionId, err)
 		}
 	}
@@ -296,8 +295,7 @@ func resourceSubscriptionUpdate(d *schema.ResourceData, meta interface{}) error 
 		displayName := subscription.Name{
 			SubscriptionName: utils.String(d.Get("subscription_name").(string)),
 		}
-		_, err := subscriptionClient.Rename(ctx, *subscriptionId, displayName)
-		if err != nil {
+		if _, err := subscriptionClient.Rename(ctx, *subscriptionId, displayName); err != nil {
 			return fmt.Errorf("could not update Display Name of Subscription %q: %+v", *subscriptionId, err)
 		}
 	}
@@ -306,13 +304,11 @@ func resourceSubscriptionUpdate(d *schema.ResourceData, meta interface{}) error 
 		newState := d.Get("state").(string)
 		switch newState {
 		case "Active":
-			_, err := subscriptionClient.Enable(ctx, *subscriptionId)
-			if err != nil {
+			if _, err := subscriptionClient.Enable(ctx, *subscriptionId); err != nil {
 				return fmt.Errorf("failed to Enable Subscription %q: %+v", *subscriptionId, err)
 			}
 		case "Cancelled":
-			_, err := subscriptionClient.Cancel(ctx, *subscriptionId)
-			if err != nil {
+			if _, err := subscriptionClient.Cancel(ctx, *subscriptionId); err != nil {
 				return fmt.Errorf("failed to Disable Subscription %q: %+v", *subscriptionId, err)
 			}
 		default:
@@ -433,8 +429,7 @@ func resourceSubscriptionDelete(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	// Cancel the Subscription
-	_, err = subscriptionClient.Cancel(ctx, subscriptionId)
-	if err != nil {
+	if _, err := subscriptionClient.Cancel(ctx, subscriptionId); err != nil {
 		return fmt.Errorf("failed to cancel Subscription: %+v", err)
 	}
 
