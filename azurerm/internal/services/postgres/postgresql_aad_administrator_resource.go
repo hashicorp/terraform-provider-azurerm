@@ -3,8 +3,8 @@ package postgres
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
-        "strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2020-01-01/postgresql"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -74,13 +74,13 @@ func resourcePostgreSQLAdministratorCreateUpdate(d *schema.ResourceData, meta in
 	serverName := d.Get("server_name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	login := d.Get("login").(string)
-        disallowedLogins := [7]string{"azure_superuser","azure_pg_admin","admin","administrator","root","guest","public"}
-        for _, v := range disallowedLogins {
+	disallowedLogins := [7]string{"azure_superuser", "azure_pg_admin", "admin", "administrator", "root", "guest", "public"}
+	for _, v := range disallowedLogins {
 		if v == login {
 			return fmt.Errorf("Error - PostgreSQL AD Administrator login can not be %q. (Resource Group %q, Server %q)", login, resGroup, serverName)
 		}
 	}
-	if strings.HasPrefix(login, "pg_"){
+	if strings.HasPrefix(login, "pg_") {
 		return fmt.Errorf("Error - PostgreSQL AD Administrator login can not start with 'pg_'. (Resource Group %q, Server %q)", resGroup, serverName)
 	}
 	objectId := uuid.FromStringOrNil(d.Get("object_id").(string))
