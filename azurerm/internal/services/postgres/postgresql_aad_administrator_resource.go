@@ -74,7 +74,7 @@ func resourcePostgreSQLAdministratorCreateUpdate(d *schema.ResourceData, meta in
 	serverName := d.Get("server_name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	login := d.Get("login").(string)
-        disallowedLogins := [7]string{'azure_superuser','azure_pg_admin','admin','administrator','root','guest','public'}
+        disallowedLogins := [7]string{"azure_superuser","azure_pg_admin","admin","administrator","root","guest","public"}
         for _, v := range disallowedLogins {
 		if v == login {
 			return fmt.Errorf("Error - PostgreSQL AD Administrator login can not be %q. (Resource Group %q, Server %q)", login, resGroup, serverName)
