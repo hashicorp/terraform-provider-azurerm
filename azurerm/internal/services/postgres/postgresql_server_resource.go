@@ -454,16 +454,16 @@ func resourcePostgreSQLServerCreate(d *schema.ResourceData, meta interface{}) er
 	case postgresql.CreateModeDefault:
 		admin := d.Get("administrator_login").(string)
 		pass := d.Get("administrator_login_password").(string)
-        disallowedLogins := [7]string{'azure_superuser','azure_pg_admin','admin','administrator','root','guest','public'}
-        for _, v := range disallowedLogins {
-            if v == admin {
-                return fmt.Errorf("'administrator_login' can not be %q.", admin)
-            }
-        }
+        	disallowedLogins := [7]string{'azure_superuser','azure_pg_admin','admin','administrator','root','guest','public'}
+        	for _, v := range disallowedLogins {
+			if v == admin {
+				return fmt.Errorf("'administrator_login' can not be %q.", admin)
+            		}
+        	}
 
-        if strings.HasPrefix(admin, "pg_"){
-            return fmt.Errorf("'administrator_login' can not start with 'pg_'")
-        }
+		if strings.HasPrefix(admin, "pg_"){
+			return fmt.Errorf("'administrator_login' can not start with 'pg_'")
+        	}
 
 		if admin == "" {
 			return fmt.Errorf("`administrator_login` must not be empty when `create_mode` is `default`")
