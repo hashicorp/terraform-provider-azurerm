@@ -16,6 +16,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -27,6 +28,29 @@ import (
 const (
 	postgreSQLServerResourceName = "azurerm_postgresql_server"
 )
+
+var skuList = []string{
+	"B_Gen4_1",
+	"B_Gen4_2",
+	"B_Gen5_1",
+	"B_Gen5_2",
+	"GP_Gen4_2",
+	"GP_Gen4_4",
+	"GP_Gen4_8",
+	"GP_Gen4_16",
+	"GP_Gen4_32",
+	"GP_Gen5_2",
+	"GP_Gen5_4",
+	"GP_Gen5_8",
+	"GP_Gen5_16",
+	"GP_Gen5_32",
+	"GP_Gen5_64",
+	"MO_Gen5_2",
+	"MO_Gen5_4",
+	"MO_Gen5_8",
+	"MO_Gen5_16",
+	"MO_Gen5_32",
+}
 
 func resourcePostgreSQLServer() *schema.Resource {
 	return &schema.Resource{
@@ -70,30 +94,9 @@ func resourcePostgreSQLServer() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"sku_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"B_Gen4_1",
-					"B_Gen4_2",
-					"B_Gen5_1",
-					"B_Gen5_2",
-					"GP_Gen4_2",
-					"GP_Gen4_4",
-					"GP_Gen4_8",
-					"GP_Gen4_16",
-					"GP_Gen4_32",
-					"GP_Gen5_2",
-					"GP_Gen5_4",
-					"GP_Gen5_8",
-					"GP_Gen5_16",
-					"GP_Gen5_32",
-					"GP_Gen5_64",
-					"MO_Gen5_2",
-					"MO_Gen5_4",
-					"MO_Gen5_8",
-					"MO_Gen5_16",
-					"MO_Gen5_32",
-				}, false),
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(skuList, false),
 			},
 
 			"version": {
@@ -569,6 +572,7 @@ func resourcePostgreSQLServerCreate(d *schema.ResourceData, meta interface{}) er
 func resourcePostgreSQLServerUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Postgres.ServersClient
 	securityClient := meta.(*clients.Client).Postgres.ServerSecurityAlertPoliciesClient
+	replicasClient := meta.(*clients.Client).Postgres.ReplicasClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -580,6 +584,18 @@ func resourcePostgreSQLServerUpdate(d *schema.ResourceData, meta interface{}) er
 	if err != nil {
 		return fmt.Errorf("parsing Postgres Server ID : %v", err)
 	}
+
+	// Locks for scaling of replica functionality
+	mode := postgresql.CreateMode(d.Get("create_mode").(string))
+	source := d.Get("creation_source_server_id").(string)
+
+	primaryID := id.String()
+	if mode == postgresql.CreateModeReplica {
+		primaryID = source
+	}
+
+	locks.ByID(primaryID)
+	defer locks.UnlockByID(primaryID)
 
 	sku, err := expandServerSkuName(d.Get("sku_name").(string))
 	if err != nil {
@@ -612,6 +628,29 @@ func resourcePostgreSQLServerUpdate(d *schema.ResourceData, meta interface{}) er
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
+	if d.HasChange("sku_name") && mode != postgresql.CreateModeReplica {
+		oldRaw, newRaw := d.GetChange("sku_name")
+		old := oldRaw.(string)
+		new := newRaw.(string)
+
+		if indexOfSku(old) < indexOfSku(new) {
+			listReplicas, err := replicasClient.ListByServer(ctx, id.ResourceGroup, id.Name)
+			if err != nil {
+				return fmt.Errorf("request error for list of replicas for PostgreSQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			}
+			for _, replica := range *listReplicas.Value {
+				future, err := client.Update(ctx, id.ResourceGroup, *replica.Name, properties)
+				if err != nil {
+					return fmt.Errorf("updating PostgreSQL Server Replica %q (Resource Group %q): %+v", *replica.Name, id.ResourceGroup, err)
+				}
+
+				if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+					return fmt.Errorf("waiting for update of PostgreSQL Server Replica %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+				}
+			}
+		}
+	}
+
 	future, err := client.Update(ctx, id.ResourceGroup, id.Name, properties)
 	if err != nil {
 		return fmt.Errorf("updating PostgreSQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
@@ -619,6 +658,29 @@ func resourcePostgreSQLServerUpdate(d *schema.ResourceData, meta interface{}) er
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for update of PostgreSQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	}
+
+	if d.HasChange("sku_name") && mode != postgresql.CreateModeReplica {
+		oldRaw, newRaw := d.GetChange("sku_name")
+		old := oldRaw.(string)
+		new := newRaw.(string)
+
+		if indexOfSku(old) > indexOfSku(new) {
+			listReplicas, err := replicasClient.ListByServer(ctx, id.ResourceGroup, id.Name)
+			if err != nil {
+				return fmt.Errorf("request error for list of replicas for PostgreSQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			}
+			for _, replica := range *listReplicas.Value {
+				future, err := client.Update(ctx, id.ResourceGroup, *replica.Name, properties)
+				if err != nil {
+					return fmt.Errorf("updating PostgreSQL Server Replica %q (Resource Group %q): %+v", *replica.Name, id.ResourceGroup, err)
+				}
+
+				if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+					return fmt.Errorf("waiting for update of PostgreSQL Server Replica %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+				}
+			}
+		}
 	}
 
 	if v, ok := d.GetOk("threat_detection_policy"); ok {
@@ -748,6 +810,15 @@ func resourcePostgreSQLServerDelete(d *schema.ResourceData, meta interface{}) er
 	}
 
 	return nil
+}
+
+func indexOfSku(skuName string) int {
+	for k, v := range skuList {
+		if skuName == v {
+			return k
+		}
+	}
+	return -1 // not found.
 }
 
 func expandServerSkuName(skuName string) (*postgresql.Sku, error) {
