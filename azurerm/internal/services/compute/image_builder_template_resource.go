@@ -951,7 +951,7 @@ func expandBasicImageTemplateDistributor(distributions []interface{}, subscripti
 				if len(vhds) > 0 {
 					for _, vhdRaw := range vhds {
 						if vhdRaw != nil {
-							vhd := v.(map[string]interface{})
+							vhd := vhdRaw.(map[string]interface{})
 							runOutputName := vhd["run_output_name"].(string)
 
 							_, existing := runOutputNameSet[runOutputName]
@@ -979,9 +979,9 @@ func expandBasicImageTemplateDistributor(distributions []interface{}, subscripti
 func flattenBasicImageTemplateDistributor(input *[]virtualmachineimagebuilder.BasicImageTemplateDistributor) ([]interface{}, error) {
 	results := make([]interface{}, 0)
 
-	distributionManagedImagesRaw := make([]interface{}, 0)
-	distributionSharedImagesRaw := make([]interface{}, 0)
-	distributionVhdsRaw := make([]interface{}, 0)
+	distributionManagedImages := make([]interface{}, 0)
+	distributionSharedImages := make([]interface{}, 0)
+	distributionVhds := make([]interface{}, 0)
 
 	if input != nil {
 		for _, v := range *input {
@@ -992,33 +992,22 @@ func flattenBasicImageTemplateDistributor(input *[]virtualmachineimagebuilder.Ba
 					return nil, fmt.Errorf("setting image template managed image source: %+v", err)
 				}
 
-				distributionManagedImagesRaw = append(distributionManagedImagesRaw, flattenedManagedImg)
+				distributionManagedImages = append(distributionManagedImages, flattenedManagedImg)
 			case virtualmachineimagebuilder.ImageTemplateSharedImageDistributor:
-				distributionSharedImagesRaw = append(distributionSharedImagesRaw, flattenDistributionSharedImage(&distribute))
+				distributionSharedImages = append(distributionSharedImages, flattenDistributionSharedImage(&distribute))
 			case virtualmachineimagebuilder.ImageTemplateVhdDistributor:
-				distributionVhdsRaw = append(distributionVhdsRaw, flattenDistributionVhd(&distribute))
+				distributionVhds = append(distributionVhds, flattenDistributionVhd(&distribute))
 			}
 		}
 	}
 
-	if len(distributionManagedImagesRaw) > 0 {
-		distributionManagedImages := make(map[string]interface{})
-		distributionManagedImages["managed_image"] = distributionManagedImagesRaw
-		results = append(results, distributionManagedImages)
+	output := map[string]interface{}{
+		"managed_image": distributionManagedImages,
+		"shared_image":  distributionSharedImages,
+		"vhd":           distributionVhds,
 	}
 
-	if len(distributionSharedImagesRaw) > 0 {
-		distributionSharedImages := make(map[string]interface{})
-		distributionSharedImages["shared_image"] = distributionSharedImagesRaw
-		results = append(results, distributionSharedImages)
-	}
-
-	if len(distributionVhdsRaw) > 0 {
-		distributionVhds := make(map[string]interface{})
-		distributionVhds["vhd"] = distributionVhdsRaw
-		results = append(results, distributionVhds)
-	}
-
+	results = append(results, output)
 	return results, nil
 }
 

@@ -155,7 +155,7 @@ func TestAccAzureRMImageBuilderTemplate_windowsPlatformSource(t *testing.T) {
 
 func TestAccAzureRMImageBuilderTemplate_managedImageSource(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_image_builder_template", "test")
-	linuxVMResourceName := "azurerm_linux_virtual_machine.test"
+	linuxVMResourceName := "azurerm_linux_virtual_machine.source"
 	r := ImageBuilderTemplateResource{}
 	rLinuxVMResource := LinuxVirtualMachineResource{}
 
@@ -182,7 +182,7 @@ func TestAccAzureRMImageBuilderTemplate_managedImageSource(t *testing.T) {
 // Issue filed to Azure service team: https://github.com/Azure/azure-rest-api-specs/issues/11559.
 func TestAccAzureRMImageBuilderTemplate_sharedImageGallerySource(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_image_builder_template", "test")
-	linuxVMResourceName := "azurerm_linux_virtual_machine.test"
+	linuxVMResourceName := "azurerm_linux_virtual_machine.source"
 	r := ImageBuilderTemplateResource{}
 	rLinuxVMResource := LinuxVirtualMachineResource{}
 
