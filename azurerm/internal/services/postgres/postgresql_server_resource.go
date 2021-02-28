@@ -634,12 +634,16 @@ func resourcePostgreSQLServerUpdate(d *schema.ResourceData, meta interface{}) er
 		new := newRaw.(string)
 
 		if indexOfSku(old) < indexOfSku(new) {
+			propertiesReplica := postgresql.ServerUpdateParameters{
+				Sku: sku,
+			}
+
 			listReplicas, err := replicasClient.ListByServer(ctx, id.ResourceGroup, id.Name)
 			if err != nil {
 				return fmt.Errorf("request error for list of replicas for PostgreSQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 			}
 			for _, replica := range *listReplicas.Value {
-				future, err := client.Update(ctx, id.ResourceGroup, *replica.Name, properties)
+				future, err := client.Update(ctx, id.ResourceGroup, *replica.Name, propertiesReplica)
 				if err != nil {
 					return fmt.Errorf("updating PostgreSQL Server Replica %q (Resource Group %q): %+v", *replica.Name, id.ResourceGroup, err)
 				}
@@ -666,12 +670,16 @@ func resourcePostgreSQLServerUpdate(d *schema.ResourceData, meta interface{}) er
 		new := newRaw.(string)
 
 		if indexOfSku(old) > indexOfSku(new) {
+			propertiesReplica := postgresql.ServerUpdateParameters{
+				Sku: sku,
+			}
+
 			listReplicas, err := replicasClient.ListByServer(ctx, id.ResourceGroup, id.Name)
 			if err != nil {
 				return fmt.Errorf("request error for list of replicas for PostgreSQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 			}
 			for _, replica := range *listReplicas.Value {
-				future, err := client.Update(ctx, id.ResourceGroup, *replica.Name, properties)
+				future, err := client.Update(ctx, id.ResourceGroup, *replica.Name, propertiesReplica)
 				if err != nil {
 					return fmt.Errorf("updating PostgreSQL Server Replica %q (Resource Group %q): %+v", *replica.Name, id.ResourceGroup, err)
 				}
