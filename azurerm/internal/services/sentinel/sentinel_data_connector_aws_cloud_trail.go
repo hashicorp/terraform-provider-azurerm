@@ -100,6 +100,8 @@ func resourceSentinelDataConnectorAwsCloudTrailCreateUpdate(d *schema.ResourceDa
 	}
 
 	// Service avoid concurrent updates of this resource via checking the "etag" to guarantee it is the same value as last Read.
+	// TODO: following code can be removed once the issue below is fixed:
+	// https://github.com/Azure/azure-rest-api-specs/issues/13203
 	if !d.IsNewResource() {
 		resp, err := client.Get(ctx, id.ResourceGroup, operationalInsightsResourceProvider, id.WorkspaceName, name)
 		if err != nil {
