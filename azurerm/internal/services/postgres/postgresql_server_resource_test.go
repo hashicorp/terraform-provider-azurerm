@@ -326,7 +326,7 @@ func TestAccPostgreSQLServer_scaleReplica(t *testing.T) {
 	r := PostgreSQLServerResource{}
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.scaleableReplica(data, "11", "GP_Gen5_2"),
+			Config: r.scaleableReplica(data, "GP_Gen5_2"),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
@@ -336,7 +336,7 @@ func TestAccPostgreSQLServer_scaleReplica(t *testing.T) {
 		},
 		data.ImportStep("administrator_login_password"),
 		{
-			Config: r.scaleableReplica(data, "11", "GP_Gen5_4"),
+			Config: r.scaleableReplica(data, "GP_Gen5_4"),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_4"),
@@ -346,7 +346,7 @@ func TestAccPostgreSQLServer_scaleReplica(t *testing.T) {
 		},
 		data.ImportStep("administrator_login_password"),
 		{
-			Config: r.scaleableReplica(data, "11", "GP_Gen5_2"),
+			Config: r.scaleableReplica(data, "GP_Gen5_2"),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
@@ -890,7 +890,7 @@ resource "azurerm_postgresql_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, version, tlsVersion)
 }
 
-func (r PostgreSQLServerResource) scaleableReplica(data acceptance.TestData, version string, sku string) string {
+func (r PostgreSQLServerResource) scaleableReplica(data acceptance.TestData, sku string) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -899,13 +899,13 @@ resource "azurerm_postgresql_server" "replica" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  version  = "%[3]s"
-  sku_name = "%[4]s"
+  sku_name = "%[3]s"
+  version  = "11"
 
   create_mode               = "Replica"
   creation_source_server_id = azurerm_postgresql_server.test.id
 
   ssl_enforcement_enabled = true
 }
-`, r.template(data, sku, version), data.RandomInteger, version, sku)
+`, r.template(data, sku, "11"), data.RandomInteger, sku)
 }

@@ -585,21 +585,45 @@ func resourcePostgreSQLServerUpdate(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("parsing Postgres Server ID : %v", err)
 	}
 
-	// Locks for scaling of replica functionality
+	// Locks for upscaling of replicas
 	mode := postgresql.CreateMode(d.Get("create_mode").(string))
-	source := d.Get("creation_source_server_id").(string)
-
 	primaryID := id.String()
 	if mode == postgresql.CreateModeReplica {
-		primaryID = source
+		primaryID = d.Get("creation_source_server_id").(string)
 	}
-
 	locks.ByID(primaryID)
 	defer locks.UnlockByID(primaryID)
 
 	sku, err := expandServerSkuName(d.Get("sku_name").(string))
 	if err != nil {
 		return fmt.Errorf("expanding `sku_name` for PostgreSQL Server %s (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
+	}
+
+	if d.HasChange("sku_name") && mode != postgresql.CreateModeReplica {
+		oldRaw, newRaw := d.GetChange("sku_name")
+		old := oldRaw.(string)
+		new := newRaw.(string)
+
+		if indexOfSku(old) < indexOfSku(new) {
+			listReplicas, err := replicasClient.ListByServer(ctx, id.ResourceGroup, id.Name)
+			if err != nil {
+				return fmt.Errorf("request error for list of replicas for PostgreSQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			}
+
+			propertiesReplica := postgresql.ServerUpdateParameters{
+				Sku: sku,
+			}
+			for _, replica := range *listReplicas.Value {
+				future, err := client.Update(ctx, id.ResourceGroup, *replica.Name, propertiesReplica)
+				if err != nil {
+					return fmt.Errorf("upscaling PostgreSQL Server Replica %q (Resource Group %q): %+v", *replica.Name, id.ResourceGroup, err)
+				}
+
+				if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+					return fmt.Errorf("waiting for update of PostgreSQL Server Replica %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+				}
+			}
+		}
 	}
 
 	publicAccess := postgresql.PublicNetworkAccessEnumEnabled
@@ -626,33 +650,6 @@ func resourcePostgreSQLServerUpdate(d *schema.ResourceData, meta interface{}) er
 		},
 		Sku:  sku,
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
-	}
-
-	if d.HasChange("sku_name") && mode != postgresql.CreateModeReplica {
-		oldRaw, newRaw := d.GetChange("sku_name")
-		old := oldRaw.(string)
-		new := newRaw.(string)
-
-		if indexOfSku(old) < indexOfSku(new) {
-			propertiesReplica := postgresql.ServerUpdateParameters{
-				Sku: sku,
-			}
-
-			listReplicas, err := replicasClient.ListByServer(ctx, id.ResourceGroup, id.Name)
-			if err != nil {
-				return fmt.Errorf("request error for list of replicas for PostgreSQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-			}
-			for _, replica := range *listReplicas.Value {
-				future, err := client.Update(ctx, id.ResourceGroup, *replica.Name, propertiesReplica)
-				if err != nil {
-					return fmt.Errorf("updating PostgreSQL Server Replica %q (Resource Group %q): %+v", *replica.Name, id.ResourceGroup, err)
-				}
-
-				if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-					return fmt.Errorf("waiting for update of PostgreSQL Server Replica %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-				}
-			}
-		}
 	}
 
 	future, err := client.Update(ctx, id.ResourceGroup, id.Name, properties)
