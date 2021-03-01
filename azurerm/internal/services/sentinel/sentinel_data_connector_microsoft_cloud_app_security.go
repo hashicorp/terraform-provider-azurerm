@@ -194,19 +194,22 @@ func resourceSentinelDataConnectorMicrosoftCloudAppSecurityRead(d *schema.Resour
 	d.Set("name", id.Name)
 	d.Set("log_analytics_workspace_id", workspaceId.ID())
 	d.Set("tenant_id", dc.TenantID)
+
+	var (
+		alertsEnabled        bool
+		discoveryLogsEnabled bool
+	)
 	if dt := dc.DataTypes; dt != nil {
-		alertsEnabled := false
 		if alert := dt.Alerts; alert != nil {
 			alertsEnabled = strings.EqualFold(string(alert.State), string(securityinsight.Enabled))
-			d.Set("alerts_enabled", alertsEnabled)
 		}
 
-		discoveryLogsEnabled := false
 		if discoveryLogs := dt.DiscoveryLogs; discoveryLogs != nil {
 			discoveryLogsEnabled = strings.EqualFold(string(discoveryLogs.State), string(securityinsight.Enabled))
-			d.Set("discovery_logs_enabled", discoveryLogsEnabled)
 		}
 	}
+	d.Set("discovery_logs_enabled", discoveryLogsEnabled)
+	d.Set("alerts_enabled", alertsEnabled)
 
 	return nil
 }
