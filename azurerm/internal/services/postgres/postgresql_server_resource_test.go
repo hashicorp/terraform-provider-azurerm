@@ -329,6 +329,9 @@ func TestAccPostgreSQLServer_scaleReplica(t *testing.T) {
 			Config: r.scaleableReplica(data, "11", "GP_Gen5_2"),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
+				check.That("azurerm_postgresql_server.replica").ExistsInAzure(r),
+				check.That("azurerm_postgresql_server.replica").Key("sku_name").HasValue("GP_Gen5_2"),
 			),
 		},
 		data.ImportStep("administrator_login_password"),
@@ -336,6 +339,9 @@ func TestAccPostgreSQLServer_scaleReplica(t *testing.T) {
 			Config: r.scaleableReplica(data, "11", "GP_Gen5_4"),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_4"),
+				check.That("azurerm_postgresql_server.replica").ExistsInAzure(r),
+				check.That("azurerm_postgresql_server.replica").Key("sku_name").HasValue("GP_Gen5_4"),
 			),
 		},
 		data.ImportStep("administrator_login_password"),
@@ -343,6 +349,9 @@ func TestAccPostgreSQLServer_scaleReplica(t *testing.T) {
 			Config: r.scaleableReplica(data, "11", "GP_Gen5_2"),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
+				check.That("azurerm_postgresql_server.replica").ExistsInAzure(r),
+				check.That("azurerm_postgresql_server.replica").Key("sku_name").HasValue("GP_Gen5_2"),
 			),
 		},
 		data.ImportStep("administrator_login_password"),
