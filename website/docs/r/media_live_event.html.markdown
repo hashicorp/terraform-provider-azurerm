@@ -90,7 +90,7 @@ The following arguments are supported:
 
 ---
 
-* `auto_start_enabled` - (Optional) The flag indicates if the resource should be automatically started on creation.
+* `auto_start_enabled` - (Optional) The flag indicates if the resource should be automatically started on creation. Default is `false`.
 
 * `cross_site_access_policy` - (Optional) A `cross_site_access_policy` block as defined below.
 
@@ -106,8 +106,7 @@ The following arguments are supported:
 
 * `transcription_languages` - (Optional) Specifies a list of languages (locale) to be used for speech-to-text transcription – it should match the spoken language in the audio track. The value should be in `BCP-47` format (e.g: `en-US`). [See the Microsoft Documentation for more information about the live transcription feature and the list of supported languages](https://go.microsoft.com/fwlink/?linkid=2133742 ).
 
-* `use_static_hostname` - (Optional) Specifies whether a static hostname would be assigned to the live event preview and ingest endpoints. This value can only be updated if the live event is in Standby state.
-
+* `use_static_hostname` - (Optional) Specifies whether a static hostname would be assigned to the live event preview and ingest endpoints. Changing this forces a new Live Event to be created.
 ---
 
 A `cross_site_access_policy` block supports the following:

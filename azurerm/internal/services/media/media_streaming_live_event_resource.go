@@ -84,8 +84,9 @@ func resourceMediaLiveEvent() *schema.Resource {
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"subnet_prefix_length": {
-										Type:     schema.TypeInt,
-										Optional: true,
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntAtLeast(0),
 									},
 								},
 							},
@@ -95,7 +96,7 @@ func resourceMediaLiveEvent() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Computed:     true,
-							ForceNew: true,
+							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
@@ -143,14 +144,12 @@ func resourceMediaLiveEvent() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"client_access_policy": {
 							Type:         schema.TypeString,
-							Computed:     true,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"cross_domain_policy": {
 							Type:         schema.TypeString,
-							Computed:     true,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
@@ -173,11 +172,13 @@ func resourceMediaLiveEvent() *schema.Resource {
 						"type": {
 							Type:     schema.TypeString,
 							Optional: true,
+							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(media.LiveEventEncodingTypeNone),
 								string(media.LiveEventEncodingTypePremium1080p),
 								string(media.LiveEventEncodingTypeStandard),
 							}, false),
+							Default: string(media.LiveEventEncodingTypeNone),
 						},
 
 						"key_frame_interval": {
@@ -190,6 +191,7 @@ func resourceMediaLiveEvent() *schema.Resource {
 						"preset_name": {
 							Type:         schema.TypeString,
 							Optional:     true,
+							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
@@ -201,6 +203,7 @@ func resourceMediaLiveEvent() *schema.Resource {
 								string(media.StretchModeAutoSize),
 								string(media.StretchModeNone),
 							}, false),
+							Default: string(media.StretchModeNone),
 						},
 					},
 				},
@@ -235,8 +238,9 @@ func resourceMediaLiveEvent() *schema.Resource {
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"subnet_prefix_length": {
-										Type:     schema.TypeInt,
-										Optional: true,
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntAtLeast(0),
 									},
 								},
 							},
@@ -245,7 +249,7 @@ func resourceMediaLiveEvent() *schema.Resource {
 						"alternative_media_id": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							ValidateFunc: validation.IsUUID,
 						},
 
 						"endpoint": {
@@ -268,7 +272,7 @@ func resourceMediaLiveEvent() *schema.Resource {
 						"preview_locator": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ForceNew: true,
+							ForceNew:     true,
 							Computed:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
@@ -277,7 +281,7 @@ func resourceMediaLiveEvent() *schema.Resource {
 							Type:         schema.TypeString,
 							Computed:     true,
 							Optional:     true,
-							ForceNew: true,
+							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
@@ -296,6 +300,7 @@ func resourceMediaLiveEvent() *schema.Resource {
 			"use_static_hostname": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				ForceNew: true,
 			},
 
 			"tags": tags.Schema(),
@@ -654,9 +659,6 @@ func flattenLiveEventInput(input *media.LiveEventInput) []interface{} {
 		return make([]interface{}, 0)
 	}
 
-	IPAccessControlAllow := make([]interface{}, 0)
-	if input.AccessControl != nil && input.AccessControl.IP != nil && input.AccessControl.IP.Allow != nil {
-		IPAccessControlAllow = flattenEventAccessControl(input.AccessControl.IP.Allow)
 	ipAccessControlAllow := flattenEventAccessControl(input.AccessControl)
 
 	accessToken := ""
@@ -664,9 +666,6 @@ func flattenLiveEventInput(input *media.LiveEventInput) []interface{} {
 		accessToken = *input.AccessToken
 	}
 
-	endpoints := make([]interface{}, 0)
-	if input.Endpoints != nil {
-		endpoints = flattenEndpoints(input.Endpoints)
 	endpoints := flattenEndpoints(input.Endpoints)
 
 	keyFrameInterval := ""
@@ -676,7 +675,7 @@ func flattenLiveEventInput(input *media.LiveEventInput) []interface{} {
 
 	return []interface{}{
 		map[string]interface{}{
-			"ip_access_control_allow":     IPAccessControlAllow,
+			"ip_access_control_allow":     ipAccessControlAllow,
 			"access_token":                accessToken,
 			"endpoint":                    endpoints,
 			"key_frame_interval_duration": keyFrameInterval,
@@ -685,36 +684,12 @@ func flattenLiveEventInput(input *media.LiveEventInput) []interface{} {
 	}
 }
 
-func flattenEventAccessControl(input *[]media.IPRange) []interface{} {
-	if input == nil {
+func flattenEventAccessControl(input *media.LiveEventInputAccessControl) []interface{} {
+	if input == nil || input.IP == nil || input.IP.Allow == nil {
 		return make([]interface{}, 0)
 	}
 
-	ipAllow := make([]interface{}, 0)
-	for _, v := range *input {
-		name := ""
-		if v.Name != nil {
-			name = *v.Name
-		}
-
-		address := ""
-		if v.Address != nil {
-			address = *v.Address
-		}
-
-		var subnetPrefixLength int32
-		if v.SubnetPrefixLength != nil {
-			subnetPrefixLength = *v.SubnetPrefixLength
-		}
-
-		ipAllow = append(ipAllow, map[string]interface{}{
-			"name":                 name,
-			"address":              address,
-			"subnet_prefix_length": subnetPrefixLength,
-		})
-	}
-
-	return ipAllow
+	return flattenIPAllow(input.IP.Allow)
 }
 
 func flattenEndpoints(input *[]media.LiveEventEndpoint) []interface{} {
@@ -773,19 +748,13 @@ func flattenPreview(input *media.LiveEventPreview) []interface{} {
 		return make([]interface{}, 0)
 	}
 
-	IPAccessControlAllow := make([]interface{}, 0)
-	if input.AccessControl != nil && input.AccessControl.IP != nil && input.AccessControl.IP.Allow != nil {
-		IPAccessControlAllow = flattenEventAccessControl(input.AccessControl.IP.Allow)
-	ipAccessControlAllow = flattenEventAccessControl(input.AccessControl)
+	iPAccessControlAllow := flattenPreviewAccessControl(input.AccessControl)
 
 	alternativeMediaID := ""
 	if input.AlternativeMediaID != nil {
 		alternativeMediaID = *input.AlternativeMediaID
 	}
 
-	endpoints := make([]interface{}, 0)
-	if input.Endpoints != nil {
-		endpoints = flattenEndpoints(input.Endpoints)
 	endpoints := flattenEndpoints(input.Endpoints)
 
 	previewLocator := ""
@@ -800,13 +769,50 @@ func flattenPreview(input *media.LiveEventPreview) []interface{} {
 
 	return []interface{}{
 		map[string]interface{}{
-			"ip_access_control_allow": IPAccessControlAllow,
+			"ip_access_control_allow": iPAccessControlAllow,
 			"alternative_media_id":    alternativeMediaID,
 			"endpoint":                endpoints,
 			"preview_locator":         previewLocator,
 			"streaming_policy_name":   streamingPolicyName,
 		},
 	}
+}
+
+func flattenPreviewAccessControl(input *media.LiveEventPreviewAccessControl) []interface{} {
+	if input == nil || input.IP == nil || input.IP.Allow == nil {
+		return make([]interface{}, 0)
+	}
+
+	return flattenIPAllow(input.IP.Allow)
+}
+
+func flattenIPAllow(input *[]media.IPRange) []interface{} {
+	ipAllow := make([]interface{}, 0)
+
+	for _, v := range *input {
+		name := ""
+		if v.Name != nil {
+			name = *v.Name
+		}
+
+		address := ""
+		if v.Address != nil {
+			address = *v.Address
+		}
+
+		var subnetPrefixLength int32
+		if v.SubnetPrefixLength != nil {
+			subnetPrefixLength = *v.SubnetPrefixLength
+		}
+
+		ipAllow = append(ipAllow, map[string]interface{}{
+			"name":                 name,
+			"address":              address,
+			"subnet_prefix_length": subnetPrefixLength,
+		})
+	}
+
+	return ipAllow
 }
 
 func flattenLiveEventCrossSiteAccessPolicies(input *media.CrossSiteAccessPolicies) []interface{} {
