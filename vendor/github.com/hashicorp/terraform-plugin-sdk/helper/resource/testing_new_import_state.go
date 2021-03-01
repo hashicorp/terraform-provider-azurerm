@@ -135,7 +135,14 @@ func testStepNewImportState(t *testing.T, c TestCase, wd *tftest.WorkingDir, ste
 			// this shouldn't happen in any reasonable case.
 			// KEM CHANGE FROM OLD FRAMEWORK: Fail test if this happens.
 			var rsrcSchema *schema.Resource
-			providerAddr, diags := addrs.ParseAbsProviderConfigStr("provider." + r.Provider + "." + r.Type)
+
+			// r.Provider at this point is `registry.terraform.io/hashicorp/blah` but we need `blah`
+			val, tfdiags := addrs.ParseProviderSourceString(r.Provider)
+			if tfdiags.HasErrors() {
+				t.Fatal(tfdiags.Err())
+			}
+			providerName := val.Type
+			providerAddr, diags := addrs.ParseAbsProviderConfigStr("provider." + providerName + "." + r.Type)
 			if diags.HasErrors() {
 				t.Fatalf("Failed to find schema for resource with ID %s", r.Primary)
 			}

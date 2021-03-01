@@ -19,14 +19,14 @@ func ExtendedAuditingSchema() *schema.Schema {
 			Schema: map[string]*schema.Schema{
 				"storage_account_access_key": {
 					Type:         schema.TypeString,
-					Required:     true,
+					Optional:     true,
 					Sensitive:    true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"storage_endpoint": {
 					Type:         schema.TypeString,
-					Required:     true,
+					Optional:     true,
 					ValidateFunc: validation.IsURLWithHTTPS,
 				},
 
@@ -40,6 +40,12 @@ func ExtendedAuditingSchema() *schema.Schema {
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(0, 3285),
 				},
+
+				"log_monitoring_enabled": {
+					Type:     schema.TypeBool,
+					Optional: true,
+					Default:  true,
+				},
 			},
 		},
 	}
@@ -49,18 +55,15 @@ func ExpandAzureRmSqlServerBlobAuditingPolicies(input []interface{}) *sql.Extend
 	if len(input) == 0 {
 		return &sql.ExtendedServerBlobAuditingPolicyProperties{
 			State: sql.BlobAuditingPolicyStateDisabled,
-
-			// NOTE: this works around a regression in the Azure API detailed here:
-			// https://github.com/Azure/azure-rest-api-specs/issues/11271
-			IsAzureMonitorTargetEnabled: utils.Bool(true),
 		}
 	}
 	serverBlobAuditingPolicies := input[0].(map[string]interface{})
 
 	ExtendedServerBlobAuditingPolicyProperties := sql.ExtendedServerBlobAuditingPolicyProperties{
-		State:                   sql.BlobAuditingPolicyStateEnabled,
-		StorageAccountAccessKey: utils.String(serverBlobAuditingPolicies["storage_account_access_key"].(string)),
-		StorageEndpoint:         utils.String(serverBlobAuditingPolicies["storage_endpoint"].(string)),
+		State:                       sql.BlobAuditingPolicyStateEnabled,
+		StorageAccountAccessKey:     utils.String(serverBlobAuditingPolicies["storage_account_access_key"].(string)),
+		StorageEndpoint:             utils.String(serverBlobAuditingPolicies["storage_endpoint"].(string)),
+		IsAzureMonitorTargetEnabled: utils.Bool(serverBlobAuditingPolicies["log_monitoring_enabled"].(bool)),
 	}
 	if v, ok := serverBlobAuditingPolicies["storage_account_access_key_is_secondary"]; ok {
 		ExtendedServerBlobAuditingPolicyProperties.IsStorageSecondaryKeyInUse = utils.Bool(v.(bool))
@@ -93,6 +96,10 @@ func FlattenAzureRmSqlServerBlobAuditingPolicies(extendedServerBlobAuditingPolic
 	if extendedServerBlobAuditingPolicy.RetentionDays != nil {
 		retentionDays = *extendedServerBlobAuditingPolicy.RetentionDays
 	}
+	var monitor bool
+	if extendedServerBlobAuditingPolicy.IsAzureMonitorTargetEnabled != nil {
+		monitor = *extendedServerBlobAuditingPolicy.IsAzureMonitorTargetEnabled
+	}
 
 	return []interface{}{
 		map[string]interface{}{
@@ -100,6 +107,7 @@ func FlattenAzureRmSqlServerBlobAuditingPolicies(extendedServerBlobAuditingPolic
 			"storage_endpoint":                        storageEndpoint,
 			"storage_account_access_key_is_secondary": secondKeyInUse,
 			"retention_in_days":                       retentionDays,
+			"log_monitoring_enabled":                  monitor,
 		},
 	}
 }
@@ -108,18 +116,15 @@ func ExpandAzureRmSqlDBBlobAuditingPolicies(input []interface{}) *sql.ExtendedDa
 	if len(input) == 0 {
 		return &sql.ExtendedDatabaseBlobAuditingPolicyProperties{
 			State: sql.BlobAuditingPolicyStateDisabled,
-
-			// NOTE: this works around a regression in the Azure API detailed here:
-			// https://github.com/Azure/azure-rest-api-specs/issues/11271
-			IsAzureMonitorTargetEnabled: utils.Bool(true),
 		}
 	}
 	dbBlobAuditingPolicies := input[0].(map[string]interface{})
 
 	ExtendedDatabaseBlobAuditingPolicyProperties := sql.ExtendedDatabaseBlobAuditingPolicyProperties{
-		State:                   sql.BlobAuditingPolicyStateEnabled,
-		StorageAccountAccessKey: utils.String(dbBlobAuditingPolicies["storage_account_access_key"].(string)),
-		StorageEndpoint:         utils.String(dbBlobAuditingPolicies["storage_endpoint"].(string)),
+		State:                       sql.BlobAuditingPolicyStateEnabled,
+		StorageAccountAccessKey:     utils.String(dbBlobAuditingPolicies["storage_account_access_key"].(string)),
+		StorageEndpoint:             utils.String(dbBlobAuditingPolicies["storage_endpoint"].(string)),
+		IsAzureMonitorTargetEnabled: utils.Bool(dbBlobAuditingPolicies["log_monitoring_enabled"].(bool)),
 	}
 	if v, ok := dbBlobAuditingPolicies["storage_account_access_key_is_secondary"]; ok {
 		ExtendedDatabaseBlobAuditingPolicyProperties.IsStorageSecondaryKeyInUse = utils.Bool(v.(bool))
@@ -152,6 +157,10 @@ func FlattenAzureRmSqlDBBlobAuditingPolicies(extendedDatabaseBlobAuditingPolicy 
 	if extendedDatabaseBlobAuditingPolicy.RetentionDays != nil {
 		retentionDays = *extendedDatabaseBlobAuditingPolicy.RetentionDays
 	}
+	var monitor bool
+	if extendedDatabaseBlobAuditingPolicy.IsAzureMonitorTargetEnabled != nil {
+		monitor = *extendedDatabaseBlobAuditingPolicy.IsAzureMonitorTargetEnabled
+	}
 
 	return []interface{}{
 		map[string]interface{}{
@@ -159,6 +168,7 @@ func FlattenAzureRmSqlDBBlobAuditingPolicies(extendedDatabaseBlobAuditingPolicy 
 			"storage_endpoint":                        storageEndpoint,
 			"storage_account_access_key_is_secondary": secondKeyInUse,
 			"retention_in_days":                       retentionDays,
+			"log_monitoring_enabled":                  monitor,
 		},
 	}
 }

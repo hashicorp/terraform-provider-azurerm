@@ -265,6 +265,24 @@ func TestAccKeyVaultKey_withExternalAccessPolicy(t *testing.T) {
 	})
 }
 
+func TestAccKeyVaultKey_purge(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
+	r := KeyVaultKeyResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicEC(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:  r.basicEC(data),
+			Destroy: true,
+		},
+	})
+}
+
 func (r KeyVaultKeyResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	client := clients.KeyVault.ManagementClient
 	keyVaultsClient := clients.KeyVault
@@ -636,7 +654,6 @@ resource "azurerm_key_vault" "test" {
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
-  soft_delete_enabled        = true
   soft_delete_retention_days = 7
 
   tags = {
@@ -650,18 +667,18 @@ resource "azurerm_key_vault_access_policy" "test" {
   object_id    = data.azurerm_client_config.current.object_id
 
   key_permissions = [
-    "create",
-    "delete",
-    "get",
-    "purge",
-    "recover",
-    "update",
+    "Create",
+    "Delete",
+    "Get",
+    "Purge",
+    "Recover",
+    "Update",
   ]
 
   secret_permissions = [
-    "get",
-    "delete",
-    "set",
+    "Delete",
+    "Get",
+    "Set",
   ]
 }
 
@@ -701,7 +718,6 @@ resource "azurerm_key_vault" "test" {
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
-  soft_delete_enabled        = true
   soft_delete_retention_days = 7
 
   tags = {
@@ -715,19 +731,19 @@ resource "azurerm_key_vault_access_policy" "test" {
   object_id    = data.azurerm_client_config.current.object_id
 
   key_permissions = [
-    "create",
-    "delete",
-    "encrypt",
-    "get",
-    "purge",
-    "recover",
-    "update",
+    "Create",
+    "Delete",
+    "Encrypt",
+    "Get",
+    "Purge",
+    "Recover",
+    "Update",
   ]
 
   secret_permissions = [
-    "get",
-    "delete",
-    "set",
+    "Delete",
+    "Get",
+    "Set",
   ]
 }
 
@@ -770,7 +786,6 @@ resource "azurerm_key_vault" "test" {
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "%s"
-  soft_delete_enabled        = true
   soft_delete_retention_days = 7
 
   access_policy {
@@ -778,18 +793,18 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
-      "create",
-      "delete",
-      "get",
-      "purge",
-      "recover",
-      "update",
+      "Create",
+      "Delete",
+      "Get",
+      "Purge",
+      "Recover",
+      "Update",
     ]
 
     secret_permissions = [
-      "get",
-      "delete",
-      "set",
+      "Delete",
+      "Get",
+      "Set",
     ]
   }
 

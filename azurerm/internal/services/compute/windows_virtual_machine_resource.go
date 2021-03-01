@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -206,11 +206,11 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 			"patch_mode": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  string(compute.AutomaticByOS),
+				Default:  string(compute.WindowsVMGuestPatchModeAutomaticByOS),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.AutomaticByOS),
-					string(compute.AutomaticByPlatform),
-					string(compute.Manual),
+					string(compute.WindowsVMGuestPatchModeAutomaticByOS),
+					string(compute.WindowsVMGuestPatchModeAutomaticByPlatform),
+					string(compute.WindowsVMGuestPatchModeManual),
 				}, false),
 			},
 
@@ -451,9 +451,9 @@ func resourceWindowsVirtualMachineCreate(d *schema.ResourceData, meta interface{
 	}
 
 	patchMode := d.Get("patch_mode").(string)
-	if patchMode != string(compute.AutomaticByOS) {
+	if patchMode != string(compute.WindowsVMGuestPatchModeAutomaticByOS) {
 		params.OsProfile.WindowsConfiguration.PatchSettings = &compute.PatchSettings{
-			PatchMode: compute.InGuestPatchMode(patchMode),
+			PatchMode: compute.WindowsVMGuestPatchMode(patchMode),
 		}
 	}
 
@@ -828,7 +828,7 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 		}
 
 		update.OsProfile.WindowsConfiguration.PatchSettings = &compute.PatchSettings{
-			PatchMode: compute.InGuestPatchMode(d.Get("patch_mode").(string)),
+			PatchMode: compute.WindowsVMGuestPatchMode(d.Get("patch_mode").(string)),
 		}
 	}
 
@@ -1098,7 +1098,7 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 			update := compute.DiskUpdate{
 				DiskUpdateProperties: &compute.DiskUpdateProperties{
 					Encryption: &compute.Encryption{
-						Type:                compute.EncryptionAtRestWithCustomerKey,
+						Type:                compute.EncryptionTypeEncryptionAtRestWithCustomerKey,
 						DiskEncryptionSetID: utils.String(diskEncryptionSetId),
 					},
 				},
