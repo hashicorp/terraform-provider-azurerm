@@ -106,14 +106,14 @@ func resourceSentinelDataConnectorAwsCloudTrailCreateUpdate(d *schema.ResourceDa
 			return fmt.Errorf("retrieving %s: %+v", id, err)
 		}
 
-		if err := assertDataConnectorKind(resp.Value, securityinsight.DataConnectorKindAmazonWebServicesCloudTrail); err != nil {
-			return fmt.Errorf("asserting %s: %+v", id, err)
+		dc, ok := resp.Value.(securityinsight.AwsCloudTrailDataConnector)
+		if !ok {
+			return fmt.Errorf("%s was not an AWS Cloud Trail Data Connector", id)
 		}
-		param.Etag = resp.Value.(securityinsight.AwsCloudTrailDataConnector).Etag
+		param.Etag = dc.Etag
 	}
 
-	_, err = client.CreateOrUpdate(ctx, id.ResourceGroup, operationalInsightsResourceProvider, id.WorkspaceName, id.Name, param)
-	if err != nil {
+	if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, operationalInsightsResourceProvider, id.WorkspaceName, id.Name, param); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -168,8 +168,7 @@ func resourceSentinelDataConnectorAwsCloudTrailDelete(d *schema.ResourceData, me
 		return err
 	}
 
-	_, err = client.Delete(ctx, id.ResourceGroup, operationalInsightsResourceProvider, id.WorkspaceName, id.Name)
-	if err != nil {
+	if _, err = client.Delete(ctx, id.ResourceGroup, operationalInsightsResourceProvider, id.WorkspaceName, id.Name); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
