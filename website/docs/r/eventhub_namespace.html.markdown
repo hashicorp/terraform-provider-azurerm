@@ -43,7 +43,7 @@ The following arguments are supported:
 
 * `sku` - (Required) Defines which tier to use. Valid options are `Basic` and `Standard`.
 
-* `capacity` - (Optional) Specifies the Capacity / Throughput Units for a `Standard` SKU namespace. Valid values range from `1` - `20`.
+* `capacity` - (Optional) Specifies the Capacity / Throughput Units for a `Standard` SKU namespace. Default capacity has a maximum of `20`, but can be increased in blocks of 20 on a committed purchase basis.
 
 * `auto_inflate_enabled` - (Optional) Is Auto Inflate enabled for the EventHub Namespace?
 

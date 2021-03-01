@@ -129,6 +129,8 @@ The following attributes are exported:
 
 * `id` - The ID of the Spring Cloud Certificate.
 
+* `thumbprint` - The thumbprint of the Spring Cloud certificate.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:

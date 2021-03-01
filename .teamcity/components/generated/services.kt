@@ -26,6 +26,7 @@ var services = mapOf(
         "datashare" to "Data Share",
         "databricks" to "DataBricks",
         "databasemigration" to "Database Migration",
+        "databoxedge" to "Databox Edge",
         "desktopvirtualization" to "Desktop Virtualization",
         "devtestlabs" to "Dev Test",
         "digitaltwins" to "Digital Twins",
@@ -67,6 +68,7 @@ var services = mapOf(
         "privatedns" to "Private DNS",
         "recoveryservices" to "Recovery Services",
         "redis" to "Redis",
+        "redisenterprise" to "Redis Enterprise",
         "relay" to "Relay",
         "resource" to "Resources",
         "sql" to "SQL",
@@ -83,5 +85,6 @@ var services = mapOf(
         "synapse" to "Synapse",
         "iottimeseriesinsights" to "Time Series Insights",
         "trafficmanager" to "Traffic Manager",
+        "vmware" to "Vmware",
         "web" to "Web"
 )

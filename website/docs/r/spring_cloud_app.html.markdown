@@ -77,6 +77,8 @@ The following attributes are exported:
 
 * `id` - The ID of the Spring Cloud Application.
 
+* `fqdn` - The Fully Qualified DNS Name of the Spring Application in the service.
+
 * `url` - The public endpoint of the Spring Cloud Application.
 
 ---
