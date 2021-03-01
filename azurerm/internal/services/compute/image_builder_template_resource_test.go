@@ -56,7 +56,7 @@ func TestAccAzureRMImageBuilderTemplate_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("customizer.0.shell_sha256_checksum").HasValue("2c6ff6902a4a52deee69e8db26d0036a53388651008aaf31795bb20dabd21fd8"),
 				check.That(data.ResourceName).Key("customizer.1.shell_sha256_checksum").HasValue("ade4c5214c3c675e92c66e2d067a870c5b81b9844b3de3cc72c49ff36425fc93"),
-				check.That(data.ResourceName).Key("customizer.2.shell_sha256_checksum").HasValue("d9715d72889fb1a0463d06ce9e89d1d2bd33b2c5e5362a736db6f5a25e601a58"),
+				check.That(data.ResourceName).Key("customizer.2.file_sha256_checksum").HasValue("d9715d72889fb1a0463d06ce9e89d1d2bd33b2c5e5362a736db6f5a25e601a58"),
 			),
 		},
 		data.ImportStep(),
