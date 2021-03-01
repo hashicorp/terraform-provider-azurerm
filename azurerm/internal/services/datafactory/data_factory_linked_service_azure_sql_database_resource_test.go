@@ -91,7 +91,7 @@ func TestAccDataFactoryLinkedServiceAzureSQLDatabase_KeyVaultReference(t *testin
 				check.That(data.ResourceName).Key("key_vault_password.0.secret_name").HasValue("secret"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("connection_string"),
 	})
 }
 
