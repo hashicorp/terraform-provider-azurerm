@@ -162,14 +162,15 @@ func resourceSentinelDataConnectorOffice365CreateUpdate(d *schema.ResourceData, 
 			return fmt.Errorf("retrieving Sentinel Data Connector Office 365 %q: %+v", id, err)
 		}
 
-		if err := assertDataConnectorKind(resp.Value, securityinsight.DataConnectorKindOffice365); err != nil {
-			return fmt.Errorf("asserting Sentinel Data Connector of %q: %+v", id, err)
+		dc, ok := resp.Value.(securityinsight.OfficeDataConnector)
+		if !ok {
+			return fmt.Errorf("%s was not an Office 365 Data Connector", id)
 		}
-		param.Etag = resp.Value.(securityinsight.OfficeDataConnector).Etag
+
+		param.Etag = dc.Etag
 	}
 
-	_, err = client.CreateOrUpdate(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.Name, param)
-	if err != nil {
+	if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.Name, param); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -242,8 +243,7 @@ func resourceSentinelDataConnectorOffice365Delete(d *schema.ResourceData, meta i
 		return err
 	}
 
-	_, err = client.Delete(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.Name)
-	if err != nil {
+	if _, err = client.Delete(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.Name); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
