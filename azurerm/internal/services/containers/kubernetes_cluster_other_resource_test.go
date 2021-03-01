@@ -27,6 +27,7 @@ var kubernetesOtherTests = map[string]func(t *testing.T){
 	"privateClusterOff":              testAccKubernetesCluster_privateClusterOff,
 	"privateClusterPrivateDNS":       testAccKubernetesCluster_privateClusterOnWithPrivateDNSZone,
 	"privateClusterPrivateDNSSystem": testAccKubernetesCluster_privateClusterOnWithPrivateDNSZoneSystem,
+	"privateClusterPrivateDNSAndSP":  testAccKubernetesCluster_privateClusterOnWithPrivateDNSZoneAndServicePrincipal,
 	"upgradeChannel":                 testAccKubernetesCluster_upgradeChannel,
 }
 

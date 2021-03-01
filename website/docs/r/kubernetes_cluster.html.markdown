@@ -110,7 +110,7 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `private_dns_zone_id` - (Optional) Either the ID of Private DNS Zone which should be delegated to this Cluster, or `System` to have AKS manage this.
 
--> **NOTE:** If you use BYO DNS Zone, AKS cluster should use identity type `UserAssigned` with `Private DNS Zone Contributor` role assigned to this identity for the zone. Next to it to prevent improper resource order destruction - cluster should depend on the role assignment, like in this example:
+-> **NOTE:** If you use BYO DNS Zone, AKS cluster should either use a User Assigned Identity or a service principal (which is deprecated) with the `Private DNS Zone Contributor` role and access to this Private DNS Zone. If `UserAssigned` identity is used - to prevent improper resource order destruction - cluster should depend on the role assignment, like in this example:
 
 ```
 resource "azurerm_resource_group" "example" {
