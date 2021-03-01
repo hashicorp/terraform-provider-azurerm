@@ -105,7 +105,7 @@ resource "azurerm_vmware_cluster" "test" {
   name             = "acctest-Cluster-%d"
   private_cloud_id = azurerm_vmware_private_cloud.test.id
   cluster_size     = 3
-  sku_name         = "av36t"
+  sku_name         = "av36"
 }
 `, VmwarePrivateCloudResource{}.basic(data), data.RandomInteger)
 }
@@ -131,7 +131,7 @@ resource "azurerm_vmware_cluster" "test" {
   name               = "acctest-Cluster-%d"
   private_cloud_name = azurerm_vmware_private_cloud.test.id
   cluster_size       = 4
-  sku_name           = "av36t"
+  sku_name           = "av36"
 }
 `, VmwarePrivateCloudResource{}.basic(data), data.RandomInteger)
 }
