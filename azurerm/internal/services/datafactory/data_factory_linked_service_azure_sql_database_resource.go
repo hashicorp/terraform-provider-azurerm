@@ -66,11 +66,34 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabase() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"key_vault_password": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"linked_service_name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"secret_name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
+
 			"use_managed_identity": {
-				Type:         schema.TypeBool,
-				Optional:     true,
-				Default:      false,
-				ExactlyOneOf: []string{"service_principal_id", "use_managed_identity"},
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+				ConflictsWith: []string{
+					"service_principal_id",
+				},
 			},
 
 			"service_principal_id": {
@@ -78,15 +101,16 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabase() *schema.Resource {
 				Optional:     true,
 				ValidateFunc: validation.IsUUID,
 				RequiredWith: []string{"service_principal_key"},
-				ExactlyOneOf: []string{"service_principal_id", "use_managed_identity"},
+				ConflictsWith: []string{
+					"use_managed_identity",
+				},
 			},
 
 			"service_principal_key": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				ValidateFunc:  validation.StringIsNotEmpty,
-				RequiredWith:  []string{"service_principal_id"},
-				ConflictsWith: []string{"use_managed_identity"},
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+				RequiredWith: []string{"service_principal_id"},
 			},
 
 			"tenant_id": {
@@ -170,6 +194,11 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabaseCreateUpdate(d *schema.Reso
 		sqlDatabaseProperties.ServicePrincipalID = utils.String(d.Get("service_principal_id").(string))
 		sqlDatabaseProperties.Tenant = utils.String(d.Get("tenant_id").(string))
 		sqlDatabaseProperties.ServicePrincipalKey = &secureString
+	}
+
+	if v, ok := d.GetOk("key_vault_password"); ok {
+		password := v.([]interface{})
+		sqlDatabaseProperties.Password = expandAzureKeyVaultPassword(password)
 	}
 
 	azureSQLDatabaseLinkedService := &datafactory.AzureSQLDatabaseLinkedService{
@@ -261,6 +290,14 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabaseRead(d *schema.ResourceData
 
 	d.Set("additional_properties", sql.AdditionalProperties)
 	d.Set("description", sql.Description)
+
+	if password := sql.Password; password != nil {
+		if keyVaultPassword, ok := password.AsAzureKeyVaultSecretReference(); ok {
+			if err := d.Set("key_vault_password", flattenAzureKeyVaultPassword(keyVaultPassword)); err != nil {
+				return fmt.Errorf("setting `key_vault_password`: %+v", err)
+			}
+		}
+	}
 
 	annotations := flattenDataFactoryAnnotations(sql.Annotations)
 	if err := d.Set("annotations", annotations); err != nil {

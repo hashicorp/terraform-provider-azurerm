@@ -65,6 +65,18 @@ The following arguments are supported:
 
 * `additional_properties` - (Optional) A map of additional properties to associate with the Data Factory Linked Service Azure SQL Database.
 
+* `key_vault_password` - (Optional) A `key_vault_password` block as defined below. Use this argument to store SQL Server password in an existing Key Vault. It needs an existing Key Vault Data Factory Linked Service.
+
+---
+
+A `key_vault_password` block supports the following:
+
+* `linked_service_name` - (Required) Specifies the name of an existing Key Vault Data Factory Linked Service.
+
+* `secret_name` - (Required) Specifies the secret name in Azure Key Vault that stores SQL Server password.
+
+---
+
 ## Attributes Reference
 
 The following attributes are exported:
