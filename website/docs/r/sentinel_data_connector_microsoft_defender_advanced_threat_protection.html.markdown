@@ -43,6 +43,8 @@ The following arguments are supported:
 
 * `tenant_id` - (Optional) The ID of the tenant that this Microsoft Defender Advanced Threat Protection Data Connector connects to. Changing this forces a new Microsoft Defender Advanced Threat Protection Data Connector to be created.
 
+-> If unspecified the Tenant ID of the current Subscription will be used
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
