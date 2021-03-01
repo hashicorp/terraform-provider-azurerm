@@ -5,6 +5,7 @@ FEATURES:
 * **New Data Source** `azurerm_vmware_private_cloud` [GH-9284]
 * **New Resource** `azurerm_vmware_private_cloud` [GH-9284]
 * **New Resource** `azurerm_kusto_eventgrid_data_connection` [GH-10712]
+* **New Resource** `azurerm_sentinel_data_connector_threat_intelligence` [GH-10670]
 
 ENHANCEMENTS:
 
