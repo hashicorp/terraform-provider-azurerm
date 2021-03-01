@@ -104,8 +104,7 @@ func resourceSentinelDataConnectorAzureActiveDirectoryCreate(d *schema.ResourceD
 		Kind: securityinsight.KindAzureActiveDirectory,
 	}
 
-	_, err = client.CreateOrUpdate(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.Name, param)
-	if err != nil {
+	if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.Name, param); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -158,8 +157,7 @@ func resourceSentinelDataConnectorAzureActiveDirectoryDelete(d *schema.ResourceD
 		return err
 	}
 
-	_, err = client.Delete(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.Name)
-	if err != nil {
+	if _, err = client.Delete(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.Name); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
