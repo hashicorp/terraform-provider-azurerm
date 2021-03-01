@@ -18,6 +18,7 @@ ENHANCEMENTS:
 * `azurerm_mssql_server_extended_auditing_policy ` - support for the `log_monitoring_enabled` property [GH-10324] 
 * `azurerm_sql_server` - support for the `extended_auditing_policy.log_monitoring_enabled` property [GH-10324]
 * `azurerm_sql_database` - support for the `extended_auditing_policy.log_monitoring_enabled` property [GH-10324]
+* `azurerm_spring_cloud_java_deployment` - supporting delta updates [GH-10729]
 * `azurerm_virtual_network_gateway` - deprecate `peering_address` in favour of `peering_addresses` [GH-10381]
 
 BUG FIXES:
