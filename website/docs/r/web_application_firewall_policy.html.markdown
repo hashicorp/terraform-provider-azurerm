@@ -180,7 +180,7 @@ The `managed_rules` block supports the following:
 
 * `exclusion` - (Optional) One or more `exclusion` block defined below.
 
-* `managed_rule_set` - (Optional) One or more `managed_rule_set` block defined below.
+* `managed_rule_set` - (Required) One or more `managed_rule_set` block defined below.
 
 ---
 
