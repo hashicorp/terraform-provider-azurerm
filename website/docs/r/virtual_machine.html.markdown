@@ -131,7 +131,7 @@ The following arguments are supported:
 
 * `identity` - (Optional) A `identity` block.
 
-* `license_type` - (Optional) Specifies the BYOL Type for this Virtual Machine. Possible values for Windows Virtual Machines are `Windows_Client` and `Windows_Server`. Possible Values for Linux Virtual Machines are `RHEL_BYOS` and `SUSE_BYOS`.
+* `license_type` - (Optional) Specifies the BYOL Type for this Virtual Machine. Possible values for Windows Virtual Machines are `Windows_Client` and `Windows_Server`. Possible values for Linux Virtual Machines are `RHEL_BYOS` and `SUSE_BYOS`.
 
 * `os_profile` - (Optional) An `os_profile` block. Required when `create_option` in the `storage_os_disk` block is set to `FromImage`.
 
