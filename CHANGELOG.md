@@ -6,6 +6,7 @@ FEATURES:
 * **New Resource:** `azurerm_kusto_eventgrid_data_connection` [GH-10712]
 * **New Resource:** `azurerm_sentinel_data_connector_office_365` [GH-10671]
 * **New Resource:** `azurerm_sentinel_data_connector_threat_intelligence` [GH-10670]
+* **New Resource:** `azurerm_sentinel_data_connector_azure_active_directory` [GH-10665]
 * **New Resource:** `azurerm_vmware_private_cloud` [GH-9284]
 
 ENHANCEMENTS:
