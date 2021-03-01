@@ -261,7 +261,7 @@ func TestAccLinuxVirtualMachine_otherCustomData(t *testing.T) {
 	})
 }
 
-func TestAccLinuxVirtualMachine_otherLicenceType(t *testing.T) {
+func TestAccLinuxVirtualMachine_otherLicenseType(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 	r := LinuxVirtualMachineResource{}
 
