@@ -41,43 +41,43 @@ func TestAccCosmosDBAccount_basic_global_strong(t *testing.T) {
 }
 
 func TestAccCosmosDBAccount_basic_mongo_boundedStaleness(t *testing.T) {
-	testAccCosmosDBAccount_basicWith(t, documentdb.MongoDB, documentdb.BoundedStaleness)
+	testAccCosmosDBAccount_basicMongoWith(t, documentdb.MongoDB, documentdb.BoundedStaleness)
 }
 
 func TestAccCosmosDBAccount_basic_mongo_consistentPrefix(t *testing.T) {
-	testAccCosmosDBAccount_basicWith(t, documentdb.MongoDB, documentdb.ConsistentPrefix)
+	testAccCosmosDBAccount_basicMongoWith(t, documentdb.MongoDB, documentdb.ConsistentPrefix)
 }
 
 func TestAccCosmosDBAccount_basic_mongo_eventual(t *testing.T) {
-	testAccCosmosDBAccount_basicWith(t, documentdb.MongoDB, documentdb.Eventual)
+	testAccCosmosDBAccount_basicMongoWith(t, documentdb.MongoDB, documentdb.Eventual)
 }
 
 func TestAccCosmosDBAccount_basic_mongo_session(t *testing.T) {
-	testAccCosmosDBAccount_basicWith(t, documentdb.MongoDB, documentdb.Session)
+	testAccCosmosDBAccount_basicMongoWith(t, documentdb.MongoDB, documentdb.Session)
 }
 
 func TestAccCosmosDBAccount_basic_mongo_strong(t *testing.T) {
-	testAccCosmosDBAccount_basicWith(t, documentdb.MongoDB, documentdb.Strong)
+	testAccCosmosDBAccount_basicMongoWith(t, documentdb.MongoDB, documentdb.Strong)
 }
 
 func TestAccCosmosDBAccount_basic_parse_boundedStaleness(t *testing.T) {
-	testAccCosmosDBAccount_basicWith(t, documentdb.MongoDB, documentdb.BoundedStaleness)
+	testAccCosmosDBAccount_basicMongoWith(t, documentdb.MongoDB, documentdb.BoundedStaleness)
 }
 
 func TestAccCosmosDBAccount_basic_parse_consistentPrefix(t *testing.T) {
-	testAccCosmosDBAccount_basicWith(t, documentdb.MongoDB, documentdb.ConsistentPrefix)
+	testAccCosmosDBAccount_basicMongoWith(t, documentdb.MongoDB, documentdb.ConsistentPrefix)
 }
 
 func TestAccCosmosDBAccount_basic_parse_eventual(t *testing.T) {
-	testAccCosmosDBAccount_basicWith(t, documentdb.MongoDB, documentdb.Eventual)
+	testAccCosmosDBAccount_basicMongoWith(t, documentdb.MongoDB, documentdb.Eventual)
 }
 
 func TestAccCosmosDBAccount_basic_parse_session(t *testing.T) {
-	testAccCosmosDBAccount_basicWith(t, documentdb.MongoDB, documentdb.Session)
+	testAccCosmosDBAccount_basicMongoWith(t, documentdb.MongoDB, documentdb.Session)
 }
 
 func TestAccCosmosDBAccount_basic_parse_strong(t *testing.T) {
-	testAccCosmosDBAccount_basicWith(t, documentdb.MongoDB, documentdb.Strong)
+	testAccCosmosDBAccount_basicMongoWith(t, documentdb.MongoDB, documentdb.Strong)
 }
 
 func TestAccCosmosDBAccount_public_network_access_enabled(t *testing.T) {
@@ -143,6 +143,21 @@ func testAccCosmosDBAccount_basicWith(t *testing.T, kind documentdb.DatabaseAcco
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basic(data, kind, consistency),
+			Check: resource.ComposeAggregateTestCheckFunc(
+				checkAccCosmosDBAccount_basic(data, consistency, 1),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func testAccCosmosDBAccount_basicMongoWith(t *testing.T, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicMongo(data, kind, consistency),
 			Check: resource.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, consistency, 1),
 			),
@@ -550,6 +565,40 @@ resource "azurerm_cosmosdb_account" "test" {
   resource_group_name = azurerm_resource_group.test.name
   offer_type          = "Standard"
   kind                = "%s"
+
+  consistency_policy {
+    consistency_level = "%s"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
+}
+
+func (CosmosDBAccountResource) basicMongo(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cosmos-%d"
+  location = "%s"
+}
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "%s"
+
+  capabilities {
+    name = "EnableMongo"
+  }
 
   consistency_policy {
     consistency_level = "%s"
@@ -1117,6 +1166,10 @@ resource "azurerm_cosmosdb_account" "test" {
   offer_type                    = "Standard"
   kind                          = "%s"
   public_network_access_enabled = true
+
+  capabilities {
+    name = "EnableMongo"
+  }
 
   consistency_policy {
     consistency_level = "%s"

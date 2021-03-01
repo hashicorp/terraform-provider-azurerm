@@ -208,6 +208,7 @@ func resourceCosmosDbAccount() *schema.Resource {
 						"zone_redundant": {
 							Type:     schema.TypeBool,
 							Optional: true,
+							Default:  false,
 						},
 					},
 				},
