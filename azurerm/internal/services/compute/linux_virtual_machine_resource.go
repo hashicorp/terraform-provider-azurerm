@@ -414,7 +414,7 @@ func resourceLinuxVirtualMachineCreate(d *schema.ResourceData, meta interface{})
 
 	if v, ok := d.GetOk("license_type"); ok {
 		license := v.(string)
-		params.VirtualMachineProperties.LicenseType = &license
+		params.VirtualMachineProperties.LicenseType = utils.String(v.(string))
 	}
 
 	if encryptionAtHostEnabled, ok := d.GetOk("encryption_at_host_enabled"); ok {
