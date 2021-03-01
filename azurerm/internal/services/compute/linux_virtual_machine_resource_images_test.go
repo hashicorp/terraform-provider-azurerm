@@ -18,7 +18,7 @@ func TestAccLinuxVirtualMachine_imageFromImage(t *testing.T) {
 			// create the original VM
 			Config: r.imageFromExistingMachinePrep(data),
 			Check: resource.ComposeTestCheckFunc(
-				check.That("azurerm_linux_virtual_machine.source").ExistsInAzure(r),
+				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_linux_virtual_machine.source"),
 				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_linux_virtual_machine.source"),
 			),
 		},
@@ -57,7 +57,7 @@ func TestAccLinuxVirtualMachine_imageFromSharedImageGallery(t *testing.T) {
 			// create the original VM
 			Config: r.imageFromExistingMachinePrep(data),
 			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
+				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_linux_virtual_machine.source"),
 				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_linux_virtual_machine.source"),
 			),
 		},
