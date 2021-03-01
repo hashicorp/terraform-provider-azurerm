@@ -170,7 +170,7 @@ func resourceVirtualMachine() *schema.Resource {
 					"Windows_Client",
 					"Windows_Server",
 					"RHEL_BYOS",
-					"SUSE_BYOS",
+					"SLES_BYOS",
 				}, true),
 			},
 
