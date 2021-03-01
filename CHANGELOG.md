@@ -2,15 +2,16 @@
 
 FEATURES:
 
-* **New Data Source** `azurerm_vmware_private_cloud` [GH-9284]
-* **New Resource** `azurerm_kusto_eventgrid_data_connection` [GH-10712]
-* **New Resource** `azurerm_sentinel_data_connector_threat_intelligence` [GH-10670]
-* **New Resource** `azurerm_vmware_private_cloud` [GH-9284]
+* **New Data Source:** `azurerm_vmware_private_cloud` [GH-9284]
+* **New Resource:** `azurerm_kusto_eventgrid_data_connection` [GH-10712]
+* **New Resource:** `azurerm_sentinel_data_connector_threat_intelligence` [GH-10670]
+* **New Resource:** `azurerm_vmware_private_cloud` [GH-9284]
 
 ENHANCEMENTS:
 
 * dependencies: updating `compute` to API version `2020-12-01` [GH-10650]
 * `azurerm_keyvault_secret` - support for the `versionless_id` property [GH-10738]
+* `azurerm_kubernetes_cluster` - support `private_dns_zone_id` when using a `service_principal` [GH-10737]
 * `azurerm_kusto_cluster` - supports for the `double_encryption_enabled` property [GH-10264]
 * `azurerm_mssql_database` - support for the `log_monitoring_enabled` property within the `extended_auditing_policy` block [GH-10324]
 * `azurerm_mssql_database_extended_auditing_policy ` - support for the `log_monitoring_enabled` property [GH-10324]
