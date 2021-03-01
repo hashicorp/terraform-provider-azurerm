@@ -9,14 +9,15 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: updating `compute` to API version `2020-12-01` [GH-10650]
-* `azurerm_keyvault_secret`: support `versionless_id` attribute [GH-10738]
-* `azurerm_virtual_network_gateway` - deprecate `peering_address` in favour of `peering_addresses` [GH-10381]
-* `azurerm_sql_server` - support for the `extended_auditing_policy.log_monitoring_enabled` property [GH-10324]
-* `azurerm_sql_database` - support for the `extended_auditing_policy.log_monitoring_enabled` property [GH-10324]
+* `azurerm_keyvault_secret` - support for the `versionless_id` property [GH-10738]
+* `azurerm_kusto_cluster` - supports for the `double_encryption_enabled` property [GH-10264]
 * `azurerm_mssql_database` - support for the `extended_auditing_policy.log_monitoring_enabled` property [GH-10324]
 * `azurerm_mssql_database_extended_auditing_policy ` - support for the `log_monitoring_enabled` property [GH-10324]
 * `azurerm_mssql_server` - support for the `extended_auditing_policy.log_monitoring_enabled` property [GH-10324]
-* `azurerm_mssql_server_extended_auditing_policy ` - support for the `log_monitoring_enabled` property [GH-10324]
+* `azurerm_mssql_server_extended_auditing_policy ` - support for the `log_monitoring_enabled` property [GH-10324] 
+* `azurerm_sql_server` - support for the `extended_auditing_policy.log_monitoring_enabled` property [GH-10324]
+* `azurerm_sql_database` - support for the `extended_auditing_policy.log_monitoring_enabled` property [GH-10324]
+* `azurerm_virtual_network_gateway` - deprecate `peering_address` in favour of `peering_addresses` [GH-10381]
 
 BUG FIXES:
 
