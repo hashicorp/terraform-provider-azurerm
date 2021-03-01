@@ -664,33 +664,6 @@ func resourcePostgreSQLServerUpdate(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("waiting for update of PostgreSQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	if d.HasChange("sku_name") && mode != postgresql.CreateModeReplica {
-		oldRaw, newRaw := d.GetChange("sku_name")
-		old := oldRaw.(string)
-		new := newRaw.(string)
-
-		if indexOfSku(old) > indexOfSku(new) {
-			propertiesReplica := postgresql.ServerUpdateParameters{
-				Sku: sku,
-			}
-
-			listReplicas, err := replicasClient.ListByServer(ctx, id.ResourceGroup, id.Name)
-			if err != nil {
-				return fmt.Errorf("request error for list of replicas for PostgreSQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-			}
-			for _, replica := range *listReplicas.Value {
-				future, err := client.Update(ctx, id.ResourceGroup, *replica.Name, propertiesReplica)
-				if err != nil {
-					return fmt.Errorf("updating PostgreSQL Server Replica %q (Resource Group %q): %+v", *replica.Name, id.ResourceGroup, err)
-				}
-
-				if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-					return fmt.Errorf("waiting for update of PostgreSQL Server Replica %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-				}
-			}
-		}
-	}
-
 	if v, ok := d.GetOk("threat_detection_policy"); ok {
 		alert := expandSecurityAlertPolicy(v)
 		if alert != nil {
