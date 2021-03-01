@@ -1,3 +1,9 @@
+# 2.1.3 (February 22, 2021)
+
+BUG FIXES:
+
+ - Fix compilation error from go-getter ([#44](https://github.com/hashicorp/terraform-plugin-test/pull/44))
+
 # 2.1.2 (September 15, 2020)
 
 BUG FIXES:

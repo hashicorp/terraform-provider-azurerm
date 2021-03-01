@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -239,9 +239,9 @@ func resourceLinuxVirtualMachineScaleSet() *schema.Resource {
 				ForceNew: true,
 				Default:  string(compute.Manual),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.UpgradeModeAutomatic),
-					string(compute.UpgradeModeManual),
-					string(compute.UpgradeModeRolling),
+					string(compute.Automatic),
+					string(compute.Manual),
+					string(compute.Rolling),
 				}, false),
 			},
 
@@ -346,19 +346,19 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *schema.ResourceData, meta inte
 	rollingUpgradePolicyRaw := d.Get("rolling_upgrade_policy").([]interface{})
 	rollingUpgradePolicy := ExpandVirtualMachineScaleSetRollingUpgradePolicy(rollingUpgradePolicyRaw)
 
-	if upgradeMode != compute.UpgradeModeAutomatic && len(automaticOSUpgradePolicyRaw) > 0 {
+	if upgradeMode != compute.Automatic && len(automaticOSUpgradePolicyRaw) > 0 {
 		return fmt.Errorf("An `automatic_os_upgrade_policy` block cannot be specified when `upgrade_mode` is not set to `Automatic`")
 	}
 
-	if upgradeMode == compute.UpgradeModeAutomatic && len(automaticOSUpgradePolicyRaw) > 0 && healthProbeId == "" {
+	if upgradeMode == compute.Automatic && len(automaticOSUpgradePolicyRaw) > 0 && healthProbeId == "" {
 		return fmt.Errorf("`healthProbeId` must be set when `upgrade_mode` is set to %q and `automatic_os_upgrade_policy` block exists", string(upgradeMode))
 	}
 
-	shouldHaveRollingUpgradePolicy := upgradeMode == compute.UpgradeModeAutomatic || upgradeMode == compute.UpgradeModeRolling
+	shouldHaveRollingUpgradePolicy := upgradeMode == compute.Automatic || upgradeMode == compute.Rolling
 	if !shouldHaveRollingUpgradePolicy && len(rollingUpgradePolicyRaw) > 0 {
 		return fmt.Errorf("A `rolling_upgrade_policy` block cannot be specified when `upgrade_mode` is set to %q", string(upgradeMode))
 	}
-	shouldHaveRollingUpgradePolicy = upgradeMode == compute.UpgradeModeRolling
+	shouldHaveRollingUpgradePolicy = upgradeMode == compute.Rolling
 	if shouldHaveRollingUpgradePolicy && len(rollingUpgradePolicyRaw) == 0 {
 		return fmt.Errorf("A `rolling_upgrade_policy` block must be specified when `upgrade_mode` is set to %q", string(upgradeMode))
 	}
@@ -1083,7 +1083,11 @@ func resourceLinuxVirtualMachineScaleSetDelete(d *schema.ResourceData, meta inte
 	}
 
 	log.Printf("[DEBUG] Deleting Linux Virtual Machine Scale Set %q (Resource Group %q)..", id.Name, id.ResourceGroup)
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	// @ArcturusZhang (mimicking from linux_virtual_machine_resource.go): sending `nil` here omits this value from being sent
+	// which matches the previous behaviour - we're only splitting this out so it's clear why
+	// TODO: support force deletion once it's out of Preview, if applicable
+	var forceDeletion *bool = nil
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name, forceDeletion)
 	if err != nil {
 		return fmt.Errorf("Error deleting Linux Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}

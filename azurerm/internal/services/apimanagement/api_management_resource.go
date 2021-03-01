@@ -87,7 +87,6 @@ func resourceApiManagementService() *schema.Resource {
 			"sku_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: apimValidate.ApimSkuName(),
 			},
 

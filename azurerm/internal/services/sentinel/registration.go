@@ -33,5 +33,6 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_sentinel_alert_rule_ms_security_incident":       resourceSentinelAlertRuleMsSecurityIncident(),
 		"azurerm_sentinel_alert_rule_scheduled":                  resourceSentinelAlertRuleScheduled(),
 		"azurerm_sentinel_data_connector_azure_active_directory": resourceSentinelDataConnectorAzureActiveDirectory(),
+		"azurerm_sentinel_data_connector_threat_intelligence":    resourceSentinelDataConnectorThreatIntelligence(),
 	}
 }
