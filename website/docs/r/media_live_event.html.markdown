@@ -104,7 +104,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Live Event.
 
-* `transcription_languages` - (Optional) Specifies a list of languages (locale) to be used for speech-to-text transcription – it should match the spoken language in the audio track. The value should be in BCP-47 format (e.g: 'en-US'). See https://go.microsoft.com/fwlink/?linkid=2133742 for more information about the live transcription feature and the list of supported languages.
+* `transcription_languages` - (Optional) Specifies a list of languages (locale) to be used for speech-to-text transcription – it should match the spoken language in the audio track. The value should be in `BCP-47` format (e.g: `en-US`). [See the Microsoft Documentation for more information about the live transcription feature and the list of supported languages](https://go.microsoft.com/fwlink/?linkid=2133742 ).
 
 * `use_static_hostname` - (Optional) Specifies whether a static hostname would be assigned to the live event preview and ingest endpoints. This value can only be updated if the live event is in Standby state.
 
@@ -114,37 +114,39 @@ A `cross_site_access_policy` block supports the following:
 
 * `client_access_policy` - (Optional) The content of clientaccesspolicy.xml used by Silverlight.
 
-* `cross_domain_policy` - (Optional) The content of crossdomain.xml used by Silverlight.
+* `cross_domain_policy` - (Optional) The content of the Cross Domain Policy (`crossdomain.xml`).
 
 ---
 
 A `encoding` block supports the following:
 
-* `key_frame_interval` - (Optional) Use an ISO 8601 time value between 0.5 to 20 seconds to specify the output fragment length for the video and audio tracks of an encoding live event. For example, use PT2S to indicate 2 seconds. For the video track it also defines the key frame interval, or the length of a GoP (group of pictures). If this value is not set for an encoding live event, the fragment duration defaults to 2 seconds. The value cannot be set for pass-through live events.
+* `key_frame_interval` - (Optional) Use an `ISO 8601` time value between 0.5 to 20 seconds to specify the output fragment length for the video and audio tracks of an encoding live event. For example, use `PT2S` to indicate 2 seconds. For the video track it also defines the key frame interval, or the length of a GoP (group of pictures). If this value is not set for an encoding live event, the fragment duration defaults to 2 seconds. The value cannot be set for pass-through live events.
 
-* `preset_name` - (Optional) The optional encoding preset name, used when `type` is not `None`. This value is specified at creation time and cannot be updated. If the `type` is set to `Standard`, then the default preset name is `Default720p`. Else if the `type` is set to `Premium1080p`, the default preset is `Default1080p`.
+* `preset_name` - (Optional) The optional encoding preset name, used when `type` is not `None`. If the `type` is set to `Standard`, then the default preset name is `Default720p`. Else if the `type` is set to `Premium1080p`, the default preset is `Default1080p`. Changing this forces a new resource to be created.
 
 * `stretch_mode` - (Optional) Specifies how the input video will be resized to fit the desired output resolution(s). Allowed values are `None`, `AutoFit` or `AutoSize`. Default is `None`.
 
-* `type` - (Optional) Live event type. Allowed values are `None`, `Premium1080p` or `Standard`. When encodingType is set to `None`, the service simply passes through the incoming video and audio layer(s) to the output. When `type` is set to `Standard` or `Premium1080p`, a live encoder transcodes the incoming stream into multiple bitrates or layers. See https://go.microsoft.com/fwlink/?linkid=2095101 for more information. This property cannot be modified after the live event is created.
+* `type` - (Optional) Live event type. Allowed values are `None`, `Premium1080p` or `Standard`. When set to `None`, the service simply passes through the incoming video and audio layer(s) to the output. When `type` is set to `Standard` or `Premium1080p`, a live encoder transcodes the incoming stream into multiple bitrates or layers. Defaults to `None`. Changing this forces a new resource to be created.
+
+-> [More information can be found in the Microsoft Documentation](https://go.microsoft.com/fwlink/?linkid=2095101).
 
 ---
 
 A `input` block supports the following:
 
-* `access_token` - (Optional) A UUID in string form to uniquely identify the stream. This can be specified at creation time but cannot be updated. If omitted, the service will generate a unique value.
+* `access_token` - (Optional) A UUID in string form to uniquely identify the stream. If omitted, the service will generate a unique value. Changing this forces a new value to be created.
 
 * `ip_access_control_allow` - (Optional) One or more `ip_access_control_allow` blocks as defined below.
 
-* `key_frame_interval_duration` - (Optional) ISO 8601 time duration of the key frame interval duration of the input. This value sets the EXT-X-TARGETDURATION property in the HLS output. For example, use PT2S to indicate 2 seconds. Leave the value empty for encoding live events.
+* `key_frame_interval_duration` - (Optional) ISO 8601 time duration of the key frame interval duration of the input. This value sets the `EXT-X-TARGETDURATION` property in the HLS output. For example, use PT2S to indicate 2 seconds. This field cannot be set when `type` is set to `Encoding`.
 
-* `streaming_protocol` - (Optional) The input protocol for the live event. This is specified at creation time and cannot be updated. Allowed values are `FragmentedMP4` and `RTMP`.
+* `streaming_protocol` - (Optional) The input protocol for the live event. Allowed values are `FragmentedMP4` and `RTMP`. Changing this forces a new resource to be created.
 
 ---
 
 A `ip_access_control_allow` block supports the following:
 
-* `address` - (Optional) The IP address.
+* `address` - (Optional) The IP address or CIDR range.
 
 * `name` - (Optional) The friendly name for the IP address range.
 
@@ -154,13 +156,13 @@ A `ip_access_control_allow` block supports the following:
 
 A `preview` block supports the following:
 
-* `alternative_media_id` - (Optional) An alternative media identifier associated with the streaming locator created for the preview. This value is specified at creation time and cannot be updated. The identifier can be used in the `CustomLicenseAcquisitionUrlTemplate` or the `CustomKeyAcquisitionUrlTemplate` of the StreamingPolicy specified in the StreamingPolicyName field.
+* `alternative_media_id` - (Optional) An alternative media identifier associated with the streaming locator created for the preview. The identifier can be used in the `CustomLicenseAcquisitionUrlTemplate` or the `CustomKeyAcquisitionUrlTemplate` of the Streaming Policy specified in the `streaming_policy_name` field. Changing this forces a new resource to be created.
 
 * `ip_access_control_allow` - (Optional) One or more `ip_access_control_allow` blocks as defined above.
 
-* `preview_locator` - (Optional) The identifier of the preview locator in Guid format. Specifying this at creation time allows the caller to know the preview locator url before the event is created. If omitted, the service will generate a random identifier. This value cannot be updated once the live event is created.
+* `preview_locator` - (Optional) The identifier of the preview locator in Guid format. Specifying this at creation time allows the caller to know the preview locator url before the event is created. If omitted, the service will generate a random identifier. Changing this forces a new resource to be created.
 
-* `streaming_policy_name` - (Optional) The name of streaming policy used for the live event preview. This value is specified at creation time and cannot be updated.
+* `streaming_policy_name` - (Optional) The name of streaming policy used for the live event preview. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
