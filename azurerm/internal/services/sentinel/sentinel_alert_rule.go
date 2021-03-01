@@ -37,7 +37,7 @@ func importSentinelAlertRule(expectKind securityinsight.AlertRuleKind) func(d *s
 		ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 		defer cancel()
 
-		resp, err := client.Get(ctx, id.ResourceGroup, "Microsoft.OperationalInsights", id.WorkspaceName, id.Name)
+		resp, err := client.Get(ctx, id.ResourceGroup, operationalInsightsResourceProvider, id.WorkspaceName, id.Name)
 		if err != nil {
 			return nil, fmt.Errorf("retrieving Sentinel Alert Rule %q: %+v", id, err)
 		}
