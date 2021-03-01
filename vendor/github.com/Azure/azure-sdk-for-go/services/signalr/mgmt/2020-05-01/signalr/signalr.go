@@ -95,7 +95,7 @@ func (client Client) CheckNameAvailabilityPreparer(ctx context.Context, location
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-10-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -137,7 +137,7 @@ func (client Client) CheckNameAvailabilityResponder(resp *http.Response) (result
 // from the Azure Resource Manager API or the portal.
 // resourceName - the name of the SignalR resource.
 // parameters - parameters for the create or update operation
-func (client Client) CreateOrUpdate(ctx context.Context, resourceGroupName string, resourceName string, parameters *CreateParameters) (result CreateOrUpdateFuture, err error) {
+func (client Client) CreateOrUpdate(ctx context.Context, resourceGroupName string, resourceName string, parameters *ResourceType) (result CreateOrUpdateFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/Client.CreateOrUpdate")
 		defer func() {
@@ -151,7 +151,9 @@ func (client Client) CreateOrUpdate(ctx context.Context, resourceGroupName strin
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "parameters.Location", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
+				Chain: []validation.Constraint{{Target: "parameters.Sku", Name: validation.Null, Rule: false,
+					Chain: []validation.Constraint{{Target: "parameters.Sku.Name", Name: validation.Null, Rule: true, Chain: nil}}},
+				}}}}}); err != nil {
 		return result, validation.NewError("signalr.Client", "CreateOrUpdate", err.Error())
 	}
 
@@ -171,14 +173,14 @@ func (client Client) CreateOrUpdate(ctx context.Context, resourceGroupName strin
 }
 
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
-func (client Client) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, resourceName string, parameters *CreateParameters) (*http.Request, error) {
+func (client Client) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, resourceName string, parameters *ResourceType) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"resourceName":      autorest.Encode("path", resourceName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-10-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -285,7 +287,7 @@ func (client Client) DeletePreparer(ctx context.Context, resourceGroupName strin
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-10-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -383,7 +385,7 @@ func (client Client) GetPreparer(ctx context.Context, resourceGroupName string, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-10-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -463,7 +465,7 @@ func (client Client) ListByResourceGroupPreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-10-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -471,7 +473,7 @@ func (client Client) ListByResourceGroupPreparer(ctx context.Context, resourceGr
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.SignalRService/SignalR", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.SignalRService/signalR", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -576,7 +578,7 @@ func (client Client) ListBySubscriptionPreparer(ctx context.Context) (*http.Requ
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-10-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -584,7 +586,7 @@ func (client Client) ListBySubscriptionPreparer(ctx context.Context) (*http.Requ
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.SignalRService/SignalR", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.SignalRService/signalR", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -690,7 +692,7 @@ func (client Client) ListKeysPreparer(ctx context.Context, resourceGroupName str
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-10-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -698,7 +700,7 @@ func (client Client) ListKeysPreparer(ctx context.Context, resourceGroupName str
 	preparer := autorest.CreatePreparer(
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.SignalRService/SignalR/{resourceName}/listKeys", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.SignalRService/signalR/{resourceName}/listKeys", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -762,7 +764,7 @@ func (client Client) RegenerateKeyPreparer(ctx context.Context, resourceGroupNam
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-10-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -771,7 +773,7 @@ func (client Client) RegenerateKeyPreparer(ctx context.Context, resourceGroupNam
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.SignalRService/SignalR/{resourceName}/regenerateKey", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.SignalRService/signalR/{resourceName}/regenerateKey", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	if parameters != nil {
 		preparer = autorest.DecoratePreparer(preparer,
@@ -869,7 +871,7 @@ func (client Client) RestartPreparer(ctx context.Context, resourceGroupName stri
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-10-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -927,7 +929,7 @@ func (client Client) RestartResponder(resp *http.Response) (result autorest.Resp
 // from the Azure Resource Manager API or the portal.
 // resourceName - the name of the SignalR resource.
 // parameters - parameters for the update operation
-func (client Client) Update(ctx context.Context, resourceGroupName string, resourceName string, parameters *UpdateParameters) (result UpdateFuture, err error) {
+func (client Client) Update(ctx context.Context, resourceGroupName string, resourceName string, parameters *ResourceType) (result UpdateFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/Client.Update")
 		defer func() {
@@ -954,14 +956,14 @@ func (client Client) Update(ctx context.Context, resourceGroupName string, resou
 }
 
 // UpdatePreparer prepares the Update request.
-func (client Client) UpdatePreparer(ctx context.Context, resourceGroupName string, resourceName string, parameters *UpdateParameters) (*http.Request, error) {
+func (client Client) UpdatePreparer(ctx context.Context, resourceGroupName string, resourceName string, parameters *ResourceType) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"resourceName":      autorest.Encode("path", resourceName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-10-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

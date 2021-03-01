@@ -1,4 +1,4 @@
-// Package signalr implements the Azure ARM Signalr service API version 2018-10-01.
+// Package signalr implements the Azure ARM Signalr service API version 2020-05-01.
 //
 // REST API for Azure SignalR Service
 package signalr
