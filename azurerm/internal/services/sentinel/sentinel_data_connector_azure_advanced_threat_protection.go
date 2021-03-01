@@ -104,8 +104,7 @@ func resourceSentinelDataConnectorAzureAdvancedThreatProtectionCreate(d *schema.
 		Kind: securityinsight.KindAzureAdvancedThreatProtection,
 	}
 
-	_, err = client.CreateOrUpdate(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.Name, param)
-	if err != nil {
+	if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.Name, param); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -158,8 +157,7 @@ func resourceSentinelDataConnectorAzureAdvancedThreatProtectionDelete(d *schema.
 		return err
 	}
 
-	_, err = client.Delete(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.Name)
-	if err != nil {
+	if _, err = client.Delete(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.Name); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
