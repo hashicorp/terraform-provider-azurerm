@@ -74,7 +74,7 @@ func resourceSentinelDataConnectorAwsCloudTrailCreateUpdate(d *schema.ResourceDa
 	id := parse.NewDataConnectorID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.WorkspaceName, name)
 
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, id.ResourceGroup, operationalInsightsResourceProvider, id.WorkspaceName, name)
+		resp, err := client.Get(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -103,7 +103,7 @@ func resourceSentinelDataConnectorAwsCloudTrailCreateUpdate(d *schema.ResourceDa
 	// TODO: following code can be removed once the issue below is fixed:
 	// https://github.com/Azure/azure-rest-api-specs/issues/13203
 	if !d.IsNewResource() {
-		resp, err := client.Get(ctx, id.ResourceGroup, operationalInsightsResourceProvider, id.WorkspaceName, name)
+		resp, err := client.Get(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, name)
 		if err != nil {
 			return fmt.Errorf("retrieving %s: %+v", id, err)
 		}
@@ -115,7 +115,7 @@ func resourceSentinelDataConnectorAwsCloudTrailCreateUpdate(d *schema.ResourceDa
 		param.Etag = dc.Etag
 	}
 
-	if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, operationalInsightsResourceProvider, id.WorkspaceName, id.Name, param); err != nil {
+	if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.Name, param); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -135,7 +135,7 @@ func resourceSentinelDataConnectorAwsCloudTrailRead(d *schema.ResourceData, meta
 	}
 	workspaceId := loganalyticsParse.NewLogAnalyticsWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
 
-	resp, err := client.Get(ctx, id.ResourceGroup, operationalInsightsResourceProvider, id.WorkspaceName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] %s was not found - removing from state!", id)
@@ -170,7 +170,7 @@ func resourceSentinelDataConnectorAwsCloudTrailDelete(d *schema.ResourceData, me
 		return err
 	}
 
-	if _, err = client.Delete(ctx, id.ResourceGroup, operationalInsightsResourceProvider, id.WorkspaceName, id.Name); err != nil {
+	if _, err = client.Delete(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.Name); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
