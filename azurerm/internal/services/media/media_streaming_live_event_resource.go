@@ -95,6 +95,7 @@ func resourceMediaLiveEvent() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Computed:     true,
+							ForceNew: true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
@@ -124,6 +125,7 @@ func resourceMediaLiveEvent() *schema.Resource {
 						"streaming_protocol": {
 							Type:     schema.TypeString,
 							Optional: true,
+							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(media.RTMP),
 								string(media.FragmentedMP4),
@@ -266,6 +268,7 @@ func resourceMediaLiveEvent() *schema.Resource {
 						"preview_locator": {
 							Type:         schema.TypeString,
 							Optional:     true,
+							ForceNew: true,
 							Computed:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
@@ -274,6 +277,7 @@ func resourceMediaLiveEvent() *schema.Resource {
 							Type:         schema.TypeString,
 							Computed:     true,
 							Optional:     true,
+							ForceNew: true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
@@ -653,7 +657,7 @@ func flattenLiveEventInput(input *media.LiveEventInput) []interface{} {
 	IPAccessControlAllow := make([]interface{}, 0)
 	if input.AccessControl != nil && input.AccessControl.IP != nil && input.AccessControl.IP.Allow != nil {
 		IPAccessControlAllow = flattenEventAccessControl(input.AccessControl.IP.Allow)
-	}
+	ipAccessControlAllow := flattenEventAccessControl(input.AccessControl)
 
 	accessToken := ""
 	if input.AccessToken != nil {
@@ -663,7 +667,7 @@ func flattenLiveEventInput(input *media.LiveEventInput) []interface{} {
 	endpoints := make([]interface{}, 0)
 	if input.Endpoints != nil {
 		endpoints = flattenEndpoints(input.Endpoints)
-	}
+	endpoints := flattenEndpoints(input.Endpoints)
 
 	keyFrameInterval := ""
 	if input.KeyFrameIntervalDuration != nil {
@@ -772,7 +776,7 @@ func flattenPreview(input *media.LiveEventPreview) []interface{} {
 	IPAccessControlAllow := make([]interface{}, 0)
 	if input.AccessControl != nil && input.AccessControl.IP != nil && input.AccessControl.IP.Allow != nil {
 		IPAccessControlAllow = flattenEventAccessControl(input.AccessControl.IP.Allow)
-	}
+	ipAccessControlAllow = flattenEventAccessControl(input.AccessControl)
 
 	alternativeMediaID := ""
 	if input.AlternativeMediaID != nil {
@@ -782,7 +786,7 @@ func flattenPreview(input *media.LiveEventPreview) []interface{} {
 	endpoints := make([]interface{}, 0)
 	if input.Endpoints != nil {
 		endpoints = flattenEndpoints(input.Endpoints)
-	}
+	endpoints := flattenEndpoints(input.Endpoints)
 
 	previewLocator := ""
 	if input.PreviewLocator != nil {
