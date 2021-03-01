@@ -804,7 +804,9 @@ func (VirtualMachineScaleSetResource) Destroy(ctx context.Context, client *clien
 		return nil, err
 	}
 
-	future, err := client.Compute.VMScaleSetClient.Delete(ctx, id.ResourceGroup, id.Name)
+	// this is a preview feature we don't want to use right now
+	var forceDelete *bool = nil
+	future, err := client.Compute.VMScaleSetClient.Delete(ctx, id.ResourceGroup, id.Name, forceDelete)
 	if err != nil {
 		return nil, fmt.Errorf("Bad: deleting %s: %+v", *id, err)
 	}

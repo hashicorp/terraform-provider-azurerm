@@ -8,13 +8,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azuread/azuread"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/testclient"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/provider"
 )
 
 var once sync.Once
 
 func EnsureProvidersAreInitialised() {
-	if !enableBinaryTesting {
+	if !testclient.EnableBinaryTesting {
 		os.Setenv("TF_DISABLE_BINARY_TESTING", "true")
 	} else {
 		// require reattach testing is enabled
@@ -22,10 +23,10 @@ func EnsureProvidersAreInitialised() {
 	}
 
 	once.Do(func() {
-		if !enableBinaryTesting {
+		if !testclient.EnableBinaryTesting {
 			azureProvider := provider.TestAzureProvider().(*schema.Provider)
-			AzureProvider = azureProvider
-			SupportedProviders = map[string]terraform.ResourceProvider{
+			testclient.AzureProvider = azureProvider
+			testclient.SupportedProviders = map[string]terraform.ResourceProvider{
 				"azurerm": azureProvider,
 				"azuread": azuread.Provider().(*schema.Provider),
 			}
