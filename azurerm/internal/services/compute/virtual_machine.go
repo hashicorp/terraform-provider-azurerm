@@ -1,13 +1,10 @@
 package compute
 
 import (
-	"bytes"
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -433,7 +430,7 @@ func virtualMachineDataDiskSchema() *schema.Schema {
 
 func virtualMachineCreateDataDiskSchema() *schema.Schema {
 	return &schema.Schema{
-		Type:     schema.TypeSet,
+		Type:     schema.TypeList,
 		Optional: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
@@ -492,13 +489,12 @@ func virtualMachineCreateDataDiskSchema() *schema.Schema {
 				},
 			},
 		},
-		Set: resourceArmVirtualMachineCreateDataDiskHash,
 	}
 }
 
 func virtualMachineAttachDataDiskSchema() *schema.Schema {
 	return &schema.Schema{
-		Type:     schema.TypeSet,
+		Type:     schema.TypeList,
 		Optional: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
@@ -582,13 +578,12 @@ func expandVirtualMachineDataDisks(ctx context.Context, d *schema.ResourceData, 
 }
 
 func expandVirtualMachineCreateDataDisksForCreate(input interface{}) []compute.DataDisk {
-	if input == nil || len(input.(*schema.Set).List()) == 0 {
-		return []compute.DataDisk{}
+	var output []compute.DataDisk
+	if input == nil {
+		return output
 	}
 
-	var dataDisks []compute.DataDisk
-
-	for _, v := range input.(*schema.Set).List() {
+	for _, v := range input.([]interface{}) {
 		disk := v.(map[string]interface{})
 		dataDisk := compute.DataDisk{
 			Caching:      compute.CachingTypes(disk["caching"].(string)),
@@ -605,35 +600,42 @@ func expandVirtualMachineCreateDataDisksForCreate(input interface{}) []compute.D
 				ID: utils.String(diskEncryptionSetID),
 			}
 		}
-		dataDisks = append(dataDisks, dataDisk)
+		output = append(output, dataDisk)
 	}
 
-	return dataDisks
+	return output
 }
 
 func expandVirtualMachineCreateDataDisksForUpdate(ctx context.Context, input interface{}, d *schema.ResourceData, meta interface{}) ([]compute.DataDisk, error) {
-	if input == nil || len(input.(*schema.Set).List()) == 0 {
-		return []compute.DataDisk{}, nil
+	var output []compute.DataDisk
+
+	if input == nil {
+		return output, nil
 	}
 
 	diskClient := meta.(*clients.Client).Compute.DisksClient
-	var dataDisks []compute.DataDisk
+
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	for _, v := range input.(*schema.Set).List() {
+	for _, v := range input.([]interface{}) {
 		disk := v.(map[string]interface{})
 		name := disk["name"].(string)
 		// this filters out the ghost entry we get from the set - less than ideal
 		if name == "" {
 			continue
 		}
-
+		newDiskToAdd := false
 		current, err := diskClient.Get(ctx, resourceGroup, name)
 		if err != nil {
-			return nil, fmt.Errorf("failure reading Data Disk %q (resource group %q) for update: %+v", name, resourceGroup, err)
+			// If 404, this is a new disk to add
+			if utils.ResponseWasNotFound(current.Response) {
+				newDiskToAdd = true
+			} else {
+				return nil, fmt.Errorf("failure reading Data Disk %q (resource group %q) for update: %+v", name, resourceGroup, err)
+			}
 		}
 
-		if current.ID == nil {
+		if !newDiskToAdd && current.ID == nil {
 			return nil, fmt.Errorf("could not determine ID for Data Disk %q (resource group %q) for update: %+v", name, resourceGroup, err)
 		}
 
@@ -657,22 +659,21 @@ func expandVirtualMachineCreateDataDisksForUpdate(ctx context.Context, input int
 			dataDisk.WriteAcceleratorEnabled = utils.Bool(writeAcceleratorEnabled.(bool))
 		}
 
-		dataDisks = append(dataDisks, dataDisk)
+		output = append(output, dataDisk)
 	}
 
-	return dataDisks, nil
+	return output, nil
 }
 
 func expandVirtualMachineAttachDataDisksForCreate(ctx context.Context, input interface{}, d *schema.ResourceData, meta interface{}) ([]compute.DataDisk, error) {
-	if input == nil || len(input.(*schema.Set).List()) == 0 {
-		return []compute.DataDisk{}, nil
+	var output []compute.DataDisk
+	if input == nil {
+		return output, nil
 	}
 
 	disksClient := meta.(*clients.Client).Compute.DisksClient
 
-	var dataDisks []compute.DataDisk
-
-	for _, v := range input.(*schema.Set).List() {
+	for _, v := range input.([]interface{}) {
 		disk := v.(map[string]interface{})
 		diskIDRaw := disk["managed_disk_id"].(string)
 
@@ -707,10 +708,10 @@ func expandVirtualMachineAttachDataDisksForCreate(ctx context.Context, input int
 			dataDisk.WriteAcceleratorEnabled = utils.Bool(writeAcceleratorEnabled.(bool))
 		}
 
-		dataDisks = append(dataDisks, dataDisk)
+		output = append(output, dataDisk)
 	}
 
-	return dataDisks, nil
+	return output, nil
 }
 
 func flattenVirtualMachineDataDisks(input *[]compute.DataDisk) ([]interface{}, error) {
@@ -787,25 +788,25 @@ func flattenVirtualMachineDataDisks(input *[]compute.DataDisk) ([]interface{}, e
 	}
 	return []interface{}{
 		map[string]interface{}{
-			"create": schema.NewSet(resourceArmVirtualMachineCreateDataDiskHash, createDisks),
+			"create": createDisks,
 			"attach": attachDisks,
 		},
 	}, nil
 }
 
-func resourceArmVirtualMachineCreateDataDiskHash(v interface{}) int {
-	var buf bytes.Buffer
-
-	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
-		buf.WriteString(fmt.Sprintf("%d-", m["lun"].(int)))
-		buf.WriteString(fmt.Sprintf("%s-", m["caching"].(string)))
-		buf.WriteString(fmt.Sprintf("%s-", m["storage_account_type"].(string)))
-		buf.WriteString(fmt.Sprintf("%d-", m["disk_size_gb"].(int)))
-		// Due to potential case diff in API response needs to be normalised
-		buf.WriteString(fmt.Sprintf("%s-", strings.ToLower(m["disk_encryption_set_id"].(string))))
-		buf.WriteString(fmt.Sprintf("%t-", m["write_accelerator_enabled"].(bool)))
-	}
-
-	return hashcode.String(buf.String())
-}
+//func resourceArmVirtualMachineCreateDataDiskHash(v interface{}) int {
+//	var buf bytes.Buffer
+//
+//	if m, ok := v.(map[string]interface{}); ok {
+//		buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
+//		buf.WriteString(fmt.Sprintf("%d-", m["lun"].(int)))
+//		buf.WriteString(fmt.Sprintf("%s-", m["caching"].(string)))
+//		buf.WriteString(fmt.Sprintf("%s-", m["storage_account_type"].(string)))
+//		buf.WriteString(fmt.Sprintf("%d-", m["disk_size_gb"].(int)))
+//		// Due to potential case diff in API response needs to be normalised
+//		buf.WriteString(fmt.Sprintf("%s-", strings.ToLower(m["disk_encryption_set_id"].(string))))
+//		buf.WriteString(fmt.Sprintf("%t-", m["write_accelerator_enabled"].(bool)))
+//	}
+//
+//	return hashcode.String(buf.String())
+//}

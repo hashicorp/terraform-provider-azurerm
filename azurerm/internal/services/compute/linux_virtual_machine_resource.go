@@ -902,8 +902,8 @@ func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{})
 	if features.VMDataDiskBeta() && d.HasChange("data_disks") {
 		shouldUpdate = true
 		oldRaw, newRaw := d.GetChange("data_disks.0.create")
-		oldDisks := oldRaw.(*schema.Set).List()
-		newDisks := newRaw.(*schema.Set).List()
+		oldDisks := oldRaw.([]interface{})
+		newDisks := newRaw.([]interface{})
 		for _, o := range oldDisks {
 			oldDisk := o.(map[string]interface{})
 			if oldDiskName, ok := oldDisk["name"]; ok {
