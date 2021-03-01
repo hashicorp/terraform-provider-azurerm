@@ -6,7 +6,8 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/parse"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 
@@ -324,17 +325,14 @@ func TestAccEventHub_messageRetentionUpdate(t *testing.T) {
 }
 
 func (EventHubResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.EventHubID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	namespaceName := id.Path["namespaces"]
-	name := id.Path["eventhubs"]
-
-	resp, err := clients.Eventhub.EventHubsClient.Get(ctx, id.ResourceGroup, namespaceName, name)
+	resp, err := clients.Eventhub.EventHubsClient.Get(ctx, id.ResourceGroup, id.NamespaceName, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Event Hub %q (namespace %q / resource group: %q): %v", name, namespaceName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %v", id, err)
 	}
 
 	return utils.Bool(resp.Properties != nil), nil

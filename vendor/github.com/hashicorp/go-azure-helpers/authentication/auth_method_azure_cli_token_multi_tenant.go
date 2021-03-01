@@ -92,7 +92,7 @@ func (a azureCliTokenMultiTenantAuth) getAuthorizationToken(sender autorest.Send
 	}
 
 	var refreshFunc adal.TokenRefresh = func(ctx context.Context, resource string) (*adal.Token, error) {
-		token, err := obtainAuthorizationToken(resource, a.profile.subscriptionId)
+		token, err := obtainAuthorizationToken(resource, a.profile.subscriptionId, "")
 		if err != nil {
 			return nil, err
 		}

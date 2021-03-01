@@ -1,31 +1,82 @@
-## 2.49.0 (Unreleased)
+## 2.50.0 (Unreleased)
 
 FEATURES:
 
-* **New Data Source:** `azurerm_spring_cloud_app` [GH-10678]
-* **New Resource:** `azurerm_security_center_assessment_metadata` [GH-10124]
-* **New Resource:** `azurerm_kusto_iothub_data_connection` [GH-8626]
+* **New Data Source:** `azurerm_vmware_private_cloud` [GH-9284]
+* **New Resource:** `azurerm_kusto_eventgrid_data_connection` [GH-10712]
+* **New Resource:** `azurerm_sentinel_data_connector_office_365` [GH-10671]
+* **New Resource:** `azurerm_sentinel_data_connector_threat_intelligence` [GH-10670]
+* **New Resource:** `azurerm_vmware_private_cloud` [GH-9284]
 
 ENHANCEMENTS:
 
-* dependencies: updating `github.com/hashicorp/terraform-plugin-sdk` to the latest `1.x` branch [GH-10692]
-* testing: updating the tests to use the Terraform release binaries when running acceptance tests [GH-10523]
-* `azurerm_api_management` - support for the  `tenant_access` block [GH-10475]
-* `azurerm_monitor_smart_detector_alert_rule` - supports for the `tags` property [GH-10646]
-* `azurerm_netapp_volume` - support for the `data_protection_replication` block [GH-10610]
+* dependencies: updating `github.com/Azure/azure-sdk-for-go` to `v51.3.0` [GH-10690]
+* dependencies: updating `compute` to API version `2020-12-01` [GH-10650]
+* `azurerm_keyvault_secret` - support for the `versionless_id` property [GH-10738]
+* `azurerm_kubernetes_cluster` - support `private_dns_zone_id` when using a `service_principal` [GH-10737]
+* `azurerm_kusto_cluster` - supports for the `double_encryption_enabled` property [GH-10264]
+* `azurerm_mssql_database` - support for the `log_monitoring_enabled` property within the `extended_auditing_policy` block [GH-10324]
+* `azurerm_mssql_database_extended_auditing_policy ` - support for the `log_monitoring_enabled` property [GH-10324]
+* `azurerm_mssql_server` - support for the `log_monitoring_enabled` property within the `extended_auditing_policy` block [GH-10324]
+* `azurerm_mssql_server_extended_auditing_policy ` - support for the `log_monitoring_enabled` property [GH-10324] 
+* `azurerm_sql_server` - support for the `log_monitoring_enabled` property within the `extended_auditing_policy` block [GH-10324]
+* `azurerm_sql_database` - support for the `log_monitoring_enabled` property within the `extended_auditing_policy` block [GH-10324]
+* `azurerm_spring_cloud_java_deployment` - supporting delta updates [GH-10729]
+* `azurerm_virtual_network_gateway` - deprecate `peering_address` in favour of `peering_addresses` [GH-10381]
 
 BUG FIXES:
 
-* provider: only showing the deprecation message if `skip_credentials_registration` is explicitly configured [GH-10699]
-* `azurerm_batch_certificate` - allow empty `password` when format is pfx [GH-10642]
-* `azurerm_data_factory_integration_runtime_azure_ssis` - the `administrator_login` and `administrator_password` properties are now optional [GH-10474]
-* `azurerm_data_factory_integration_runtime_managed` - the `administrator_login` and `administrator_password` properties are now optional [GH-10640]
-* `azurerm_key_vault_certificate` - waiting for deletion to complete before purging [GH-10577]
-* `azurerm_key_vault_key` - waiting for deletion to complete before purging [GH-10577]
-* `azurerm_key_vault_secret` - waiting for deletion to complete before purging [GH-10577]
-* `azurerm_kusto_cluster` - changing `virtual_network_configuration` forces a new resource to be created [GH-10640]
-* `azurerm_lb_outbound_rule` - fixing a crash when `frontendIPConfigurations` is omitted in the API response [GH-10696]
-* `azurerm_media_content_key_policy` - fix an encoding bug which prevented configuring `ask` in the `fairplay_configuration` block [GH-10684]
+* `azurerm_api_management` - changing the `sku_name` property no longer forces a new resouce to be created [GH-10747]
+* `azurerm_linux_virtual_machine` - parsing the User Assigned Identity ID case-insensitively to work around an Azure API issue [GH-10722]
+* `azurerm_linux_virtual_machine_scale_set` - parsing the User Assigned Identity ID case-insensitively to work around an Azure API issue [GH-10722]
+* `azurerm_virtual_machine` - parsing the User Assigned Identity ID case-insensitively to work around an Azure API issue [GH-10722]
+* `azurerm_virtual_machine_scale_set` - parsing the User Assigned Identity ID case-insensitively to work around an Azure API issue [GH-10722]
+* `azurerm_windows_virtual_machine` - parsing the User Assigned Identity ID case-insensitively to work around an Azure API issue [GH-10722]
+* `azurerm_windows_virtual_machine_scale_set` - parsing the User Assigned Identity ID case-insensitively to work around an Azure API issue [GH-10722]
+
+## 2.49.0 (February 26, 2021)
+
+FEATURES:
+
+* **New Data Source:** `azurerm_spring_cloud_app` ([#10678](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10678))
+* **New Resource:** `azurerm_databox_edge_device` ([#10730](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10730))
+* **New Resource:** `azurerm_databox_edge_order` ([#10730](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10730))
+* **New Resource:** `azurerm_kusto_iothub_data_connection` ([#8626](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8626))
+* **New Resource:** `azurerm_redis_enterprise_cluster` ([#10706](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10706))
+* **New Resource:** `azurerm_redis_enterprise_database` ([#10706](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10706))
+* **New Resource:** `azurerm_security_center_assessment_metadata` ([#10124](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10124))
+* **New Resource:** `azurerm_spring_cloud_custom_domain` ([#10404](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10404))
+
+ENHANCEMENTS:
+
+* dependencies: updating `github.com/hashicorp/terraform-plugin-sdk` to the latest `1.x` branch ([#10692](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10692))
+* dependencies: updating `github.com/hashicorp/go-azure-helpers` to `v0.14.0` ([#10740](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10740))
+* dependencies: updating `github.com/Azure/go-autorest/autorest` to `v0.11.18` ([#10740](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10740))
+* testing: updating the tests to use the Terraform release binaries when running acceptance tests ([#10523](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10523))
+* `azurerm_api_management` - support for the  `tenant_access` block ([#10475](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10475))
+* `azurerm_api_management_logger` - support for configuring a `resource_id` ([#10652](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10652))
+* `azurerm_data_factory_linked_service_azure_blob_storage` - now supports the `sas_uri` property ([#10551](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10551))
+* `azurerm_data_factory_linked_service_azure_blob_storage` - now supports Managed Identity and Service Principal authentication ([#10551](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10551))
+* `azurerm_monitor_smart_detector_alert_rule` - supports for the `tags` property ([#10646](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10646))
+* `azurerm_netapp_volume` - support for the `data_protection_replication` block ([#10610](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10610))
+* `azurerm_sentinel_alert_rule_ms_security_incident` - support `Microsoft Defender Advanced Threat Protection` and `Office 365 Advanced Threat Protection` values for the `product_filter` property ([#10725](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10725))
+* `azurerm_service_fabric_cluster` - Add support for the `upgrade policy` block ([#10713](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10713))
+
+BUG FIXES:
+
+* provider: fixing support for Azure Cloud Shell ([#10740](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10740))
+* provider: MSI authentication is explicitly unavailable in Azure App Service and Function Apps as these are intentionally not supported ([#10740](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10740))
+* provider: only showing the deprecation message if `skip_credentials_registration` is explicitly configured ([#10699](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10699))
+* `azurerm_batch_certificate` - allow empty `password` when format is pfx ([#10642](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10642))
+* `azurerm_data_factory_integration_runtime_azure_ssis` - the `administrator_login` and `administrator_password` properties are now optional ([#10474](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10474))
+* `azurerm_data_factory_integration_runtime_managed` - the `administrator_login` and `administrator_password` properties are now optional ([#10640](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10640))
+* `azurerm_eventhub_namespace` - the `capacity` property can now be greater than `50` ([#10734](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10734))
+* `azurerm_key_vault_certificate` - waiting for deletion to complete before purging ([#10577](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10577))
+* `azurerm_key_vault_key` - now waits for deletion to complete before purging ([#10577](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10577))
+* `azurerm_key_vault_secret` - now waits for deletion to complete before purging ([#10577](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10577))
+* `azurerm_kusto_cluster` - changing the `virtual_network_configuration` property forces a new resource to be created ([#10640](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10640))
+* `azurerm_lb_outbound_rule` - fixing a crash when `frontendIPConfigurations` is omitted in the API response ([#10696](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10696))
+* `azurerm_media_content_key_policy` - fix an encoding bug which prevented configuring `ask` in the `fairplay_configuration` block ([#10684](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10684))
 
 ## 2.48.0 (February 18, 2021)
 

@@ -164,7 +164,7 @@ The `match_variables` block supports the following:
 
 The `policy_settings` block supports the following:
 
-* `enabled` - (Optional) Describes if the policy is in enabled state or disabled state. Defaults to `Enabled`.
+* `enabled` - (Optional) Describes if the policy is in enabled state or disabled state. Defaults to `true`.
 
 * `mode` - (Optional) Describes if it is in detection mode or prevention mode at the policy level. Defaults to `Prevention`.
 

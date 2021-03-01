@@ -12,6 +12,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/Azure/go-autorest/autorest/azure/cli"
 	"github.com/hashicorp/go-multierror"
+	"github.com/hashicorp/go-version"
 )
 
 type azureCLIProfile struct {
@@ -32,6 +33,7 @@ type azureCliTokenAuth struct {
 
 func (a azureCliTokenAuth) build(b Builder) (authMethod, error) {
 	auth := azureCliTokenAuth{
+
 		profile: &azureCLIProfile{
 			subscriptionId: b.SubscriptionID,
 			tenantId:       b.TenantID,
@@ -39,6 +41,10 @@ func (a azureCliTokenAuth) build(b Builder) (authMethod, error) {
 			clientId:       "04b07795-8ddb-461a-bbee-02f9e1bf7b46", // fixed first party client id for Az CLI
 		},
 		servicePrincipalAuthDocsLink: b.ClientSecretDocsLink,
+	}
+
+	if err := auth.checkAzVersion(); err != nil {
+		return nil, err
 	}
 
 	var acc *cli.Subscription
@@ -92,7 +98,13 @@ func (a azureCliTokenAuth) getAuthorizationToken(sender autorest.Sender, oauth *
 	}
 
 	// the Azure CLI appears to cache these, so to maintain compatibility with the interface this method is intentionally not on the pointer
-	token, err := obtainAuthorizationToken(endpoint, a.profile.subscriptionId)
+	var token *cli.Token
+	var err error
+	if a.profile.tenantOnly {
+		token, err = obtainAuthorizationToken(endpoint, "", a.profile.tenantId)
+	} else {
+		token, err = obtainAuthorizationToken(endpoint, a.profile.subscriptionId, "")
+	}
 	if err != nil {
 		return nil, fmt.Errorf("Error obtaining Authorization Token from the Azure CLI: %s", err)
 	}
@@ -108,7 +120,13 @@ func (a azureCliTokenAuth) getAuthorizationToken(sender autorest.Sender, oauth *
 	}
 
 	var refreshFunc adal.TokenRefresh = func(ctx context.Context, resource string) (*adal.Token, error) {
-		token, err := obtainAuthorizationToken(resource, a.profile.subscriptionId)
+		var token *cli.Token
+		var err error
+		if a.profile.tenantOnly {
+			token, err = obtainAuthorizationToken(resource, "", a.profile.tenantId)
+		} else {
+			token, err = obtainAuthorizationToken(resource, a.profile.subscriptionId, "")
+		}
 		if err != nil {
 			return nil, err
 		}
@@ -172,6 +190,61 @@ func (a azureCliTokenAuth) validate() error {
 	return err.ErrorOrNil()
 }
 
+func (a azureCliTokenAuth) checkAzVersion() error {
+	// Azure CLI v2.0.79 is the earliest version to have a `version` command
+	var minimumVersion string
+	if a.profile.tenantOnly {
+		// v2.0.81 introduced the `--tenant` option to the `account get-access-token` subcommand
+		minimumVersion = "2.0.81"
+	} else {
+		minimumVersion = "2.0.79"
+	}
+
+	var cliVersion *struct {
+		AzureCli          *string      `json:"azure-cli,omitempty"`
+		AzureCliCore      *string      `json:"azure-cli-core,omitempty"`
+		AzureCliTelemetry *string      `json:"azure-cli-telemetry,omitempty"`
+		Extensions        *interface{} `json:"extensions,omitempty"`
+	}
+	err := jsonUnmarshalAzCmd(&cliVersion, "version", "-o=json")
+	if err != nil {
+		return fmt.Errorf("Please ensure you have installed Azure CLI version %s or newer. Error parsing json result from the Azure CLI: %v.", minimumVersion, err)
+	}
+
+	if cliVersion.AzureCli == nil {
+		return fmt.Errorf("Could not detect Azure CLI version. Please ensure you have installed Azure CLI version %s or newer.", minimumVersion)
+	}
+
+	actual, err := version.NewVersion(*cliVersion.AzureCli)
+	if err != nil {
+		return fmt.Errorf("Could not parse detected Azure CLI version %q: %+v", *cliVersion.AzureCli, err)
+	}
+
+	supported, err := version.NewVersion(minimumVersion)
+	if err != nil {
+		return fmt.Errorf("Could not parse supported Azure CLI version: %+v", err)
+	}
+
+	nextMajor, err := version.NewVersion("3.0.0")
+	if err != nil {
+		return fmt.Errorf("Could not parse next major Azure CLI version: %+v", err)
+	}
+
+	if nextMajor.LessThanOrEqual(actual) {
+		return fmt.Errorf(`Authenticating using the Azure CLI requires a version older than %[1]s but Terraform detected version %[3]s.
+
+Please install v%[2]s or newer (but also older than %[1]s) and ensure the correct version is in your path.`, nextMajor.String(), supported.String(), actual.String())
+	}
+
+	if actual.LessThan(supported) {
+		return fmt.Errorf(`Authenticating using the Azure CLI requires version %[1]s but Terraform detected version %[2]s.
+
+Please install v%[1]s or greater and ensure the correct version is in your path.`, supported.String(), actual.String())
+	}
+
+	return nil
+}
+
 func obtainAuthenticatedObjectID() (string, error) {
 
 	var json struct {
@@ -186,9 +259,14 @@ func obtainAuthenticatedObjectID() (string, error) {
 	return json.ObjectId, nil
 }
 
-func obtainAuthorizationToken(endpoint string, subscriptionId string) (*cli.Token, error) {
+func obtainAuthorizationToken(endpoint string, subscriptionId string, tenantId string) (*cli.Token, error) {
 	var token cli.Token
-	err := jsonUnmarshalAzCmd(&token, "account", "get-access-token", "--resource", endpoint, "--subscription", subscriptionId, "-o=json")
+	var err error
+	if tenantId != "" {
+		err = jsonUnmarshalAzCmd(&token, "account", "get-access-token", "--resource", endpoint, "--tenant", tenantId, "-o=json")
+	} else {
+		err = jsonUnmarshalAzCmd(&token, "account", "get-access-token", "--resource", endpoint, "--subscription", subscriptionId, "-o=json")
+	}
 	if err != nil {
 		return nil, fmt.Errorf("Error parsing json result from the Azure CLI: %v", err)
 	}
