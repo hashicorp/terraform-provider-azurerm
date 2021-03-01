@@ -24,6 +24,12 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_api_management` - changing the `sku_name` property no longer forces a new resouce to be created [GH-10747]
+* `azurerm_linux_virtual_machine` - parsing the User Assigned Identity ID case-insensitively to work around an Azure API issue [GH-10722]
+* `azurerm_linux_virtual_machine_scale_set` - parsing the User Assigned Identity ID case-insensitively to work around an Azure API issue [GH-10722]
+* `azurerm_virtual_machine` - parsing the User Assigned Identity ID case-insensitively to work around an Azure API issue [GH-10722]
+* `azurerm_virtual_machine_scale_set` - parsing the User Assigned Identity ID case-insensitively to work around an Azure API issue [GH-10722]
+* `azurerm_windows_virtual_machine` - parsing the User Assigned Identity ID case-insensitively to work around an Azure API issue [GH-10722]
+* `azurerm_windows_virtual_machine_scale_set` - parsing the User Assigned Identity ID case-insensitively to work around an Azure API issue [GH-10722]
 
 ## 2.49.0 (February 26, 2021)
 
