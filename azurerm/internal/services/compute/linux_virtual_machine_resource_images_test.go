@@ -176,7 +176,7 @@ resource "azurerm_linux_virtual_machine" "source" {
   ]
 
   admin_ssh_key {
-    username   = "adminuser"
+    username   = local.admin_username
     public_key = local.first_public_key
   }
 
