@@ -337,7 +337,7 @@ func resourceSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
 
 	alias, err := client.Get(ctx, id.Name)
 	if err != nil {
-		return fmt.Errorf("reading Subscription Aliss %q: %+v", id.Name, err)
+		return fmt.Errorf("reading Subscription Alias %q: %+v", id.Name, err)
 	}
 
 	subscriptionId := ""

@@ -10,13 +10,14 @@ description: |-
 
 Manages a Subscription.
 
-~> **NOTE:** Destroying a Subscription controlled by this resource will place the Subscription into a cancelled state. It is possible to re-activate a subscription within 90-days of cancellation, after which time the Subscription is irrevocably deleted and the Subscription ID cannot be re-used. For further information see [here](https://docs.microsoft.com/en-us/azure/cost-management-billing/manage/cancel-azure-subscription#what-happens-after-subscription-cancellation)
+~> **NOTE:** Destroying a Subscription controlled by this resource will place the Subscription into a cancelled state. It is possible to re-activate a subscription within 90-days of cancellation, after which time the Subscription is irrevocably deleted, and the Subscription ID cannot be re-used. For further information see [here](https://docs.microsoft.com/en-us/azure/cost-management-billing/manage/cancel-azure-subscription#what-happens-after-subscription-cancellation). Users can optionally delete a Subscription once 72 hours have passed, however, this functionality is not suitable for Terraform. A `Deleted` subscription cannot be reactivated.
+
+~> **NOTE:** It is not possible to destroy (cancel) a subscription if it contains resources. If resources are present that are not managed by Terraform then these will need to be removed before the Subscription can be destroyed.
 
 ## Example Usage
 
 ```hcl
 resource "azurerm_subscription" "example" {
-  alias              = "examplesub"
   subscription_name  = "My Example Subscription"
   billing_account    = "1234567890"
   enrollment_account = "0123456"
@@ -61,7 +62,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Subscription.
 
-* `tenant` - The ID of the Tenant to which the subscription belongs.
+* `tenant_id` - The ID of the Tenant to which the subscription belongs.
 
 ## Timeouts
 
