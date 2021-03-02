@@ -128,15 +128,15 @@ func resourceSpringCloudConfigServerCreateUpdate(d *schema.ResourceData, meta in
 	if err != nil {
 		return err
 	}
-	resourceId := parse.NewSpringCloudServiceID(subscriptionId, serviceId.ResourceGroup, serviceId.SpringName).ID()
 
+	id := parse.NewSpringCloudServiceID(subscriptionId, serviceId.ResourceGroup, serviceId.SpringName)
 	existing, err := client.Get(ctx, serviceId.ResourceGroup, serviceId.SpringName)
 	if err != nil {
-		return fmt.Errorf("making Read request on Spring Cloud Service %q (Resource Group %q): %+v", serviceId.SpringName, serviceId.ResourceGroup, err)
+		return fmt.Errorf("making Read request on %s: %+v", serviceId, err)
 	}
 	if d.IsNewResource() {
 		if existing.Properties != nil && existing.Properties.ConfigServer != nil && existing.Properties.ConfigServer.GitProperty != nil && existing.Properties.ConfigServer.GitProperty.URI != nil {
-			return tf.ImportAsExistsError("azurerm_spring_cloud_config_server", resourceId)
+			return tf.ImportAsExistsError("azurerm_spring_cloud_config_server", id.ID())
 		}
 	}
 
@@ -181,15 +181,15 @@ func resourceSpringCloudConfigServerCreateUpdate(d *schema.ResourceData, meta in
 		},
 	}
 
-	future, err := client.UpdatePut(ctx, serviceId.ResourceGroup, serviceId.SpringName, existing)
+	future, err := client.UpdatePut(ctx, id.ResourceGroup, id.SpringName, existing)
 	if err != nil {
-		return fmt.Errorf("failure updating config server of Spring Cloud Service %q  (Resource Group %q): %+v", serviceId.SpringName, serviceId.ResourceGroup, err)
+		return fmt.Errorf("updating config server for %s: %+v", id, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("failure waiting for setting config server of Spring Cloud Service %q config server (Resource Group %q): %+v", serviceId.SpringName, serviceId.ResourceGroup, err)
+		return fmt.Errorf("waiting for updation of config server for %s: %+v", id, err)
 	}
 
-	d.SetId(resourceId)
+	d.SetId(id.ID())
 
 	return resourceSpringCloudConfigServerRead(d, meta)
 }
@@ -211,7 +211,7 @@ func resourceSpringCloudConfigServerRead(d *schema.ResourceData, meta interface{
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("unable to read Spring Cloud Config Server %q (Resource Group %q): %+v", id.SpringName, id.ResourceGroup, err)
+		return fmt.Errorf("unable to read Config Server for %s: %+v", id, err)
 	}
 
 	if resp.Properties == nil || resp.Properties.ConfigServer == nil || resp.Properties.ConfigServer.GitProperty == nil {
@@ -292,18 +292,18 @@ func resourceSpringCloudConfigServerDelete(d *schema.ResourceData, meta interfac
 
 	existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName)
 	if err != nil {
-		return fmt.Errorf("making Read request on Spring Cloud Config Server %q (Resource Group %q): %+v", id.SpringName, id.ResourceGroup, err)
+		return fmt.Errorf("making Read request on Config Server for %s: %+v", id, err)
 	}
 
 	existing.Properties = nil
 
 	future, err := client.UpdatePut(ctx, id.ResourceGroup, id.SpringName, existing)
 	if err != nil {
-		return fmt.Errorf("failure deleting Spring Cloud Config Server %q (Resource Group %q): %+v", id.SpringName, id.ResourceGroup, err)
+		return fmt.Errorf("failure deleting Config Server for %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("failure waiting for deleting Spring Cloud Config Server %q (Resource Group %q): %+v", id.SpringName, id.ResourceGroup, err)
+		return fmt.Errorf("failure waiting for deleting Config Server for %s: %+v", id, err)
 	}
 
 	return nil

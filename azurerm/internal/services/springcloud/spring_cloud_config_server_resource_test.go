@@ -5,13 +5,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/springcloud/parse"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/springcloud/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -119,7 +118,7 @@ func (r SpringCloudConfigServerResource) Exists(ctx context.Context, clients *cl
 		return nil, fmt.Errorf("unable to read Spring Cloud Service %q (Resource Group %q): %+v", id.SpringName, id.ResourceGroup, err)
 	}
 
-	return utils.Bool(resp.Properties != nil && resp.Properties != nil && resp.Properties.ConfigServer != nil && resp.Properties.ConfigServer.GitProperty != nil), nil
+	return utils.Bool(resp.Properties != nil && resp.Properties.ConfigServer != nil && resp.Properties.ConfigServer.GitProperty != nil), nil
 }
 
 func (r SpringCloudConfigServerResource) basic(data acceptance.TestData) string {
