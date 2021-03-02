@@ -130,7 +130,7 @@ func DnsZoneUpgradeV0ToV1(rawState map[string]interface{}, meta interface{}) (ma
 		return rawState, err
 	}
 
-	newId := id.ID()
+	newId := parse.NewDnsZoneID(id.SubscriptionId, rawState["resource_group_name"].(string), rawState["name"].(string)).ID()
 	log.Printf("Updating `id` from %q to %q", oldId, newId)
 	rawState["id"] = newId
 	return rawState, nil
