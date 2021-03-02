@@ -178,9 +178,8 @@ func resourceLinuxVirtualMachine() *schema.Resource {
 			"identity": virtualMachineIdentitySchema(),
 
 			"license_type": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				Computed:         true,
+				Type:     schema.TypeString,
+				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"RHEL_BYOS",
 					"SLES_BYOS",

@@ -169,8 +169,6 @@ func resourceVirtualMachine() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					"Windows_Client",
 					"Windows_Server",
-					"RHEL_BYOS",
-					"SLES_BYOS",
 				}, true),
 			},
 
@@ -834,12 +832,6 @@ func resourceVirtualMachineRead(d *schema.ResourceData, meta interface{}) error 
 			// todo can be removed when https://github.com/Azure/azure-sdk-for-go/issues/5699 is fixed
 			d.Set("availability_set_id", strings.ToLower(*availabilitySet.ID))
 		}
-
-		licenseType := ""
-		if props.LicenseType != nil {
-			licenseType = *props.LicenseType
-		}
-		d.Set("license_type", licenseType)
 
 		if proximityPlacementGroup := props.ProximityPlacementGroup; proximityPlacementGroup != nil {
 			d.Set("proximity_placement_group_id", proximityPlacementGroup.ID)
