@@ -7,7 +7,7 @@ require (
 	github.com/Azure/go-autorest/autorest/validation v0.3.1
 	github.com/btubbs/datetime v0.1.0
 	github.com/davecgh/go-spew v1.1.1
-	github.com/gofrs/uuid v4.0.0+incompatible // indirect
+	github.com/gofrs/uuid v4.0.0+incompatible
 	github.com/google/go-cmp v0.5.2
 	github.com/google/uuid v1.1.1
 	github.com/hashicorp/go-azure-helpers v0.14.0
@@ -18,8 +18,6 @@ require (
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/hashicorp/terraform-plugin-sdk v1.16.1-0.20210222152151-32f0219df5b5
 	github.com/rickb777/date v1.12.5-0.20200422084442-6300e543c4d9
-	github.com/satori/go.uuid v1.2.0
-	github.com/satori/uuid v0.0.0-20160927100844-b061729afc07
 	github.com/sergi/go-diff v1.1.0
 	github.com/terraform-providers/terraform-provider-azuread v0.9.0
 	github.com/tombuildsstuff/giovanni v0.15.1
