@@ -109,7 +109,10 @@ func resourceAutomationJobScheduleCreate(d *schema.ResourceData, meta interface{
 	runbookName := d.Get("runbook_name").(string)
 	scheduleName := d.Get("schedule_name").(string)
 
-	jobScheduleUUID := uuid.NewV4()
+	jobScheduleUUID, err := uuid.NewV4()
+	if err != nil {
+		return err
+	}
 	if jobScheduleID, ok := d.GetOk("job_schedule_id"); ok {
 		jobScheduleUUID = uuid.FromStringOrNil(jobScheduleID.(string))
 	}

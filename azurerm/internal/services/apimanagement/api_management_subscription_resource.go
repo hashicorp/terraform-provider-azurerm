@@ -112,7 +112,12 @@ func resourceApiManagementSubscriptionCreateUpdate(d *schema.ResourceData, meta 
 	serviceName := d.Get("api_management_name").(string)
 	subscriptionId := d.Get("subscription_id").(string)
 	if subscriptionId == "" {
-		subscriptionId = uuid.NewV4().String()
+		subId, err := uuid.NewV4()
+		if err != nil {
+			return err
+		}
+
+		subscriptionId = subId.String()
 	}
 
 	if d.IsNewResource() {

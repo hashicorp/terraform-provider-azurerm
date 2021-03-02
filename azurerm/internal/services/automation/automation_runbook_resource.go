@@ -244,8 +244,11 @@ func resourceAutomationRunbookCreateUpdate(d *schema.ResourceData, meta interfac
 	}
 
 	if v, ok := d.GetOk("job_schedule"); ok {
-		jsMap := helper.ExpandAutomationJobSchedule(v.(*schema.Set).List(), name)
-		for jsuuid, js := range jsMap {
+		jsMap, err := helper.ExpandAutomationJobSchedule(v.(*schema.Set).List(), name)
+		if err != nil {
+			return err
+		}
+		for jsuuid, js := range *jsMap {
 			if _, err := jsClient.Create(ctx, resGroup, accName, jsuuid, js); err != nil {
 				return fmt.Errorf("creating Automation Runbook %q Job Schedules (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
 			}

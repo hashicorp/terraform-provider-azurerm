@@ -59,10 +59,10 @@ func JobScheduleSchema() *schema.Schema {
 	}
 }
 
-func ExpandAutomationJobSchedule(input []interface{}, runBookName string) map[uuid.UUID]automation.JobScheduleCreateParameters {
+func ExpandAutomationJobSchedule(input []interface{}, runBookName string) (*map[uuid.UUID]automation.JobScheduleCreateParameters, error) {
 	res := make(map[uuid.UUID]automation.JobScheduleCreateParameters)
 	if len(input) == 0 || input[0] == nil {
-		return res
+		return &res, nil
 	}
 
 	for _, v := range input {
@@ -91,11 +91,14 @@ func ExpandAutomationJobSchedule(input []interface{}, runBookName string) map[uu
 			value := v.(string)
 			jobScheduleCreateParameters.JobScheduleCreateProperties.RunOn = &value
 		}
-		jobScheduleUUID := uuid.NewV4()
+		jobScheduleUUID, err := uuid.NewV4()
+		if err != nil {
+			return nil, err
+		}
 		res[jobScheduleUUID] = jobScheduleCreateParameters
 	}
 
-	return res
+	return &res, nil
 }
 
 func FlattenAutomationJobSchedule(jsMap map[uuid.UUID]automation.JobScheduleProperties) *schema.Set {
