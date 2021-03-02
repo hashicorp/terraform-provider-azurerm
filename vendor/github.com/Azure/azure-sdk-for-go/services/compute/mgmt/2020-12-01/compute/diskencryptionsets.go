@@ -56,8 +56,8 @@ func (client DiskEncryptionSetsClient) CreateOrUpdate(ctx context.Context, resou
 		ctx = tracing.StartSpan(ctx, fqdn+"/DiskEncryptionSetsClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -170,8 +170,8 @@ func (client DiskEncryptionSetsClient) Delete(ctx context.Context, resourceGroup
 		ctx = tracing.StartSpan(ctx, fqdn+"/DiskEncryptionSetsClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -691,8 +691,8 @@ func (client DiskEncryptionSetsClient) Update(ctx context.Context, resourceGroup
 		ctx = tracing.StartSpan(ctx, fqdn+"/DiskEncryptionSetsClient.Update")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

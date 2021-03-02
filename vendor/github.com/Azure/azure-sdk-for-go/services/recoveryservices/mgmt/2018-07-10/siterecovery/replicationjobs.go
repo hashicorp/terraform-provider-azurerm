@@ -49,8 +49,8 @@ func (client ReplicationJobsClient) Cancel(ctx context.Context, jobName string) 
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationJobsClient.Cancel")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -150,8 +150,8 @@ func (client ReplicationJobsClient) Export(ctx context.Context, jobQueryParamete
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationJobsClient.Export")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -448,8 +448,8 @@ func (client ReplicationJobsClient) Restart(ctx context.Context, jobName string)
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationJobsClient.Restart")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -550,8 +550,8 @@ func (client ReplicationJobsClient) Resume(ctx context.Context, jobName string, 
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationJobsClient.Resume")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

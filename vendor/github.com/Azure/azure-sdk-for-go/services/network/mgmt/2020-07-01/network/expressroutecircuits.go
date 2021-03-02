@@ -52,8 +52,8 @@ func (client ExpressRouteCircuitsClient) CreateOrUpdate(ctx context.Context, res
 		ctx = tracing.StartSpan(ctx, fqdn+"/ExpressRouteCircuitsClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -156,8 +156,8 @@ func (client ExpressRouteCircuitsClient) Delete(ctx context.Context, resourceGro
 		ctx = tracing.StartSpan(ctx, fqdn+"/ExpressRouteCircuitsClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -707,8 +707,8 @@ func (client ExpressRouteCircuitsClient) ListArpTable(ctx context.Context, resou
 		ctx = tracing.StartSpan(ctx, fqdn+"/ExpressRouteCircuitsClient.ListArpTable")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -813,8 +813,8 @@ func (client ExpressRouteCircuitsClient) ListRoutesTable(ctx context.Context, re
 		ctx = tracing.StartSpan(ctx, fqdn+"/ExpressRouteCircuitsClient.ListRoutesTable")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -919,8 +919,8 @@ func (client ExpressRouteCircuitsClient) ListRoutesTableSummary(ctx context.Cont
 		ctx = tracing.StartSpan(ctx, fqdn+"/ExpressRouteCircuitsClient.ListRoutesTableSummary")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

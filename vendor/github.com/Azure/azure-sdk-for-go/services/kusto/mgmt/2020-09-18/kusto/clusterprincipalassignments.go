@@ -142,8 +142,8 @@ func (client ClusterPrincipalAssignmentsClient) CreateOrUpdate(ctx context.Conte
 		ctx = tracing.StartSpan(ctx, fqdn+"/ClusterPrincipalAssignmentsClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -254,8 +254,8 @@ func (client ClusterPrincipalAssignmentsClient) Delete(ctx context.Context, reso
 		ctx = tracing.StartSpan(ctx, fqdn+"/ClusterPrincipalAssignmentsClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
