@@ -43,12 +43,9 @@ resource "azurerm_key_vault_key" "example" {
   ]
 
   key_opts = [
-    "decrypt",
-    "encrypt",
-    "sign",
-    "unwrapKey",
-    "verify",
-    "wrapKey",
+    "Get",
+    "WrapKey",
+    "UnwrapKey",
   ]
 }
 
