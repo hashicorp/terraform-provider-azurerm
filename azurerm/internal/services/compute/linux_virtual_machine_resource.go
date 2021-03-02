@@ -181,7 +181,6 @@ func resourceLinuxVirtualMachine() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					"RHEL_BYOS",
 					"SLES_BYOS",
