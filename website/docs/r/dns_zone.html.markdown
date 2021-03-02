@@ -67,7 +67,6 @@ The `soa_record` block supports:
 The following attributes are exported:
 
 * `id` - The DNS Zone ID.
-* `fqdn` - The fully qualified domain name of the Record Set.
 * `max_number_of_record_sets` - (Optional) Maximum number of Records in the zone. Defaults to `1000`.
 * `number_of_record_sets` - (Optional) The number of records already in the zone.
 * `name_servers` - (Optional) A list of values that make up the NS record for the zone.

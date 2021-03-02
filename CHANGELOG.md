@@ -6,6 +6,7 @@ FEATURES:
 * **New Resource:** `azurerm_kusto_eventgrid_data_connection` [GH-10712]
 * **New Resource:** `azurerm_sentinel_data_connector_office_365` [GH-10671]
 * **New Resource:** `azurerm_sentinel_data_connector_threat_intelligence` [GH-10670]
+* **New Resource:** `azurerm_sentinel_data_connector_azure_active_directory` [GH-10665]
 * **New Resource:** `azurerm_vmware_private_cloud` [GH-9284]
 
 ENHANCEMENTS:
@@ -19,6 +20,7 @@ ENHANCEMENTS:
 * `azurerm_mssql_database_extended_auditing_policy ` - support for the `log_monitoring_enabled` property [GH-10324]
 * `azurerm_mssql_server` - support for the `log_monitoring_enabled` property within the `extended_auditing_policy` block [GH-10324]
 * `azurerm_mssql_server_extended_auditing_policy ` - support for the `log_monitoring_enabled` property [GH-10324] 
+* `azurerm_signalr_service` - support for the `upstream_endpoint` block [GH-10459]
 * `azurerm_sql_server` - support for the `log_monitoring_enabled` property within the `extended_auditing_policy` block [GH-10324]
 * `azurerm_sql_database` - support for the `log_monitoring_enabled` property within the `extended_auditing_policy` block [GH-10324]
 * `azurerm_spring_cloud_java_deployment` - supporting delta updates [GH-10729]

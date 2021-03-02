@@ -2,45 +2,45 @@ package validate
 
 import "testing"
 
-func TestRedisEnterpriseClusterLocation(t *testing.T) {
+func TestRedisEnterpriseClusterLocationFlashSkuSupport(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
 	}{
 		{
-			// empty
-			Input: "",
-			Valid: false,
-		},
-		{
-			// Unsupported location
-			Input: "East US 3",
+			// Invalid location
+			Input: "UK West",
 			Valid: false,
 		},
 		{
 			// Unsupported location all upper with space
-			Input: "EAST US 3",
+			Input: "UK WEST",
 			Valid: false,
 		},
 		{
 			// Unsupported location all lower with space
-			Input: "east us 3",
+			Input: "uk west",
 			Valid: false,
 		},
 		{
 			// Unsupported location all upper without space
-			Input: "EASTUS3",
+			Input: "UKWEST",
 			Valid: false,
 		},
 		{
 			// Unsupported location all lower without space
-			Input: "eastus3",
+			Input: "ukwest",
 			Valid: false,
+		},
+		{
+			// empty
+			Input: "",
+			Valid: true,
 		},
 		{
 			// Random text
 			Input: "Lorem ipsum dolor sit amet",
-			Valid: false,
+			Valid: true,
 		},
 		{
 			// Expected input
@@ -76,8 +76,10 @@ func TestRedisEnterpriseClusterLocation(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %s", tc.Input)
-		_, errors := RedisEnterpriseClusterLocation(tc.Input, "location")
-		valid := len(errors) == 0
+		var valid bool
+		if err := RedisEnterpriseClusterLocationFlashSkuSupport(tc.Input); err == nil {
+			valid = true
+		}
 
 		if tc.Valid != valid {
 			t.Fatalf("Expected %t but got %t", tc.Valid, valid)
