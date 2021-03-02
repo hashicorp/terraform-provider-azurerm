@@ -127,7 +127,7 @@ func resourceMediaJob() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default: string(media.PriorityNormal),
+				Default:  string(media.PriorityNormal),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(media.PriorityHigh),
 					string(media.PriorityNormal),
