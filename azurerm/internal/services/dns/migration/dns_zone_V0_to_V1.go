@@ -1,9 +1,12 @@
 package migration
 
 import (
+	"context"
+	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -124,13 +127,23 @@ func DnsZoneV0Schema() *schema.Resource {
 }
 
 func DnsZoneUpgradeV0ToV1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	ctx := context.TODO()
+	groupsClient := meta.(*clients.Client).Resource.GroupsClient
 	oldId := rawState["id"].(string)
 	id, err := parse.DnsZoneID(oldId)
 	if err != nil {
 		return rawState, err
 	}
-
-	newId := parse.NewDnsZoneID(id.SubscriptionId, rawState["resource_group_name"].(string), rawState["name"].(string)).ID()
+	resGroup, err := groupsClient.Get(ctx, id.ResourceGroup)
+	if err != nil {
+		return rawState, err
+	}
+	if resGroup.Name == nil {
+		return rawState, fmt.Errorf("`name` was nil for Resource Group %q", id.ResourceGroup)
+	}
+	resourceGroup := *resGroup.Name
+	name := rawState["name"].(string)
+	newId := parse.NewDnsZoneID(id.SubscriptionId, resourceGroup, name).ID()
 	log.Printf("Updating `id` from %q to %q", oldId, newId)
 	rawState["id"] = newId
 	return rawState, nil
