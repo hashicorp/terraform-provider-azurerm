@@ -186,7 +186,7 @@ func resourceDnsZoneCreateUpdate(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Error creating/updating DNS Zone %q (Resource Group %q): %s", name, resGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resGroup, name)
+	_, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error retrieving DNS Zone %q (Resource Group %q): %s", name, resGroup, err)
 	}
@@ -208,10 +208,6 @@ func resourceDnsZoneCreateUpdate(d *schema.ResourceData, meta interface{}) error
 		if _, err := recordSetsClient.CreateOrUpdate(ctx, resGroup, name, "@", dns.SOA, rsParameters, etag, ifNoneMatch); err != nil {
 			return fmt.Errorf("creating/updating DNS SOA Record @ (Zone %q / Resource Group %q): %s", name, resGroup, err)
 		}
-	}
-
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read DNS Zone %q (Resource Group %q) ID", name, resGroup)
 	}
 
 	d.SetId(resourceId.ID())
