@@ -7,8 +7,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 )
 
-// RedisEnterpriseClusterFlashSkuTypeLocation - validates that the passed location supports the flash sku type or not
-func RedisEnterpriseClusterFlashSkuTypeLocation(input string) error {
+// RedisEnterpriseClusterLocationFlashSkuSupport - validates that the passed location supports the flash sku type or not
+func RedisEnterpriseClusterLocationFlashSkuSupport(input string) error {
 	location := location.Normalize(input)
 	invalidLocations := invalidRedisEnterpriseClusterFlashLocations()
 
@@ -22,14 +22,13 @@ func RedisEnterpriseClusterFlashSkuTypeLocation(input string) error {
 }
 
 func invalidRedisEnterpriseClusterFlashLocations() []string {
-	return []string{
-		location.Normalize("Australia Southeast"),
-		location.Normalize("Brazil South"),
-		location.Normalize("Central US"),
-		location.Normalize("Central US EUAP"),
-		location.Normalize("East Asia"),
-		location.Normalize("UK West"),
+	var validFlash []string
+
+	for _, v := range friendlyInvalidRedisEnterpriseClusterFlashLocations() {
+		validFlash = append(validFlash, location.Normalize(v))
 	}
+
+	return validFlash
 }
 
 func friendlyInvalidRedisEnterpriseClusterFlashLocations() []string {
@@ -40,5 +39,6 @@ func friendlyInvalidRedisEnterpriseClusterFlashLocations() []string {
 		"Central US EUAP",
 		"East Asia",
 		"UK West",
+		"East US 2 EUAP",
 	}
 }

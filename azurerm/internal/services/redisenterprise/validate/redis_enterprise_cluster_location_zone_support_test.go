@@ -2,7 +2,7 @@ package validate
 
 import "testing"
 
-func TestRedisEnterpriseClusterFlashSkuTypeLocation(t *testing.T) {
+func TestRedisEnterpriseClusterLocationZoneSupport(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
@@ -77,7 +77,7 @@ func TestRedisEnterpriseClusterFlashSkuTypeLocation(t *testing.T) {
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %s", tc.Input)
 		var valid bool
-		if err := RedisEnterpriseClusterFlashSkuTypeLocation(tc.Input); err == nil {
+		if err := RedisEnterpriseClusterLocationZoneSupport(tc.Input); err == nil {
 			valid = true
 		}
 
