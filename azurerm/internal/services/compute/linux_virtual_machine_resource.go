@@ -184,7 +184,7 @@ func resourceLinuxVirtualMachine() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					"RHEL_BYOS",
 					"SLES_BYOS",
-				}, true),
+				}, false),
 			},
 
 			"max_bid_price": {
