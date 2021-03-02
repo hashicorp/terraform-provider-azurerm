@@ -6,11 +6,10 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-11-01/subscriptions"
-	"github.com/Azure/azure-sdk-for-go/services/subscription/mgmt/2020-09-01/subscription"
+	subscriptionAlias "github.com/Azure/azure-sdk-for-go/services/subscription/mgmt/2020-09-01/subscription"
 	"github.com/google/uuid"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	azValidate "github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/validate"
@@ -137,8 +136,8 @@ func resourceSubscription() *schema.Resource {
 				Description: "The workload type for the Subscription. Possible values are `Production` (default) and `DevTest`.",
 				// Other RP's have updated Constants with contextual prefixes so these are likely to change
 				ValidateFunc: validation.StringInSlice([]string{
-					string(subscription.Production),
-					string(subscription.DevTest),
+					string(subscriptionAlias.Production),
+					string(subscriptionAlias.DevTest),
 				}, false),
 				// Workload is not exposed in any way, so must be ignored if the resource is imported.
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
@@ -164,9 +163,9 @@ func resourceSubscription() *schema.Resource {
 }
 
 func resourceSubscriptionCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Subscription.AliasClient
+	aliasClient := meta.(*clients.Client).Subscription.AliasClient
 	subscriptionClient := meta.(*clients.Client).Subscription.SubscriptionClient
-	subscriptionsClient := meta.(*clients.Client).Subscription.Client
+	client := meta.(*clients.Client).Subscription.Client
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -180,7 +179,7 @@ func resourceSubscriptionCreate(d *schema.ResourceData, meta interface{}) error 
 
 	id := parse.NewSubscriptionAliasId(aliasName)
 
-	existing, err := client.Get(ctx, id.Name)
+	existing, err := aliasClient.Get(ctx, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
 			return fmt.Errorf("checking for existence of Subscription by Alias %q: %+v", id.Name, err)
@@ -191,13 +190,13 @@ func resourceSubscriptionCreate(d *schema.ResourceData, meta interface{}) error 
 		return tf.ImportAsExistsError("azurerm_subscription", id.ID())
 	}
 
-	workload := subscription.Production
+	workload := subscriptionAlias.Production
 	if workloadRaw := d.Get("workload").(string); workloadRaw != "" {
-		workload = subscription.Workload(workloadRaw)
+		workload = subscriptionAlias.Workload(workloadRaw)
 	}
 
-	req := subscription.PutAliasRequest{
-		Properties: &subscription.PutAliasRequestProperties{
+	req := subscriptionAlias.PutAliasRequest{
+		Properties: &subscriptionAlias.PutAliasRequestProperties{
 			Workload: workload,
 		},
 	}
@@ -209,7 +208,7 @@ func resourceSubscriptionCreate(d *schema.ResourceData, meta interface{}) error 
 	// Check if we're adding alias management for an existing subscription
 	if subscriptionIdRaw, ok := d.GetOk("subscription_id"); ok {
 		subscriptionId = subscriptionIdRaw.(string)
-		exists, err := checkExistingAliases(ctx, *client, subscriptionId)
+		exists, err := checkExistingAliases(ctx, *aliasClient, subscriptionId)
 		if err != nil {
 			return err
 		}
@@ -218,7 +217,7 @@ func resourceSubscriptionCreate(d *schema.ResourceData, meta interface{}) error 
 		}
 
 		req.Properties.SubscriptionID = utils.String(subscriptionId)
-		existingSub, err := subscriptionsClient.Get(ctx, subscriptionId)
+		existingSub, err := client.Get(ctx, subscriptionId)
 		if err != nil {
 			return fmt.Errorf("could not read existing Subscription %q", subscriptionId)
 		}
@@ -242,12 +241,12 @@ func resourceSubscriptionCreate(d *schema.ResourceData, meta interface{}) error 
 		}
 	}
 
-	future, err := client.Create(ctx, aliasName, req)
+	future, err := aliasClient.Create(ctx, aliasName, req)
 	if err != nil {
 		return fmt.Errorf("creating new Subscription (Alias %q): %+v", aliasName, err)
 	}
 
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+	if err := future.WaitForCompletionRef(ctx, aliasClient.Client); err != nil {
 		return fmt.Errorf("waiting for creation of Subscription with Alias %q: %+v", id.Name, err)
 	}
 
@@ -257,7 +256,7 @@ func resourceSubscriptionCreate(d *schema.ResourceData, meta interface{}) error 
 		}
 	}
 
-	alias, err := client.Get(ctx, id.Name)
+	alias, err := aliasClient.Get(ctx, id.Name)
 	if err != nil || alias.Properties == nil || alias.Properties.SubscriptionID == nil {
 		return fmt.Errorf("failed reading subscription details for Alias %q: %+v", id.Name, err)
 	}
@@ -272,7 +271,7 @@ func resourceSubscriptionCreate(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceSubscriptionUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Subscription.AliasClient
+	aliasClient := meta.(*clients.Client).Subscription.AliasClient
 	subscriptionClient := meta.(*clients.Client).Subscription.SubscriptionClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -282,7 +281,7 @@ func resourceSubscriptionUpdate(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.Name)
+	resp, err := aliasClient.Get(ctx, id.Name)
 	if err != nil || resp.Properties == nil {
 		return fmt.Errorf("could not read Subscription Alias for update: %+v", err)
 	}
@@ -292,7 +291,7 @@ func resourceSubscriptionUpdate(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("could not read Subscription ID from Alias")
 	}
 	if d.HasChange("subscription_name") {
-		displayName := subscription.Name{
+		displayName := subscriptionAlias.Name{
 			SubscriptionName: utils.String(d.Get("subscription_name").(string)),
 		}
 		if _, err := subscriptionClient.Rename(ctx, *subscriptionId, displayName); err != nil {
@@ -324,8 +323,8 @@ func resourceSubscriptionUpdate(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Subscription.AliasClient
-	subscriptionsClient := meta.(*clients.Client).Subscription.Client
+	aliasClient := meta.(*clients.Client).Subscription.AliasClient
+	client := meta.(*clients.Client).Subscription.Client
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -335,7 +334,7 @@ func resourceSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
 	}
 	d.Set("alias", id.Name)
 
-	alias, err := client.Get(ctx, id.Name)
+	alias, err := aliasClient.Get(ctx, id.Name)
 	if err != nil {
 		return fmt.Errorf("reading Subscription Alias %q: %+v", id.Name, err)
 	}
@@ -345,7 +344,7 @@ func resourceSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
 	tenantId := ""
 	if props := alias.Properties; props != nil && props.SubscriptionID != nil {
 		subscriptionId = *props.SubscriptionID
-		resp, err := subscriptionsClient.Get(ctx, subscriptionId)
+		resp, err := client.Get(ctx, subscriptionId)
 
 		if err != nil {
 			return fmt.Errorf("failed to read Subscription %q (Alias %q) for Tenant Information: %+v", subscriptionId, id.Name, err)
@@ -386,9 +385,9 @@ func resourceSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
 // Note Cancelling a Subscription leaves it in one of several states, `Disabled` for a Subscription with no Resources or
 // Alias assignments, `Warned` for Cancelled with "something" associated with it.
 func resourceSubscriptionDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Subscription.AliasClient
+	aliasClient := meta.(*clients.Client).Subscription.AliasClient
 	subscriptionClient := meta.(*clients.Client).Subscription.SubscriptionClient
-	subscriptionsClient := meta.(*clients.Client).Subscription.Client
+	client := meta.(*clients.Client).Subscription.Client
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -398,7 +397,7 @@ func resourceSubscriptionDelete(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	// Get subscription details for later
-	alias, err := client.Get(ctx, id.Name)
+	alias, err := aliasClient.Get(ctx, id.Name)
 	if err != nil || alias.Properties == nil {
 		return fmt.Errorf("could not read Alias %q for Subscription: %+v", id.Name, err)
 	}
@@ -407,7 +406,7 @@ func resourceSubscriptionDelete(d *schema.ResourceData, meta interface{}) error 
 		subscriptionId = *subscriptionIdRaw
 	}
 
-	sub, err := subscriptionsClient.Get(ctx, subscriptionId)
+	sub, err := client.Get(ctx, subscriptionId)
 	if err != nil {
 		return fmt.Errorf("could not read Subscription details for %q: %+v", subscriptionId, err)
 	}
@@ -421,7 +420,7 @@ func resourceSubscriptionDelete(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("one or both of Subscription Name (%q) and Subscription ID (%q) could not be determined", subscriptionName, subscriptionId)
 	}
 	// remove the alias
-	resp, err := client.Delete(ctx, id.Name)
+	resp, err := aliasClient.Delete(ctx, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
 			return fmt.Errorf("could not delete Alias %q for Subscription %q (ID: %q): %+v", id.Name, subscriptionName, subscriptionId, err)
@@ -485,7 +484,7 @@ func waitForSubscriptionStateToSettle(ctx context.Context, clients *clients.Clie
 	return nil
 }
 
-func checkExistingAliases(ctx context.Context, client subscription.AliasClient, subscriptionId string) (*string, error) {
+func checkExistingAliases(ctx context.Context, client subscriptionAlias.AliasClient, subscriptionId string) (*string, error) {
 	aliasList, err := client.List(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("could not List existing Subscription Aliases")
