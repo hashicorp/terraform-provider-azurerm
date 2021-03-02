@@ -477,12 +477,6 @@ github.com/posener/complete/match
 github.com/rickb777/date/period
 # github.com/rickb777/plural v1.2.0
 github.com/rickb777/plural
-# github.com/satori/go.uuid v1.2.0
-## explicit
-github.com/satori/go.uuid
-# github.com/satori/uuid v0.0.0-20160927100844-b061729afc07
-## explicit
-github.com/satori/uuid
 # github.com/sergi/go-diff v1.1.0
 ## explicit
 github.com/sergi/go-diff/diffmatchpatch
