@@ -176,6 +176,21 @@ func TestAccCosmosDbMongoCollection_ver36(t *testing.T) {
 	})
 }
 
+func TestAccCosmosDbMongoCollection_serverless(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_collection", "test")
+	r := CosmosMongoCollectionResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.serverless(data),
+			Check: resource.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t CosmosMongoCollectionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.MongodbCollectionID(state.ID)
 	if err != nil {
@@ -319,4 +334,28 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
   }
 }
 `, CosmosDBAccountResource{}.capabilities(data, documentdb.MongoDB, []string{"EnableMongo"}), data.RandomInteger)
+}
+
+func (CosmosMongoCollectionResource) serverless(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_mongo_database" "test" {
+  name                = "acctest-%[2]d"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+}
+
+resource "azurerm_cosmosdb_mongo_collection" "test" {
+  name                = "acctest-%[2]d"
+  resource_group_name = azurerm_cosmosdb_mongo_database.test.resource_group_name
+  account_name        = azurerm_cosmosdb_mongo_database.test.account_name
+  database_name       = azurerm_cosmosdb_mongo_database.test.name
+
+  index {
+    keys   = ["_id"]
+    unique = true
+  }
+}
+`, CosmosDBAccountResource{}.capabilities(data, documentdb.MongoDB, []string{"EnableMongo", "EnableServerless"}), data.RandomInteger)
 }
