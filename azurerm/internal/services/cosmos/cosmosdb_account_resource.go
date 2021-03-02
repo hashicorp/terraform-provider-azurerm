@@ -456,30 +456,26 @@ func resourceCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error expanding CosmosDB Account %q (Resource Group %q) backup policy: %+v", name, resourceGroup, err)
 	}
 
-	account := documentdb.DatabaseAccountCreateUpdateParameters{
-		Location: utils.String(location),
-		Kind:     documentdb.DatabaseAccountKind(kind),
-		Properties: &documentdb.DefaultRequestDatabaseAccountCreateUpdateProperties{
-			DatabaseAccountOfferType:      utils.String(offerType),
-			IPRules:                       common.CosmosDBIpRangeFilterToIpRules(ipRangeFilter),
-			IsVirtualNetworkFilterEnabled: utils.Bool(isVirtualNetworkFilterEnabled),
-			EnableFreeTier:                utils.Bool(enableFreeTier),
-			EnableAutomaticFailover:       utils.Bool(enableAutomaticFailover),
-			ConsistencyPolicy:             expandAzureRmCosmosDBAccountConsistencyPolicy(d),
-			Locations:                     &geoLocations,
-			Capabilities:                  expandAzureRmCosmosDBAccountCapabilities(d),
-			VirtualNetworkRules:           expandAzureRmCosmosDBAccountVirtualNetworkRules(d),
-			EnableMultipleWriteLocations:  utils.Bool(enableMultipleWriteLocations),
-			PublicNetworkAccess:           publicNetworkAccess,
-			EnableAnalyticalStorage:       utils.Bool(enableAnalyticalStorage),
-			BackupPolicy:                  backupPolicy,
-		},
-		Tags: tags.Expand(t),
+	properties := documentdb.DefaultRequestDatabaseAccountCreateUpdateProperties{
+		DatabaseAccountOfferType:      utils.String(offerType),
+		IPRules:                       common.CosmosDBIpRangeFilterToIpRules(ipRangeFilter),
+		IsVirtualNetworkFilterEnabled: utils.Bool(isVirtualNetworkFilterEnabled),
+		EnableFreeTier:                utils.Bool(enableFreeTier),
+		EnableAutomaticFailover:       utils.Bool(enableAutomaticFailover),
+		ConsistencyPolicy:             expandAzureRmCosmosDBAccountConsistencyPolicy(d),
+		Locations:                     &geoLocations,
+		Capabilities:                  expandAzureRmCosmosDBAccountCapabilities(d),
+		VirtualNetworkRules:           expandAzureRmCosmosDBAccountVirtualNetworkRules(d),
+		EnableMultipleWriteLocations:  utils.Bool(enableMultipleWriteLocations),
+		PublicNetworkAccess:           publicNetworkAccess,
+		EnableAnalyticalStorage:       utils.Bool(enableAnalyticalStorage),
+		BackupPolicy:                  backupPolicy,
 	}
-
-	props, ok := account.Properties.AsDefaultRequestDatabaseAccountCreateUpdateProperties()
-	if !ok {
-		return fmt.Errorf("Error parsing CosmosDB Account properties")
+	account := documentdb.DatabaseAccountCreateUpdateParameters{
+		Location:   utils.String(location),
+		Kind:       documentdb.DatabaseAccountKind(kind),
+		Properties: &properties,
+		Tags:       tags.Expand(t),
 	}
 
 	if keyVaultKeyIDRaw, ok := d.GetOk("key_vault_key_id"); ok {
@@ -487,11 +483,11 @@ func resourceCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) err
 		if err != nil {
 			return fmt.Errorf("could not parse Key Vault Key ID: %+v", err)
 		}
-		props.KeyVaultKeyURI = utils.String(keyVaultKey.ID())
+		properties.KeyVaultKeyURI = utils.String(keyVaultKey.ID())
 	}
 
 	// additional validation on MaxStalenessPrefix as it varies depending on if the DB is multi region or not
-	consistencyPolicy := props.ConsistencyPolicy
+	consistencyPolicy := properties.ConsistencyPolicy
 	if len(geoLocations) > 1 && consistencyPolicy != nil && consistencyPolicy.DefaultConsistencyLevel == documentdb.BoundedStaleness {
 		if msp := consistencyPolicy.MaxStalenessPrefix; msp != nil && *msp < 100000 {
 			return fmt.Errorf("Error max_staleness_prefix (%d) must be greater then 100000 when more then one geo_location is used", *msp)
@@ -573,32 +569,29 @@ func resourceCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error expanding CosmosDB Account %q (Resource Group %q) backup policy: %+v", name, resourceGroup, err)
 	}
 
+	properties := documentdb.DefaultRequestDatabaseAccountCreateUpdateProperties{
+		DatabaseAccountOfferType:      utils.String(offerType),
+		IPRules:                       common.CosmosDBIpRangeFilterToIpRules(ipRangeFilter),
+		IsVirtualNetworkFilterEnabled: utils.Bool(isVirtualNetworkFilterEnabled),
+		EnableFreeTier:                utils.Bool(enableFreeTier),
+		EnableAutomaticFailover:       utils.Bool(enableAutomaticFailover),
+		Capabilities:                  expandAzureRmCosmosDBAccountCapabilities(d),
+		ConsistencyPolicy:             expandAzureRmCosmosDBAccountConsistencyPolicy(d),
+		Locations:                     &oldLocations,
+		VirtualNetworkRules:           expandAzureRmCosmosDBAccountVirtualNetworkRules(d),
+		EnableMultipleWriteLocations:  resp.EnableMultipleWriteLocations,
+		PublicNetworkAccess:           publicNetworkAccess,
+		EnableAnalyticalStorage:       utils.Bool(enableAnalyticalStorage),
+		BackupPolicy:                  backupPolicy,
+	}
+
 	// cannot update properties and add/remove replication locations or updating enabling of multiple
 	// write locations at the same time. so first just update any changed properties
 	account := documentdb.DatabaseAccountCreateUpdateParameters{
-		Location: utils.String(location),
-		Kind:     documentdb.DatabaseAccountKind(kind),
-		Properties: &documentdb.DefaultRequestDatabaseAccountCreateUpdateProperties{
-			DatabaseAccountOfferType:      utils.String(offerType),
-			IPRules:                       common.CosmosDBIpRangeFilterToIpRules(ipRangeFilter),
-			IsVirtualNetworkFilterEnabled: utils.Bool(isVirtualNetworkFilterEnabled),
-			EnableFreeTier:                utils.Bool(enableFreeTier),
-			EnableAutomaticFailover:       utils.Bool(enableAutomaticFailover),
-			Capabilities:                  expandAzureRmCosmosDBAccountCapabilities(d),
-			ConsistencyPolicy:             expandAzureRmCosmosDBAccountConsistencyPolicy(d),
-			Locations:                     &oldLocations,
-			VirtualNetworkRules:           expandAzureRmCosmosDBAccountVirtualNetworkRules(d),
-			EnableMultipleWriteLocations:  resp.EnableMultipleWriteLocations,
-			PublicNetworkAccess:           publicNetworkAccess,
-			EnableAnalyticalStorage:       utils.Bool(enableAnalyticalStorage),
-			BackupPolicy:                  backupPolicy,
-		},
-		Tags: tags.Expand(t),
-	}
-
-	props, ok := account.Properties.AsDefaultRequestDatabaseAccountCreateUpdateProperties()
-	if !ok {
-		return fmt.Errorf("Error parsing CosmosDB Account properties")
+		Location:   utils.String(location),
+		Kind:       documentdb.DatabaseAccountKind(kind),
+		Properties: &properties,
+		Tags:       tags.Expand(t),
 	}
 
 	if keyVaultKeyIDRaw, ok := d.GetOk("key_vault_key_id"); ok {
@@ -606,7 +599,7 @@ func resourceCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) err
 		if err != nil {
 			return fmt.Errorf("could not parse Key Vault Key ID: %+v", err)
 		}
-		props.KeyVaultKeyURI = utils.String(keyVaultKey.ID())
+		properties.KeyVaultKeyURI = utils.String(keyVaultKey.ID())
 	}
 
 	if _, err = resourceCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d); err != nil {
@@ -614,7 +607,7 @@ func resourceCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) err
 	}
 
 	// Update the property independently after the initial upsert as no other properties may change at the same time.
-	props.EnableMultipleWriteLocations = utils.Bool(enableMultipleWriteLocations)
+	properties.EnableMultipleWriteLocations = utils.Bool(enableMultipleWriteLocations)
 	if *resp.EnableMultipleWriteLocations != enableMultipleWriteLocations {
 		if _, err = resourceCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d); err != nil {
 			return fmt.Errorf("Error updating CosmosDB Account %q EnableMultipleWriteLocations (Resource Group %q): %+v", name, resourceGroup, err)
@@ -642,14 +635,14 @@ func resourceCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) err
 			locationsUnchanged = append(locationsUnchanged, value)
 		}
 
-		props.Locations = &locationsUnchanged
+		properties.Locations = &locationsUnchanged
 		if _, err = resourceCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d); err != nil {
 			return fmt.Errorf("Error removing CosmosDB Account %q renamed locations (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
 	// add any new/renamed locations
-	props.Locations = &newLocations
+	properties.Locations = &newLocations
 	upsertResponse, err := resourceCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d)
 	if err != nil {
 		return fmt.Errorf("Error updating CosmosDB Account %q locations (Resource Group %q): %+v", name, resourceGroup, err)
