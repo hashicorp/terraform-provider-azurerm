@@ -780,6 +780,14 @@ func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{})
 		update.Identity = identity
 	}
 
+	if d.HasChange("license_type") {
+		shouldUpdate = true
+
+		if v, ok := d.GetOk("license_type"); ok {
+			update.LicenseType = utils.String(v.(string))
+		}
+	}
+
 	if d.HasChange("dedicated_host_id") {
 		shouldUpdate = true
 
