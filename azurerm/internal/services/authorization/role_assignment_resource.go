@@ -177,9 +177,15 @@ func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) e
 			RoleDefinitionID: utils.String(roleDefinitionId),
 			PrincipalID:      utils.String(principalId),
 			Description:      utils.String(d.Get("description").(string)),
-			Condition:        utils.String(d.Get("condition").(string)),
-			ConditionVersion: utils.String(d.Get("condition_version").(string)),
 		},
+	}
+
+	if v, ok := d.GetOk("condition"); ok {
+		properties.RoleAssignmentProperties.Condition = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("condition_version"); ok {
+		properties.RoleAssignmentProperties.ConditionVersion = utils.String(v.(string))
 	}
 
 	skipPrincipalCheck := d.Get("skip_service_principal_aad_check").(bool)
