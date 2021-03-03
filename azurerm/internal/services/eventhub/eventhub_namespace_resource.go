@@ -72,6 +72,7 @@ func resourceEventHubNamespace() *schema.Resource {
 				}, true),
 			},
 
+			//TODO: 3.0 expose feature flag to bypass default qouta instead of removing the default validation (1-20) function completly, see frontdoor PR #10801 as an example
 			"capacity": {
 				Type:     schema.TypeInt,
 				Optional: true,
