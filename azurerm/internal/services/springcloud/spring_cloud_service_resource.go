@@ -117,10 +117,12 @@ func resourceSpringCloudService() *schema.Resource {
 			},
 
 			"config_server_git_setting": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
+				Type:       schema.TypeList,
+				Optional:   true,
+				Computed:   true,
+				ConfigMode: schema.SchemaConfigModeAttr,
+				Deprecated: "Deprecated in favour of `azurerm_spring_cloud_config_server` resource",
+				MaxItems:   1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"uri": {
@@ -143,13 +145,14 @@ func resourceSpringCloudService() *schema.Resource {
 							},
 						},
 
-						"http_basic_auth": SchemaConfigServerHttpBasicAuth("config_server_git_setting.0.ssh_auth"),
+						"http_basic_auth": SchemaConfigServerHttpBasicAuth(true, "config_server_git_setting.0.ssh_auth"),
 
-						"ssh_auth": SchemaConfigServerSSHAuth("config_server_git_setting.0.http_basic_auth"),
+						"ssh_auth": SchemaConfigServerSSHAuth(true, "config_server_git_setting.0.http_basic_auth"),
 
 						"repository": {
-							Type:     schema.TypeList,
-							Optional: true,
+							Type:       schema.TypeList,
+							Optional:   true,
+							ConfigMode: schema.SchemaConfigModeAttr,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"name": {
@@ -187,9 +190,9 @@ func resourceSpringCloudService() *schema.Resource {
 										},
 									},
 
-									"http_basic_auth": SchemaConfigServerHttpBasicAuth(),
+									"http_basic_auth": SchemaConfigServerHttpBasicAuth(true),
 
-									"ssh_auth": SchemaConfigServerSSHAuth(),
+									"ssh_auth": SchemaConfigServerSSHAuth(true),
 								},
 							},
 						},

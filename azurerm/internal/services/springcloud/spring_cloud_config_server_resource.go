@@ -64,9 +64,9 @@ func resourceSpringCloudConfigServer() *schema.Resource {
 				},
 			},
 
-			"http_basic_auth": SchemaConfigServerHttpBasicAuth("ssh_auth"),
+			"http_basic_auth": SchemaConfigServerHttpBasicAuth(false, "ssh_auth"),
 
-			"ssh_auth": SchemaConfigServerSSHAuth("http_basic_auth"),
+			"ssh_auth": SchemaConfigServerSSHAuth(false, "http_basic_auth"),
 
 			"repository": {
 				Type:     schema.TypeList,
@@ -108,9 +108,9 @@ func resourceSpringCloudConfigServer() *schema.Resource {
 							},
 						},
 
-						"http_basic_auth": SchemaConfigServerHttpBasicAuth(),
+						"http_basic_auth": SchemaConfigServerHttpBasicAuth(false),
 
-						"ssh_auth": SchemaConfigServerSSHAuth(),
+						"ssh_auth": SchemaConfigServerSSHAuth(false),
 					},
 				},
 			},
@@ -227,52 +227,13 @@ func resourceSpringCloudConfigServerRead(d *schema.ResourceData, meta interface{
 	d.Set("label", prop.Label)
 	d.Set("search_paths", utils.FlattenStringSlice(prop.SearchPaths))
 
-	// username and password returned by API are *
-	// to avoid state diff, we get the props from old state
-	httpBasicAuth := make([]interface{}, 0)
-	if prop.Username != nil && prop.Password != nil {
-		username := ""
-		password := ""
-		if oldHTTPBasicAuth := d.Get("http_basic_auth").([]interface{}); len(oldHTTPBasicAuth) > 0 {
-			oldItem := oldHTTPBasicAuth[0].(map[string]interface{})
-			username = oldItem["username"].(string)
-			password = oldItem["password"].(string)
-		}
-		httpBasicAuth = []interface{}{
-			map[string]interface{}{
-				"username": username,
-				"password": password,
-			},
-		}
+	if err := d.Set("http_basic_auth", flattenSpringCloudConfigServerHttpBasicAuth(prop, d.Get("http_basic_auth").([]interface{}))); err != nil {
+		return fmt.Errorf("setting `http_basic_auth`: %+v", err)
 	}
-	d.Set("http_basic_auth", httpBasicAuth)
 
-	sshAuth := []interface{}{}
-	if prop.PrivateKey != nil {
-		privateKey := ""
-		hostKey := ""
-		hostKeyAlgorithm := ""
-		if sshAuth := d.Get("ssh_auth").([]interface{}); len(sshAuth) > 0 {
-			oldItem := sshAuth[0].(map[string]interface{})
-			privateKey = oldItem["private_key"].(string)
-			hostKey = oldItem["host_key"].(string)
-			hostKeyAlgorithm = oldItem["host_key_algorithm"].(string)
-		}
-
-		strictHostKeyChecking := false
-		if prop.StrictHostKeyChecking != nil {
-			strictHostKeyChecking = *prop.StrictHostKeyChecking
-		}
-		sshAuth = []interface{}{
-			map[string]interface{}{
-				"private_key":                      privateKey,
-				"host_key":                         hostKey,
-				"host_key_algorithm":               hostKeyAlgorithm,
-				"strict_host_key_checking_enabled": strictHostKeyChecking,
-			},
-		}
+	if err := d.Set("ssh_auth", flattenSpringCloudConfigServerSSHAuth(prop, d.Get("ssh_auth").([]interface{}))); err != nil {
+		return fmt.Errorf("setting `ssh_auth`: %+v", err)
 	}
-	d.Set("ssh_auth", sshAuth)
 
 	if err := d.Set("repository", flattenSpringCloudGitPatternRepository(prop.Repositories, d.Get("repository").([]interface{}))); err != nil {
 		return fmt.Errorf("setting `config_server_git_setting`: %+v", err)
@@ -307,4 +268,57 @@ func resourceSpringCloudConfigServerDelete(d *schema.ResourceData, meta interfac
 	}
 
 	return nil
+}
+
+// username and password returned by API are *
+// to avoid state diff, we get the props from old state
+func flattenSpringCloudConfigServerHttpBasicAuth(input *appplatform.ConfigServerGitProperty, httpBasicAuthOldState []interface{}) []interface{} {
+	if input == nil || input.Username == nil || input.Password == nil {
+		return []interface{}{}
+	}
+
+	username := ""
+	password := ""
+	if len(httpBasicAuthOldState) > 0 {
+		oldItem := httpBasicAuthOldState[0].(map[string]interface{})
+		username = oldItem["username"].(string)
+		password = oldItem["password"].(string)
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"username": username,
+			"password": password,
+		},
+	}
+}
+
+// private_key, host_key and host_key_algorithm returned by API are *
+// to avoid state diff, we get the props from old state
+func flattenSpringCloudConfigServerSSHAuth(input *appplatform.ConfigServerGitProperty, sshAuthOldState []interface{}) []interface{} {
+	if input == nil || input.PrivateKey == nil {
+		return []interface{}{}
+	}
+
+	privateKey := ""
+	hostKey := ""
+	hostKeyAlgorithm := ""
+	if len(sshAuthOldState) > 0 {
+		oldItem := sshAuthOldState[0].(map[string]interface{})
+		privateKey = oldItem["private_key"].(string)
+		hostKey = oldItem["host_key"].(string)
+		hostKeyAlgorithm = oldItem["host_key_algorithm"].(string)
+	}
+
+	strictHostKeyChecking := false
+	if input.StrictHostKeyChecking != nil {
+		strictHostKeyChecking = *input.StrictHostKeyChecking
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"private_key":                      privateKey,
+			"host_key":                         hostKey,
+			"host_key_algorithm":               hostKeyAlgorithm,
+			"strict_host_key_checking_enabled": strictHostKeyChecking,
+		},
+	}
 }

@@ -5,7 +5,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func SchemaConfigServerHttpBasicAuth(conflictsWith ...string) *schema.Schema {
+func SchemaConfigServerHttpBasicAuth(isSchemaConfigModeAttr bool, conflictsWith ...string) *schema.Schema {
 	s := &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
@@ -26,13 +26,16 @@ func SchemaConfigServerHttpBasicAuth(conflictsWith ...string) *schema.Schema {
 			},
 		},
 	}
+	if isSchemaConfigModeAttr {
+		s.ConfigMode = schema.SchemaConfigModeAttr
+	}
 	if len(conflictsWith) > 0 {
 		s.ConflictsWith = conflictsWith
 	}
 	return s
 }
 
-func SchemaConfigServerSSHAuth(conflictsWith ...string) *schema.Schema {
+func SchemaConfigServerSSHAuth(isSchemaConfigModeAttr bool, conflictsWith ...string) *schema.Schema {
 	s := &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
@@ -73,7 +76,9 @@ func SchemaConfigServerSSHAuth(conflictsWith ...string) *schema.Schema {
 			},
 		},
 	}
-
+	if isSchemaConfigModeAttr {
+		s.ConfigMode = schema.SchemaConfigModeAttr
+	}
 	if len(conflictsWith) > 0 {
 		s.ConflictsWith = conflictsWith
 	}

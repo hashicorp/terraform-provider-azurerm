@@ -5,13 +5,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/springcloud/parse"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/springcloud/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -161,6 +160,8 @@ resource "azurerm_spring_cloud_service" "test" {
   name                = "acctest-sc-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  config_server_git_setting = []
 }
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
