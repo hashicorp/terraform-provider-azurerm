@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/terraform-providers/terraform-provider-azuread/azuread"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/helpers"
@@ -55,15 +57,15 @@ func RunTestsInSequence(t *testing.T, tests map[string]map[string]func(t *testin
 }
 
 func (td TestData) runAcceptanceTest(t *testing.T, testCase resource.TestCase) {
-	if testclient.EnableBinaryTesting {
-		testCase.ProviderFactories = map[string]terraform.ResourceProviderFactory{
-			"azurerm": func() (terraform.ResourceProvider, error) {
-				azurerm := provider.TestAzureProvider()
-				return azurerm, nil
-			},
-		}
-	} else {
-		testCase.Providers = testclient.SupportedProviders
+	testCase.ProviderFactories = map[string]terraform.ResourceProviderFactory{
+		"azuread": func() (terraform.ResourceProvider, error) {
+			aad := azuread.Provider()
+			return aad, nil
+		},
+		"azurerm": func() (terraform.ResourceProvider, error) {
+			azurerm := provider.TestAzureProvider()
+			return azurerm, nil
+		},
 	}
 
 	resource.ParallelTest(t, testCase)
