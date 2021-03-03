@@ -11,6 +11,8 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 )
 
+// TODO: move this into the network package
+
 // UpdateNetworkInterfaceAllowingRemovalOfNSG patches our way around a design flaw in the Azure
 // Resource Manager API <-> Azure SDK for Go where it's not possible to remove a Network Security Group
 func UpdateNetworkInterfaceAllowingRemovalOfNSG(ctx context.Context, client *network.InterfacesClient, resourceGroupName string, networkInterfaceName string, parameters network.Interface) (result network.InterfacesCreateOrUpdateFuture, err error) {

@@ -1119,6 +1119,7 @@ func (client ManagementLocksClient) ListAtResourceGroupLevel(ctx context.Context
 	}
 	if result.mllr.hasNextLink() && result.mllr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -1182,7 +1183,6 @@ func (client ManagementLocksClient) listAtResourceGroupLevelNextResults(ctx cont
 	result, err = client.ListAtResourceGroupLevelResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "listAtResourceGroupLevelNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -1252,6 +1252,7 @@ func (client ManagementLocksClient) ListAtResourceLevel(ctx context.Context, res
 	}
 	if result.mllr.hasNextLink() && result.mllr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -1319,7 +1320,6 @@ func (client ManagementLocksClient) listAtResourceLevelNextResults(ctx context.C
 	result, err = client.ListAtResourceLevelResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "listAtResourceLevelNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -1375,6 +1375,7 @@ func (client ManagementLocksClient) ListAtSubscriptionLevel(ctx context.Context,
 	}
 	if result.mllr.hasNextLink() && result.mllr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -1437,7 +1438,6 @@ func (client ManagementLocksClient) listAtSubscriptionLevelNextResults(ctx conte
 	result, err = client.ListAtSubscriptionLevelResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "listAtSubscriptionLevelNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -1498,6 +1498,7 @@ func (client ManagementLocksClient) ListByScope(ctx context.Context, scope strin
 	}
 	if result.mllr.hasNextLink() && result.mllr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -1560,7 +1561,6 @@ func (client ManagementLocksClient) listByScopeNextResults(ctx context.Context, 
 	result, err = client.ListByScopeResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "listByScopeNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

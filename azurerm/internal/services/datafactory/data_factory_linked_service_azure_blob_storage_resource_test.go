@@ -32,6 +32,36 @@ func TestAccDataFactoryLinkedServiceAzureBlobStorage_basic(t *testing.T) {
 	})
 }
 
+func TestAccDataFactoryLinkedServiceAzureBlobStorage_managed_id(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_blob_storage", "test")
+	r := LinkedServiceAzureBlobStorageResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.managed_id(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("connection_string"),
+	})
+}
+
+func TestAccDataFactoryLinkedServiceAzureBlobStorage_sas_uri(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_blob_storage", "test")
+	r := LinkedServiceAzureBlobStorageResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.sas_uri(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("sas_uri"),
+	})
+}
+
 func TestAccDataFactoryLinkedServiceAzureBlobStorage_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_blob_storage", "test")
 	r := LinkedServiceAzureBlobStorageResource{}
@@ -178,6 +208,71 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
   additional_properties = {
     foo = "test1"
   }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (LinkedServiceAzureBlobStorageResource) managed_id(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
+  name                 = "acctestBlobStorage%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  data_factory_name    = azurerm_data_factory.test.name
+  connection_string    = "DefaultEndpointsProtocol=https;AccountName=foo;AccountKey=bar"
+  use_managed_identity = true
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (LinkedServiceAzureBlobStorageResource) sas_uri(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
+  name                = "acctestBlobStorage%d"
+  resource_group_name = azurerm_resource_group.test.name
+  data_factory_name   = azurerm_data_factory.test.name
+  sas_uri             = "https://storageaccountname.blob.core.windows.net/sascontainer/sasblob.txt?sv=2019-02-02&st=2019-04-29T22:18:26Z&se=2019-04-30T02:23:26Z&sr=b&sp=rw&sip=168.1.5.60-168.1.5.70&spr=https&sig=koLniLcK0tMLuMfYeuSQwB+BLnWibhPqnrINxaIRbvU<"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

@@ -10,7 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -87,15 +87,15 @@ func TestAccPointToSiteVPNGateway_tags(t *testing.T) {
 	})
 }
 
-func (t PointToSiteVPNGatewayResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := network.ParsePointToSiteVPNGatewayID(state.ID)
+func (PointToSiteVPNGatewayResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.PointToSiteVpnGatewayID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Network.PointToSiteVpnGatewaysClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Network.PointToSiteVpnGatewaysClient.Get(ctx, id.ResourceGroup, id.P2sVpnGatewayName)
 	if err != nil {
-		return nil, fmt.Errorf("reading Point to Site VPN Gateway (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading Point to Site VPN Gateway (%s): %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil

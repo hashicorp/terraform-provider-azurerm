@@ -139,6 +139,7 @@ func (client StreamingPoliciesClient) CreatePreparer(ctx context.Context, resour
 		"api-version": APIVersion,
 	}
 
+	parameters.SystemData = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -362,6 +363,7 @@ func (client StreamingPoliciesClient) List(ctx context.Context, resourceGroupNam
 	}
 	if result.spc.hasNextLink() && result.spc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -432,7 +434,6 @@ func (client StreamingPoliciesClient) listNextResults(ctx context.Context, lastR
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.StreamingPoliciesClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

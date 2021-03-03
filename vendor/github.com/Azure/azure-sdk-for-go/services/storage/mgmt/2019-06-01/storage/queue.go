@@ -392,6 +392,7 @@ func (client QueueClient) List(ctx context.Context, resourceGroupName string, ac
 	}
 	if result.lqr.hasNextLink() && result.lqr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -459,7 +460,6 @@ func (client QueueClient) listNextResults(ctx context.Context, lastResults ListQ
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.QueueClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

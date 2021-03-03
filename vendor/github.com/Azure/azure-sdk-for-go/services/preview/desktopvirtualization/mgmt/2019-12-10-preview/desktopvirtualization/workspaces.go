@@ -356,6 +356,7 @@ func (client WorkspacesClient) ListByResourceGroup(ctx context.Context, resource
 	}
 	if result.wl.hasNextLink() && result.wl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -416,7 +417,6 @@ func (client WorkspacesClient) listByResourceGroupNextResults(ctx context.Contex
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "desktopvirtualization.WorkspacesClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -476,6 +476,7 @@ func (client WorkspacesClient) ListBySubscription(ctx context.Context) (result W
 	}
 	if result.wl.hasNextLink() && result.wl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -535,7 +536,6 @@ func (client WorkspacesClient) listBySubscriptionNextResults(ctx context.Context
 	result, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "desktopvirtualization.WorkspacesClient", "listBySubscriptionNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

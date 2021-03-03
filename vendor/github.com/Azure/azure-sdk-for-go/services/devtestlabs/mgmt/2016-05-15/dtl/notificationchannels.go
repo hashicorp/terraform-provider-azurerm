@@ -329,6 +329,7 @@ func (client NotificationChannelsClient) List(ctx context.Context, resourceGroup
 	}
 	if result.rwcnc.hasNextLink() && result.rwcnc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -402,7 +403,6 @@ func (client NotificationChannelsClient) listNextResults(ctx context.Context, la
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.NotificationChannelsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

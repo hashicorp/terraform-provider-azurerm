@@ -327,6 +327,7 @@ func (client SecretValueClient) List(ctx context.Context, resourceGroupName stri
 	}
 	if result.svrdl.hasNextLink() && result.svrdl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -388,7 +389,6 @@ func (client SecretValueClient) listNextResults(ctx context.Context, lastResults
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabricmesh.SecretValueClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

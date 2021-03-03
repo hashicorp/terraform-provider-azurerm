@@ -155,6 +155,7 @@ func (client VpnSiteLinksClient) ListByVpnSite(ctx context.Context, resourceGrou
 	}
 	if result.lvslr.hasNextLink() && result.lvslr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -216,7 +217,6 @@ func (client VpnSiteLinksClient) listByVpnSiteNextResults(ctx context.Context, l
 	result, err = client.ListByVpnSiteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VpnSiteLinksClient", "listByVpnSiteNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

@@ -56,8 +56,8 @@ func (client IntegrationRuntimesClient) Create(ctx context.Context, resourceGrou
 		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationRuntimesClient.Create")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -80,7 +80,7 @@ func (client IntegrationRuntimesClient) Create(ctx context.Context, resourceGrou
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesClient", "Create", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesClient", "Create", nil, "Failure sending request")
 		return
 	}
 
@@ -123,7 +123,33 @@ func (client IntegrationRuntimesClient) CreateSender(req *http.Request) (future 
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client IntegrationRuntimesClient) (irr IntegrationRuntimeResource, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesCreateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("synapse.IntegrationRuntimesCreateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		irr.Response.Response, err = future.GetResult(sender)
+		if irr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesCreateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && irr.Response.Response.StatusCode != http.StatusNoContent {
+			irr, err = client.CreateResponder(irr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesCreateFuture", "Result", irr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -149,8 +175,8 @@ func (client IntegrationRuntimesClient) Delete(ctx context.Context, resourceGrou
 		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationRuntimesClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -173,7 +199,7 @@ func (client IntegrationRuntimesClient) Delete(ctx context.Context, resourceGrou
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -210,7 +236,23 @@ func (client IntegrationRuntimesClient) DeleteSender(req *http.Request) (future 
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client IntegrationRuntimesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("synapse.IntegrationRuntimesDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -235,8 +277,8 @@ func (client IntegrationRuntimesClient) DisableInteractiveQuery(ctx context.Cont
 		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationRuntimesClient.DisableInteractiveQuery")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -259,7 +301,7 @@ func (client IntegrationRuntimesClient) DisableInteractiveQuery(ctx context.Cont
 
 	result, err = client.DisableInteractiveQuerySender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesClient", "DisableInteractiveQuery", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesClient", "DisableInteractiveQuery", nil, "Failure sending request")
 		return
 	}
 
@@ -296,7 +338,23 @@ func (client IntegrationRuntimesClient) DisableInteractiveQuerySender(req *http.
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client IntegrationRuntimesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesDisableInteractiveQueryFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("synapse.IntegrationRuntimesDisableInteractiveQueryFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -321,8 +379,8 @@ func (client IntegrationRuntimesClient) EnableInteractiveQuery(ctx context.Conte
 		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationRuntimesClient.EnableInteractiveQuery")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -345,7 +403,7 @@ func (client IntegrationRuntimesClient) EnableInteractiveQuery(ctx context.Conte
 
 	result, err = client.EnableInteractiveQuerySender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesClient", "EnableInteractiveQuery", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesClient", "EnableInteractiveQuery", nil, "Failure sending request")
 		return
 	}
 
@@ -382,7 +440,23 @@ func (client IntegrationRuntimesClient) EnableInteractiveQuerySender(req *http.R
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client IntegrationRuntimesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesEnableInteractiveQueryFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("synapse.IntegrationRuntimesEnableInteractiveQueryFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -629,8 +703,8 @@ func (client IntegrationRuntimesClient) Start(ctx context.Context, resourceGroup
 		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationRuntimesClient.Start")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -653,7 +727,7 @@ func (client IntegrationRuntimesClient) Start(ctx context.Context, resourceGroup
 
 	result, err = client.StartSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesClient", "Start", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesClient", "Start", nil, "Failure sending request")
 		return
 	}
 
@@ -690,7 +764,33 @@ func (client IntegrationRuntimesClient) StartSender(req *http.Request) (future I
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client IntegrationRuntimesClient) (irsr IntegrationRuntimeStatusResponse, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesStartFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("synapse.IntegrationRuntimesStartFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		irsr.Response.Response, err = future.GetResult(sender)
+		if irsr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesStartFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && irsr.Response.Response.StatusCode != http.StatusNoContent {
+			irsr, err = client.StartResponder(irsr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesStartFuture", "Result", irsr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -716,8 +816,8 @@ func (client IntegrationRuntimesClient) Stop(ctx context.Context, resourceGroupN
 		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationRuntimesClient.Stop")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -740,7 +840,7 @@ func (client IntegrationRuntimesClient) Stop(ctx context.Context, resourceGroupN
 
 	result, err = client.StopSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesClient", "Stop", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesClient", "Stop", nil, "Failure sending request")
 		return
 	}
 
@@ -777,7 +877,23 @@ func (client IntegrationRuntimesClient) StopSender(req *http.Request) (future In
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client IntegrationRuntimesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesStopFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("synapse.IntegrationRuntimesStopFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 

@@ -308,6 +308,7 @@ func (client UserAssignedIdentitiesClient) ListByResourceGroup(ctx context.Conte
 	}
 	if result.uailr.hasNextLink() && result.uailr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -368,7 +369,6 @@ func (client UserAssignedIdentitiesClient) listByResourceGroupNextResults(ctx co
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "msi.UserAssignedIdentitiesClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -422,6 +422,7 @@ func (client UserAssignedIdentitiesClient) ListBySubscription(ctx context.Contex
 	}
 	if result.uailr.hasNextLink() && result.uailr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -481,7 +482,6 @@ func (client UserAssignedIdentitiesClient) listBySubscriptionNextResults(ctx con
 	result, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "msi.UserAssignedIdentitiesClient", "listBySubscriptionNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

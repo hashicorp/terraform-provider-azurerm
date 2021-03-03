@@ -23,7 +23,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/Azure/go-autorest/tracing"
-	"github.com/satori/go.uuid"
+	"github.com/gofrs/uuid"
 	"net/http"
 )
 
@@ -180,6 +180,7 @@ func (client JobTargetExecutionsClient) ListByJobExecution(ctx context.Context, 
 	}
 	if result.jelr.hasNextLink() && result.jelr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -265,7 +266,6 @@ func (client JobTargetExecutionsClient) listByJobExecutionNextResults(ctx contex
 	result, err = client.ListByJobExecutionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobTargetExecutionsClient", "listByJobExecutionNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -334,6 +334,7 @@ func (client JobTargetExecutionsClient) ListByStep(ctx context.Context, resource
 	}
 	if result.jelr.hasNextLink() && result.jelr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -420,7 +421,6 @@ func (client JobTargetExecutionsClient) listByStepNextResults(ctx context.Contex
 	result, err = client.ListByStepResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobTargetExecutionsClient", "listByStepNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

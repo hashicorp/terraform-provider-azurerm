@@ -168,7 +168,7 @@ Each nested block consists of a key and a value(s) element.
 
 * `values` - (Required) Specifies an array of values to compare to when using a multiple values operator.
 
-~> **NOTE:** A maximum of 5 advanced filters are allowed.
+~> **NOTE:** A maximum of total number of advanced filter values allowed on event subscription is 25.
 
 ---
 

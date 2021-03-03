@@ -221,8 +221,7 @@ func resourceLogProfileDelete(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error parsing log profile name from ID %s: %s", d.Id(), err)
 	}
 
-	_, err = client.Delete(ctx, name)
-	if err != nil {
+	if _, err = client.Delete(ctx, name); err != nil {
 		return fmt.Errorf("Error deleting Log Profile %q: %+v", name, err)
 	}
 

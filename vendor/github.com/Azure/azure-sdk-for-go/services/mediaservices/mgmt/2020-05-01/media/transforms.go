@@ -102,6 +102,7 @@ func (client TransformsClient) CreateOrUpdatePreparer(ctx context.Context, resou
 		"api-version": APIVersion,
 	}
 
+	parameters.SystemData = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -323,6 +324,7 @@ func (client TransformsClient) List(ctx context.Context, resourceGroupName strin
 	}
 	if result.tc.hasNextLink() && result.tc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -390,7 +392,6 @@ func (client TransformsClient) listNextResults(ctx context.Context, lastResults 
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.TransformsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -464,6 +465,7 @@ func (client TransformsClient) UpdatePreparer(ctx context.Context, resourceGroup
 		"api-version": APIVersion,
 	}
 
+	parameters.SystemData = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),

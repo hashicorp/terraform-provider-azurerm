@@ -103,6 +103,7 @@ func (client ContentKeyPoliciesClient) CreateOrUpdatePreparer(ctx context.Contex
 		"api-version": APIVersion,
 	}
 
+	parameters.SystemData = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -404,6 +405,7 @@ func (client ContentKeyPoliciesClient) List(ctx context.Context, resourceGroupNa
 	}
 	if result.ckpc.hasNextLink() && result.ckpc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -474,7 +476,6 @@ func (client ContentKeyPoliciesClient) listNextResults(ctx context.Context, last
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.ContentKeyPoliciesClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -548,6 +549,7 @@ func (client ContentKeyPoliciesClient) UpdatePreparer(ctx context.Context, resou
 		"api-version": APIVersion,
 	}
 
+	parameters.SystemData = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),

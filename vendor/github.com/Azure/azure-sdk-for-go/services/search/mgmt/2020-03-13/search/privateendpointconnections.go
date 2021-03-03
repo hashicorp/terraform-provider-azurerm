@@ -22,7 +22,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/tracing"
-	"github.com/satori/go.uuid"
+	"github.com/gofrs/uuid"
 	"net/http"
 )
 
@@ -258,6 +258,7 @@ func (client PrivateEndpointConnectionsClient) ListByService(ctx context.Context
 	}
 	if result.peclr.hasNextLink() && result.peclr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -323,7 +324,6 @@ func (client PrivateEndpointConnectionsClient) listByServiceNextResults(ctx cont
 	result, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "search.PrivateEndpointConnectionsClient", "listByServiceNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

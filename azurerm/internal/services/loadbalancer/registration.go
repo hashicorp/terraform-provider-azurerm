@@ -2,7 +2,11 @@ package loadbalancer
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/sdk"
 )
+
+var _ sdk.TypedServiceRegistration = Registration{}
+var _ sdk.UntypedServiceRegistration = Registration{}
 
 type Registration struct{}
 
@@ -16,6 +20,11 @@ func (r Registration) WebsiteCategories() []string {
 	return []string{
 		"Load Balancer",
 	}
+}
+
+// DataSources returns a list of Data Sources supported by this Service
+func (r Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{}
 }
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
@@ -37,5 +46,17 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_lb_outbound_rule":        resourceArmLoadBalancerOutboundRule(),
 		"azurerm_lb_rule":                 resourceArmLoadBalancerRule(),
 		"azurerm_lb":                      resourceArmLoadBalancer(),
+	}
+}
+
+// PackagePath is the relative path to this package
+func (r Registration) PackagePath() string {
+	return "TODO: do we need this?"
+}
+
+// Resources returns a list of Resources supported by this Service
+func (r Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{
+		BackendAddressPoolAddressResource{},
 	}
 }

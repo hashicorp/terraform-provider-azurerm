@@ -6,22 +6,30 @@ import (
 )
 
 type Client struct {
-	ContactsClient                      *security.ContactsClient
-	IotSecuritySolutionClient           *security.IotSecuritySolutionClient
-	PricingClient                       *security.PricingsClient
-	WorkspaceClient                     *security.WorkspaceSettingsClient
-	AdvancedThreatProtectionClient      *security.AdvancedThreatProtectionClient
-	AutoProvisioningClient              *security.AutoProvisioningSettingsClient
-	SettingClient                       *security.SettingsClient
-	AutomationsClient                   *security.AutomationsClient
+	AssessmentsMetadataClient      *security.AssessmentsMetadataClient
+	ContactsClient                 *security.ContactsClient
+	DeviceSecurityGroupsClient     *security.DeviceSecurityGroupsClient
+	IotSecuritySolutionClient      *security.IotSecuritySolutionClient
+	PricingClient                  *security.PricingsClient
+	WorkspaceClient                *security.WorkspaceSettingsClient
+	AdvancedThreatProtectionClient *security.AdvancedThreatProtectionClient
+	AutoProvisioningClient         *security.AutoProvisioningSettingsClient
+	SettingClient                  *security.SettingsClient
+	AutomationsClient              *security.AutomationsClient
 	ServerVulnerabilityAssessmentClient *security.ServerVulnerabilityAssessmentClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
 	ascLocation := "Global"
 
+	AssessmentsMetadataClient := security.NewAssessmentsMetadataClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
+	o.ConfigureClient(&AssessmentsMetadataClient.Client, o.ResourceManagerAuthorizer)
+
 	ContactsClient := security.NewContactsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
 	o.ConfigureClient(&ContactsClient.Client, o.ResourceManagerAuthorizer)
+
+	DeviceSecurityGroupsClient := security.NewDeviceSecurityGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
+	o.ConfigureClient(&DeviceSecurityGroupsClient.Client, o.ResourceManagerAuthorizer)
 
 	IotSecuritySolutionClient := security.NewIotSecuritySolutionClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
 	o.ConfigureClient(&IotSecuritySolutionClient.Client, o.ResourceManagerAuthorizer)
@@ -48,14 +56,16 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&ServerVulnerabilityAssessmentClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		ContactsClient:                      &ContactsClient,
-		IotSecuritySolutionClient:           &IotSecuritySolutionClient,
-		PricingClient:                       &PricingClient,
-		WorkspaceClient:                     &WorkspaceClient,
-		AdvancedThreatProtectionClient:      &AdvancedThreatProtectionClient,
-		AutoProvisioningClient:              &AutoProvisioningClient,
-		SettingClient:                       &SettingClient,
-		AutomationsClient:                   &AutomationsClient,
+		AssessmentsMetadataClient:      &AssessmentsMetadataClient,
+		ContactsClient:                 &ContactsClient,
+		DeviceSecurityGroupsClient:     &DeviceSecurityGroupsClient,
+		IotSecuritySolutionClient:      &IotSecuritySolutionClient,
+		PricingClient:                  &PricingClient,
+		WorkspaceClient:                &WorkspaceClient,
+		AdvancedThreatProtectionClient: &AdvancedThreatProtectionClient,
+		AutoProvisioningClient:         &AutoProvisioningClient,
+		SettingClient:                  &SettingClient,
+		AutomationsClient:              &AutomationsClient,
 		ServerVulnerabilityAssessmentClient: &ServerVulnerabilityAssessmentClient,
 	}
 }

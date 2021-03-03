@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2020-01-01/mysql"
+	"github.com/gofrs/uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	uuid "github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -160,8 +160,7 @@ func resourceMySQLAdministratorDelete(d *schema.ResourceData, meta interface{}) 
 	resourceGroup := id.ResourceGroup
 	serverName := id.Path["servers"]
 
-	_, err = client.Delete(ctx, resourceGroup, serverName)
-	if err != nil {
+	if _, err = client.Delete(ctx, resourceGroup, serverName); err != nil {
 		return fmt.Errorf("Error deleting MySQL AD Administrator: %+v", err)
 	}
 

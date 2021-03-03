@@ -319,6 +319,7 @@ func (client BlueprintsClient) List(ctx context.Context, resourceScope string) (
 	}
 	if result.l.hasNextLink() && result.l.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -378,7 +379,6 @@ func (client BlueprintsClient) listNextResults(ctx context.Context, lastResults 
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "blueprint.BlueprintsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

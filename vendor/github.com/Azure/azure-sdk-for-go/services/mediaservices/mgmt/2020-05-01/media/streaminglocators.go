@@ -105,6 +105,7 @@ func (client StreamingLocatorsClient) CreatePreparer(ctx context.Context, resour
 		"api-version": APIVersion,
 	}
 
+	parameters.SystemData = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -328,6 +329,7 @@ func (client StreamingLocatorsClient) List(ctx context.Context, resourceGroupNam
 	}
 	if result.slc.hasNextLink() && result.slc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -398,7 +400,6 @@ func (client StreamingLocatorsClient) listNextResults(ctx context.Context, lastR
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.StreamingLocatorsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

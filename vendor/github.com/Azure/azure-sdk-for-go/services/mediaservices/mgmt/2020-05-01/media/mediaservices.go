@@ -92,6 +92,7 @@ func (client MediaservicesClient) CreateOrUpdatePreparer(ctx context.Context, re
 		"api-version": APIVersion,
 	}
 
+	parameters.SystemData = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -380,6 +381,7 @@ func (client MediaservicesClient) List(ctx context.Context, resourceGroupName st
 	}
 	if result.sc.hasNextLink() && result.sc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -440,7 +442,6 @@ func (client MediaservicesClient) listNextResults(ctx context.Context, lastResul
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.MediaservicesClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -494,6 +495,7 @@ func (client MediaservicesClient) ListBySubscription(ctx context.Context) (resul
 	}
 	if result.sc.hasNextLink() && result.sc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -553,7 +555,6 @@ func (client MediaservicesClient) listBySubscriptionNextResults(ctx context.Cont
 	result, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.MediaservicesClient", "listBySubscriptionNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -782,6 +783,7 @@ func (client MediaservicesClient) UpdatePreparer(ctx context.Context, resourceGr
 		"api-version": APIVersion,
 	}
 
+	parameters.SystemData = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),

@@ -209,8 +209,8 @@ func (client ConfigurationsClient) Update(ctx context.Context, resourceGroupName
 		ctx = tracing.StartSpan(ctx, fqdn+"/ConfigurationsClient.Update")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -229,7 +229,7 @@ func (client ConfigurationsClient) Update(ctx context.Context, resourceGroupName
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.ConfigurationsClient", "Update", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "hdinsight.ConfigurationsClient", "Update", nil, "Failure sending request")
 		return
 	}
 
@@ -268,7 +268,23 @@ func (client ConfigurationsClient) UpdateSender(req *http.Request) (future Confi
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ConfigurationsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "hdinsight.ConfigurationsUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("hdinsight.ConfigurationsUpdateFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 

@@ -34,7 +34,9 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_kusto_database":                        resourceKustoDatabase(),
 		"azurerm_kusto_database_principal":              resourceKustoDatabasePrincipal(),
 		"azurerm_kusto_database_principal_assignment":   resourceKustoDatabasePrincipalAssignment(),
+		"azurerm_kusto_eventgrid_data_connection":       resourceKustoEventGridDataConnection(),
 		"azurerm_kusto_eventhub_data_connection":        resourceKustoEventHubDataConnection(),
+		"azurerm_kusto_iothub_data_connection":          resourceKustoIotHubDataConnection(),
 		"azurerm_kusto_attached_database_configuration": resourceKustoAttachedDatabaseConfiguration(),
 	}
 }

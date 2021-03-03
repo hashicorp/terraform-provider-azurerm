@@ -193,6 +193,11 @@ func resourceMediaStreamingEndpoint() *schema.Resource {
 				ValidateFunc: validation.IntBetween(1, 2147483647),
 			},
 
+			"host_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -405,6 +410,7 @@ func resourceMediaStreamingEndpointRead(d *schema.ResourceData, meta interface{}
 		d.Set("cdn_enabled", props.CdnEnabled)
 		d.Set("cdn_profile", props.CdnProfile)
 		d.Set("cdn_provider", props.CdnProvider)
+		d.Set("host_name", props.HostName)
 
 		crossSiteAccessPolicies := flattenCrossSiteAccessPolicies(resp.CrossSiteAccessPolicies)
 		if err := d.Set("cross_site_access_policy", crossSiteAccessPolicies); err != nil {

@@ -83,7 +83,7 @@ func TestAccApiManagementCustomDomain_update(t *testing.T) {
 	})
 }
 
-func (t ApiManagementCustomDomainResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (ApiManagementCustomDomainResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.CustomDomainID(state.ID)
 	if err != nil {
 		return nil, err

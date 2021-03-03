@@ -254,6 +254,40 @@ func testAccKubernetesCluster_upgradeCustomNodePoolBeforeControlPlaneFails(t *te
 	})
 }
 
+func TestAccKubernetesCluster_upgradeSettings(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.upgradeSettingsConfig(data, "2"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.#").HasValue("1"),
+				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.0.max_surge").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.upgradeSettingsConfig(data, ""),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.upgradeSettingsConfig(data, "2"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.#").HasValue("1"),
+				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.0.max_surge").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (KubernetesClusterResource) upgradeControlPlaneConfig(data acceptance.TestData, controlPlaneVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

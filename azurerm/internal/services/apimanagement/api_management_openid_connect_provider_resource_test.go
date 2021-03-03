@@ -69,7 +69,7 @@ func TestAccApiManagementOpenIDConnectProvider_update(t *testing.T) {
 	})
 }
 
-func (t ApiManagementOpenIDConnectProviderResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (ApiManagementOpenIDConnectProviderResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err

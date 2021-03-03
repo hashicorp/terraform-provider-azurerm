@@ -156,6 +156,7 @@ func (client LoadBalancerProbesClient) List(ctx context.Context, resourceGroupNa
 	}
 	if result.lbplr.hasNextLink() && result.lbplr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -217,7 +218,6 @@ func (client LoadBalancerProbesClient) listNextResults(ctx context.Context, last
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.LoadBalancerProbesClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

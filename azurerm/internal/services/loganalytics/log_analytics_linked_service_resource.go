@@ -283,8 +283,7 @@ func resourceLogAnalyticsLinkedServiceCreateUpdate(d *schema.ResourceData, meta 
 		return fmt.Errorf("waiting on creating future for Linked Service '%s/%s' (Resource Group %q): %+v", workspace.WorkspaceName, id.LinkedServiceName, resourceGroup, err)
 	}
 
-	_, err = client.Get(ctx, resourceGroup, workspace.WorkspaceName, id.LinkedServiceName)
-	if err != nil {
+	if _, err = client.Get(ctx, resourceGroup, workspace.WorkspaceName, id.LinkedServiceName); err != nil {
 		return fmt.Errorf("retrieving Linked Service '%s/%s' (Resource Group %q): %+v", workspace.WorkspaceName, id.LinkedServiceName, resourceGroup, err)
 	}
 

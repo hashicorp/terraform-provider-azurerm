@@ -515,6 +515,7 @@ func (client ManagedDatabaseSensitivityLabelsClient) ListCurrentByDatabase(ctx c
 	}
 	if result.sllr.hasNextLink() && result.sllr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -580,7 +581,6 @@ func (client ManagedDatabaseSensitivityLabelsClient) listCurrentByDatabaseNextRe
 	result, err = client.ListCurrentByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedDatabaseSensitivityLabelsClient", "listCurrentByDatabaseNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -641,6 +641,7 @@ func (client ManagedDatabaseSensitivityLabelsClient) ListRecommendedByDatabase(c
 	}
 	if result.sllr.hasNextLink() && result.sllr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -712,7 +713,6 @@ func (client ManagedDatabaseSensitivityLabelsClient) listRecommendedByDatabaseNe
 	result, err = client.ListRecommendedByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedDatabaseSensitivityLabelsClient", "listRecommendedByDatabaseNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

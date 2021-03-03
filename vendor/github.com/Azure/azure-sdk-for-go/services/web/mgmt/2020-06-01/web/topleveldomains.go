@@ -148,6 +148,7 @@ func (client TopLevelDomainsClient) List(ctx context.Context) (result TopLevelDo
 	}
 	if result.tldc.hasNextLink() && result.tldc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -207,7 +208,6 @@ func (client TopLevelDomainsClient) listNextResults(ctx context.Context, lastRes
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.TopLevelDomainsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -264,6 +264,7 @@ func (client TopLevelDomainsClient) ListAgreements(ctx context.Context, name str
 	}
 	if result.tlac.hasNextLink() && result.tlac.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -326,7 +327,6 @@ func (client TopLevelDomainsClient) listAgreementsNextResults(ctx context.Contex
 	result, err = client.ListAgreementsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.TopLevelDomainsClient", "listAgreementsNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

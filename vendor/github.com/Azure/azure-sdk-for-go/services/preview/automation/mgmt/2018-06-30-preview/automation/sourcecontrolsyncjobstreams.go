@@ -23,7 +23,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
-	"github.com/satori/go.uuid"
+	"github.com/gofrs/uuid"
 	"net/http"
 )
 
@@ -181,6 +181,7 @@ func (client SourceControlSyncJobStreamsClient) ListBySyncJob(ctx context.Contex
 	}
 	if result.scsjslbsj.hasNextLink() && result.scsjslbsj.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -247,7 +248,6 @@ func (client SourceControlSyncJobStreamsClient) listBySyncJobNextResults(ctx con
 	result, err = client.ListBySyncJobResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.SourceControlSyncJobStreamsClient", "listBySyncJobNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

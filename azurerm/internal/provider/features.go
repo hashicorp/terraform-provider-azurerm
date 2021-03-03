@@ -113,26 +113,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *schema.Schema {
 
 func expandFeatures(input []interface{}) features.UserFeatures {
 	// these are the defaults if omitted from the config
-	features := features.UserFeatures{
-		// NOTE: ensure all nested objects are fully populated
-		KeyVault: features.KeyVaultFeatures{
-			PurgeSoftDeleteOnDestroy:    true,
-			RecoverSoftDeletedKeyVaults: true,
-		},
-		Network: features.NetworkFeatures{
-			RelaxedLocking: false,
-		},
-		TemplateDeployment: features.TemplateDeploymentFeatures{
-			DeleteNestedItemsDuringDeletion: true,
-		},
-		VirtualMachine: features.VirtualMachineFeatures{
-			DeleteOSDiskOnDeletion: true,
-			GracefulShutdown:       false,
-		},
-		VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
-			RollInstancesWhenRequired: true,
-		},
-	}
+	features := features.Default()
 
 	if len(input) == 0 || input[0] == nil {
 		return features

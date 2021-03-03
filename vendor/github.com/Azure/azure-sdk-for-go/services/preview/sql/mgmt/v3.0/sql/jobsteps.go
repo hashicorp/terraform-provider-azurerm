@@ -436,6 +436,7 @@ func (client JobStepsClient) ListByJob(ctx context.Context, resourceGroupName st
 	}
 	if result.jslr.hasNextLink() && result.jslr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -499,7 +500,6 @@ func (client JobStepsClient) listByJobNextResults(ctx context.Context, lastResul
 	result, err = client.ListByJobResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobStepsClient", "listByJobNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -560,6 +560,7 @@ func (client JobStepsClient) ListByVersion(ctx context.Context, resourceGroupNam
 	}
 	if result.jslr.hasNextLink() && result.jslr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -624,7 +625,6 @@ func (client JobStepsClient) listByVersionNextResults(ctx context.Context, lastR
 	result, err = client.ListByVersionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobStepsClient", "listByVersionNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

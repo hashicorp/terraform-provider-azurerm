@@ -349,6 +349,7 @@ func (client VariableClient) ListByAutomationAccount(ctx context.Context, resour
 	}
 	if result.vlr.hasNextLink() && result.vlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -410,7 +411,6 @@ func (client VariableClient) listByAutomationAccountNextResults(ctx context.Cont
 	result, err = client.ListByAutomationAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.VariableClient", "listByAutomationAccountNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

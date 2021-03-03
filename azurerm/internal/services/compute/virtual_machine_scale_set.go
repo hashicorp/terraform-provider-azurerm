@@ -3,7 +3,7 @@ package compute
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -138,7 +138,7 @@ func FlattenVirtualMachineScaleSetIdentity(input *compute.VirtualMachineScaleSet
 	identityIds := make([]string, 0)
 	if input.UserAssignedIdentities != nil {
 		for key := range input.UserAssignedIdentities {
-			parsedId, err := msiparse.UserAssignedIdentityID(key)
+			parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(key)
 			if err != nil {
 				return nil, err
 			}
@@ -1437,7 +1437,7 @@ func expandVirtualMachineScaleSetExtensions(input []interface{}) (*compute.Virtu
 			extensionProps.ForceUpdateTag = utils.String(forceUpdateTag.(string))
 		}
 
-		if val, ok := extensionRaw["settings"]; ok {
+		if val, ok := extensionRaw["settings"]; ok && val.(string) != "" {
 			settings, err := structure.ExpandJsonFromString(val.(string))
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse JSON from `settings`: %+v", err)
@@ -1445,7 +1445,7 @@ func expandVirtualMachineScaleSetExtensions(input []interface{}) (*compute.Virtu
 			extensionProps.Settings = settings
 		}
 
-		if val, ok := extensionRaw["protected_settings"]; ok {
+		if val, ok := extensionRaw["protected_settings"]; ok && val.(string) != "" {
 			protectedSettings, err := structure.ExpandJsonFromString(val.(string))
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse JSON from `protected_settings`: %+v", err)

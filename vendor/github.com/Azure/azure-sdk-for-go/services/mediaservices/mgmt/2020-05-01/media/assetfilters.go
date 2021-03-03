@@ -106,6 +106,7 @@ func (client AssetFiltersClient) CreateOrUpdatePreparer(ctx context.Context, res
 		"api-version": APIVersion,
 	}
 
+	parameters.SystemData = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -330,6 +331,7 @@ func (client AssetFiltersClient) List(ctx context.Context, resourceGroupName str
 	}
 	if result.afc.hasNextLink() && result.afc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -392,7 +394,6 @@ func (client AssetFiltersClient) listNextResults(ctx context.Context, lastResult
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.AssetFiltersClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -468,6 +469,7 @@ func (client AssetFiltersClient) UpdatePreparer(ctx context.Context, resourceGro
 		"api-version": APIVersion,
 	}
 
+	parameters.SystemData = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),

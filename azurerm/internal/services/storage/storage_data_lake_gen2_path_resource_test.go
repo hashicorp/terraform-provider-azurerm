@@ -224,6 +224,8 @@ func (r StorageDataLakeGen2PathResource) withACLWithSpecificUserAndDefaults(data
 	return fmt.Sprintf(`
 %s
 
+provider "azuread" {}
+
 resource "azuread_application" "test" {
   name = "acctestspa%[2]d"
 }
@@ -292,6 +294,8 @@ func (r StorageDataLakeGen2PathResource) withOwner(data acceptance.TestData) str
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
+
+provider "azuread" {}
 
 resource "azurerm_role_assignment" "storage_blob_owner" {
   role_definition_name = "Storage Blob Data Owner"
