@@ -6,16 +6,16 @@ import (
 )
 
 type Client struct {
-	AssessmentsMetadataClient      *security.AssessmentsMetadataClient
-	ContactsClient                 *security.ContactsClient
-	DeviceSecurityGroupsClient     *security.DeviceSecurityGroupsClient
-	IotSecuritySolutionClient      *security.IotSecuritySolutionClient
-	PricingClient                  *security.PricingsClient
-	WorkspaceClient                *security.WorkspaceSettingsClient
-	AdvancedThreatProtectionClient *security.AdvancedThreatProtectionClient
-	AutoProvisioningClient         *security.AutoProvisioningSettingsClient
-	SettingClient                  *security.SettingsClient
-	AutomationsClient              *security.AutomationsClient
+	AssessmentsMetadataClient           *security.AssessmentsMetadataClient
+	ContactsClient                      *security.ContactsClient
+	DeviceSecurityGroupsClient          *security.DeviceSecurityGroupsClient
+	IotSecuritySolutionClient           *security.IotSecuritySolutionClient
+	PricingClient                       *security.PricingsClient
+	WorkspaceClient                     *security.WorkspaceSettingsClient
+	AdvancedThreatProtectionClient      *security.AdvancedThreatProtectionClient
+	AutoProvisioningClient              *security.AutoProvisioningSettingsClient
+	SettingClient                       *security.SettingsClient
+	AutomationsClient                   *security.AutomationsClient
 	ServerVulnerabilityAssessmentClient *security.ServerVulnerabilityAssessmentClient
 }
 
@@ -56,16 +56,16 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&ServerVulnerabilityAssessmentClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		AssessmentsMetadataClient:      &AssessmentsMetadataClient,
-		ContactsClient:                 &ContactsClient,
-		DeviceSecurityGroupsClient:     &DeviceSecurityGroupsClient,
-		IotSecuritySolutionClient:      &IotSecuritySolutionClient,
-		PricingClient:                  &PricingClient,
-		WorkspaceClient:                &WorkspaceClient,
-		AdvancedThreatProtectionClient: &AdvancedThreatProtectionClient,
-		AutoProvisioningClient:         &AutoProvisioningClient,
-		SettingClient:                  &SettingClient,
-		AutomationsClient:              &AutomationsClient,
+		AssessmentsMetadataClient:           &AssessmentsMetadataClient,
+		ContactsClient:                      &ContactsClient,
+		DeviceSecurityGroupsClient:          &DeviceSecurityGroupsClient,
+		IotSecuritySolutionClient:           &IotSecuritySolutionClient,
+		PricingClient:                       &PricingClient,
+		WorkspaceClient:                     &WorkspaceClient,
+		AdvancedThreatProtectionClient:      &AdvancedThreatProtectionClient,
+		AutoProvisioningClient:              &AutoProvisioningClient,
+		SettingClient:                       &SettingClient,
+		AutomationsClient:                   &AutomationsClient,
 		ServerVulnerabilityAssessmentClient: &ServerVulnerabilityAssessmentClient,
 	}
 }
