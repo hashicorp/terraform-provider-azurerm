@@ -129,11 +129,6 @@ func resourceDnsMxRecordCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error creating/updating DNS MX Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
 	}
 
-	_, err := client.Get(ctx, resGroup, zoneName, name, dns.MX)
-	if err != nil {
-		return fmt.Errorf("Error retrieving DNS MX Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
-	}
-
 	d.SetId(resourceId.ID())
 
 	return resourceDnsMxRecordRead(d, meta)

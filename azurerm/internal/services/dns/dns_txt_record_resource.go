@@ -122,11 +122,6 @@ func resourceDnsTxtRecordCreateUpdate(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Error creating/updating DNS TXT Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
 	}
 
-	_, err := client.Get(ctx, resGroup, zoneName, name, dns.TXT)
-	if err != nil {
-		return fmt.Errorf("Error retrieving DNS TXT Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
-	}
-
 	d.SetId(resourceId.ID())
 
 	return resourceDnsTxtRecordRead(d, meta)

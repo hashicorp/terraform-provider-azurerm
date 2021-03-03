@@ -186,11 +186,6 @@ func resourceDnsZoneCreateUpdate(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Error creating/updating DNS Zone %q (Resource Group %q): %s", name, resGroup, err)
 	}
 
-	_, err := client.Get(ctx, resGroup, name)
-	if err != nil {
-		return fmt.Errorf("Error retrieving DNS Zone %q (Resource Group %q): %s", name, resGroup, err)
-	}
-
 	if v, ok := d.GetOk("soa_record"); ok {
 		soaRecord := v.([]interface{})[0].(map[string]interface{})
 		rsParameters := dns.RecordSet{

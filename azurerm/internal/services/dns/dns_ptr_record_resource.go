@@ -113,11 +113,6 @@ func resourceDnsPtrRecordCreateUpdate(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Error creating/updating DNS PTR Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
 	}
 
-	_, err := client.Get(ctx, resGroup, zoneName, name, dns.PTR)
-	if err != nil {
-		return fmt.Errorf("Error retrieving DNS PTR Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
-	}
-
 	d.SetId(resourceId.ID())
 
 	return resourceDnsPtrRecordRead(d, meta)

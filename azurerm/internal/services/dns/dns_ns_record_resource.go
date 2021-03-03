@@ -117,11 +117,6 @@ func resourceDnsNsRecordCreate(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error creating DNS NS Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
 	}
 
-	_, err = client.Get(ctx, resGroup, zoneName, name, dns.NS)
-	if err != nil {
-		return fmt.Errorf("Error retrieving DNS NS Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
-	}
-
 	d.SetId(resourceId.ID())
 
 	return resourceDnsNsRecordRead(d, meta)

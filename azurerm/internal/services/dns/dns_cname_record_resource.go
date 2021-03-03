@@ -137,11 +137,6 @@ func resourceDnsCNameRecordCreateUpdate(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("Error creating/updating CNAME Record %q (DNS Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
 	}
 
-	_, err := client.Get(ctx, resGroup, zoneName, name, dns.CNAME)
-	if err != nil {
-		return fmt.Errorf("Error retrieving CNAME Record %q (DNS Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
-	}
-
 	d.SetId(resourceId.ID())
 
 	return resourceDnsCNameRecordRead(d, meta)

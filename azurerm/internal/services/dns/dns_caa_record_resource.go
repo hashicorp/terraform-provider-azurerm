@@ -141,11 +141,6 @@ func resourceDnsCaaRecordCreateUpdate(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Error creating/updating DNS CAA Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
 	}
 
-	_, err := client.Get(ctx, resGroup, zoneName, name, dns.CAA)
-	if err != nil {
-		return fmt.Errorf("Error retrieving DNS CAA Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
-	}
-
 	d.SetId(resourceId.ID())
 
 	return resourceDnsCaaRecordRead(d, meta)

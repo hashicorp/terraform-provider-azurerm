@@ -136,11 +136,6 @@ func resourceDnsSrvRecordCreateUpdate(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Error creating/updating DNS SRV Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
 	}
 
-	_, err := client.Get(ctx, resGroup, zoneName, name, dns.SRV)
-	if err != nil {
-		return fmt.Errorf("Error retrieving DNS SRV Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
-	}
-
 	d.SetId(resourceId.ID())
 
 	return resourceDnsSrvRecordRead(d, meta)
