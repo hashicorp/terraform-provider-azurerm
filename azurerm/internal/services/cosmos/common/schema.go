@@ -123,7 +123,7 @@ func CosmosDbIndexingPolicySchema() *schema.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						string(documentdb.Consistent),
 						string(documentdb.None),
-					}, false),
+					}, true),
 				},
 
 				"included_path": {
@@ -179,7 +179,7 @@ func CosmosDbIndexingPolicySchema() *schema.Schema {
 												[]string{
 													string(documentdb.Ascending),
 													string(documentdb.Descending),
-												}, false),
+												}, true),
 										},
 									},
 								},

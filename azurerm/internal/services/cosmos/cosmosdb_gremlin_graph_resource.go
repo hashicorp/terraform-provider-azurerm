@@ -114,7 +114,7 @@ func resourceCosmosDbGremlinGraph() *schema.Resource {
 								string(documentdb.Consistent),
 								string(documentdb.Lazy),
 								string(documentdb.None),
-							}, false),
+							}, true),
 						},
 
 						"included_paths": {

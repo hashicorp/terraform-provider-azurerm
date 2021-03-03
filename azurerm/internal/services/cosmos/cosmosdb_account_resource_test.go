@@ -129,7 +129,7 @@ func TestAccCosmosDBAccount_keyVaultUriUpdateConsistancy(t *testing.T) {
 		{
 			Config: r.key_vault_uri(data, documentdb.MongoDB, documentdb.Session),
 			Check: resource.ComposeAggregateTestCheckFunc(
-				checkAccCosmosDBAccount_basic(data, documentdb.Strong, 1),
+				checkAccCosmosDBAccount_basic(data, documentdb.Session, 1),
 			),
 		},
 		data.ImportStep(),
@@ -405,6 +405,7 @@ func TestAccCosmosDBAccount_update_global(t *testing.T) {
 func TestAccCosmosDBAccount_update_parse(t *testing.T) {
 	testAccCosmosDBAccount_updateWith(t, documentdb.Parse)
 }
+
 func testAccCosmosDBAccount_updateWith(t *testing.T, kind documentdb.DatabaseAccountKind) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
@@ -1538,7 +1539,7 @@ func (CosmosDBAccountResource) key_vault_uri(data acceptance.TestData, kind docu
 provider "azurerm" {
   features {
     key_vault {
-      purge_soft_delete_on_destroy = false
+     purge_soft_delete_on_destroy = false
     }
   }
 }
