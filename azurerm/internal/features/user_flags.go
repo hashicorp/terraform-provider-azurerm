@@ -1,11 +1,16 @@
 package features
 
 type UserFeatures struct {
+	Frontdoor              FrontdoorFeatures
 	VirtualMachine         VirtualMachineFeatures
 	VirtualMachineScaleSet VirtualMachineScaleSetFeatures
 	KeyVault               KeyVaultFeatures
 	Network                NetworkFeatures
 	TemplateDeployment     TemplateDeploymentFeatures
+}
+
+type FrontdoorFeatures struct {
+	IgnoreBackendPoolLimit bool
 }
 
 type VirtualMachineFeatures struct {

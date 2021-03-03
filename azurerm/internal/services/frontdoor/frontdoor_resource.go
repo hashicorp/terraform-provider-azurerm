@@ -347,7 +347,6 @@ func resourceFrontDoor() *schema.Resource {
 
 			"backend_pool": {
 				Type:     schema.TypeList,
-				MaxItems: 50,
 				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -573,6 +572,11 @@ func resourceFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) err
 	backendPoolsSendReceiveTimeoutSeconds := int32(d.Get("backend_pools_send_receive_timeout_seconds").(int))
 	enabledState := d.Get("load_balancer_enabled").(bool)
 	t := d.Get("tags").(map[string]interface{})
+
+	// Default subscriptions are limited to 50 backend pools, check for feature flag to ignore this limit
+	if len(backendPools) > 50 && !meta.(*clients.Client).Features.Frontdoor.IgnoreBackendPoolLimit {
+		return fmt.Errorf("backend_pool: attribute supports 50 items maximum, config has %d declared", len(backendPools))
+	}
 
 	frontDoorParameters := frontdoor.FrontDoor{
 		Location: utils.String(location),

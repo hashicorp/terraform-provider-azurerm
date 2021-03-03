@@ -17,9 +17,29 @@ Below are some of the key scenarios that Azure Front Door Service addresses:
 * Use Front Door to improve application performance with SSL offload and routing requests to the fastest available application backend.
 * Use Front Door for application layer security and DDoS protection for your application.
 
+## Disclaimers
+
+~> **Note:** Terraform will automatically enforce the default Front Door `backend_pool` quota of `50` backend pools per Front Door instance - you can override the quota limitation by using the below `features` block definition within the `Provider` block in your configuration file. You will need to receive a Front Door backend pool quota exemption for your subscription via Microsoft Support before this setting can take effect, else you will still receive an error during your `apply`. The `ignore_backend_pool_limit` defaults to `false`.
+
+## Example Provider Backend Pool Quota Override Block
+
+```hcl
+provider "azurerm" {
+  features {
+    frontdoor {
+      ignore_backend_pool_limit = true
+    }
+  }
+}
+```
+
 ## Example Usage
 
 ```hcl
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "example" {
   name     = "FrontDoorExampleResourceGroup"
   location = "EastUS2"

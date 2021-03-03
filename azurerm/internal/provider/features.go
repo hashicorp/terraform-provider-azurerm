@@ -9,6 +9,20 @@ func schemaFeatures(supportLegacyTestSuite bool) *schema.Schema {
 	// NOTE: if there's only one nested field these want to be Required (since there's no point
 	//       specifying the block otherwise) - however for 2+ they should be optional
 	features := map[string]*schema.Schema{
+		"frontdoor": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"ignore_backend_pool_limit": {
+						Type:     schema.TypeBool,
+						Required: true,
+					},
+				},
+			},
+		},
+
 		"key_vault": {
 			Type:     schema.TypeList,
 			Optional: true,
@@ -120,6 +134,16 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 	}
 
 	val := input[0].(map[string]interface{})
+
+	if raw, ok := val["frontdoor"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 {
+			frontdoorRaw := items[0].(map[string]interface{})
+			if v, ok := frontdoorRaw["ignore_backend_pool_limit"]; ok {
+				features.Frontdoor.IgnoreBackendPoolLimit = v.(bool)
+			}
+		}
+	}
 
 	if raw, ok := val["key_vault"]; ok {
 		items := raw.([]interface{})

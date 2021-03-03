@@ -3,6 +3,9 @@ package features
 func Default() UserFeatures {
 	return UserFeatures{
 		// NOTE: ensure all nested objects are fully populated
+		Frontdoor: FrontdoorFeatures{
+			IgnoreBackendPoolLimit: false,
+		},
 		KeyVault: KeyVaultFeatures{
 			PurgeSoftDeleteOnDestroy:    true,
 			RecoverSoftDeletedKeyVaults: true,

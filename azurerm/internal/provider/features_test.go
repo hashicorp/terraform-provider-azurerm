@@ -18,6 +18,9 @@ func TestExpandFeatures(t *testing.T) {
 			Name:  "Empty Block",
 			Input: []interface{}{},
 			Expected: features.UserFeatures{
+				Frontdoor: features.FrontdoorFeatures{
+					IgnoreBackendPoolLimit: false,
+				},
 				KeyVault: features.KeyVaultFeatures{
 					PurgeSoftDeleteOnDestroy:    true,
 					RecoverSoftDeletedKeyVaults: true,
@@ -40,6 +43,11 @@ func TestExpandFeatures(t *testing.T) {
 			Name: "Complete Enabled",
 			Input: []interface{}{
 				map[string]interface{}{
+					"frontdoor": []interface{}{
+						map[string]interface{}{
+							"ignore_backend_pool_limit": true,
+						},
+					},
 					"key_vault": []interface{}{
 						map[string]interface{}{
 							"purge_soft_delete_on_destroy":    true,
@@ -70,6 +78,9 @@ func TestExpandFeatures(t *testing.T) {
 				},
 			},
 			Expected: features.UserFeatures{
+				Frontdoor: features.FrontdoorFeatures{
+					IgnoreBackendPoolLimit: true,
+				},
 				KeyVault: features.KeyVaultFeatures{
 					PurgeSoftDeleteOnDestroy:    true,
 					RecoverSoftDeletedKeyVaults: true,
@@ -93,6 +104,11 @@ func TestExpandFeatures(t *testing.T) {
 			Name: "Complete Disabled",
 			Input: []interface{}{
 				map[string]interface{}{
+					"frontdoor": []interface{}{
+						map[string]interface{}{
+							"ignore_backend_pool_limit": false,
+						},
+					},
 					"virtual_machine": []interface{}{
 						map[string]interface{}{
 							"delete_os_disk_on_deletion": false,
@@ -123,6 +139,9 @@ func TestExpandFeatures(t *testing.T) {
 				},
 			},
 			Expected: features.UserFeatures{
+				Frontdoor: features.FrontdoorFeatures{
+					IgnoreBackendPoolLimit: false,
+				},
 				KeyVault: features.KeyVaultFeatures{
 					PurgeSoftDeleteOnDestroy:    false,
 					RecoverSoftDeletedKeyVaults: false,
@@ -149,6 +168,71 @@ func TestExpandFeatures(t *testing.T) {
 		result := expandFeatures(testCase.Input)
 		if !reflect.DeepEqual(result, testCase.Expected) {
 			t.Fatalf("Expected %+v but got %+v", result, testCase.Expected)
+		}
+	}
+}
+
+func TestExpandFeaturesFrontdoor(t *testing.T) {
+	testData := []struct {
+		Name     string
+		Input    []interface{}
+		EnvVars  map[string]interface{}
+		Expected features.UserFeatures
+	}{
+		{
+			Name: "Empty Block",
+			Input: []interface{}{
+				map[string]interface{}{
+					"frontdoor": []interface{}{},
+				},
+			},
+			Expected: features.UserFeatures{
+				Network: features.NetworkFeatures{
+					RelaxedLocking: false,
+				},
+			},
+		},
+		{
+			Name: "Ignore Backend Pool Limit Enabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"frontdoor": []interface{}{
+						map[string]interface{}{
+							"ignore_backend_pool_limit": true,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				Frontdoor: features.FrontdoorFeatures{
+					IgnoreBackendPoolLimit: true,
+				},
+			},
+		},
+		{
+			Name: "Ignore Backend Pool Limit Disabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"frontdoor": []interface{}{
+						map[string]interface{}{
+							"ignore_backend_pool_limit": false,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				Frontdoor: features.FrontdoorFeatures{
+					IgnoreBackendPoolLimit: false,
+				},
+			},
+		},
+	}
+
+	for _, testCase := range testData {
+		t.Logf("[DEBUG] Test Case: %q", testCase.Name)
+		result := expandFeatures(testCase.Input)
+		if !reflect.DeepEqual(result.Frontdoor, testCase.Expected.Frontdoor) {
+			t.Fatalf("Expected %+v but got %+v", result.Frontdoor, testCase.Expected.Frontdoor)
 		}
 	}
 }
