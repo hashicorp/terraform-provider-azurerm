@@ -1,8 +1,12 @@
 package compute
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"strings"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -430,7 +434,7 @@ func virtualMachineDataDiskSchema() *schema.Schema {
 
 func virtualMachineCreateDataDiskSchema() *schema.Schema {
 	return &schema.Schema{
-		Type:     schema.TypeList,
+		Type:     schema.TypeSet,
 		Optional: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
@@ -489,12 +493,13 @@ func virtualMachineCreateDataDiskSchema() *schema.Schema {
 				},
 			},
 		},
+		Set: resourceVirtualMachineCreateDataDiskHash,
 	}
 }
 
 func virtualMachineAttachDataDiskSchema() *schema.Schema {
 	return &schema.Schema{
-		Type:     schema.TypeList,
+		Type:     schema.TypeSet,
 		Optional: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
@@ -579,11 +584,11 @@ func expandVirtualMachineDataDisks(ctx context.Context, d *schema.ResourceData, 
 
 func expandVirtualMachineCreateDataDisksForCreate(input interface{}) []compute.DataDisk {
 	var output []compute.DataDisk
-	if input == nil {
+	if input == nil || len(input.(*schema.Set).List()) == 0 {
 		return output
 	}
 
-	for _, v := range input.([]interface{}) {
+	for _, v := range input.(*schema.Set).List() {
 		disk := v.(map[string]interface{})
 		dataDisk := compute.DataDisk{
 			Caching:      compute.CachingTypes(disk["caching"].(string)),
@@ -609,7 +614,7 @@ func expandVirtualMachineCreateDataDisksForCreate(input interface{}) []compute.D
 func expandVirtualMachineCreateDataDisksForUpdate(ctx context.Context, input interface{}, d *schema.ResourceData, meta interface{}) ([]compute.DataDisk, error) {
 	var output []compute.DataDisk
 
-	if input == nil {
+	if input == nil || len(input.(*schema.Set).List()) == 0 {
 		return output, nil
 	}
 
@@ -617,7 +622,7 @@ func expandVirtualMachineCreateDataDisksForUpdate(ctx context.Context, input int
 
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	for _, v := range input.([]interface{}) {
+	for _, v := range input.(*schema.Set).List() {
 		disk := v.(map[string]interface{})
 		name := disk["name"].(string)
 		// this filters out the ghost entry we get from the set - less than ideal
@@ -667,13 +672,13 @@ func expandVirtualMachineCreateDataDisksForUpdate(ctx context.Context, input int
 
 func expandVirtualMachineAttachDataDisksForCreate(ctx context.Context, input interface{}, d *schema.ResourceData, meta interface{}) ([]compute.DataDisk, error) {
 	var output []compute.DataDisk
-	if input == nil {
+	if input == nil || len(input.(*schema.Set).List()) == 0 {
 		return output, nil
 	}
 
 	disksClient := meta.(*clients.Client).Compute.DisksClient
 
-	for _, v := range input.([]interface{}) {
+	for _, v := range input.(*schema.Set).List() {
 		disk := v.(map[string]interface{})
 		diskIDRaw := disk["managed_disk_id"].(string)
 
@@ -788,25 +793,74 @@ func flattenVirtualMachineDataDisks(input *[]compute.DataDisk) ([]interface{}, e
 	}
 	return []interface{}{
 		map[string]interface{}{
-			"create": createDisks,
-			"attach": attachDisks,
+			"create": schema.NewSet(resourceVirtualMachineCreateDataDiskHash, createDisks),
+			"attach": schema.NewSet(resourceVirtualMachineAttachDataDiskHash, attachDisks),
 		},
 	}, nil
 }
 
-//func resourceArmVirtualMachineCreateDataDiskHash(v interface{}) int {
-//	var buf bytes.Buffer
-//
-//	if m, ok := v.(map[string]interface{}); ok {
-//		buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
-//		buf.WriteString(fmt.Sprintf("%d-", m["lun"].(int)))
-//		buf.WriteString(fmt.Sprintf("%s-", m["caching"].(string)))
-//		buf.WriteString(fmt.Sprintf("%s-", m["storage_account_type"].(string)))
-//		buf.WriteString(fmt.Sprintf("%d-", m["disk_size_gb"].(int)))
-//		// Due to potential case diff in API response needs to be normalised
-//		buf.WriteString(fmt.Sprintf("%s-", strings.ToLower(m["disk_encryption_set_id"].(string))))
-//		buf.WriteString(fmt.Sprintf("%t-", m["write_accelerator_enabled"].(bool)))
-//	}
-//
-//	return hashcode.String(buf.String())
-//}
+func resourceVirtualMachineCreateDataDiskHash(v interface{}) int {
+	var buf bytes.Buffer
+
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
+		//buf.WriteString(fmt.Sprintf("%d-", m["lun"].(int)))
+		buf.WriteString(fmt.Sprintf("%s-", m["caching"].(string)))
+		//buf.WriteString(fmt.Sprintf("%s-", m["storage_account_type"].(string)))
+		buf.WriteString(fmt.Sprintf("%d-", m["disk_size_gb"].(int)))
+		// Due to potential case diff in API response needs to be normalised
+		buf.WriteString(fmt.Sprintf("%s-", strings.ToLower(m["disk_encryption_set_id"].(string))))
+		buf.WriteString(fmt.Sprintf("%t-", m["write_accelerator_enabled"].(bool)))
+	}
+
+	return hashcode.String(buf.String())
+}
+
+func resourceVirtualMachineAttachDataDiskHash(v interface{}) int {
+	var buf bytes.Buffer
+
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(fmt.Sprintf("%s-", m["managed_disk_id"].(string)))
+		buf.WriteString(fmt.Sprintf("%s-", m["caching"].(string)))
+		buf.WriteString(fmt.Sprintf("%t-", m["write_accelerator_enabled"].(bool)))
+	}
+
+	return hashcode.String(buf.String())
+}
+
+func findInvalidDataDiskChanges(d *schema.ResourceData) (errors []error) {
+	vmName := d.Get("name").(string)
+	newCreateRaw, oldCreateRaw := d.GetChange("data_disks.0.create")
+	for _, n := range newCreateRaw.(*schema.Set).List() {
+		newDisk := n.(map[string]interface{})
+		for _, o := range oldCreateRaw.(*schema.Set).List() {
+			oldDisk := o.(map[string]interface{})
+			if newDisk["name"].(string) == oldDisk["name"].(string) {
+				if newDisk["storage_account_type"] != oldDisk["storage_account_type"] {
+					errors = append(errors, fmt.Errorf("updating 'storage_account_type' for Data Disks is not supported (Disk %q, Virtual Machine %q)", newDisk["name"].(string), vmName))
+				}
+				if newDisk["lun"] != oldDisk["lun"] {
+					errors = append(errors, fmt.Errorf("updating 'lun' for Data Disks is not supported (Disk %q, Virtual Machine %q)", newDisk["name"].(string), vmName))
+				}
+			}
+		}
+	}
+
+	newAttachRaw, oldAttachRaw := d.GetChange("data_disks.0.attach")
+	for _, n := range newAttachRaw.(*schema.Set).List() {
+		newDisk := n.(map[string]interface{})
+		for _, o := range oldAttachRaw.(*schema.Set).List() {
+			oldDisk := o.(map[string]interface{})
+			if newDisk["managed_disk_id"].(string) == oldDisk["managed_disk_id"].(string) {
+				if newDisk["storage_account_type"] != oldDisk["storage_account_type"] {
+					errors = append(errors, fmt.Errorf("updating 'storage_account_type' for Data Disks is not supported (Disk %q, Virtual Machine %q)", newDisk["managed_disk_id"].(string), vmName))
+				}
+				if newDisk["lun"] != oldDisk["lun"] {
+					errors = append(errors, fmt.Errorf("updating 'lun' for Data Disks is not supported (Disk %q, Virtual Machine %q)", newDisk["managed_disk_id"].(string), vmName))
+				}
+			}
+		}
+	}
+
+	return
+}

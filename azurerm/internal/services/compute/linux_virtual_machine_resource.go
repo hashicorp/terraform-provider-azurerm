@@ -900,10 +900,13 @@ func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{})
 	// list of disks for supported update operations - `Attach` disks are not managed here
 	diskUpdates := make([]helpers.DataDiskUpdate, 0)
 	if features.VMDataDiskBeta() && d.HasChange("data_disks") {
+		if err := findInvalidDataDiskChanges(d); err != nil {
+			return fmt.Errorf("updating Linux Virtual Machine, invalid Data Disk property changes: %+v", err)
+		}
 		shouldUpdate = true
 		oldRaw, newRaw := d.GetChange("data_disks.0.create")
-		oldDisks := oldRaw.([]interface{})
-		newDisks := newRaw.([]interface{})
+		oldDisks := oldRaw.(*schema.Set).List()
+		newDisks := newRaw.(*schema.Set).List()
 		for _, o := range oldDisks {
 			oldDisk := o.(map[string]interface{})
 			if oldDiskName, ok := oldDisk["name"]; ok {
