@@ -54,8 +54,8 @@ func (client DisksClient) Attach(ctx context.Context, resourceGroupName string, 
 		ctx = tracing.StartSpan(ctx, fqdn+"/DisksClient.Attach")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -151,8 +151,8 @@ func (client DisksClient) CreateOrUpdate(ctx context.Context, resourceGroupName 
 		ctx = tracing.StartSpan(ctx, fqdn+"/DisksClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -264,8 +264,8 @@ func (client DisksClient) Delete(ctx context.Context, resourceGroupName string, 
 		ctx = tracing.StartSpan(ctx, fqdn+"/DisksClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -360,8 +360,8 @@ func (client DisksClient) Detach(ctx context.Context, resourceGroupName string, 
 		ctx = tracing.StartSpan(ctx, fqdn+"/DisksClient.Detach")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

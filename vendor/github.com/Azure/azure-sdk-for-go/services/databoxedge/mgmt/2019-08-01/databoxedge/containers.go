@@ -54,8 +54,8 @@ func (client ContainersClient) CreateOrUpdate(ctx context.Context, deviceName st
 		ctx = tracing.StartSpan(ctx, fqdn+"/ContainersClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -167,8 +167,8 @@ func (client ContainersClient) Delete(ctx context.Context, deviceName string, st
 		ctx = tracing.StartSpan(ctx, fqdn+"/ContainersClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -461,8 +461,8 @@ func (client ContainersClient) Refresh(ctx context.Context, deviceName string, s
 		ctx = tracing.StartSpan(ctx, fqdn+"/ContainersClient.Refresh")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

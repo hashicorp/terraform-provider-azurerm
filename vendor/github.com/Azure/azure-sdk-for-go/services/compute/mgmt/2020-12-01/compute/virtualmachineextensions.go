@@ -53,8 +53,8 @@ func (client VirtualMachineExtensionsClient) CreateOrUpdate(ctx context.Context,
 		ctx = tracing.StartSpan(ctx, fqdn+"/VirtualMachineExtensionsClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -158,8 +158,8 @@ func (client VirtualMachineExtensionsClient) Delete(ctx context.Context, resourc
 		ctx = tracing.StartSpan(ctx, fqdn+"/VirtualMachineExtensionsClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -413,8 +413,8 @@ func (client VirtualMachineExtensionsClient) Update(ctx context.Context, resourc
 		ctx = tracing.StartSpan(ctx, fqdn+"/VirtualMachineExtensionsClient.Update")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

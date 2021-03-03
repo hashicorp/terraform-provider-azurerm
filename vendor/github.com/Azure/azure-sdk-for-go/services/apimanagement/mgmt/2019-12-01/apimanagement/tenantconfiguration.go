@@ -54,8 +54,8 @@ func (client TenantConfigurationClient) Deploy(ctx context.Context, resourceGrou
 		ctx = tracing.StartSpan(ctx, fqdn+"/TenantConfigurationClient.Deploy")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -257,8 +257,8 @@ func (client TenantConfigurationClient) Save(ctx context.Context, resourceGroupN
 		ctx = tracing.StartSpan(ctx, fqdn+"/TenantConfigurationClient.Save")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -374,8 +374,8 @@ func (client TenantConfigurationClient) Validate(ctx context.Context, resourceGr
 		ctx = tracing.StartSpan(ctx, fqdn+"/TenantConfigurationClient.Validate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

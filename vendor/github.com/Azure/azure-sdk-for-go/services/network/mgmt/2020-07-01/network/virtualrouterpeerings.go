@@ -54,8 +54,8 @@ func (client VirtualRouterPeeringsClient) CreateOrUpdate(ctx context.Context, re
 		ctx = tracing.StartSpan(ctx, fqdn+"/VirtualRouterPeeringsClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -172,8 +172,8 @@ func (client VirtualRouterPeeringsClient) Delete(ctx context.Context, resourceGr
 		ctx = tracing.StartSpan(ctx, fqdn+"/VirtualRouterPeeringsClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

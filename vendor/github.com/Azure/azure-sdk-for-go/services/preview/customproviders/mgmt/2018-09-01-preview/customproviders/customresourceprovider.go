@@ -53,8 +53,8 @@ func (client CustomResourceProviderClient) CreateOrUpdate(ctx context.Context, r
 		ctx = tracing.StartSpan(ctx, fqdn+"/CustomResourceProviderClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -163,8 +163,8 @@ func (client CustomResourceProviderClient) Delete(ctx context.Context, resourceG
 		ctx = tracing.StartSpan(ctx, fqdn+"/CustomResourceProviderClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

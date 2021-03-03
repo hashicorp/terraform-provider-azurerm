@@ -215,9 +215,9 @@ func resourceMediaTransform() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(media.High),
-								string(media.Normal),
-								string(media.Low),
+								string(media.PriorityHigh),
+								string(media.PriorityNormal),
+								string(media.PriorityLow),
 							}, false),
 						},
 					},

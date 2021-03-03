@@ -54,8 +54,8 @@ func (client VolumesClient) AuthorizeReplication(ctx context.Context, resourceGr
 		ctx = tracing.StartSpan(ctx, fqdn+"/VolumesClient.AuthorizeReplication")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -167,8 +167,8 @@ func (client VolumesClient) BreakReplication(ctx context.Context, resourceGroupN
 		ctx = tracing.StartSpan(ctx, fqdn+"/VolumesClient.BreakReplication")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -283,8 +283,8 @@ func (client VolumesClient) CreateOrUpdate(ctx context.Context, body Volume, res
 		ctx = tracing.StartSpan(ctx, fqdn+"/VolumesClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -447,8 +447,8 @@ func (client VolumesClient) Delete(ctx context.Context, resourceGroupName string
 		ctx = tracing.StartSpan(ctx, fqdn+"/VolumesClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -558,8 +558,8 @@ func (client VolumesClient) DeleteReplication(ctx context.Context, resourceGroup
 		ctx = tracing.StartSpan(ctx, fqdn+"/VolumesClient.DeleteReplication")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -897,8 +897,8 @@ func (client VolumesClient) PoolChange(ctx context.Context, resourceGroupName st
 		ctx = tracing.StartSpan(ctx, fqdn+"/VolumesClient.PoolChange")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -1011,8 +1011,8 @@ func (client VolumesClient) ReInitializeReplication(ctx context.Context, resourc
 		ctx = tracing.StartSpan(ctx, fqdn+"/VolumesClient.ReInitializeReplication")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -1218,8 +1218,8 @@ func (client VolumesClient) ResyncReplication(ctx context.Context, resourceGroup
 		ctx = tracing.StartSpan(ctx, fqdn+"/VolumesClient.ResyncReplication")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -1329,8 +1329,8 @@ func (client VolumesClient) Revert(ctx context.Context, resourceGroupName string
 		ctx = tracing.StartSpan(ctx, fqdn+"/VolumesClient.Revert")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -1442,8 +1442,8 @@ func (client VolumesClient) Update(ctx context.Context, body VolumePatch, resour
 		ctx = tracing.StartSpan(ctx, fqdn+"/VolumesClient.Update")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

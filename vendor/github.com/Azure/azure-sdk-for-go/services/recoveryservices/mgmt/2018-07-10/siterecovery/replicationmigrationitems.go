@@ -54,8 +54,8 @@ func (client ReplicationMigrationItemsClient) Create(ctx context.Context, fabric
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationMigrationItemsClient.Create")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -169,8 +169,8 @@ func (client ReplicationMigrationItemsClient) Delete(ctx context.Context, fabric
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationMigrationItemsClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -591,8 +591,8 @@ func (client ReplicationMigrationItemsClient) Migrate(ctx context.Context, fabri
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationMigrationItemsClient.Migrate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -705,8 +705,8 @@ func (client ReplicationMigrationItemsClient) TestMigrate(ctx context.Context, f
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationMigrationItemsClient.TestMigrate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -819,8 +819,8 @@ func (client ReplicationMigrationItemsClient) TestMigrateCleanup(ctx context.Con
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationMigrationItemsClient.TestMigrateCleanup")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -933,8 +933,8 @@ func (client ReplicationMigrationItemsClient) Update(ctx context.Context, fabric
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationMigrationItemsClient.Update")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

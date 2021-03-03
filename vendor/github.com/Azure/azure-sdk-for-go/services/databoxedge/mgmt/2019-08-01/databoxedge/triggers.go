@@ -52,8 +52,8 @@ func (client TriggersClient) CreateOrUpdate(ctx context.Context, deviceName stri
 		ctx = tracing.StartSpan(ctx, fqdn+"/TriggersClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -157,8 +157,8 @@ func (client TriggersClient) Delete(ctx context.Context, deviceName string, name
 		ctx = tracing.StartSpan(ctx, fqdn+"/TriggersClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
