@@ -12,7 +12,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* dependencies: updating `github.com/Azure/azure-sdk-for-go` to `v51.3.0` [GH-10690]
+* dependencies: updating to `v52.0.0` of `github.com/Azure/azure-sdk-for-go` [GH-10787]
 * dependencies: updating `compute` to API version `2020-12-01` [GH-10650]
 * `azurerm_keyvault_secret` - support for the `versionless_id` property [GH-10738]
 * `azurerm_kubernetes_cluster` - support `private_dns_zone_id` when using a `service_principal` [GH-10737]
