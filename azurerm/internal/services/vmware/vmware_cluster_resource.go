@@ -31,7 +31,7 @@ func resourceVmwareCluster() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.PrivateCloudID(id)
+			_, err := parse.ClusterID(id)
 			return err
 		}),
 
