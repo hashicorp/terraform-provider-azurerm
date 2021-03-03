@@ -1111,7 +1111,7 @@ resource "azurerm_frontdoor" "test" {
 }
 
 func fiftyOnePools() string {
-	return fmt.Sprintf(`
+	return string(`
 backend_pool {
   name = "backendOne"
   backend {
