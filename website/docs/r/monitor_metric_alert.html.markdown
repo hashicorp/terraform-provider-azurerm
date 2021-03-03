@@ -15,7 +15,7 @@ Manages a Metric Alert within Azure Monitor.
 ```hcl
 resource "azurerm_resource_group" "main" {
   name     = "example-resources"
-  location = "West US"
+  location = "West Europe"
 }
 
 resource "azurerm_storage_account" "to_monitor" {

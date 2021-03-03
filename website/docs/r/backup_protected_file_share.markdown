@@ -15,7 +15,7 @@ Manages an Azure Backup Protected File Share to enable backups for file shares w
 ```hcl
 resource "azurerm_resource_group" "rg" {
   name     = "tfex-recovery_vault"
-  location = "West US"
+  location = "West Europe"
 }
 
 resource "azurerm_recovery_services_vault" "vault" {

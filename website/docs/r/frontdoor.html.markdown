@@ -22,7 +22,7 @@ Below are some of the key scenarios that Azure Front Door Service addresses:
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "FrontDoorExampleResourceGroup"
-  location = "EastUS2"
+  location = "West Europe"
 }
 
 resource "azurerm_frontdoor" "example" {

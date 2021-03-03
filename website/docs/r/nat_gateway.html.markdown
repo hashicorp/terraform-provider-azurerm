@@ -14,7 +14,7 @@ Manages a Azure NAT Gateway.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "nat-gateway-example-rg"
-  location = "eastus2"
+  location = "West Europe"
 }
 
 resource "azurerm_public_ip" "example" {
