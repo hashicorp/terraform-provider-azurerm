@@ -57,9 +57,6 @@ func dataSourceEventHubClusterRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("sku_name", flattenEventHubClusterSkuName(resp.Sku))
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
 
 	return nil
 }
