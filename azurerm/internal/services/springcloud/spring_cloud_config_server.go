@@ -73,6 +73,7 @@ func SchemaConfigServerSSHAuth(conflictsWith ...string) *schema.Schema {
 			},
 		},
 	}
+
 	if len(conflictsWith) > 0 {
 		s.ConflictsWith = conflictsWith
 	}
