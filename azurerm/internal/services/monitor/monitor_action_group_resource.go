@@ -799,7 +799,7 @@ func flattenMonitorActionGroupWebHookReceiver(receivers *[]insights.WebhookRecei
 }
 
 func flattenMonitorActionGroupSecureWebHookReceiver(receiver *insights.WebhookReceiver) []interface{} {
-	if !*receiver.UseAadAuth {
+	if receiver.UseAadAuth == nil || !*receiver.UseAadAuth {
 		return []interface{}{}
 	}
 
