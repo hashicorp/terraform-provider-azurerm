@@ -435,6 +435,7 @@ github.com/rickb777/plural
 ## explicit
 github.com/sergi/go-diff/diffmatchpatch
 # github.com/shopspring/decimal v1.2.0
+## explicit
 github.com/shopspring/decimal
 # github.com/spf13/afero v1.2.2
 github.com/spf13/afero

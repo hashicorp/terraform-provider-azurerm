@@ -78,6 +78,7 @@ func (client ReservationRecommendationsClient) List(ctx context.Context, filter 
 	}
 	if result.rrlr.hasNextLink() && result.rrlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -140,7 +141,6 @@ func (client ReservationRecommendationsClient) listNextResults(ctx context.Conte
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "consumption.ReservationRecommendationsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

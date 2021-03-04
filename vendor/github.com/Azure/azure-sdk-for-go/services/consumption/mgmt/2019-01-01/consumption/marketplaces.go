@@ -103,6 +103,7 @@ func (client MarketplacesClient) List(ctx context.Context, scope string, filter 
 	}
 	if result.mlr.hasNextLink() && result.mlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -171,7 +172,6 @@ func (client MarketplacesClient) listNextResults(ctx context.Context, lastResult
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "consumption.MarketplacesClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
