@@ -27,6 +27,12 @@ resource "azurerm_spring_cloud_service" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   sku_name            = "S0"
+
+  lifecycle {
+    ignore_changes = [
+      config_server_git_setting,
+    ]
+  }
 }
 
 resource "azurerm_spring_cloud_config_server" "example" {
