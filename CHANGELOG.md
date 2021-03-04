@@ -35,6 +35,7 @@ BUG FIXES:
 * Data Source: `azurerm_netapp_volume` - fixing a crash when setting `data_protection_replication` [GH-10795]
 * `azurerm_api_management` - changing the `sku_name` property no longer forces a new resouce to be created [GH-10747]
 * `azurerm_api_management` - the field `tenant_access` can only be configured when not using a Consumption SKU [GH-10766]
+* `azurerum_frontdoor` - removed the MaxItems validation from the Backend Pools [GH-10828]
 * `azurerm_kubernetes_cluster_resource` - allow windows passwords as short as `8` charaters long [GH-10816]
 * `azurerm_cosmosdb_mongo_collection` - ignore throughput if Cosmos DB provisioned in 'serverless' capacity mode [GH-10389]
 * `azurerm_linux_virtual_machine` - parsing the User Assigned Identity ID case-insensitively to work around an Azure API issue [GH-10722]
