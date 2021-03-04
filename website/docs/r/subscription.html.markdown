@@ -8,11 +8,13 @@ description: |-
 
 # azurerm_subscription
 
-Manages a Subscription.
+Manages an Alias for a Subscription - which adds an Alias to an existing Subscription, allowing it to be managed in Terraform - or create a new Subscription with a new Alias.
 
 ~> **NOTE:** Destroying a Subscription controlled by this resource will place the Subscription into a cancelled state. It is possible to re-activate a subscription within 90-days of cancellation, after which time the Subscription is irrevocably deleted, and the Subscription ID cannot be re-used. For further information see [here](https://docs.microsoft.com/en-us/azure/cost-management-billing/manage/cancel-azure-subscription#what-happens-after-subscription-cancellation). Users can optionally delete a Subscription once 72 hours have passed, however, this functionality is not suitable for Terraform. A `Deleted` subscription cannot be reactivated.
 
 ~> **NOTE:** It is not possible to destroy (cancel) a subscription if it contains resources. If resources are present that are not managed by Terraform then these will need to be removed before the Subscription can be destroyed.
+
+~> **NOTE:** Azure supports Multiple Aliases per Subscription, however, to reliably manage this resource in Terraform only a single Alias is supported.
 
 ## Example Usage
 
@@ -30,6 +32,15 @@ resource "azurerm_subscription" "example" {
   billing_account   = "e879cf0f-2b4d-5431-109a-f72fc9868693:024cabf4-7321-4cf9-be59-df0c77ca51de_2019-05-31"
   billing_profile   = "PE2Q-NOIT-BG7-TGB"
   invoice_section   = "MTT4-OBS7-PJA-TGB"
+}
+```
+
+```hcl
+// Assuming control of an existing Manually Created Subscription with no Alias
+resource "azurerm_subscription" "example" {
+  alias             = "examplesub"
+  subscription_name = "My Example Subscription"
+  subscription_id   = "12345678-12234-5678-9012-123456789012"
 }
 ```
 
@@ -92,12 +103,3 @@ terraform import azurerm_subscription.example "/providers/Microsoft.Subscription
 
 !> **NOTE:** When importing a Subscription that was not created programmatically, either by this Terraform resource or using the Alias API, it will have no Alias ID to import via `terraform import`.  
 In this scenario, the `subscription_id` property can be completed and Terraform will assume control of the existing subscription by creating an Alias. e.g.
-
-```hcl
-// importing existing Manually Created Subscription with no Alias
-resource "azurerm_subscription" "example" {
-  alias             = "examplesub"
-  subscription_name = "My Example Subscription"
-  subscription_id   = "12345678-12234-5678-9012-123456789012"
-}
-```
