@@ -46,50 +46,6 @@ func TestAccGuestConfigurationAssignment_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccGuestConfigurationAssignment_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_guest_configuration_assignment", "test")
-	r := GuestConfigurationAssignmentResource{}
-
-	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccGuestConfigurationAssignment_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_guest_configuration_assignment", "test")
-	r := GuestConfigurationAssignmentResource{}
-
-	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func (r GuestConfigurationAssignmentResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.GuestConfigurationAssignmentID(state.ID)
 	if err != nil {
@@ -107,10 +63,8 @@ func (r GuestConfigurationAssignmentResource) Exists(ctx context.Context, client
 
 func (r GuestConfigurationAssignmentResource) templateBase(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-# note: whilst these aren't used in all tests, it saves us redefining these everywhere
 locals {
-  first_public_key  = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+wWK73dCr+jgQOAxNsHAnNNNMEMWOHYEccp6wJm2gotpr9katuF/ZAdou5AaW1C61slRkHRkpRRX9FA9CYBiitZgvCCz+3nWNN7l/Up54Zps/pHWGZLHNJZRYyAB6j5yVLMVHIHriY49d/GZTZVNB8GoJv9Gakwc/fuEZYYl4YDFiGMBP///TzlI4jhiJzjKnEvqPFki5p2ZRJqcbCiF4pJrxUQR/RXqVFQdbRLZgYfJ8xGB878RENq3yQ39d8dVOkq4edbkzwcUmwwwkYVPIoDGsYLaRHnG+To7FvMeyO7xDVQkMKzopTQV8AuKpyvpqu0a9pWOMaiCyDytO7GGN you@me.com"
-  second_public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC0/NDMj2wG6bSa6jbn6E3LYlUsYiWMp1CQ2sGAijPALW6OrSu30lz7nKpoh8Qdw7/A4nAJgweI5Oiiw5/BOaGENM70Go+VM8LQMSxJ4S7/8MIJEZQp5HcJZ7XDTcEwruknrd8mllEfGyFzPvJOx6QAQocFhXBW6+AlhM3gn/dvV5vdrO8ihjET2GoDUqXPYC57ZuY+/Fz6W3KV8V97BvNUhpY5yQrP5VpnyvvXNFQtzDfClTvZFPuoHQi3/KYPi6O0FSD74vo8JOBZZY09boInPejkm9fvHQqfh0bnN7B6XJoUwC1Qprrx+XIy7ust5AEn5XL7d4lOvcR14MxDDKEp you@me.com"
+  vm_name = "acctestvm%s"
 }
 
 resource "azurerm_resource_group" "test" {
@@ -143,28 +97,23 @@ resource "azurerm_network_interface" "test" {
     private_ip_address_allocation = "Dynamic"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomString, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (r GuestConfigurationAssignmentResource) template(data acceptance.TestData) string {
-	template := r.templateBase(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_linux_virtual_machine" "test" {
-  name                = "acctestVM-%d"
+resource "azurerm_windows_virtual_machine" "test" {
+  name                = local.vm_name
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   size                = "Standard_F2"
   admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
-
-  admin_ssh_key {
-    username   = "adminuser"
-    public_key = local.first_public_key
-  }
 
   os_disk {
     caching              = "ReadWrite"
@@ -172,13 +121,13 @@ resource "azurerm_linux_virtual_machine" "test" {
   }
 
   source_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter"
     version   = "latest"
   }
 }
-`, template, data.RandomInteger)
+`, r.templateBase(data))
 }
 
 func (r GuestConfigurationAssignmentResource) basic(data acceptance.TestData) string {
@@ -188,11 +137,11 @@ func (r GuestConfigurationAssignmentResource) basic(data acceptance.TestData) st
 
 resource "azurerm_virtual_machine_guest_configuration_assignment" "test" {
   name               = "acctest-gca-%d"
-  location           = azurerm_linux_virtual_machine.test.location
-  virtual_machine_id = azurerm_linux_virtual_machine.test.id
+  location           = azurerm_windows_virtual_machine.test.location
+  virtual_machine_id = azurerm_windows_virtual_machine.test.id
   guest_configuration {
-    name    = "acctest-assignment"
-    version = "1.0"
+    name    = "WhitelistedApplication"
+    version = "1.*"
 
     parameter {
       name  = "[InstalledApplication]bwhitelistedapp;Name"
@@ -214,32 +163,4 @@ resource "azurerm_virtual_machine_guest_configuration_assignment" "import" {
   virtual_machine_id = azurerm_virtual_machine_guest_configuration_assignment.test.virtual_machine_id
 }
 `, config)
-}
-
-func (r GuestConfigurationAssignmentResource) complete(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_virtual_machine_guest_configuration_assignment" "test" {
-  name               = "acctest-gca-%d"
-  location           = azurerm_resource_group.test.location
-  virtual_machine_id = azurerm_linux_virtual_machine.test.id
-
-  guest_configuration {
-    name    = "WhitelistedApplication"
-    version = "1.*"
-
-    parameter {
-      name  = "[InstalledApplication]bwhitelistedapp;Name"
-      value = "NotePad,sql"
-    }
-
-    parameter {
-      name  = "test"
-      value = "value"
-    }
-  }
-}
-`, template, data.RandomInteger)
 }

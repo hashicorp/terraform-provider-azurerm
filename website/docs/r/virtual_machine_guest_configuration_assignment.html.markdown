@@ -44,20 +44,16 @@ resource "azurerm_network_interface" "example" {
   }
 }
 
-resource "azurerm_linux_virtual_machine" "example" {
-  name                = "example-vm"
+resource "azurerm_windows_virtual_machine" "example" {
+  name                = "examplevm"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   size                = "Standard_F2"
   admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
   network_interface_ids = [
     azurerm_network_interface.example.id,
   ]
-
-  admin_ssh_key {
-    username   = "adminuser"
-    public_key = file("~/.ssh/id_rsa.pub")
-  }
 
   os_disk {
     caching              = "ReadWrite"
@@ -65,9 +61,9 @@ resource "azurerm_linux_virtual_machine" "example" {
   }
 
   source_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter"
     version   = "latest"
   }
 }
@@ -77,8 +73,8 @@ resource "azurerm_virtual_machine_guest_configuration_assignment" "example" {
   location           = azurerm_linux_virtual_machine.example.id
   virtual_machine_id = azurerm_linux_virtual_machine.example.id
   guest_configuration {
-    name    = "example-assignment"
-    version = "1.0"
+    name    = "WhitelistedApplication"
+    version = "1.*"
 
     parameter {
       name  = "[InstalledApplication]bwhitelistedapp;Name"
@@ -100,23 +96,23 @@ The following arguments are supported:
 
 ---
 
-* `guest_configuration` - (Optional)  A `guest_configuration` block as defined below.
+* `guest_configuration` - (Required)  A `guest_configuration` block as defined below.
 
 ---
 
 An `guest_configuration` block supports the following:
 
-* `name` - (Optional) The name which should be used for this Guest Configuration.
+* `name` - (Required) The name of the Guest Configuration that will be assigned in this Guest Configuration Assignment.
 
-* `parameter` - (Optional)  A `parameter` block as defined below.
+* `parameter` - (Optional) One or more `parameter` blocks as defined below.
 
-* `version` - (Optional) The version of this Guest Configuration.
+* `version` - (Optional) The version of the Guest Configuration that will be assigned in this Guest Configuration Assignment.
 
 ---
 
 An `parameter` block supports the following:
 
-* `name` - (Required) The name which should be used for this configuration_parameter.
+* `name` - (Required) The name of the configuration parameter.
 
 * `value` - (Required) The value of the configuration parameter.
 
