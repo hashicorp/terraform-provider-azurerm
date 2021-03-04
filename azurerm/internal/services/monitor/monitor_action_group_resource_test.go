@@ -575,8 +575,8 @@ resource "azurerm_monitor_action_group" "test" {
   }
 
   webhook_receiver {
-    name                    = "callmyapiaswell"
-    service_uri             = "http://example.com/alert"
+    name                    = "callmysecureapi"
+    service_uri             = "http://secureExample.com/alert"
     use_common_alert_schema = true
     aad_auth {
       object_id      = data.azuread_application.test.object_id
@@ -584,7 +584,7 @@ resource "azurerm_monitor_action_group" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, os.Getenv("ARM_APP_OBJECT_ID"),data.RandomInteger )
+`, data.RandomInteger, data.Locations.Primary, os.Getenv("ARM_APP_OBJECT_ID"), data.RandomInteger)
 }
 
 func (MonitorActionGroupResource) automationRunbookReceiver(data acceptance.TestData) string {
