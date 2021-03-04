@@ -66,13 +66,13 @@ func TestAccSubscriptionResource_update(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r)),
 		},
-		data.ImportStep("billing_account", "enrollment_account"),
+		data.ImportStep("billing_scope_id"),
 		{
 			Config: r.basicEnrollmentAccountUpdate(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r)),
 		},
-		data.ImportStep("billing_account", "enrollment_account"),
+		data.ImportStep("billing_scope_id"),
 	})
 }
 
@@ -101,13 +101,17 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_subscription" "test" {
-  alias              = "testAcc-%[1]d"
-  subscription_name  = "testAccSubscription %[1]d"
+data "azurerm_billing_enrollment_account_scope" "test" {
   billing_account    = "%s"
   enrollment_account = "%s"
 }
-`, data.RandomInteger, data.RandomString, billingAccount, enrollmentAccount)
+
+resource "azurerm_subscription" "test" {
+  alias             = "testAcc-%[3]d"
+  subscription_name = "testAccSubscription %[3]d"
+  billing_scope_id  = data.azurerm_billing_enrollment_account_scope.test.id
+}
+`, billingAccount, enrollmentAccount, data.RandomInteger)
 }
 
 func (SubscriptionResource) basicEnrollmentAccountUpdate(data acceptance.TestData) string {
@@ -118,13 +122,17 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_subscription" "test" {
-  alias              = "testAcc-%[1]d"
-  subscription_name  = "testAccSubscription Renamed %[1]d"
+data "azurerm_billing_enrollment_account_scope" "test" {
   billing_account    = "%s"
   enrollment_account = "%s"
 }
-`, data.RandomInteger, data.RandomString, billingAccount, enrollmentAccount)
+
+resource "azurerm_subscription" "test" {
+  alias             = "testAcc-%[3]d"
+  subscription_name = "testAccSubscription Renamed %[3]d"
+  billing_scope_id  = data.azurerm_billing_enrollment_account_scope.test.id
+}
+`, billingAccount, enrollmentAccount, data.RandomInteger)
 }
 
 func (r SubscriptionResource) requiresImport(data acceptance.TestData) string {
@@ -132,10 +140,9 @@ func (r SubscriptionResource) requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_subscription" "import" {
-  alias              = azurerm_subscription.test.alias
-  subscription_name  = azurerm_subscription.test.subscription_name
-  billing_account    = azurerm_subscription.test.billing_account
-  enrollment_account = azurerm_subscription.test.enrollment_account
+  alias             = azurerm_subscription.test.alias
+  subscription_name = azurerm_subscription.test.subscription_name
+  billing_scope_id  = azurerm_subscription.test.billing_scope_id
 }
 `, r.basicEnrollmentAccount(data))
 }

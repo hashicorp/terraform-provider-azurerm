@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	billingValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/billing/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/subscription/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/subscription/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -65,59 +66,17 @@ func resourceSubscription() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"billing_account": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				Sensitive:    true,
-				Description:  "The name of the billing account under which the Subscription will be created.",
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"enrollment_account": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				ForceNew:    true,
-				Sensitive:   true,
-				Description: "The name of the enrollment account in which to create the subscription. Used for EA accounts.",
-				ConflictsWith: []string{
-					"invoice_section",
-					"billing_profile",
+			"billing_scope_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ExactlyOneOf: []string{
 					"subscription_id",
+					"billing_scope_id",
 				},
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"billing_profile": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				ForceNew:    true,
-				Sensitive:   true,
-				Description: "The name of the Billing Profile under which the Subscription should be created. Used for MCA and Partner Agreements.",
-				ConflictsWith: []string{
-					"enrollment_account",
-					"subscription_id",
-				},
-				RequiredWith: []string{
-					"invoice_section",
-				},
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"invoice_section": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				ForceNew:    true,
-				Sensitive:   true,
-				Description: "The Invoice Section of the Billing Profile which will be used for the subscription. Used for MCA and Partner Agreements.",
-				ConflictsWith: []string{
-					"enrollment_account",
-					"subscription_id",
-				},
-				RequiredWith: []string{
-					"billing_profile",
-				},
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: validation.Any(
+					billingValidate.MCABillingScopeID,
+					billingValidate.EnrollmentBillingScopeID,
+				),
 			},
 
 			// Optional
@@ -143,6 +102,11 @@ func resourceSubscription() *schema.Resource {
 				ForceNew:    true,
 				Optional:    true,
 				Computed:    true,
+				ExactlyOneOf: []string{
+					"subscription_id",
+					"billing_scope_id",
+				},
+				ValidateFunc: validation.IsUUID,
 			},
 
 			"tenant_id": {
@@ -246,16 +210,7 @@ func resourceSubscriptionCreate(d *schema.ResourceData, meta interface{}) error 
 	} else {
 		// If we're not assuming control of an existing Subscription, we need to know where to create it.
 		req.Properties.DisplayName = utils.String(d.Get("subscription_name").(string))
-
-		billingAccount := d.Get("billing_account").(string)
-
-		if enrollmentAccount, ok := d.GetOk("enrollment_account"); ok && enrollmentAccount.(string) != "" {
-			req.Properties.BillingScope = utils.String(fmt.Sprintf(billingScopeEnrollmentFmt, billingAccount, enrollmentAccount))
-		} else {
-			billingProfile := d.Get("billing_profile").(string)
-			invoiceSection := d.Get("invoice_section").(string)
-			req.Properties.BillingScope = utils.String(fmt.Sprintf(billingScopeMCAFmt, billingAccount, billingProfile, invoiceSection))
-		}
+		req.Properties.BillingScope = utils.String(d.Get("billing_scope_id").(string))
 	}
 
 	future, err := aliasClient.Create(ctx, aliasName, req)
