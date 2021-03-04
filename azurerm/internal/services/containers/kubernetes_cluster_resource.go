@@ -599,7 +599,7 @@ func resourceKubernetesCluster() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Sensitive:    true,
-							ValidateFunc: validation.StringLenBetween(14, 123),
+							ValidateFunc: validation.StringLenBetween(8, 123),
 						},
 					},
 				},
@@ -843,17 +843,19 @@ func resourceKubernetesClusterCreate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
+	servicePrincipalSet := false
 	if len(servicePrincipalProfileRaw) > 0 {
 		servicePrincipalProfileVal := servicePrincipalProfileRaw[0].(map[string]interface{})
 		parameters.ManagedClusterProperties.ServicePrincipalProfile = &containerservice.ManagedClusterServicePrincipalProfile{
 			ClientID: utils.String(servicePrincipalProfileVal["client_id"].(string)),
 			Secret:   utils.String(servicePrincipalProfileVal["client_secret"].(string)),
 		}
+		servicePrincipalSet = true
 	}
 
 	if v, ok := d.GetOk("private_dns_zone_id"); ok {
-		if parameters.Identity == nil || (v.(string) != "System" && parameters.Identity.Type != containerservice.ResourceIdentityTypeUserAssigned) {
-			return fmt.Errorf("a user assigned identity must be used when using a custom private dns zone")
+		if (parameters.Identity == nil && !servicePrincipalSet) || (v.(string) != "System" && (!servicePrincipalSet && parameters.Identity.Type != containerservice.ResourceIdentityTypeUserAssigned)) {
+			return fmt.Errorf("a user assigned identity or a service principal must be used when using a custom private dns zone")
 		}
 		apiAccessProfile.PrivateDNSZone = utils.String(v.(string))
 	}

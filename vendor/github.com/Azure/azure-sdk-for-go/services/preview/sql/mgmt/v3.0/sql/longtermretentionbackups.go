@@ -55,8 +55,8 @@ func (client LongTermRetentionBackupsClient) Delete(ctx context.Context, locatio
 		ctx = tracing.StartSpan(ctx, fqdn+"/LongTermRetentionBackupsClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -151,8 +151,8 @@ func (client LongTermRetentionBackupsClient) DeleteByResourceGroup(ctx context.C
 		ctx = tracing.StartSpan(ctx, fqdn+"/LongTermRetentionBackupsClient.DeleteByResourceGroup")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

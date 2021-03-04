@@ -8,9 +8,9 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql"
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/gofrs/uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	uuid "github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -307,6 +307,7 @@ func resourceSqlDatabase() *schema.Resource {
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
+						// TODO - 3.0: Remove this property
 						"use_server_default": {
 							Type:             schema.TypeString,
 							Optional:         true,
@@ -316,6 +317,7 @@ func resourceSqlDatabase() *schema.Resource {
 								string(sql.SecurityAlertPolicyUseServerDefaultDisabled),
 								string(sql.SecurityAlertPolicyUseServerDefaultEnabled),
 							}, true),
+							Deprecated: "This field is now non-functional and thus will be removed in version 3.0 of the Azure Provider",
 						},
 					},
 				},

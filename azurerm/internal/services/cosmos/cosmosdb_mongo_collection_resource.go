@@ -343,16 +343,19 @@ func resourceCosmosDbMongoCollectionRead(d *schema.ResourceData, meta interface{
 		}
 	}
 
-	throughputResp, err := client.GetMongoDBCollectionThroughput(ctx, id.ResourceGroup, id.DatabaseAccountName, id.MongodbDatabaseName, id.CollectionName)
-	if err != nil {
-		if !utils.ResponseWasNotFound(throughputResp.Response) {
-			return fmt.Errorf("Error reading Throughput on Cosmos Mongo Collection %q (Account: %q, Database: %q): %+v", id.CollectionName, id.DatabaseAccountName, id.MongodbDatabaseName, err)
+	// if the cosmos account is serverless calling the get throughput api would yield an error
+	if !isServerlessCapacityMode(accResp) {
+		throughputResp, err := client.GetMongoDBCollectionThroughput(ctx, id.ResourceGroup, id.DatabaseAccountName, id.MongodbDatabaseName, id.CollectionName)
+		if err != nil {
+			if !utils.ResponseWasNotFound(throughputResp.Response) {
+				return fmt.Errorf("Error reading Throughput on Cosmos Mongo Collection %q (Account: %q, Database: %q): %+v", id.CollectionName, id.DatabaseAccountName, id.MongodbDatabaseName, err)
+			} else {
+				d.Set("throughput", nil)
+				d.Set("autoscale_settings", nil)
+			}
 		} else {
-			d.Set("throughput", nil)
-			d.Set("autoscale_settings", nil)
+			common.SetResourceDataThroughputFromResponse(throughputResp, d)
 		}
-	} else {
-		common.SetResourceDataThroughputFromResponse(throughputResp, d)
 	}
 
 	return nil

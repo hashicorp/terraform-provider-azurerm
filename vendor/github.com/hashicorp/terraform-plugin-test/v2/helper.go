@@ -145,7 +145,7 @@ func symlinkAuxiliaryProviders(pluginDir string) error {
 		if filenameExt == ".zip" {
 			_, err = os.Stat(path)
 			if os.IsNotExist(err) {
-				zipDecompressor.Decompress(path, filepath.Join(auxiliaryProviderDir, filename), false)
+				zipDecompressor.Decompress(path, filepath.Join(auxiliaryProviderDir, filename), false, 0)
 			} else if err != nil {
 				return fmt.Errorf("Unexpected error: %s", err)
 			}
