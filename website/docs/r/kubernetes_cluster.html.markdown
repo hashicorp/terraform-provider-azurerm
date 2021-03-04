@@ -117,7 +117,7 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 ```
 resource "azurerm_resource_group" "example" {
   name     = "example"
-  location = "eastus2"
+  location = "West Europe"
 }
 
 resource "azurerm_private_dns_zone" "example" {

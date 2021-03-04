@@ -15,7 +15,7 @@ Manages a local network gateway connection over which specific connections can b
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "localNetworkGWTest"
-  location = "West US"
+  location = "West Europe"
 }
 
 resource "azurerm_local_network_gateway" "home" {

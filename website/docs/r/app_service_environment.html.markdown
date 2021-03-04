@@ -16,7 +16,7 @@ Manages an App Service Environment.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "exampleRG1"
-  location = "westeurope"
+  location = "West Europe"
 }
 
 resource "azurerm_virtual_network" "example" {

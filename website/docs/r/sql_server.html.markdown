@@ -19,7 +19,7 @@ Manages a Microsoft SQL Azure Database Server.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "database-rg"
-  location = "West US"
+  location = "West Europe"
 }
 
 resource "azurerm_storage_account" "example" {

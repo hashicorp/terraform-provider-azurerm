@@ -15,7 +15,7 @@ Manages a Databricks Workspace
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "West US"
+  location = "West Europe"
 }
 
 resource "azurerm_databricks_workspace" "example" {

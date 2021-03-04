@@ -16,7 +16,7 @@ Manages an Action Group within Azure Monitor.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "monitoring-resources"
-  location = "West US"
+  location = "West Europe"
 }
 
 resource "azurerm_monitor_action_group" "example" {

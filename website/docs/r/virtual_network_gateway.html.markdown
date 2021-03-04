@@ -17,7 +17,7 @@ Manages a Virtual Network Gateway to establish secure, cross-premises connectivi
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "test"
-  location = "West US"
+  location = "West Europe"
 }
 
 resource "azurerm_virtual_network" "example" {
