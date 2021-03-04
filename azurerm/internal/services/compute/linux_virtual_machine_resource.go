@@ -177,6 +177,15 @@ func resourceLinuxVirtualMachine() *schema.Resource {
 
 			"identity": virtualMachineIdentitySchema(),
 
+			"license_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"RHEL_BYOS",
+					"SLES_BYOS",
+				}, false),
+			},
+
 			"max_bid_price": {
 				Type:         schema.TypeFloat,
 				Optional:     true,
@@ -401,6 +410,10 @@ func resourceLinuxVirtualMachineCreate(d *schema.ResourceData, meta interface{})
 		Tags: tags.Expand(t),
 	}
 
+	if v, ok := d.GetOk("license_type"); ok {
+		params.VirtualMachineProperties.LicenseType = utils.String(v.(string))
+	}
+
 	if encryptionAtHostEnabled, ok := d.GetOk("encryption_at_host_enabled"); ok {
 		params.VirtualMachineProperties.SecurityProfile = &compute.SecurityProfile{
 			EncryptionAtHost: utils.Bool(encryptionAtHostEnabled.(bool)),
@@ -555,6 +568,12 @@ func resourceLinuxVirtualMachineRead(d *schema.ResourceData, meta interface{}) e
 		availabilitySetId = *props.AvailabilitySet.ID
 	}
 	d.Set("availability_set_id", availabilitySetId)
+
+	licenseType := ""
+	if props.LicenseType != nil {
+		licenseType = *props.LicenseType
+	}
+	d.Set("license_type", licenseType)
 
 	if err := d.Set("boot_diagnostics", flattenBootDiagnostics(props.DiagnosticsProfile)); err != nil {
 		return fmt.Errorf("setting `boot_diagnostics`: %+v", err)
@@ -757,6 +776,14 @@ func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
 		update.Identity = identity
+	}
+
+	if d.HasChange("license_type") {
+		shouldUpdate = true
+
+		if v, ok := d.GetOk("license_type"); ok {
+			update.LicenseType = utils.String(v.(string))
+		}
 	}
 
 	if d.HasChange("dedicated_host_id") {
