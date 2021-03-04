@@ -274,6 +274,21 @@ func TestAccEventHubNamespace_zoneRedundant(t *testing.T) {
 	})
 }
 
+func TestAccEventHubNamespace_encryptionBYOK(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	r := EventHubNamespaceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.encryptionBYOK(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccEventHubNamespace_dedicatedClusterID(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
 	r := EventHubNamespaceResource{}
@@ -875,6 +890,68 @@ resource "azurerm_eventhub_namespace" "test" {
   dedicated_cluster_id = azurerm_eventhub_cluster.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (EventHubNamespaceResource) encryptionBYOK(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {}
+
+
+data "azurerm_resource_group" "test" {
+  name     = "acctestRG-210303215248990504"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                       = "acctestkv-%s"
+  location                   = data.azurerm_resource_group.test.location
+  resource_group_name        = data.azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  purge_protection_enabled = true
+  soft_delete_retention_days = 7
+
+  tags = {
+    environment = "Production"
+  }
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "key-%s"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "EC"
+  key_size     = 2048
+
+  key_opts = [
+    "sign",
+    "verify",
+  ]
+}
+
+data "azurerm_eventhub_cluster" "test" {
+  name                = "acctesteventhubcluster-210303215248990504"
+  resource_group_name = data.azurerm_resource_group.test.name
+}
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acctesteventhubnamespace-%d"
+  location            = data.azurerm_resource_group.test.location
+  resource_group_name = data.azurerm_resource_group.test.name
+  sku                 = "Standard"
+  capacity            = "2"
+  dedicated_cluster_id = data.azurerm_eventhub_cluster.test.id
+  identity {
+    type = "SystemAssigned"
+  }
+  encryption {
+    key_vault_uri = azurerm_key_vault.test.vault_uri
+    key_name = azurerm_key_vault_key.test.name
+  }
+}
+`, data.RandomString, data.RandomString, data.RandomInteger)
 }
 
 func (EventHubNamespaceResource) basicWithTagsUpdate(data acceptance.TestData) string {

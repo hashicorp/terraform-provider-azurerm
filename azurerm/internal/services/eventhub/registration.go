@@ -23,6 +23,7 @@ func (r Registration) WebsiteCategories() []string {
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
 		"azurerm_eventhub":                              dataSourceEventHub(),
+		"azurerm_eventhub_cluster":                      dataSourceEventHubCluster(),
 		"azurerm_eventhub_authorization_rule":           EventHubAuthorizationRuleDataSource(),
 		"azurerm_eventhub_consumer_group":               EventHubConsumerGroupDataSource(),
 		"azurerm_eventhub_namespace":                    EventHubNamespaceDataSource(),
@@ -37,6 +38,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_eventhub_cluster":                            resourceEventHubCluster(),
 		"azurerm_eventhub_namespace_authorization_rule":       resourceEventHubNamespaceAuthorizationRule(),
 		"azurerm_eventhub_namespace_disaster_recovery_config": resourceEventHubNamespaceDisasterRecoveryConfig(),
+		"azurerm_eventhub_namespace_encryption":               resourceEventHubNamespaceEncryption(),
 		"azurerm_eventhub_namespace":                          resourceEventHubNamespace(),
 		"azurerm_eventhub":                                    resourceEventHub(),
 	}
