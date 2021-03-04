@@ -629,7 +629,6 @@ func TestAccAppService_removeMixedIpRestrictions(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
 	})
 }
 
