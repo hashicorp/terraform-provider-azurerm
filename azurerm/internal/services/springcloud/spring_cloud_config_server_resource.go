@@ -64,9 +64,9 @@ func resourceSpringCloudConfigServer() *schema.Resource {
 				},
 			},
 
-			"http_basic_auth": SchemaConfigServerHttpBasicAuth(false, "ssh_auth"),
+			"http_basic_auth": SchemaConfigServerHttpBasicAuth("ssh_auth"),
 
-			"ssh_auth": SchemaConfigServerSSHAuth(false, "http_basic_auth"),
+			"ssh_auth": SchemaConfigServerSSHAuth("http_basic_auth"),
 
 			"repository": {
 				Type:     schema.TypeList,
@@ -108,9 +108,9 @@ func resourceSpringCloudConfigServer() *schema.Resource {
 							},
 						},
 
-						"http_basic_auth": SchemaConfigServerHttpBasicAuth(false),
+						"http_basic_auth": SchemaConfigServerHttpBasicAuth(),
 
-						"ssh_auth": SchemaConfigServerSSHAuth(false),
+						"ssh_auth": SchemaConfigServerSSHAuth(),
 					},
 				},
 			},
