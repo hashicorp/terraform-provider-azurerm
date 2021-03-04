@@ -8,7 +8,7 @@ description: |-
 
 # Data Source: azurerm_billing_enrollment_account_scope
 
-Use this data source to access information about an existing Billing.
+Use this data source to access information about an existing Enrollment Account Billing Scope.
 
 ## Example Usage
 
@@ -35,10 +35,10 @@ The following arguments are supported:
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
-* `id` - The ID of the Billing Scope.
+* `id` - The ID of the Enrollment Account Billing Scope.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the Billing.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Enrollment Account Billing Scope.

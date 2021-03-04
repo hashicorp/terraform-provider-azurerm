@@ -16,7 +16,7 @@ Manages an Alias for a Subscription - which adds an Alias to an existing Subscri
 
 ~> **NOTE:** Azure supports Multiple Aliases per Subscription, however, to reliably manage this resource in Terraform only a single Alias is supported.
 
-## Example Usage
+## Example Usage - creating a new Alias and Subscription for an Enrollment Account
 
 ```hcl
 data "azurerm_billing_enrollment_account_scope" "example" {
@@ -29,6 +29,8 @@ resource "azurerm_subscription" "example" {
   billing_scope_id  = data.azurerm_billing_enrollment_account_scope.example.id
 }
 ```
+
+## Example Usage - creating a new Alias and Subscription for a Microsoft Customer Account
 
 ```hcl
 data "azurerm_billing_mca_account_scope" "example" {
@@ -43,8 +45,9 @@ resource "azurerm_subscription" "example" {
 }
 ```
 
+## Example Usage - adding an Alias to an existing Subscription
+
 ```hcl
-// Assuming control of an existing Manually Created Subscription with no Alias
 resource "azurerm_subscription" "example" {
   alias             = "examplesub"
   subscription_name = "My Example Subscription"
@@ -75,8 +78,6 @@ The following arguments are supported:
 * `invoice_section` - (Optional) The Invoice Section name. Conflicts with `enrollment_account`, and `subscription_id`. Changing this forces a new Subscription to be created.
 
 ~> **NOTE:** This value is only valid for MCA and Partner Account types and must be used with `billing_profile`.
-
-* `state` - (Optional) The target state of the subscription. Possible values are `Active` (default) and `Cancelled`.
 
 * `subscription_id` - (Optional) The ID of the Subscription. Cannot be specified with `billing_account`, `billing_profile`, `enrollment_account`, or `invoice_section` Changing this forces a new Subscription to be created.
 

@@ -6,9 +6,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
 
-var _ resourceid.Formatter = MCABillingScopeId{}
+var _ resourceid.Formatter = MicrosoftCustomerAccountBillingScopeId{}
 
-func TestMCABillingScopeIDFormatter(t *testing.T) {
+func TestMicrosoftCustomerAccountBillingScopeIDFormatter(t *testing.T) {
 	actual := NewMCABillingScopeID("e879cf0f-2b4d-5431-109a-f72fc9868693:024cabf4-7321-4cf9-be59-df0c77ca51de_2019-05-31", "PE2Q-NOIT-BG7-TGB", "MTT4-OBS7-PJA-TGB").ID()
 	expected := "/providers/Microsoft.Billing/billingAccounts/e879cf0f-2b4d-5431-109a-f72fc9868693:024cabf4-7321-4cf9-be59-df0c77ca51de_2019-05-31/billingProfiles/PE2Q-NOIT-BG7-TGB/invoiceSections/MTT4-OBS7-PJA-TGB"
 	if actual != expected {
@@ -16,11 +16,11 @@ func TestMCABillingScopeIDFormatter(t *testing.T) {
 	}
 }
 
-func TestMCABillingScopeID(t *testing.T) {
+func TestMicrosoftCustomerAccountBillingScopeID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *MCABillingScopeId
+		Expected *MicrosoftCustomerAccountBillingScopeId
 	}{
 
 		{
@@ -68,7 +68,7 @@ func TestMCABillingScopeID(t *testing.T) {
 		{
 			// valid
 			Input: "/providers/Microsoft.Billing/billingAccounts/e879cf0f-2b4d-5431-109a-f72fc9868693:024cabf4-7321-4cf9-be59-df0c77ca51de_2019-05-31/billingProfiles/PE2Q-NOIT-BG7-TGB/invoiceSections/MTT4-OBS7-PJA-TGB",
-			Expected: &MCABillingScopeId{
+			Expected: &MicrosoftCustomerAccountBillingScopeId{
 				BillingAccountName: "e879cf0f-2b4d-5431-109a-f72fc9868693:024cabf4-7321-4cf9-be59-df0c77ca51de_2019-05-31",
 				BillingProfileName: "PE2Q-NOIT-BG7-TGB",
 				InvoiceSectionName: "MTT4-OBS7-PJA-TGB",
@@ -85,7 +85,7 @@ func TestMCABillingScopeID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := MCABillingScopeID(v.Input)
+		actual, err := MicrosoftCustomerAccountBillingScopeID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue

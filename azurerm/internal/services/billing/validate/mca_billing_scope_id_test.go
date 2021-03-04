@@ -2,7 +2,7 @@ package validate
 
 import "testing"
 
-func TestMCABillingScopeID(t *testing.T) {
+func TestMicrosoftCustomerAccountBillingScopeID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
@@ -64,7 +64,7 @@ func TestMCABillingScopeID(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %s", tc.Input)
-		_, errors := MCABillingScopeID(tc.Input, "test")
+		_, errors := MicrosoftCustomerAccountBillingScopeID(tc.Input, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {

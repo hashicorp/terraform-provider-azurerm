@@ -24,11 +24,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-var (
-	billingScopeEnrollmentFmt = "/providers/Microsoft.Billing/billingAccounts/%s/enrollmentAccounts/%s"
-	billingScopeMCAFmt        = "/providers/Microsoft.Billing/billingAccounts/%s/billingProfiles/%s/invoiceSections/%s"
-	SubscriptionResourceName  = "azurerm_subscription"
-)
+var SubscriptionResourceName = "azurerm_subscription"
 
 func resourceSubscription() *schema.Resource {
 	return &schema.Resource{
@@ -37,10 +33,10 @@ func resourceSubscription() *schema.Resource {
 		Read:   resourceSubscriptionRead,
 		Delete: resourceSubscriptionDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
 			_, err := parse.SubscriptionAliasID(id)
 			return err
-		}),
+		}, importSubscriptionByAlias()),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -74,7 +70,7 @@ func resourceSubscription() *schema.Resource {
 					"billing_scope_id",
 				},
 				ValidateFunc: validation.Any(
-					billingValidate.MCABillingScopeID,
+					billingValidate.MicrosoftCustomerAccountBillingScopeID,
 					billingValidate.EnrollmentBillingScopeID,
 				),
 			},
@@ -205,7 +201,6 @@ func resourceSubscriptionCreate(d *schema.ResourceData, meta interface{}) error 
 			if err := waitForSubscriptionStateToSettle(ctx, meta.(*clients.Client), subscriptionId, "Active", createDeadline); err != nil {
 				return fmt.Errorf("failed waiting for Subscription %q (Alias %q) to enter %q state: %+v", subscriptionId, id.Name, "Active", err)
 			}
-
 		}
 	} else {
 		// If we're not assuming control of an existing Subscription, we need to know where to create it.
@@ -303,7 +298,7 @@ func resourceSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
 	subscriptionId := ""
 	subscriptionName := ""
 	tenantId := ""
-	t := make(map[string]*string, 0)
+	t := make(map[string]*string)
 	if props := alias.Properties; props != nil && props.SubscriptionID != nil {
 		subscriptionId = *props.SubscriptionID
 		resp, err := client.Get(ctx, subscriptionId)
@@ -327,7 +322,9 @@ func resourceSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("subscription_id", subscriptionId)
 	d.Set("subscription_name", subscriptionName)
 	d.Set("tenant_id", tenantId)
-	tags.FlattenAndSet(d, t)
+	if err := tags.FlattenAndSet(d, t); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -381,7 +378,7 @@ func resourceSubscriptionDelete(d *schema.ResourceData, meta interface{}) error 
 	// remove the alias
 	if _, count, err := checkExistingAliases(ctx, *aliasClient, subscriptionId); err != nil {
 		if count > 1 {
-			return fmt.Errorf("multiple Aliases found for Subscription %q, cannot remove")
+			return fmt.Errorf("multiple Aliases found for Subscription %q, cannot remove", subscriptionId)
 		}
 	}
 
@@ -464,7 +461,6 @@ func checkExistingAliases(ctx context.Context, client subscriptionAlias.AliasCli
 
 	for _, v := range *aliasList.Value {
 		if v.Properties != nil && v.Properties.SubscriptionID != nil && subscriptionId == *v.Properties.SubscriptionID {
-
 			return v.Name, len(*aliasList.Value), nil
 		}
 	}

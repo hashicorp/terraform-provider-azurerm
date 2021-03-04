@@ -8,21 +8,21 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type MCABillingScopeId struct {
+type MicrosoftCustomerAccountBillingScopeId struct {
 	BillingAccountName string
 	BillingProfileName string
 	InvoiceSectionName string
 }
 
-func NewMCABillingScopeID(billingAccountName, billingProfileName, invoiceSectionName string) MCABillingScopeId {
-	return MCABillingScopeId{
+func NewMCABillingScopeID(billingAccountName, billingProfileName, invoiceSectionName string) MicrosoftCustomerAccountBillingScopeId {
+	return MicrosoftCustomerAccountBillingScopeId{
 		BillingAccountName: billingAccountName,
 		BillingProfileName: billingProfileName,
 		InvoiceSectionName: invoiceSectionName,
 	}
 }
 
-func (id MCABillingScopeId) String() string {
+func (id MicrosoftCustomerAccountBillingScopeId) String() string {
 	segments := []string{
 		fmt.Sprintf("Invoice Section Name %q", id.InvoiceSectionName),
 		fmt.Sprintf("Billing Profile Name %q", id.BillingProfileName),
@@ -32,13 +32,13 @@ func (id MCABillingScopeId) String() string {
 	return fmt.Sprintf("%s: (%s)", "M C A Billing Scope", segmentsStr)
 }
 
-func (id MCABillingScopeId) ID() string {
+func (id MicrosoftCustomerAccountBillingScopeId) ID() string {
 	fmtString := "/providers/Microsoft.Billing/billingAccounts/%s/billingProfiles/%s/invoiceSections/%s"
 	return fmt.Sprintf(fmtString, id.BillingAccountName, id.BillingProfileName, id.InvoiceSectionName)
 }
 
-// MCABillingScopeID parses a MCABillingScope ID into an MCABillingScopeId struct
-func MCABillingScopeID(input string) (*MCABillingScopeId, error) {
+// MicrosoftCustomerAccountBillingScopeID parses a MCABillingScope ID into an MicrosoftCustomerAccountBillingScopeId struct
+func MicrosoftCustomerAccountBillingScopeID(input string) (*MicrosoftCustomerAccountBillingScopeId, error) {
 	idURL, err := url.ParseRequestURI(input)
 	if err != nil {
 		return nil, fmt.Errorf("Cannot parse Azure ID: %s", err)
@@ -76,7 +76,7 @@ func MCABillingScopeID(input string) (*MCABillingScopeId, error) {
 		delete(componentMap, "providers")
 	}
 
-	resourceId := MCABillingScopeId{}
+	resourceId := MicrosoftCustomerAccountBillingScopeId{}
 
 	if resourceId.BillingAccountName, err = id.PopSegment("billingAccounts"); err != nil {
 		return nil, err
