@@ -18,6 +18,7 @@ ENHANCEMENTS:
 * `azurerm_keyvault_secret` - support for the `versionless_id` property [GH-10738]
 * `azurerm_kubernetes_cluster` - support `private_dns_zone_id` when using a `service_principal` [GH-10737]
 * `azurerm_kusto_cluster` - supports for the `double_encryption_enabled` property [GH-10264]
+* `azurerm_linux_virtual_machine` - support for configuring `license_type` [GH-10776]
 * `azurerm_mssql_database` - support for the `log_monitoring_enabled` property within the `extended_auditing_policy` block [GH-10324]
 * `azurerm_mssql_database_extended_auditing_policy ` - support for the `log_monitoring_enabled` property [GH-10324]
 * `azurerm_mssql_server` - support for the `log_monitoring_enabled` property within the `extended_auditing_policy` block [GH-10324]
