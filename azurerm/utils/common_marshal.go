@@ -1,6 +1,6 @@
 package utils
 
-import uuid "github.com/satori/go.uuid"
+import "github.com/gofrs/uuid"
 
 func ExpandStringSlice(input []interface{}) *[]string {
 	result := make([]string, 0)
