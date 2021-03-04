@@ -1909,7 +1909,7 @@ func expandAppServiceIpRestriction(input interface{}) ([]web.IPSecurityRestricti
 		priority := restriction["priority"].(int)
 		action := restriction["action"].(string)
 
-		if vNetSubnetID != "" && ipAddress != "" && serviceTag != "" {
+		if (vNetSubnetID != "" && (ipAddress != "" || serviceTag != "")) || (ipAddress != "" && (vNetSubnetID != "" || serviceTag != "")) {
 			return nil, fmt.Errorf("only one of `ip_address`, `service_tag` or `virtual_network_subnet_id` can be set for an IP restriction")
 		}
 
