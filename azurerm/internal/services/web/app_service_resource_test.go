@@ -3060,19 +3060,19 @@ resource "azurerm_app_service" "test" {
     ip_restriction {
       virtual_network_subnet_id = azurerm_subnet.test[0].id
     }
-	ip_restriction {
+    ip_restriction {
       virtual_network_subnet_id = azurerm_subnet.test[1].id
     }
-	ip_restriction {
+    ip_restriction {
       virtual_network_subnet_id = azurerm_subnet.test[2].id
     }
-	ip_restriction {
+    ip_restriction {
       ip_address = "10.1.0.1/32"
     }
-	ip_restriction {
+    ip_restriction {
       ip_address = "10.1.0.2/32"
     }
-	ip_restriction {
+    ip_restriction {
       ip_address = "10.1.0.3/32"
     }
   }
@@ -3127,16 +3127,16 @@ resource "azurerm_app_service" "test" {
     ip_restriction {
       virtual_network_subnet_id = azurerm_subnet.test[0].id
     }
-	ip_restriction {
+    ip_restriction {
       virtual_network_subnet_id = azurerm_subnet.test[1].id
     }
-	ip_restriction {
+    ip_restriction {
       ip_address = "10.1.0.1/32"
     }
-	ip_restriction {
+    ip_restriction {
       ip_address = "10.1.0.2/32"
     }
-	ip_restriction {
+    ip_restriction {
       ip_address = "10.1.0.3/32"
     }
   }
