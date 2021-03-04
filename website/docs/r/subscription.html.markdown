@@ -22,7 +22,6 @@ Manages an Alias for a Subscription - which adds an Alias to an existing Subscri
 data "azurerm_billing_enrollment_account_scope" "example" {
   billing_account_name    = "1234567890"
   enrollment_account_name = "0123456"
-
 }
 
 resource "azurerm_subscription" "example" {
