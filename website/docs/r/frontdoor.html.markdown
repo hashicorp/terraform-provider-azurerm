@@ -83,6 +83,8 @@ The following arguments are supported:
 
 * `backend_pool` - (Required) A `backend_pool` block as defined below.
 
+-> Azure by default allows specifying up to 50 Backend Pools - but this quota can be increased via Microsoft Support.
+
 * `backend_pool_health_probe` - (Required) A `backend_pool_health_probe` block as defined below.
 
 * `backend_pool_load_balancing` - (Required) A `backend_pool_load_balancing` block as defined below.
