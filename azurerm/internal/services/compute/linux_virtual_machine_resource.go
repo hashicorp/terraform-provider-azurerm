@@ -244,7 +244,7 @@ func resourceLinuxVirtualMachine() *schema.Resource {
 				Default:      -1,
 				ForceNew:     true,
 				RequiredWith: []string{"virtual_machine_scale_set_id"},
-				ValidateFunc: validation.IntAtLeast(0),
+				ValidateFunc: validation.IntAtLeast(-1),
 			},
 
 			"tags": tags.Schema(),
