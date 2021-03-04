@@ -3,7 +3,7 @@ subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: Data Source: azurerm_eventhub_cluster"
 description: |-
-Gets information about an existing EventHub Cluster.
+  Gets information about an existing EventHub Cluster.
 ---
 
 # Data Source: azurerm_eventhub_cluster

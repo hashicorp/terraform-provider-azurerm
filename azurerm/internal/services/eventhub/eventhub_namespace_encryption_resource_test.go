@@ -56,16 +56,16 @@ data "azurerm_client_config" "current" {}
 
 
 data "azurerm_resource_group" "test" {
-  name     = "acctestRG-210303215248990504"
+  name = "acctestRG-210303215248990504"
 }
 
 resource "azurerm_key_vault" "test" {
-  name                       = "acctestkv-%s"
-  location                   = data.azurerm_resource_group.test.location
-  resource_group_name        = data.azurerm_resource_group.test.name
-  tenant_id                  = azurerm_eventhub_namespace.test.identity[0].tenant_id
-  sku_name                   = "premium"
-  purge_protection_enabled   = true
+  name                     = "acctestkv-%s"
+  location                 = data.azurerm_resource_group.test.location
+  resource_group_name      = data.azurerm_resource_group.test.name
+  tenant_id                = azurerm_eventhub_namespace.test.identity[0].tenant_id
+  sku_name                 = "premium"
+  purge_protection_enabled = true
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
@@ -99,11 +99,11 @@ resource "azurerm_key_vault_key" "test" {
   key_size     = 2048
 
   key_opts = [
-    "decrypt", 
-    "encrypt", 
-    "sign", 
-    "unwrapKey", 
-    "verify", 
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
     "wrapKey"
   ]
 }
@@ -114,11 +114,11 @@ data "azurerm_eventhub_cluster" "test" {
 }
 
 resource "azurerm_eventhub_namespace" "test" {
-  name                = "acctesteventhubnamespace-%d"
-  location            = data.azurerm_resource_group.test.location
-  resource_group_name = data.azurerm_resource_group.test.name
-  sku                 = "Standard"
-  capacity            = "2"
+  name                 = "acctesteventhubnamespace-%d"
+  location             = data.azurerm_resource_group.test.location
+  resource_group_name  = data.azurerm_resource_group.test.name
+  sku                  = "Standard"
+  capacity             = "2"
   dedicated_cluster_id = data.azurerm_eventhub_cluster.test.id
   identity {
     type = "SystemAssigned"
@@ -126,9 +126,9 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_eventhub_namespace_encryption" "test" {
-  namespace_id = azurerm_eventhub_namespace.test.id
+  namespace_id  = azurerm_eventhub_namespace.test.id
   key_vault_uri = azurerm_key_vault.test.vault_uri
-  key_name = azurerm_key_vault_key.test.name
+  key_name      = azurerm_key_vault_key.test.name
 }
 `, data.RandomString, data.RandomString, data.RandomInteger)
 }

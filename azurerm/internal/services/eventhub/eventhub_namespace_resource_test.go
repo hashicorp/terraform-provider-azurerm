@@ -902,7 +902,7 @@ data "azurerm_client_config" "current" {}
 
 
 data "azurerm_resource_group" "test" {
-  name     = "acctestRG-210303215248990504"
+  name = "acctestRG-210303215248990504"
 }
 
 resource "azurerm_key_vault" "test" {
@@ -911,7 +911,7 @@ resource "azurerm_key_vault" "test" {
   resource_group_name        = data.azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
-  purge_protection_enabled = true
+  purge_protection_enabled   = true
   soft_delete_retention_days = 7
 
   tags = {
@@ -937,18 +937,18 @@ data "azurerm_eventhub_cluster" "test" {
 }
 
 resource "azurerm_eventhub_namespace" "test" {
-  name                = "acctesteventhubnamespace-%d"
-  location            = data.azurerm_resource_group.test.location
-  resource_group_name = data.azurerm_resource_group.test.name
-  sku                 = "Standard"
-  capacity            = "2"
+  name                 = "acctesteventhubnamespace-%d"
+  location             = data.azurerm_resource_group.test.location
+  resource_group_name  = data.azurerm_resource_group.test.name
+  sku                  = "Standard"
+  capacity             = "2"
   dedicated_cluster_id = data.azurerm_eventhub_cluster.test.id
   identity {
     type = "SystemAssigned"
   }
   encryption {
     key_vault_uri = azurerm_key_vault.test.vault_uri
-    key_name = azurerm_key_vault_key.test.name
+    key_name      = azurerm_key_vault_key.test.name
   }
 }
 `, data.RandomString, data.RandomString, data.RandomInteger)

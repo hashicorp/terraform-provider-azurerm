@@ -3,7 +3,6 @@ package eventhub
 import (
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/eventhub/mgmt/2018-01-01-preview/eventhub"
@@ -84,7 +83,7 @@ func resourceEventHubNamespaceEncryptionCreateUpdate(d *schema.ResourceData, met
 		kvProperties := make([]eventhub.KeyVaultProperties, 0)
 
 		kvProperties = append(kvProperties, eventhub.KeyVaultProperties{
-			KeyVaultURI: utils.String(strings.TrimSuffix(d.Get("key_vault_uri").(string), "/")),
+			KeyVaultURI: utils.String(d.Get("key_vault_uri").(string)),
 			KeyName:     utils.String(d.Get("key_name").(string)),
 			KeyVersion:  utils.String(keyVersion),
 		})
@@ -140,7 +139,8 @@ func resourceEventHubNamespaceEncryptionRead(d *schema.ResourceData, meta interf
 	if encryptionProps := resp.EHNamespaceProperties.Encryption; encryptionProps != nil {
 		if encryptionProps.KeyVaultProperties != nil && len(*encryptionProps.KeyVaultProperties) != 0 {
 			kvProps := *encryptionProps.KeyVaultProperties
-			d.Set("key_vault_uri", strings.TrimSuffix(*kvProps[0].KeyVaultURI, "/"))
+			// Namespaces client strips trailing slash from the URI, we want it since KV client returns it
+			d.Set("key_vault_uri", fmt.Sprintf("%s/", *kvProps[0].KeyVaultURI))
 			d.Set("key_name", *kvProps[0].KeyName)
 			d.Set("key_version", *kvProps[0].KeyVersion)
 		}
