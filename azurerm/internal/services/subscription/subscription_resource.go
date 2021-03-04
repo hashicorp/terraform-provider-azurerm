@@ -6,8 +6,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-11-01/subscriptions"
 	subscriptionAlias "github.com/Azure/azure-sdk-for-go/services/subscription/mgmt/2020-09-01/subscription"
 	"github.com/google/uuid"
@@ -18,6 +16,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/subscription/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/subscription/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -62,16 +61,6 @@ func resourceSubscription() *schema.Resource {
 				ForceNew:     true,
 				Description:  "The Alias Name of the subscription. If omitted a new UUID will be generated for this property.",
 				ValidateFunc: validation.StringIsNotEmpty,
-			},
-			// Remove - if we're creating with Sub ID we activate, fail import if cancelled
-			"state": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "Active",
-				ValidateFunc: validation.StringInSlice([]string{
-					"Active",
-					"Cancelled",
-				}, false),
 			},
 
 			"billing_account": {
@@ -210,13 +199,12 @@ func resourceSubscriptionCreate(d *schema.ResourceData, meta interface{}) error 
 		},
 	}
 
-	targetState := d.Get("state").(string)
-	reactivate := false
 	subscriptionId := ""
 
 	// Check if we're adding alias management for an existing subscription
 	if subscriptionIdRaw, ok := d.GetOk("subscription_id"); ok {
 		subscriptionId = subscriptionIdRaw.(string)
+		// Terraform assumes a 1:1 mapping between a Subscription and an Alias - first check if there's any existing aliases
 		exists, _, err := checkExistingAliases(ctx, *aliasClient, subscriptionId)
 		if err != nil {
 			return err
@@ -231,9 +219,17 @@ func resourceSubscriptionCreate(d *schema.ResourceData, meta interface{}) error 
 			return fmt.Errorf("could not read existing Subscription %q", subscriptionId)
 		}
 		// Disabled and Warned are both "effectively" cancelled states,
-		if (existingSub.State == subscriptions.Disabled || existingSub.State == subscriptions.Warned) && targetState == "Active" {
-			log.Printf("[DEBUG] Existing subscription already in use in Disabled state Terraform will attempt to re-activate it")
-			reactivate = true
+		if existingSub.State == subscriptions.Disabled || existingSub.State == subscriptions.Warned {
+			log.Printf("[DEBUG] Existing subscription in Disabled/Cancelled state Terraform will attempt to re-activate it")
+			if _, err := subscriptionClient.Enable(ctx, subscriptionId); err != nil {
+				return fmt.Errorf("enabling Subscription %q: %+v", subscriptionId, err)
+			}
+			deadline, _ := ctx.Deadline()
+			createDeadline := time.Until(deadline)
+			if err := waitForSubscriptionStateToSettle(ctx, meta.(*clients.Client), subscriptionId, "Active", createDeadline); err != nil {
+				return fmt.Errorf("failed waiting for Subscription %q (Alias %q) to enter %q state: %+v", subscriptionId, id.Name, "Active", err)
+			}
+
 		}
 	} else {
 		// If we're not assuming control of an existing Subscription, we need to know where to create it.
@@ -259,19 +255,16 @@ func resourceSubscriptionCreate(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("waiting for creation of Subscription with Alias %q: %+v", id.Name, err)
 	}
 
-	if reactivate {
-		if _, err := subscriptionClient.Enable(ctx, subscriptionId); err != nil {
-			return fmt.Errorf("enabling Subscription %q: %+v", subscriptionId, err)
-		}
-	}
-
 	alias, err := aliasClient.Get(ctx, id.Name)
 	if err != nil || alias.Properties == nil || alias.Properties.SubscriptionID == nil {
 		return fmt.Errorf("failed reading subscription details for Alias %q: %+v", id.Name, err)
 	}
 
-	if err := waitForSubscriptionStateToSettle(ctx, meta.(*clients.Client), *alias.Properties.SubscriptionID, targetState, d.Timeout(schema.TimeoutCreate)); err != nil {
-		return fmt.Errorf("failed waiting for Subscription %q (Alias %q) to enter %q state: %+v", subscriptionId, id.Name, targetState, err)
+	deadline, _ := ctx.Deadline()
+	createDeadline := time.Until(deadline)
+
+	if err := waitForSubscriptionStateToSettle(ctx, meta.(*clients.Client), *alias.Properties.SubscriptionID, "Active", createDeadline); err != nil {
+		return fmt.Errorf("failed waiting for Subscription %q (Alias %q) to enter %q state: %+v", subscriptionId, id.Name, "Active", err)
 	}
 
 	d.SetId(id.ID())
@@ -299,32 +292,13 @@ func resourceSubscriptionUpdate(d *schema.ResourceData, meta interface{}) error 
 	if subscriptionId == nil || *subscriptionId == "" {
 		return fmt.Errorf("could not read Subscription ID from Alias")
 	}
+
 	if d.HasChange("subscription_name") {
 		displayName := subscriptionAlias.Name{
 			SubscriptionName: utils.String(d.Get("subscription_name").(string)),
 		}
 		if _, err := subscriptionClient.Rename(ctx, *subscriptionId, displayName); err != nil {
 			return fmt.Errorf("could not update Display Name of Subscription %q: %+v", *subscriptionId, err)
-		}
-	}
-
-	if d.HasChange("state") {
-		newState := d.Get("state").(string)
-		switch newState {
-		case "Active":
-			if _, err := subscriptionClient.Enable(ctx, *subscriptionId); err != nil {
-				return fmt.Errorf("failed to Enable Subscription %q: %+v", *subscriptionId, err)
-			}
-		case "Cancelled":
-			if _, err := subscriptionClient.Cancel(ctx, *subscriptionId); err != nil {
-				return fmt.Errorf("failed to Disable Subscription %q: %+v", *subscriptionId, err)
-			}
-		default:
-			return fmt.Errorf("unsupported Subscription State %q", newState)
-		}
-
-		if err := waitForSubscriptionStateToSettle(ctx, meta.(*clients.Client), *subscriptionId, newState, d.Timeout(schema.TimeoutUpdate)); err != nil {
-			return fmt.Errorf("failed to set Subscription %q (Alias %q) to %q: %+v", *subscriptionId, id.Name, newState, err)
 		}
 	}
 
@@ -377,8 +351,6 @@ func resourceSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		t = resp.Tags
-
-		d.Set("state", state)
 	}
 
 	// (@jackofallops) A subscription's billing scope is not exposed in any way in the API/SDK so we cannot read it back here
@@ -451,7 +423,10 @@ func resourceSubscriptionDelete(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("failed to cancel Subscription: %+v", err)
 	}
 
-	if err := waitForSubscriptionStateToSettle(ctx, meta.(*clients.Client), subscriptionId, "Cancelled", d.Timeout(schema.TimeoutDelete)); err != nil {
+	deadline, _ := ctx.Deadline()
+	deleteDeadline := time.Until(deadline)
+
+	if err := waitForSubscriptionStateToSettle(ctx, meta.(*clients.Client), subscriptionId, "Cancelled", deleteDeadline); err != nil {
 		return fmt.Errorf("failed to cancel Subscription %q (Alias %q): %+v", subscriptionId, id.Name, err)
 	}
 
