@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/subscription/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/subscription/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -25,6 +26,7 @@ import (
 var (
 	billingScopeEnrollmentFmt = "/providers/Microsoft.Billing/billingAccounts/%s/enrollmentAccounts/%s"
 	billingScopeMCAFmt        = "/providers/Microsoft.Billing/billingAccounts/%s/billingProfiles/%s/invoiceSections/%s"
+	SubscriptionResourceName  = "azurerm_subscription"
 )
 
 func resourceSubscription() *schema.Resource {
@@ -188,6 +190,9 @@ func resourceSubscriptionCreate(d *schema.ResourceData, meta interface{}) error 
 		return tf.ImportAsExistsError("azurerm_subscription", id.ID())
 	}
 
+	locks.ByName(aliasName, SubscriptionResourceName)
+	defer locks.UnlockByName(aliasName, SubscriptionResourceName)
+
 	workload := subscriptionAlias.Production
 	if workloadRaw := d.Get("workload").(string); workloadRaw != "" {
 		workload = subscriptionAlias.Workload(workloadRaw)
@@ -204,13 +209,20 @@ func resourceSubscriptionCreate(d *schema.ResourceData, meta interface{}) error 
 	// Check if we're adding alias management for an existing subscription
 	if subscriptionIdRaw, ok := d.GetOk("subscription_id"); ok {
 		subscriptionId = subscriptionIdRaw.(string)
+
+		locks.ByID(subscriptionId)
+		defer locks.UnlockByID(subscriptionId)
+
 		// Terraform assumes a 1:1 mapping between a Subscription and an Alias - first check if there's any existing aliases
-		exists, _, err := checkExistingAliases(ctx, *aliasClient, subscriptionId)
+		exists, aliasCount, err := checkExistingAliases(ctx, *aliasClient, subscriptionId)
 		if err != nil {
 			return err
 		}
 		if exists != nil {
-			return fmt.Errorf("An Alias for Subscription %q already exists with name %q - to be managed via Terraform this resource needs to be imported into the State. Please see the resource documentation for %q for more information.", subscriptionId, *exists, "azurerm_subscription")
+			if aliasCount > 1 {
+				return fmt.Errorf("multiple Aliases for Subscription %q already exist - to be managed via Terraform only one Alias can exist and this resource needs to be imported into the State. Please see the resource documentation for %q for more information", subscriptionId, "azurerm_subscription")
+			}
+			return fmt.Errorf("an Alias for Subscription %q already exists with name %q - to be managed via Terraform this resource needs to be imported into the State. Please see the resource documentation for %q for more information", subscriptionId, *exists, "azurerm_subscription")
 		}
 
 		req.Properties.SubscriptionID = utils.String(subscriptionId)
@@ -283,6 +295,8 @@ func resourceSubscriptionUpdate(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
+	locks.ByName(id.Name, SubscriptionResourceName)
+	defer locks.UnlockByName(id.Name, SubscriptionResourceName)
 	resp, err := aliasClient.Get(ctx, id.Name)
 	if err != nil || resp.Properties == nil {
 		return fmt.Errorf("could not read Subscription Alias for update: %+v", err)
@@ -294,6 +308,9 @@ func resourceSubscriptionUpdate(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	if d.HasChange("subscription_name") {
+		locks.ByID(*subscriptionId)
+		defer locks.UnlockByID(*subscriptionId)
+
 		displayName := subscriptionAlias.Name{
 			SubscriptionName: utils.String(d.Get("subscription_name").(string)),
 		}
@@ -319,6 +336,12 @@ func resourceSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
 
 	alias, err := aliasClient.Get(ctx, id.Name)
 	if err != nil {
+		if utils.ResponseWasNotFound(alias.Response) {
+			log.Printf("[INFO] Error reading Subscription %q - removing from state", d.Id())
+			d.SetId("")
+			return nil
+		}
+
 		return fmt.Errorf("reading Subscription Alias %q: %+v", id.Name, err)
 	}
 
@@ -339,15 +362,6 @@ func resourceSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
 
 		if resp.DisplayName != nil {
 			subscriptionName = *resp.DisplayName
-		}
-
-		state := ""
-		if resp.State == subscriptions.Disabled || resp.State == subscriptions.Warned {
-			state = "Cancelled"
-		}
-
-		if resp.State == subscriptions.Enabled {
-			state = "Active"
 		}
 
 		t = resp.Tags
@@ -381,6 +395,9 @@ func resourceSubscriptionDelete(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
+	locks.ByName(id.Name, SubscriptionResourceName)
+	defer locks.ByName(id.Name, SubscriptionResourceName)
+
 	// Get subscription details for later
 	alias, err := aliasClient.Get(ctx, id.Name)
 	if err != nil || alias.Properties == nil {
@@ -390,6 +407,8 @@ func resourceSubscriptionDelete(d *schema.ResourceData, meta interface{}) error 
 	if subscriptionIdRaw := alias.Properties.SubscriptionID; subscriptionIdRaw != nil {
 		subscriptionId = *subscriptionIdRaw
 	}
+	locks.ByID(subscriptionId)
+	defer locks.UnlockByID(subscriptionId)
 
 	sub, err := client.Get(ctx, subscriptionId)
 	if err != nil {
