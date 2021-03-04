@@ -18,9 +18,18 @@ Manages a Subscription.
 
 ```hcl
 resource "azurerm_subscription" "example" {
-  subscription_name  = "My Example Subscription"
+  subscription_name  = "My Example EA Subscription"
   billing_account    = "1234567890"
   enrollment_account = "0123456"
+}
+```
+
+```hcl
+resource "azurerm_subscription" "example" {
+  subscription_name = "My Example MCA Subscription"
+  billing_account   = "e879cf0f-2b4d-5431-109a-f72fc9868693:024cabf4-7321-4cf9-be59-df0c77ca51de_2019-05-31"
+  billing_profile   = "PE2Q-NOIT-BG7-TGB"
+  invoice_section   = "MTT4-OBS7-PJA-TGB"
 }
 ```
 

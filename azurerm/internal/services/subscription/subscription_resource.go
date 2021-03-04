@@ -6,13 +6,14 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-11-01/subscriptions"
 	subscriptionAlias "github.com/Azure/azure-sdk-for-go/services/subscription/mgmt/2020-09-01/subscription"
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	azValidate "github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/subscription/parse"
@@ -62,7 +63,7 @@ func resourceSubscription() *schema.Resource {
 				Description:  "The Alias Name of the subscription. If omitted a new UUID will be generated for this property.",
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
-
+			// Remove - if we're creating with Sub ID we activate, fail import if cancelled
 			"state": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -79,7 +80,7 @@ func resourceSubscription() *schema.Resource {
 				ForceNew:     true,
 				Sensitive:    true,
 				Description:  "The name of the billing account under which the Subscription will be created.",
-				ValidateFunc: azValidate.NoEmptyStrings, // TODO - Put some actual protection around this?
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"enrollment_account": {
@@ -93,7 +94,7 @@ func resourceSubscription() *schema.Resource {
 					"billing_profile",
 					"subscription_id",
 				},
-				ValidateFunc: azValidate.NoEmptyStrings, // TODO - Put some actual protection around this?
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"billing_profile": {
@@ -109,7 +110,7 @@ func resourceSubscription() *schema.Resource {
 				RequiredWith: []string{
 					"invoice_section",
 				},
-				ValidateFunc: azValidate.NoEmptyStrings, // TODO - Put some actual protection around this?
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"invoice_section": {
@@ -125,7 +126,7 @@ func resourceSubscription() *schema.Resource {
 				RequiredWith: []string{
 					"billing_profile",
 				},
-				ValidateFunc: azValidate.NoEmptyStrings, // TODO - Put some actual protection around this?
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			// Optional
@@ -157,6 +158,14 @@ func resourceSubscription() *schema.Resource {
 				Type:        schema.TypeString,
 				Description: "The Tenant ID to which the subscription belongs",
 				Computed:    true,
+			},
+
+			"tags": {
+				Type:     schema.TypeMap,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 		},
 	}
@@ -208,7 +217,7 @@ func resourceSubscriptionCreate(d *schema.ResourceData, meta interface{}) error 
 	// Check if we're adding alias management for an existing subscription
 	if subscriptionIdRaw, ok := d.GetOk("subscription_id"); ok {
 		subscriptionId = subscriptionIdRaw.(string)
-		exists, err := checkExistingAliases(ctx, *aliasClient, subscriptionId)
+		exists, _, err := checkExistingAliases(ctx, *aliasClient, subscriptionId)
 		if err != nil {
 			return err
 		}
@@ -342,6 +351,7 @@ func resourceSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
 	subscriptionId := ""
 	subscriptionName := ""
 	tenantId := ""
+	t := make(map[string]*string, 0)
 	if props := alias.Properties; props != nil && props.SubscriptionID != nil {
 		subscriptionId = *props.SubscriptionID
 		resp, err := client.Get(ctx, subscriptionId)
@@ -366,6 +376,8 @@ func resourceSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
 			state = "Active"
 		}
 
+		t = resp.Tags
+
 		d.Set("state", state)
 	}
 
@@ -374,6 +386,7 @@ func resourceSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("subscription_id", subscriptionId)
 	d.Set("subscription_name", subscriptionName)
 	d.Set("tenant_id", tenantId)
+	tags.FlattenAndSet(d, t)
 
 	return nil
 }
@@ -420,6 +433,12 @@ func resourceSubscriptionDelete(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("one or both of Subscription Name (%q) and Subscription ID (%q) could not be determined", subscriptionName, subscriptionId)
 	}
 	// remove the alias
+	if _, count, err := checkExistingAliases(ctx, *aliasClient, subscriptionId); err != nil {
+		if count > 1 {
+			return fmt.Errorf("multiple Aliases found for Subscription %q, cannot remove")
+		}
+	}
+
 	resp, err := aliasClient.Delete(ctx, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
@@ -484,16 +503,17 @@ func waitForSubscriptionStateToSettle(ctx context.Context, clients *clients.Clie
 	return nil
 }
 
-func checkExistingAliases(ctx context.Context, client subscriptionAlias.AliasClient, subscriptionId string) (*string, error) {
+func checkExistingAliases(ctx context.Context, client subscriptionAlias.AliasClient, subscriptionId string) (*string, int, error) {
 	aliasList, err := client.List(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("could not List existing Subscription Aliases")
+		return nil, len(*aliasList.Value), fmt.Errorf("could not List existing Subscription Aliases")
 	}
 
 	for _, v := range *aliasList.Value {
 		if v.Properties != nil && v.Properties.SubscriptionID != nil && subscriptionId == *v.Properties.SubscriptionID {
-			return v.Name, nil
+
+			return v.Name, len(*aliasList.Value), nil
 		}
 	}
-	return nil, nil
+	return nil, len(*aliasList.Value), nil
 }
