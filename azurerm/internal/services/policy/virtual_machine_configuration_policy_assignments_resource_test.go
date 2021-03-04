@@ -17,7 +17,7 @@ import (
 type GuestConfigurationAssignmentResource struct{}
 
 func TestAccGuestConfigurationAssignment_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_guest_configuration_assignment", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_configuration_policy_assignment", "test")
 	r := GuestConfigurationAssignmentResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
@@ -32,7 +32,7 @@ func TestAccGuestConfigurationAssignment_basic(t *testing.T) {
 }
 
 func TestAccGuestConfigurationAssignment_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_guest_configuration_assignment", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_configuration_policy_assignment", "test")
 	r := GuestConfigurationAssignmentResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
@@ -135,7 +135,7 @@ func (r GuestConfigurationAssignmentResource) basic(data acceptance.TestData) st
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_virtual_machine_guest_configuration_assignment" "test" {
+resource "azurerm_virtual_machine_configuration_policy_assignment" "test" {
   name               = "acctest-gca-%d"
   location           = azurerm_windows_virtual_machine.test.location
   virtual_machine_id = azurerm_windows_virtual_machine.test.id
@@ -157,10 +157,10 @@ func (r GuestConfigurationAssignmentResource) requiresImport(data acceptance.Tes
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_virtual_machine_guest_configuration_assignment" "import" {
-  name               = azurerm_virtual_machine_guest_configuration_assignment.test.name
-  location           = azurerm_virtual_machine_guest_configuration_assignment.test.location
-  virtual_machine_id = azurerm_virtual_machine_guest_configuration_assignment.test.virtual_machine_id
+resource "azurerm_virtual_machine_configuration_policy_assignment" "import" {
+  name               = azurerm_virtual_machine_configuration_policy_assignment.test.name
+  location           = azurerm_virtual_machine_configuration_policy_assignment.test.location
+  virtual_machine_id = azurerm_virtual_machine_configuration_policy_assignment.test.virtual_machine_id
 }
 `, config)
 }
