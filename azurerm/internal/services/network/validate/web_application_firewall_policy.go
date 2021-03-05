@@ -1,6 +1,8 @@
 package validate
 
-import "github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+import (
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+)
 
 var ValidateWebApplicationFirewallPolicyRuleGroupName = validation.StringInSlice([]string{
 	"crs_20_protocol_violations",
