@@ -246,9 +246,9 @@ func flattenGuestConfigurationAssignment(input *guestconfiguration.Navigation) [
 	}
 	return []interface{}{
 		map[string]interface{}{
-			"name":         name,
-			"parameter":    flattenGuestConfigurationAssignmentConfigurationParameters(input.ConfigurationParameter),
-			"version":      version,
+			"name":      name,
+			"parameter": flattenGuestConfigurationAssignmentConfigurationParameters(input.ConfigurationParameter),
+			"version":   version,
 		},
 	}
 }
