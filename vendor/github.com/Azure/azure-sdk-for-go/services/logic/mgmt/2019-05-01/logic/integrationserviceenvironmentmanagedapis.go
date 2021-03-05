@@ -53,8 +53,8 @@ func (client IntegrationServiceEnvironmentManagedApisClient) Delete(ctx context.
 		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationServiceEnvironmentManagedApisClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -341,8 +341,8 @@ func (client IntegrationServiceEnvironmentManagedApisClient) Put(ctx context.Con
 		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationServiceEnvironmentManagedApisClient.Put")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

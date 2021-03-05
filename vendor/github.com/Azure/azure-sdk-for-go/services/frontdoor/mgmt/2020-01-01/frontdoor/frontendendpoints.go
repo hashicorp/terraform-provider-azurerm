@@ -53,8 +53,8 @@ func (client FrontendEndpointsClient) DisableHTTPS(ctx context.Context, resource
 		ctx = tracing.StartSpan(ctx, fqdn+"/FrontendEndpointsClient.DisableHTTPS")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -162,8 +162,8 @@ func (client FrontendEndpointsClient) EnableHTTPS(ctx context.Context, resourceG
 		ctx = tracing.StartSpan(ctx, fqdn+"/FrontendEndpointsClient.EnableHTTPS")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

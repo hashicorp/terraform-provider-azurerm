@@ -15,7 +15,7 @@ Allows you to add, update, or remove an Azure SQL server to a subnet of a virtua
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-sql-server-vnet-rule"
-  location = "West US"
+  location = "West Europe"
 }
 
 resource "azurerm_virtual_network" "vnet" {

@@ -52,8 +52,8 @@ func (client ReplicationvCentersClient) Create(ctx context.Context, fabricName s
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationvCentersClient.Create")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -157,8 +157,8 @@ func (client ReplicationvCentersClient) Delete(ctx context.Context, fabricName s
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationvCentersClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -561,8 +561,8 @@ func (client ReplicationvCentersClient) Update(ctx context.Context, fabricName s
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationvCentersClient.Update")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

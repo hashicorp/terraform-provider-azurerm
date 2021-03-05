@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2018-06-30-preview/automation"
+	"github.com/gofrs/uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	uuid "github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -244,8 +244,11 @@ func resourceAutomationRunbookCreateUpdate(d *schema.ResourceData, meta interfac
 	}
 
 	if v, ok := d.GetOk("job_schedule"); ok {
-		jsMap := helper.ExpandAutomationJobSchedule(v.(*schema.Set).List(), name)
-		for jsuuid, js := range jsMap {
+		jsMap, err := helper.ExpandAutomationJobSchedule(v.(*schema.Set).List(), name)
+		if err != nil {
+			return err
+		}
+		for jsuuid, js := range *jsMap {
 			if _, err := jsClient.Create(ctx, resGroup, accName, jsuuid, js); err != nil {
 				return fmt.Errorf("creating Automation Runbook %q Job Schedules (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
 			}

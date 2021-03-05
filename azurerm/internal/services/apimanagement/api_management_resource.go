@@ -87,7 +87,6 @@ func resourceApiManagementService() *schema.Resource {
 			"sku_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: apimValidate.ApimSkuName(),
 			},
 
@@ -731,7 +730,11 @@ func resourceApiManagementServiceCreateUpdate(d *schema.ResourceData, meta inter
 		}
 	}
 
-	if d.HasChange("tenant_access") {
+	tenantAccessRaw := d.Get("tenant_access").([]interface{})
+	if sku.Name == apimanagement.SkuTypeConsumption && len(tenantAccessRaw) > 0 {
+		return fmt.Errorf("`tenant_access` is not supported for sku tier `Consumption`")
+	}
+	if sku.Name != apimanagement.SkuTypeConsumption && d.HasChange("tenant_access") {
 		tenantAccessInformationParametersRaw := d.Get("tenant_access").([]interface{})
 		tenantAccessInformationParameters := expandApiManagementTenantAccessSettings(tenantAccessInformationParametersRaw)
 		tenantAccessClient := meta.(*clients.Client).ApiManagement.TenantAccessClient
@@ -863,12 +866,14 @@ func resourceApiManagementServiceRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("sign_up", []interface{}{})
 	}
 
-	tenantAccessInformationContract, err := tenantAccessClient.ListSecrets(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving tenant access properties for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	if err := d.Set("tenant_access", flattenApiManagementTenantAccessSettings(tenantAccessInformationContract)); err != nil {
-		return fmt.Errorf("setting `tenant_access`: %+v", err)
+	if resp.Sku.Name != apimanagement.SkuTypeConsumption {
+		tenantAccessInformationContract, err := tenantAccessClient.ListSecrets(ctx, resourceGroup, name)
+		if err != nil {
+			return fmt.Errorf("retrieving tenant access properties for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+		if err := d.Set("tenant_access", flattenApiManagementTenantAccessSettings(tenantAccessInformationContract)); err != nil {
+			return fmt.Errorf("setting `tenant_access`: %+v", err)
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

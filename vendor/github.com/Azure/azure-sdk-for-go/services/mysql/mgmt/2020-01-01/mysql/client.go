@@ -68,8 +68,8 @@ func (client BaseClient) CreateRecommendedActionSession(ctx context.Context, res
 		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.CreateRecommendedActionSession")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

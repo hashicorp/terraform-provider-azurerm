@@ -19,7 +19,7 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "Southeast Asia"
+  location = "West Europe"
 }
 
 resource "azurerm_spring_cloud_service" "example" {
@@ -76,6 +76,8 @@ An `persistent_disk` block supports the following:
 The following attributes are exported:
 
 * `id` - The ID of the Spring Cloud Application.
+
+* `fqdn` - The Fully Qualified DNS Name of the Spring Application in the service.
 
 * `url` - The public endpoint of the Spring Cloud Application.
 
