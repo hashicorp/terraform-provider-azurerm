@@ -368,6 +368,7 @@ func resourceMonitorActionGroup() *schema.Resource {
 
 func resourceMonitorActionGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ActionGroupsClient
+	tenantId := meta.(*clients.Client).Account.TenantId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -413,7 +414,7 @@ func resourceMonitorActionGroupCreateUpdate(d *schema.ResourceData, meta interfa
 			AzureAppPushReceivers:      expandMonitorActionGroupAzureAppPushReceiver(azureAppPushReceiversRaw),
 			ItsmReceivers:              expandMonitorActionGroupItsmReceiver(itsmReceiversRaw),
 			SmsReceivers:               expandMonitorActionGroupSmsReceiver(smsReceiversRaw),
-			WebhookReceivers:           expandMonitorActionGroupWebHookReceiver(webhookReceiversRaw),
+			WebhookReceivers:           expandMonitorActionGroupWebHookReceiver(tenantId, webhookReceiversRaw),
 			AutomationRunbookReceivers: expandMonitorActionGroupAutomationRunbookReceiver(automationRunbookReceiversRaw),
 			VoiceReceivers:             expandMonitorActionGroupVoiceReceiver(voiceReceiversRaw),
 			LogicAppReceivers:          expandMonitorActionGroupLogicAppReceiver(logicAppReceiversRaw),
@@ -589,7 +590,7 @@ func expandMonitorActionGroupSmsReceiver(v []interface{}) *[]insights.SmsReceive
 	return &receivers
 }
 
-func expandMonitorActionGroupWebHookReceiver(v []interface{}) *[]insights.WebhookReceiver {
+func expandMonitorActionGroupWebHookReceiver(tenantId string, v []interface{}) *[]insights.WebhookReceiver {
 	receivers := make([]insights.WebhookReceiver, 0)
 	for _, receiverValue := range v {
 		val := receiverValue.(map[string]interface{})
@@ -603,7 +604,11 @@ func expandMonitorActionGroupWebHookReceiver(v []interface{}) *[]insights.Webhoo
 			receiver.UseAadAuth = utils.Bool(true)
 			receiver.ObjectID = utils.String(secureWebhook["object_id"].(string))
 			receiver.IdentifierURI = utils.String(secureWebhook["identifier_uri"].(string))
-			receiver.TenantID = utils.String(secureWebhook["tenant_id"].(string))
+			if v := secureWebhook["tenant_id"].(string); v != "" {
+				receiver.TenantID = utils.String(v)
+			} else {
+				receiver.TenantID = utils.String(tenantId)
+			}
 		}
 		receivers = append(receivers, receiver)
 	}
@@ -791,14 +796,14 @@ func flattenMonitorActionGroupWebHookReceiver(receivers *[]insights.WebhookRecei
 				"name":                    name,
 				"service_uri":             serviceUri,
 				"use_common_alert_schema": useCommonAlert,
-				"aad_auth":                flattenMonitorActionGroupSecureWebHookReceiver(&receiver),
+				"aad_auth":                flattenMonitorActionGroupSecureWebHookReceiver(receiver),
 			})
 		}
 	}
 	return result
 }
 
-func flattenMonitorActionGroupSecureWebHookReceiver(receiver *insights.WebhookReceiver) []interface{} {
+func flattenMonitorActionGroupSecureWebHookReceiver(receiver insights.WebhookReceiver) []interface{} {
 	if receiver.UseAadAuth == nil || !*receiver.UseAadAuth {
 		return []interface{}{}
 	}
