@@ -177,11 +177,11 @@ func resourcePostgresqlFlexibleServer() *schema.Resource {
 				ValidateFunc: validation.IsRFC3339Time,
 			},
 
-			"source_server_name": {
+			"source_server_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.FlexibleServerName,
+				ValidateFunc: validate.FlexibleServerID,
 			},
 
 			"ha_enabled": {
@@ -280,8 +280,8 @@ func resourcePostgresqlFlexibleServerCreate(d *schema.ResourceData, meta interfa
 	createMode := d.Get("create_mode").(string)
 
 	if postgresqlflexibleservers.CreateMode(createMode) == postgresqlflexibleservers.PointInTimeRestore {
-		if _, ok := d.GetOk("source_server_name"); !ok {
-			return fmt.Errorf("`source_server_name` is required when `create_mode` is `PointInTimeRestore`")
+		if _, ok := d.GetOk("source_server_id"); !ok {
+			return fmt.Errorf("`source_server_id` is required when `create_mode` is `PointInTimeRestore`")
 		}
 		if _, ok := d.GetOk("point_in_time_utc"); !ok {
 			return fmt.Errorf("`point_in_time_utc` is required when `create_mode` is `PointInTimeRestore`")
@@ -317,7 +317,6 @@ func resourcePostgresqlFlexibleServerCreate(d *schema.ResourceData, meta interfa
 		ServerProperties: &postgresqlflexibleservers.ServerProperties{
 			CreateMode:               postgresqlflexibleservers.CreateMode(d.Get("create_mode").(string)),
 			DelegatedSubnetArguments: expandArmServerServerPropertiesDelegatedSubnetArguments(d.Get("delegated_subnet_id").(string)),
-			SourceServerName:         utils.String(d.Get("source_server_name").(string)),
 			Version:                  postgresqlflexibleservers.ServerVersion(d.Get("version").(string)),
 			HaEnabled:                haEnabled,
 			StorageProfile:           expandArmServerStorageProfile(d),
@@ -336,6 +335,16 @@ func resourcePostgresqlFlexibleServerCreate(d *schema.ResourceData, meta interfa
 
 	if v, ok := d.GetOk("availability_zone"); ok && v.(string) != "" {
 		parameters.ServerProperties.AvailabilityZone = utils.String(v.(string))
+	}
+
+	if v,ok:=d.GetOk("source_server_id");ok && v.(string)!=""{
+		sourceServer,err := parse.FlexibleServerID(v.(string))
+		if err!=nil{
+			return err
+		}
+		parameters.ServerProperties.SourceSubscriptionID = utils.String(sourceServer.SubscriptionId)
+		parameters.ServerProperties.SourceResourceGroupName = utils.String(sourceServer.ResourceGroup)
+		parameters.ServerProperties.SourceServerName = utils.String(sourceServer.Name)
 	}
 
 	pointInTimeUTC := d.Get("point_in_time_utc").(string)
@@ -413,7 +422,9 @@ func resourcePostgresqlFlexibleServerRead(d *schema.ResourceData, meta interface
 		d.Set("availability_zone", props.AvailabilityZone)
 		d.Set("ha_enabled", props.HaEnabled == postgresqlflexibleservers.Enabled)
 		d.Set("point_in_time_utc", props.PointInTimeUTC)
-		d.Set("source_server_name", props.SourceServerName)
+		if props.SourceServerName!=nil && props.SourceSubscriptionID!= nil && props.SourceResourceGroupName!=nil{
+			d.Set("source_server_id", parse.NewFlexibleServerID(*props.SourceSubscriptionID,*props.SourceResourceGroupName,*props.SourceServerName).ID())
+		}
 		d.Set("version", props.Version)
 		d.Set("byok_enforcement", props.ByokEnforcement)
 		d.Set("fqdn", props.FullyQualifiedDomainName)

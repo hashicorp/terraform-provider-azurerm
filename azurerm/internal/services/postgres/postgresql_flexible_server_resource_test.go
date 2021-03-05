@@ -510,7 +510,7 @@ resource "azurerm_postgresql_flexible_server" "pitr" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   create_mode         = "PointInTimeRestore"
-  source_server_name  = azurerm_postgresql_flexible_server.test.name
+  source_server_id  = azurerm_postgresql_flexible_server.test.id
   point_in_time_utc   = "%s"
 }
 `, r.basic(data), data.RandomInteger, time.Now().Add(time.Duration(10)*time.Minute).UTC().Format(time.RFC3339))

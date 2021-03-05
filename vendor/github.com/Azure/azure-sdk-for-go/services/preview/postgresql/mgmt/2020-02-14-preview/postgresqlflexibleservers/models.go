@@ -917,7 +917,7 @@ type ResourceModelWithAllowedPropertySet struct {
 	Type *string `json:"type,omitempty"`
 	// Location - The geo-location where the resource lives
 	Location *string `json:"location,omitempty"`
-	// ManagedBy - The  fully qualified resource ID of the resource that manages this resource. Indicates if this resource is managed by another azure resource. If this is present, complete mode deployment will not delete the resource if it is removed from the template since it is managed by another resource.
+	// ManagedBy - The fully qualified resource ID of the resource that manages this resource. Indicates if this resource is managed by another Azure resource. If this is present, complete mode deployment will not delete the resource if it is removed from the template since it is managed by another resource.
 	ManagedBy *string `json:"managedBy,omitempty"`
 	// Kind - Metadata used by portal/tooling/etc to render different UX experiences for resources of the same type; e.g. ApiApps are a kind of Microsoft.Web/sites type.  If supported, the resource provider must validate and persist this value.
 	Kind *string `json:"kind,omitempty"`
@@ -1403,6 +1403,10 @@ type ServerProperties struct {
 	HaEnabled HAEnabledEnum `json:"haEnabled,omitempty"`
 	// SourceServerName - The source PostgreSQL server name to restore from.
 	SourceServerName *string `json:"sourceServerName,omitempty"`
+	// SourceSubscriptionID - The subscription id of source serve PostgreSQL server name to restore from.
+	SourceSubscriptionID *string `json:"sourceSubscriptionId,omitempty"`
+	// SourceResourceGroupName - The resource group name of source serve PostgreSQL server name to restore from.
+	SourceResourceGroupName *string `json:"sourceResourceGroupName,omitempty"`
 	// PointInTimeUTC - Restore point creation time (ISO8601 format), specifying the time to restore from.
 	PointInTimeUTC *date.Time `json:"pointInTimeUTC,omitempty"`
 	// AvailabilityZone - availability Zone information of the server.
@@ -1444,6 +1448,12 @@ func (sp ServerProperties) MarshalJSON() ([]byte, error) {
 	}
 	if sp.SourceServerName != nil {
 		objectMap["sourceServerName"] = sp.SourceServerName
+	}
+	if sp.SourceSubscriptionID != nil {
+		objectMap["sourceSubscriptionId"] = sp.SourceSubscriptionID
+	}
+	if sp.SourceResourceGroupName != nil {
+		objectMap["sourceResourceGroupName"] = sp.SourceResourceGroupName
 	}
 	if sp.PointInTimeUTC != nil {
 		objectMap["pointInTimeUTC"] = sp.PointInTimeUTC
