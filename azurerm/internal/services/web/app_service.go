@@ -1532,7 +1532,8 @@ func flattenAppServiceIdentity(identity *web.ManagedServiceIdentity) ([]interfac
 	}, nil
 }
 
-func expandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
+func expandAppServiceSiteConfig(d *schema.ResourceData) (*web.SiteConfig, error) {
+	input := d.Get("site_config")
 	configs := input.([]interface{})
 	siteConfig := &web.SiteConfig{}
 
@@ -1589,9 +1590,8 @@ func expandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
 		siteConfig.HTTP20Enabled = utils.Bool(v.(bool))
 	}
 
-	if v, ok := config["ip_restriction"]; ok {
-		ipSecurityRestrictions := v.(interface{})
-		restrictions, err := expandAppServiceIpRestriction(ipSecurityRestrictions)
+	if _, ok := config["ip_restriction"]; ok {
+		restrictions, err := expandAppServiceIpRestriction(d, "site_config.0.ip_restriction")
 		if err != nil {
 			return siteConfig, err
 		}
@@ -1602,9 +1602,8 @@ func expandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
 		siteConfig.ScmIPSecurityRestrictionsUseMain = utils.Bool(v.(bool))
 	}
 
-	if v, ok := config["scm_ip_restriction"]; ok {
-		scmIPSecurityRestrictions := v.([]interface{})
-		scmRestrictions, err := expandAppServiceIpRestriction(scmIPSecurityRestrictions)
+	if _, ok := config["scm_ip_restriction"]; ok {
+		scmRestrictions, err := expandAppServiceIpRestriction(d, "site_config.0.scm_ip_restriction")
 		if err != nil {
 			return siteConfig, err
 		}
@@ -1882,10 +1881,15 @@ func flattenAppServiceStorageAccounts(input map[string]*web.AzureStorageInfoValu
 	return results
 }
 
-func expandAppServiceIpRestriction(input interface{}) ([]web.IPSecurityRestriction, error) {
+func expandAppServiceIpRestriction(d *schema.ResourceData, schemaKey string) ([]web.IPSecurityRestriction, error) {
 	restrictions := make([]web.IPSecurityRestriction, 0)
 
-	for _, r := range input.([]interface{}) {
+	count := d.Get(schemaKey + ".#").(int)
+
+	for i := 0; i < count; i++ {
+		iterKey := fmt.Sprintf("%s.%d", schemaKey, i)
+		r := d.Get(iterKey)
+
 		if r == nil {
 			continue
 		}
@@ -1908,6 +1912,27 @@ func expandAppServiceIpRestriction(input interface{}) ([]web.IPSecurityRestricti
 		name := restriction["name"].(string)
 		priority := restriction["priority"].(int)
 		action := restriction["action"].(string)
+
+		if d.HasChange(iterKey + ".ip_address") {
+			if ipAddress != "" {
+				vNetSubnetID = ""
+				serviceTag = ""
+			}
+		}
+
+		if d.HasChange(iterKey + ".service_tag") {
+			if serviceTag != "" {
+				vNetSubnetID = ""
+				ipAddress = ""
+			}
+		}
+
+		if d.HasChanges(iterKey+".subnet_id", iterKey+".virtual_network_subnet_id") {
+			if vNetSubnetID != "" {
+				ipAddress = ""
+				serviceTag = ""
+			}
+		}
 
 		if (vNetSubnetID != "" && (ipAddress != "" || serviceTag != "")) || (ipAddress != "" && (vNetSubnetID != "" || serviceTag != "")) {
 			return nil, fmt.Errorf("only one of `ip_address`, `service_tag` or `virtual_network_subnet_id` can be set for an IP restriction")

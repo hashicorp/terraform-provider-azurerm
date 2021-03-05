@@ -258,7 +258,7 @@ func resourceAppServiceCreate(d *schema.ResourceData, meta interface{}) error {
 	httpsOnly := d.Get("https_only").(bool)
 	t := d.Get("tags").(map[string]interface{})
 
-	siteConfig, err := expandAppServiceSiteConfig(d.Get("site_config"))
+	siteConfig, err := expandAppServiceSiteConfig(d)
 	if err != nil {
 		return fmt.Errorf("Error expanding `site_config` for App Service %q (Resource Group %q): %s", name, resourceGroup, err)
 	}
@@ -374,7 +374,7 @@ func resourceAppServiceUpdate(d *schema.ResourceData, meta interface{}) error {
 	httpsOnly := d.Get("https_only").(bool)
 	t := d.Get("tags").(map[string]interface{})
 
-	siteConfig, err := expandAppServiceSiteConfig(d.Get("site_config"))
+	siteConfig, err := expandAppServiceSiteConfig(d)
 	if err != nil {
 		return fmt.Errorf("Error expanding `site_config` for App Service %q (Resource Group %q): %s", id.SiteName, id.ResourceGroup, err)
 	}
@@ -408,7 +408,7 @@ func resourceAppServiceUpdate(d *schema.ResourceData, meta interface{}) error {
 
 	if d.HasChange("site_config") || hasSourceControl {
 		// update the main configuration
-		siteConfig, err := expandAppServiceSiteConfig(d.Get("site_config"))
+		siteConfig, err := expandAppServiceSiteConfig(d)
 		if err != nil {
 			return fmt.Errorf("Error expanding `site_config` for App Service %q (Resource Group %q): %s", id.SiteName, id.ResourceGroup, err)
 		}

@@ -193,7 +193,7 @@ func resourceAppServiceSlotCreateUpdate(d *schema.ResourceData, meta interface{}
 	t := d.Get("tags").(map[string]interface{})
 	affinity := d.Get("client_affinity_enabled").(bool)
 
-	siteConfig, err := expandAppServiceSiteConfig(d.Get("site_config"))
+	siteConfig, err := expandAppServiceSiteConfig(d)
 	if err != nil {
 		return fmt.Errorf("Error expanding `site_config` for App Service Slot %q (Resource Group %q): %s", slot, resourceGroup, err)
 	}
@@ -251,7 +251,7 @@ func resourceAppServiceSlotUpdate(d *schema.ResourceData, meta interface{}) erro
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	appServicePlanId := d.Get("app_service_plan_id").(string)
-	siteConfig, err := expandAppServiceSiteConfig(d.Get("site_config"))
+	siteConfig, err := expandAppServiceSiteConfig(d)
 	if err != nil {
 		return fmt.Errorf("Error expanding `site_config` for App Service Slot %q (Resource Group %q): %s", id.SlotName, id.ResourceGroup, err)
 	}
@@ -285,7 +285,7 @@ func resourceAppServiceSlotUpdate(d *schema.ResourceData, meta interface{}) erro
 
 	if d.HasChange("site_config") {
 		// update the main configuration
-		siteConfig, err := expandAppServiceSiteConfig(d.Get("site_config"))
+		siteConfig, err := expandAppServiceSiteConfig(d)
 		if err != nil {
 			return fmt.Errorf("Error expanding `site_config` for App Service Slot %q (Resource Group %q): %s", id.SlotName, id.ResourceGroup, err)
 		}

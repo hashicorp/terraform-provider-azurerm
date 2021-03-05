@@ -347,9 +347,8 @@ func expandFunctionAppSiteConfig(d *schema.ResourceData) (web.SiteConfig, error)
 		siteConfig.HTTP20Enabled = utils.Bool(v.(bool))
 	}
 
-	if v, ok := config["ip_restriction"]; ok {
-		ipSecurityRestrictions := v.(interface{})
-		restrictions, err := expandAppServiceIpRestriction(ipSecurityRestrictions)
+	if _, ok := config["ip_restriction"]; ok {
+		restrictions, err := expandAppServiceIpRestriction(d, "site_config.0.ip_restriction")
 		if err != nil {
 			return siteConfig, err
 		}
@@ -360,9 +359,8 @@ func expandFunctionAppSiteConfig(d *schema.ResourceData) (web.SiteConfig, error)
 		siteConfig.ScmIPSecurityRestrictionsUseMain = utils.Bool(v.(bool))
 	}
 
-	if v, ok := config["scm_ip_restriction"]; ok {
-		scmIPSecurityRestrictions := v.([]interface{})
-		scmRestrictions, err := expandAppServiceIpRestriction(scmIPSecurityRestrictions)
+	if _, ok := config["scm_ip_restriction"]; ok {
+		scmRestrictions, err := expandAppServiceIpRestriction(d, "site_config.0.scm_ip_restriction")
 		if err != nil {
 			return siteConfig, err
 		}
