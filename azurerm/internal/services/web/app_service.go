@@ -1884,7 +1884,10 @@ func flattenAppServiceStorageAccounts(input map[string]*web.AzureStorageInfoValu
 func expandAppServiceIpRestriction(d *schema.ResourceData, schemaKey string) ([]web.IPSecurityRestriction, error) {
 	restrictions := make([]web.IPSecurityRestriction, 0)
 
-	count := d.Get(schemaKey + ".#").(int)
+	count, castOk := d.Get(schemaKey + ".#").(int)
+	if !castOk {
+		return nil, fmt.Errorf("failed to cast counter in IP restrictions to int")
+	}
 
 	for i := 0; i < count; i++ {
 		iterKey := fmt.Sprintf("%s.%d", schemaKey, i)
@@ -1934,7 +1937,8 @@ func expandAppServiceIpRestriction(d *schema.ResourceData, schemaKey string) ([]
 			}
 		}
 
-		if (vNetSubnetID != "" && (ipAddress != "" || serviceTag != "")) || (ipAddress != "" && (vNetSubnetID != "" || serviceTag != "")) {
+		moreThanOneSet := (vNetSubnetID != "" && (ipAddress != "" || serviceTag != "")) || (ipAddress != "" && (vNetSubnetID != "" || serviceTag != ""))
+		if moreThanOneSet {
 			return nil, fmt.Errorf("only one of `ip_address`, `service_tag` or `virtual_network_subnet_id` can be set for an IP restriction")
 		}
 
