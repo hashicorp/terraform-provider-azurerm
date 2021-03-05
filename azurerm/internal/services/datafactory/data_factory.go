@@ -261,3 +261,81 @@ func flattenAzureKeyVaultPassword(secretReference *datafactory.AzureKeyVaultSecr
 
 	return []interface{}{parameters}
 }
+
+func expandDataFactoryDatasetLocation(d *schema.ResourceData) datafactory.BasicDatasetLocation {
+	if _, ok := d.GetOk("http_server_location"); ok {
+		return expandDataFactoryDatasetHttpServerLocation(d)
+	}
+
+	if _, ok := d.GetOk("azure_blob_storage_location"); ok {
+		return expandDataFactoryDatasetAzureBlobStorageLocation(d)
+	}
+
+	return nil
+}
+
+func expandDataFactoryDatasetHttpServerLocation(d *schema.ResourceData) datafactory.BasicDatasetLocation {
+	props := d.Get("http_server_location").([]interface{})[0].(map[string]interface{})
+	relativeUrl := props["relative_url"].(string)
+	path := props["path"].(string)
+	filename := props["filename"].(string)
+
+	httpServerLocation := datafactory.HTTPServerLocation{
+		RelativeURL: relativeUrl,
+		FolderPath:  path,
+		FileName:    filename,
+	}
+	return httpServerLocation
+}
+
+func expandDataFactoryDatasetAzureBlobStorageLocation(d *schema.ResourceData) datafactory.BasicDatasetLocation {
+	props := d.Get("azure_blob_storage_location").([]interface{})[0].(map[string]interface{})
+	container := props["container"].(string)
+	path := props["path"].(string)
+	filename := props["filename"].(string)
+
+	blobStorageLocation := datafactory.AzureBlobStorageLocation{
+		Container:  container,
+		FolderPath: path,
+		FileName:   filename,
+	}
+	return blobStorageLocation
+}
+
+func flattenDataFactoryDatasetHTTPServerLocation(input *datafactory.HTTPServerLocation) []interface{} {
+	if input == nil {
+		return nil
+	}
+	result := make(map[string]interface{})
+
+	if input.RelativeURL != nil {
+		result["relative_url"] = input.RelativeURL
+	}
+	if input.FolderPath != nil {
+		result["path"] = input.FolderPath
+	}
+	if input.FileName != nil {
+		result["filename"] = input.FileName
+	}
+
+	return []interface{}{result}
+}
+
+func flattenDataFactoryDatasetAzureBlobStorageLocation(input *datafactory.AzureBlobStorageLocation) []interface{} {
+	if input == nil {
+		return nil
+	}
+	result := make(map[string]interface{})
+
+	if input.Container != nil {
+		result["container"] = input.Container
+	}
+	if input.FolderPath != nil {
+		result["path"] = input.FolderPath
+	}
+	if input.FileName != nil {
+		result["filename"] = input.FileName
+	}
+
+	return []interface{}{result}
+}
