@@ -2,6 +2,9 @@ package vmware
 
 import (
 	"fmt"
+	"log"
+	"time"
+
 	"github.com/Azure/azure-sdk-for-go/services/avs/mgmt/2020-03-20/avs"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -12,8 +15,6 @@ import (
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"log"
-	"time"
 )
 
 func resourceVmwareCluster() *schema.Resource {
@@ -51,8 +52,9 @@ func resourceVmwareCluster() *schema.Resource {
 			},
 
 			"cluster_size": {
-				Type:     schema.TypeInt,
-				Required: true,
+				Type:         schema.TypeInt,
+				Required:     true,
+				ValidateFunc: validation.IntBetween(3, 16),
 			},
 
 			"sku_name": {
