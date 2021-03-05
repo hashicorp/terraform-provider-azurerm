@@ -14,11 +14,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-type GuestConfigurationAssignmentResource struct{}
+type VirtualMachineConfigurationPolicyAssignmentResource struct{}
 
-func TestAccGuestConfigurationAssignment_basic(t *testing.T) {
+func TestAccVirtualMachineConfigurationPolicyAssignment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_configuration_policy_assignment", "test")
-	r := GuestConfigurationAssignmentResource{}
+	r := VirtualMachineConfigurationPolicyAssignmentResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -31,9 +31,9 @@ func TestAccGuestConfigurationAssignment_basic(t *testing.T) {
 	})
 }
 
-func TestAccGuestConfigurationAssignment_requiresImport(t *testing.T) {
+func TestAccVirtualMachineConfigurationPolicyAssignment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_configuration_policy_assignment", "test")
-	r := GuestConfigurationAssignmentResource{}
+	r := VirtualMachineConfigurationPolicyAssignmentResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -46,7 +46,7 @@ func TestAccGuestConfigurationAssignment_requiresImport(t *testing.T) {
 	})
 }
 
-func (r GuestConfigurationAssignmentResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r VirtualMachineConfigurationPolicyAssignmentResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.VirtualMachineConfigurationPolicyAssignmentID(state.ID)
 	if err != nil {
 		return nil, err
@@ -61,7 +61,7 @@ func (r GuestConfigurationAssignmentResource) Exists(ctx context.Context, client
 	return utils.Bool(true), nil
 }
 
-func (r GuestConfigurationAssignmentResource) templateBase(data acceptance.TestData) string {
+func (r VirtualMachineConfigurationPolicyAssignmentResource) templateBase(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 locals {
   vm_name = "acctestvm%s"
@@ -100,7 +100,7 @@ resource "azurerm_network_interface" "test" {
 `, data.RandomString, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (r GuestConfigurationAssignmentResource) template(data acceptance.TestData) string {
+func (r VirtualMachineConfigurationPolicyAssignmentResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -130,8 +130,7 @@ resource "azurerm_windows_virtual_machine" "test" {
 `, r.templateBase(data))
 }
 
-func (r GuestConfigurationAssignmentResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
+func (r VirtualMachineConfigurationPolicyAssignmentResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -149,11 +148,10 @@ resource "azurerm_virtual_machine_configuration_policy_assignment" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func (r GuestConfigurationAssignmentResource) requiresImport(data acceptance.TestData) string {
-	config := r.basic(data)
+func (r VirtualMachineConfigurationPolicyAssignmentResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -162,5 +160,5 @@ resource "azurerm_virtual_machine_configuration_policy_assignment" "import" {
   location           = azurerm_virtual_machine_configuration_policy_assignment.test.location
   virtual_machine_id = azurerm_virtual_machine_configuration_policy_assignment.test.virtual_machine_id
 }
-`, config)
+`, r.basic(data))
 }
