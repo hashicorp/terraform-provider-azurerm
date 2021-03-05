@@ -60,7 +60,7 @@ func resourceDataFactoryDatasetParquet() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			// Delimited Text Specific Field, one option for 'location'
+			// Parquet Specific Field, one option for 'location'
 			"http_server_location": {
 				Type:     schema.TypeList,
 				MaxItems: 1,
@@ -88,7 +88,7 @@ func resourceDataFactoryDatasetParquet() *schema.Resource {
 				},
 			},
 
-			// Delimited Text Specific Field, one option for 'location'
+			// Parquet Specific Field, one option for 'location'
 			"azure_blob_storage_location": {
 				Type:     schema.TypeList,
 				MaxItems: 1,
@@ -243,7 +243,7 @@ func resourceDataFactoryDatasetParquetCreateUpdate(d *schema.ResourceData, meta 
 
 	location := expandDataFactoryDatasetLocation(d)
 	if location == nil {
-		return fmt.Errorf("One of `http_server_location`, `azure_blob_storage_location` must be specified to create a DataFactory Delimited Text Dataset")
+		return fmt.Errorf("One of `http_server_location`, `azure_blob_storage_location` must be specified to create a DataFactory Parquet Dataset")
 	}
 
 	parquetDatasetProperties := datafactory.ParquetDatasetTypeProperties{
@@ -368,12 +368,12 @@ func resourceDataFactoryDatasetParquetRead(d *schema.ResourceData, meta interfac
 	if properties := parquetTable.ParquetDatasetTypeProperties; properties != nil {
 		if httpServerLocation, ok := properties.Location.AsHTTPServerLocation(); ok {
 			if err := d.Set("http_server_location", flattenDataFactoryDatasetHTTPServerLocation(httpServerLocation)); err != nil {
-				return fmt.Errorf("Error setting `http_server_location` for Data Factory Delimited Text Dataset %s", err)
+				return fmt.Errorf("Error setting `http_server_location` for Data Factory Parquet Dataset %s", err)
 			}
 		}
 		if azureBlobStorageLocation, ok := properties.Location.AsAzureBlobStorageLocation(); ok {
 			if err := d.Set("azure_blob_storage_location", flattenDataFactoryDatasetAzureBlobStorageLocation(azureBlobStorageLocation)); err != nil {
-				return fmt.Errorf("Error setting `azure_blob_storage_location` for Data Factory Delimited Text Dataset %s", err)
+				return fmt.Errorf("Error setting `azure_blob_storage_location` for Data Factory Parquet Dataset %s", err)
 			}
 		}
 
