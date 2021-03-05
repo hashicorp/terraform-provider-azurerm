@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strconv"
@@ -11,6 +12,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -541,6 +543,19 @@ func resourcePostgreSQLServerCreate(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("waiting for creation of PostgreSQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
+	log.Printf("[DEBUG] Waiting for PostgreSQL Server %q (Resource Group %q) to become available", name, resourceGroup)
+	stateConf := &resource.StateChangeConf{
+		Pending:    []string{string(postgresql.ServerStateInaccessible)},
+		Target:     []string{string(postgresql.ServerStateReady)},
+		Refresh:    postgreSqlStateRefreshFunc(ctx, client, resourceGroup, name),
+		MinTimeout: 15 * time.Second,
+		Timeout:    d.Timeout(schema.TimeoutCreate),
+	}
+
+	if _, err = stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("waiting for PostgreSQL Server %q (Resource Group %q)to become available: %+v", name, resourceGroup, err)
+	}
+
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		return fmt.Errorf("retrieving PostgreSQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -607,7 +622,7 @@ func resourcePostgreSQLServerUpdate(d *schema.ResourceData, meta interface{}) er
 		if indexOfSku(old) < indexOfSku(new) {
 			listReplicas, err := replicasClient.ListByServer(ctx, id.ResourceGroup, id.Name)
 			if err != nil {
-				return fmt.Errorf("request error for list of replicas for PostgreSQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+				return fmt.Errorf("listing replicas for PostgreSQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 			}
 
 			propertiesReplica := postgresql.ServerUpdateParameters{
@@ -1018,4 +1033,21 @@ func flattenSecurityAlertPolicySet(input *[]string) []interface{} {
 	}
 
 	return utils.FlattenStringSlice(input)
+}
+
+func postgreSqlStateRefreshFunc(ctx context.Context, client *postgresql.ServersClient, resourceGroup string, name string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, resourceGroup, name)
+		if !utils.ResponseWasNotFound(res.Response) && err != nil {
+			return nil, "", fmt.Errorf("retrieving status of PostgreSQL Server %s (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+
+		// This is an issue with the RP, there is a 10 to 15 second lag before the
+		// service will actually return the server
+		if utils.ResponseWasNotFound(res.Response) {
+			return res, string(postgresql.ServerStateInaccessible), nil
+		}
+
+		return res, string(res.ServerProperties.UserVisibleState), nil
+	}
 }
