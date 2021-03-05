@@ -15,7 +15,7 @@ Manages an Analysis Services Server.
 ```hcl
 resource "azurerm_resource_group" "rg" {
   name     = "analysis-services-server-test"
-  location = "northeurope"
+  location = "West Europe"
 }
 
 resource "azurerm_analysis_services_server" "server" {

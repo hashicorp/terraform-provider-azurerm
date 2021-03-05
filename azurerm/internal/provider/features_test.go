@@ -34,6 +34,9 @@ func TestExpandFeatures(t *testing.T) {
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 					RollInstancesWhenRequired: true,
 				},
+				LogAnalyticsWorkspace: features.LogAnalyticsWorkspaceFeatures{
+					PermanentlyDeleteOnDestroy: false,
+				},
 			},
 		},
 		{
@@ -44,6 +47,11 @@ func TestExpandFeatures(t *testing.T) {
 						map[string]interface{}{
 							"purge_soft_delete_on_destroy":    true,
 							"recover_soft_deleted_key_vaults": true,
+						},
+					},
+					"log_analytics_workspace": []interface{}{
+						map[string]interface{}{
+							"permanently_delete_on_destroy": true,
 						},
 					},
 					"network": []interface{}{
@@ -73,6 +81,9 @@ func TestExpandFeatures(t *testing.T) {
 				KeyVault: features.KeyVaultFeatures{
 					PurgeSoftDeleteOnDestroy:    true,
 					RecoverSoftDeletedKeyVaults: true,
+				},
+				LogAnalyticsWorkspace: features.LogAnalyticsWorkspaceFeatures{
+					PermanentlyDeleteOnDestroy: true,
 				},
 				Network: features.NetworkFeatures{
 					RelaxedLocking: true,
@@ -120,12 +131,20 @@ func TestExpandFeatures(t *testing.T) {
 							"recover_soft_deleted_key_vaults": false,
 						},
 					},
+					"log_analytics_workspace": []interface{}{
+						map[string]interface{}{
+							"permanently_delete_on_destroy": false,
+						},
+					},
 				},
 			},
 			Expected: features.UserFeatures{
 				KeyVault: features.KeyVaultFeatures{
 					PurgeSoftDeleteOnDestroy:    false,
 					RecoverSoftDeletedKeyVaults: false,
+				},
+				LogAnalyticsWorkspace: features.LogAnalyticsWorkspaceFeatures{
+					PermanentlyDeleteOnDestroy: false,
 				},
 				Network: features.NetworkFeatures{
 					RelaxedLocking: false,
@@ -484,6 +503,70 @@ func TestExpandFeaturesVirtualMachineScaleSet(t *testing.T) {
 		result := expandFeatures(testCase.Input)
 		if !reflect.DeepEqual(result.VirtualMachineScaleSet, testCase.Expected.VirtualMachineScaleSet) {
 			t.Fatalf("Expected %+v but got %+v", result.VirtualMachineScaleSet, testCase.Expected.VirtualMachineScaleSet)
+		}
+	}
+}
+
+func TestExpandFeaturesLogAnalyticsWorkspace(t *testing.T) {
+	testData := []struct {
+		Name     string
+		Input    []interface{}
+		EnvVars  map[string]interface{}
+		Expected features.UserFeatures
+	}{
+		{
+			Name: "Empty Block",
+			Input: []interface{}{
+				map[string]interface{}{
+					"log_analytics_workspace": []interface{}{},
+				},
+			},
+			Expected: features.UserFeatures{
+				LogAnalyticsWorkspace: features.LogAnalyticsWorkspaceFeatures{
+					PermanentlyDeleteOnDestroy: false,
+				},
+			},
+		},
+		{
+			Name: "Permanent Delete Enabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"log_analytics_workspace": []interface{}{
+						map[string]interface{}{
+							"permanently_delete_on_destroy": true,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				LogAnalyticsWorkspace: features.LogAnalyticsWorkspaceFeatures{
+					PermanentlyDeleteOnDestroy: true,
+				},
+			},
+		},
+		{
+			Name: "Permanent Delete Disabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"log_analytics_workspace": []interface{}{
+						map[string]interface{}{
+							"permanently_delete_on_destroy": false,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				LogAnalyticsWorkspace: features.LogAnalyticsWorkspaceFeatures{
+					PermanentlyDeleteOnDestroy: false,
+				},
+			},
+		},
+	}
+	for _, testCase := range testData {
+		t.Logf("[DEBUG] Test Case: %q", testCase.Name)
+		result := expandFeatures(testCase.Input)
+		if !reflect.DeepEqual(result.LogAnalyticsWorkspace, testCase.Expected.LogAnalyticsWorkspace) {
+			t.Fatalf("Expected %+v but got %+v", result.LogAnalyticsWorkspace, testCase.Expected.LogAnalyticsWorkspace)
 		}
 	}
 }

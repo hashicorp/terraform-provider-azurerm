@@ -390,10 +390,8 @@ func resourceNetAppVolumeRead(d *schema.ResourceData, meta interface{}) error {
 		if err := d.Set("mount_ip_addresses", flattenNetAppVolumeMountIPAddresses(props.MountTargets)); err != nil {
 			return fmt.Errorf("setting `mount_ip_addresses`: %+v", err)
 		}
-		if props.DataProtection.Replication != nil {
-			if err := d.Set("data_protection_replication", flattenNetAppVolumeDataProtectionReplication(props.DataProtection)); err != nil {
-				return fmt.Errorf("setting `data_protection_replication`: %+v", err)
-			}
+		if err := d.Set("data_protection_replication", flattenNetAppVolumeDataProtectionReplication(props.DataProtection)); err != nil {
+			return fmt.Errorf("setting `data_protection_replication`: %+v", err)
 		}
 	}
 
@@ -789,7 +787,11 @@ func flattenNetAppVolumeMountIPAddresses(input *[]netapp.MountTargetProperties) 
 }
 
 func flattenNetAppVolumeDataProtectionReplication(input *netapp.VolumePropertiesDataProtection) []interface{} {
-	if input == nil || input.Replication == nil || strings.ToLower(string(input.Replication.EndpointType)) != "dst" {
+	if input == nil || input.Replication == nil {
+		return []interface{}{}
+	}
+
+	if strings.ToLower(string(input.Replication.EndpointType)) == "" || strings.ToLower(string(input.Replication.EndpointType)) != "dst" {
 		return []interface{}{}
 	}
 

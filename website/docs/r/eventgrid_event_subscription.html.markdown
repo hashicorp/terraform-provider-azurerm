@@ -15,8 +15,8 @@ Manages an EventGrid Event Subscription
 
 ```hcl
 resource "azurerm_resource_group" "default" {
-  name     = "defaultResourceGroup"
-  location = "West US 2"
+  name     = "example-resources"
+  location = "West Europe"
 }
 
 resource "azurerm_storage_account" "default" {

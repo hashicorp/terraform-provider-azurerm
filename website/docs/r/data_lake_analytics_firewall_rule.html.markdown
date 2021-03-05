@@ -15,7 +15,7 @@ Manages a Azure Data Lake Analytics Firewall Rule.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "tfex_datalake_fw_rule"
-  location = "northeurope"
+  location = "West Europe"
 }
 
 resource "azurerm_data_lake_store" "example" {

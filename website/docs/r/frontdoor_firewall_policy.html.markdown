@@ -15,7 +15,7 @@ Manages an Azure Front Door Web Application Firewall Policy instance.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-rg"
-  location = "West US 2"
+  location = "West Europe"
 }
 
 resource "azurerm_frontdoor_firewall_policy" "example" {
