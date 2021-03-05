@@ -791,18 +791,18 @@ resource "azurerm_postgresql_server" "replica1" {
 }
 
 resource "azurerm_postgresql_server" "replica2" {
-	name                = "acctest-psql-server-%[2]d-replica2"
-	location            = azurerm_resource_group.test.location
-	resource_group_name = azurerm_resource_group.test.name
-  
-	sku_name = "%[3]s"
-	version  = "11"
-  
-	create_mode               = "Replica"
-	creation_source_server_id = azurerm_postgresql_server.test.id
-  
-	ssl_enforcement_enabled = true
-  }
+  name                = "acctest-psql-server-%[2]d-replica2"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku_name = "%[3]s"
+  version  = "11"
+
+  create_mode               = "Replica"
+  creation_source_server_id = azurerm_postgresql_server.test.id
+
+  ssl_enforcement_enabled = true
+}
 `, r.template(data, sku, "11"), data.RandomInteger, sku)
 }
 
