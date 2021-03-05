@@ -154,7 +154,7 @@ The following arguments are supported:
 
 -> **NOTE:** This can only be configured when `priority` is set to `Spot`.
 
-* `health_probe_id` - (Optional) The ID of a Load Balancer Probe which should be used to determine the health of an instance. Changing this forces a new resource to be created. This is Required and can only be specified when `upgrade_mode` is set to `Automatic` or `Rolling`.
+* `health_probe_id` - (Optional) The ID of a Load Balancer Probe which should be used to determine the health of an instance. This is Required and can only be specified when `upgrade_mode` is set to `Automatic` or `Rolling`.
 
 * `identity` - (Optional) A `identity` block as defined below.
 
