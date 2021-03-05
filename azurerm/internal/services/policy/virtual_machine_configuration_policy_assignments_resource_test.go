@@ -159,6 +159,16 @@ resource "azurerm_virtual_machine_configuration_policy_assignment" "import" {
   name               = azurerm_virtual_machine_configuration_policy_assignment.test.name
   location           = azurerm_virtual_machine_configuration_policy_assignment.test.location
   virtual_machine_id = azurerm_virtual_machine_configuration_policy_assignment.test.virtual_machine_id
+
+  policy {
+    name    = "WhitelistedApplication"
+    version = "1.*"
+
+    parameter {
+      name  = "[InstalledApplication]bwhitelistedapp;Name"
+      value = "NotePad,sql"
+    }
+  }
 }
 `, r.basic(data))
 }
