@@ -220,7 +220,7 @@ func TestAccPostgresqlflexibleServer_pitr(t *testing.T) {
 		},
 		data.ImportStep("administrator_login_password", "create_mode"),
 		{
-			PreConfig: func() { time.Sleep(10 * time.Minute) },
+			PreConfig: func() { time.Sleep(15 * time.Minute) },
 			Config:    r.pitr(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That("azurerm_postgresql_flexible_server.pitr").ExistsInAzure(r),
@@ -231,7 +231,7 @@ func TestAccPostgresqlflexibleServer_pitr(t *testing.T) {
 				check.That("azurerm_postgresql_flexible_server.pitr").Key("public_network_access").Exists(),
 			),
 		},
-		data.ImportStep("administrator_login_password", "create_mode"),
+		data.ImportStep("administrator_login_password", "create_mode", "point_in_time_utc"),
 	})
 }
 
@@ -510,8 +510,8 @@ resource "azurerm_postgresql_flexible_server" "pitr" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   create_mode         = "PointInTimeRestore"
-  source_server_id  = azurerm_postgresql_flexible_server.test.id
+  source_server_id    = azurerm_postgresql_flexible_server.test.id
   point_in_time_utc   = "%s"
 }
-`, r.basic(data), data.RandomInteger, time.Now().Add(time.Duration(10)*time.Minute).UTC().Format(time.RFC3339))
+`, r.basic(data), data.RandomInteger, time.Now().Add(time.Duration(15)*time.Minute).UTC().Format(time.RFC3339))
 }

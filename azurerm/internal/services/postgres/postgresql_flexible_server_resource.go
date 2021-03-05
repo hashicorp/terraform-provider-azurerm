@@ -337,9 +337,9 @@ func resourcePostgresqlFlexibleServerCreate(d *schema.ResourceData, meta interfa
 		parameters.ServerProperties.AvailabilityZone = utils.String(v.(string))
 	}
 
-	if v,ok:=d.GetOk("source_server_id");ok && v.(string)!=""{
-		sourceServer,err := parse.FlexibleServerID(v.(string))
-		if err!=nil{
+	if v, ok := d.GetOk("source_server_id"); ok && v.(string) != "" {
+		sourceServer, err := parse.FlexibleServerID(v.(string))
+		if err != nil {
 			return err
 		}
 		parameters.ServerProperties.SourceSubscriptionID = utils.String(sourceServer.SubscriptionId)
@@ -421,9 +421,8 @@ func resourcePostgresqlFlexibleServerRead(d *schema.ResourceData, meta interface
 		d.Set("administrator_login", props.AdministratorLogin)
 		d.Set("availability_zone", props.AvailabilityZone)
 		d.Set("ha_enabled", props.HaEnabled == postgresqlflexibleservers.Enabled)
-		d.Set("point_in_time_utc", props.PointInTimeUTC)
-		if props.SourceServerName!=nil && props.SourceSubscriptionID!= nil && props.SourceResourceGroupName!=nil{
-			d.Set("source_server_id", parse.NewFlexibleServerID(*props.SourceSubscriptionID,*props.SourceResourceGroupName,*props.SourceServerName).ID())
+		if props.SourceServerName != nil && props.SourceSubscriptionID != nil && props.SourceResourceGroupName != nil {
+			d.Set("source_server_id", parse.NewFlexibleServerID(*props.SourceSubscriptionID, *props.SourceResourceGroupName, *props.SourceServerName).ID())
 		}
 		d.Set("version", props.Version)
 		d.Set("byok_enforcement", props.ByokEnforcement)
