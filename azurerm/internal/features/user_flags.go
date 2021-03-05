@@ -6,6 +6,7 @@ type UserFeatures struct {
 	KeyVault               KeyVaultFeatures
 	Network                NetworkFeatures
 	TemplateDeployment     TemplateDeploymentFeatures
+	LogAnalyticsWorkspace  LogAnalyticsWorkspaceFeatures
 }
 
 type VirtualMachineFeatures struct {
@@ -28,4 +29,8 @@ type NetworkFeatures struct {
 
 type TemplateDeploymentFeatures struct {
 	DeleteNestedItemsDuringDeletion bool
+}
+
+type LogAnalyticsWorkspaceFeatures struct {
+	PermanentlyDeleteOnDestroy bool
 }
