@@ -69,15 +69,15 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
   }
 }
 
-resource "azurerm_security_center_assessment_metadata" "example" {
+resource "azurerm_security_center_assessment_policy" "example" {
   display_name = "Test Display Name"
   severity     = "Medium"
   description  = "Test Description"
 }
 
 resource "azurerm_security_center_assessment" "example" {
-  assessment_metadata_id = azurerm_security_center_assessment_metadata.example.id
-  target_resource_id     = azurerm_linux_virtual_machine_scale_set.example.id
+  assessment_policy_id = azurerm_security_center_assessment_policy.example.id
+  target_resource_id   = azurerm_linux_virtual_machine_scale_set.example.id
 
   status {
     code = "Healthy"
@@ -89,7 +89,7 @@ resource "azurerm_security_center_assessment" "example" {
 
 The following arguments are supported:
 
-* `assessment_metadata_id` - (Required) The ID of the security Assessment Metadata resource. Changing this forces a new security Assessment to be created.
+* `assessment_policy_id` - (Required) The ID of the security Assessment policy to apply to this resource. Changing this forces a new security Assessment to be created.
 
 * `target_resource_id` - (Required) The ID of the target resource. Changing this forces a new security Assessment to be created.
 

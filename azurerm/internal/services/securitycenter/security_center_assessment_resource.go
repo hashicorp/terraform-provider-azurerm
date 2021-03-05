@@ -38,7 +38,7 @@ func resourceSecurityCenterAssessment() *schema.Resource {
 		}),
 
 		Schema: map[string]*schema.Schema{
-			"assessment_metadata_id": {
+			"assessment_policy_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -99,7 +99,7 @@ func resourceSecurityCenterAssessmentCreateUpdate(d *schema.ResourceData, meta i
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	metadataID, err := parse.AssessmentMetadataID(d.Get("assessment_metadata_id").(string))
+	metadataID, err := parse.AssessmentMetadataID(d.Get("assessment_policy_id").(string))
 	if err != nil {
 		return err
 	}
@@ -158,7 +158,7 @@ func resourceSecurityCenterAssessmentRead(d *schema.ResourceData, meta interface
 		return fmt.Errorf("retrieving Security Center Assessment %q (target resource id %q) : %+v", id.Name, id.TargetResourceID, err)
 	}
 
-	d.Set("assessment_metadata_id", parse.NewAssessmentMetadataID(subscriptionID, id.Name).ID())
+	d.Set("assessment_policy_id", parse.NewAssessmentMetadataID(subscriptionID, id.Name).ID())
 	d.Set("target_resource_id", id.TargetResourceID)
 	if props := resp.AssessmentProperties; props != nil {
 		d.Set("additional_data", utils.FlattenMapStringPtrString(props.AdditionalData))

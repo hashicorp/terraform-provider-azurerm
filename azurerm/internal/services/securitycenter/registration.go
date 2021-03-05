@@ -31,6 +31,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_iot_security_solution":                           resourceIotSecuritySolution(),
 		"azurerm_security_center_assessment":                      resourceSecurityCenterAssessment(),
 		"azurerm_security_center_assessment_metadata":             resourceArmSecurityCenterAssessmentMetadata(),
+		"azurerm_security_center_assessment_policy":               resourceArmSecurityCenterAssessmentPolicy(),
 		"azurerm_security_center_contact":                         resourceSecurityCenterContact(),
 		"azurerm_security_center_setting":                         resourceSecurityCenterSetting(),
 		"azurerm_security_center_subscription_pricing":            resourceSecurityCenterSubscriptionPricing(),

@@ -114,8 +114,8 @@ func (r SecurityCenterAssessmentResource) basic(data acceptance.TestData) string
 %s
 
 resource "azurerm_security_center_assessment" "test" {
-  assessment_metadata_id = azurerm_security_center_assessment_metadata.test.id
-  target_resource_id     = azurerm_linux_virtual_machine_scale_set.test.id
+  assessment_policy_id = azurerm_security_center_assessment_policy.test.id
+  target_resource_id   = azurerm_linux_virtual_machine_scale_set.test.id
 
   status {
     code = "Healthy"
@@ -129,8 +129,8 @@ func (r SecurityCenterAssessmentResource) requiresImport(data acceptance.TestDat
 %s
 
 resource "azurerm_security_center_assessment" "import" {
-  assessment_metadata_id = azurerm_security_center_assessment_metadata.test.id
-  target_resource_id     = azurerm_security_center_assessment.test.target_resource_id
+  assessment_policy_id = azurerm_security_center_assessment.test.assessment_policy_id
+  target_resource_id   = azurerm_security_center_assessment.test.target_resource_id
 
   status {
     code = azurerm_security_center_assessment.test.status.0.code
@@ -144,8 +144,8 @@ func (r SecurityCenterAssessmentResource) complete(data acceptance.TestData) str
 %s
 
 resource "azurerm_security_center_assessment" "test" {
-  assessment_metadata_id = azurerm_security_center_assessment_metadata.test.id
-  target_resource_id     = azurerm_linux_virtual_machine_scale_set.test.id
+  assessment_policy_id = azurerm_security_center_assessment_policy.test.id
+  target_resource_id   = azurerm_linux_virtual_machine_scale_set.test.id
 
   status {
     code        = "Unhealthy"
@@ -221,7 +221,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 }
 
-resource "azurerm_security_center_assessment_metadata" "test" {
+resource "azurerm_security_center_assessment_policy" "test" {
   display_name = "Test Display Name"
   severity     = "Medium"
   description  = "Test Description"

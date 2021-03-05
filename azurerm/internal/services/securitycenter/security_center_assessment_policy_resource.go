@@ -17,13 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSecurityCenterAssessmentMetadata() *schema.Resource {
+func resourceArmSecurityCenterAssessmentPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create:             resourceArmSecurityCenterAssessmentMetadataCreate,
-		Read:               resourceArmSecurityCenterAssessmentMetadataRead,
-		Update:             resourceArmSecurityCenterAssessmentMetadataUpdate,
-		Delete:             resourceArmSecurityCenterAssessmentMetadataDelete,
-		DeprecationMessage: "This resource has been renamed to `azurerm_security_center_assessment_policy` and will be removed in version 3.0 of the provider.",
+		Create: resourceArmSecurityCenterAssessmentPolicyCreate,
+		Read:   resourceArmSecurityCenterAssessmentPolicyRead,
+		Update: resourceArmSecurityCenterAssessmentPolicyUpdate,
+		Delete: resourceArmSecurityCenterAssessmentPolicyDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -117,7 +116,7 @@ func resourceArmSecurityCenterAssessmentMetadata() *schema.Resource {
 	}
 }
 
-func resourceArmSecurityCenterAssessmentMetadataCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSecurityCenterAssessmentPolicyCreate(d *schema.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).SecurityCenter.AssessmentsMetadataClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -135,7 +134,7 @@ func resourceArmSecurityCenterAssessmentMetadataCreate(d *schema.ResourceData, m
 	}
 
 	if !utils.ResponseWasNotFound(existing.Response) {
-		return tf.ImportAsExistsError("azurerm_security_center_assessment_metadata", id.ID())
+		return tf.ImportAsExistsError("azurerm_security_center_assessment_policy", id.ID())
 	}
 
 	params := security.AssessmentMetadata{
@@ -173,10 +172,10 @@ func resourceArmSecurityCenterAssessmentMetadataCreate(d *schema.ResourceData, m
 
 	d.SetId(id.ID())
 
-	return resourceArmSecurityCenterAssessmentMetadataRead(d, meta)
+	return resourceArmSecurityCenterAssessmentPolicyRead(d, meta)
 }
 
-func resourceArmSecurityCenterAssessmentMetadataRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSecurityCenterAssessmentPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.AssessmentsMetadataClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -218,7 +217,7 @@ func resourceArmSecurityCenterAssessmentMetadataRead(d *schema.ResourceData, met
 	return nil
 }
 
-func resourceArmSecurityCenterAssessmentMetadataUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSecurityCenterAssessmentPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.AssessmentsMetadataClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -272,10 +271,10 @@ func resourceArmSecurityCenterAssessmentMetadataUpdate(d *schema.ResourceData, m
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
-	return resourceArmSecurityCenterAssessmentMetadataRead(d, meta)
+	return resourceArmSecurityCenterAssessmentPolicyRead(d, meta)
 }
 
-func resourceArmSecurityCenterAssessmentMetadataDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSecurityCenterAssessmentPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.AssessmentsMetadataClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
