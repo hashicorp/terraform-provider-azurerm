@@ -12,9 +12,19 @@ FEATURES:
 * **New Resource:** `azurerm_vmware_private_cloud` [GH-9284]
 
 ENHANCEMENTS:
-
 * dependencies: updating to `v52.0.0` of `github.com/Azure/azure-sdk-for-go` [GH-10787]
 * dependencies: updating `compute` to API version `2020-12-01` [GH-10650]
+* Data Source: `azurerm_dns_zone` - updating to use a consistent Terraform Resource ID to avoid API issues [GH-10786]
+* `azurerm_dns_a_record` - updating to use a consistent Terraform Resource ID to avoid API issues [GH-10786]
+* `azurerm_dns_aaaa_record` - updating to use a consistent Terraform Resource ID to avoid API issues [GH-10786]
+* `azurerm_dns_caa_record` - updating to use a consistent Terraform Resource ID to avoid API issues [GH-10786]
+* `azurerm_dns_cname_record` - updating to use a consistent Terraform Resource ID to avoid API issues [GH-10786]
+* `azurerm_dns_mx_record` - updating to use a consistent Terraform Resource ID to avoid API issues [GH-10786]
+* `azurerm_dns_ns_record` - updating to use a consistent Terraform Resource ID to avoid API issues [GH-10786]
+* `azurerm_dns_ptr_record` - updating to use a consistent Terraform Resource ID to avoid API issues [GH-10786]
+* `azurerm_dns_srv_record` - updating to use a consistent Terraform Resource ID to avoid API issues [GH-10786]
+* `azurerm_dns_txt_record` - updating to use a consistent Terraform Resource ID to avoid API issues [GH-10786]
+* `azurerm_dns_zone` - updating to use a consistent Terraform Resource ID to avoid API issues [GH-10786]
 * `azurerm_function_app_host_keys` - support for `event_grid_extension_config_key` [GH-10823]
 * `azurerm_keyvault_secret` - support for the `versionless_id` property [GH-10738]
 * `azurerm_kubernetes_cluster` - support `private_dns_zone_id` when using a `service_principal` [GH-10737]
