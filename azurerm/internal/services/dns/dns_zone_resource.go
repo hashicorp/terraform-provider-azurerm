@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -26,6 +27,11 @@ func resourceDnsZone() *schema.Resource {
 		Read:   resourceDnsZoneRead,
 		Update: resourceDnsZoneCreateUpdate,
 		Delete: resourceDnsZoneDelete,
+
+		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			migration.DnsZoneV0ToV1(),
+		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -144,11 +150,14 @@ func resourceDnsZone() *schema.Resource {
 func resourceDnsZoneCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Dns.ZonesClient
 	recordSetsClient := meta.(*clients.Client).Dns.RecordSetsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
+
+	resourceId := parse.NewDnsZoneID(subscriptionId, resGroup, name)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
@@ -177,11 +186,6 @@ func resourceDnsZoneCreateUpdate(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Error creating/updating DNS Zone %q (Resource Group %q): %s", name, resGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resGroup, name)
-	if err != nil {
-		return fmt.Errorf("Error retrieving DNS Zone %q (Resource Group %q): %s", name, resGroup, err)
-	}
-
 	if v, ok := d.GetOk("soa_record"); ok {
 		soaRecord := v.([]interface{})[0].(map[string]interface{})
 		rsParameters := dns.RecordSet{
@@ -201,11 +205,7 @@ func resourceDnsZoneCreateUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read DNS Zone %q (Resource Group %q) ID", name, resGroup)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(resourceId.ID())
 
 	return resourceDnsZoneRead(d, meta)
 }
