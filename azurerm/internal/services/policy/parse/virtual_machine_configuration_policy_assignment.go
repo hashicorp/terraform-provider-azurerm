@@ -9,45 +9,45 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type GuestConfigurationAssignmentId struct {
-	SubscriptionId     string
-	ResourceGroup      string
-	VirtualMachineName string
-	Name               string
+type VirtualMachineConfigurationPolicyAssignmentId struct {
+	SubscriptionId                   string
+	ResourceGroup                    string
+	VirtualMachineName               string
+	GuestConfigurationAssignmentName string
 }
 
-func NewGuestConfigurationAssignmentID(subscriptionId, resourceGroup, virtualMachineName, name string) GuestConfigurationAssignmentId {
-	return GuestConfigurationAssignmentId{
-		SubscriptionId:     subscriptionId,
-		ResourceGroup:      resourceGroup,
-		VirtualMachineName: virtualMachineName,
-		Name:               name,
+func NewVirtualMachineConfigurationPolicyAssignmentID(subscriptionId, resourceGroup, virtualMachineName, guestConfigurationAssignmentName string) VirtualMachineConfigurationPolicyAssignmentId {
+	return VirtualMachineConfigurationPolicyAssignmentId{
+		SubscriptionId:                   subscriptionId,
+		ResourceGroup:                    resourceGroup,
+		VirtualMachineName:               virtualMachineName,
+		GuestConfigurationAssignmentName: guestConfigurationAssignmentName,
 	}
 }
 
-func (id GuestConfigurationAssignmentId) String() string {
+func (id VirtualMachineConfigurationPolicyAssignmentId) String() string {
 	segments := []string{
-		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Guest Configuration Assignment Name %q", id.GuestConfigurationAssignmentName),
 		fmt.Sprintf("Virtual Machine Name %q", id.VirtualMachineName),
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Guest Configuration Assignment", segmentsStr)
+	return fmt.Sprintf("%s: (%s)", "Virtual Machine Configuration Policy Assignment", segmentsStr)
 }
 
-func (id GuestConfigurationAssignmentId) ID() string {
+func (id VirtualMachineConfigurationPolicyAssignmentId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/virtualMachines/%s/providers/Microsoft.GuestConfiguration/guestConfigurationAssignments/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.VirtualMachineName, id.Name)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.VirtualMachineName, id.GuestConfigurationAssignmentName)
 }
 
-// GuestConfigurationAssignmentID parses a GuestConfigurationAssignment ID into an GuestConfigurationAssignmentId struct
-func GuestConfigurationAssignmentID(input string) (*GuestConfigurationAssignmentId, error) {
+// VirtualMachineConfigurationPolicyAssignmentID parses a VirtualMachineConfigurationPolicyAssignment ID into an VirtualMachineConfigurationPolicyAssignmentId struct
+func VirtualMachineConfigurationPolicyAssignmentID(input string) (*VirtualMachineConfigurationPolicyAssignmentId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceId := GuestConfigurationAssignmentId{
+	resourceId := VirtualMachineConfigurationPolicyAssignmentId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}
@@ -63,7 +63,7 @@ func GuestConfigurationAssignmentID(input string) (*GuestConfigurationAssignment
 	if resourceId.VirtualMachineName, err = id.PopSegment("virtualMachines"); err != nil {
 		return nil, err
 	}
-	if resourceId.Name, err = id.PopSegment("guestConfigurationAssignments"); err != nil {
+	if resourceId.GuestConfigurationAssignmentName, err = id.PopSegment("guestConfigurationAssignments"); err != nil {
 		return nil, err
 	}
 
@@ -74,19 +74,19 @@ func GuestConfigurationAssignmentID(input string) (*GuestConfigurationAssignment
 	return &resourceId, nil
 }
 
-// GuestConfigurationAssignmentIDInsensitively parses an GuestConfigurationAssignment ID into an GuestConfigurationAssignmentId struct, insensitively
-// This should only be used to parse an ID for rewriting, the GuestConfigurationAssignmentID
+// VirtualMachineConfigurationPolicyAssignmentIDInsensitively parses an VirtualMachineConfigurationPolicyAssignment ID into an VirtualMachineConfigurationPolicyAssignmentId struct, insensitively
+// This should only be used to parse an ID for rewriting, the VirtualMachineConfigurationPolicyAssignmentID
 // method should be used instead for validation etc.
 //
 // Whilst this may seem strange, this enables Terraform have consistent casing
 // which works around issues in Core, whilst handling broken API responses.
-func GuestConfigurationAssignmentIDInsensitively(input string) (*GuestConfigurationAssignmentId, error) {
+func VirtualMachineConfigurationPolicyAssignmentIDInsensitively(input string) (*VirtualMachineConfigurationPolicyAssignmentId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceId := GuestConfigurationAssignmentId{
+	resourceId := VirtualMachineConfigurationPolicyAssignmentId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}
@@ -119,7 +119,7 @@ func GuestConfigurationAssignmentIDInsensitively(input string) (*GuestConfigurat
 			break
 		}
 	}
-	if resourceId.Name, err = id.PopSegment(guestConfigurationAssignmentsKey); err != nil {
+	if resourceId.GuestConfigurationAssignmentName, err = id.PopSegment(guestConfigurationAssignmentsKey); err != nil {
 		return nil, err
 	}
 

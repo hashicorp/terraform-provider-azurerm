@@ -8,21 +8,21 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
 
-var _ resourceid.Formatter = GuestConfigurationAssignmentId{}
+var _ resourceid.Formatter = VirtualMachineConfigurationPolicyAssignmentId{}
 
-func TestGuestConfigurationAssignmentIDFormatter(t *testing.T) {
-	actual := NewGuestConfigurationAssignmentID("12345678-1234-9876-4563-123456789012", "resGroup1", "vm1", "assignment1").ID()
+func TestVirtualMachineConfigurationPolicyAssignmentIDFormatter(t *testing.T) {
+	actual := NewVirtualMachineConfigurationPolicyAssignmentID("12345678-1234-9876-4563-123456789012", "resGroup1", "vm1", "assignment1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/virtualMachines/vm1/providers/Microsoft.GuestConfiguration/guestConfigurationAssignments/assignment1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestGuestConfigurationAssignmentID(t *testing.T) {
+func TestVirtualMachineConfigurationPolicyAssignmentID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *GuestConfigurationAssignmentId
+		Expected *VirtualMachineConfigurationPolicyAssignmentId
 	}{
 
 		{
@@ -68,13 +68,13 @@ func TestGuestConfigurationAssignmentID(t *testing.T) {
 		},
 
 		{
-			// missing Name
+			// missing GuestConfigurationAssignmentName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/virtualMachines/vm1/providers/Microsoft.GuestConfiguration/",
 			Error: true,
 		},
 
 		{
-			// missing value for Name
+			// missing value for GuestConfigurationAssignmentName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/virtualMachines/vm1/providers/Microsoft.GuestConfiguration/guestConfigurationAssignments/",
 			Error: true,
 		},
@@ -82,11 +82,11 @@ func TestGuestConfigurationAssignmentID(t *testing.T) {
 		{
 			// valid
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/virtualMachines/vm1/providers/Microsoft.GuestConfiguration/guestConfigurationAssignments/assignment1",
-			Expected: &GuestConfigurationAssignmentId{
-				SubscriptionId:     "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:      "resGroup1",
-				VirtualMachineName: "vm1",
-				Name:               "assignment1",
+			Expected: &VirtualMachineConfigurationPolicyAssignmentId{
+				SubscriptionId:                   "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:                    "resGroup1",
+				VirtualMachineName:               "vm1",
+				GuestConfigurationAssignmentName: "assignment1",
 			},
 		},
 
@@ -100,7 +100,7 @@ func TestGuestConfigurationAssignmentID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := GuestConfigurationAssignmentID(v.Input)
+		actual, err := VirtualMachineConfigurationPolicyAssignmentID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -121,17 +121,17 @@ func TestGuestConfigurationAssignmentID(t *testing.T) {
 		if actual.VirtualMachineName != v.Expected.VirtualMachineName {
 			t.Fatalf("Expected %q but got %q for VirtualMachineName", v.Expected.VirtualMachineName, actual.VirtualMachineName)
 		}
-		if actual.Name != v.Expected.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
+		if actual.GuestConfigurationAssignmentName != v.Expected.GuestConfigurationAssignmentName {
+			t.Fatalf("Expected %q but got %q for GuestConfigurationAssignmentName", v.Expected.GuestConfigurationAssignmentName, actual.GuestConfigurationAssignmentName)
 		}
 	}
 }
 
-func TestGuestConfigurationAssignmentIDInsensitively(t *testing.T) {
+func TestVirtualMachineConfigurationPolicyAssignmentIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *GuestConfigurationAssignmentId
+		Expected *VirtualMachineConfigurationPolicyAssignmentId
 	}{
 
 		{
@@ -177,13 +177,13 @@ func TestGuestConfigurationAssignmentIDInsensitively(t *testing.T) {
 		},
 
 		{
-			// missing Name
+			// missing GuestConfigurationAssignmentName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/virtualMachines/vm1/providers/Microsoft.GuestConfiguration/",
 			Error: true,
 		},
 
 		{
-			// missing value for Name
+			// missing value for GuestConfigurationAssignmentName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/virtualMachines/vm1/providers/Microsoft.GuestConfiguration/guestConfigurationAssignments/",
 			Error: true,
 		},
@@ -191,44 +191,44 @@ func TestGuestConfigurationAssignmentIDInsensitively(t *testing.T) {
 		{
 			// valid
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/virtualMachines/vm1/providers/Microsoft.GuestConfiguration/guestConfigurationAssignments/assignment1",
-			Expected: &GuestConfigurationAssignmentId{
-				SubscriptionId:     "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:      "resGroup1",
-				VirtualMachineName: "vm1",
-				Name:               "assignment1",
+			Expected: &VirtualMachineConfigurationPolicyAssignmentId{
+				SubscriptionId:                   "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:                    "resGroup1",
+				VirtualMachineName:               "vm1",
+				GuestConfigurationAssignmentName: "assignment1",
 			},
 		},
 
 		{
 			// lower-cased segment names
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/virtualmachines/vm1/providers/Microsoft.GuestConfiguration/guestconfigurationassignments/assignment1",
-			Expected: &GuestConfigurationAssignmentId{
-				SubscriptionId:     "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:      "resGroup1",
-				VirtualMachineName: "vm1",
-				Name:               "assignment1",
+			Expected: &VirtualMachineConfigurationPolicyAssignmentId{
+				SubscriptionId:                   "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:                    "resGroup1",
+				VirtualMachineName:               "vm1",
+				GuestConfigurationAssignmentName: "assignment1",
 			},
 		},
 
 		{
 			// upper-cased segment names
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/VIRTUALMACHINES/vm1/providers/Microsoft.GuestConfiguration/GUESTCONFIGURATIONASSIGNMENTS/assignment1",
-			Expected: &GuestConfigurationAssignmentId{
-				SubscriptionId:     "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:      "resGroup1",
-				VirtualMachineName: "vm1",
-				Name:               "assignment1",
+			Expected: &VirtualMachineConfigurationPolicyAssignmentId{
+				SubscriptionId:                   "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:                    "resGroup1",
+				VirtualMachineName:               "vm1",
+				GuestConfigurationAssignmentName: "assignment1",
 			},
 		},
 
 		{
 			// mixed-cased segment names
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/ViRtUaLmAcHiNeS/vm1/providers/Microsoft.GuestConfiguration/GuEsTcOnFiGuRaTiOnAsSiGnMeNtS/assignment1",
-			Expected: &GuestConfigurationAssignmentId{
-				SubscriptionId:     "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:      "resGroup1",
-				VirtualMachineName: "vm1",
-				Name:               "assignment1",
+			Expected: &VirtualMachineConfigurationPolicyAssignmentId{
+				SubscriptionId:                   "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:                    "resGroup1",
+				VirtualMachineName:               "vm1",
+				GuestConfigurationAssignmentName: "assignment1",
 			},
 		},
 	}
@@ -236,7 +236,7 @@ func TestGuestConfigurationAssignmentIDInsensitively(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := GuestConfigurationAssignmentIDInsensitively(v.Input)
+		actual, err := VirtualMachineConfigurationPolicyAssignmentIDInsensitively(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -257,8 +257,8 @@ func TestGuestConfigurationAssignmentIDInsensitively(t *testing.T) {
 		if actual.VirtualMachineName != v.Expected.VirtualMachineName {
 			t.Fatalf("Expected %q but got %q for VirtualMachineName", v.Expected.VirtualMachineName, actual.VirtualMachineName)
 		}
-		if actual.Name != v.Expected.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
+		if actual.GuestConfigurationAssignmentName != v.Expected.GuestConfigurationAssignmentName {
+			t.Fatalf("Expected %q but got %q for GuestConfigurationAssignmentName", v.Expected.GuestConfigurationAssignmentName, actual.GuestConfigurationAssignmentName)
 		}
 	}
 }

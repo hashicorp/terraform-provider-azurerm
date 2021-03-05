@@ -122,8 +122,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Virtual Machine Configuration Policy Assignment.
 
-* `compliance_status` - A value indicating compliance status of the machine for the assigned Guest Configuration.
-
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:

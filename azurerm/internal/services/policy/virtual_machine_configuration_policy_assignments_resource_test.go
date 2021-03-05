@@ -47,16 +47,16 @@ func TestAccGuestConfigurationAssignment_requiresImport(t *testing.T) {
 }
 
 func (r GuestConfigurationAssignmentResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.GuestConfigurationAssignmentID(state.ID)
+	id, err := parse.VirtualMachineConfigurationPolicyAssignmentID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.Policy.GuestConfigurationAssignmentsClient.Get(ctx, id.ResourceGroup, id.Name, id.VirtualMachineName)
+	resp, err := client.Policy.GuestConfigurationAssignmentsClient.Get(ctx, id.ResourceGroup, id.GuestConfigurationAssignmentName, id.VirtualMachineName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Guest Configuration %q (Resource Group %q / Virtual Machine %q): %+v", id.Name, id.ResourceGroup, id.VirtualMachineName, err)
+		return nil, fmt.Errorf("retrieving Guest Configuration %q (Resource Group %q / Virtual Machine %q): %+v", id.GuestConfigurationAssignmentName, id.ResourceGroup, id.VirtualMachineName, err)
 	}
 	return utils.Bool(true), nil
 }
@@ -139,7 +139,7 @@ resource "azurerm_virtual_machine_configuration_policy_assignment" "test" {
   name               = "acctest-gca-%d"
   location           = azurerm_windows_virtual_machine.test.location
   virtual_machine_id = azurerm_windows_virtual_machine.test.id
-  guest_configuration {
+  policy {
     name    = "WhitelistedApplication"
     version = "1.*"
 

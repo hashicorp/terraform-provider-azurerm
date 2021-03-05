@@ -35,7 +35,7 @@ func resourceVirtualMachineConfigurationPolicyAssignment() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.GuestConfigurationAssignmentID(id)
+			_, err := parse.VirtualMachineConfigurationPolicyAssignmentID(id)
 			return err
 		}),
 
@@ -55,7 +55,7 @@ func resourceVirtualMachineConfigurationPolicyAssignment() *schema.Resource {
 				ValidateFunc: computeValidate.VirtualMachineID,
 			},
 
-			"guest_configuration": {
+			"policy": {
 				Type:     schema.TypeList,
 				Required: true,
 				MaxItems: 1,
@@ -93,11 +93,6 @@ func resourceVirtualMachineConfigurationPolicyAssignment() *schema.Resource {
 					},
 				},
 			},
-
-			"compliance_status": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 		},
 	}
 }
@@ -113,17 +108,17 @@ func resourceVirtualMachineConfigurationPolicyAssignmentCreateUpdate(d *schema.R
 		return err
 	}
 
-	id := parse.NewGuestConfigurationAssignmentID(subscriptionId, vmId.ResourceGroup, vmId.Name, d.Get("name").(string))
+	id := parse.NewVirtualMachineConfigurationPolicyAssignmentID(subscriptionId, vmId.ResourceGroup, vmId.Name, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, id.VirtualMachineName)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.GuestConfigurationAssignmentName, id.VirtualMachineName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for present of existing GuestConfiguration GuestConfigurationAssignment %q (Virtual Machine ID %q): %+v", id.Name, vmId.ID(), err)
+				return fmt.Errorf("checking for present of existing GuestConfiguration GuestConfigurationAssignment %q (Virtual Machine ID %q): %+v", id.GuestConfigurationAssignmentName, vmId.ID(), err)
 			}
 		}
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_guest_configuration_assignment", id.ID())
+			return tf.ImportAsExistsError("azurerm_virtual_machine_configuration_policy_assignment", id.ID())
 		}
 	}
 
@@ -131,25 +126,25 @@ func resourceVirtualMachineConfigurationPolicyAssignmentCreateUpdate(d *schema.R
 		Name:     utils.String(d.Get("name").(string)),
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Properties: &guestconfiguration.AssignmentProperties{
-			GuestConfiguration: expandGuestConfigurationAssignment(d.Get("guest_configuration").([]interface{})),
+			GuestConfiguration: expandGuestConfigurationAssignment(d.Get("policy").([]interface{})),
 		},
 	}
-	future, err := client.CreateOrUpdate(ctx, id.Name, parameter, id.ResourceGroup, id.VirtualMachineName)
+	future, err := client.CreateOrUpdate(ctx, id.GuestConfigurationAssignmentName, parameter, id.ResourceGroup, id.VirtualMachineName)
 	if err != nil {
-		return fmt.Errorf("creating/updating GuestConfigurationAssignment %q (Virtual Machine ID %q): %+v", id.Name, vmId.ID(), err)
+		return fmt.Errorf("creating/updating GuestConfigurationAssignment %q (Virtual Machine ID %q): %+v", id.GuestConfigurationAssignmentName, vmId.ID(), err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on creating/updating future for GuestConfigurationAssignment %q (Virtual Machine ID %q): %+v", id.Name, vmId.ID(), err)
+		return fmt.Errorf("waiting on creating/updating future for GuestConfigurationAssignment %q (Virtual Machine ID %q): %+v", id.GuestConfigurationAssignmentName, vmId.ID(), err)
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, id.VirtualMachineName)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.GuestConfigurationAssignmentName, id.VirtualMachineName)
 	if err != nil {
-		return fmt.Errorf("retrieving GuestConfigurationAssignment %q (Virtual Machine ID %q): %+v", id.Name, vmId.ID(), err)
+		return fmt.Errorf("retrieving GuestConfigurationAssignment %q (Virtual Machine ID %q): %+v", id.GuestConfigurationAssignmentName, vmId.ID(), err)
 	}
 
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for GuestConfigurationAssignment %q (Virtual Machine ID %q) ID", id.Name, vmId.ID())
+		return fmt.Errorf("empty or nil ID returned for GuestConfigurationAssignment %q (Virtual Machine ID %q) ID", id.GuestConfigurationAssignmentName, vmId.ID())
 	}
 
 	d.SetId(id.ID())
@@ -163,30 +158,30 @@ func resourceVirtualMachineConfigurationPolicyAssignmentRead(d *schema.ResourceD
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.GuestConfigurationAssignmentID(d.Id())
+	id, err := parse.VirtualMachineConfigurationPolicyAssignmentID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, id.VirtualMachineName)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.GuestConfigurationAssignmentName, id.VirtualMachineName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] guestConfiguration %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving GuestConfigurationAssignment %q (Resource Group %q / Virtual Machine %q): %+v", id.Name, id.ResourceGroup, id.VirtualMachineName, err)
+		return fmt.Errorf("retrieving GuestConfigurationAssignment %q (Resource Group %q / Virtual Machine %q): %+v", id.GuestConfigurationAssignmentName, id.ResourceGroup, id.VirtualMachineName, err)
 	}
+
 	vmId := computeParse.NewVirtualMachineID(subscriptionId, id.ResourceGroup, id.VirtualMachineName)
-	d.Set("name", id.Name)
+	d.Set("name", id.GuestConfigurationAssignmentName)
 	d.Set("virtual_machine_id", vmId.ID())
 	d.Set("location", location.NormalizeNilable(resp.Location))
+
 	if props := resp.Properties; props != nil {
-		if err := d.Set("guest_configuration", flattenGuestConfigurationAssignment(props.GuestConfiguration)); err != nil {
-			return fmt.Errorf("setting `guest_configuration`: %+v", err)
+		if err := d.Set("policy", flattenGuestConfigurationAssignment(props.GuestConfiguration)); err != nil {
+			return fmt.Errorf("setting `policy`: %+v", err)
 		}
-		d.Set("assignment_hash", props.AssignmentHash)
-		d.Set("compliance_status", props.ComplianceStatus)
 	}
 	return nil
 }
@@ -196,18 +191,18 @@ func resourceVirtualMachineConfigurationPolicyAssignmentDelete(d *schema.Resourc
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.GuestConfigurationAssignmentID(d.Id())
+	id, err := parse.VirtualMachineConfigurationPolicyAssignmentID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name, id.VirtualMachineName)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.GuestConfigurationAssignmentName, id.VirtualMachineName)
 	if err != nil {
-		return fmt.Errorf("deleting GuestConfiguration GuestConfigurationAssignment %q (Resource Group %q / Virtual Machine %q): %+v", id.Name, id.ResourceGroup, id.VirtualMachineName, err)
+		return fmt.Errorf("deleting GuestConfiguration GuestConfigurationAssignment %q (Resource Group %q / Virtual Machine %q): %+v", id.GuestConfigurationAssignmentName, id.ResourceGroup, id.VirtualMachineName, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on deleting future for GuestConfiguration GuestConfigurationAssignment %q (Resource Group %q / Virtual Machine %q): %+v", id.Name, id.ResourceGroup, id.VirtualMachineName, err)
+		return fmt.Errorf("waiting on deleting future for GuestConfiguration GuestConfigurationAssignment %q (Resource Group %q / Virtual Machine %q): %+v", id.GuestConfigurationAssignmentName, id.ResourceGroup, id.VirtualMachineName, err)
 	}
 	return nil
 }
@@ -249,21 +244,11 @@ func flattenGuestConfigurationAssignment(input *guestconfiguration.Navigation) [
 	if input.Version != nil {
 		version = *input.Version
 	}
-	var contentHash string
-	if input.ContentHash != nil {
-		contentHash = *input.ContentHash
-	}
-	var contentUri string
-	if input.ContentURI != nil {
-		contentUri = *input.ContentURI
-	}
 	return []interface{}{
 		map[string]interface{}{
 			"name":         name,
 			"parameter":    flattenGuestConfigurationAssignmentConfigurationParameters(input.ConfigurationParameter),
 			"version":      version,
-			"content_hash": contentHash,
-			"content_uri":  contentUri,
 		},
 	}
 }
