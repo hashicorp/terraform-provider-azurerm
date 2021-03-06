@@ -1,3 +1,14 @@
+## 2.51.0 (Unreleased)
+
+FEATURES:
+
+ENHANCEMENTS:
+
+BUG FIXES:
+* `azurerm_postgres_server` - add support for replicaset scaling [GH-10754]
+
+---
+
 ## 2.50.0 (March 05, 2021)
 
 FEATURES:
