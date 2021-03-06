@@ -15,7 +15,7 @@ Manages a Attestation Provider.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "UK South"
+  location = "West Europe"
 }
 
 resource "azurerm_attestation_provider" "example" {

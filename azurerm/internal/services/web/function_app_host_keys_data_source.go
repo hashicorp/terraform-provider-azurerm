@@ -45,6 +45,12 @@ func dataSourceFunctionAppHostKeys() *schema.Resource {
 				Computed:  true,
 				Sensitive: true,
 			},
+
+			"event_grid_extension_config_key": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
 		},
 	}
 }
@@ -87,6 +93,12 @@ func dataSourceFunctionAppHostKeysRead(d *schema.ResourceData, meta interface{})
 		defaultFunctionKey = *v
 	}
 	d.Set("default_function_key", defaultFunctionKey)
+
+	eventGridExtensionConfigKey := ""
+	if v, ok := res.SystemKeys["eventgridextensionconfig_extension"]; ok {
+		eventGridExtensionConfigKey = *v
+	}
+	d.Set("event_grid_extension_config_key", eventGridExtensionConfigKey)
 
 	return nil
 }

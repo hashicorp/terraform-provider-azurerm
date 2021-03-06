@@ -15,7 +15,7 @@ Manages an Entity within a Table in an Azure Storage Account.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "azureexample"
-  location = "westus"
+  location = "West Europe"
 }
 
 resource "azurerm_storage_account" "example" {
