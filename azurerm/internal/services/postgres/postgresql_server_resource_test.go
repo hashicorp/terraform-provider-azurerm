@@ -242,7 +242,7 @@ func TestAccPostgreSQLServer_updated(t *testing.T) {
 		},
 		data.ImportStep("administrator_login_password"),
 		{
-			Config: r.gp(data, "9.6"),
+			Config: r.complete(data, "9.6"),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -707,7 +707,6 @@ resource "azurerm_postgresql_server" "test" {
   infrastructure_encryption_enabled = false
   public_network_access_enabled     = true
   ssl_enforcement_enabled           = false
-  ssl_minimal_tls_version_enforced  = "TLS1_1"
 
   threat_detection_policy {
     enabled              = true
@@ -716,9 +715,6 @@ resource "azurerm_postgresql_server" "test" {
     email_addresses      = ["kt@example.com"]
 
     retention_days = 7
-
-    storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
-    storage_account_access_key = azurerm_storage_account.test.primary_access_key
   }
 }
 `, data.RandomInteger, data.Locations.Primary, version)
