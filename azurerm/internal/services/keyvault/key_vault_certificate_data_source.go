@@ -68,6 +68,10 @@ func dataSourceKeyVaultCertificate() *schema.Resource {
 							Computed: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
+									"curve": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
 									"exportable": {
 										Type:     schema.TypeBool,
 										Computed: true,
@@ -323,9 +327,10 @@ func flattenKeyVaultCertificatePolicyForDataSource(input *keyvault.CertificatePo
 
 	// key properties
 	if props := input.KeyProperties; props != nil {
+		var curve, keyType string
 		var exportable, reuseKey bool
 		var keySize int
-		var keyType string
+		curve = string(props.Curve)
 		if props.Exportable != nil {
 			exportable = *props.Exportable
 		}
@@ -341,6 +346,7 @@ func flattenKeyVaultCertificatePolicyForDataSource(input *keyvault.CertificatePo
 
 		policy["key_properties"] = []interface{}{
 			map[string]interface{}{
+				"curve":      curve,
 				"exportable": exportable,
 				"key_size":   keySize,
 				"key_type":   keyType,
