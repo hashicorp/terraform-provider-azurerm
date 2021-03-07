@@ -102,9 +102,9 @@ func resourceKeyVaultKey() *schema.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(keyvault.P256),
+					string(keyvault.P256K),
 					string(keyvault.P384),
 					string(keyvault.P521),
-					string(keyvault.P256K),
 				}, false),
 				// TODO: the curve name should probably be mandatory for EC in the future,
 				// but handle the diff so that we don't break existing configurations and
