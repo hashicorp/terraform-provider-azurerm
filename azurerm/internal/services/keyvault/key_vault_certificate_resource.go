@@ -108,6 +108,18 @@ func resourceKeyVaultCertificate() *schema.Resource {
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
+									"curve": {
+										Type:     schema.TypeString,
+										Optional: true,
+										Computed: true,
+										ForceNew: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(keyvault.P256),
+											string(keyvault.P256K),
+											string(keyvault.P384),
+											string(keyvault.P521),
+										}, false),
+									},
 									"exportable": {
 										Type:     schema.TypeBool,
 										Required: true,
@@ -118,6 +130,9 @@ func resourceKeyVaultCertificate() *schema.Resource {
 										Required: true,
 										ForceNew: true,
 										ValidateFunc: validation.IntInSlice([]int{
+											256,
+											384,
+											521,
 											2048,
 											3072,
 											4096,
@@ -685,6 +700,7 @@ func expandKeyVaultCertificatePolicy(d *schema.ResourceData) keyvault.Certificat
 	properties := policyRaw["key_properties"].([]interface{})
 	props := properties[0].(map[string]interface{})
 	policy.KeyProperties = &keyvault.KeyProperties{
+		Curve:      keyvault.JSONWebKeyCurveName(props["curve"].(string)),
 		Exportable: utils.Bool(props["exportable"].(bool)),
 		KeySize:    utils.Int32(int32(props["key_size"].(int))),
 		KeyType:    keyvault.JSONWebKeyType(props["key_type"].(string)),
@@ -798,6 +814,7 @@ func flattenKeyVaultCertificatePolicy(input *keyvault.CertificatePolicy, certDat
 	// key properties
 	if props := input.KeyProperties; props != nil {
 		keyProps := make(map[string]interface{})
+		keyProps["curve"] = string(props.Curve)
 		keyProps["exportable"] = *props.Exportable
 		keyProps["key_size"] = int(*props.KeySize)
 		keyProps["key_type"] = string(props.KeyType)
