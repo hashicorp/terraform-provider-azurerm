@@ -179,7 +179,7 @@ func TestAccPostgreSQLServer_complete(t *testing.T) {
 	r := PostgreSQLServerResource{}
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.complete(data, "9.6"),
+			Config: r.complete(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -228,7 +228,7 @@ func TestAccPostgreSQLServer_updated(t *testing.T) {
 		},
 		data.ImportStep("administrator_login_password"),
 		{
-			Config: r.complete(data, "9.6"),
+			Config: r.complete(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -242,7 +242,7 @@ func TestAccPostgreSQLServer_updated(t *testing.T) {
 		},
 		data.ImportStep("administrator_login_password"),
 		{
-			Config: r.gp(data, "9.6"),
+			Config: r.complete(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -263,7 +263,7 @@ func TestAccPostgreSQLServer_completeDeprecatedUpdate(t *testing.T) {
 		},
 		data.ImportStep("administrator_login_password"),
 		{
-			Config: r.complete(data, "9.6"),
+			Config: r.complete(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -625,7 +625,7 @@ resource "azurerm_postgresql_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }
 
-func (PostgreSQLServerResource) complete(data acceptance.TestData, version string) string {
+func (PostgreSQLServerResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -645,7 +645,7 @@ resource "azurerm_postgresql_server" "test" {
   administrator_login_password = "H@Sh1CoR3!updated"
 
   sku_name   = "GP_Gen5_4"
-  version    = "%[3]s"
+  version    = "9.6"
   storage_mb = 640000
 
   backup_retention_days        = 7
@@ -666,7 +666,7 @@ resource "azurerm_postgresql_server" "test" {
     retention_days = 7
   }
 }
-`, data.RandomInteger, data.Locations.Primary, version)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (PostgreSQLServerResource) complete2(data acceptance.TestData, version string) string {
@@ -707,7 +707,6 @@ resource "azurerm_postgresql_server" "test" {
   infrastructure_encryption_enabled = false
   public_network_access_enabled     = true
   ssl_enforcement_enabled           = false
-  ssl_minimal_tls_version_enforced  = "TLS1_1"
 
   threat_detection_policy {
     enabled              = true
@@ -716,9 +715,6 @@ resource "azurerm_postgresql_server" "test" {
     email_addresses      = ["kt@example.com"]
 
     retention_days = 7
-
-    storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
-    storage_account_access_key = azurerm_storage_account.test.primary_access_key
   }
 }
 `, data.RandomInteger, data.Locations.Primary, version)
