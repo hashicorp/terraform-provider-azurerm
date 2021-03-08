@@ -3,7 +3,7 @@ subcategory: "Key Vault"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_key_vault_managed_hardware_security_module"
 description: |-
-Manages a Key Vault Managed Hardware Security Module.
+  Manages a Key Vault Managed Hardware Security Module.
 ---
 
 # azurerm_key_vault_managed_hardware_security_module
