@@ -287,7 +287,6 @@ func resourceWebApplicationFirewallPolicy() *schema.Resource {
 				Optional: true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					Required:     true,
 					ValidateFunc: validate.ApplicationGatewayHTTPListenerID,
 				},
 			},
@@ -297,7 +296,6 @@ func resourceWebApplicationFirewallPolicy() *schema.Resource {
 				Optional: true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					Required:     true,
 					ValidateFunc: validate.ApplicationGatewayURLPathMapPathRuleID,
 				},
 			},
