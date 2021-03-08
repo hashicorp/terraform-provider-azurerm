@@ -3,6 +3,7 @@ package network_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -15,6 +16,8 @@ import (
 )
 
 type ExpressRoutePortResource struct{}
+
+const ARMTestExpressRoutePortAdminState = "ARM_TEST_EXPRESS_ROUTE_PORT_ADMIN_STATE"
 
 func TestAccAzureRMExpressRoutePort_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_port", "test")
@@ -47,6 +50,9 @@ func TestAccAzureRMExpressRoutePort_basic(t *testing.T) {
 }
 
 func TestAccAzureRMExpressRoutePort_adminState(t *testing.T) {
+	if _, ok := os.LookupEnv(ARMTestExpressRoutePortAdminState); !ok {
+		t.Skip(fmt.Sprintf("Enabling admin state will cause high cost, please set environment variable %q if you want to test it.", ARMTestExpressRoutePortAdminState))
+	}
 	data := acceptance.BuildTestData(t, "azurerm_express_route_port", "test")
 	r := ExpressRoutePortResource{}
 
@@ -269,13 +275,11 @@ resource "azurerm_express_route_port" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
   link1 {
-    admin_enabled                  = true
     macsec_cipher                  = "GcmAes256"
     macsec_ckn_keyvault_identifier = azurerm_key_vault_secret.ckn.id
     macsec_cak_keyvault_identifier = azurerm_key_vault_secret.cak.id
   }
   link2 {
-    admin_enabled                  = true
     macsec_cipher                  = "GcmAes128"
     macsec_ckn_keyvault_identifier = azurerm_key_vault_secret.ckn.id
     macsec_cak_keyvault_identifier = azurerm_key_vault_secret.cak.id
