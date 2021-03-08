@@ -135,7 +135,7 @@ A `developer_portal`, `management`, `portal` or `scm` block supports the followi
 
 A `proxy` block supports the following:
 
--> **Tip:** The default hostname ending with `.azure-api.net` must not be added as it will be included by default and it is filtered out, so it would always show in `tf plan` but never have any effect.
+-> **Tip:** The default proxy hostname ending with `.azure-api.net` must not be added as it will be automatically created by Azure and ignored by Terraform.
 
 * `host_name` - (Required) The Hostname to use for the API Proxy Endpoint.
 
