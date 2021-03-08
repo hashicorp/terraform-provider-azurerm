@@ -1,4 +1,4 @@
-// Package keyvault implements the Azure ARM Keyvault service API version 2019-09-01.
+// Package keyvault implements the Azure ARM Keyvault service API version .
 //
 // The Azure management API provides a RESTful set of web services that interact with Azure Key Vault.
 package keyvault
