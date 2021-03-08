@@ -298,7 +298,7 @@ func resourceWebApplicationFirewallPolicy() *schema.Resource {
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
 					Required:     true,
-					ValidateFunc: validate.ApplicationGatewayPathBasedRuleID,
+					ValidateFunc: validate.ApplicationGatewayURLPathMapPathRuleID,
 				},
 			},
 
