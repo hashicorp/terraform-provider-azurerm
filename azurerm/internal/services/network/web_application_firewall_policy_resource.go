@@ -285,6 +285,7 @@ func resourceWebApplicationFirewallPolicy() *schema.Resource {
 			"http_listener_ids": {
 				Type:     schema.TypeList,
 				Optional: true,
+				MinItems: 1,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
 					ValidateFunc: validate.ApplicationGatewayHTTPListenerID,
@@ -294,6 +295,7 @@ func resourceWebApplicationFirewallPolicy() *schema.Resource {
 			"path_based_rule_ids": {
 				Type:     schema.TypeList,
 				Optional: true,
+				MinItems: 1,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
 					ValidateFunc: validate.ApplicationGatewayURLPathMapPathRuleID,
