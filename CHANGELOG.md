@@ -4,6 +4,8 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* dependencies: updating to v52.3.0 of `github.com/Azure/azure-sdk-for-go` [GH-10829]
+
 BUG FIXES:
 * Data Source: `azurerm_monitor_action_group` - add support for `aad_auth` attribute [GH-10876]
 * `azurerm_postgres_server` - add support for replicaset scaling [GH-10754]
