@@ -222,11 +222,14 @@ func resourceDataFactoryDatasetParquet() *schema.Resource {
 func resourceDataFactoryDatasetParquetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
 
 	name := d.Get("name").(string)
 	dataFactoryName := d.Get("data_factory_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+
+	id := parse.NewDataSetID(subscriptionId, resourceGroup, dataFactoryName, name)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
@@ -300,16 +303,7 @@ func resourceDataFactoryDatasetParquetCreateUpdate(d *schema.ResourceData, meta 
 		return fmt.Errorf("Error creating/updating Data Factory Dataset Parquet  %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
-	if err != nil {
-		return fmt.Errorf("Error retrieving Data Factory Dataset Parquet %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
-	}
-
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Data Factory Dataset Parquet %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceDataFactoryDatasetParquetRead(d, meta)
 }
