@@ -1048,6 +1048,10 @@ func postgreSqlStateRefreshFunc(ctx context.Context, client *postgresql.ServersC
 			return res, string(postgresql.ServerStateInaccessible), nil
 		}
 
-		return res, string(res.ServerProperties.UserVisibleState), nil
+		if res.ServerProperties != nil && res.ServerProperties.UserVisibleState != "" {
+			return res, string(res.ServerProperties.UserVisibleState), nil
+		}
+
+		return res, string(postgresql.ServerStateInaccessible), nil
 	}
 }
