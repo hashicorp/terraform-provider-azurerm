@@ -2527,8 +2527,8 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 
   disable_password_authentication = false
 
-  upgrade_mode        = "Rolling"
-  health_probe_id     = azurerm_lb_probe.test.id
+  upgrade_mode    = "Rolling"
+  health_probe_id = azurerm_lb_probe.test.id
 
   rolling_upgrade_policy {
     max_batch_instance_percent              = %d
