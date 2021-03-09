@@ -91,6 +91,12 @@ func ParseAzureResourceID(id string) (*ResourceID, error) {
 	return idObj, nil
 }
 
+// ParseAzureResourceIDWithoutSubscription parses Azure Resource ID's that are not prefixed
+// with a Subscription ID. Typically these are for administrative resources that are not bound
+// to a particular subscription. Note that these IDs are also unlikely to have a resourceGroup
+// element, so this is not populated automatically into the returned ResourceID, but can be
+// popped in cases it does exist in the path. These IDs are expected to begin with
+// '/providers/[provider name]/'
 func ParseAzureResourceIDWithoutSubscription(id string) (*ResourceID, error) {
 	idURL, err := url.ParseRequestURI(id)
 	if err != nil {
