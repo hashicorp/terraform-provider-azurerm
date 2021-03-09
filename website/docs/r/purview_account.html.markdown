@@ -36,7 +36,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Purview Account should exist. Changing this forces a new Purview Account to be created.
 
-* `sku_capacity` - (Required) SKU capacity for platform size and catalog capabilities. Accepted values are `4` and `16`.
+* `sku_capacity` - (Required) The SKU's capacity for platform size and catalog capabilities. Accepted values are `4` and `16`.
 
 ---
 
