@@ -40,10 +40,10 @@ func resourceArmCdnEndpointCustomDomain() *schema.Resource {
 		}),
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(10 * time.Hour),
+			Create: schema.DefaultTimeout(20 * time.Hour),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(10 * time.Hour),
-			Delete: schema.DefaultTimeout(10 * time.Hour),
+			Update: schema.DefaultTimeout(20 * time.Hour),
+			Delete: schema.DefaultTimeout(20 * time.Hour),
 		},
 
 		Schema: map[string]*schema.Schema{
