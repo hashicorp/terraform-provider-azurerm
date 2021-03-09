@@ -12,6 +12,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* Data Source: `log_analytics_workspace` - ensure the `id` is returned with the correct caseing [GH-10892]
 * Data Source: `azurerm_monitor_action_group` - add support for `aad_auth` attribute [GH-10876]
 * `azurerm_eventhub_consumer_group` - detecting as removed when deleted in Azure [GH-10900]
 * `azurerm_postgres_server` - support for replicaset scaling [GH-10754]
