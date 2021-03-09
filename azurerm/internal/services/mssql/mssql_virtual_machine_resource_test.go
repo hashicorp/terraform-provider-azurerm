@@ -448,7 +448,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
       full_backup_frequency           = "Daily"
       full_backup_start_hour          = 3
       full_backup_window_in_hours     = 4
-      log_backup_frequency_in_minutes = 20
+      log_backup_frequency_in_minutes = 60
     }
   }
 }
