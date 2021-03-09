@@ -67,7 +67,6 @@ func resourcePurviewAccount() *schema.Resource {
 			"identity": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"type": {
@@ -120,6 +119,7 @@ func resourcePurviewAccount() *schema.Resource {
 
 func resourcePurviewAccountCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Purview.AccountsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -169,16 +169,8 @@ func resourcePurviewAccountCreateUpdate(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("Error waiting creation of Purview Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("Error retrieving Purview Account %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Purview Account %q (Resource Group %q) ID", name, resourceGroup)
-	}
-
-	d.SetId(*resp.ID)
+	id := parse.NewAccountID(subscriptionId, resourceGroup, name)
+	d.SetId(id.ID())
 
 	return resourcePurviewAccountRead(d, meta)
 }
@@ -208,7 +200,7 @@ func resourcePurviewAccountRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if sku := resp.Sku; sku != nil {
-		if err := d.Set("sku_capacity", *sku.Capacity); err != nil {
+		if err := d.Set("sku_capacity", sku.Capacity); err != nil {
 			return fmt.Errorf("Error setting `sku_capacity`: %+v", err)
 		}
 	}
@@ -223,13 +215,13 @@ func resourcePurviewAccountRead(d *schema.ResourceData, meta interface{}) error 
 		}
 
 		if endpoints := resp.Endpoints; endpoints != nil {
-			if err := d.Set("catalog_endpoint", *endpoints.Catalog); err != nil {
+			if err := d.Set("catalog_endpoint", endpoints.Catalog); err != nil {
 				return fmt.Errorf("Error setting `catalog_endpoint`: %+v", err)
 			}
-			if err := d.Set("guardian_endpoint", *endpoints.Guardian); err != nil {
+			if err := d.Set("guardian_endpoint", endpoints.Guardian); err != nil {
 				return fmt.Errorf("Error setting `guardian_endpoint`: %+v", err)
 			}
-			if err := d.Set("scan_endpoint", *endpoints.Scan); err != nil {
+			if err := d.Set("scan_endpoint", endpoints.Scan); err != nil {
 				return fmt.Errorf("Error setting `scan_endpoint`: %+v", err)
 			}
 		}
@@ -240,12 +232,12 @@ func resourcePurviewAccountRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("Error retrieving Purview Account keys %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 	if primary := keys.AtlasKafkaPrimaryEndpoint; primary != nil {
-		if err := d.Set("atlas_kafka_endpoint_primary_connection_string", *primary); err != nil {
+		if err := d.Set("atlas_kafka_endpoint_primary_connection_string", primary); err != nil {
 			return fmt.Errorf("Error setting `atlas_kafka_endpoint_primary_connection_string`: %+v", err)
 		}
 	}
 	if secondary := keys.AtlasKafkaSecondaryEndpoint; secondary != nil {
-		if err := d.Set("atlas_kafka_endpoint_secondary_connection_string", *secondary); err != nil {
+		if err := d.Set("atlas_kafka_endpoint_secondary_connection_string", secondary); err != nil {
 			return fmt.Errorf("Error setting `atlas_kafka_endpoint_secondary_connection_string`: %+v", err)
 		}
 	}
