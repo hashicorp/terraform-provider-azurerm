@@ -266,11 +266,13 @@ func resourceEventGridSystemTopicEventSubscriptionRead(d *pluginsdk.ResourceData
 		d.Set("event_delivery_schema", string(props.EventDeliverySchema))
 
 		destination := props.Destination
-		if props.DeliveryWithResourceIdentity != nil {
-			destination = props.DeliveryWithResourceIdentity.Destination
-			if err := d.Set("delivery_identity", flattenIdentity(props.DeliveryWithResourceIdentity.Identity)); err != nil {
-				return fmt.Errorf("setting `delivery_identity` for EventGrid System Topic Event Subscription %q (System Topic  %q): %s", id.Name, id.SystemTopic, err)
-			}
+		deliveryIdentityFlattened := make([]interface{}, 0)
+		if deliveryIdentity := props.DeliveryWithResourceIdentity; deliveryIdentity != nil {
+			destination = deliveryIdentity.Destination
+			deliveryIdentityFlattened = flattenIdentity(deliveryIdentity.Identity)
+		}
+		if err := d.Set("delivery_identity", deliveryIdentityFlattened); err != nil {
+			return fmt.Errorf("setting `delivery_identity` for EventGrid System Topic Event Subscription %q (System Topic  %q): %s", id.Name, id.SystemTopic, err)
 		}
 
 		if azureFunctionEndpoint, ok := destination.AsAzureFunctionEventSubscriptionDestination(); ok {
@@ -314,11 +316,13 @@ func resourceEventGridSystemTopicEventSubscriptionRead(d *pluginsdk.ResourceData
 		}
 
 		deadLetterDestination := props.DeadLetterDestination
-		if props.DeadLetterWithResourceIdentity != nil {
-			deadLetterDestination = props.DeadLetterWithResourceIdentity.DeadLetterDestination
-			if err := d.Set("dead_letter_identity", flattenIdentity(props.DeadLetterWithResourceIdentity.Identity)); err != nil {
-				return fmt.Errorf("setting `dead_letter_identity` for EventGrid System Topic Event Subscription %q (Scope %q): %s", id.Name, id.SystemTopic, err)
-			}
+		deadLetterIdentityFlattened := make([]interface{}, 0)
+		if deadLetterIdentity := props.DeadLetterWithResourceIdentity; deadLetterIdentity != nil {
+			deadLetterDestination = deadLetterIdentity.DeadLetterDestination
+			deadLetterIdentityFlattened = flattenIdentity(deadLetterIdentity.Identity)
+		}
+		if err := d.Set("dead_letter_identity", deadLetterIdentityFlattened); err != nil {
+			return fmt.Errorf("setting `dead_letter_identity` for EventGrid System Topic Event Subscription %q (Scope %q): %s", id.Name, id.SystemTopic, err)
 		}
 
 		if deadLetterDestination != nil {
