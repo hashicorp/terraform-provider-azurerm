@@ -792,19 +792,9 @@ resource "azurerm_storage_queue" "test" {
 }
 
 resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
+  name                  = "dead_letter_destination"
   storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
-}
-
-resource "azurerm_storage_blob" "test" {
-  name = "herpderp1.vhd"
-
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-
-  type = "Page"
-  size = 5120
 }
 
 resource "azurerm_eventgrid_event_subscription" "test" {
