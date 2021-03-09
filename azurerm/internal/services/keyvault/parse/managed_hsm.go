@@ -9,42 +9,42 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type HardwareSecurityModuleId struct {
+type ManagedHSMId struct {
 	SubscriptionId string
 	ResourceGroup  string
-	ManagedHSMName string
+	Name           string
 }
 
-func NewHardwareSecurityModuleID(subscriptionId, resourceGroup, managedHSMName string) HardwareSecurityModuleId {
-	return HardwareSecurityModuleId{
+func NewManagedHSMID(subscriptionId, resourceGroup, name string) ManagedHSMId {
+	return ManagedHSMId{
 		SubscriptionId: subscriptionId,
 		ResourceGroup:  resourceGroup,
-		ManagedHSMName: managedHSMName,
+		Name:           name,
 	}
 }
 
-func (id HardwareSecurityModuleId) String() string {
+func (id ManagedHSMId) String() string {
 	segments := []string{
-		fmt.Sprintf("Managed H S M Name %q", id.ManagedHSMName),
+		fmt.Sprintf("Name %q", id.Name),
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Hardware Security Module", segmentsStr)
+	return fmt.Sprintf("%s: (%s)", "Managed H S M", segmentsStr)
 }
 
-func (id HardwareSecurityModuleId) ID() string {
+func (id ManagedHSMId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.KeyVault/managedHSMs/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ManagedHSMName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
-// HardwareSecurityModuleID parses a HardwareSecurityModule ID into an HardwareSecurityModuleId struct
-func HardwareSecurityModuleID(input string) (*HardwareSecurityModuleId, error) {
+// ManagedHSMID parses a ManagedHSM ID into an ManagedHSMId struct
+func ManagedHSMID(input string) (*ManagedHSMId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceId := HardwareSecurityModuleId{
+	resourceId := ManagedHSMId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}
@@ -57,7 +57,7 @@ func HardwareSecurityModuleID(input string) (*HardwareSecurityModuleId, error) {
 		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
-	if resourceId.ManagedHSMName, err = id.PopSegment("managedHSMs"); err != nil {
+	if resourceId.Name, err = id.PopSegment("managedHSMs"); err != nil {
 		return nil, err
 	}
 

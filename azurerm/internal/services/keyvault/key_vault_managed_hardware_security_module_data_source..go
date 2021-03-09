@@ -41,7 +41,7 @@ func dataSourceKeyVaultManagedHardwareSecurityModule() *schema.Resource {
 			},
 
 			"admin_object_ids": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
@@ -79,30 +79,34 @@ func dataSourceKeyVaultManagedHardwareSecurityModuleRead(d *schema.ResourceData,
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewHardwareSecurityModuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := parse.NewManagedHSMID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ManagedHSMName)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("%s does not exist", id)
 		}
-		return fmt.Errorf("making Read request on %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
 
-	d.Set("name", id.ManagedHSMName)
+	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
+	skuName := ""
 	if sku := resp.Sku; sku != nil {
-		d.Set("sku_name", string(sku.Name))
+		skuName = string(sku.Name)
 	}
+	d.Set("sku_name", skuName)
 
 	if props := resp.Properties; props != nil {
+		tenantId := ""
 		if tid := props.TenantID; tid != nil {
-			d.Set("tenant_id", tid.String())
+			tenantId = tid.String()
 		}
+		d.Set("tenant_id", tenantId)
 		d.Set("admin_object_ids", utils.FlattenStringSlice(props.InitialAdminObjectIds))
 		d.Set("hsm_uri", props.HsmURI)
 		d.Set("purge_protection_enabled", props.EnablePurgeProtection)

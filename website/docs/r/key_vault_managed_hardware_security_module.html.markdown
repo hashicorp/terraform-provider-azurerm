@@ -47,11 +47,11 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `sku_name` - (Required) The Name of the SKU used for this Key Vault Managed Hardware Security Module. Possible value is `Standard_B1`.
-
 * `admin_object_ids` - (Required) Specifies a list of administrators object IDs for the key vault Managed Hardware Security Module.
 
-* `tenant_id` - (Required) The Azure Active Directory tenant ID that should be used for authenticating requests to the key vault Managed Hardware Security Module.
+* `sku_name` - (Required) The Name of the SKU used for this Key Vault Managed Hardware Security Module. Possible value is `Standard_B1`. Changing this forces a new resource to be created.
+
+* `tenant_id` - (Required) The Azure Active Directory Tenant ID that should be used for authenticating requests to the key vault Managed Hardware Security Module.
 
 * `purge_protection_enabled` - (Optional) Is Purge Protection enabled for this Key Vault Managed Hardware Security Module? Defaults to `false`. Changing this forces a new resource to be created.
 

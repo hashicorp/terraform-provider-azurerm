@@ -27,7 +27,7 @@ output "hsm_uri" {
 
 The following arguments are supported:
 
-* `name` - Specifies the name of the Key Vault Managed Hardware Security Module.
+* `name` - The name of the Key Vault Managed Hardware Security Module.
 
 * `resource_group_name` - The name of the Resource Group in which the Key Vault Managed Hardware Security Module exists.
 

@@ -30,7 +30,7 @@ func resourceKeyVaultManagedHardwareSecurityModule() *schema.Resource {
 		Delete: resourceArmKeyVaultManagedHardwareSecurityModuleDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.HardwareSecurityModuleID(id)
+			_, err := parse.ManagedHSMID(id)
 			return err
 		}),
 
@@ -56,6 +56,7 @@ func resourceKeyVaultManagedHardwareSecurityModule() *schema.Resource {
 			"sku_name": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(keyvault.StandardB1),
 				}, false),
@@ -108,16 +109,16 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleCreateUpdate(d *schema.Reso
 
 	log.Println("[INFO] Preparing arguments for Key Vault Managed Hardware Security Module")
 
-	id := parse.NewHardwareSecurityModuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-		existing, err := client.Get(ctx, id.ResourceGroup, id.ManagedHSMName)
+	id := parse.NewManagedHSMID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_key_vault_managed_hardware_security_module", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_key_vault_managed_hardware_security_module", id.ID())
 		}
 
 	tenantId := uuid.FromStringOrNil(d.Get("tenant_id").(string))
@@ -138,7 +139,7 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleCreateUpdate(d *schema.Reso
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ManagedHSMName, hsm)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, hsm)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -156,12 +157,12 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleRead(d *schema.ResourceData
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.HardwareSecurityModuleID(d.Id())
+	id, err := parse.ManagedHSMID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ManagedHSMName)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[ERROR] %s was not found - removing from state", id)
@@ -169,25 +170,29 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleRead(d *schema.ResourceData
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.ManagedHSMName)
+	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
+	skuName := ""
+	if sku := resp.Sku; sku != nil {
+		skuName = string(sku.Name)
+	}
+	d.Set("sku_name", skuName)
+
 	if props := resp.Properties; props != nil {
+		tenantId := ""
 		if tid := props.TenantID; tid != nil {
-			d.Set("tenant_id", tid.String())
+			tenantId = tid.String()
 		}
+		d.Set("tenant_id", tenantId)
 		d.Set("admin_object_ids", utils.FlattenStringSlice(props.InitialAdminObjectIds))
 		d.Set("hsm_uri", props.HsmURI)
 		d.Set("soft_delete_retention_days", props.SoftDeleteRetentionInDays)
 		d.Set("purge_protection_enabled", props.EnablePurgeProtection)
-	}
-
-	if sku := resp.Sku; sku != nil {
-		d.Set("sku_name", string(sku.Name))
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -198,12 +203,12 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleDelete(d *schema.ResourceDa
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.HardwareSecurityModuleID(d.Id())
+	id, err := parse.ManagedHSMID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.ManagedHSMName)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}

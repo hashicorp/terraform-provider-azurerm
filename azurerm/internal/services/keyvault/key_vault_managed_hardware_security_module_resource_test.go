@@ -85,12 +85,12 @@ func TestAccKeyVaultManagedHardwareSecurityModule_updateTags(t *testing.T) {
 }
 
 func (KeyVaultManagedHardwareSecurityModuleResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.HardwareSecurityModuleID(state.ID)
+	id, err := parse.ManagedHSMID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.KeyVault.ManagedHsmClient.Get(ctx, id.ResourceGroup, id.ManagedHSMName)
+	resp, err := clients.KeyVault.ManagedHsmClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
@@ -99,7 +99,12 @@ func (KeyVaultManagedHardwareSecurityModuleResource) Exists(ctx context.Context,
 }
 
 func (r KeyVaultManagedHardwareSecurityModuleResource) basic(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_key_vault_managed_hardware_security_module" "test" {
@@ -110,10 +115,11 @@ resource "azurerm_key_vault_managed_hardware_security_module" "test" {
   tenant_id           = data.azurerm_client_config.current.tenant_id
   admin_object_ids    = [data.azurerm_client_config.current.object_id]
 }
-`, r.template(data), data.RandomInteger)
+`, template, data.RandomInteger)
 }
 
 func (r KeyVaultManagedHardwareSecurityModuleResource) requiresImport(data acceptance.TestData) string {
+	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -125,11 +131,16 @@ resource "azurerm_key_vault_managed_hardware_security_module" "import" {
   tenant_id           = azurerm_key_vault_managed_hardware_security_module.test.tenant_id
   admin_object_ids    = azurerm_key_vault_managed_hardware_security_module.test.admin_object_ids
 }
-`, r.basic(data))
+`, template)
 }
 
 func (r KeyVaultManagedHardwareSecurityModuleResource) purgeProtectionAndSoftDelete(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_key_vault_managed_hardware_security_module" "test" {
@@ -142,11 +153,16 @@ resource "azurerm_key_vault_managed_hardware_security_module" "test" {
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   admin_object_ids           = [data.azurerm_client_config.current.object_id]
 }
-`, r.template(data), data.RandomInteger)
+`, template, data.RandomInteger)
 }
 
 func (r KeyVaultManagedHardwareSecurityModuleResource) updateTags(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_key_vault_managed_hardware_security_module" "test" {
@@ -161,15 +177,11 @@ resource "azurerm_key_vault_managed_hardware_security_module" "test" {
     Env = "Test"
   }
 }
-`, r.template(data), data.RandomInteger)
+`, template, data.RandomInteger)
 }
 
 func (KeyVaultManagedHardwareSecurityModuleResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 data "azurerm_client_config" "current" {
 }
 

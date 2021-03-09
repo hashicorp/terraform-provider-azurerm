@@ -8,21 +8,21 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
 
-var _ resourceid.Formatter = HardwareSecurityModuleId{}
+var _ resourceid.Formatter = ManagedHSMId{}
 
-func TestHardwareSecurityModuleIDFormatter(t *testing.T) {
-	actual := NewHardwareSecurityModuleID("12345678-1234-9876-4563-123456789012", "resGroup1", "hsm1").ID()
+func TestManagedHSMIDFormatter(t *testing.T) {
+	actual := NewManagedHSMID("12345678-1234-9876-4563-123456789012", "resGroup1", "hsm1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.KeyVault/managedHSMs/hsm1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestHardwareSecurityModuleID(t *testing.T) {
+func TestManagedHSMID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *HardwareSecurityModuleId
+		Expected *ManagedHSMId
 	}{
 
 		{
@@ -56,13 +56,13 @@ func TestHardwareSecurityModuleID(t *testing.T) {
 		},
 
 		{
-			// missing ManagedHSMName
+			// missing Name
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.KeyVault/",
 			Error: true,
 		},
 
 		{
-			// missing value for ManagedHSMName
+			// missing value for Name
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.KeyVault/managedHSMs/",
 			Error: true,
 		},
@@ -70,10 +70,10 @@ func TestHardwareSecurityModuleID(t *testing.T) {
 		{
 			// valid
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.KeyVault/managedHSMs/hsm1",
-			Expected: &HardwareSecurityModuleId{
+			Expected: &ManagedHSMId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:  "resGroup1",
-				ManagedHSMName: "hsm1",
+				Name:           "hsm1",
 			},
 		},
 
@@ -87,7 +87,7 @@ func TestHardwareSecurityModuleID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := HardwareSecurityModuleID(v.Input)
+		actual, err := ManagedHSMID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -105,8 +105,8 @@ func TestHardwareSecurityModuleID(t *testing.T) {
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
 			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
 		}
-		if actual.ManagedHSMName != v.Expected.ManagedHSMName {
-			t.Fatalf("Expected %q but got %q for ManagedHSMName", v.Expected.ManagedHSMName, actual.ManagedHSMName)
+		if actual.Name != v.Expected.Name {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
 		}
 	}
 }

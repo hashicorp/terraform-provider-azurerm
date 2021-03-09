@@ -4,7 +4,7 @@ package validate
 
 import "testing"
 
-func TestHardwareSecurityModuleID(t *testing.T) {
+func TestManagedHSMID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
@@ -41,13 +41,13 @@ func TestHardwareSecurityModuleID(t *testing.T) {
 		},
 
 		{
-			// missing ManagedHSMName
+			// missing Name
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.KeyVault/",
 			Valid: false,
 		},
 
 		{
-			// missing value for ManagedHSMName
+			// missing value for Name
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.KeyVault/managedHSMs/",
 			Valid: false,
 		},
@@ -66,7 +66,7 @@ func TestHardwareSecurityModuleID(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %s", tc.Input)
-		_, errors := HardwareSecurityModuleID(tc.Input, "test")
+		_, errors := ManagedHSMID(tc.Input, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {
