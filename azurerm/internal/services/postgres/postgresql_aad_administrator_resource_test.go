@@ -79,7 +79,7 @@ func (r PostgreSqlAdministratorResource) Exists(ctx context.Context, clients *cl
 
 	resp, err := clients.Postgres.ServerAdministratorsClient.Get(ctx, id.ResourceGroup, id.ServerName)
 	if err != nil {
-		return nil, fmt.Errorf("reading Postgresql AAD Adminstrator (%s): %+v", id.String(), err)
+		return nil, fmt.Errorf("reading Postgresql AAD Administrator (%s): %+v", id.String(), err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil
