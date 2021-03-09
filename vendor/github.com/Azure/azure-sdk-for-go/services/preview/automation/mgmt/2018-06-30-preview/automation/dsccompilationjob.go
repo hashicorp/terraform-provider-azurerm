@@ -23,7 +23,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
-	"github.com/satori/go.uuid"
+	"github.com/gofrs/uuid"
 	"net/http"
 )
 
@@ -55,8 +55,8 @@ func (client DscCompilationJobClient) Create(ctx context.Context, resourceGroupN
 		ctx = tracing.StartSpan(ctx, fqdn+"/DscCompilationJobClient.Create")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

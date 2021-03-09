@@ -183,6 +183,7 @@ func (client JobsClient) CreatePreparer(ctx context.Context, resourceGroupName s
 		"api-version": APIVersion,
 	}
 
+	parameters.SystemData = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -554,6 +555,7 @@ func (client JobsClient) UpdatePreparer(ctx context.Context, resourceGroupName s
 		"api-version": APIVersion,
 	}
 
+	parameters.SystemData = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),

@@ -11,6 +11,7 @@ var services = mapOf(
         "automation" to "Automation",
         "azurestackhci" to "Azure Stack HCI",
         "batch" to "Batch",
+        "billing" to "Billing",
         "blueprints" to "Blueprints",
         "bot" to "Bot",
         "cdn" to "CDN",
@@ -26,6 +27,7 @@ var services = mapOf(
         "datashare" to "Data Share",
         "databricks" to "DataBricks",
         "databasemigration" to "Database Migration",
+        "databoxedge" to "Databox Edge",
         "desktopvirtualization" to "Desktop Virtualization",
         "devtestlabs" to "Dev Test",
         "digitaltwins" to "Digital Twins",
@@ -68,6 +70,7 @@ var services = mapOf(
         "purview" to "Purview",
         "recoveryservices" to "Recovery Services",
         "redis" to "Redis",
+        "redisenterprise" to "Redis Enterprise",
         "relay" to "Relay",
         "resource" to "Resources",
         "sql" to "SQL",
@@ -84,5 +87,6 @@ var services = mapOf(
         "synapse" to "Synapse",
         "iottimeseriesinsights" to "Time Series Insights",
         "trafficmanager" to "Traffic Manager",
+        "vmware" to "Vmware",
         "web" to "Web"
 )

@@ -23,6 +23,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+const (
+	workspaceVSTSConfiguration   = "WorkspaceVSTSConfiguration"
+	workspaceGitHubConfiguration = "WorkspaceGitHubConfiguration"
+)
+
 func resourceSynapseWorkspace() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceSynapseWorkspaceCreate,
@@ -146,6 +151,78 @@ func resourceSynapseWorkspace() *schema.Resource {
 				ValidateFunc: validate.ManagedResourceGroupName(),
 			},
 
+			"azure_devops_repo": {
+				Type:          schema.TypeList,
+				Optional:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{"github_repo"},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"account_name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"branch_name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"project_name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"repository_name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"root_folder": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.RepoRootFolder(),
+						},
+					},
+				},
+			},
+
+			"github_repo": {
+				Type:          schema.TypeList,
+				Optional:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{"azure_devops_repo"},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"account_name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"branch_name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"git_url": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsURLWithHTTPS,
+						},
+						"repository_name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"root_folder": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.RepoRootFolder(),
+						},
+					},
+				},
+			},
+
 			"sql_identity_control_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -184,11 +261,12 @@ func resourceSynapseWorkspaceCreate(d *schema.ResourceData, meta interface{}) er
 	workspaceInfo := synapse.Workspace{
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		WorkspaceProperties: &synapse.WorkspaceProperties{
-			DefaultDataLakeStorage:        expandArmWorkspaceDataLakeStorageAccountDetails(d.Get("storage_data_lake_gen2_filesystem_id").(string)),
-			ManagedVirtualNetwork:         utils.String(managedVirtualNetwork),
-			SQLAdministratorLogin:         utils.String(d.Get("sql_administrator_login").(string)),
-			SQLAdministratorLoginPassword: utils.String(d.Get("sql_administrator_login_password").(string)),
-			ManagedResourceGroupName:      utils.String(d.Get("managed_resource_group_name").(string)),
+			DefaultDataLakeStorage:           expandArmWorkspaceDataLakeStorageAccountDetails(d.Get("storage_data_lake_gen2_filesystem_id").(string)),
+			ManagedVirtualNetwork:            utils.String(managedVirtualNetwork),
+			SQLAdministratorLogin:            utils.String(d.Get("sql_administrator_login").(string)),
+			SQLAdministratorLoginPassword:    utils.String(d.Get("sql_administrator_login_password").(string)),
+			ManagedResourceGroupName:         utils.String(d.Get("managed_resource_group_name").(string)),
+			WorkspaceRepositoryConfiguration: expandWorkspaceRepositoryConfiguration(d),
 		},
 		Identity: &synapse.ManagedIdentity{
 			Type: synapse.ResourceIdentityTypeSystemAssigned,
@@ -285,6 +363,17 @@ func resourceSynapseWorkspaceRead(d *schema.ResourceData, meta interface{}) erro
 		d.Set("sql_administrator_login", props.SQLAdministratorLogin)
 		d.Set("managed_resource_group_name", props.ManagedResourceGroupName)
 		d.Set("connectivity_endpoints", utils.FlattenMapStringPtrString(props.ConnectivityEndpoints))
+
+		repoType, repo := flattenWorkspaceRepositoryConfiguration(props.WorkspaceRepositoryConfiguration)
+		if repoType == workspaceVSTSConfiguration {
+			if err := d.Set("azure_devops_repo", repo); err != nil {
+				return fmt.Errorf("Error setting `azure_devops_repo`: %+v", err)
+			}
+		} else if repoType == workspaceGitHubConfiguration {
+			if err := d.Set("github_repo", repo); err != nil {
+				return fmt.Errorf("Error setting `github_repo`: %+v", err)
+			}
+		}
 	}
 	if err := d.Set("aad_admin", flattenArmWorkspaceAadAdmin(aadAdmin.AadAdminProperties)); err != nil {
 		return fmt.Errorf("setting `aad_admin`: %+v", err)
@@ -308,14 +397,13 @@ func resourceSynapseWorkspaceUpdate(d *schema.ResourceData, meta interface{}) er
 		return err
 	}
 
-	if d.HasChanges("tags", "sql_administrator_login_password") {
+	if d.HasChanges("tags", "sql_administrator_login_password", "github_repo", "azure_devops_repo") {
 		workspacePatchInfo := synapse.WorkspacePatchInfo{
 			Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
-		}
-		if d.HasChange("sql_administrator_login_password") {
-			workspacePatchInfo.WorkspacePatchProperties = &synapse.WorkspacePatchProperties{
-				SQLAdministratorLoginPassword: utils.String(d.Get("sql_administrator_login_password").(string)),
-			}
+			WorkspacePatchProperties: &synapse.WorkspacePatchProperties{
+				SQLAdministratorLoginPassword:    utils.String(d.Get("sql_administrator_login_password").(string)),
+				WorkspaceRepositoryConfiguration: expandWorkspaceRepositoryConfiguration(d),
+			},
 		}
 
 		future, err := client.Update(ctx, id.ResourceGroup, id.Name, workspacePatchInfo)
@@ -409,6 +497,34 @@ func expandArmWorkspaceAadAdmin(input []interface{}) *synapse.WorkspaceAadAdminI
 	}
 }
 
+func expandWorkspaceRepositoryConfiguration(d *schema.ResourceData) *synapse.WorkspaceRepositoryConfiguration {
+	if azdoList, ok := d.GetOk("azure_devops_repo"); ok {
+		azdo := azdoList.([]interface{})[0].(map[string]interface{})
+		return &synapse.WorkspaceRepositoryConfiguration{
+			Type:                utils.String(workspaceVSTSConfiguration),
+			AccountName:         utils.String(azdo["account_name"].(string)),
+			CollaborationBranch: utils.String(azdo["branch_name"].(string)),
+			ProjectName:         utils.String(azdo["project_name"].(string)),
+			RepositoryName:      utils.String(azdo["repository_name"].(string)),
+			RootFolder:          utils.String(azdo["root_folder"].(string)),
+		}
+	}
+
+	if githubList, ok := d.GetOk("github_repo"); ok {
+		github := githubList.([]interface{})[0].(map[string]interface{})
+		return &synapse.WorkspaceRepositoryConfiguration{
+			Type:                utils.String(workspaceGitHubConfiguration),
+			AccountName:         utils.String(github["account_name"].(string)),
+			CollaborationBranch: utils.String(github["branch_name"].(string)),
+			HostName:            utils.String(github["git_url"].(string)),
+			RepositoryName:      utils.String(github["repository_name"].(string)),
+			RootFolder:          utils.String(github["root_folder"].(string)),
+		}
+	}
+
+	return nil
+}
+
 func expandIdentityControlSQLSettings(enabled bool) *synapse.ManagedIdentitySQLControlSettingsModel {
 	var desiredState synapse.DesiredState
 	if enabled {
@@ -476,6 +592,43 @@ func flattenArmWorkspaceAadAdmin(input *synapse.AadAdminProperties) []interface{
 			"object_id": sid,
 		},
 	}
+}
+
+func flattenWorkspaceRepositoryConfiguration(config *synapse.WorkspaceRepositoryConfiguration) (repoTypeResult string, result []interface{}) {
+	if config == nil {
+		return "", make([]interface{}, 0)
+	}
+
+	if repoType := config.Type; repoType != nil {
+		repo := map[string]interface{}{}
+
+		if *repoType == workspaceVSTSConfiguration {
+			if config.ProjectName != nil {
+				repo["project_name"] = *config.ProjectName
+			}
+		} else if *repoType == workspaceGitHubConfiguration {
+			if config.HostName != nil {
+				repo["git_url"] = *config.HostName
+			}
+		}
+
+		if config.AccountName != nil {
+			repo["account_name"] = *config.AccountName
+		}
+		if config.CollaborationBranch != nil {
+			repo["branch_name"] = *config.CollaborationBranch
+		}
+		if config.RepositoryName != nil {
+			repo["repository_name"] = *config.RepositoryName
+		}
+		if config.RootFolder != nil {
+			repo["root_folder"] = *config.RootFolder
+		}
+
+		return *repoType, []interface{}{repo}
+	}
+
+	return "", make([]interface{}, 0)
 }
 
 func flattenIdentityControlSQLSettings(settings synapse.ManagedIdentitySQLControlSettingsModel) bool {

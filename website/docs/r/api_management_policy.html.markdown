@@ -17,7 +17,7 @@ Manages a API Management service Policy.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "West US"
+  location = "West Europe"
 }
 
 resource "azurerm_api_management" "example" {

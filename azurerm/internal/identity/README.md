@@ -13,7 +13,7 @@ Since Managed Identities are an optional feature - within Terarform we're exposi
 
 * `SystemAssigned`
 * `SystemAssignedUserAssigned` (coming soon)
-* `UserAssigned` (coming soon)
+* `UserAssigned`
 
 Where the block is Optional within Terraform - for consistency across the Provider we've opted to treat the absence of the `identity` block to represent "None" - and the presence of the block to indicate one of the Managed Identity types above.
 

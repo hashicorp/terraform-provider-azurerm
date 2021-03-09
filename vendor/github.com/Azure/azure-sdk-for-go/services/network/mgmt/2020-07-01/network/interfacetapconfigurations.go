@@ -54,8 +54,8 @@ func (client InterfaceTapConfigurationsClient) CreateOrUpdate(ctx context.Contex
 		ctx = tracing.StartSpan(ctx, fqdn+"/InterfaceTapConfigurationsClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -204,8 +204,8 @@ func (client InterfaceTapConfigurationsClient) Delete(ctx context.Context, resou
 		ctx = tracing.StartSpan(ctx, fqdn+"/InterfaceTapConfigurationsClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

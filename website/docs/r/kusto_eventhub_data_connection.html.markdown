@@ -15,7 +15,7 @@ Manages a Kusto (also known as Azure Data Explorer) EventHub Data Connection
 ```hcl
 resource "azurerm_resource_group" "rg" {
   name     = "my-kusto-rg"
-  location = "East US"
+  location = "West Europe"
 }
 
 resource "azurerm_kusto_cluster" "cluster" {

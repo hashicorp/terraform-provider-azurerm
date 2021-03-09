@@ -15,7 +15,7 @@ Manages an EventGrid System Topic Event Subscription.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-rg"
-  location = "West US 2"
+  location = "West Europe"
 }
 
 resource "azurerm_storage_account" "example" {
@@ -35,7 +35,7 @@ resource "azurerm_storage_queue" "example" {
   storage_account_name = azurerm_storage_account.example.name
 }
 
-resource "azurerm_system_topic" "example" {
+resource "azurerm_eventgrid_system_topic" "example" {
   name                   = "example-system-topic"
   location               = "Global"
   resource_group_name    = azurerm_resource_group.example.name
@@ -168,7 +168,7 @@ Each nested block consists of a key and a value(s) element.
 
 * `values` - (Required) Specifies an array of values to compare to when using a multiple values operator.
 
-~> **NOTE:** A maximum of 5 advanced filters are allowed.
+~> **NOTE:** A maximum of total number of advanced filter values allowed on event subscription is 25.
 
 ---
 

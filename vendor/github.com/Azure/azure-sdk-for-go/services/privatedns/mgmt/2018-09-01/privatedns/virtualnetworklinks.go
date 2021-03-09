@@ -58,8 +58,8 @@ func (client VirtualNetworkLinksClient) CreateOrUpdate(ctx context.Context, reso
 		ctx = tracing.StartSpan(ctx, fqdn+"/VirtualNetworkLinksClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -175,8 +175,8 @@ func (client VirtualNetworkLinksClient) Delete(ctx context.Context, resourceGrou
 		ctx = tracing.StartSpan(ctx, fqdn+"/VirtualNetworkLinksClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -476,8 +476,8 @@ func (client VirtualNetworkLinksClient) Update(ctx context.Context, resourceGrou
 		ctx = tracing.StartSpan(ctx, fqdn+"/VirtualNetworkLinksClient.Update")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

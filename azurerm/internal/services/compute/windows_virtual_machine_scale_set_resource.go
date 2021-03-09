@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -253,9 +253,9 @@ func resourceWindowsVirtualMachineScaleSet() *schema.Resource {
 				ForceNew: true,
 				Default:  string(compute.Manual),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.UpgradeModeAutomatic),
-					string(compute.UpgradeModeManual),
-					string(compute.UpgradeModeRolling),
+					string(compute.Automatic),
+					string(compute.Manual),
+					string(compute.Rolling),
 				}, false),
 			},
 
@@ -362,19 +362,19 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *schema.ResourceData, meta in
 	rollingUpgradePolicyRaw := d.Get("rolling_upgrade_policy").([]interface{})
 	rollingUpgradePolicy := ExpandVirtualMachineScaleSetRollingUpgradePolicy(rollingUpgradePolicyRaw)
 
-	if upgradeMode != compute.UpgradeModeAutomatic && len(automaticOSUpgradePolicyRaw) > 0 {
+	if upgradeMode != compute.Automatic && len(automaticOSUpgradePolicyRaw) > 0 {
 		return fmt.Errorf("An `automatic_os_upgrade_policy` block cannot be specified when `upgrade_mode` is not set to `Automatic`")
 	}
 
-	if upgradeMode == compute.UpgradeModeAutomatic && len(automaticOSUpgradePolicyRaw) > 0 && healthProbeId == "" {
+	if upgradeMode == compute.Automatic && len(automaticOSUpgradePolicyRaw) > 0 && healthProbeId == "" {
 		return fmt.Errorf("`healthProbeId` must be set when `upgrade_mode` is set to %q and `automatic_os_upgrade_policy` block exists", string(upgradeMode))
 	}
 
-	shouldHaveRollingUpgradePolicy := upgradeMode == compute.UpgradeModeAutomatic || upgradeMode == compute.UpgradeModeRolling
+	shouldHaveRollingUpgradePolicy := upgradeMode == compute.Automatic || upgradeMode == compute.Rolling
 	if !shouldHaveRollingUpgradePolicy && len(rollingUpgradePolicyRaw) > 0 {
 		return fmt.Errorf("A `rolling_upgrade_policy` block cannot be specified when `upgrade_mode` is set to %q", string(upgradeMode))
 	}
-	shouldHaveRollingUpgradePolicy = upgradeMode == compute.UpgradeModeRolling
+	shouldHaveRollingUpgradePolicy = upgradeMode == compute.Rolling
 	if shouldHaveRollingUpgradePolicy && len(rollingUpgradePolicyRaw) == 0 {
 		return fmt.Errorf("A `rolling_upgrade_policy` block must be specified when `upgrade_mode` is set to %q", string(upgradeMode))
 	}
@@ -451,7 +451,7 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *schema.ResourceData, meta in
 	}
 
 	enableAutomaticUpdates := d.Get("enable_automatic_updates").(bool)
-	if upgradeMode != compute.UpgradeModeAutomatic {
+	if upgradeMode != compute.Automatic {
 		virtualMachineProfile.OsProfile.WindowsConfiguration.EnableAutomaticUpdates = utils.Bool(enableAutomaticUpdates)
 	} else if !enableAutomaticUpdates {
 		return fmt.Errorf("`enable_automatic_updates` must be set to `true` when `upgrade_mode` is set to `Automatic`")
@@ -675,7 +675,7 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta in
 			windowsConfig := compute.WindowsConfiguration{}
 
 			if d.HasChange("enable_automatic_updates") {
-				if upgradeMode == compute.UpgradeModeAutomatic {
+				if upgradeMode == compute.Automatic {
 					return fmt.Errorf("`enable_automatic_updates` cannot be changed for when `upgrade_mode` is `Automatic`")
 				}
 
@@ -1023,7 +1023,7 @@ func resourceWindowsVirtualMachineScaleSetRead(d *schema.ResourceData, meta inte
 				// the API requires this is set to 'true' on submission (since it's now required for Windows VMSS's with
 				// an Automatic Upgrade Mode configured) however it actually returns false from the API..
 				// after a bunch of testing the least bad option appears to be not to set this if it's an Automatic Upgrade Mode
-				if upgradeMode != compute.UpgradeModeAutomatic {
+				if upgradeMode != compute.Automatic {
 					d.Set("enable_automatic_updates", enableAutomaticUpdates)
 				}
 
@@ -1129,7 +1129,11 @@ func resourceWindowsVirtualMachineScaleSetDelete(d *schema.ResourceData, meta in
 	}
 
 	log.Printf("[DEBUG] Deleting Windows Virtual Machine Scale Set %q (Resource Group %q)..", id.Name, id.ResourceGroup)
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	// @ArcturusZhang (mimicking from windows_virtual_machine_resource.go): sending `nil` here omits this value from being sent
+	// which matches the previous behaviour - we're only splitting this out so it's clear why
+	// TODO: support force deletion once it's out of Preview, if applicable
+	var forceDeletion *bool = nil
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name, forceDeletion)
 	if err != nil {
 		return fmt.Errorf("Error deleting Windows Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}

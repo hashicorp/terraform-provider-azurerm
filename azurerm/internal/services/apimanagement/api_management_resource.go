@@ -87,7 +87,6 @@ func resourceApiManagementService() *schema.Resource {
 			"sku_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: apimValidate.ApimSkuName(),
 			},
 
@@ -528,6 +527,35 @@ func resourceApiManagementService() *schema.Resource {
 				Computed: true,
 			},
 
+			"tenant_access": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Required: true,
+						},
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"primary_key": {
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+						"secondary_key": {
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+					},
+				},
+			},
+
 			"tags": tags.Schema(),
 		},
 
@@ -702,6 +730,19 @@ func resourceApiManagementServiceCreateUpdate(d *schema.ResourceData, meta inter
 		}
 	}
 
+	tenantAccessRaw := d.Get("tenant_access").([]interface{})
+	if sku.Name == apimanagement.SkuTypeConsumption && len(tenantAccessRaw) > 0 {
+		return fmt.Errorf("`tenant_access` is not supported for sku tier `Consumption`")
+	}
+	if sku.Name != apimanagement.SkuTypeConsumption && d.HasChange("tenant_access") {
+		tenantAccessInformationParametersRaw := d.Get("tenant_access").([]interface{})
+		tenantAccessInformationParameters := expandApiManagementTenantAccessSettings(tenantAccessInformationParametersRaw)
+		tenantAccessClient := meta.(*clients.Client).ApiManagement.TenantAccessClient
+		if _, err := tenantAccessClient.Update(ctx, resourceGroup, name, tenantAccessInformationParameters, ""); err != nil {
+			return fmt.Errorf(" updating tenant access settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+	}
+
 	return resourceApiManagementServiceRead(d, meta)
 }
 
@@ -709,6 +750,7 @@ func resourceApiManagementServiceRead(d *schema.ResourceData, meta interface{}) 
 	client := meta.(*clients.Client).ApiManagement.ServiceClient
 	signInClient := meta.(*clients.Client).ApiManagement.SignInClient
 	signUpClient := meta.(*clients.Client).ApiManagement.SignUpClient
+	tenantAccessClient := meta.(*clients.Client).ApiManagement.TenantAccessClient
 	environment := meta.(*clients.Client).Account.Environment
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -822,6 +864,16 @@ func resourceApiManagementServiceRead(d *schema.ResourceData, meta interface{}) 
 	} else {
 		d.Set("sign_in", []interface{}{})
 		d.Set("sign_up", []interface{}{})
+	}
+
+	if resp.Sku.Name != apimanagement.SkuTypeConsumption {
+		tenantAccessInformationContract, err := tenantAccessClient.ListSecrets(ctx, resourceGroup, name)
+		if err != nil {
+			return fmt.Errorf("retrieving tenant access properties for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+		if err := d.Set("tenant_access", flattenApiManagementTenantAccessSettings(tenantAccessInformationContract)); err != nil {
+			return fmt.Errorf("setting `tenant_access`: %+v", err)
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -1598,4 +1650,39 @@ func flattenApiManagementPolicies(d *schema.ResourceData, input apimanagement.Po
 	}
 
 	return []interface{}{output}
+}
+
+func expandApiManagementTenantAccessSettings(input []interface{}) apimanagement.AccessInformationUpdateParameters {
+	enabled := false
+
+	if len(input) > 0 {
+		vs := input[0].(map[string]interface{})
+		enabled = vs["enabled"].(bool)
+	}
+
+	return apimanagement.AccessInformationUpdateParameters{
+		AccessInformationUpdateParameterProperties: &apimanagement.AccessInformationUpdateParameterProperties{
+			Enabled: utils.Bool(enabled),
+		},
+	}
+}
+
+func flattenApiManagementTenantAccessSettings(input apimanagement.AccessInformationContract) []interface{} {
+	result := make(map[string]interface{})
+
+	result["enabled"] = *input.Enabled
+
+	if input.ID != nil {
+		result["tenant_id"] = *input.ID
+	}
+
+	if input.PrimaryKey != nil {
+		result["primary_key"] = *input.PrimaryKey
+	}
+
+	if input.SecondaryKey != nil {
+		result["secondary_key"] = *input.SecondaryKey
+	}
+
+	return []interface{}{result}
 }

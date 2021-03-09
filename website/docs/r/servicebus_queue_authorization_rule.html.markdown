@@ -15,7 +15,7 @@ Manages an Authorization Rule for a ServiceBus Queue.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "terraform-servicebus"
-  location = "West US"
+  location = "West Europe"
 }
 
 resource "azurerm_servicebus_namespace" "example" {

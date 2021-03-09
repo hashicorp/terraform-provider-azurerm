@@ -63,6 +63,21 @@ func TestAccResourceGroupTemplateDeployment_incremental(t *testing.T) {
 	})
 }
 
+func TestAccResourceGroupTemplateDeployment_singleItemIncorrectCasing(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
+	r := ResourceGroupTemplateDeploymentResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.singleItemWithIncorrectCasingConfig(data, "first"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccResourceGroupTemplateDeployment_singleItemUpdatingParams(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
 	r := ResourceGroupTemplateDeploymentResource{}
@@ -262,6 +277,73 @@ resource "azurerm_resource_group_template_deployment" "test" {
 TEMPLATE
 }
 `, data.RandomInteger, data.Locations.Primary, deploymentMode)
+}
+
+func (ResourceGroupTemplateDeploymentResource) singleItemWithIncorrectCasingConfig(data acceptance.TestData, value string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestrg-%d"
+  location = %q
+}
+
+resource "azurerm_resource_group_template_deployment" "test" {
+  name                = "acctest"
+  resource_group_name = azurerm_resource_group.test.name
+  deployment_mode     = "Complete"
+
+  template_content = <<TEMPLATE
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "someParam": {
+      "type": "String",
+      "allowedValues": [
+        "first",
+        "second",
+        "third"
+      ]
+    }
+  },
+  "variables": {},
+  "resources": [
+    {
+      "type": "microsoft.insights/actionGroups",
+      "apiVersion": "2019-06-01",
+      "name": "acctestTemplateDeployAG-%d",
+      "location": "Global",
+      "dependsOn": [],
+      "tags": {},
+      "properties": {
+        "groupShortName": "rick-c137",
+        "enabled": true,
+        "emailReceivers": [
+          {
+            "name": "Rick Sanchez",
+            "emailAddress": "rick@example.com"
+          }
+        ],
+        "smsReceivers": [],
+        "webhookReceivers": []
+      }
+    }
+  ]
+}
+TEMPLATE
+
+  parameters_content = <<PARAM
+{
+  "someParam": {
+   "value": %q
+  }
+}
+PARAM
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, value)
 }
 
 func (ResourceGroupTemplateDeploymentResource) singleItemWithParameterConfig(data acceptance.TestData, value string) string {

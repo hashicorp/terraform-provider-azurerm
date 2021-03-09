@@ -10,6 +10,8 @@ description: |-
 
 Manages a Managed Kubernetes Cluster (also known as AKS / Azure Kubernetes Service)
 
+-> **Note:** Due to the fast-moving nature of AKS, we recommend using the latest version of the Azure Provider when using AKS - you can find [the latest version of the Azure Provider here](https://registry.terraform.io/providers/hashicorp/azurerm/latest).
+
 ~> **Note:** All arguments including the client secret will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 
 ## Example Usage
@@ -72,6 +74,14 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 ---
 
+* `automatic_channel_upgrade` - (Optional) The upgrade channel for this Kubernetes Cluster. Possible values are `none`, `patch`, `rapid`, and `stable`. The default value is `none`.
+
+!> **Note:** Cluster Auto-Upgrade will update the Kubernetes Cluster (and it's Node Pools) to the latest GA version of Kubernetes automatically - please [see the Azure documentation for more information](https://docs.microsoft.com/en-us/azure/aks/upgrade-cluster#set-auto-upgrade-channel-preview).
+
+-> **Note:** Cluster Auto-Upgrade only updates to GA versions of Kubernetes and will not update to Preview versions.
+
+~> **NOTE:** Auto upgrade channel is in Public Preview - more information and details on how to opt into the Preview [can be found in this article](https://docs.microsoft.com/en-us/azure/aks/upgrade-cluster#set-auto-upgrade-channel-preview).
+
 * `addon_profile` - (Optional) A `addon_profile` block as defined below.
 
 * `api_server_authorized_ip_ranges` - (Optional) The IP ranges to whitelist for incoming traffic to the masters.
@@ -100,14 +110,14 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `private_cluster_enabled` - Should this Kubernetes Cluster have its API server only exposed on internal IP addresses? This provides a Private IP Address for the Kubernetes API on the Virtual Network where the Kubernetes Cluster is located. Defaults to `false`. Changing this forces a new resource to be created.
 
-* `private_dns_zone_id` - (Optional) Either the ID of Private DNS Zone which should be delegated to this Cluster, or `System` to have AKS manage this.
+* `private_dns_zone_id` - (Optional) Either the ID of Private DNS Zone which should be delegated to this Cluster, `System` to have AKS manage this or `None`. In case of `None` you will need to bring your own DNS server and set up resolving, otherwise cluster will have issues after provisioning.
 
--> **NOTE:** If you use BYO DNS Zone, AKS cluster should use identity type `UserAssigned` with `Private DNS Zone Contributor` role assigned to this identity for the zone. Next to it to prevent improper resource order destruction - cluster should depend on the role assignment, like in this example:
+-> **NOTE:** If you use BYO DNS Zone, AKS cluster should either use a User Assigned Identity or a service principal (which is deprecated) with the `Private DNS Zone Contributor` role and access to this Private DNS Zone. If `UserAssigned` identity is used - to prevent improper resource order destruction - cluster should depend on the role assignment, like in this example:
 
 ```
 resource "azurerm_resource_group" "example" {
   name     = "example"
-  location = "eastus2"
+  location = "West Europe"
 }
 
 resource "azurerm_private_dns_zone" "example" {
@@ -134,14 +144,14 @@ resource "azurerm_kubernetes_cluster" "example" {
   dns_prefix              = "aksexamplednsprefix1"
   private_cluster_enabled = true
   private_dns_zone_id     = azurerm_private_dns_zone.example.id
-  
+
   ... rest of configuration omitted for brevity
-  
+
   depends_on = [
     azurerm_role_assignment.example,
   ]
 }
-  
+
 ```
 
 * `role_based_access_control` - (Optional) A `role_based_access_control` block. Changing this forces a new resource to be created.
@@ -299,7 +309,9 @@ A `default_node_pool` block supports the following:
 
 * `tags` - (Optional) A mapping of tags to assign to the Node Pool.
 
-~> At this time there's a bug in the AKS API where Tags for a Node Pool are not stored in the correct case - you [may wish to use Terraform's `ignore_changes` functionality to ignore changes to the casing](https://www.terraform.io/docs/configuration/resources.html#ignore_changes) until this is fixed in the AKS API. 
+~> At this time there's a bug in the AKS API where Tags for a Node Pool are not stored in the correct case - you [may wish to use Terraform's `ignore_changes` functionality to ignore changes to the casing](https://www.terraform.io/docs/configuration/resources.html#ignore_changes) until this is fixed in the AKS API.
+
+* `upgrade_settings` - (Optional) A `upgrade_settings` block as documented below.
 
 * `vnet_subnet_id` - (Optional) The ID of a Subnet where the Kubernetes Node Pool should exist. Changing this forces a new resource to be created.
 
@@ -446,6 +458,13 @@ A `windows_profile` block supports the following:
 
 * `admin_password` - (Required) The Admin Password for Windows VMs. Length must be between 14 and 123 characters.
 
+---
+
+A `upgrade_settings` block supports the following:
+
+* `max_surge` - (Required) The maximum number or percentage of nodes which will be added to the Node Pool size during an upgrade.
+
+-> **Note:** If a percentage is provided, the number of surge nodes is calculated from the `node_count` value on the current cluster. Node surge can allow a cluster to have more nodes than `max_count` during an upgrade. Ensure that your cluster has enough [IP space](https://docs.microsoft.com/en-us/azure/aks/upgrade-cluster#customize-node-surge-upgrade) during an upgrade.
 
 ## Attributes Reference
 
@@ -531,13 +550,12 @@ The `kube_admin_config` and `kube_config` blocks export the following:
 
 ```
 provider "kubernetes" {
-  load_config_file       = "false"
   host                   = azurerm_kubernetes_cluster.main.kube_config.0.host
   username               = azurerm_kubernetes_cluster.main.kube_config.0.username
   password               = azurerm_kubernetes_cluster.main.kube_config.0.password
-  client_certificate     = "${base64decode(azurerm_kubernetes_cluster.main.kube_config.0.client_certificate)}"
-  client_key             = "${base64decode(azurerm_kubernetes_cluster.main.kube_config.0.client_key)}"
-  cluster_ca_certificate = "${base64decode(azurerm_kubernetes_cluster.main.kube_config.0.cluster_ca_certificate)}"
+  client_certificate     = base64decode(azurerm_kubernetes_cluster.main.kube_config.0.client_certificate)
+  client_key             = base64decode(azurerm_kubernetes_cluster.main.kube_config.0.client_key)
+  cluster_ca_certificate = base64decode(azurerm_kubernetes_cluster.main.kube_config.0.cluster_ca_certificate)
 }
 ```
 

@@ -92,6 +92,44 @@ func TestAccSynapseWorkspace_update(t *testing.T) {
 	})
 }
 
+func TestAccSynapseWorkspace_azdo(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_synapse_workspace", "test")
+	r := SynapseWorkspaceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.azdo(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("azure_devops_repo.0.account_name").HasValue("myorg"),
+				check.That(data.ResourceName).Key("azure_devops_repo.0.project_name").HasValue("myproj"),
+				check.That(data.ResourceName).Key("azure_devops_repo.0.repository_name").HasValue("myrepo"),
+				check.That(data.ResourceName).Key("azure_devops_repo.0.branch_name").HasValue("dev"),
+				check.That(data.ResourceName).Key("azure_devops_repo.0.root_folder").HasValue("/"),
+			),
+		},
+	})
+}
+
+func TestAccSynapseWorkspace_github(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_synapse_workspace", "test")
+	r := SynapseWorkspaceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.github(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("github_repo.0.account_name").HasValue("myuser"),
+				check.That(data.ResourceName).Key("github_repo.0.git_url").HasValue("https://github.mydomain.com"),
+				check.That(data.ResourceName).Key("github_repo.0.repository_name").HasValue("myrepo"),
+				check.That(data.ResourceName).Key("github_repo.0.branch_name").HasValue("dev"),
+				check.That(data.ResourceName).Key("github_repo.0.root_folder").HasValue("/"),
+			),
+		},
+	})
+}
+
 func (r SynapseWorkspaceResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.WorkspaceID(state.ID)
 	if err != nil {
@@ -189,6 +227,54 @@ resource "azurerm_synapse_workspace" "test" {
 
   tags = {
     ENV = "Test2"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r SynapseWorkspaceResource) azdo(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_synapse_workspace" "test" {
+  name                                 = "acctestsw%d"
+  resource_group_name                  = azurerm_resource_group.test.name
+  location                             = azurerm_resource_group.test.location
+  storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
+  sql_administrator_login              = "sqladminuser"
+  sql_administrator_login_password     = "H@Sh1CoR3!"
+
+  azure_devops_repo {
+    account_name    = "myorg"
+    project_name    = "myproj"
+    repository_name = "myrepo"
+    branch_name     = "dev"
+    root_folder     = "/"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r SynapseWorkspaceResource) github(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_synapse_workspace" "test" {
+  name                                 = "acctestsw%d"
+  resource_group_name                  = azurerm_resource_group.test.name
+  location                             = azurerm_resource_group.test.location
+  storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
+  sql_administrator_login              = "sqladminuser"
+  sql_administrator_login_password     = "H@Sh1CoR3!"
+
+  github_repo {
+    account_name    = "myuser"
+    git_url         = "https://github.mydomain.com"
+    repository_name = "myrepo"
+    branch_name     = "dev"
+    root_folder     = "/"
   }
 }
 `, template, data.RandomInteger)

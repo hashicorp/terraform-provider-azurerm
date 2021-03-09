@@ -59,8 +59,8 @@ func (client ManagedInstanceAzureADOnlyAuthenticationsClient) CreateOrUpdate(ctx
 		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedInstanceAzureADOnlyAuthenticationsClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -171,8 +171,8 @@ func (client ManagedInstanceAzureADOnlyAuthenticationsClient) Delete(ctx context
 		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedInstanceAzureADOnlyAuthenticationsClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

@@ -55,8 +55,8 @@ func (client ReplicationProtectionContainerMappingsClient) Create(ctx context.Co
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationProtectionContainerMappingsClient.Create")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -163,8 +163,8 @@ func (client ReplicationProtectionContainerMappingsClient) Delete(ctx context.Co
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationProtectionContainerMappingsClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -574,8 +574,8 @@ func (client ReplicationProtectionContainerMappingsClient) Purge(ctx context.Con
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationProtectionContainerMappingsClient.Purge")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -669,8 +669,8 @@ func (client ReplicationProtectionContainerMappingsClient) Update(ctx context.Co
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationProtectionContainerMappingsClient.Update")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

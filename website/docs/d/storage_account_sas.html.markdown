@@ -21,7 +21,7 @@ and *not* a [Service SAS](https://docs.microsoft.com/en-us/rest/api/storageservi
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "resourceGroupName"
-  location = "westus"
+  location = "West Europe"
 }
 
 resource "azurerm_storage_account" "example" {

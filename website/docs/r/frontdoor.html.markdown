@@ -22,7 +22,7 @@ Below are some of the key scenarios that Azure Front Door Service addresses:
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "FrontDoorExampleResourceGroup"
-  location = "EastUS2"
+  location = "West Europe"
 }
 
 resource "azurerm_frontdoor" "example" {
@@ -82,6 +82,8 @@ The following arguments are supported:
 * `resource_group_name` - (Required) Specifies the name of the Resource Group in which the Front Door service should exist. Changing this forces a new resource to be created.
 
 * `backend_pool` - (Required) A `backend_pool` block as defined below.
+
+-> Azure by default allows specifying up to 50 Backend Pools - but this quota can be increased via Microsoft Support.
 
 * `backend_pool_health_probe` - (Required) A `backend_pool_health_probe` block as defined below.
 
@@ -211,7 +213,7 @@ The `forwarding_configuration` block supports the following:
 
 * `cache_use_dynamic_compression` - (Optional) Whether to use dynamic compression when caching. Valid options are `true` or `false`. Defaults to `false`.
 
-* `cache_query_parameter_strip_directive` - (Optional) Defines cache behaviour in releation to query string parameters. Valid options are `StripAll` or `StripNone`. Defaults to `StripAll`.
+* `cache_query_parameter_strip_directive` - (Optional) Defines cache behaviour in relation to query string parameters. Valid options are `StripAll` or `StripNone`. Defaults to `StripAll`.
 
 * `custom_forwarding_path` - (Optional) Path to use when constructing the request to forward to the backend. This functions as a URL Rewrite. Default behaviour preserves the URL path.
 

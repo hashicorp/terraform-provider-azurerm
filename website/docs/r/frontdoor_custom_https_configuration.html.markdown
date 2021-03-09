@@ -19,7 +19,7 @@ Manages the Custom Https Configuration for an Azure Front Door Frontend Endpoint
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "FrontDoorExampleResourceGroup"
-  location = "EastUS2"
+  location = "West Europe"
 }
 
 data "azurerm_key_vault" "vault" {

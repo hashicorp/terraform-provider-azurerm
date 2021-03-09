@@ -52,8 +52,8 @@ func (client ExpressRouteCrossConnectionsClient) CreateOrUpdate(ctx context.Cont
 		ctx = tracing.StartSpan(ctx, fqdn+"/ExpressRouteCrossConnectionsClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -348,8 +348,8 @@ func (client ExpressRouteCrossConnectionsClient) ListArpTable(ctx context.Contex
 		ctx = tracing.StartSpan(ctx, fqdn+"/ExpressRouteCrossConnectionsClient.ListArpTable")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -570,8 +570,8 @@ func (client ExpressRouteCrossConnectionsClient) ListRoutesTable(ctx context.Con
 		ctx = tracing.StartSpan(ctx, fqdn+"/ExpressRouteCrossConnectionsClient.ListRoutesTable")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -676,8 +676,8 @@ func (client ExpressRouteCrossConnectionsClient) ListRoutesTableSummary(ctx cont
 		ctx = tracing.StartSpan(ctx, fqdn+"/ExpressRouteCrossConnectionsClient.ListRoutesTableSummary")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

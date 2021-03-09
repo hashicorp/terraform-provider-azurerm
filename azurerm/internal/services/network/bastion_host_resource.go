@@ -12,7 +12,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -23,9 +25,11 @@ func resourceBastionHost() *schema.Resource {
 		Read:   resourceBastionHostRead,
 		Update: resourceBastionHostCreateUpdate,
 		Delete: resourceBastionHostDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.BastionHostID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -139,26 +143,23 @@ func resourceBastionHostRead(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.BastionHostID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	name := id.Path["bastionHosts"]
-	resourceGroup := id.ResourceGroup
-
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
-			log.Printf("[DEBUG] Bastion Host %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
+			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			return nil
 		}
-		return fmt.Errorf("Error reading the state of Bastion Host %q: %+v", name, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -182,22 +183,19 @@ func resourceBastionHostDelete(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.BastionHostID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	name := id.Path["bastionHosts"]
-	resourceGroup := id.ResourceGroup
-
-	future, err := client.Delete(ctx, resourceGroup, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Bastion Host %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error waiting for deletion of Bastion Host %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 		}
 	}
 

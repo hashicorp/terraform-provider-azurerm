@@ -23,7 +23,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/Azure/go-autorest/tracing"
-	"github.com/satori/go.uuid"
+	"github.com/gofrs/uuid"
 	"net/http"
 )
 
@@ -139,8 +139,8 @@ func (client JobExecutionsClient) Create(ctx context.Context, resourceGroupName 
 		ctx = tracing.StartSpan(ctx, fqdn+"/JobExecutionsClient.Create")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -246,8 +246,8 @@ func (client JobExecutionsClient) CreateOrUpdate(ctx context.Context, resourceGr
 		ctx = tracing.StartSpan(ctx, fqdn+"/JobExecutionsClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

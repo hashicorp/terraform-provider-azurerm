@@ -152,7 +152,7 @@ func resourceFrontDoorFirewallPolicy() *schema.Resource {
 						"match_condition": {
 							Type:     schema.TypeList,
 							Optional: true,
-							MaxItems: 100,
+							MaxItems: 10,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"match_variable": {
@@ -174,10 +174,10 @@ func resourceFrontDoorFirewallPolicy() *schema.Resource {
 									"match_values": {
 										Type:     schema.TypeList,
 										Required: true,
-										MaxItems: 100,
+										MaxItems: 600,
 										Elem: &schema.Schema{
 											Type:         schema.TypeString,
-											ValidateFunc: validation.StringIsNotEmpty,
+											ValidateFunc: validation.StringLenBetween(1, 256),
 										},
 									},
 

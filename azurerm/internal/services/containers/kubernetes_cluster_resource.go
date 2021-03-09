@@ -474,6 +474,7 @@ func resourceKubernetesCluster() *schema.Resource {
 					privateDnsValidate.PrivateDnsZoneID,
 					validation.StringInSlice([]string{
 						"System",
+						"None",
 					}, false),
 				),
 			},
@@ -599,10 +600,20 @@ func resourceKubernetesCluster() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Sensitive:    true,
-							ValidateFunc: validation.StringLenBetween(14, 123),
+							ValidateFunc: validation.StringLenBetween(8, 123),
 						},
 					},
 				},
+			},
+
+			"automatic_channel_upgrade": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(containerservice.UpgradeChannelPatch),
+					string(containerservice.UpgradeChannelRapid),
+					string(containerservice.UpgradeChannelStable),
+				}, false),
 			},
 
 			// Computed
@@ -813,6 +824,12 @@ func resourceKubernetesClusterCreate(d *schema.ResourceData, meta interface{}) e
 		Tags: tags.Expand(t),
 	}
 
+	if v := d.Get("automatic_channel_upgrade").(string); v != "" {
+		parameters.ManagedClusterProperties.AutoUpgradeProfile = &containerservice.ManagedClusterAutoUpgradeProfile{
+			UpgradeChannel: containerservice.UpgradeChannel(v),
+		}
+	}
+
 	managedClusterIdentityRaw := d.Get("identity").([]interface{})
 	servicePrincipalProfileRaw := d.Get("service_principal").([]interface{})
 
@@ -827,17 +844,19 @@ func resourceKubernetesClusterCreate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
+	servicePrincipalSet := false
 	if len(servicePrincipalProfileRaw) > 0 {
 		servicePrincipalProfileVal := servicePrincipalProfileRaw[0].(map[string]interface{})
 		parameters.ManagedClusterProperties.ServicePrincipalProfile = &containerservice.ManagedClusterServicePrincipalProfile{
 			ClientID: utils.String(servicePrincipalProfileVal["client_id"].(string)),
 			Secret:   utils.String(servicePrincipalProfileVal["client_secret"].(string)),
 		}
+		servicePrincipalSet = true
 	}
 
 	if v, ok := d.GetOk("private_dns_zone_id"); ok {
-		if parameters.Identity == nil || (v.(string) != "System" && parameters.Identity.Type != containerservice.ResourceIdentityTypeUserAssigned) {
-			return fmt.Errorf("a user assigned identity must be used when using a custom private dns zone")
+		if (parameters.Identity == nil && !servicePrincipalSet) || (v.(string) != "System" && (!servicePrincipalSet && parameters.Identity.Type != containerservice.ResourceIdentityTypeUserAssigned)) {
+			return fmt.Errorf("a user assigned identity or a service principal must be used when using a custom private dns zone")
 		}
 		apiAccessProfile.PrivateDNSZone = utils.String(v.(string))
 	}
@@ -1112,6 +1131,20 @@ func resourceKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}) e
 		existing.Sku.Tier = containerservice.ManagedClusterSKUTier(d.Get("sku_tier").(string))
 	}
 
+	if d.HasChange("automatic_channel_upgrade") {
+		updateCluster = true
+		if existing.ManagedClusterProperties.AutoUpgradeProfile == nil {
+			existing.ManagedClusterProperties.AutoUpgradeProfile = &containerservice.ManagedClusterAutoUpgradeProfile{}
+		}
+
+		channel := containerservice.UpgradeChannelNone
+		if v := d.Get("automatic_channel_upgrade").(string); v != "" {
+			channel = containerservice.UpgradeChannel(v)
+		}
+
+		existing.ManagedClusterProperties.AutoUpgradeProfile.UpgradeChannel = channel
+	}
+
 	if updateCluster {
 		log.Printf("[DEBUG] Updating the Kubernetes Cluster %q (Resource Group %q)..", id.ManagedClusterName, id.ResourceGroup)
 		future, err := clusterClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ManagedClusterName, existing)
@@ -1232,6 +1265,12 @@ func resourceKubernetesClusterRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("kubernetes_version", props.KubernetesVersion)
 		d.Set("node_resource_group", props.NodeResourceGroup)
 		d.Set("enable_pod_security_policy", props.EnablePodSecurityPolicy)
+
+		upgradeChannel := ""
+		if profile := props.AutoUpgradeProfile; profile != nil && profile.UpgradeChannel != containerservice.UpgradeChannelNone {
+			upgradeChannel = string(profile.UpgradeChannel)
+		}
+		d.Set("automatic_channel_upgrade", upgradeChannel)
 
 		// TODO: 2.0 we should introduce a access_profile block to match the new API design,
 		if accessProfile := props.APIServerAccessProfile; accessProfile != nil {

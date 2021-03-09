@@ -27,6 +27,8 @@ var kubernetesOtherTests = map[string]func(t *testing.T){
 	"privateClusterOff":              testAccKubernetesCluster_privateClusterOff,
 	"privateClusterPrivateDNS":       testAccKubernetesCluster_privateClusterOnWithPrivateDNSZone,
 	"privateClusterPrivateDNSSystem": testAccKubernetesCluster_privateClusterOnWithPrivateDNSZoneSystem,
+	"privateClusterPrivateDNSAndSP":  testAccKubernetesCluster_privateClusterOnWithPrivateDNSZoneAndServicePrincipal,
+	"upgradeChannel":                 testAccKubernetesCluster_upgradeChannel,
 }
 
 func TestAccKubernetesCluster_basicAvailabilitySet(t *testing.T) {
@@ -405,6 +407,56 @@ func testAccKubernetesCluster_diskEncryption(t *testing.T) {
 		data.ImportStep(
 			"windows_profile.0.admin_password",
 		),
+	})
+}
+
+func TestAccKubernetesCluster_upgradeChannel(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccKubernetesCluster_upgradeChannel(t)
+}
+
+func testAccKubernetesCluster_upgradeChannel(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.upgradeChannelConfig(data, olderKubernetesVersion, "rapid"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kubernetes_version").HasValue(olderKubernetesVersion),
+				check.That(data.ResourceName).Key("automatic_channel_upgrade").HasValue("rapid"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.upgradeChannelConfig(data, olderKubernetesVersion, "patch"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kubernetes_version").HasValue(olderKubernetesVersion),
+				check.That(data.ResourceName).Key("automatic_channel_upgrade").HasValue("patch"),
+			),
+		},
+		data.ImportStep(),
+		{
+			// unset = none
+			Config: r.upgradeChannelConfig(data, olderKubernetesVersion, ""),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kubernetes_version").HasValue(olderKubernetesVersion),
+				check.That(data.ResourceName).Key("automatic_channel_upgrade").HasValue(""),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.upgradeChannelConfig(data, olderKubernetesVersion, "stable"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kubernetes_version").HasValue(olderKubernetesVersion),
+				check.That(data.ResourceName).Key("automatic_channel_upgrade").HasValue("stable"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -1176,4 +1228,42 @@ resource "azurerm_kubernetes_cluster" "test" {
 
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) upgradeChannelConfig(data acceptance.TestData, controlPlaneVersion string, upgradeChannel string) string {
+	if upgradeChannel != "" {
+		upgradeChannel = fmt.Sprintf("%q", upgradeChannel)
+	} else {
+		upgradeChannel = "null"
+	}
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                      = "acctestaks%d"
+  location                  = azurerm_resource_group.test.location
+  resource_group_name       = azurerm_resource_group.test.name
+  dns_prefix                = "acctestaks%d"
+  kubernetes_version        = %q
+  automatic_channel_upgrade = %s
+
+  default_node_pool {
+    name       = "default"
+    vm_size    = "Standard_DS2_v2"
+    node_count = 1
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion, upgradeChannel)
 }

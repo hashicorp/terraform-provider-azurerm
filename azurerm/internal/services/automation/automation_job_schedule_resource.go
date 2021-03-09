@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2018-06-30-preview/automation"
+	"github.com/gofrs/uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	uuid "github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -109,7 +109,10 @@ func resourceAutomationJobScheduleCreate(d *schema.ResourceData, meta interface{
 	runbookName := d.Get("runbook_name").(string)
 	scheduleName := d.Get("schedule_name").(string)
 
-	jobScheduleUUID := uuid.NewV4()
+	jobScheduleUUID, err := uuid.NewV4()
+	if err != nil {
+		return err
+	}
 	if jobScheduleID, ok := d.GetOk("job_schedule_id"); ok {
 		jobScheduleUUID = uuid.FromStringOrNil(jobScheduleID.(string))
 	}

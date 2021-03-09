@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/azurestackhci"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/billing"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/blueprints"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn"
@@ -22,6 +23,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/costmanagement"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/customproviders"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databasemigration"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databoxedge"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake"
@@ -71,6 +73,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/purview"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/recoveryservices"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redisenterprise"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/search"
@@ -87,6 +90,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/subscription"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/synapse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/trafficmanager"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/vmware"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web"
 )
 
@@ -113,6 +117,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 		automation.Registration{},
 		azurestackhci.Registration{},
 		batch.Registration{},
+		billing.Registration{},
 		blueprints.Registration{},
 		bot.Registration{},
 		cdn.Registration{},
@@ -126,6 +131,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 		datafactory.Registration{},
 		datalake.Registration{},
 		databasemigration.Registration{},
+		databoxedge.Registration{},
 		datashare.Registration{},
 		desktopvirtualization.Registration{},
 		devspace.Registration{},
@@ -171,6 +177,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 		purview.Registration{},
 		recoveryservices.Registration{},
 		redis.Registration{},
+		redisenterprise.Registration{},
 		relay.Registration{},
 		resource.Registration{},
 		search.Registration{},
@@ -187,6 +194,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 		synapse.Registration{},
 		iottimeseriesinsights.Registration{},
 		trafficmanager.Registration{},
+		vmware.Registration{},
 		web.Registration{},
 	}
 }

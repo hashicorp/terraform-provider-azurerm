@@ -53,8 +53,8 @@ func (client LoadBalancerBackendAddressPoolsClient) CreateOrUpdate(ctx context.C
 		ctx = tracing.StartSpan(ctx, fqdn+"/LoadBalancerBackendAddressPoolsClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -160,8 +160,8 @@ func (client LoadBalancerBackendAddressPoolsClient) Delete(ctx context.Context, 
 		ctx = tracing.StartSpan(ctx, fqdn+"/LoadBalancerBackendAddressPoolsClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

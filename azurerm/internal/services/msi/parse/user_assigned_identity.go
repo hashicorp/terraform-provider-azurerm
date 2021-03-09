@@ -67,3 +67,47 @@ func UserAssignedIdentityID(input string) (*UserAssignedIdentityId, error) {
 
 	return &resourceId, nil
 }
+
+// UserAssignedIdentityIDInsensitively parses an UserAssignedIdentity ID into an UserAssignedIdentityId struct, insensitively
+// This should only be used to parse an ID for rewriting, the UserAssignedIdentityID
+// method should be used instead for validation etc.
+//
+// Whilst this may seem strange, this enables Terraform have consistent casing
+// which works around issues in Core, whilst handling broken API responses.
+func UserAssignedIdentityIDInsensitively(input string) (*UserAssignedIdentityId, error) {
+	id, err := azure.ParseAzureResourceID(input)
+	if err != nil {
+		return nil, err
+	}
+
+	resourceId := UserAssignedIdentityId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	// find the correct casing for the 'userAssignedIdentities' segment
+	userAssignedIdentitiesKey := "userAssignedIdentities"
+	for key := range id.Path {
+		if strings.EqualFold(key, userAssignedIdentitiesKey) {
+			userAssignedIdentitiesKey = key
+			break
+		}
+	}
+	if resourceId.Name, err = id.PopSegment(userAssignedIdentitiesKey); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &resourceId, nil
+}
