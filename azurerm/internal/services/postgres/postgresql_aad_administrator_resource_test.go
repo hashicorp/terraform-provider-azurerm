@@ -92,7 +92,7 @@ func (r PostgreSqlAdministratorResource) Destroy(ctx context.Context, client *cl
 	}
 
 	if _, err := client.Postgres.ServerAdministratorsClient.Delete(ctx, id.ResourceGroup, id.ServerName); err != nil {
-		return nil, fmt.Errorf("deleting Postgresql AAD Adminstrator (%s): %+v", id.String(), err)
+		return nil, fmt.Errorf("deleting Postgresql AAD Administrator (%s): %+v", id.String(), err)
 	}
 
 	return utils.Bool(true), nil
