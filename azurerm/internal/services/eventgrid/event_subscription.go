@@ -891,7 +891,9 @@ func expandEventGridEventSubscriptionRetryPolicy(d *schema.ResourceData) *eventg
 
 func expandIdentity(input []interface{}) *eventgrid.EventSubscriptionIdentity {
 	if len(input) == 0 || input[0] == nil {
-		return nil
+		return &eventgrid.EventSubscriptionIdentity{
+			Type: eventgrid.EventSubscriptionIdentityType("None"),
+		}
 	}
 	identity := input[0].(map[string]interface{})
 	identityType := eventgrid.EventSubscriptionIdentityType(identity["type"].(string))
@@ -1188,7 +1190,7 @@ func flattenValues(inputKey *string, inputValues *[]interface{}) map[string]inte
 }
 
 func flattenIdentity(input *eventgrid.EventSubscriptionIdentity) []interface{} {
-	if input == nil {
+	if input == nil || string(input.Type) == "None" {
 		return []interface{}{}
 	}
 
