@@ -204,6 +204,26 @@ func TestAccEventGridEventSubscription_identity(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+ 			Config: r.basic(data),
+ 			Check: resource.ComposeTestCheckFunc(
+ 				check.That(data.ResourceName).ExistsInAzure(r),
+ 				check.That(data.ResourceName).Key("delivery_identity.#").HasValue("0"),
+ 				check.That(data.ResourceName).Key("dead_letter_identity.#").HasValue("0"),
+ 			),
+ 		},
+ 		data.ImportStep(),
+		{
+ 			Config: r.identity(data),
+ 			Check: resource.ComposeTestCheckFunc(
+ 				check.That(data.ResourceName).ExistsInAzure(r),
+ 				check.That(data.ResourceName).Key("delivery_identity.#").HasValue("1"),
+ 				check.That(data.ResourceName).Key("delivery_identity.0.type").HasValue("SystemAssigned"),
+ 				check.That(data.ResourceName).Key("dead_letter_identity.#").HasValue("1"),
+ 				check.That(data.ResourceName).Key("dead_letter_identity.0.type").HasValue("SystemAssigned"),
+ 			),
+ 		},
+ 		data.ImportStep(),
 	})
 }
 
