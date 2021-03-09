@@ -5,6 +5,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: updating to v52.3.0 of `github.com/Azure/azure-sdk-for-go` [GH-10829]
+* `azurerm_role_assignment` - support enrollment ids in `scope` argument [GH-10890]
 
 BUG FIXES:
 * Data Source: `azurerm_monitor_action_group` - add support for `aad_auth` attribute [GH-10876]
