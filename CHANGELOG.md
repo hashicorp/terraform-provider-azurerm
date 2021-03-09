@@ -2,6 +2,8 @@
 
 FEATURES:
 
+* **New Resource:** `azurerm_security_center_server_vulnerability_assessment` [GH-10030]
+
 ENHANCEMENTS:
 
 * dependencies: updating to v52.3.0 of `github.com/Azure/azure-sdk-for-go` [GH-10829]
