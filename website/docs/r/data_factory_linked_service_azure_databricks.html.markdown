@@ -24,8 +24,8 @@ resource "azurerm_data_factory" "example" {
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   identity {
-      type = "SystemAssigned"
-    }
+    type = "SystemAssigned"
+  }
 }
 
 #Create a databricks instance
@@ -37,41 +37,41 @@ resource "azurerm_databricks_workspace" "example" {
 }
 
 resource "azurerm_data_factory_linked_service_azure_databricks" "msi_linked" {
-    
-    name = "ADBLinkedServiceViaMSI"
-    data_factory_name = azurerm_data_factory.example.name
-    resource_group_name = azurerm_resource_group.example.name
-    description = "ADB Linked Service via MSI"
-    adb_domain = "https://${azurerm_databricks_workspace.example.workspace_url}"
 
-    authentication_msi = {
-      workspaceResourceId = azurerm_databricks_workspace.example.id
+  name                = "ADBLinkedServiceViaMSI"
+  data_factory_name   = azurerm_data_factory.example.name
+  resource_group_name = azurerm_resource_group.example.name
+  description         = "ADB Linked Service via MSI"
+  adb_domain          = "https://${azurerm_databricks_workspace.example.workspace_url}"
+
+  authentication_msi = {
+    workspace_resource_id = azurerm_databricks_workspace.example.id
+  }
+
+  new_cluster_config {
+    node_type         = "Standard_NC12"
+    cluster_version   = "5.5.x-gpu-scala2.11"
+    number_of_workers = "1:10"
+    driver_node_type  = "Standard_NC12"
+    log_destination   = "dbfs:/logs"
+
+    custom_tags = {
+      custom_tag1 = "sct_value_1"
+      custom_tag2 = "sct_value_2"
     }
 
-    new_cluster_config {
-      node_type = "Standard_NC12"
-      cluster_version = "5.5.x-gpu-scala2.11"
-      number_of_workers = "1:10"
-      driver_node_type = "Standard_NC12"
-      log_destination = "dbfs:/logs"
-      
-      custom_tags = {
-        custom_tag1 = "sct_value_1"
-        custom_tag2 = "sct_value_2"
-      }
-
-      spark_config = {
-        config1 = "value1"
-        config2 = "value2"
-      }
-
-      spark_environment_variables = {
-        envVar1 = "value1"
-        envVar2 = "value2"
-      }
-
-      init_scripts = ["init.sh", "init2.sh"]
+    spark_config = {
+      config1 = "value1"
+      config2 = "value2"
     }
+
+    spark_environment_variables = {
+      envVar1 = "value1"
+      envVar2 = "value2"
+    }
+
+    init_scripts = ["init.sh", "init2.sh"]
+  }
 }
 
 
@@ -101,20 +101,20 @@ resource "azurerm_databricks_workspace" "example" {
 }
 
 resource "azurerm_data_factory_linked_service_azure_databricks" "at_linked" {
-    
-    name = "ADBLinkedServiceViaAccessToken"
-    data_factory_name = azurerm_data_factory.example.name
-    resource_group_name = azurerm_resource_group.example.name
-    description = "ADB Linked Service via Access Token"
-    existing_cluster_id = "0308-201146-sly615"
 
-    authentication_access_token = {
-      access_token = "dapi3c0233ca29fac114e4806ca883768df1-3"
-    }
+  name                = "ADBLinkedServiceViaAccessToken"
+  data_factory_name   = azurerm_data_factory.example.name
+  resource_group_name = azurerm_resource_group.example.name
+  description         = "ADB Linked Service via Access Token"
+  existing_cluster_id = "0308-201146-sly615"
 
-    adb_domain = "https://${azurerm_databricks_workspace.example.workspace_url}"
-    
-    
+  authentication_access_token = {
+    access_token = "SomeDatabricksAccessToken"
+  }
+
+  adb_domain = "https://${azurerm_databricks_workspace.example.workspace_url}"
+
+
 }
 
 ```
@@ -181,7 +181,7 @@ A `authentication_access_token` block supports the following:
 
 A `authentication_msi` block supports the following:
 
-* `workspaceResourceId` - (Required) The resource identifier of the databricks workspace
+* `workspace_resource_id` - (Required) The resource identifier of the databricks workspace
 
 ---
 

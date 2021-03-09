@@ -53,13 +53,14 @@ func resourceDataFactoryLinkedServiceAzureDatabricks() *schema.Resource {
 			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/5788
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
-			//Authentication types
+			// Authentication types
 			"authentication_msi": {
-				Type:     schema.TypeMap,
+				Type:     schema.TypeList,
+				MaxItems: 1,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"workspaceResourceId": {
+						"workspace_resource_id": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ValidateFunc: databricksValidator.WorkspaceID,
@@ -70,7 +71,8 @@ func resourceDataFactoryLinkedServiceAzureDatabricks() *schema.Resource {
 			},
 
 			"authentication_access_token": {
-				Type:     schema.TypeMap,
+				Type:     schema.TypeList,
+				MaxItems: 1,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -119,7 +121,7 @@ func resourceDataFactoryLinkedServiceAzureDatabricks() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			//Cluster types [existing cluster, new cluster, interactive pools]
+			// Cluster types [existing cluster, new cluster, interactive pools]
 			"existing_cluster_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -147,7 +149,7 @@ func resourceDataFactoryLinkedServiceAzureDatabricks() *schema.Resource {
 							},
 						},
 
-						//Consider changing this to min and adding an optional max since autoscaling uses the format min:max (e.g. 1:10)
+						// Consider changing this to min and adding an optional max since autoscaling uses the format min:max (e.g. 1:10)
 						"number_of_workers": {
 							Type:         schema.TypeString,
 							Optional:     true,
@@ -199,12 +201,13 @@ func resourceDataFactoryLinkedServiceAzureDatabricks() *schema.Resource {
 			},
 
 			"instance_pool": {
-				Type:     schema.TypeMap,
+				Type:     schema.TypeList,
+				MaxItems: 1,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 
-						//Consider changing this to min and adding an optional max since autoscaling uses the format min:max (e.g. 1:10)
+						// Consider changing this to min and adding an optional max since autoscaling uses the format min:max (e.g. 1:10)
 						"number_of_workers": {
 							Type:         schema.TypeString,
 							Optional:     true,
@@ -284,27 +287,30 @@ func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *schema.ResourceDa
 	var DatabricksProperties *datafactory.AzureDatabricksLinkedServiceTypeProperties
 
 	// Check if the MSI authentication block is set
-	msiAuth := d.Get("authentication_msi").(map[string]interface{})
-	accessTokenAuth := d.Get("authentication_access_token").(map[string]interface{})
+	msiAuth := d.Get("authentication_msi").([]interface{})
+	accessTokenAuth := d.Get("authentication_access_token").([]interface{})
 	accessTokenKeyVaultAuth := d.Get("authentication_key_vault_password").([]interface{})
 
 	if len(msiAuth) > 0 {
-		//MSI Auth map has data
-		workspaceResourceID := msiAuth["workspaceResourceId"].(string)
+		// MSI Auth map has data
+		workspaceResourceID := msiAuth[0].(map[string]interface{})["workspace_resource_id"].(string)
 
 		DatabricksProperties = &datafactory.AzureDatabricksLinkedServiceTypeProperties{
 			Authentication:      "MSI",
 			WorkspaceResourceID: workspaceResourceID,
 		}
-	} else if len(accessTokenAuth) > 0 {
-		//Setup authentication using access tokens
+	}
+	if len(accessTokenAuth) > 0 {
+		// Setup authentication using access tokens
+
+		accessToken := accessTokenAuth[0].(map[string]interface{})["access_token"].(string)
 
 		accessTokenAsSecureString := datafactory.SecureString{
-			Value: utils.String(accessTokenAuth["access_token"].(string)),
+			Value: utils.String(accessToken),
 			Type:  datafactory.TypeSecureString,
 		}
 
-		//Assign the access token in the properties block
+		// Assign the access token in the properties block
 		DatabricksProperties = &datafactory.AzureDatabricksLinkedServiceTypeProperties{
 			AccessToken: &accessTokenAsSecureString,
 		}
@@ -314,99 +320,73 @@ func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *schema.ResourceDa
 		}
 	}
 
-	//Set the other type properties
-	//Domain
+	// Set the other type properties
+	// Domain
 	DatabricksProperties.Domain = d.Get("adb_domain").(string)
 
-	//Check if the
+	// Check if the
 	if v, ok := d.GetOk("existing_cluster_id"); ok {
 		DatabricksProperties.ExistingClusterID = v.(string)
 	}
 
 	if v, ok := d.GetOk("instance_pool"); ok {
+		instancePoolMap := v.([]interface{})[0].(map[string]interface{})
 
-		instancePoolMap := v.(map[string]interface{})
-		DatabricksProperties.InstancePoolID = instancePoolMap["instance_pool_id"]
-
-		//Process the instance pool identifier
+		// Process the instance pool identifier
 		if data := instancePoolMap["instance_pool_id"]; data != nil {
 			DatabricksProperties.InstancePoolID = data
-		} else {
-			// Throw an error
 		}
 
-		//Process the cluster version
+		// Process the cluster version
 		if data := instancePoolMap["cluster_version"]; data != nil {
 			DatabricksProperties.NewClusterVersion = data
-		} else {
-			// Throw an error
 		}
 
-		//Process the number of workers
+		// Process the number of workers
 		if data := instancePoolMap["number_of_workers"]; data != nil {
 			DatabricksProperties.NewClusterNumOfWorker = data
-		} else {
-			// Throw an error
 		}
-	} else {
-		//Process assuming it's a new cluster config
-		if v, ok := d.GetOk("new_cluster_config"); ok {
-			newClusterMap := v.([]interface{})[0].(map[string]interface{})
+	} else if v, ok := d.GetOk("new_cluster_config"); ok {
+		newClusterMap := v.([]interface{})[0].(map[string]interface{})
 
-			//Process the cluster version
-			if data := newClusterMap["cluster_version"]; data != nil {
-				DatabricksProperties.NewClusterVersion = data
-			} else {
-				// Throw an error
-			}
-
-			//Process the number of workers
-			if data := newClusterMap["number_of_workers"]; data != nil {
-				DatabricksProperties.NewClusterNumOfWorker = data
-			} else {
-				// Throw an error
-			}
-
-			//Process the node type
-			if data := newClusterMap["node_type"]; data != nil {
-				DatabricksProperties.NewClusterNodeType = data
-			} else {
-				// Throw an error
-			}
-
-			if data := newClusterMap["driver_node_type"]; data != nil {
-				DatabricksProperties.NewClusterDriverNodeType = data
-			}
-
-			if data := newClusterMap["log_destination"]; data != nil {
-				DatabricksProperties.NewClusterLogDestination = data
-			}
-
-			if sparkConfig := newClusterMap["spark_config"].(map[string]interface{}); len(sparkConfig) > 0 {
-				DatabricksProperties.NewClusterSparkConf = sparkConfig
-			}
-
-			// sparkConfig := newClusterMap["spark_config"].(map[string]interface{})
-			// if sparkConfig := expandKeyValuePairs(sparkConfigRaw); len(sparkConfig) > 0 {
-			// 	DatabricksProperties.NewClusterSparkConf = sparkConfig
-			// }
-
-			if sparkEnvVars := newClusterMap["spark_environment_variables"].(map[string]interface{}); len(sparkEnvVars) > 0 {
-				DatabricksProperties.NewClusterSparkEnvVars = sparkEnvVars
-			}
-
-			if customTags := newClusterMap["custom_tags"].(map[string]interface{}); len(customTags) > 0 {
-				DatabricksProperties.NewClusterCustomTags = customTags
-			}
-
-			initScripts := newClusterMap["init_scripts"]
-			DatabricksProperties.NewClusterInitScripts = &initScripts
+		// Process the cluster version
+		if data := newClusterMap["cluster_version"]; data != nil {
+			DatabricksProperties.NewClusterVersion = data
 		}
 
+		// Process the number of workers
+		if data := newClusterMap["number_of_workers"]; data != nil {
+			DatabricksProperties.NewClusterNumOfWorker = data
+		}
+
+		// Process the node type
+		if data := newClusterMap["node_type"]; data != nil {
+			DatabricksProperties.NewClusterNodeType = data
+		}
+
+		if data := newClusterMap["driver_node_type"]; data != nil {
+			DatabricksProperties.NewClusterDriverNodeType = data
+		}
+
+		if data := newClusterMap["log_destination"]; data != nil {
+			DatabricksProperties.NewClusterLogDestination = data
+		}
+
+		if sparkConfig := newClusterMap["spark_config"].(map[string]interface{}); len(sparkConfig) > 0 {
+			DatabricksProperties.NewClusterSparkConf = sparkConfig
+		}
+
+		if sparkEnvVars := newClusterMap["spark_environment_variables"].(map[string]interface{}); len(sparkEnvVars) > 0 {
+			DatabricksProperties.NewClusterSparkEnvVars = sparkEnvVars
+		}
+
+		if customTags := newClusterMap["custom_tags"].(map[string]interface{}); len(customTags) > 0 {
+			DatabricksProperties.NewClusterCustomTags = customTags
+		}
+
+		initScripts := newClusterMap["init_scripts"]
+		DatabricksProperties.NewClusterInitScripts = &initScripts
 	}
-
-	//EncryptedCredential
-	//POlicy ID
 
 	DatabricksLinkedService := &datafactory.AzureDatabricksLinkedService{
 		Description: utils.String(d.Get("description").(string)),
@@ -486,16 +466,15 @@ func resourceDataFactoryLinkedServiceDatabricksRead(d *schema.ResourceData, meta
 		return fmt.Errorf("Error classifiying Data Factory Linked Service Databricks %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeAzureDatabricks, *resp.Type)
 	}
 
-	//Check the properties and verify is authentication is set to MSI
+	// Check the properties and verify is authentication is set to MSI
 	if props := Databricks.AzureDatabricksLinkedServiceTypeProperties; props != nil {
 		if props.Authentication != nil && props.Authentication == "MSI" {
-
 			authenticationMsi := make(map[string]interface{})
-			authenticationMsi["workspaceResourceId"] = props.WorkspaceResourceID
-			d.Set("authentication_msi", authenticationMsi)
-
+			authenticationMsi["workspace_resource_id"] = props.WorkspaceResourceID
+			authenticationMsiArray := []interface{}{authenticationMsi}
+			d.Set("authentication_msi", authenticationMsiArray)
 		} else if props.AccessToken != nil {
-			//Check the data type of the access token so we know how to process it.
+			// Check the data type of the access token so we know how to process it.
 
 			if accessToken := props.AccessToken; accessToken != nil {
 				if keyVaultPassword, ok := accessToken.AsAzureKeyVaultSecretReference(); ok {
@@ -506,17 +485,16 @@ func resourceDataFactoryLinkedServiceDatabricksRead(d *schema.ResourceData, meta
 			}
 		}
 
-		//Process the domain
+		// Process the domain
 		if props.Domain != nil {
 			d.Set("adb_domain", props.Domain)
 		}
 
-		//Process the cluster information
+		// Process the cluster information
 		if props.ExistingClusterID != nil {
 			d.Set("existing_cluster_id", props.ExistingClusterID)
-
 		} else if id := props.InstancePoolID; id != nil {
-			//Process the values for instance pool configuration
+			// Process the values for instance pool configuration
 			numOfWorkers := props.NewClusterNumOfWorker
 			clusterVersion := props.NewClusterVersion
 
@@ -525,11 +503,11 @@ func resourceDataFactoryLinkedServiceDatabricksRead(d *schema.ResourceData, meta
 				"number_of_workers": numOfWorkers,
 				"cluster_version":   clusterVersion,
 			}
-			d.Set("instance_pool", instancePoolMap)
 
+			instancePoolArray := []interface{}{instancePoolMap}
+			d.Set("instance_pool", instancePoolArray)
 		} else {
-
-			//Process assuming it's a new cluster config
+			// Process assuming it's a new cluster config
 			numOfWorkers := props.NewClusterNumOfWorker
 			clusterVersion := props.NewClusterVersion
 			nodeType := props.NewClusterNodeType
@@ -540,7 +518,7 @@ func resourceDataFactoryLinkedServiceDatabricksRead(d *schema.ResourceData, meta
 				"node_type":         nodeType,
 			}
 
-			//Retrieve all the optional arguments
+			// Retrieve all the optional arguments
 			if data := props.NewClusterDriverNodeType; data != nil {
 				newClusterMap["driver_node_type"] = data
 			}
@@ -565,7 +543,7 @@ func resourceDataFactoryLinkedServiceDatabricksRead(d *schema.ResourceData, meta
 				newClusterMap["init_scripts"] = data
 			}
 
-			//Set the ResourceData with the map
+			// Set the ResourceData with the map
 			newClusterArray := []interface{}{newClusterMap}
 
 			d.Set("new_cluster_config", newClusterArray)
@@ -616,6 +594,5 @@ func resourceDataFactoryLinkedServiceDatabricksDelete(d *schema.ResourceData, me
 			return fmt.Errorf("Error deleting Data Factory Linked Service Databricks %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
 		}
 	}
-
 	return nil
 }
