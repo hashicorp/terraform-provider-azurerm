@@ -89,6 +89,8 @@ The following arguments are supported:
 
 * `dead_letter_identity` - (Optional) A `dead_letter_identity` block as defined below.
 
+-> **Note:** `storage_blob_dead_letter_destination` must be specified when a `dead_letter_identity` is specified
+
 * `storage_blob_dead_letter_destination` - (Optional) A `storage_blob_dead_letter_destination` block as defined below.
 
 * `retry_policy` - (Optional) A `retry_policy` block as defined below.
