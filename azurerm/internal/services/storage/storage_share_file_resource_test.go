@@ -3,7 +3,7 @@ package storage_test
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -93,7 +93,7 @@ func TestAccAzureRMStorageShareFile_update(t *testing.T) {
 }
 
 func TestAccAzureRMStorageShareFile_withFile(t *testing.T) {
-	sourceBlob, err := ioutil.TempFile("", "")
+	sourceBlob, err := os.CreateTemp("", "")
 	if err != nil {
 		t.Fatalf("Failed to create local source blob file")
 	}

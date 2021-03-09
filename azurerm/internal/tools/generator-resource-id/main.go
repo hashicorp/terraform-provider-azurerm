@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path"
@@ -891,7 +890,7 @@ func goFmtAndWriteToFile(filePath, fileContents string) error {
 		return err
 	}
 
-	if err := ioutil.WriteFile(filePath, []byte(*fmt), 0644); err != nil {
+	if err := os.WriteFile(filePath, []byte(*fmt), 0644); err != nil {
 		return err
 	}
 
@@ -901,7 +900,7 @@ func goFmtAndWriteToFile(filePath, fileContents string) error {
 type GolangCodeFormatter struct{}
 
 func (f GolangCodeFormatter) Format(input string) (*string, error) {
-	tmpfile, err := ioutil.TempFile("", "temp-*.go")
+	tmpfile, err := os.CreateTemp("", "temp-*.go")
 	if err != nil {
 		return nil, fmt.Errorf("creating temp file: %+v", err)
 	}
@@ -940,7 +939,7 @@ func (f GolangCodeFormatter) runGoImports(filePath string) {
 }
 
 func (f GolangCodeFormatter) readFileContents(filePath string) (*string, error) {
-	data, err := ioutil.ReadFile(filePath)
+	data, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, err
 	}
