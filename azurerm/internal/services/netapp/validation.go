@@ -3,6 +3,7 @@ package netapp
 import (
 	"fmt"
 	"regexp"
+	"strings"
 )
 
 func ValidateNetAppAccountName(v interface{}, k string) (warnings []string, errors []error) {
@@ -53,4 +54,48 @@ func ValidateNetAppSnapshotName(v interface{}, k string) (warnings []string, err
 	}
 
 	return warnings, errors
+}
+
+func ValidateSlicesEquality(source, new []string, caseSensitive bool) bool {
+	if len(source) != len(new) {
+		return false
+	}
+
+	// Source -> New direction
+	sourceNewValidatedCount := 0
+	for _, sourceItem := range source {
+		for _, newItem := range new {
+			if caseSensitive {
+				if sourceItem == newItem {
+					sourceNewValidatedCount++
+				}
+			} else {
+				if strings.EqualFold(sourceItem, newItem) {
+					sourceNewValidatedCount++
+				}
+			}
+		}
+	}
+
+	// New -> Source direction
+	newSourceValidatedCount := 0
+	for _, newItem := range source {
+		for _, sourceItem := range new {
+			if caseSensitive {
+				if newItem == sourceItem {
+					newSourceValidatedCount++
+				}
+			} else {
+				if strings.EqualFold(newItem, sourceItem) {
+					newSourceValidatedCount++
+				}
+			}
+		}
+	}
+
+	return sourceNewValidatedCount == newSourceValidatedCount &&
+		sourceNewValidatedCount == len(source) &&
+		newSourceValidatedCount == len(source) &&
+		sourceNewValidatedCount == len(new) &&
+		newSourceValidatedCount == len(new)
 }
