@@ -371,16 +371,16 @@ resource "azurerm_netapp_snapshot" "test" {
 }
 
 resource "azurerm_netapp_volume" "test_snapshot_vol" {
-  name                 = "acctest-NetAppVolume-NewFromSnapshot-%[2]d"
-  location             = azurerm_resource_group.test.location
-  resource_group_name  = azurerm_resource_group.test.name
-  account_name         = azurerm_netapp_account.test.name
-  pool_name            = azurerm_netapp_pool.test.name
-  volume_path          = "my-unique-file-path-snapshot-%[2]d"
-  service_level        = "Standard"
-  subnet_id            = azurerm_subnet.test.id
-  protocols            = ["NFSv3"]
-  storage_quota_in_gb  = 200
+  name                             = "acctest-NetAppVolume-NewFromSnapshot-%[2]d"
+  location                         = azurerm_resource_group.test.location
+  resource_group_name              = azurerm_resource_group.test.name
+  account_name                     = azurerm_netapp_account.test.name
+  pool_name                        = azurerm_netapp_pool.test.name
+  volume_path                      = "my-unique-file-path-snapshot-%[2]d"
+  service_level                    = "Standard"
+  subnet_id                        = azurerm_subnet.test.id
+  protocols                        = ["NFSv3"]
+  storage_quota_in_gb              = 200
   create_from_snapshot_resource_id = azurerm_netapp_snapshot.test.id
 
   export_policy_rule {
