@@ -688,7 +688,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherRollingUpgradePolicyUpdate(t *tes
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.otherRollingUpgradePolicyUpdate(data, 20, 20, 20, "PT0S"),
+			Config: r.otherRollingUpgradePolicyUpdate(data, 40, 40, 40, "PT0S"),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -697,7 +697,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherRollingUpgradePolicyUpdate(t *tes
 			"admin_password",
 		),
 		{
-			Config: r.otherRollingUpgradePolicyUpdate(data, 10, 10, 10, "PT1S"),
+			Config: r.otherRollingUpgradePolicyUpdate(data, 30, 100, 100, "PT1S"),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
