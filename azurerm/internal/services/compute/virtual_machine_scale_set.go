@@ -1150,22 +1150,18 @@ func VirtualMachineScaleSetRollingUpgradePolicySchema() *schema.Schema {
 				"max_batch_instance_percent": {
 					Type:     schema.TypeInt,
 					Required: true,
-					ForceNew: true,
 				},
 				"max_unhealthy_instance_percent": {
 					Type:     schema.TypeInt,
 					Required: true,
-					ForceNew: true,
 				},
 				"max_unhealthy_upgraded_instance_percent": {
 					Type:     schema.TypeInt,
 					Required: true,
-					ForceNew: true,
 				},
 				"pause_time_between_batches": {
 					Type:         schema.TypeString,
 					Required:     true,
-					ForceNew:     true,
 					ValidateFunc: azValidate.ISO8601Duration,
 				},
 			},
