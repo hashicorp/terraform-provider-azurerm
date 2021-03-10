@@ -25,8 +25,7 @@ func TestAccPurviewAccount_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("sku_capacity").HasValue("4"),
-				check.That(data.ResourceName).Key("sku_name").HasValue("Standard"),
+				check.That(data.ResourceName).Key("sku_name").HasValue("Standard_4"),
 				check.That(data.ResourceName).Key("public_network_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("identity.0.type").Exists(),
 				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
@@ -67,7 +66,7 @@ resource "azurerm_purview_account" "test" {
   name                = "acctestsw%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku_capacity        = 4
+  sku_name            = "Standard_4"
 }
 `, template, data.RandomInteger)
 }

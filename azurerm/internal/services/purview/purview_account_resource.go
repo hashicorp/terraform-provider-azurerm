@@ -49,21 +49,12 @@ func resourcePurviewAccount() *schema.Resource {
 
 			"location": azure.SchemaLocation(),
 
-			"sku_capacity": {
-				Type:     schema.TypeInt,
-				Required: true,
-				ValidateFunc: validation.IntInSlice([]int{
-					4,
-					16,
-				}),
-			},
-
 			"sku_name": {
 				Type:     schema.TypeString,
-				Optional: true,
-				Default:  string(purview.Standard),
+				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(purview.Standard),
+					"Standard_4",
+					"Standard_16",
 				}, false),
 			},
 
@@ -156,11 +147,8 @@ func resourcePurviewAccountCreateUpdate(d *schema.ResourceData, meta interface{}
 			Type: purview.SystemAssigned,
 		},
 		Location: &location,
-		Sku: &purview.AccountSku{
-			Capacity: utils.Int32(int32(d.Get("sku_capacity").(int))),
-			Name:     purview.Name(d.Get("sku_name").(string)),
-		},
-		Tags: tags.Expand(t),
+		Sku:      expandPurviewSkuName(d),
+		Tags:     tags.Expand(t),
 	}
 
 	if d.Get("public_network_enabled").(bool) {
@@ -209,10 +197,7 @@ func resourcePurviewAccountRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if sku := resp.Sku; sku != nil {
-		if err := d.Set("sku_capacity", sku.Capacity); err != nil {
-			return fmt.Errorf("Error setting `sku_capacity`: %+v", err)
-		}
-		if err := d.Set("sku_name", sku.Name); err != nil {
+		if err := d.Set("sku_name", flattenPurviewSkuName(sku)); err != nil {
 			return fmt.Errorf("Error setting `sku_name`: %+v", err)
 		}
 	}
@@ -280,6 +265,31 @@ func resourcePurviewAccountDelete(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	return nil
+}
+
+func expandPurviewSkuName(d *schema.ResourceData) *purview.AccountSku {
+	vs := d.Get("sku_name").(string)
+
+	if len(vs) == 0 {
+		return nil
+	}
+
+	name, capacity, err := azure.SplitSku(vs)
+	if err != nil {
+		return nil
+	}
+	return &purview.AccountSku{
+		Name:     purview.Name(name),
+		Capacity: utils.Int32(capacity),
+	}
+}
+
+func flattenPurviewSkuName(input *purview.AccountSku) string {
+	if input == nil {
+		return ""
+	}
+
+	return fmt.Sprintf("%s_%d", string(input.Name), *input.Capacity)
 }
 
 func flattenPurviewAccountIdentity(identity *purview.Identity) interface{} {

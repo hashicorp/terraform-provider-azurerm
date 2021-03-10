@@ -22,7 +22,7 @@ resource "azurerm_purview_account" "example" {
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-  sku_capacity        = 4
+  sku_name            = "Standard_4"
 }
 ```
 
@@ -36,11 +36,9 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Purview Account should exist. Changing this forces a new Purview Account to be created.
 
-* `sku_capacity` - (Required) The SKU's capacity for platform size and catalog capabilities. Accepted values are `4` and `16`.
+* `sku_name` - (Required) The SKU's capacity for platform size and catalog capabilities. Accepted values are `Standard_4` and `Standard_16`.
 
 ---
-
-* `sku_name` - (Optional) SKU name for platform size and catalog capabilities. Accepted value is `Standard`.
 
 * `public_network_enabled` - (Optional) Should the Purview Account be visible to the public network? Defaults to `true`.
 
