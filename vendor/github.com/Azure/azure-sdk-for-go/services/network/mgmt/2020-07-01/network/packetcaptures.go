@@ -53,8 +53,8 @@ func (client PacketCapturesClient) Create(ctx context.Context, resourceGroupName
 		ctx = tracing.StartSpan(ctx, fqdn+"/PacketCapturesClient.Create")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -179,8 +179,8 @@ func (client PacketCapturesClient) Delete(ctx context.Context, resourceGroupName
 		ctx = tracing.StartSpan(ctx, fqdn+"/PacketCapturesClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -349,8 +349,8 @@ func (client PacketCapturesClient) GetStatus(ctx context.Context, resourceGroupN
 		ctx = tracing.StartSpan(ctx, fqdn+"/PacketCapturesClient.GetStatus")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -528,8 +528,8 @@ func (client PacketCapturesClient) Stop(ctx context.Context, resourceGroupName s
 		ctx = tracing.StartSpan(ctx, fqdn+"/PacketCapturesClient.Stop")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

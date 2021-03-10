@@ -94,6 +94,7 @@ func (client AssetsClient) CreateOrUpdatePreparer(ctx context.Context, resourceG
 		"api-version": APIVersion,
 	}
 
+	parameters.SystemData = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -700,6 +701,7 @@ func (client AssetsClient) UpdatePreparer(ctx context.Context, resourceGroupName
 		"api-version": APIVersion,
 	}
 
+	parameters.SystemData = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),

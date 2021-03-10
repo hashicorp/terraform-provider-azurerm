@@ -17,7 +17,7 @@ data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "westeurope"
+  location = "West Europe"
 }
 
 resource "azurerm_eventhub_namespace" "example" {

@@ -55,8 +55,8 @@ func (client ApplicationTypeVersionsClient) Create(ctx context.Context, resource
 		ctx = tracing.StartSpan(ctx, fqdn+"/ApplicationTypeVersionsClient.Create")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -169,8 +169,8 @@ func (client ApplicationTypeVersionsClient) Delete(ctx context.Context, resource
 		ctx = tracing.StartSpan(ctx, fqdn+"/ApplicationTypeVersionsClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

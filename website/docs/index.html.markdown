@@ -164,11 +164,19 @@ The `features` block supports the following:
 
 * `key_vault` - (Optional) A `key_vault` block as defined below.
 
+* `log_analytics_workspace` - (Optional) A `log_analytics_workspace` block as defined below.
+
 * `template_deployment` - (Optional) A `template_deployment` block as defined below.
 
 * `virtual_machine` - (Optional) A `virtual_machine` block as defined below.
 
 * `virtual_machine_scale_set` - (Optional) A `virtual_machine_scale_set` block as defined below.
+
+---
+
+The `log_analytics_workspace` block supports the following:
+
+* `permanently_delete_on_destroy` - (Optional) Should the `azurerm_log_analytics_workspace` be permanently deleted (e.g. purged) when destroyed? Defaults to `false`.
 
 ---
 

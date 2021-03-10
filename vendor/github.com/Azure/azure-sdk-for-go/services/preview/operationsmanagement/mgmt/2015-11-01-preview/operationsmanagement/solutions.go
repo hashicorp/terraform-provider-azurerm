@@ -52,8 +52,8 @@ func (client SolutionsClient) CreateOrUpdate(ctx context.Context, resourceGroupN
 		ctx = tracing.StartSpan(ctx, fqdn+"/SolutionsClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -169,8 +169,8 @@ func (client SolutionsClient) Delete(ctx context.Context, resourceGroupName stri
 		ctx = tracing.StartSpan(ctx, fqdn+"/SolutionsClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -505,8 +505,8 @@ func (client SolutionsClient) Update(ctx context.Context, resourceGroupName stri
 		ctx = tracing.StartSpan(ctx, fqdn+"/SolutionsClient.Update")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

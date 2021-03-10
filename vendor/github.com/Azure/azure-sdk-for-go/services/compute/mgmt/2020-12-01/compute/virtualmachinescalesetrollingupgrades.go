@@ -52,8 +52,8 @@ func (client VirtualMachineScaleSetRollingUpgradesClient) Cancel(ctx context.Con
 		ctx = tracing.StartSpan(ctx, fqdn+"/VirtualMachineScaleSetRollingUpgradesClient.Cancel")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -220,8 +220,8 @@ func (client VirtualMachineScaleSetRollingUpgradesClient) StartExtensionUpgrade(
 		ctx = tracing.StartSpan(ctx, fqdn+"/VirtualMachineScaleSetRollingUpgradesClient.StartExtensionUpgrade")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -311,8 +311,8 @@ func (client VirtualMachineScaleSetRollingUpgradesClient) StartOSUpgrade(ctx con
 		ctx = tracing.StartSpan(ctx, fqdn+"/VirtualMachineScaleSetRollingUpgradesClient.StartOSUpgrade")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

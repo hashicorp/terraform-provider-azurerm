@@ -10,6 +10,8 @@ description: |-
 
 Manages a Managed Kubernetes Cluster (also known as AKS / Azure Kubernetes Service)
 
+-> **Note:** Due to the fast-moving nature of AKS, we recommend using the latest version of the Azure Provider when using AKS - you can find [the latest version of the Azure Provider here](https://registry.terraform.io/providers/hashicorp/azurerm/latest).
+
 ~> **Note:** All arguments including the client secret will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 
 ## Example Usage
@@ -108,14 +110,14 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `private_cluster_enabled` - Should this Kubernetes Cluster have its API server only exposed on internal IP addresses? This provides a Private IP Address for the Kubernetes API on the Virtual Network where the Kubernetes Cluster is located. Defaults to `false`. Changing this forces a new resource to be created.
 
-* `private_dns_zone_id` - (Optional) Either the ID of Private DNS Zone which should be delegated to this Cluster, or `System` to have AKS manage this.
+* `private_dns_zone_id` - (Optional) Either the ID of Private DNS Zone which should be delegated to this Cluster, `System` to have AKS manage this or `None`. In case of `None` you will need to bring your own DNS server and set up resolving, otherwise cluster will have issues after provisioning.
 
 -> **NOTE:** If you use BYO DNS Zone, AKS cluster should either use a User Assigned Identity or a service principal (which is deprecated) with the `Private DNS Zone Contributor` role and access to this Private DNS Zone. If `UserAssigned` identity is used - to prevent improper resource order destruction - cluster should depend on the role assignment, like in this example:
 
 ```
 resource "azurerm_resource_group" "example" {
   name     = "example"
-  location = "eastus2"
+  location = "West Europe"
 }
 
 resource "azurerm_private_dns_zone" "example" {
@@ -142,14 +144,14 @@ resource "azurerm_kubernetes_cluster" "example" {
   dns_prefix              = "aksexamplednsprefix1"
   private_cluster_enabled = true
   private_dns_zone_id     = azurerm_private_dns_zone.example.id
-  
+
   ... rest of configuration omitted for brevity
-  
+
   depends_on = [
     azurerm_role_assignment.example,
   ]
 }
-  
+
 ```
 
 * `role_based_access_control` - (Optional) A `role_based_access_control` block. Changing this forces a new resource to be created.
@@ -307,7 +309,7 @@ A `default_node_pool` block supports the following:
 
 * `tags` - (Optional) A mapping of tags to assign to the Node Pool.
 
-~> At this time there's a bug in the AKS API where Tags for a Node Pool are not stored in the correct case - you [may wish to use Terraform's `ignore_changes` functionality to ignore changes to the casing](https://www.terraform.io/docs/configuration/resources.html#ignore_changes) until this is fixed in the AKS API. 
+~> At this time there's a bug in the AKS API where Tags for a Node Pool are not stored in the correct case - you [may wish to use Terraform's `ignore_changes` functionality to ignore changes to the casing](https://www.terraform.io/docs/configuration/resources.html#ignore_changes) until this is fixed in the AKS API.
 
 * `upgrade_settings` - (Optional) A `upgrade_settings` block as documented below.
 

@@ -14,27 +14,27 @@ func TestRedisEnterpriseClusterLocation(t *testing.T) {
 		},
 		{
 			// Unsupported location
-			Input: "West US",
+			Input: "East US 3",
 			Valid: false,
 		},
 		{
 			// Unsupported location all upper with space
-			Input: "WEST US",
+			Input: "EAST US 3",
 			Valid: false,
 		},
 		{
 			// Unsupported location all lower with space
-			Input: "west us",
+			Input: "east us 3",
 			Valid: false,
 		},
 		{
 			// Unsupported location all upper without space
-			Input: "WESTUS",
+			Input: "EASTUS3",
 			Valid: false,
 		},
 		{
 			// Unsupported location all lower without space
-			Input: "westus",
+			Input: "eastus3",
 			Valid: false,
 		},
 		{

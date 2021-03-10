@@ -136,8 +136,8 @@ func (client ReplicationLinksClient) Failover(ctx context.Context, resourceGroup
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationLinksClient.Failover")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -232,8 +232,8 @@ func (client ReplicationLinksClient) FailoverAllowDataLoss(ctx context.Context, 
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationLinksClient.FailoverAllowDataLoss")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -488,8 +488,8 @@ func (client ReplicationLinksClient) Unlink(ctx context.Context, resourceGroupNa
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationLinksClient.Unlink")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

@@ -14,8 +14,8 @@ Manages a user assigned identity.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "acceptanceTestResourceGroup1"
-  location = "eastus"
+  name     = "example-resources"
+  location = "West Europe"
 }
 
 resource "azurerm_user_assigned_identity" "example" {

@@ -52,8 +52,8 @@ func (client LogAnalyticsClient) ExportRequestRateByInterval(ctx context.Context
 		ctx = tracing.StartSpan(ctx, fqdn+"/LogAnalyticsClient.ExportRequestRateByInterval")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -161,8 +161,8 @@ func (client LogAnalyticsClient) ExportThrottledRequests(ctx context.Context, pa
 		ctx = tracing.StartSpan(ctx, fqdn+"/LogAnalyticsClient.ExportThrottledRequests")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

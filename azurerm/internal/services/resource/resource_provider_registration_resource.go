@@ -127,7 +127,7 @@ func (r ResourceProviderRegistrationResource) Read() sdk.ResourceFunc {
 			resp, err := client.Get(ctx, id.ResourceProvider, "")
 			if err != nil {
 				if utils.ResponseWasNotFound(resp.Response) {
-					return metadata.MarkAsGone()
+					return metadata.MarkAsGone(id)
 				}
 
 				return fmt.Errorf("retrieving Resource Provider %q: %+v", id.ResourceProvider, err)
@@ -135,7 +135,7 @@ func (r ResourceProviderRegistrationResource) Read() sdk.ResourceFunc {
 
 			if resp.RegistrationState != nil && !strings.EqualFold(*resp.RegistrationState, "Registered") {
 				log.Printf("[WARN] Resource Provider %q was not registered", id.ResourceProvider)
-				return metadata.MarkAsGone()
+				return metadata.MarkAsGone(id)
 			}
 
 			return metadata.Encode(&ResourceProviderRegistrationModel{

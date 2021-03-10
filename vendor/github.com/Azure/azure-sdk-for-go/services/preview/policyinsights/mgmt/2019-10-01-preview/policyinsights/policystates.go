@@ -2181,8 +2181,8 @@ func (client PolicyStatesClient) TriggerResourceGroupEvaluation(ctx context.Cont
 		ctx = tracing.StartSpan(ctx, fqdn+"/PolicyStatesClient.TriggerResourceGroupEvaluation")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -2269,8 +2269,8 @@ func (client PolicyStatesClient) TriggerSubscriptionEvaluation(ctx context.Conte
 		ctx = tracing.StartSpan(ctx, fqdn+"/PolicyStatesClient.TriggerSubscriptionEvaluation")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

@@ -56,8 +56,8 @@ func (client ManagedInstanceEncryptionProtectorsClient) CreateOrUpdate(ctx conte
 		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedInstanceEncryptionProtectorsClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -359,8 +359,8 @@ func (client ManagedInstanceEncryptionProtectorsClient) Revalidate(ctx context.C
 		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedInstanceEncryptionProtectorsClient.Revalidate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
