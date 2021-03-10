@@ -2,6 +2,7 @@ package netapp
 
 import (
 	"fmt"
+	"reflect"
 	"regexp"
 	"strings"
 )
@@ -57,10 +58,16 @@ func ValidateNetAppSnapshotName(v interface{}, k string) (warnings []string, err
 }
 
 func ValidateSlicesEquality(source, new []string, caseSensitive bool) bool {
+	// Fast path
 	if len(source) != len(new) {
 		return false
 	}
 
+	if reflect.DeepEqual(source, new) {
+		return true
+	}
+
+	// Slow path
 	// Source -> New direction
 	sourceNewValidatedCount := 0
 	for _, sourceItem := range source {
@@ -93,9 +100,8 @@ func ValidateSlicesEquality(source, new []string, caseSensitive bool) bool {
 		}
 	}
 
-	return sourceNewValidatedCount == newSourceValidatedCount &&
-		sourceNewValidatedCount == len(source) &&
-		newSourceValidatedCount == len(source) &&
-		sourceNewValidatedCount == len(new) &&
-		newSourceValidatedCount == len(new)
+	lengthValidation := sourceNewValidatedCount == len(source) && newSourceValidatedCount == len(source) && sourceNewValidatedCount == len(new) && newSourceValidatedCount == len(new)
+	countValidation := sourceNewValidatedCount == newSourceValidatedCount
+
+	return lengthValidation && countValidation
 }
