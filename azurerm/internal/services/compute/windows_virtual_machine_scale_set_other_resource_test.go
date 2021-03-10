@@ -721,6 +721,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherHealthProbeUpdate(t *testing.T) {
 		},
 		data.ImportStep(
 			"admin_password",
+			"enable_automatic_updates",
 		),
 		{
 			Config: r.otherHealthProbeUpdated(data),
@@ -730,6 +731,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherHealthProbeUpdate(t *testing.T) {
 		},
 		data.ImportStep(
 			"admin_password",
+			"enable_automatic_updates",
 		),
 	})
 }
