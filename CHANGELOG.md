@@ -3,6 +3,8 @@
 FEATURES:
 
 * **New Resource:** `azurerm_security_center_server_vulnerability_assessment` [GH-10030]
+* **New Resource:** `azurerm_security_center_assessment` [GH-10694]
+* **New Resource:** `azurerm_security_center_assessment_policy` [GH-10694]
 * **New Resource:** `azurerm_sentinel_data_connector_azure_security_center` [GH-10667]
 
 ENHANCEMENTS:
