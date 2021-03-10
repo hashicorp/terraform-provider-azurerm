@@ -106,36 +106,8 @@ func Descending(a, b interface{}) CompareResult {
 	if a == b {
 		return EQUAL
 	}
-	switch a.(type) {
-	case string:
-		return lg(a.(string) > b.(string))
-	case int:
-		return lg(a.(int) > reflect.ValueOf(b).Convert(reflect.TypeOf(a)).Interface().(int))
-	case int8:
-		return lg(a.(int8) > reflect.ValueOf(b).Convert(reflect.TypeOf(a)).Interface().(int8))
-	case int16:
-		return lg(a.(int16) > reflect.ValueOf(b).Convert(reflect.TypeOf(a)).Interface().(int16))
-	case int32:
-		return lg(a.(int32) > reflect.ValueOf(b).Convert(reflect.TypeOf(a)).Interface().(int32))
-	case int64:
-		return lg(a.(int64) > reflect.ValueOf(b).Convert(reflect.TypeOf(a)).Interface().(int64))
-	case uint:
-		return lg(a.(uint) > reflect.ValueOf(b).Convert(reflect.TypeOf(a)).Interface().(uint))
-	case uint8:
-		return lg(a.(uint8) > reflect.ValueOf(b).Convert(reflect.TypeOf(a)).Interface().(uint8))
-	case uint16:
-		return lg(a.(uint16) > reflect.ValueOf(b).Convert(reflect.TypeOf(a)).Interface().(uint16))
-	case uint32:
-		return lg(a.(uint32) > reflect.ValueOf(b).Convert(reflect.TypeOf(a)).Interface().(uint32))
-	case uint64:
-		return lg(a.(uint64) > reflect.ValueOf(b).Convert(reflect.TypeOf(a)).Interface().(uint64))
-	case float32:
-		return lg(a.(float32) > reflect.ValueOf(b).Convert(reflect.TypeOf(a)).Interface().(float32))
-	case float64:
-		return lg(a.(float64) > reflect.ValueOf(b).Convert(reflect.TypeOf(a)).Interface().(float64))
-	default:
-		panic(fmt.Sprintf("dont know how to compare: %T", a))
-	}
+
+	return lg(a.(string) > b.(string))
 }
 
 func lg(b bool) CompareResult {
