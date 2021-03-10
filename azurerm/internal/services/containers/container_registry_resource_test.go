@@ -279,7 +279,7 @@ func TestAccContainerRegistry_networkAccessProfileIp(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_rule_set.0.default_action").HasValue("Allow"),
-				check.That(data.ResourceName).Key("network_rule_set.0.ip_rule.#").HasValue("1"),
+				check.That(data.ResourceName).Key("network_rule_set.0.ip_rule.#").HasValue("2"),
 			),
 		},
 		data.ImportStep(),
@@ -498,11 +498,12 @@ resource "azurerm_container_registry" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   admin_enabled       = true
-  sku                 = "Basic"
+  sku                 = "Premium"
 
   tags = {
     environment = "production"
   }
+  public_network_access_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
