@@ -2168,6 +2168,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
       primary                                = true
     }
   }
+
+  depends_on = [azurerm_lb_rule.test]
 }
 `, r.template(data), data.RandomInteger, max_batch_instance_percent, max_unhealthy_instance_percent, max_unhealthy_upgraded_instance_percent, pause_time_between_batches)
 }
