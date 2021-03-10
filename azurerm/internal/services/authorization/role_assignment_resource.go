@@ -99,9 +99,10 @@ func resourceArmRoleAssignment() *schema.Resource {
 			},
 
 			"description": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"condition": {
@@ -180,12 +181,14 @@ func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) e
 		},
 	}
 
-	if v, ok := d.GetOk("condition"); ok {
-		properties.RoleAssignmentProperties.Condition = utils.String(v.(string))
-	}
+	condition := d.Get("condition").(string)
+	conditionVersion := d.Get("condition_version").(string)
 
-	if v, ok := d.GetOk("condition_version"); ok {
-		properties.RoleAssignmentProperties.ConditionVersion = utils.String(v.(string))
+	if condition != "" && conditionVersion != "" {
+		properties.RoleAssignmentProperties.Condition = utils.String(condition)
+		properties.RoleAssignmentProperties.ConditionVersion = utils.String(conditionVersion)
+	} else if condition != "" || conditionVersion != "" {
+		return fmt.Errorf("`condition` and `conditionVersion` should be both set or unset")
 	}
 
 	skipPrincipalCheck := d.Get("skip_service_principal_aad_check").(bool)
