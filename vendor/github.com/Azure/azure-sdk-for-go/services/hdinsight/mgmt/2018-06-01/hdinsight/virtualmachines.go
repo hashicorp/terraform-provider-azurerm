@@ -128,8 +128,8 @@ func (client VirtualMachinesClient) RestartHosts(ctx context.Context, resourceGr
 		ctx = tracing.StartSpan(ctx, fqdn+"/VirtualMachinesClient.RestartHosts")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

@@ -16,7 +16,7 @@ Manages an IP group that contains a list of CIDRs and/or IP addresses.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-rg"
-  location = "westus"
+  location = "West Europe"
 }
 
 resource "azurerm_ip_group" "example" {

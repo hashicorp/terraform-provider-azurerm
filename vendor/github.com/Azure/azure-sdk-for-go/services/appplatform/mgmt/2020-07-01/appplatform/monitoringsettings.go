@@ -130,8 +130,8 @@ func (client MonitoringSettingsClient) UpdatePatch(ctx context.Context, resource
 		ctx = tracing.StartSpan(ctx, fqdn+"/MonitoringSettingsClient.UpdatePatch")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -235,8 +235,8 @@ func (client MonitoringSettingsClient) UpdatePut(ctx context.Context, resourceGr
 		ctx = tracing.StartSpan(ctx, fqdn+"/MonitoringSettingsClient.UpdatePut")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

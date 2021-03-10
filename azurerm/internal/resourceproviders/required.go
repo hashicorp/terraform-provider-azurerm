@@ -12,6 +12,7 @@ func Required() map[string]struct{} {
 		"Microsoft.AppPlatform":             {},
 		"Microsoft.Authorization":           {},
 		"Microsoft.Automation":              {},
+		"Microsoft.AVS":                     {},
 		"Microsoft.Blueprint":               {},
 		"Microsoft.BotService":              {},
 		"Microsoft.Cache":                   {},

@@ -108,6 +108,64 @@ func TestAccMsSqlDatabaseExtendedAuditingPolicy_storageAccBehindFireWall(t *test
 	})
 }
 
+func TestAccMsSqlDatabaseExtendedAuditingPolicy_logAnalytics(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database_extended_auditing_policy", "test")
+	r := MsSqlDatabaseExtendedAuditingPolicyResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("storage_account_access_key"),
+		{
+			Config: r.logAnalytics(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("storage_account_access_key"),
+		{
+			Config: r.logAnalyticsAndStorageAccount(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("storage_account_access_key"),
+	})
+}
+
+func TestAccMsSqlDatabaseExtendedAuditingPolicy_eventhub(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database_extended_auditing_policy", "test")
+	r := MsSqlDatabaseExtendedAuditingPolicyResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("storage_account_access_key"),
+		{
+			Config: r.eventhub(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("storage_account_access_key"),
+		{
+			Config: r.eventhubAndStorageAccount(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("storage_account_access_key"),
+	})
+}
+
 func (MsSqlDatabaseExtendedAuditingPolicyResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.DatabaseExtendedAuditingPolicyID(state.ID)
 	if err != nil {
@@ -293,4 +351,214 @@ resource "azurerm_mssql_database_extended_auditing_policy" "test" {
   ]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r MsSqlDatabaseExtendedAuditingPolicyResource) monitorTemplate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctest-LAW-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acctest-EHN-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+}
+
+resource "azurerm_eventhub" "test" {
+  name                = "acctest-EH-%[2]d"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  partition_count     = 2
+  message_retention   = 1
+}
+
+resource "azurerm_eventhub_namespace_authorization_rule" "test" {
+  name                = "acctestEHRule"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  listen              = true
+  send                = true
+  manage              = true
+}
+
+resource "azurerm_mssql_server_extended_auditing_policy" "test" {
+  server_id              = azurerm_mssql_server.test.id
+  log_monitoring_enabled = true
+}
+
+`, r.template(data), data.RandomInteger)
+}
+
+func (r MsSqlDatabaseExtendedAuditingPolicyResource) logAnalytics(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_monitor_diagnostic_setting" "test" {
+  name                       = "acctest-DS-%[2]d"
+  target_resource_id         = azurerm_mssql_database.test.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+
+  log {
+    category = "SQLSecurityAuditEvents"
+    enabled  = true
+
+    retention_policy {
+      enabled = false
+    }
+  }
+
+  metric {
+    category = "AllMetrics"
+
+    retention_policy {
+      enabled = false
+    }
+  }
+
+  // log, metric will return all disabled categories
+  lifecycle {
+    ignore_changes = [log, metric]
+  }
+}
+
+resource "azurerm_mssql_database_extended_auditing_policy" "test" {
+  database_id            = azurerm_mssql_database.test.id
+  log_monitoring_enabled = true
+}
+`, r.monitorTemplate(data), data.RandomInteger)
+}
+
+func (r MsSqlDatabaseExtendedAuditingPolicyResource) logAnalyticsAndStorageAccount(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_monitor_diagnostic_setting" "test" {
+  name                       = "acctest-DS-%[2]d"
+  target_resource_id         = azurerm_mssql_database.test.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+
+  log {
+    category = "SQLSecurityAuditEvents"
+    enabled  = true
+
+    retention_policy {
+      enabled = false
+    }
+  }
+
+  metric {
+    category = "AllMetrics"
+
+    retention_policy {
+      enabled = false
+    }
+  }
+
+  // log, metric will return all disabled categories
+  lifecycle {
+    ignore_changes = [log, metric]
+  }
+}
+
+resource "azurerm_mssql_database_extended_auditing_policy" "test" {
+  database_id                = azurerm_mssql_database.test.id
+  storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  log_monitoring_enabled     = true
+}
+`, r.monitorTemplate(data), data.RandomInteger)
+}
+
+func (r MsSqlDatabaseExtendedAuditingPolicyResource) eventhub(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_monitor_diagnostic_setting" "test" {
+  name                           = "acctest-DS-%[2]d"
+  target_resource_id             = azurerm_mssql_database.test.id
+  eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.test.id
+  eventhub_name                  = azurerm_eventhub.test.name
+
+
+  log {
+    category = "SQLSecurityAuditEvents"
+    enabled  = true
+
+    retention_policy {
+      enabled = false
+    }
+  }
+
+  metric {
+    category = "AllMetrics"
+
+    retention_policy {
+      enabled = false
+    }
+  }
+
+  // log, metric will return all disabled categories
+  lifecycle {
+    ignore_changes = [log, metric]
+  }
+
+}
+
+resource "azurerm_mssql_database_extended_auditing_policy" "test" {
+  database_id            = azurerm_mssql_database.test.id
+  log_monitoring_enabled = true
+}
+`, r.monitorTemplate(data), data.RandomInteger)
+}
+
+func (r MsSqlDatabaseExtendedAuditingPolicyResource) eventhubAndStorageAccount(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_monitor_diagnostic_setting" "test" {
+  name                           = "acctest-DS-%[2]d"
+  target_resource_id             = azurerm_mssql_database.test.id
+  eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.test.id
+  eventhub_name                  = azurerm_eventhub.test.name
+
+
+  log {
+    category = "SQLSecurityAuditEvents"
+    enabled  = true
+
+    retention_policy {
+      enabled = false
+    }
+  }
+
+  metric {
+    category = "AllMetrics"
+
+    retention_policy {
+      enabled = false
+    }
+  }
+
+  // log, metric will return all disabled categories
+  lifecycle {
+    ignore_changes = [log, metric]
+  }
+
+}
+
+resource "azurerm_mssql_database_extended_auditing_policy" "test" {
+  database_id                = azurerm_mssql_database.test.id
+  storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  log_monitoring_enabled     = true
+}
+`, r.monitorTemplate(data), data.RandomInteger)
 }

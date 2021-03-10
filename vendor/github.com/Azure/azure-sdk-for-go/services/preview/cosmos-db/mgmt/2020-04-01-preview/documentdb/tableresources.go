@@ -53,8 +53,8 @@ func (client TableResourcesClient) CreateUpdateTable(ctx context.Context, resour
 		ctx = tracing.StartSpan(ctx, fqdn+"/TableResourcesClient.CreateUpdateTable")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -178,8 +178,8 @@ func (client TableResourcesClient) DeleteTable(ctx context.Context, resourceGrou
 		ctx = tracing.StartSpan(ctx, fqdn+"/TableResourcesClient.DeleteTable")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -559,8 +559,8 @@ func (client TableResourcesClient) MigrateTableToAutoscale(ctx context.Context, 
 		ctx = tracing.StartSpan(ctx, fqdn+"/TableResourcesClient.MigrateTableToAutoscale")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -676,8 +676,8 @@ func (client TableResourcesClient) MigrateTableToManualThroughput(ctx context.Co
 		ctx = tracing.StartSpan(ctx, fqdn+"/TableResourcesClient.MigrateTableToManualThroughput")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -794,8 +794,8 @@ func (client TableResourcesClient) UpdateTableThroughput(ctx context.Context, re
 		ctx = tracing.StartSpan(ctx, fqdn+"/TableResourcesClient.UpdateTableThroughput")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

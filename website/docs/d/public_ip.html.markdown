@@ -33,7 +33,7 @@ output "public_ip_address" {
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "test-resources"
-  location = "West US 2"
+  location = "West Europe"
 }
 
 resource "azurerm_virtual_network" "example" {

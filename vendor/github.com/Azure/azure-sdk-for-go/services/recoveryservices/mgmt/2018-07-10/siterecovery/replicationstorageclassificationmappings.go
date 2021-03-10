@@ -55,8 +55,8 @@ func (client ReplicationStorageClassificationMappingsClient) Create(ctx context.
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationStorageClassificationMappingsClient.Create")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -162,8 +162,8 @@ func (client ReplicationStorageClassificationMappingsClient) Delete(ctx context.
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationStorageClassificationMappingsClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

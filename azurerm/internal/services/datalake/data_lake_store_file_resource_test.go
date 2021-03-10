@@ -3,7 +3,6 @@ package datalake_test
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"math/rand"
 	"os"
 	"testing"
@@ -68,7 +67,7 @@ func TestAccDataLakeStoreFile_largefiles(t *testing.T) {
 	bytes := make([]byte, largeSize)
 	rand.Read(bytes) // fill with random data
 
-	tmpfile, err := ioutil.TempFile("", "azurerm-acc-datalake-file-large")
+	tmpfile, err := os.CreateTemp("", "azurerm-acc-datalake-file-large")
 	if err != nil {
 		t.Errorf("Unable to open a temporary file.")
 	}

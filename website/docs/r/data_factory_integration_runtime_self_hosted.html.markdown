@@ -15,7 +15,7 @@ Manages a Data Factory Self-hosted Integration Runtime.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "eastus"
+  location = "West Europe"
 }
 
 resource "azurerm_data_factory" "example" {

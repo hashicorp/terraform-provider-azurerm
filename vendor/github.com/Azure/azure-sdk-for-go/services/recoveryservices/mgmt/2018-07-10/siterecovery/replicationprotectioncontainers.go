@@ -53,8 +53,8 @@ func (client ReplicationProtectionContainersClient) Create(ctx context.Context, 
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationProtectionContainersClient.Create")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -158,8 +158,8 @@ func (client ReplicationProtectionContainersClient) Delete(ctx context.Context, 
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationProtectionContainersClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -251,8 +251,8 @@ func (client ReplicationProtectionContainersClient) DiscoverProtectableItem(ctx 
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationProtectionContainersClient.DiscoverProtectableItem")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -669,8 +669,8 @@ func (client ReplicationProtectionContainersClient) SwitchProtection(ctx context
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationProtectionContainersClient.SwitchProtection")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

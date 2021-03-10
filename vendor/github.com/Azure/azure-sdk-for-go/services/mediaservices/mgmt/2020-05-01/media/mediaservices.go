@@ -92,6 +92,7 @@ func (client MediaservicesClient) CreateOrUpdatePreparer(ctx context.Context, re
 		"api-version": APIVersion,
 	}
 
+	parameters.SystemData = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -782,6 +783,7 @@ func (client MediaservicesClient) UpdatePreparer(ctx context.Context, resourceGr
 		"api-version": APIVersion,
 	}
 
+	parameters.SystemData = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),

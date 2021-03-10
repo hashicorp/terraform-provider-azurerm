@@ -19,7 +19,7 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "Southeast Asia"
+  location = "West Europe"
 }
 
 data "azurerm_client_config" "current" {
@@ -128,6 +128,8 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ID of the Spring Cloud Certificate.
+
+* `thumbprint` - The thumbprint of the Spring Cloud certificate.
 
 ## Timeouts
 
