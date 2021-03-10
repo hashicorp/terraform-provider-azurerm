@@ -16,6 +16,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/sorter"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -1273,6 +1274,9 @@ func flattenFrontDoorBackendPools(input *[]frontdoor.BackendPool, frontDoorId pa
 		})
 	}
 
+	sorter := sorter.NewSorter().ByKeys([]string{"id"})
+	sorter.Sort(output)
+
 	return &output, nil
 }
 
@@ -1342,6 +1346,9 @@ func flattenFrontDoorBackend(input *[]frontdoor.Backend) []interface{} {
 
 		output = append(output, result)
 	}
+
+	sorter := sorter.NewSorter().ByKeys([]string{"id"})
+	sorter.Sort(output)
 
 	return output
 }
@@ -1430,6 +1437,9 @@ func flattenFrontEndEndpoints(input *[]frontdoor.FrontendEndpoint, frontDoorId p
 		})
 	}
 
+	sorter := sorter.NewSorter().ByKeys([]string{"id"})
+	sorter.Sort(results)
+
 	return &results, nil
 }
 
@@ -1482,6 +1492,9 @@ func flattenFrontDoorHealthProbeSettingsModel(input *[]frontdoor.HealthProbeSett
 		})
 	}
 
+	sorter := sorter.NewSorter().ByKeys([]string{"id"})
+	sorter.Sort(results)
+
 	return results
 }
 
@@ -1523,6 +1536,9 @@ func flattenFrontDoorLoadBalancingSettingsModel(input *[]frontdoor.LoadBalancing
 			"successful_samples_required":     successfulSamplesRequired,
 		})
 	}
+
+	sorter := sorter.NewSorter().ByKeys([]string{"id"})
+	sorter.Sort(results)
 
 	return results
 }
@@ -1581,6 +1597,9 @@ func flattenFrontDoorRoutingRule(input *[]frontdoor.RoutingRule, oldBlocks inter
 			"redirect_configuration":   redirectConfiguration,
 		})
 	}
+
+	sorter := sorter.NewSorter().ByKeys([]string{"id"})
+	sorter.Sort(output)
 
 	return &output, nil
 }
@@ -1722,6 +1741,9 @@ func flattenFrontDoorFrontendEndpointsSubResources(input *[]frontdoor.SubResourc
 
 		output = append(output, id.Name)
 	}
+
+	sorter := sorter.NewSorter().ByKeys([]string{"id"})
+	sorter.Sort(output)
 
 	return &output, nil
 }
