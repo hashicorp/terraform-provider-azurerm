@@ -60,7 +60,7 @@ func resourcePurviewAccount() *schema.Resource {
 
 			"sku_name": {
 				Type:     schema.TypeString,
-				Required: false,
+				Optional: true,
 				Default:  string(purview.Standard),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(purview.Standard),
