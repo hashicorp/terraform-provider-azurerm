@@ -12,6 +12,7 @@ ENHANCEMENTS:
 * dependencies: updating to v52.3.0 of `github.com/Azure/azure-sdk-for-go` [GH-10829]
 * `azurerm_role_assignment` - support enrollment ids in `scope` argument [GH-10890]
 * `azurerm_kubernetes_cluster` - support `None` for the `private_dns_zone_id` property [GH-10774]
+* `azurerm_kubernetes_cluster` - support for `expander` in the `auto_scaler_profile` block [GH-10777]
 
 BUG FIXES:
 
