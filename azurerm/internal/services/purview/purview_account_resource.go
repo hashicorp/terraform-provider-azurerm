@@ -268,13 +268,13 @@ func resourcePurviewAccountDelete(d *schema.ResourceData, meta interface{}) erro
 }
 
 func expandPurviewSkuName(d *schema.ResourceData) *purview.AccountSku {
-	vs := d.Get("sku_name").(string)
+	sku := d.Get("sku_name").(string)
 
-	if len(vs) == 0 {
+	if len(sku) == 0 {
 		return nil
 	}
 
-	name, capacity, err := azure.SplitSku(vs)
+	name, capacity, err := azure.SplitSku(sku)
 	if err != nil {
 		return nil
 	}
