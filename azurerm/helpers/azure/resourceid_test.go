@@ -250,5 +250,4 @@ func TestParseAzureResourceIDWithoutSubscription(t *testing.T) {
 			t.Fatalf("Unexpected resource ID:\nExpected: %+v\nGot:      %+v\n", test.expectedResourceID, parsed)
 		}
 	}
-
 }
