@@ -8,11 +8,11 @@ import (
 func AdminUsernames(i interface{}, k string) (_ []string, errors []error) {
 	disallowedLogins := [7]string{"azure_superuser", "azure_pg_admin", "admin", "administrator", "root", "guest", "public"}
 	for _, v := range disallowedLogins {
-		if v == k {
+		if v == i.(string) {
 			return nil, append(errors, fmt.Errorf("Error - PostgreSQL AD Administrator login can not be %q", k))
 		}
 	}
-	if strings.HasPrefix(k, "pg_") {
+	if strings.HasPrefix(i.(string), "pg_") {
 		return nil, append(errors, fmt.Errorf("Error - PostgreSQL AD Administrator login can not start with 'pg_'"))
 	}
 

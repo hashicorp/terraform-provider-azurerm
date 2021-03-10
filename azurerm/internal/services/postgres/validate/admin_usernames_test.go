@@ -11,7 +11,7 @@ func TestValidateAdminUsernames(t *testing.T) {
 	}{
 		{
 			// guest
-			input:    "blah",
+			input:    "guest",
 			expected: false,
 		},
 		{
