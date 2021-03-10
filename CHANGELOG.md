@@ -23,6 +23,7 @@ BUG FIXES:
 * `azurerm_eventhub_consumer_group` - detecting as removed when deleted in Azure [GH-10900]
 * `azurerm_mssql_virtual_machine` - workaround for inconsistent API value for `log_backup_frequency_in_minutes` in the `manual_schedule` block [GH-10899]
 * `azurerm_postgres_server` - support for replicaset scaling [GH-10754]
+* `azurerm_postgresql_aad_administrator` - prevent invalid usernames for the `login` property [GH-10757]
 
 ---
 
