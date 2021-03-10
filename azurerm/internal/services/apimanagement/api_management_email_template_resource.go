@@ -44,6 +44,7 @@ func resourceApiManagementEmailTemplate() *schema.Resource {
 			"template_name": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					strings.Title(string(apimanagement.AccountClosedDeveloper)),
 					strings.Title(string(apimanagement.ApplicationApprovedNotificationMessage)),
@@ -121,7 +122,7 @@ func resourceApiManagementEmailTemplateCreateUpdate(d *schema.ResourceData, meta
 			}
 		}
 
-		// in case the template has been edited (is not default anymore) this errors and the resource should be imported into the state
+		// in case the template has been edited (is not default anymore) this errors and the resource should be imported manually into the state (terraform import).
 		isDefault := existing.IsDefault
 		if existing.ID != nil && *existing.ID != "" && !*isDefault {
 			return tf.ImportAsExistsError("azurerm_api_management_email_template", *existing.ID)
