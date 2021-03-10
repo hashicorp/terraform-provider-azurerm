@@ -1,21 +1,19 @@
 ---
 subcategory: "Security Center"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_security_center_assessment_metadata"
+page_title: "Azure Resource Manager: azurerm_security_center_assessment_policy"
 description: |-
   Manages the Security Center Assessment Metadata for Azure Security Center.
 ---
 
-# azurerm_security_center_assessment_metadata
+# azurerm_security_center_assessment_policy
 
 Manages the Security Center Assessment Metadata for Azure Security Center.
-
-~> **NOTE:** This resource has been deprecated in favour of the `azurerm_security_center_assessment_policy` resource and will be removed in the next major version of the AzureRM Provider. The new resource shares the same fields as this one, and information on migrating across [can be found in this guide](../guides/migrating-between-renamed-resources.html).
 
 ## Example Usage
 
 ```hcl
-resource "azurerm_security_center_assessment_metadata" "example" {
+resource "azurerm_security_center_assessment_policy" "example" {
   display_name = "Test Display Name"
   severity     = "Medium"
   description  = "Test Description"
@@ -46,23 +44,23 @@ The following arguments are supported:
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
-* `id` - The ID of the Security Center Assessment Metadata.
+* `id` - The ID of the Security Center Assessment Policy.
 
-* `name` - The GUID as the name of the Security Center Assessment Metadata.
+* `name` - The GUID as the name of the Security Center Assessment Policy.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Security Center Assessment Metadata.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Security Center Assessment Metadata.
-* `update` - (Defaults to 30 minutes) Used when updating the Security Center Assessment Metadata.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Security Center Assessment Metadata.
+* `create` - (Defaults to 30 minutes) Used when creating the Security Center Assessment Policy.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Security Center Assessment Policy.
+* `update` - (Defaults to 30 minutes) Used when updating the Security Center Assessment Policy.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Security Center Assessment Policy.
 
 ## Import
 
-Security Assessments Metadata can be imported using the `resource id`, e.g.
+Security Assessments Policy can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_security_center_assessment_metadata.example /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Security/assessmentMetadata/metadata1
+terraform import azurerm_security_center_assessment_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Security/assessmentMetadata/metadata1
 ```
