@@ -8,58 +8,42 @@ import (
 
 type sorter struct {
 	data  interface{}
-	order KeyComps
+	order Comparators
 }
 
-// NewSorter create a new sorter struct which Sort() can be called on.
-func NewSorter() *sorter {
+func FDSorter() *sorter {
 	return &sorter{}
 }
 
-// ByKeys is used to provide a list of string to indicate which keys to sort by and in which
-// order.  If the key name starts with "-" it will be sorted in Descending order otherwise
-// it will be sorted in Ascending order.
 func (s *sorter) ByKeys(order []string) *sorter {
-	keyComps := make(KeyComps, 0)
+	comparators := make(Comparators, 0)
 	for _, key := range order {
-		switch key[0] {
-		case '-':
-			keyComps = append(keyComps, KeyComp{key[1:], Descending})
-		case '+':
-			keyComps = append(keyComps, KeyComp{key[1:], Ascending})
-		default:
-			keyComps = append(keyComps, KeyComp{key, Ascending})
-		}
+		comparators = append(comparators, Comparator{key, Ascending})
 	}
-	return s.ByKeyComps(keyComps)
+	return s.ByKeyComparators(comparators)
 }
 
-// KeyComp struct to provide custom compaitor functions
-type KeyComp struct {
+type Comparator struct {
 	Name string
 	Comp func(interface{}, interface{}) CompareResult
 }
 
-type KeyComps []KeyComp
+type Comparators []Comparator
 
-// ByKeyComps is used to provide a list of KeyComp to sort by key with an explicit comparitor.
-func (s *sorter) ByKeyComps(keyComps KeyComps) *sorter {
-	s.order = keyComps
+func (s *sorter) ByKeyComparators(comparators Comparators) *sorter {
+	s.order = comparators
 	return s
 }
 
-// Sort will sort the data provided.  The data should be a slice of something.
-func (s *sorter) Sort(data interface{}) {
+func (s *sorter) DoSort(data interface{}) {
 	s.data = data
 	sort.Sort(s)
 }
 
-// Len is required to implement sort.Interface
 func (s *sorter) Len() int {
 	return reflect.ValueOf(s.data).Len()
 }
 
-// Swap is required to implement sort.Interface
 func (s *sorter) Swap(i, j int) {
 	if i > j {
 		i, j = j, i
@@ -71,7 +55,6 @@ func (s *sorter) Swap(i, j int) {
 	arr.Index(j).Set(reflect.ValueOf(tmp))
 }
 
-// Less is required to implement sort.Interface
 func (s *sorter) Less(i, j int) bool {
 	arr := reflect.ValueOf(s.data)
 	a := reflect.ValueOf(arr.Index(i).Interface())

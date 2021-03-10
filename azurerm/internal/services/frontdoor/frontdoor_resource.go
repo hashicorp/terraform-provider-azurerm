@@ -1274,8 +1274,8 @@ func flattenFrontDoorBackendPools(input *[]frontdoor.BackendPool, frontDoorId pa
 		})
 	}
 
-	sorter := sorter.NewSorter().ByKeys([]string{"id"})
-	sorter.Sort(output)
+	sorter := sorter.FDSorter().ByKeys([]string{"id"})
+	sorter.DoSort(output)
 
 	return &output, nil
 }
@@ -1347,8 +1347,8 @@ func flattenFrontDoorBackend(input *[]frontdoor.Backend) []interface{} {
 		output = append(output, result)
 	}
 
-	sorter := sorter.NewSorter().ByKeys([]string{"id"})
-	sorter.Sort(output)
+	sorter := sorter.FDSorter().ByKeys([]string{"id"})
+	sorter.DoSort(output)
 
 	return output
 }
@@ -1437,8 +1437,8 @@ func flattenFrontEndEndpoints(input *[]frontdoor.FrontendEndpoint, frontDoorId p
 		})
 	}
 
-	sorter := sorter.NewSorter().ByKeys([]string{"id"})
-	sorter.Sort(results)
+	sorter := sorter.FDSorter().ByKeys([]string{"id"})
+	sorter.DoSort(results)
 
 	return &results, nil
 }
@@ -1492,8 +1492,8 @@ func flattenFrontDoorHealthProbeSettingsModel(input *[]frontdoor.HealthProbeSett
 		})
 	}
 
-	sorter := sorter.NewSorter().ByKeys([]string{"id"})
-	sorter.Sort(results)
+	sorter := sorter.FDSorter().ByKeys([]string{"id"})
+	sorter.DoSort(results)
 
 	return results
 }
@@ -1537,8 +1537,8 @@ func flattenFrontDoorLoadBalancingSettingsModel(input *[]frontdoor.LoadBalancing
 		})
 	}
 
-	sorter := sorter.NewSorter().ByKeys([]string{"id"})
-	sorter.Sort(results)
+	sorter := sorter.FDSorter().ByKeys([]string{"id"})
+	sorter.DoSort(results)
 
 	return results
 }
@@ -1598,8 +1598,8 @@ func flattenFrontDoorRoutingRule(input *[]frontdoor.RoutingRule, oldBlocks inter
 		})
 	}
 
-	sorter := sorter.NewSorter().ByKeys([]string{"id"})
-	sorter.Sort(output)
+	sorter := sorter.FDSorter().ByKeys([]string{"id"})
+	sorter.DoSort(output)
 
 	return &output, nil
 }
@@ -1742,8 +1742,8 @@ func flattenFrontDoorFrontendEndpointsSubResources(input *[]frontdoor.SubResourc
 		output = append(output, id.Name)
 	}
 
-	sorter := sorter.NewSorter().ByKeys([]string{"id"})
-	sorter.Sort(output)
+	sorter := sorter.FDSorter().ByKeys([]string{"id"})
+	sorter.DoSort(output)
 
 	return &output, nil
 }
