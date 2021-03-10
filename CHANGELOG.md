@@ -3,6 +3,9 @@
 FEATURES:
 
 * **New Resource:** `azurerm_security_center_server_vulnerability_assessment` [GH-10030]
+* **New Resource:** `azurerm_security_center_assessment` [GH-10694]
+* **New Resource:** `azurerm_security_center_assessment_policy` [GH-10694]
+* **New Resource:** `azurerm_sentinel_data_connector_azure_security_center` [GH-10667]
 
 ENHANCEMENTS:
 
@@ -12,8 +15,12 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* Data Source: `azurerm_function_app_host_keys` - retrying reading the keys to work around a broken API [GH-10894]
+* Data Source: `azurerm_log_analytics_workspace` - ensure the `id` is returned with the correct casing [GH-10892]
 * Data Source: `azurerm_monitor_action_group` - add support for `aad_auth` attribute [GH-10876]
+* `azurerm_api_management_custom_domain` - prevent a perpetual diff [GH-10636]
 * `azurerm_eventhub_consumer_group` - detecting as removed when deleted in Azure [GH-10900]
+* `azurerm_mssql_virtual_machine` - workaround for inconsistent API value for `log_backup_frequency_in_minutes` in the `manual_schedule` block [GH-10899]
 * `azurerm_postgres_server` - support for replicaset scaling [GH-10754]
 
 ---
