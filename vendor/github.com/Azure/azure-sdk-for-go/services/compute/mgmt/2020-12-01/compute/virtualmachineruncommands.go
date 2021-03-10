@@ -54,8 +54,8 @@ func (client VirtualMachineRunCommandsClient) CreateOrUpdate(ctx context.Context
 		ctx = tracing.StartSpan(ctx, fqdn+"/VirtualMachineRunCommandsClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -159,8 +159,8 @@ func (client VirtualMachineRunCommandsClient) Delete(ctx context.Context, resour
 		ctx = tracing.StartSpan(ctx, fqdn+"/VirtualMachineRunCommandsClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -660,8 +660,8 @@ func (client VirtualMachineRunCommandsClient) Update(ctx context.Context, resour
 		ctx = tracing.StartSpan(ctx, fqdn+"/VirtualMachineRunCommandsClient.Update")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

@@ -15,7 +15,7 @@ Manages an Azure JSON Dataset inside an Azure Data Factory.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "northeurope"
+  location = "West Europe"
 }
 
 resource "azurerm_data_factory" "example" {

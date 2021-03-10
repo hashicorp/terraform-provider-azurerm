@@ -54,8 +54,8 @@ func (client OpenShiftManagedClustersClient) CreateOrUpdate(ctx context.Context,
 		ctx = tracing.StartSpan(ctx, fqdn+"/OpenShiftManagedClustersClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -169,8 +169,8 @@ func (client OpenShiftManagedClustersClient) Delete(ctx context.Context, resourc
 		ctx = tracing.StartSpan(ctx, fqdn+"/OpenShiftManagedClustersClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -585,8 +585,8 @@ func (client OpenShiftManagedClustersClient) UpdateTags(ctx context.Context, res
 		ctx = tracing.StartSpan(ctx, fqdn+"/OpenShiftManagedClustersClient.UpdateTags")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

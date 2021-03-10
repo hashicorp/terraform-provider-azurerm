@@ -103,6 +103,7 @@ func (client ContentKeyPoliciesClient) CreateOrUpdatePreparer(ctx context.Contex
 		"api-version": APIVersion,
 	}
 
+	parameters.SystemData = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -548,6 +549,7 @@ func (client ContentKeyPoliciesClient) UpdatePreparer(ctx context.Context, resou
 		"api-version": APIVersion,
 	}
 
+	parameters.SystemData = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),

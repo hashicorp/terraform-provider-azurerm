@@ -17,7 +17,7 @@ Manages a Linked Service (connection) between PostgreSQL and Azure Data Factory.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "northeurope"
+  location = "West Europe"
 }
 
 resource "azurerm_data_factory" "example" {

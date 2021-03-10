@@ -965,8 +965,8 @@ func (client DeploymentsClient) CreateOrUpdate(ctx context.Context, resourceGrou
 		ctx = tracing.StartSpan(ctx, fqdn+"/DeploymentsClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -1087,8 +1087,8 @@ func (client DeploymentsClient) CreateOrUpdateAtManagementGroupScope(ctx context
 		ctx = tracing.StartSpan(ctx, fqdn+"/DeploymentsClient.CreateOrUpdateAtManagementGroupScope")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -1207,8 +1207,8 @@ func (client DeploymentsClient) CreateOrUpdateAtScope(ctx context.Context, scope
 		ctx = tracing.StartSpan(ctx, fqdn+"/DeploymentsClient.CreateOrUpdateAtScope")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -1323,8 +1323,8 @@ func (client DeploymentsClient) CreateOrUpdateAtSubscriptionScope(ctx context.Co
 		ctx = tracing.StartSpan(ctx, fqdn+"/DeploymentsClient.CreateOrUpdateAtSubscriptionScope")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -1439,8 +1439,8 @@ func (client DeploymentsClient) CreateOrUpdateAtTenantScope(ctx context.Context,
 		ctx = tracing.StartSpan(ctx, fqdn+"/DeploymentsClient.CreateOrUpdateAtTenantScope")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -1561,8 +1561,8 @@ func (client DeploymentsClient) Delete(ctx context.Context, resourceGroupName st
 		ctx = tracing.StartSpan(ctx, fqdn+"/DeploymentsClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -1668,8 +1668,8 @@ func (client DeploymentsClient) DeleteAtManagementGroupScope(ctx context.Context
 		ctx = tracing.StartSpan(ctx, fqdn+"/DeploymentsClient.DeleteAtManagementGroupScope")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -1773,8 +1773,8 @@ func (client DeploymentsClient) DeleteAtScope(ctx context.Context, scope string,
 		ctx = tracing.StartSpan(ctx, fqdn+"/DeploymentsClient.DeleteAtScope")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -1874,8 +1874,8 @@ func (client DeploymentsClient) DeleteAtSubscriptionScope(ctx context.Context, d
 		ctx = tracing.StartSpan(ctx, fqdn+"/DeploymentsClient.DeleteAtSubscriptionScope")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -1975,8 +1975,8 @@ func (client DeploymentsClient) DeleteAtTenantScope(ctx context.Context, deploym
 		ctx = tracing.StartSpan(ctx, fqdn+"/DeploymentsClient.DeleteAtTenantScope")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -3545,8 +3545,8 @@ func (client DeploymentsClient) Validate(ctx context.Context, resourceGroupName 
 		ctx = tracing.StartSpan(ctx, fqdn+"/DeploymentsClient.Validate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -3667,8 +3667,8 @@ func (client DeploymentsClient) ValidateAtManagementGroupScope(ctx context.Conte
 		ctx = tracing.StartSpan(ctx, fqdn+"/DeploymentsClient.ValidateAtManagementGroupScope")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -3788,8 +3788,8 @@ func (client DeploymentsClient) ValidateAtScope(ctx context.Context, scope strin
 		ctx = tracing.StartSpan(ctx, fqdn+"/DeploymentsClient.ValidateAtScope")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -3904,8 +3904,8 @@ func (client DeploymentsClient) ValidateAtSubscriptionScope(ctx context.Context,
 		ctx = tracing.StartSpan(ctx, fqdn+"/DeploymentsClient.ValidateAtSubscriptionScope")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -4020,8 +4020,8 @@ func (client DeploymentsClient) ValidateAtTenantScope(ctx context.Context, deplo
 		ctx = tracing.StartSpan(ctx, fqdn+"/DeploymentsClient.ValidateAtTenantScope")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -4137,8 +4137,8 @@ func (client DeploymentsClient) WhatIf(ctx context.Context, resourceGroupName st
 		ctx = tracing.StartSpan(ctx, fqdn+"/DeploymentsClient.WhatIf")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -4256,8 +4256,8 @@ func (client DeploymentsClient) WhatIfAtManagementGroupScope(ctx context.Context
 		ctx = tracing.StartSpan(ctx, fqdn+"/DeploymentsClient.WhatIfAtManagementGroupScope")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -4373,8 +4373,8 @@ func (client DeploymentsClient) WhatIfAtSubscriptionScope(ctx context.Context, d
 		ctx = tracing.StartSpan(ctx, fqdn+"/DeploymentsClient.WhatIfAtSubscriptionScope")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -4486,8 +4486,8 @@ func (client DeploymentsClient) WhatIfAtTenantScope(ctx context.Context, deploym
 		ctx = tracing.StartSpan(ctx, fqdn+"/DeploymentsClient.WhatIfAtTenantScope")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

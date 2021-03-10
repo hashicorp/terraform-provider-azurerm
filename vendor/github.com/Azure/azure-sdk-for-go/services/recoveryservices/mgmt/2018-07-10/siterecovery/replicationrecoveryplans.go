@@ -52,8 +52,8 @@ func (client ReplicationRecoveryPlansClient) Create(ctx context.Context, recover
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationRecoveryPlansClient.Create")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -165,8 +165,8 @@ func (client ReplicationRecoveryPlansClient) Delete(ctx context.Context, recover
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationRecoveryPlansClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -255,8 +255,8 @@ func (client ReplicationRecoveryPlansClient) FailoverCommit(ctx context.Context,
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationRecoveryPlansClient.FailoverCommit")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -548,8 +548,8 @@ func (client ReplicationRecoveryPlansClient) PlannedFailover(ctx context.Context
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationRecoveryPlansClient.PlannedFailover")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -657,8 +657,8 @@ func (client ReplicationRecoveryPlansClient) Reprotect(ctx context.Context, reco
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationRecoveryPlansClient.Reprotect")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -759,8 +759,8 @@ func (client ReplicationRecoveryPlansClient) TestFailover(ctx context.Context, r
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationRecoveryPlansClient.TestFailover")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -870,8 +870,8 @@ func (client ReplicationRecoveryPlansClient) TestFailoverCleanup(ctx context.Con
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationRecoveryPlansClient.TestFailoverCleanup")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -980,8 +980,8 @@ func (client ReplicationRecoveryPlansClient) UnplannedFailover(ctx context.Conte
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationRecoveryPlansClient.UnplannedFailover")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -1090,8 +1090,8 @@ func (client ReplicationRecoveryPlansClient) Update(ctx context.Context, recover
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationRecoveryPlansClient.Update")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

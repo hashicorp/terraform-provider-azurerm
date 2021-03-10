@@ -16,7 +16,7 @@ Manages a Function App deployment Slot.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "azure-functions-test-rg"
-  location = "westus2"
+  location = "West Europe"
 }
 
 resource "azurerm_storage_account" "example" {

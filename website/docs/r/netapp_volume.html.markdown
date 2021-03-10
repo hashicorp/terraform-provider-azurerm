@@ -78,7 +78,7 @@ resource "azurerm_netapp_volume" "example" {
     endpoint_type             = "dst"
     remote_volume_location    = azurerm_resource_group.example_primary.location
     remote_volume_resource_id = azurerm_netapp_volume.example_primary.id
-    replication_frequency     = "_10minutely"
+    replication_frequency     = "10minutes"
   }
 }
 ```
@@ -101,7 +101,7 @@ The following arguments are supported:
 
 * `service_level` - (Required) The target performance of the file system. Valid values include `Premium`, `Standard`, or `Ultra`.
 
-* `protocols` - (Optional) The target volume protocol expressed as a list. Supported single value include `CIFS`, `NFSv3`, or `NFSv4.1`. If argument is not defined it will default to `NFSv3`. Changing this forces a new resource to be created and data will be lost.
+* `protocols` - (Optional) The target volume protocol expressed as a list. Supported single value include `CIFS`, `NFSv3`, or `NFSv4.1`. If argument is not defined it will default to `NFSv3`. Changing this forces a new resource to be created and data will be lost. Dual protocol scenario is supported for CIFS and NFSv3, for more information, please refer to [Create a dual-protocol volume for Azure NetApp Files](https://docs.microsoft.com/en-us/azure/azure-netapp-files/create-volumes-dual-protocol) document.
 
 * `subnet_id` - (Required) The ID of the Subnet the NetApp Volume resides in, which must have the `Microsoft.NetApp/volumes` delegation. Changing this forces a new resource to be created.
 
@@ -111,7 +111,9 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
--> **Note**: It is highly recommended to use the **lifecycle** property as noted in the example since it will prevent an accidental deletion of the volume if the `protocols` argument changes to a different protocol type. 
+An example on how to create a dual protocol volume can be found at [`./examples/netapp/volume_dual_protocol` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/netapp/volume_dual_protocol)
+
+-> **Note**: It is highly recommended to use the **lifecycle** property as noted in the example since it will prevent an accidental deletion of the volume if the `protocols` argument changes to a different protocol type.
 
 ---
 

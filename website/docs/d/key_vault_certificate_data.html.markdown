@@ -6,7 +6,7 @@ description: |-
   Gets data contained in an existing Key Vault Certificate.
 ---
 
-# Data Source: azurerm_key_vault_secret_data
+# Data Source: azurerm_key_vault_certificate_data
 
 Use this data source to access data stored in an existing Key Vault Certificate.
 
@@ -29,7 +29,7 @@ data "azurerm_key_vault_certificate_data" "example" {
 }
 
 output "example_pem" {
-  value = data.azurerm_key_vault_certificate.example.pem
+  value = data.azurerm_key_vault_certificate_data.example.pem
 }
 ```
 

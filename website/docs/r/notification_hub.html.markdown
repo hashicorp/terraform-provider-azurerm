@@ -16,7 +16,7 @@ Manages a Notification Hub within a Notification Hub Namespace.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "notificationhub-resources"
-  location = "Australia East"
+  location = "West Europe"
 }
 
 resource "azurerm_notification_hub_namespace" "example" {

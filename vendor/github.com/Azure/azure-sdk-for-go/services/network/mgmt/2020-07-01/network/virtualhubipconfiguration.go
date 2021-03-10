@@ -55,8 +55,8 @@ func (client VirtualHubIPConfigurationClient) CreateOrUpdate(ctx context.Context
 		ctx = tracing.StartSpan(ctx, fqdn+"/VirtualHubIPConfigurationClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -181,8 +181,8 @@ func (client VirtualHubIPConfigurationClient) Delete(ctx context.Context, resour
 		ctx = tracing.StartSpan(ctx, fqdn+"/VirtualHubIPConfigurationClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

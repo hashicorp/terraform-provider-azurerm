@@ -474,6 +474,7 @@ func resourceKubernetesCluster() *schema.Resource {
 					privateDnsValidate.PrivateDnsZoneID,
 					validation.StringInSlice([]string{
 						"System",
+						"None",
 					}, false),
 				),
 			},
@@ -599,7 +600,7 @@ func resourceKubernetesCluster() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Sensitive:    true,
-							ValidateFunc: validation.StringLenBetween(14, 123),
+							ValidateFunc: validation.StringLenBetween(8, 123),
 						},
 					},
 				},
