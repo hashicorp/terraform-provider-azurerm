@@ -56,8 +56,8 @@ func resourceMediaLiveEvent() *schema.Resource {
 
 			"auto_start_enabled": {
 				Type:     schema.TypeBool,
+				ForceNew: true,
 				Optional: true,
-				Computed: true,
 			},
 
 			"location": azure.SchemaLocation(),
