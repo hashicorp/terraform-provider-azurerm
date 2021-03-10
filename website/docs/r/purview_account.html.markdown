@@ -40,6 +40,8 @@ The following arguments are supported:
 
 ---
 
+* `sku_name` - (Optional) SKU name for platform size and catalog capabilities. Accepted value is `Standard`.
+
 * `public_network_enabled` - (Optional) Should the Purview Account be visible to the public network? Defaults to `true`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Purview Account.

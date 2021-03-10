@@ -26,6 +26,7 @@ func TestAccPurviewAccount_basic(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku_capacity").HasValue("4"),
+				check.That(data.ResourceName).Key("sku_name").HasValue("Standard"),
 				check.That(data.ResourceName).Key("public_network_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("identity.0.type").Exists(),
 				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),

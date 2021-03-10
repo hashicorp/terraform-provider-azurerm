@@ -58,6 +58,15 @@ func resourcePurviewAccount() *schema.Resource {
 				}),
 			},
 
+			"sku_name": {
+				Type:     schema.TypeString,
+				Required: false,
+				Default:  string(purview.Standard),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(purview.Standard),
+				}, false),
+			},
+
 			"public_network_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -149,7 +158,7 @@ func resourcePurviewAccountCreateUpdate(d *schema.ResourceData, meta interface{}
 		Location: &location,
 		Sku: &purview.AccountSku{
 			Capacity: utils.Int32(int32(d.Get("sku_capacity").(int))),
-			Name:     purview.Standard,
+			Name:     purview.Name(d.Get("sku_name").(string)),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -202,6 +211,9 @@ func resourcePurviewAccountRead(d *schema.ResourceData, meta interface{}) error 
 	if sku := resp.Sku; sku != nil {
 		if err := d.Set("sku_capacity", sku.Capacity); err != nil {
 			return fmt.Errorf("Error setting `sku_capacity`: %+v", err)
+		}
+		if err := d.Set("sku_name", sku.Name); err != nil {
+			return fmt.Errorf("Error setting `sku_name`: %+v", err)
 		}
 	}
 
