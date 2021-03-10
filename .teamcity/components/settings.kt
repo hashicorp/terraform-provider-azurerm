@@ -22,6 +22,9 @@ var serviceTestConfigurationOverrides = mapOf(
         // these tests all conflict with one another
         "authorization" to testConfiguration(1, defaultStartHour),
 
+        //Blueprints are constrained on the number of targets available - these execute quickly, so can be serialised
+        "blueprints" to testConfiguration(1, defaultStartHour),
+
         // The AKS API has a low rate limit
         "containers" to testConfiguration(5, defaultStartHour),
 
