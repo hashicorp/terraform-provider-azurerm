@@ -27,6 +27,8 @@ type Client struct {
 	VirtualMachinesClient                              *sqlvirtualmachine.SQLVirtualMachinesClient
 	VirtualNetworkRulesClient                          *sql.VirtualNetworkRulesClient
 	GeoBackupPoliciesClient                            *sql.GeoBackupPoliciesClient
+	EncryptionProtectorClient                          *sql.EncryptionProtectorsClient
+	ServerKeysClient                                   *sql.ServerKeysClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -85,6 +87,11 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&sqlVirtualNetworkRulesClient.Client, o.ResourceManagerAuthorizer)
 	geoBackupPoliciesClient := sql.NewGeoBackupPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&geoBackupPoliciesClient.Client, o.ResourceManagerAuthorizer)
+	sqlEncryptionProtectorClient := sql.NewEncryptionProtectorsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&sqlEncryptionProtectorClient.Client, o.ResourceManagerAuthorizer)
+
+	sqlServerKeysClient := sql.NewServerKeysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&sqlServerKeysClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
 		BackupLongTermRetentionPoliciesClient:              &BackupLongTermRetentionPoliciesClient,
@@ -106,5 +113,6 @@ func NewClient(o *common.ClientOptions) *Client {
 		VirtualMachinesClient:                              &sqlVirtualMachinesClient,
 		VirtualNetworkRulesClient:                          &sqlVirtualNetworkRulesClient,
 		GeoBackupPoliciesClient:                            &geoBackupPoliciesClient,
+		ServerKeysClient:                                   &sqlServerKeysClient,
 	}
 }

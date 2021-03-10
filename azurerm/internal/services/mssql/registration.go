@@ -42,5 +42,6 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_mssql_server_vulnerability_assessment":                 resourceMsSqlServerVulnerabilityAssessment(),
 		"azurerm_mssql_virtual_machine":                                 resourceMsSqlVirtualMachine(),
 		"azurerm_mssql_virtual_network_rule":                            resourceMsSqlVirtualNetworkRule(),
+		"azurerm_mssql_server_transparent_data_encryption":              resourceMsSqlTransparentDataEncryption(),
 	}
 }
