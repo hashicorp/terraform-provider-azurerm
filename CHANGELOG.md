@@ -13,6 +13,8 @@ ENHANCEMENTS:
 * `azurerm_role_assignment` - support enrollment ids in `scope` argument [GH-10890]
 * `azurerm_kubernetes_cluster` - support `None` for the `private_dns_zone_id` property [GH-10774]
 * `azurerm_kubernetes_cluster` - support for `expander` in the `auto_scaler_profile` block [GH-10777]
+* `azurerm_linux_virtual_machine_scale_set` - will no longer recreate the resource when `rolling_upgrade_policy` or `health_probe_id` is updated [GH-10856]
+* `azurerm_windows_virtual_machine_scale_set` - will no longer recreate the resource when `rolling_upgrade_policy` or `health_probe_id` is updated [GH-10856]
 
 BUG FIXES:
 
