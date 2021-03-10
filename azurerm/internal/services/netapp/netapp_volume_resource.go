@@ -92,10 +92,11 @@ func resourceNetAppVolume() *schema.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
-			"snapshot_resource_id": {
+			"create_from_snapshot_resource_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
+				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
@@ -289,7 +290,7 @@ func resourceNetAppVolumeCreateUpdate(d *schema.ResourceData, meta interface{}) 
 	}
 
 	// Handling volume creation from snapshot case
-	snapshotResourceID := d.Get("snapshot_resource_id").(string)
+	snapshotResourceID := d.Get("create_from_snapshot_resource_id").(string)
 	snapshotID := ""
 	if snapshotResourceID != "" {
 		// Get snapshot ID GUID value

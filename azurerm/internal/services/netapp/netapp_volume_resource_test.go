@@ -78,7 +78,7 @@ func TestAccNetAppVolume_nfsv3FromSnapshot(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("snapshot_resource_id"),
+		data.ImportStep("create_from_snapshot_resource_id"),
 	})
 }
 
@@ -381,7 +381,7 @@ resource "azurerm_netapp_volume" "test_snapshot_vol" {
   subnet_id            = azurerm_subnet.test.id
   protocols            = ["NFSv3"]
   storage_quota_in_gb  = 200
-  snapshot_resource_id = azurerm_netapp_snapshot.test.id
+  create_from_snapshot_resource_id = azurerm_netapp_snapshot.test.id
 
   export_policy_rule {
     rule_index        = 1
