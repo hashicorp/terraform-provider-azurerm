@@ -189,7 +189,7 @@ resource "azurerm_cosmosdb_gremlin_graph" "import" {
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_gremlin_database.test.name
 
-partition_key_path = azurerm_cosmosdb_gremlin_graph.test.partition_key_path
+  partition_key_path = azurerm_cosmosdb_gremlin_graph.test.partition_key_path
 
   index_policy {
     automatic      = true

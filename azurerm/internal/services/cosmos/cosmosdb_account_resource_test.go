@@ -1539,7 +1539,7 @@ func (CosmosDBAccountResource) key_vault_uri(data acceptance.TestData, kind docu
 provider "azurerm" {
   features {
     key_vault {
-     purge_soft_delete_on_destroy = false
+      purge_soft_delete_on_destroy = false
     }
   }
 }
