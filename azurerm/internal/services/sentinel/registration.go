@@ -36,6 +36,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_sentinel_data_connector_azure_active_directory":           resourceSentinelDataConnectorAzureActiveDirectory(),
 		"azurerm_sentinel_data_connector_azure_advanced_threat_protection": resourceSentinelDataConnectorAzureAdvancedThreatProtection(),
 		"azurerm_sentinel_data_connector_azure_security_center":            resourceSentinelDataConnectorAzureSecurityCenter(),
+		"azurerm_sentinel_data_connector_microsoft_cloud_app_security":     resourceSentinelDataConnectorMicrosoftCloudAppSecurity(),
 		"azurerm_sentinel_data_connector_office_365":                       resourceSentinelDataConnectorOffice365(),
 		"azurerm_sentinel_data_connector_threat_intelligence":              resourceSentinelDataConnectorThreatIntelligence(),
 	}
