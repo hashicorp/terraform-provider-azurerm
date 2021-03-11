@@ -143,7 +143,7 @@ func TestAccKeyVaultAccessPolicy_nonExistentVault(t *testing.T) {
 		{
 			Config:             r.nonExistentVault(data),
 			ExpectNonEmptyPlan: true,
-			ExpectError:        regexp.MustCompile(`Error retrieving Key Vault`),
+			ExpectError:        regexp.MustCompile(`retrieving Key Vault`),
 		},
 	})
 }
