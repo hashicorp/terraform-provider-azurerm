@@ -67,6 +67,7 @@ var services = mapOf(
         "postgres" to "PostgreSQL",
         "powerbi" to "PowerBI",
         "privatedns" to "Private DNS",
+        "purview" to "Purview",
         "recoveryservices" to "Recovery Services",
         "redis" to "Redis",
         "redisenterprise" to "Redis Enterprise",
