@@ -42,7 +42,7 @@ func TestAccIoTCentralApplication_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("template").HasValue("iotc-default@1.0.0"),
+				check.That(data.ResourceName).Key("template").HasValue("iotc-pnp-preview@1.0.0"),
 				check.That(data.ResourceName).Key("tags.ENV").HasValue("Test"),
 			),
 		},
@@ -144,7 +144,7 @@ resource "azurerm_iotcentral_application" "test" {
   sub_domain          = "acctest-iotcentralapp-%[2]d"
   display_name        = "acctest-iotcentralapp-%[2]d"
   sku                 = "ST1"
-  template            = "iotc-default@1.0.0"
+  template            = "iotc-pnp-preview@1.0.0"
   tags = {
     ENV = "Test"
   }

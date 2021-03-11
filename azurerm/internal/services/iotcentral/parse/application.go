@@ -57,7 +57,7 @@ func ApplicationID(input string) (*ApplicationId, error) {
 		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
-	if resourceId.IoTAppName, err = id.PopSegment("IoTApps"); err != nil {
+	if resourceId.IoTAppName, err = id.PopSegment("iotApps"); err != nil {
 		return nil, err
 	}
 
