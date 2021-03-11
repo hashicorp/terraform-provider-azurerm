@@ -19,6 +19,7 @@ import (
 type ClientBuilder struct {
 	AuthConfig                  *authentication.Config
 	DisableCorrelationRequestID bool
+	CustomCorrelationRequestID  string
 	DisableTerraformPartnerID   bool
 	PartnerId                   string
 	SkipProviderRegistration    bool
@@ -125,6 +126,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		SynapseAuthorizer:           synapseAuth,
 		SkipProviderReg:             builder.SkipProviderRegistration,
 		DisableCorrelationRequestID: builder.DisableCorrelationRequestID,
+		CustomCorrelationRequestID:  builder.CustomCorrelationRequestID,
 		DisableTerraformPartnerID:   builder.DisableTerraformPartnerID,
 		Environment:                 *env,
 		Features:                    builder.Features,

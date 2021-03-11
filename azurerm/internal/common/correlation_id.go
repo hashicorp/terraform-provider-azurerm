@@ -2,7 +2,6 @@ package common
 
 import (
 	"log"
-	"os"
 	"sync"
 
 	"github.com/Azure/go-autorest/autorest"
@@ -12,7 +11,6 @@ import (
 const (
 	// HeaderCorrelationRequestID is the Azure extension header to set a user-specified correlation request ID.
 	HeaderCorrelationRequestID = "x-ms-correlation-request-id"
-	envArmCorrelationRequestID = "ARM_CORRELATION_REQUEST_ID"
 )
 
 var (
@@ -29,12 +27,6 @@ func withCorrelationRequestID(uuid string) autorest.PrepareDecorator {
 // correlationRequestID either uses a user provided correlation request id or generates a UUID to pass through `x-ms-correlation-request-id` header.
 func correlationRequestID() string {
 	msCorrelationRequestIDOnce.Do(func() {
-		msCorrelationRequestID = os.Getenv(envArmCorrelationRequestID)
-		if msCorrelationRequestID != "" {
-			log.Printf("[DEBUG] User Specified Provider Correlation Request Id: %s", msCorrelationRequestID)
-			return
-		}
-
 		var err error
 		msCorrelationRequestID, err = uuid.GenerateUUID()
 		if err != nil {

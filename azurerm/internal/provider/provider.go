@@ -228,6 +228,13 @@ func azureProvider(supportLegacyTestSuite bool) terraform.ResourceProvider {
 				DefaultFunc: schema.EnvDefaultFunc("ARM_STORAGE_USE_AZUREAD", false),
 				Description: "Should the AzureRM Provider use AzureAD to access the Storage Data Plane API's?",
 			},
+
+			"custom_correlation_request_id": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     schema.EnvDefaultFunc("ARM_CORRELATION_REQUEST_ID", ""),
+				Description: "The value of the x-ms-correlation-request-id header (otherwise an auto-generated UUID will be used).",
+			},
 		},
 
 		DataSourcesMap: dataSources,
@@ -312,6 +319,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			TerraformVersion:            terraformVersion,
 			PartnerId:                   d.Get("partner_id").(string),
 			DisableCorrelationRequestID: d.Get("disable_correlation_request_id").(bool),
+			CustomCorrelationRequestID:  d.Get("custom_correlation_request_id").(string),
 			DisableTerraformPartnerID:   d.Get("disable_terraform_partner_id").(bool),
 			Features:                    expandFeatures(d.Get("features").([]interface{})),
 			StorageUseAzureAD:           d.Get("storage_use_azuread").(bool),
