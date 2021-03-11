@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/rand"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -197,7 +196,7 @@ func TestAccStorageBlob_blockFromExistingBlob(t *testing.T) {
 }
 
 func TestAccStorageBlob_blockFromLocalFile(t *testing.T) {
-	sourceBlob, err := ioutil.TempFile("", "")
+	sourceBlob, err := os.CreateTemp("", "")
 	if err != nil {
 		t.Fatalf("Failed to create local source blob file")
 	}
@@ -221,7 +220,7 @@ func TestAccStorageBlob_blockFromLocalFile(t *testing.T) {
 }
 
 func TestAccStorageBlob_blockFromLocalFileWithContentMd5(t *testing.T) {
-	sourceBlob, err := ioutil.TempFile("", "")
+	sourceBlob, err := os.CreateTemp("", "")
 	if err != nil {
 		t.Fatalf("Failed to create local source blob file")
 	}
@@ -343,7 +342,7 @@ func TestAccStorageBlob_pageFromExistingBlob(t *testing.T) {
 }
 
 func TestAccStorageBlob_pageFromLocalFile(t *testing.T) {
-	sourceBlob, err := ioutil.TempFile("", "")
+	sourceBlob, err := os.CreateTemp("", "")
 	if err != nil {
 		t.Fatalf("Failed to create local source blob file")
 	}
@@ -492,7 +491,7 @@ func (r StorageBlobResource) blobMatchesFile(kind blobs.BlobType, filePath strin
 		actualContents := actualProps.Contents
 
 		// local file for comparison
-		expectedContents, err := ioutil.ReadFile(filePath)
+		expectedContents, err := os.ReadFile(filePath)
 		if err != nil {
 			return err
 		}

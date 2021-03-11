@@ -54,8 +54,8 @@ func (client ShareSubscriptionsClient) CancelSynchronization(ctx context.Context
 		ctx = tracing.StartSpan(ctx, fqdn+"/ShareSubscriptionsClient.CancelSynchronization")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -261,8 +261,8 @@ func (client ShareSubscriptionsClient) Delete(ctx context.Context, resourceGroup
 		ctx = tracing.StartSpan(ctx, fqdn+"/ShareSubscriptionsClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -976,8 +976,8 @@ func (client ShareSubscriptionsClient) SynchronizeMethod(ctx context.Context, re
 		ctx = tracing.StartSpan(ctx, fqdn+"/ShareSubscriptionsClient.SynchronizeMethod")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

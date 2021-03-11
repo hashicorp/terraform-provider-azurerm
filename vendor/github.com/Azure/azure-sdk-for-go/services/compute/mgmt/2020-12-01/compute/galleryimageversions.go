@@ -57,8 +57,8 @@ func (client GalleryImageVersionsClient) CreateOrUpdate(ctx context.Context, res
 		ctx = tracing.StartSpan(ctx, fqdn+"/GalleryImageVersionsClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -171,8 +171,8 @@ func (client GalleryImageVersionsClient) Delete(ctx context.Context, resourceGro
 		ctx = tracing.StartSpan(ctx, fqdn+"/GalleryImageVersionsClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -473,8 +473,8 @@ func (client GalleryImageVersionsClient) Update(ctx context.Context, resourceGro
 		ctx = tracing.StartSpan(ctx, fqdn+"/GalleryImageVersionsClient.Update")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

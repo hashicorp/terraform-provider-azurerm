@@ -54,8 +54,8 @@ func (client ReplicationNetworkMappingsClient) Create(ctx context.Context, fabri
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationNetworkMappingsClient.Create")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -161,8 +161,8 @@ func (client ReplicationNetworkMappingsClient) Delete(ctx context.Context, fabri
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationNetworkMappingsClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -571,8 +571,8 @@ func (client ReplicationNetworkMappingsClient) Update(ctx context.Context, fabri
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationNetworkMappingsClient.Update")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

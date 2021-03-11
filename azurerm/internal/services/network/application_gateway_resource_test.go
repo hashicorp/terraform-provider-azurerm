@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 	"regexp"
 	"testing"
 
@@ -3804,7 +3804,7 @@ func (ApplicationGatewayResource) changeCert(certificateName string) acceptance.
 			return fmt.Errorf("Bad: Get on ApplicationGatewaysClient: %+v", err)
 		}
 
-		certPfx, err := ioutil.ReadFile("testdata/application_gateway_test.pfx")
+		certPfx, err := os.ReadFile("testdata/application_gateway_test.pfx")
 		if err != nil {
 			log.Fatal(err)
 		}

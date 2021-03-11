@@ -50,8 +50,8 @@ func (client ReplicationFabricsClient) CheckConsistency(ctx context.Context, fab
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationFabricsClient.CheckConsistency")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -152,8 +152,8 @@ func (client ReplicationFabricsClient) Create(ctx context.Context, fabricName st
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationFabricsClient.Create")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -255,8 +255,8 @@ func (client ReplicationFabricsClient) Delete(ctx context.Context, fabricName st
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationFabricsClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -536,8 +536,8 @@ func (client ReplicationFabricsClient) MigrateToAad(ctx context.Context, fabricN
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationFabricsClient.MigrateToAad")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -626,8 +626,8 @@ func (client ReplicationFabricsClient) Purge(ctx context.Context, fabricName str
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationFabricsClient.Purge")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -717,8 +717,8 @@ func (client ReplicationFabricsClient) ReassociateGateway(ctx context.Context, f
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationFabricsClient.ReassociateGateway")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -821,8 +821,8 @@ func (client ReplicationFabricsClient) RenewCertificate(ctx context.Context, fab
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationFabricsClient.RenewCertificate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

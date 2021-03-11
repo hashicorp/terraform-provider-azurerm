@@ -57,8 +57,8 @@ func (client PoolClient) Create(ctx context.Context, resourceGroupName string, a
 		ctx = tracing.StartSpan(ctx, fqdn+"/PoolClient.Create")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -219,8 +219,8 @@ func (client PoolClient) Delete(ctx context.Context, resourceGroupName string, a
 		ctx = tracing.StartSpan(ctx, fqdn+"/PoolClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

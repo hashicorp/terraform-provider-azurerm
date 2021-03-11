@@ -15,7 +15,7 @@ Manages a Policy within a Dev Test Policy Set.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "West US"
+  location = "West Europe"
 }
 
 resource "azurerm_dev_test_lab" "example" {

@@ -92,10 +92,22 @@ resource "azurerm_log_analytics_workspace" "test" {
   sku                 = "PerGB2018"
 }
 
+resource "azurerm_log_analytics_solution" "test" {
+  solution_name         = "SecurityInsights"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  workspace_resource_id = azurerm_log_analytics_workspace.test.id
+  workspace_name        = azurerm_log_analytics_workspace.test.name
+
+  plan {
+    publisher = "Microsoft"
+    product   = "OMSGallery/SecurityInsights"
+  }
+}
 
 data "azurerm_sentinel_alert_rule_template" "test" {
   display_name               = "%s"
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, displayName)
 }

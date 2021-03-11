@@ -15,7 +15,7 @@ Manages a Azure Web Application Firewall Policy instance.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-rg"
-  location = "West US 2"
+  location = "West Europe"
 }
 
 resource "azurerm_web_application_firewall_policy" "example" {
@@ -168,7 +168,7 @@ The `policy_settings` block supports the following:
 
 * `mode` - (Optional) Describes if it is in detection mode or prevention mode at the policy level. Defaults to `Prevention`.
 
-* `file_upload_limit_mb` - (Optional) The File Upload Limit in MB. Accepted values are in the range `1` to `750`. Defaults to `100`.
+* `file_upload_limit_in_mb` - (Optional) The File Upload Limit in MB. Accepted values are in the range `1` to `750`. Defaults to `100`.
 
 * `request_body_check` - (Optional) Is Request Body Inspection enabled? Defaults to `true`.
 
@@ -180,7 +180,7 @@ The `managed_rules` block supports the following:
 
 * `exclusion` - (Optional) One or more `exclusion` block defined below.
 
-* `managed_rule_set` - (Optional) One or more `managed_rule_set` block defined below.
+* `managed_rule_set` - (Required) One or more `managed_rule_set` block defined below.
 
 ---
 

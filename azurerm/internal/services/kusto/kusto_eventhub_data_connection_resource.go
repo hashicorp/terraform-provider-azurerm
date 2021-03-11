@@ -80,7 +80,7 @@ func resourceKustoEventHubDataConnection() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: eventhubValidate.EventHubID,
 			},
 
 			"consumer_group": {
@@ -119,17 +119,6 @@ func resourceKustoEventHubDataConnection() *schema.Resource {
 					string(kusto.TXT),
 				}, false),
 			},
-		},
-		CustomizeDiff: func(d *schema.ResourceDiff, _ interface{}) error {
-			_, hasTableName := d.GetOk("table_name")
-			_, hasMappingRuleName := d.GetOk("mapping_rule_name")
-			_, hasDataFormat := d.GetOk("data_format")
-
-			if !(utils.AllEquals(hasTableName, hasMappingRuleName, hasDataFormat)) {
-				return fmt.Errorf("if one of the target table properties `table_name`, `mapping_rule_name` or `data_format` are set, the other values must also be defined")
-			}
-
-			return nil
 		},
 	}
 }

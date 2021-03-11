@@ -108,6 +108,17 @@ func resourceKubernetesCluster() *schema.Resource {
 							Optional: true,
 							Default:  false,
 						},
+						"expander": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(containerservice.LeastWaste),
+								string(containerservice.MostPods),
+								string(containerservice.Priority),
+								string(containerservice.Random),
+							}, false),
+						},
 						"max_graceful_termination_sec": {
 							Type:     schema.TypeString,
 							Optional: true,
@@ -474,6 +485,7 @@ func resourceKubernetesCluster() *schema.Resource {
 					privateDnsValidate.PrivateDnsZoneID,
 					validation.StringInSlice([]string{
 						"System",
+						"None",
 					}, false),
 				),
 			},
@@ -599,7 +611,7 @@ func resourceKubernetesCluster() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Sensitive:    true,
-							ValidateFunc: validation.StringLenBetween(14, 123),
+							ValidateFunc: validation.StringLenBetween(8, 123),
 						},
 					},
 				},
@@ -2096,6 +2108,7 @@ func flattenKubernetesClusterAutoScalerProfile(profile *containerservice.Managed
 	return []interface{}{
 		map[string]interface{}{
 			"balance_similar_node_groups":      balanceSimilarNodeGroups,
+			"expander":                         string(profile.Expander),
 			"max_graceful_termination_sec":     maxGracefulTerminationSec,
 			"new_pod_scale_up_delay":           newPodScaleUpDelay,
 			"scale_down_delay_after_add":       scaleDownDelayAfterAdd,
@@ -2119,6 +2132,7 @@ func expandKubernetesClusterAutoScalerProfile(input []interface{}) *containerser
 	config := input[0].(map[string]interface{})
 
 	balanceSimilarNodeGroups := config["balance_similar_node_groups"].(bool)
+	expander := config["expander"].(string)
 	maxGracefulTerminationSec := config["max_graceful_termination_sec"].(string)
 	newPodScaleUpDelay := config["new_pod_scale_up_delay"].(string)
 	scaleDownDelayAfterAdd := config["scale_down_delay_after_add"].(string)
@@ -2133,6 +2147,7 @@ func expandKubernetesClusterAutoScalerProfile(input []interface{}) *containerser
 
 	return &containerservice.ManagedClusterPropertiesAutoScalerProfile{
 		BalanceSimilarNodeGroups:      utils.String(strconv.FormatBool(balanceSimilarNodeGroups)),
+		Expander:                      containerservice.Expander(expander),
 		MaxGracefulTerminationSec:     utils.String(maxGracefulTerminationSec),
 		NewPodScaleUpDelay:            utils.String(newPodScaleUpDelay),
 		ScaleDownDelayAfterAdd:        utils.String(scaleDownDelayAfterAdd),

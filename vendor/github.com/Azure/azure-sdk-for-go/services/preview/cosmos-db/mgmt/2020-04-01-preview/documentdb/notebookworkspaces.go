@@ -53,8 +53,8 @@ func (client NotebookWorkspacesClient) CreateOrUpdate(ctx context.Context, resou
 		ctx = tracing.StartSpan(ctx, fqdn+"/NotebookWorkspacesClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -171,8 +171,8 @@ func (client NotebookWorkspacesClient) Delete(ctx context.Context, resourceGroup
 		ctx = tracing.StartSpan(ctx, fqdn+"/NotebookWorkspacesClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -548,8 +548,8 @@ func (client NotebookWorkspacesClient) RegenerateAuthToken(ctx context.Context, 
 		ctx = tracing.StartSpan(ctx, fqdn+"/NotebookWorkspacesClient.RegenerateAuthToken")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -653,8 +653,8 @@ func (client NotebookWorkspacesClient) Start(ctx context.Context, resourceGroupN
 		ctx = tracing.StartSpan(ctx, fqdn+"/NotebookWorkspacesClient.Start")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

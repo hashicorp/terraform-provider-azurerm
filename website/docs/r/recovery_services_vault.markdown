@@ -15,7 +15,7 @@ Manages a Recovery Services Vault.
 ```hcl
 resource "azurerm_resource_group" "rg" {
   name     = "tfex-recovery_vault"
-  location = "West US"
+  location = "West Europe"
 }
 
 resource "azurerm_recovery_services_vault" "vault" {

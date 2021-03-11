@@ -15,7 +15,7 @@ Manages a Databox Edge Device.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-databoxedge"
-  location = "East US"
+  location = "West Europe"
 }
 
 resource "azurerm_databox_edge_device" "example" {

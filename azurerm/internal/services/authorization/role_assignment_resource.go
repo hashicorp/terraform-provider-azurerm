@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	billingValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/billing/validate"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-09-01-preview/authorization"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -53,6 +55,7 @@ func resourceArmRoleAssignment() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.Any(
+					billingValidate.EnrollmentID,
 					managementGroupValidate.ManagementGroupID,
 					subscriptionValidate.SubscriptionID,
 					resourceValidate.ResourceGroupID,

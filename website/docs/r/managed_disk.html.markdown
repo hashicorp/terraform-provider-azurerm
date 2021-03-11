@@ -15,7 +15,7 @@ Manages a managed disk.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "West US 2"
+  location = "West Europe"
 }
 
 resource "azurerm_managed_disk" "example" {
@@ -37,7 +37,7 @@ resource "azurerm_managed_disk" "example" {
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "West US 2"
+  location = "West Europe"
 }
 
 resource "azurerm_managed_disk" "source" {
