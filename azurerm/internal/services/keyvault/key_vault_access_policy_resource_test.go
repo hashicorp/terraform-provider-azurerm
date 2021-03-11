@@ -31,6 +31,24 @@ func TestAccKeyVaultAccessPolicy_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("key_permissions.0").HasValue("Get"),
 				check.That(data.ResourceName).Key("secret_permissions.0").HasValue("Get"),
+				check.That(data.ResourceName).Key("secret_permissions.1").HasValue("Set"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKeyVaultAccessPolicy_mixedCasePermissions(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_access_policy", "test")
+	r := KeyVaultAccessPolicyResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicMixedCase(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("key_permissions.0").HasValue("Get"),
+				check.That(data.ResourceName).Key("secret_permissions.0").HasValue("Get"),
 				check.That(data.ResourceName).Key("secret_permissions.1").HasValue("set"),
 			),
 		},
@@ -149,6 +167,33 @@ func (t KeyVaultAccessPolicyResource) Exists(ctx context.Context, clients *clien
 }
 
 func (r KeyVaultAccessPolicyResource) basic(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_key_vault_access_policy" "test" {
+  key_vault_id = azurerm_key_vault.test.id
+
+  key_permissions = [
+    "Get",
+  ]
+
+  secret_permissions = [
+    "Get",
+    "Set",
+  ]
+
+  tenant_id = data.azurerm_client_config.current.tenant_id
+  object_id = data.azurerm_client_config.current.object_id
+}
+`, template)
+}
+
+func (r KeyVaultAccessPolicyResource) basicMixedCase(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
