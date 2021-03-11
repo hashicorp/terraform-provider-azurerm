@@ -25,6 +25,7 @@ BUG FIXES:
 * Data Source: `azurerm_monitor_action_group` - add support for `aad_auth` attribute [GH-10876]
 * `azurerm_api_management_custom_domain` - prevent a perpetual diff [GH-10636]
 * `azurerm_eventhub_consumer_group` - detecting as removed when deleted in Azure [GH-10900]
+* `azurerm_key_vault_secret` - setting the value of the secret after recovering it [GH-10920]
 * `azurerm_kusto_eventhub_data_connection` - make `table_name` and `data_format` optional [GH-10913]
 * `azurerm_mssql_virtual_machine` - workaround for inconsistent API value for `log_backup_frequency_in_minutes` in the `manual_schedule` block [GH-10899]
 * `azurerm_postgres_server` - support for replicaset scaling [GH-10754]
