@@ -106,15 +106,18 @@ func resourceArmRoleAssignment() *schema.Resource {
 			},
 
 			"condition": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				RequiredWith: []string{"condition_version"},
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"condition_version": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				RequiredWith: []string{"condition"},
 				ValidateFunc: validation.StringInSlice([]string{
 					"1.0",
 					"2.0",
