@@ -31,7 +31,7 @@ func TestAccKeyVaultAccessPolicy_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("key_permissions.0").HasValue("Get"),
 				check.That(data.ResourceName).Key("secret_permissions.0").HasValue("Get"),
-				check.That(data.ResourceName).Key("secret_permissions.1").HasValue("Set"),
+				check.That(data.ResourceName).Key("secret_permissions.1").HasValue("set"),
 			),
 		},
 		data.ImportStep(),
@@ -166,7 +166,7 @@ resource "azurerm_key_vault_access_policy" "test" {
 
   secret_permissions = [
     "Get",
-    "Set",
+    "set",
   ]
 
   tenant_id = data.azurerm_client_config.current.tenant_id
