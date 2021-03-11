@@ -28,6 +28,7 @@ type ClientOptions struct {
 	SynapseAuthorizer         autorest.Authorizer
 
 	SkipProviderReg             bool
+	CustomCorrelationRequestID  string
 	DisableCorrelationRequestID bool
 	DisableTerraformPartnerID   bool
 	Environment                 azure.Environment
@@ -42,7 +43,11 @@ func (o ClientOptions) ConfigureClient(c *autorest.Client, authorizer autorest.A
 	c.Sender = sender.BuildSender("AzureRM")
 	c.SkipResourceProviderRegistration = o.SkipProviderReg
 	if !o.DisableCorrelationRequestID {
-		c.RequestInspector = withCorrelationRequestID(correlationRequestID())
+		id := o.CustomCorrelationRequestID
+		if id == "" {
+			id = correlationRequestID()
+		}
+		c.RequestInspector = withCorrelationRequestID(id)
 	}
 }
 
