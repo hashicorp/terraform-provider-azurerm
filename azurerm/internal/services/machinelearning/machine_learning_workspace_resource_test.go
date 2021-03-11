@@ -16,7 +16,7 @@ import (
 
 type WorkspaceResource struct{}
 
-func TestAccAzureRMMachineLearningWorkspace_basic(t *testing.T) {
+func TestAccMachineLearningWorkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
 	r := WorkspaceResource{}
 
@@ -35,7 +35,7 @@ func TestAccAzureRMMachineLearningWorkspace_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMMachineLearningWorkspace_requiresImport(t *testing.T) {
+func TestAccMachineLearningWorkspace_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
 	r := WorkspaceResource{}
 
@@ -54,7 +54,7 @@ func TestAccAzureRMMachineLearningWorkspace_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMMachineLearningWorkspace_basicUpdate(t *testing.T) {
+func TestAccMachineLearningWorkspace_basicUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
 	r := WorkspaceResource{}
 
@@ -84,7 +84,7 @@ func TestAccAzureRMMachineLearningWorkspace_basicUpdate(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMMachineLearningWorkspace_complete(t *testing.T) {
+func TestAccMachineLearningWorkspace_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
 	r := WorkspaceResource{}
 
@@ -103,7 +103,7 @@ func TestAccAzureRMMachineLearningWorkspace_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMMachineLearningWorkspace_completeUpdate(t *testing.T) {
+func TestAccMachineLearningWorkspace_completeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
 	r := WorkspaceResource{}
 
@@ -319,7 +319,7 @@ resource "azurerm_key_vault" "test" {
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
 
-  sku_name = "premium"
+  sku_name = "standard"
 }
 
 resource "azurerm_storage_account" "test" {

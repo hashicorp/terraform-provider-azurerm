@@ -84,6 +84,7 @@ func (client AutoscaleSettingsClient) CreateOrUpdate(ctx context.Context, resour
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.AutoscaleSettingsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -161,6 +162,7 @@ func (client AutoscaleSettingsClient) Delete(ctx context.Context, resourceGroupN
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.AutoscaleSettingsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -235,6 +237,7 @@ func (client AutoscaleSettingsClient) Get(ctx context.Context, resourceGroupName
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.AutoscaleSettingsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -310,9 +313,11 @@ func (client AutoscaleSettingsClient) ListByResourceGroup(ctx context.Context, r
 	result.asrc, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.AutoscaleSettingsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.asrc.hasNextLink() && result.asrc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -422,9 +427,11 @@ func (client AutoscaleSettingsClient) ListBySubscription(ctx context.Context) (r
 	result.asrc, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.AutoscaleSettingsClient", "ListBySubscription", resp, "Failure responding to request")
+		return
 	}
 	if result.asrc.hasNextLink() && result.asrc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -536,6 +543,7 @@ func (client AutoscaleSettingsClient) Update(ctx context.Context, resourceGroupN
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.AutoscaleSettingsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

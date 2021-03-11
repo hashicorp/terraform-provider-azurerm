@@ -12,9 +12,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmApplicationSecurityGroup() *schema.Resource {
+func dataSourceApplicationSecurityGroup() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmApplicationSecurityGroupRead,
+		Read: dataSourceApplicationSecurityGroupRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -35,7 +35,7 @@ func dataSourceArmApplicationSecurityGroup() *schema.Resource {
 	}
 }
 
-func dataSourceArmApplicationSecurityGroupRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceApplicationSecurityGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ApplicationSecurityGroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

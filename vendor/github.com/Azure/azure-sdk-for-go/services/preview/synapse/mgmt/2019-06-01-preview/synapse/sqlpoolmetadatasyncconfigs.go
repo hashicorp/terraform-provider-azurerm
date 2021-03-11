@@ -86,6 +86,7 @@ func (client SQLPoolMetadataSyncConfigsClient) Create(ctx context.Context, resou
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.SQLPoolMetadataSyncConfigsClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -175,6 +176,7 @@ func (client SQLPoolMetadataSyncConfigsClient) Get(ctx context.Context, resource
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.SQLPoolMetadataSyncConfigsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return

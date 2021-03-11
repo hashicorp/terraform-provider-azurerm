@@ -76,7 +76,7 @@ func TestAccountIDCaseDiffSuppress(t *testing.T) {
 		Name   string
 		Input  string
 		Error  bool
-		Expect *parse.AccountId
+		Expect *parse.StorageAccountId
 	}{
 		{
 			Name:  "Empty",
@@ -101,7 +101,7 @@ func TestAccountIDCaseDiffSuppress(t *testing.T) {
 		{
 			Name:  "Account ID with right casing",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/storageAccounts/account1",
-			Expect: &parse.AccountId{
+			Expect: &parse.StorageAccountId{
 				Name:          "account1",
 				ResourceGroup: "resGroup1",
 			},
@@ -109,7 +109,7 @@ func TestAccountIDCaseDiffSuppress(t *testing.T) {
 		{
 			Name:  "Wrong Casing",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/resgroup1/storageaccounts/account1",
-			Expect: &parse.AccountId{
+			Expect: &parse.StorageAccountId{
 				Name:          "account1",
 				ResourceGroup: "resgroup1",
 			},

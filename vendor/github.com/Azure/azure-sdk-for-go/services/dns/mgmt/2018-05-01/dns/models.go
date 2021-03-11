@@ -52,21 +52,21 @@ type CaaRecord struct {
 	Value *string `json:"value,omitempty"`
 }
 
-// CloudError an error message
+// CloudError an error response from the service.
 type CloudError struct {
-	// Error - The error message body
+	// Error - Cloud error body.
 	Error *CloudErrorBody `json:"error,omitempty"`
 }
 
-// CloudErrorBody the body of an error message
+// CloudErrorBody an error response from the service.
 type CloudErrorBody struct {
-	// Code - The error code
+	// Code - An identifier for the error. Codes are invariant and are intended to be consumed programmatically.
 	Code *string `json:"code,omitempty"`
-	// Message - A description of what caused the error
+	// Message - A message describing the error, intended to be suitable for display in a user interface.
 	Message *string `json:"message,omitempty"`
-	// Target - The target resource of the error message
+	// Target - The target of the particular error. For example, the name of the property in error.
 	Target *string `json:"target,omitempty"`
-	// Details - Extra error information
+	// Details - A list of additional details about the error.
 	Details *[]CloudErrorBody `json:"details,omitempty"`
 }
 
@@ -344,8 +344,11 @@ func (page RecordSetListResultPage) Values() []RecordSet {
 }
 
 // Creates a new instance of the RecordSetListResultPage type.
-func NewRecordSetListResultPage(getNextPage func(context.Context, RecordSetListResult) (RecordSetListResult, error)) RecordSetListResultPage {
-	return RecordSetListResultPage{fn: getNextPage}
+func NewRecordSetListResultPage(cur RecordSetListResult, getNextPage func(context.Context, RecordSetListResult) (RecordSetListResult, error)) RecordSetListResultPage {
+	return RecordSetListResultPage{
+		fn:   getNextPage,
+		rslr: cur,
+	}
 }
 
 // RecordSetProperties represents the properties of the records in the record set.
@@ -877,14 +880,19 @@ func (page ZoneListResultPage) Values() []Zone {
 }
 
 // Creates a new instance of the ZoneListResultPage type.
-func NewZoneListResultPage(getNextPage func(context.Context, ZoneListResult) (ZoneListResult, error)) ZoneListResultPage {
-	return ZoneListResultPage{fn: getNextPage}
+func NewZoneListResultPage(cur ZoneListResult, getNextPage func(context.Context, ZoneListResult) (ZoneListResult, error)) ZoneListResultPage {
+	return ZoneListResultPage{
+		fn:  getNextPage,
+		zlr: cur,
+	}
 }
 
 // ZoneProperties represents the properties of the zone.
 type ZoneProperties struct {
 	// MaxNumberOfRecordSets - READ-ONLY; The maximum number of record sets that can be created in this DNS zone.  This is a read-only property and any attempt to set this value will be ignored.
 	MaxNumberOfRecordSets *int64 `json:"maxNumberOfRecordSets,omitempty"`
+	// MaxNumberOfRecordsPerRecordSet - READ-ONLY; The maximum number of records per record set that can be created in this DNS zone.  This is a read-only property and any attempt to set this value will be ignored.
+	MaxNumberOfRecordsPerRecordSet *int64 `json:"maxNumberOfRecordsPerRecordSet,omitempty"`
 	// NumberOfRecordSets - READ-ONLY; The current number of record sets in this DNS zone.  This is a read-only property and any attempt to set this value will be ignored.
 	NumberOfRecordSets *int64 `json:"numberOfRecordSets,omitempty"`
 	// NameServers - READ-ONLY; The name servers for this DNS zone. This is a read-only property and any attempt to set this value will be ignored.
@@ -914,24 +922,10 @@ func (zp ZoneProperties) MarshalJSON() ([]byte, error) {
 
 // ZonesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type ZonesDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ZonesDeleteFuture) Result(client ZonesClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "dns.ZonesDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("dns.ZonesDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ZonesClient) (autorest.Response, error)
 }
 
 // ZoneUpdate describes a request to update a DNS zone.

@@ -86,6 +86,7 @@ func (client NetworkStatusClient) ListByLocation(ctx context.Context, resourceGr
 	result, err = client.ListByLocationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.NetworkStatusClient", "ListByLocation", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -171,6 +172,7 @@ func (client NetworkStatusClient) ListByService(ctx context.Context, resourceGro
 	result, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.NetworkStatusClient", "ListByService", resp, "Failure responding to request")
+		return
 	}
 
 	return

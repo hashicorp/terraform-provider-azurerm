@@ -444,8 +444,11 @@ func (page BotResponseListPage) Values() []Bot {
 }
 
 // Creates a new instance of the BotResponseListPage type.
-func NewBotResponseListPage(getNextPage func(context.Context, BotResponseList) (BotResponseList, error)) BotResponseListPage {
-	return BotResponseListPage{fn: getNextPage}
+func NewBotResponseListPage(cur BotResponseList, getNextPage func(context.Context, BotResponseList) (BotResponseList, error)) BotResponseListPage {
+	return BotResponseListPage{
+		fn:  getNextPage,
+		brl: cur,
+	}
 }
 
 // BasicChannel channel definition
@@ -773,8 +776,11 @@ func (page ChannelResponseListPage) Values() []BotChannel {
 }
 
 // Creates a new instance of the ChannelResponseListPage type.
-func NewChannelResponseListPage(getNextPage func(context.Context, ChannelResponseList) (ChannelResponseList, error)) ChannelResponseListPage {
-	return ChannelResponseListPage{fn: getNextPage}
+func NewChannelResponseListPage(cur ChannelResponseList, getNextPage func(context.Context, ChannelResponseList) (ChannelResponseList, error)) ChannelResponseListPage {
+	return ChannelResponseListPage{
+		fn:  getNextPage,
+		crl: cur,
+	}
 }
 
 // CheckNameAvailabilityRequestBody the request body for a request to Bot Service Management to check
@@ -849,8 +855,8 @@ func (cs ConnectionSetting) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// ConnectionSettingParameter extra Parameter in a Connection Setting Properties to indicate service provider
-// specific properties
+// ConnectionSettingParameter extra Parameter in a Connection Setting Properties to indicate service
+// provider specific properties
 type ConnectionSettingParameter struct {
 	// Key - Key for the Connection Setting Parameter.
 	Key *string `json:"key,omitempty"`
@@ -1061,8 +1067,11 @@ func (page ConnectionSettingResponseListPage) Values() []ConnectionSetting {
 }
 
 // Creates a new instance of the ConnectionSettingResponseListPage type.
-func NewConnectionSettingResponseListPage(getNextPage func(context.Context, ConnectionSettingResponseList) (ConnectionSettingResponseList, error)) ConnectionSettingResponseListPage {
-	return ConnectionSettingResponseListPage{fn: getNextPage}
+func NewConnectionSettingResponseListPage(cur ConnectionSettingResponseList, getNextPage func(context.Context, ConnectionSettingResponseList) (ConnectionSettingResponseList, error)) ConnectionSettingResponseListPage {
+	return ConnectionSettingResponseListPage{
+		fn:   getNextPage,
+		csrl: cur,
+	}
 }
 
 // DirectLineChannel direct Line channel definition
@@ -1336,15 +1345,15 @@ func (ec EnterpriseChannel) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// EnterpriseChannelCheckNameAvailabilityRequest a request to Bot Service Management to check availability of
-// an Enterprise Channel name.
+// EnterpriseChannelCheckNameAvailabilityRequest a request to Bot Service Management to check availability
+// of an Enterprise Channel name.
 type EnterpriseChannelCheckNameAvailabilityRequest struct {
 	// Name - The name of the Enterprise Channel for which availability needs to be checked.
 	Name *string `json:"name,omitempty"`
 }
 
-// EnterpriseChannelCheckNameAvailabilityResponse a request to Bot Service Management to check availability of
-// an Enterprise Channel name.
+// EnterpriseChannelCheckNameAvailabilityResponse a request to Bot Service Management to check availability
+// of an Enterprise Channel name.
 type EnterpriseChannelCheckNameAvailabilityResponse struct {
 	autorest.Response `json:"-"`
 	// Valid - Indicates if the Enterprise Channel name is valid.
@@ -1554,89 +1563,38 @@ func (page EnterpriseChannelResponseListPage) Values() []EnterpriseChannel {
 }
 
 // Creates a new instance of the EnterpriseChannelResponseListPage type.
-func NewEnterpriseChannelResponseListPage(getNextPage func(context.Context, EnterpriseChannelResponseList) (EnterpriseChannelResponseList, error)) EnterpriseChannelResponseListPage {
-	return EnterpriseChannelResponseListPage{fn: getNextPage}
+func NewEnterpriseChannelResponseListPage(cur EnterpriseChannelResponseList, getNextPage func(context.Context, EnterpriseChannelResponseList) (EnterpriseChannelResponseList, error)) EnterpriseChannelResponseListPage {
+	return EnterpriseChannelResponseListPage{
+		fn:   getNextPage,
+		ecrl: cur,
+	}
 }
 
-// EnterpriseChannelsCreateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// EnterpriseChannelsCreateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type EnterpriseChannelsCreateFuture struct {
-	azure.Future
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(EnterpriseChannelsClient) (EnterpriseChannel, error)
 }
 
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *EnterpriseChannelsCreateFuture) Result(client EnterpriseChannelsClient) (ec EnterpriseChannel, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "botservice.EnterpriseChannelsCreateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("botservice.EnterpriseChannelsCreateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if ec.Response.Response, err = future.GetResult(sender); err == nil && ec.Response.Response.StatusCode != http.StatusNoContent {
-		ec, err = client.CreateResponder(ec.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "botservice.EnterpriseChannelsCreateFuture", "Result", ec.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// EnterpriseChannelsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// EnterpriseChannelsDeleteFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type EnterpriseChannelsDeleteFuture struct {
-	azure.Future
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(EnterpriseChannelsClient) (autorest.Response, error)
 }
 
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *EnterpriseChannelsDeleteFuture) Result(client EnterpriseChannelsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "botservice.EnterpriseChannelsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("botservice.EnterpriseChannelsDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
-}
-
-// EnterpriseChannelsUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// EnterpriseChannelsUpdateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type EnterpriseChannelsUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *EnterpriseChannelsUpdateFuture) Result(client EnterpriseChannelsClient) (ec EnterpriseChannel, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "botservice.EnterpriseChannelsUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("botservice.EnterpriseChannelsUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if ec.Response.Response, err = future.GetResult(sender); err == nil && ec.Response.Response.StatusCode != http.StatusNoContent {
-		ec, err = client.UpdateResponder(ec.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "botservice.EnterpriseChannelsUpdateFuture", "Result", ec.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(EnterpriseChannelsClient) (EnterpriseChannel, error)
 }
 
 // Error bot Service error object.
@@ -2136,8 +2094,11 @@ func (page OperationEntityListResultPage) Values() []OperationEntity {
 }
 
 // Creates a new instance of the OperationEntityListResultPage type.
-func NewOperationEntityListResultPage(getNextPage func(context.Context, OperationEntityListResult) (OperationEntityListResult, error)) OperationEntityListResultPage {
-	return OperationEntityListResultPage{fn: getNextPage}
+func NewOperationEntityListResultPage(cur OperationEntityListResult, getNextPage func(context.Context, OperationEntityListResult) (OperationEntityListResult, error)) OperationEntityListResultPage {
+	return OperationEntityListResultPage{
+		fn:   getNextPage,
+		oelr: cur,
+	}
 }
 
 // Resource azure resource

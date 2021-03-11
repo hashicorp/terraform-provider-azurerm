@@ -12,9 +12,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmIpGroup() *schema.Resource {
+func dataSourceIpGroup() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmIpGroupRead,
+		Read: dataSourceIpGroupRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -42,7 +42,7 @@ func dataSourceArmIpGroup() *schema.Resource {
 	}
 }
 
-func dataSourceArmIpGroupRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceIpGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.IPGroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

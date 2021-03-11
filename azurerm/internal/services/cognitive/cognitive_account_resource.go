@@ -13,21 +13,21 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cognitive/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cognitive/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmCognitiveAccount() *schema.Resource {
+func resourceCognitiveAccount() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmCognitiveAccountCreate,
-		Read:   resourceArmCognitiveAccountRead,
-		Update: resourceArmCognitiveAccountUpdate,
-		Delete: resourceArmCognitiveAccountDelete,
+		Create: resourceCognitiveAccountCreate,
+		Read:   resourceCognitiveAccountRead,
+		Update: resourceCognitiveAccountUpdate,
+		Delete: resourceCognitiveAccountDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -37,7 +37,7 @@ func resourceArmCognitiveAccount() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.CognitiveAccountID(id)
+			_, err := parse.AccountID(id)
 			return err
 		}),
 
@@ -129,7 +129,7 @@ func resourceArmCognitiveAccount() *schema.Resource {
 	}
 }
 
-func resourceArmCognitiveAccountCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceCognitiveAccountCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cognitive.AccountsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -197,15 +197,15 @@ func resourceArmCognitiveAccountCreate(d *schema.ResourceData, meta interface{})
 
 	d.SetId(*read.ID)
 
-	return resourceArmCognitiveAccountRead(d, meta)
+	return resourceCognitiveAccountRead(d, meta)
 }
 
-func resourceArmCognitiveAccountUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceCognitiveAccountUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cognitive.AccountsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CognitiveAccountID(d.Id())
+	id, err := parse.AccountID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -235,15 +235,15 @@ func resourceArmCognitiveAccountUpdate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error updating Cognitive Services Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	return resourceArmCognitiveAccountRead(d, meta)
+	return resourceCognitiveAccountRead(d, meta)
 }
 
-func resourceArmCognitiveAccountRead(d *schema.ResourceData, meta interface{}) error {
+func resourceCognitiveAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cognitive.AccountsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CognitiveAccountID(d.Id())
+	id, err := parse.AccountID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -293,12 +293,12 @@ func resourceArmCognitiveAccountRead(d *schema.ResourceData, meta interface{}) e
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmCognitiveAccountDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceCognitiveAccountDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cognitive.AccountsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CognitiveAccountID(d.Id())
+	id, err := parse.AccountID(d.Id())
 	if err != nil {
 		return err
 	}

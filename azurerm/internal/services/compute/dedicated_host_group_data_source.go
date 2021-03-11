@@ -16,9 +16,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmDedicatedHostGroup() *schema.Resource {
+func dataSourceDedicatedHostGroup() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmDedicatedHostGroupRead,
+		Read: dataSourceDedicatedHostGroupRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -53,7 +53,7 @@ func dataSourceArmDedicatedHostGroup() *schema.Resource {
 	}
 }
 
-func dataSourceArmDedicatedHostGroupRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDedicatedHostGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DedicatedHostGroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

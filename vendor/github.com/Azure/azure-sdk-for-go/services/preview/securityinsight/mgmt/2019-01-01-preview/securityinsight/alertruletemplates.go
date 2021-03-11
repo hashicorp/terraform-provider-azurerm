@@ -91,6 +91,7 @@ func (client AlertRuleTemplatesClient) Get(ctx context.Context, resourceGroupNam
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.AlertRuleTemplatesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -185,9 +186,11 @@ func (client AlertRuleTemplatesClient) List(ctx context.Context, resourceGroupNa
 	result.artl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.AlertRuleTemplatesClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.artl.hasNextLink() && result.artl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

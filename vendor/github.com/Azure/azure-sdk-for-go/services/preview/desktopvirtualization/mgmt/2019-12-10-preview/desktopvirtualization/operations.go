@@ -69,6 +69,7 @@ func (client OperationsClient) List(ctx context.Context) (result ResourceProvide
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "desktopvirtualization.OperationsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return

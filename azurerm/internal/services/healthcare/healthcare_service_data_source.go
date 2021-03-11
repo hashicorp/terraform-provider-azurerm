@@ -13,9 +13,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmHealthcareService() *schema.Resource {
+func dataSourceHealthcareService() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmHealthcareServiceRead,
+		Read: dataSourceHealthcareServiceRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -114,7 +114,7 @@ func dataSourceArmHealthcareService() *schema.Resource {
 	}
 }
 
-func dataSourceArmHealthcareServiceRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceHealthcareServiceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

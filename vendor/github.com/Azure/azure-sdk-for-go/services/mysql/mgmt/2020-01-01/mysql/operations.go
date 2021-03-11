@@ -71,6 +71,7 @@ func (client OperationsClient) List(ctx context.Context) (result OperationListRe
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mysql.OperationsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -86,7 +87,7 @@ func (client OperationsClient) ListPreparer(ctx context.Context) (*http.Request,
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPath("/providers/Microsoft.DBforMySQL/operations"),
+		autorest.WithPath("/providers/Microsoft.DBForMySQL/operations"),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }

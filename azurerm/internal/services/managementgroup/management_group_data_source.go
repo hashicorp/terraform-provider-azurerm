@@ -13,9 +13,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmManagementGroup() *schema.Resource {
+func dataSourceManagementGroup() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmManagementGroupRead,
+		Read: dataSourceManagementGroupRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -61,7 +61,7 @@ func dataSourceArmManagementGroup() *schema.Resource {
 	}
 }
 
-func dataSourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceManagementGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ManagementGroups.GroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -105,7 +105,7 @@ func dataSourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) 
 	if props := resp.Properties; props != nil {
 		d.Set("display_name", props.DisplayName)
 
-		subscriptionIds, err := flattenArmManagementGroupDataSourceSubscriptionIds(props.Children)
+		subscriptionIds, err := flattenManagementGroupDataSourceSubscriptionIds(props.Children)
 		if err != nil {
 			return fmt.Errorf("Error flattening `subscription_ids`: %+v", err)
 		}
@@ -156,7 +156,7 @@ func getManagementGroupNameByDisplayName(ctx context.Context, client *management
 	return results[0], nil
 }
 
-func flattenArmManagementGroupDataSourceSubscriptionIds(input *[]managementgroups.ChildInfo) (*schema.Set, error) {
+func flattenManagementGroupDataSourceSubscriptionIds(input *[]managementgroups.ChildInfo) (*schema.Set, error) {
 	subscriptionIds := &schema.Set{F: schema.HashString}
 	if input == nil {
 		return subscriptionIds, nil

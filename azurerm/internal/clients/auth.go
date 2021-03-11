@@ -13,11 +13,12 @@ type ResourceManagerAccount struct {
 	ClientId                         string
 	Environment                      azure.Environment
 	ObjectId                         string
+	SkipResourceProviderRegistration bool
 	SubscriptionId                   string
 	TenantId                         string
 }
 
-func NewResourceManagerAccount(ctx context.Context, config authentication.Config, env azure.Environment) (*ResourceManagerAccount, error) {
+func NewResourceManagerAccount(ctx context.Context, config authentication.Config, env azure.Environment, skipResourceProviderRegistration bool) (*ResourceManagerAccount, error) {
 	objectId := ""
 
 	// TODO remove this when we confirm that MSI no longer returns nil with getAuthenticatedObjectID
@@ -35,6 +36,7 @@ func NewResourceManagerAccount(ctx context.Context, config authentication.Config
 		Environment:                      env,
 		ObjectId:                         objectId,
 		TenantId:                         config.TenantID,
+		SkipResourceProviderRegistration: skipResourceProviderRegistration,
 		SubscriptionId:                   config.SubscriptionID,
 	}
 	return &account, nil

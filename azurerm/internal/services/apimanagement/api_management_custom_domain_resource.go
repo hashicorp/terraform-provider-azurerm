@@ -9,6 +9,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -20,7 +21,7 @@ import (
 
 var apiManagementCustomDomainResourceName = "azurerm_api_management_custom_domain"
 
-func resourceArmApiManagementCustomDomain() *schema.Resource {
+func resourceApiManagementCustomDomain() *schema.Resource {
 	return &schema.Resource{
 		Create: apiManagementCustomDomainCreateUpdate,
 		Read:   apiManagementCustomDomainRead,
@@ -162,10 +163,11 @@ func apiManagementCustomDomainCreateUpdate(d *schema.ResourceData, meta interfac
 
 func apiManagementCustomDomainRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ServiceClient
+	environment := meta.(*clients.Client).Account.Environment
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ApiManagementCustomDomainID(d.Id())
+	id, err := parse.CustomDomainID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -186,7 +188,8 @@ func apiManagementCustomDomainRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("api_management_id", resp.ID)
 
 	if resp.ServiceProperties != nil && resp.ServiceProperties.HostnameConfigurations != nil {
-		configs := flattenApiManagementHostnameConfiguration(resp.ServiceProperties.HostnameConfigurations, d)
+		apimHostNameSuffix := environment.APIManagementHostNameSuffix
+		configs := flattenApiManagementHostnameConfiguration(resp.ServiceProperties.HostnameConfigurations, d, *resp.Name, apimHostNameSuffix)
 		for _, config := range configs {
 			for key, v := range config.(map[string]interface{}) {
 				// lintignore:R001
@@ -205,7 +208,7 @@ func apiManagementCustomDomainDelete(d *schema.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ApiManagementCustomDomainID(d.Id())
+	id, err := parse.CustomDomainID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -304,7 +307,7 @@ func expandApiManagementCustomDomains(input *schema.ResourceData) *[]apimanageme
 	return &results
 }
 
-func flattenApiManagementHostnameConfiguration(input *[]apimanagement.HostnameConfiguration, d *schema.ResourceData) []interface{} {
+func flattenApiManagementHostnameConfiguration(input *[]apimanagement.HostnameConfiguration, d *schema.ResourceData, name, apimHostNameSuffix string) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -318,6 +321,11 @@ func flattenApiManagementHostnameConfiguration(input *[]apimanagement.HostnameCo
 
 	for _, config := range *input {
 		output := make(map[string]interface{})
+
+		// There'll always be a default custom domain with hostName "apim_name.azure-api.net" and Type "Proxy", which should be ignored
+		if *config.HostName == strings.ToLower(name)+"."+apimHostNameSuffix && config.Type == apimanagement.HostnameTypeProxy {
+			continue
+		}
 
 		if config.HostName != nil {
 			output["host_name"] = *config.HostName
@@ -361,7 +369,7 @@ func flattenApiManagementHostnameConfiguration(input *[]apimanagement.HostnameCo
 		if configType != "" {
 			if valsRaw, ok := d.GetOk(configType); ok {
 				vals := valsRaw.([]interface{})
-				azure.CopyCertificateAndPassword(vals, *config.HostName, output)
+				schemaz.CopyCertificateAndPassword(vals, *config.HostName, output)
 			}
 		}
 	}

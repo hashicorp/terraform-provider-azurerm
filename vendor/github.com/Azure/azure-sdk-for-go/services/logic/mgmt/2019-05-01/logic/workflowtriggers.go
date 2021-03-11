@@ -75,6 +75,7 @@ func (client WorkflowTriggersClient) Get(ctx context.Context, resourceGroupName 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowTriggersClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -152,6 +153,7 @@ func (client WorkflowTriggersClient) GetSchemaJSON(ctx context.Context, resource
 	result, err = client.GetSchemaJSONResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowTriggersClient", "GetSchemaJSON", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -231,9 +233,11 @@ func (client WorkflowTriggersClient) List(ctx context.Context, resourceGroupName
 	result.wtlr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowTriggersClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.wtlr.hasNextLink() && result.wtlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -353,6 +357,7 @@ func (client WorkflowTriggersClient) ListCallbackURL(ctx context.Context, resour
 	result, err = client.ListCallbackURLResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowTriggersClient", "ListCallbackURL", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -430,6 +435,7 @@ func (client WorkflowTriggersClient) Reset(ctx context.Context, resourceGroupNam
 	result, err = client.ResetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowTriggersClient", "Reset", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -506,6 +512,7 @@ func (client WorkflowTriggersClient) Run(ctx context.Context, resourceGroupName 
 	result, err = client.RunResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowTriggersClient", "Run", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -589,6 +596,7 @@ func (client WorkflowTriggersClient) SetState(ctx context.Context, resourceGroup
 	result, err = client.SetStateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowTriggersClient", "SetState", resp, "Failure responding to request")
+		return
 	}
 
 	return

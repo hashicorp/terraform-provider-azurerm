@@ -85,6 +85,7 @@ func (client APIKeysClient) Create(ctx context.Context, resourceGroupName string
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.APIKeysClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -173,6 +174,7 @@ func (client APIKeysClient) Delete(ctx context.Context, resourceGroupName string
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.APIKeysClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -260,6 +262,7 @@ func (client APIKeysClient) Get(ctx context.Context, resourceGroupName string, r
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.APIKeysClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -346,6 +349,7 @@ func (client APIKeysClient) List(ctx context.Context, resourceGroupName string, 
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.APIKeysClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return

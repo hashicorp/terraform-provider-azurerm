@@ -7,24 +7,24 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2020-03-01-preview/operationalinsights"
+	"github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/operationalinsights"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmLogAnalyticsSavedSearch() *schema.Resource {
+func resourceLogAnalyticsSavedSearch() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmLogAnalyticsSavedSearchCreate,
-		Read:   resourceArmLogAnalyticsSavedSearchRead,
-		Delete: resourceArmLogAnalyticsSavedSearchDelete,
+		Create: resourceLogAnalyticsSavedSearchCreate,
+		Read:   resourceLogAnalyticsSavedSearchRead,
+		Delete: resourceLogAnalyticsSavedSearchDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -101,7 +101,7 @@ func resourceArmLogAnalyticsSavedSearch() *schema.Resource {
 	}
 }
 
-func resourceArmLogAnalyticsSavedSearchCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsSavedSearchCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.SavedSearchesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -115,10 +115,10 @@ func resourceArmLogAnalyticsSavedSearchCreate(d *schema.ResourceData, meta inter
 	}
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Log Analytics Saved Search %q (WorkSpace %q / Resource Group %q): %s", name, id.Name, id.ResourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Log Analytics Saved Search %q (WorkSpace %q / Resource Group %q): %s", name, id.WorkspaceName, id.ResourceGroup, err)
 			}
 		}
 
@@ -133,7 +133,7 @@ func resourceArmLogAnalyticsSavedSearchCreate(d *schema.ResourceData, meta inter
 			DisplayName:   utils.String(d.Get("display_name").(string)),
 			Query:         utils.String(d.Get("query").(string)),
 			FunctionAlias: utils.String(d.Get("function_alias").(string)),
-			Tags:          expandArmSavedSearchTag(d.Get("tags").(map[string]interface{})), // expand tags because it's defined as object set in service
+			Tags:          expandSavedSearchTag(d.Get("tags").(map[string]interface{})), // expand tags because it's defined as object set in service
 		},
 	}
 
@@ -148,44 +148,46 @@ func resourceArmLogAnalyticsSavedSearchCreate(d *schema.ResourceData, meta inter
 		parameters.SavedSearchProperties.FunctionParameters = utils.String(strings.Join(result, ", "))
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, name, parameters); err != nil {
-		return fmt.Errorf("creating Saved Search %q (Log Analytics Workspace %q / Resource Group %q): %+v", name, id.Name, id.ResourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, name, parameters); err != nil {
+		return fmt.Errorf("creating Saved Search %q (Log Analytics Workspace %q / Resource Group %q): %+v", name, id.WorkspaceName, id.ResourceGroup, err)
 	}
 
-	read, err := client.Get(ctx, id.ResourceGroup, id.Name, name)
+	read, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, name)
 	if err != nil {
-		return fmt.Errorf("retrieving Saved Search %q (Log Analytics Workspace %q / Resource Group %q): %+v", name, id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Saved Search %q (Log Analytics Workspace %q / Resource Group %q): %+v", name, id.WorkspaceName, id.ResourceGroup, err)
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("cannot read Log Analytics Saved Search %q (WorkSpace %q / Resource Group %q): %s", name, id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("cannot read Log Analytics Saved Search %q (WorkSpace %q / Resource Group %q): %s", name, id.WorkspaceName, id.ResourceGroup, err)
 	}
 
 	d.SetId(*read.ID)
 
-	return resourceArmLogAnalyticsSavedSearchRead(d, meta)
+	return resourceLogAnalyticsSavedSearchRead(d, meta)
 }
 
-func resourceArmLogAnalyticsSavedSearchRead(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsSavedSearchRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.SavedSearchesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	id, err := parse.LogAnalyticsSavedSearchID(d.Id())
+	// FIXME: @favoretti: API returns ID without a leading slash
+	id, err := parse.LogAnalyticsSavedSearchID(fmt.Sprintf("/%s", strings.TrimPrefix(d.Id(), "/")))
 	if err != nil {
 		return err
 	}
-	workspaceId := parse.NewLogAnalyticsWorkspaceID(id.WorkspaceName, id.ResourceGroup).ID(meta.(*clients.Client).Account.SubscriptionId)
+	workspaceId := parse.NewLogAnalyticsWorkspaceID(subscriptionId, id.ResourceGroup, id.WorkspaceName).ID()
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.SavedSearcheName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Saved Search %q (Log Analytics Workspace %q / Resource Group %q): %s", id.Name, id.WorkspaceName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Saved Search %q (Log Analytics Workspace %q / Resource Group %q): %s", id.WorkspaceName, id.WorkspaceName, id.ResourceGroup, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.SavedSearcheName)
 	d.Set("log_analytics_workspace_id", workspaceId)
 
 	if props := resp.SavedSearchProperties; props != nil {
@@ -200,7 +202,7 @@ func resourceArmLogAnalyticsSavedSearchRead(d *schema.ResourceData, meta interfa
 		d.Set("function_parameters", functionParams)
 
 		// flatten tags because it's defined as object set in service
-		if err := d.Set("tags", flattenArmSavedSearchTag(props.Tags)); err != nil {
+		if err := d.Set("tags", flattenSavedSearchTag(props.Tags)); err != nil {
 			return fmt.Errorf("setting `tag`: %+v", err)
 		}
 	}
@@ -208,23 +210,24 @@ func resourceArmLogAnalyticsSavedSearchRead(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func resourceArmLogAnalyticsSavedSearchDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsSavedSearchDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.SavedSearchesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	id, err := parse.LogAnalyticsSavedSearchID(d.Id())
+	// FIXME: @favoretti: API returns ID without a leading slash
+	id, err := parse.LogAnalyticsSavedSearchID(fmt.Sprintf("/%s", strings.TrimPrefix(d.Id(), "/")))
 	if err != nil {
 		return err
 	}
 
-	if _, err = client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.Name); err != nil {
-		return fmt.Errorf("deleting Saved Search %q (Log Analytics Workspace %q / Resource Group %q): %s", id.Name, id.WorkspaceName, id.ResourceGroup, err)
+	if _, err = client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.SavedSearcheName); err != nil {
+		return fmt.Errorf("deleting Saved Search %q (Log Analytics Workspace %q / Resource Group %q): %s", id.WorkspaceName, id.WorkspaceName, id.ResourceGroup, err)
 	}
 
 	return nil
 }
 
-func expandArmSavedSearchTag(input map[string]interface{}) *[]operationalinsights.Tag {
+func expandSavedSearchTag(input map[string]interface{}) *[]operationalinsights.Tag {
 	results := make([]operationalinsights.Tag, 0)
 	for key, value := range input {
 		result := operationalinsights.Tag{
@@ -236,7 +239,7 @@ func expandArmSavedSearchTag(input map[string]interface{}) *[]operationalinsight
 	return &results
 }
 
-func flattenArmSavedSearchTag(input *[]operationalinsights.Tag) map[string]interface{} {
+func flattenSavedSearchTag(input *[]operationalinsights.Tag) map[string]interface{} {
 	results := make(map[string]interface{})
 	if input == nil {
 		return results

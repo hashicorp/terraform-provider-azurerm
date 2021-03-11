@@ -21,12 +21,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAutomationSchedule() *schema.Resource {
+func resourceAutomationSchedule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAutomationScheduleCreateUpdate,
-		Read:   resourceArmAutomationScheduleRead,
-		Update: resourceArmAutomationScheduleCreateUpdate,
-		Delete: resourceArmAutomationScheduleDelete,
+		Create: resourceAutomationScheduleCreateUpdate,
+		Read:   resourceAutomationScheduleRead,
+		Update: resourceAutomationScheduleCreateUpdate,
+		Delete: resourceAutomationScheduleDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -44,7 +44,7 @@ func resourceArmAutomationSchedule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.AutomationScheduleName(),
+				ValidateFunc: validate.ScheduleName(),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -53,7 +53,7 @@ func resourceArmAutomationSchedule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.AutomationAccountName(),
+				ValidateFunc: validate.AutomationAccount(),
 			},
 
 			"frequency": {
@@ -199,7 +199,7 @@ func resourceArmAutomationSchedule() *schema.Resource {
 	}
 }
 
-func resourceArmAutomationScheduleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationScheduleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.ScheduleClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -283,10 +283,10 @@ func resourceArmAutomationScheduleCreateUpdate(d *schema.ResourceData, meta inte
 
 	d.SetId(*read.ID)
 
-	return resourceArmAutomationScheduleRead(d, meta)
+	return resourceAutomationScheduleRead(d, meta)
 }
 
-func resourceArmAutomationScheduleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationScheduleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.ScheduleClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -345,7 +345,7 @@ func resourceArmAutomationScheduleRead(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceArmAutomationScheduleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationScheduleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.ScheduleClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

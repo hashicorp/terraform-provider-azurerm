@@ -79,6 +79,7 @@ func (client OnPremiseIotSensorsClient) CreateOrUpdate(ctx context.Context, onPr
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.OnPremiseIotSensorsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -158,6 +159,7 @@ func (client OnPremiseIotSensorsClient) Delete(ctx context.Context, onPremiseIot
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.OnPremiseIotSensorsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -236,6 +238,7 @@ func (client OnPremiseIotSensorsClient) DownloadActivation(ctx context.Context, 
 	result, err = client.DownloadActivationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.OnPremiseIotSensorsClient", "DownloadActivation", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -270,6 +273,88 @@ func (client OnPremiseIotSensorsClient) DownloadActivationSender(req *http.Reque
 // DownloadActivationResponder handles the response to the DownloadActivation request. The method always
 // closes the http.Response Body.
 func (client OnPremiseIotSensorsClient) DownloadActivationResponder(resp *http.Response) (result ReadCloser, err error) {
+	result.Value = &resp.Body
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK))
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// DownloadResetPassword download file for reset password of the sensor
+// Parameters:
+// onPremiseIotSensorName - name of the on-premise IoT sensor
+// body - input for reset password.
+func (client OnPremiseIotSensorsClient) DownloadResetPassword(ctx context.Context, onPremiseIotSensorName string, body ResetPasswordInput) (result ReadCloser, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/OnPremiseIotSensorsClient.DownloadResetPassword")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.Pattern, Rule: `^[0-9A-Fa-f]{8}-([0-9A-Fa-f]{4}-){3}[0-9A-Fa-f]{12}$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("security.OnPremiseIotSensorsClient", "DownloadResetPassword", err.Error())
+	}
+
+	req, err := client.DownloadResetPasswordPreparer(ctx, onPremiseIotSensorName, body)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "security.OnPremiseIotSensorsClient", "DownloadResetPassword", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.DownloadResetPasswordSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "security.OnPremiseIotSensorsClient", "DownloadResetPassword", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.DownloadResetPasswordResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "security.OnPremiseIotSensorsClient", "DownloadResetPassword", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// DownloadResetPasswordPreparer prepares the DownloadResetPassword request.
+func (client OnPremiseIotSensorsClient) DownloadResetPasswordPreparer(ctx context.Context, onPremiseIotSensorName string, body ResetPasswordInput) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"onPremiseIotSensorName": autorest.Encode("path", onPremiseIotSensorName),
+		"subscriptionId":         autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2020-08-06-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.Security/onPremiseIotSensors/{onPremiseIotSensorName}/downloadResetPassword", pathParameters),
+		autorest.WithJSON(body),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// DownloadResetPasswordSender sends the DownloadResetPassword request. The method will close the
+// http.Response Body if it receives an error.
+func (client OnPremiseIotSensorsClient) DownloadResetPasswordSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// DownloadResetPasswordResponder handles the response to the DownloadResetPassword request. The method always
+// closes the http.Response Body.
+func (client OnPremiseIotSensorsClient) DownloadResetPasswordResponder(resp *http.Response) (result ReadCloser, err error) {
 	result.Value = &resp.Body
 	err = autorest.Respond(
 		resp,
@@ -314,6 +399,7 @@ func (client OnPremiseIotSensorsClient) Get(ctx context.Context, onPremiseIotSen
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.OnPremiseIotSensorsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -391,6 +477,7 @@ func (client OnPremiseIotSensorsClient) List(ctx context.Context) (result OnPrem
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.OnPremiseIotSensorsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return

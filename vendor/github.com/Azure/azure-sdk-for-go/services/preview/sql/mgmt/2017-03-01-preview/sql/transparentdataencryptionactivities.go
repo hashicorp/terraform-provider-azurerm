@@ -78,6 +78,7 @@ func (client TransparentDataEncryptionActivitiesClient) ListByConfiguration(ctx 
 	result, err = client.ListByConfigurationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.TransparentDataEncryptionActivitiesClient", "ListByConfiguration", resp, "Failure responding to request")
+		return
 	}
 
 	return

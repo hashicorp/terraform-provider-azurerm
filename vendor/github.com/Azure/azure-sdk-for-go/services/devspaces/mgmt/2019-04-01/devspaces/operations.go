@@ -70,9 +70,11 @@ func (client OperationsClient) List(ctx context.Context) (result ResourceProvide
 	result.rpol, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "devspaces.OperationsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.rpol.hasNextLink() && result.rpol.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

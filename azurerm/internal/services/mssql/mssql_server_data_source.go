@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
@@ -15,7 +16,7 @@ import (
 
 func dataSourceMsSqlServer() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmMsSqlServerRead,
+		Read: dataSourceMsSqlServerRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -80,7 +81,7 @@ func dataSourceMsSqlServer() *schema.Resource {
 	}
 }
 
-func dataSourceArmMsSqlServerRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceMsSqlServerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.ServersClient
 	restorableDroppedDatabasesClient := meta.(*clients.Client).MSSQL.RestorableDroppedDatabasesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -110,7 +111,7 @@ func dataSourceArmMsSqlServerRead(d *schema.ResourceData, meta interface{}) erro
 		d.Set("fully_qualified_domain_name", props.FullyQualifiedDomainName)
 	}
 
-	if err := d.Set("identity", flattenAzureRmSqlServerIdentity(resp.Identity)); err != nil {
+	if err := d.Set("identity", flattenSqlServerIdentity(resp.Identity)); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
@@ -118,7 +119,7 @@ func dataSourceArmMsSqlServerRead(d *schema.ResourceData, meta interface{}) erro
 	if err != nil {
 		return fmt.Errorf("listing SQL Server %s Restorable Dropped Databases: %v", name, err)
 	}
-	if err := d.Set("restorable_dropped_database_ids", flattenAzureRmSqlServerRestorableDatabases(restorableResp)); err != nil {
+	if err := d.Set("restorable_dropped_database_ids", flattenSqlServerRestorableDatabases(restorableResp)); err != nil {
 		return fmt.Errorf("setting `restorable_dropped_database_ids`: %+v", err)
 	}
 

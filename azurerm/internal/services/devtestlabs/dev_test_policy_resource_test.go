@@ -1,139 +1,92 @@
 package devtestlabs_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+type DevTestPolicyResource struct {
+}
 
 func TestAccDevTestPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_policy", "test")
+	r := DevTestPolicyResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDevTestPolicyDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDevTestPolicy_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDevTestPolicyExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccDevTestPolicy_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_policy", "test")
+	r := DevTestPolicyResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDevTestPolicyDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDevTestPolicy_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDevTestPolicyExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-				),
-			},
-			{
-				Config:      testAccDevTestPolicy_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_dev_test_policy"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_dev_test_policy"),
 		},
 	})
 }
 
 func TestAccDevTestPolicy_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_policy", "test")
+	r := DevTestPolicyResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDevTestPolicyDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDevTestPolicy_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDevTestPolicyExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.Acceptance", "Test"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.Acceptance").HasValue("Test"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckDevTestPolicyExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).DevTestLabs.PoliciesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		policyName := rs.Primary.Attributes["name"]
-		policySetName := rs.Primary.Attributes["policy_set_name"]
-		labName := rs.Primary.Attributes["lab_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(ctx, resourceGroup, labName, policySetName, policyName, "")
-		if err != nil {
-			return fmt.Errorf("Bad: Get devTestPoliciesClient: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: DevTest Policy %q (Policy Set %q / Lab %q / Resource Group: %q) does not exist", policyName, policySetName, labName, resourceGroup)
-		}
-
-		return nil
+func (DevTestPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
-}
+	labName := id.Path["labs"]
+	policySetName := id.Path["policysets"]
+	name := id.Path["policies"]
 
-func testCheckDevTestPolicyDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).DevTestLabs.PoliciesClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_dev_test_policy" {
-			continue
-		}
-
-		policyName := rs.Primary.Attributes["name"]
-		policySetName := rs.Primary.Attributes["policy_set_name"]
-		labName := rs.Primary.Attributes["lab_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(ctx, resourceGroup, labName, policySetName, policyName, "")
-		if err != nil {
-			if resp.StatusCode == http.StatusNotFound {
-				return nil
-			}
-
-			return err
-		}
-
-		return fmt.Errorf("DevTest Policy still exists:\n%#v", resp)
+	resp, err := clients.DevTestLabs.PoliciesClient.Get(ctx, id.ResourceGroup, labName, policySetName, name, "")
+	if err != nil {
+		return nil, fmt.Errorf("retrieving DevTest Policy %q (Policy Set %q / Lab %q / Resource Group: %q): %v", name, policySetName, labName, id.ResourceGroup, err)
 	}
 
-	return nil
+	return utils.Bool(resp.PolicyProperties != nil), nil
 }
 
-func testAccDevTestPolicy_basic(data acceptance.TestData) string {
+func (DevTestPolicyResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -161,8 +114,7 @@ resource "azurerm_dev_test_policy" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccDevTestPolicy_requiresImport(data acceptance.TestData) string {
-	template := testAccDevTestPolicy_basic(data)
+func (r DevTestPolicyResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -174,10 +126,10 @@ resource "azurerm_dev_test_policy" "import" {
   threshold           = "999"
   evaluator_type      = "MaxValuePolicy"
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccDevTestPolicy_complete(data acceptance.TestData) string {
+func (DevTestPolicyResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

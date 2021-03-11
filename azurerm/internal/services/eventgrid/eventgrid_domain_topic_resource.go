@@ -18,11 +18,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmEventGridDomainTopic() *schema.Resource {
+func resourceEventGridDomainTopic() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmEventGridDomainTopicCreate,
-		Read:   resourceArmEventGridDomainTopicRead,
-		Delete: resourceArmEventGridDomainTopicDelete,
+		Create: resourceEventGridDomainTopicCreate,
+		Read:   resourceEventGridDomainTopicRead,
+		Delete: resourceEventGridDomainTopicDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -31,7 +31,7 @@ func resourceArmEventGridDomainTopic() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.EventGridDomainTopicID(id)
+			_, err := parse.DomainTopicID(id)
 			return err
 		}),
 
@@ -67,7 +67,7 @@ func resourceArmEventGridDomainTopic() *schema.Resource {
 	}
 }
 
-func resourceArmEventGridDomainTopicCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceEventGridDomainTopicCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).EventGrid.DomainTopicsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -108,60 +108,60 @@ func resourceArmEventGridDomainTopicCreate(d *schema.ResourceData, meta interfac
 
 	d.SetId(*read.ID)
 
-	return resourceArmEventGridDomainTopicRead(d, meta)
+	return resourceEventGridDomainTopicRead(d, meta)
 }
 
-func resourceArmEventGridDomainTopicRead(d *schema.ResourceData, meta interface{}) error {
+func resourceEventGridDomainTopicRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).EventGrid.DomainTopicsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.EventGridDomainTopicID(d.Id())
+	id, err := parse.DomainTopicID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Domain, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.DomainName, id.TopicName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] EventGrid Domain Topic %q was not found (Resource Group %q)", id.Name, id.ResourceGroup)
+			log.Printf("[WARN] EventGrid Domain Topic %q was not found (Resource Group %q)", id.TopicName, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on EventGrid Domain Topic %q: %+v", id.Name, err)
+		return fmt.Errorf("Error making Read request on EventGrid Domain Topic %q: %+v", id.TopicName, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("domain_name", id.Domain)
+	d.Set("domain_name", id.DomainName)
 	d.Set("resource_group_name", id.ResourceGroup)
 
 	return nil
 }
 
-func resourceArmEventGridDomainTopicDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceEventGridDomainTopicDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).EventGrid.DomainTopicsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.EventGridDomainTopicID(d.Id())
+	id, err := parse.DomainTopicID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Domain, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.DomainName, id.TopicName)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error deleting EventGrid Domain Topic %q: %+v", id.Name, err)
+		return fmt.Errorf("Error deleting EventGrid Domain Topic %q: %+v", id.TopicName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error deleting EventGrid Domain Topic %q: %+v", id.Name, err)
+		return fmt.Errorf("Error deleting EventGrid Domain Topic %q: %+v", id.TopicName, err)
 	}
 
 	return nil

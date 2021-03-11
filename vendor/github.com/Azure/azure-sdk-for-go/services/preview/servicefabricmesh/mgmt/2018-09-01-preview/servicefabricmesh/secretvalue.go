@@ -83,6 +83,7 @@ func (client SecretValueClient) Create(ctx context.Context, resourceGroupName st
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabricmesh.SecretValueClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -164,6 +165,7 @@ func (client SecretValueClient) Delete(ctx context.Context, resourceGroupName st
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabricmesh.SecretValueClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -242,6 +244,7 @@ func (client SecretValueClient) Get(ctx context.Context, resourceGroupName strin
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabricmesh.SecretValueClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -320,9 +323,11 @@ func (client SecretValueClient) List(ctx context.Context, resourceGroupName stri
 	result.svrdl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabricmesh.SecretValueClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.svrdl.hasNextLink() && result.svrdl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -438,6 +443,7 @@ func (client SecretValueClient) ListValue(ctx context.Context, resourceGroupName
 	result, err = client.ListValueResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabricmesh.SecretValueClient", "ListValue", resp, "Failure responding to request")
+		return
 	}
 
 	return

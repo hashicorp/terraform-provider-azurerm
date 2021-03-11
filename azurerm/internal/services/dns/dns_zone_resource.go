@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -20,12 +21,17 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDnsZone() *schema.Resource {
+func resourceDnsZone() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDnsZoneCreateUpdate,
-		Read:   resourceArmDnsZoneRead,
-		Update: resourceArmDnsZoneCreateUpdate,
-		Delete: resourceArmDnsZoneDelete,
+		Create: resourceDnsZoneCreateUpdate,
+		Read:   resourceDnsZoneRead,
+		Update: resourceDnsZoneCreateUpdate,
+		Delete: resourceDnsZoneDelete,
+
+		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			migration.DnsZoneV0ToV1(),
+		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -141,14 +147,17 @@ func resourceArmDnsZone() *schema.Resource {
 	}
 }
 
-func resourceArmDnsZoneCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsZoneCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Dns.ZonesClient
 	recordSetsClient := meta.(*clients.Client).Dns.RecordSetsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
+
+	resourceId := parse.NewDnsZoneID(subscriptionId, resGroup, name)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
@@ -177,11 +186,6 @@ func resourceArmDnsZoneCreateUpdate(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error creating/updating DNS Zone %q (Resource Group %q): %s", name, resGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resGroup, name)
-	if err != nil {
-		return fmt.Errorf("Error retrieving DNS Zone %q (Resource Group %q): %s", name, resGroup, err)
-	}
-
 	if v, ok := d.GetOk("soa_record"); ok {
 		soaRecord := v.([]interface{})[0].(map[string]interface{})
 		rsParameters := dns.RecordSet{
@@ -201,16 +205,12 @@ func resourceArmDnsZoneCreateUpdate(d *schema.ResourceData, meta interface{}) er
 		}
 	}
 
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read DNS Zone %q (Resource Group %q) ID", name, resGroup)
-	}
+	d.SetId(resourceId.ID())
 
-	d.SetId(*resp.ID)
-
-	return resourceArmDnsZoneRead(d, meta)
+	return resourceDnsZoneRead(d, meta)
 }
 
-func resourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 	zonesClient := meta.(*clients.Client).Dns.ZonesClient
 	recordSetsClient := meta.(*clients.Client).Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -256,7 +256,7 @@ func resourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmDnsZoneDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsZoneDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Dns.ZonesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

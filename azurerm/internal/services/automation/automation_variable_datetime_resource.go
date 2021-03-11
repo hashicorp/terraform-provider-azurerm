@@ -7,12 +7,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceArmAutomationVariableDateTime() *schema.Resource {
+func resourceAutomationVariableDateTime() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAutomationVariableDateTimeCreateUpdate,
-		Read:   resourceArmAutomationVariableDateTimeRead,
-		Update: resourceArmAutomationVariableDateTimeCreateUpdate,
-		Delete: resourceArmAutomationVariableDateTimeDelete,
+		Create: resourceAutomationVariableDateTimeCreateUpdate,
+		Read:   resourceAutomationVariableDateTimeRead,
+		Update: resourceAutomationVariableDateTimeCreateUpdate,
+		Delete: resourceAutomationVariableDateTimeDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -29,14 +29,14 @@ func resourceArmAutomationVariableDateTime() *schema.Resource {
 	}
 }
 
-func resourceArmAutomationVariableDateTimeCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationVariableDateTimeCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	return resourceAutomationVariableCreateUpdate(d, meta, "Datetime")
 }
 
-func resourceArmAutomationVariableDateTimeRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationVariableDateTimeRead(d *schema.ResourceData, meta interface{}) error {
 	return resourceAutomationVariableRead(d, meta, "Datetime")
 }
 
-func resourceArmAutomationVariableDateTimeDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationVariableDateTimeDelete(d *schema.ResourceData, meta interface{}) error {
 	return resourceAutomationVariableDelete(d, meta, "Datetime")
 }

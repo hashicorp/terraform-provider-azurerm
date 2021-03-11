@@ -75,6 +75,7 @@ func (client SubscriptionUsagesClient) Get(ctx context.Context, locationName str
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SubscriptionUsagesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -150,9 +151,11 @@ func (client SubscriptionUsagesClient) ListByLocation(ctx context.Context, locat
 	result.sulr, err = client.ListByLocationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SubscriptionUsagesClient", "ListByLocation", resp, "Failure responding to request")
+		return
 	}
 	if result.sulr.hasNextLink() && result.sulr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

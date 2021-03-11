@@ -17,7 +17,7 @@ import (
 type AppInsightsResource struct {
 }
 
-func TestAccAzureRMApplicationInsights_basicWeb(t *testing.T) {
+func TestAccApplicationInsights_basicWeb(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
 	r := AppInsightsResource{}
 
@@ -33,7 +33,7 @@ func TestAccAzureRMApplicationInsights_basicWeb(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMApplicationInsights_requiresImport(t *testing.T) {
+func TestAccApplicationInsights_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
 	r := AppInsightsResource{}
 
@@ -52,7 +52,7 @@ func TestAccAzureRMApplicationInsights_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMApplicationInsights_basicJava(t *testing.T) {
+func TestAccApplicationInsights_basicJava(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
 	r := AppInsightsResource{}
 
@@ -68,7 +68,7 @@ func TestAccAzureRMApplicationInsights_basicJava(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMApplicationInsights_basicMobileCenter(t *testing.T) {
+func TestAccApplicationInsights_basicMobileCenter(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
 	r := AppInsightsResource{}
 
@@ -84,7 +84,7 @@ func TestAccAzureRMApplicationInsights_basicMobileCenter(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMApplicationInsights_basicOther(t *testing.T) {
+func TestAccApplicationInsights_basicOther(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
 	r := AppInsightsResource{}
 
@@ -100,7 +100,7 @@ func TestAccAzureRMApplicationInsights_basicOther(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMApplicationInsights_basicPhone(t *testing.T) {
+func TestAccApplicationInsights_basicPhone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
 	r := AppInsightsResource{}
 
@@ -116,7 +116,7 @@ func TestAccAzureRMApplicationInsights_basicPhone(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMApplicationInsights_basicStore(t *testing.T) {
+func TestAccApplicationInsights_basicStore(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
 	r := AppInsightsResource{}
 
@@ -132,7 +132,7 @@ func TestAccAzureRMApplicationInsights_basicStore(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMApplicationInsights_basiciOS(t *testing.T) {
+func TestAccApplicationInsights_basiciOS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
 	r := AppInsightsResource{}
 
@@ -149,20 +149,20 @@ func TestAccAzureRMApplicationInsights_basiciOS(t *testing.T) {
 }
 
 func (t AppInsightsResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.ApplicationInsightsID(state.ID)
+	id, err := parse.ComponentID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
 	resp, err := clients.AppInsights.ComponentsClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Application Insights '%q' (resource group: '%q') does not exist", id.ResourceGroup, id.Name)
+		return nil, fmt.Errorf("retrieving Application Insights %q (resource group: %q) does not exist", id.Name, id.ResourceGroup)
 	}
 
 	return utils.Bool(resp.ApplicationInsightsComponentProperties != nil), nil
 }
 
-func TestAccAzureRMApplicationInsights_complete(t *testing.T) {
+func TestAccApplicationInsights_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
 	r := AppInsightsResource{}
 

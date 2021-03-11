@@ -14,7 +14,7 @@ import (
 type AttestationProviderDataSource struct {
 }
 
-func TestAccDataSourceAzureRMAttestationProvider_basic(t *testing.T) {
+func TestAccAttestationProviderDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_attestation_provider", "test")
 	randStr := strings.ToLower(acctest.RandString(10))
 

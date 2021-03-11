@@ -52,7 +52,7 @@ The following arguments are supported:
 
 -> **Note:** `partition_count` and `replica_count` can only be configured when using a `standard` sku.
 
-* `allowed_ips` - (Optional) A list of IPv4 addresses that are allowed access to the search service endpoint. 
+* `allowed_ips` - (Optional) A list of IPv4 addresses or CIDRs that are allowed access to the search service endpoint. 
 
 * `identity` - (Optional) A `identity` block as defined below.
 

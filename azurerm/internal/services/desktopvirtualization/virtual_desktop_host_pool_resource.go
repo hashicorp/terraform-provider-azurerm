@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -19,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmVirtualDesktopHostPool() *schema.Resource {
+func resourceVirtualDesktopHostPool() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmVirtualDesktopHostPoolCreateUpdate,
-		Read:   resourceArmVirtualDesktopHostPoolRead,
-		Update: resourceArmVirtualDesktopHostPoolCreateUpdate,
-		Delete: resourceArmVirtualDesktopHostPoolDelete,
+		Create: resourceVirtualDesktopHostPoolCreateUpdate,
+		Read:   resourceVirtualDesktopHostPoolRead,
+		Update: resourceVirtualDesktopHostPoolCreateUpdate,
+		Delete: resourceVirtualDesktopHostPoolDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),
@@ -34,9 +35,18 @@ func resourceArmVirtualDesktopHostPool() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.VirtualDesktopHostPoolID(id)
+			_, err := parse.HostPoolID(id)
 			return err
 		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				Type:    migration.HostPoolUpgradeV0Schema().CoreConfigSchema().ImpliedType(),
+				Upgrade: migration.HostPoolUpgradeV0ToV1,
+				Version: 0,
+			},
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -150,7 +160,7 @@ func resourceArmVirtualDesktopHostPool() *schema.Resource {
 	}
 }
 
-func resourceArmVirtualDesktopHostPoolCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopHostPoolCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DesktopVirtualization.HostPoolsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -161,7 +171,7 @@ func resourceArmVirtualDesktopHostPoolCreateUpdate(d *schema.ResourceData, meta 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	id := parse.NewVirtualDesktopHostPoolId(resourceGroup, name)
+	resourceId := parse.NewHostPoolID(subscriptionId, resourceGroup, name).ID()
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -171,7 +181,7 @@ func resourceArmVirtualDesktopHostPoolCreateUpdate(d *schema.ResourceData, meta 
 		}
 
 		if existing.HostPoolProperties != nil {
-			return tf.ImportAsExistsError("azurerm_virtual_desktop_host_pool", id.ID(subscriptionId))
+			return tf.ImportAsExistsError("azurerm_virtual_desktop_host_pool", resourceId)
 		}
 	}
 
@@ -198,17 +208,17 @@ func resourceArmVirtualDesktopHostPoolCreateUpdate(d *schema.ResourceData, meta 
 		return fmt.Errorf("Creating Virtual Desktop Host Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	d.SetId(id.ID(subscriptionId))
+	d.SetId(resourceId)
 
-	return resourceArmVirtualDesktopHostPoolRead(d, meta)
+	return resourceVirtualDesktopHostPoolRead(d, meta)
 }
 
-func resourceArmVirtualDesktopHostPoolRead(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopHostPoolRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DesktopVirtualization.HostPoolsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualDesktopHostPoolID(d.Id())
+	id, err := parse.HostPoolID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -253,12 +263,12 @@ func resourceArmVirtualDesktopHostPoolRead(d *schema.ResourceData, meta interfac
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmVirtualDesktopHostPoolDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopHostPoolDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DesktopVirtualization.HostPoolsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualDesktopHostPoolID(d.Id())
+	id, err := parse.HostPoolID(d.Id())
 	if err != nil {
 		return err
 	}

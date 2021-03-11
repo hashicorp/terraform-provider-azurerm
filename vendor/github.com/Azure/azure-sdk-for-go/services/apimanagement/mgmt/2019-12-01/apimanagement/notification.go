@@ -83,6 +83,7 @@ func (client NotificationClient) CreateOrUpdate(ctx context.Context, resourceGro
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.NotificationClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -172,6 +173,7 @@ func (client NotificationClient) Get(ctx context.Context, resourceGroupName stri
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.NotificationClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -265,9 +267,11 @@ func (client NotificationClient) ListByService(ctx context.Context, resourceGrou
 	result.nc, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.NotificationClient", "ListByService", resp, "Failure responding to request")
+		return
 	}
 	if result.nc.hasNextLink() && result.nc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

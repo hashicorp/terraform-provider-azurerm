@@ -5,6 +5,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
+	msiparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
+
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -23,7 +27,7 @@ func dataSourceApiManagementService() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": azure.SchemaApiManagementDataSourceName(),
+			"name": schemaz.SchemaApiManagementDataSourceName(),
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
@@ -220,7 +224,12 @@ func dataSourceApiManagementRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("retrieving API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	d.SetId(*resp.ID)
+	id, err := parse.ApiManagementID(*resp.ID)
+	if err != nil {
+		return fmt.Errorf("Error parsing API Management ID: %q", *resp.ID)
+	}
+
+	d.SetId(id.ID())
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
@@ -229,7 +238,10 @@ func dataSourceApiManagementRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	identity := flattenAzureRmApiManagementMachineIdentity(resp.Identity)
+	identity, err := flattenApiManagementDataSourceIdentity(resp.Identity)
+	if err != nil {
+		return err
+	}
 	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
@@ -350,6 +362,37 @@ func flattenDataSourceApiManagementAdditionalLocations(input *[]apimanagement.Ad
 	}
 
 	return results
+}
+
+func flattenApiManagementDataSourceIdentity(identity *apimanagement.ServiceIdentity) ([]interface{}, error) {
+	if identity == nil || identity.Type == apimanagement.None {
+		return make([]interface{}, 0), nil
+	}
+
+	result := make(map[string]interface{})
+	result["type"] = string(identity.Type)
+
+	if identity.PrincipalID != nil {
+		result["principal_id"] = identity.PrincipalID.String()
+	}
+
+	if identity.TenantID != nil {
+		result["tenant_id"] = identity.TenantID.String()
+	}
+
+	identityIds := make([]interface{}, 0)
+	if identity.UserAssignedIdentities != nil {
+		for key := range identity.UserAssignedIdentities {
+			parsedId, err := msiparse.UserAssignedIdentityID(key)
+			if err != nil {
+				return nil, err
+			}
+			identityIds = append(identityIds, parsedId.ID())
+		}
+		result["identity_ids"] = identityIds
+	}
+
+	return []interface{}{result}, nil
 }
 
 func apiManagementDataSourceHostnameSchema() map[string]*schema.Schema {

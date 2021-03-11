@@ -97,6 +97,7 @@ func (client JobStepsClient) CreateOrUpdate(ctx context.Context, resourceGroupNa
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobStepsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -181,6 +182,7 @@ func (client JobStepsClient) Delete(ctx context.Context, resourceGroupName strin
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobStepsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -262,6 +264,7 @@ func (client JobStepsClient) Get(ctx context.Context, resourceGroupName string, 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobStepsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -345,6 +348,7 @@ func (client JobStepsClient) GetByVersion(ctx context.Context, resourceGroupName
 	result, err = client.GetByVersionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobStepsClient", "GetByVersion", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -428,9 +432,11 @@ func (client JobStepsClient) ListByJob(ctx context.Context, resourceGroupName st
 	result.jslr, err = client.ListByJobResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobStepsClient", "ListByJob", resp, "Failure responding to request")
+		return
 	}
 	if result.jslr.hasNextLink() && result.jslr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -550,9 +556,11 @@ func (client JobStepsClient) ListByVersion(ctx context.Context, resourceGroupNam
 	result.jslr, err = client.ListByVersionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobStepsClient", "ListByVersion", resp, "Failure responding to request")
+		return
 	}
 	if result.jslr.hasNextLink() && result.jslr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

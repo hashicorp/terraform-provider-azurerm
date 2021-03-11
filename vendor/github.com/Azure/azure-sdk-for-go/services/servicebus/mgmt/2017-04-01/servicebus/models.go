@@ -50,8 +50,8 @@ type AccessKeys struct {
 	KeyName *string `json:"keyName,omitempty"`
 }
 
-// Action represents the filter actions which are allowed for the transformation of a message that have been
-// matched by a filter expression.
+// Action represents the filter actions which are allowed for the transformation of a message that have
+// been matched by a filter expression.
 type Action struct {
 	// SQLExpression - SQL expression. e.g. MyProperty='ABC'
 	SQLExpression *string `json:"sqlExpression,omitempty"`
@@ -152,7 +152,8 @@ func (adrlr ArmDisasterRecoveryListResult) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// ArmDisasterRecoveryListResultIterator provides access to a complete listing of ArmDisasterRecovery values.
+// ArmDisasterRecoveryListResultIterator provides access to a complete listing of ArmDisasterRecovery
+// values.
 type ArmDisasterRecoveryListResultIterator struct {
 	i    int
 	page ArmDisasterRecoveryListResultPage
@@ -295,8 +296,11 @@ func (page ArmDisasterRecoveryListResultPage) Values() []ArmDisasterRecovery {
 }
 
 // Creates a new instance of the ArmDisasterRecoveryListResultPage type.
-func NewArmDisasterRecoveryListResultPage(getNextPage func(context.Context, ArmDisasterRecoveryListResult) (ArmDisasterRecoveryListResult, error)) ArmDisasterRecoveryListResultPage {
-	return ArmDisasterRecoveryListResultPage{fn: getNextPage}
+func NewArmDisasterRecoveryListResultPage(cur ArmDisasterRecoveryListResult, getNextPage func(context.Context, ArmDisasterRecoveryListResult) (ArmDisasterRecoveryListResult, error)) ArmDisasterRecoveryListResultPage {
+	return ArmDisasterRecoveryListResultPage{
+		fn:    getNextPage,
+		adrlr: cur,
+	}
 }
 
 // ArmDisasterRecoveryProperties properties required to the Create Or Update Alias(Disaster Recovery
@@ -324,12 +328,6 @@ func (adr ArmDisasterRecoveryProperties) MarshalJSON() ([]byte, error) {
 		objectMap["alternateName"] = adr.AlternateName
 	}
 	return json.Marshal(objectMap)
-}
-
-// AuthorizationRuleProperties authorizationRule properties.
-type AuthorizationRuleProperties struct {
-	// Rights - The rights associated with the rule.
-	Rights *[]AccessRights `json:"rights,omitempty"`
 }
 
 // CaptureDescription properties to configure capture description for eventhub
@@ -488,8 +486,8 @@ func (d *Destination) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// DestinationProperties properties describing the storage account, blob container and archive name format for
-// capture destination
+// DestinationProperties properties describing the storage account, blob container and archive name format
+// for capture destination
 type DestinationProperties struct {
 	// StorageAccountResourceID - Resource id of the storage account to be used to create the blobs
 	StorageAccountResourceID *string `json:"storageAccountResourceId,omitempty"`
@@ -499,13 +497,32 @@ type DestinationProperties struct {
 	ArchiveNameFormat *string `json:"archiveNameFormat,omitempty"`
 }
 
-// ErrorResponse error response indicates ServiceBus service is not able to process the incoming request. The
-// reason is provided in the error message.
+// ErrorAdditionalInfo the resource management error additional info.
+type ErrorAdditionalInfo struct {
+	// Type - READ-ONLY; The additional info type.
+	Type *string `json:"type,omitempty"`
+	// Info - READ-ONLY; The additional info.
+	Info interface{} `json:"info,omitempty"`
+}
+
+// ErrorResponse the resource management error response.
 type ErrorResponse struct {
-	// Code - Error code.
+	// Error - The error object.
+	Error *ErrorResponseError `json:"error,omitempty"`
+}
+
+// ErrorResponseError the error object.
+type ErrorResponseError struct {
+	// Code - READ-ONLY; The error code.
 	Code *string `json:"code,omitempty"`
-	// Message - Error message indicating why the operation failed.
+	// Message - READ-ONLY; The error message.
 	Message *string `json:"message,omitempty"`
+	// Target - READ-ONLY; The error target.
+	Target *string `json:"target,omitempty"`
+	// Details - READ-ONLY; The error details.
+	Details *[]ErrorResponse `json:"details,omitempty"`
+	// AdditionalInfo - READ-ONLY; The error additional info.
+	AdditionalInfo *[]ErrorAdditionalInfo `json:"additionalInfo,omitempty"`
 }
 
 // Eventhub single item in List or Get Event Hub operation
@@ -741,8 +758,11 @@ func (page EventHubListResultPage) Values() []Eventhub {
 }
 
 // Creates a new instance of the EventHubListResultPage type.
-func NewEventHubListResultPage(getNextPage func(context.Context, EventHubListResult) (EventHubListResult, error)) EventHubListResultPage {
-	return EventHubListResultPage{fn: getNextPage}
+func NewEventHubListResultPage(cur EventHubListResult, getNextPage func(context.Context, EventHubListResult) (EventHubListResult, error)) EventHubListResultPage {
+	return EventHubListResultPage{
+		fn:   getNextPage,
+		ehlr: cur,
+	}
 }
 
 // EventhubProperties properties supplied to the Create Or Update Event Hub operation.
@@ -757,7 +777,7 @@ type EventhubProperties struct {
 	MessageRetentionInDays *int64 `json:"messageRetentionInDays,omitempty"`
 	// PartitionCount - Number of partitions created for the Event Hub, allowed values are from 1 to 32 partitions.
 	PartitionCount *int64 `json:"partitionCount,omitempty"`
-	// Status - Enumerates the possible values for the status of the Event Hub. Possible values include: 'Active', 'Disabled', 'Restoring', 'SendDisabled', 'ReceiveDisabled', 'Creating', 'Deleting', 'Renaming', 'Unknown'
+	// Status - Enumerates the possible values for the status of a Event Hub. Possible values include: 'Active', 'Disabled', 'Restoring', 'SendDisabled', 'ReceiveDisabled', 'Creating', 'Deleting', 'Renaming', 'Unknown'
 	Status EntityStatus `json:"status,omitempty"`
 	// CaptureDescription - Properties of capture description
 	CaptureDescription *CaptureDescription `json:"captureDescription,omitempty"`
@@ -813,7 +833,8 @@ func (mclr MigrationConfigListResult) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// MigrationConfigListResultIterator provides access to a complete listing of MigrationConfigProperties values.
+// MigrationConfigListResultIterator provides access to a complete listing of MigrationConfigProperties
+// values.
 type MigrationConfigListResultIterator struct {
 	i    int
 	page MigrationConfigListResultPage
@@ -956,8 +977,11 @@ func (page MigrationConfigListResultPage) Values() []MigrationConfigProperties {
 }
 
 // Creates a new instance of the MigrationConfigListResultPage type.
-func NewMigrationConfigListResultPage(getNextPage func(context.Context, MigrationConfigListResult) (MigrationConfigListResult, error)) MigrationConfigListResultPage {
-	return MigrationConfigListResultPage{fn: getNextPage}
+func NewMigrationConfigListResultPage(cur MigrationConfigListResult, getNextPage func(context.Context, MigrationConfigListResult) (MigrationConfigListResult, error)) MigrationConfigListResultPage {
+	return MigrationConfigListResultPage{
+		fn:   getNextPage,
+		mclr: cur,
+	}
 }
 
 // MigrationConfigProperties single item in List or Get Migration Config operation
@@ -1059,84 +1083,31 @@ func (mcp MigrationConfigPropertiesProperties) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// MigrationConfigsCreateAndStartMigrationFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
+// MigrationConfigsCreateAndStartMigrationFuture an abstraction for monitoring and retrieving the results
+// of a long-running operation.
 type MigrationConfigsCreateAndStartMigrationFuture struct {
-	azure.Future
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(MigrationConfigsClient) (MigrationConfigProperties, error)
 }
 
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *MigrationConfigsCreateAndStartMigrationFuture) Result(client MigrationConfigsClient) (mcp MigrationConfigProperties, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "servicebus.MigrationConfigsCreateAndStartMigrationFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("servicebus.MigrationConfigsCreateAndStartMigrationFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if mcp.Response.Response, err = future.GetResult(sender); err == nil && mcp.Response.Response.StatusCode != http.StatusNoContent {
-		mcp, err = client.CreateAndStartMigrationResponder(mcp.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "servicebus.MigrationConfigsCreateAndStartMigrationFuture", "Result", mcp.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// NamespacesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// NamespacesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type NamespacesCreateOrUpdateFuture struct {
-	azure.Future
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(NamespacesClient) (SBNamespace, error)
 }
 
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *NamespacesCreateOrUpdateFuture) Result(client NamespacesClient) (sn SBNamespace, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "servicebus.NamespacesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("servicebus.NamespacesCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if sn.Response.Response, err = future.GetResult(sender); err == nil && sn.Response.Response.StatusCode != http.StatusNoContent {
-		sn, err = client.CreateOrUpdateResponder(sn.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "servicebus.NamespacesCreateOrUpdateFuture", "Result", sn.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// NamespacesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// NamespacesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type NamespacesDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *NamespacesDeleteFuture) Result(client NamespacesClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "servicebus.NamespacesDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("servicebus.NamespacesDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(NamespacesClient) (autorest.Response, error)
 }
 
 // NetworkRuleSet description of NetworkRuleSet resource.
@@ -1364,8 +1335,11 @@ func (page NetworkRuleSetListResultPage) Values() []NetworkRuleSet {
 }
 
 // Creates a new instance of the NetworkRuleSetListResultPage type.
-func NewNetworkRuleSetListResultPage(getNextPage func(context.Context, NetworkRuleSetListResult) (NetworkRuleSetListResult, error)) NetworkRuleSetListResultPage {
-	return NetworkRuleSetListResultPage{fn: getNextPage}
+func NewNetworkRuleSetListResultPage(cur NetworkRuleSetListResult, getNextPage func(context.Context, NetworkRuleSetListResult) (NetworkRuleSetListResult, error)) NetworkRuleSetListResultPage {
+	return NetworkRuleSetListResultPage{
+		fn:    getNextPage,
+		nrslr: cur,
+	}
 }
 
 // NetworkRuleSetProperties networkRuleSet properties
@@ -1421,8 +1395,8 @@ type OperationDisplay struct {
 	Operation *string `json:"operation,omitempty"`
 }
 
-// OperationListResult result of the request to list ServiceBus operations. It contains a list of operations
-// and a URL link to get the next set of results.
+// OperationListResult result of the request to list ServiceBus operations. It contains a list of
+// operations and a URL link to get the next set of results.
 type OperationListResult struct {
 	autorest.Response `json:"-"`
 	// Value - READ-ONLY; List of ServiceBus operations supported by the Microsoft.ServiceBus resource provider.
@@ -1574,8 +1548,11 @@ func (page OperationListResultPage) Values() []Operation {
 }
 
 // Creates a new instance of the OperationListResultPage type.
-func NewOperationListResultPage(getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
-	return OperationListResultPage{fn: getNextPage}
+func NewOperationListResultPage(cur OperationListResult, getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
+	return OperationListResultPage{
+		fn:  getNextPage,
+		olr: cur,
+	}
 }
 
 // PremiumMessagingRegions premium Messaging Region
@@ -1626,8 +1603,8 @@ func (pmrlr PremiumMessagingRegionsListResult) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// PremiumMessagingRegionsListResultIterator provides access to a complete listing of PremiumMessagingRegions
-// values.
+// PremiumMessagingRegionsListResultIterator provides access to a complete listing of
+// PremiumMessagingRegions values.
 type PremiumMessagingRegionsListResultIterator struct {
 	i    int
 	page PremiumMessagingRegionsListResultPage
@@ -1770,8 +1747,11 @@ func (page PremiumMessagingRegionsListResultPage) Values() []PremiumMessagingReg
 }
 
 // Creates a new instance of the PremiumMessagingRegionsListResultPage type.
-func NewPremiumMessagingRegionsListResultPage(getNextPage func(context.Context, PremiumMessagingRegionsListResult) (PremiumMessagingRegionsListResult, error)) PremiumMessagingRegionsListResultPage {
-	return PremiumMessagingRegionsListResultPage{fn: getNextPage}
+func NewPremiumMessagingRegionsListResultPage(cur PremiumMessagingRegionsListResult, getNextPage func(context.Context, PremiumMessagingRegionsListResult) (PremiumMessagingRegionsListResult, error)) PremiumMessagingRegionsListResultPage {
+	return PremiumMessagingRegionsListResultPage{
+		fn:    getNextPage,
+		pmrlr: cur,
+	}
 }
 
 // PremiumMessagingRegionsProperties ...
@@ -1782,8 +1762,8 @@ type PremiumMessagingRegionsProperties struct {
 	FullName *string `json:"fullName,omitempty"`
 }
 
-// RegenerateAccessKeyParameters parameters supplied to the Regenerate Authorization Rule operation, specifies
-// which key needs to be reset.
+// RegenerateAccessKeyParameters parameters supplied to the Regenerate Authorization Rule operation,
+// specifies which key needs to be reset.
 type RegenerateAccessKeyParameters struct {
 	// KeyType - The access key to regenerate. Possible values include: 'PrimaryKey', 'SecondaryKey'
 	KeyType KeyType `json:"keyType,omitempty"`
@@ -2052,8 +2032,11 @@ func (page RuleListResultPage) Values() []Rule {
 }
 
 // Creates a new instance of the RuleListResultPage type.
-func NewRuleListResultPage(getNextPage func(context.Context, RuleListResult) (RuleListResult, error)) RuleListResultPage {
-	return RuleListResultPage{fn: getNextPage}
+func NewRuleListResultPage(cur RuleListResult, getNextPage func(context.Context, RuleListResult) (RuleListResult, error)) RuleListResultPage {
+	return RuleListResultPage{
+		fn:  getNextPage,
+		rlr: cur,
+	}
 }
 
 // Ruleproperties description of Rule Resource.
@@ -2150,7 +2133,8 @@ type SBAuthorizationRuleListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// SBAuthorizationRuleListResultIterator provides access to a complete listing of SBAuthorizationRule values.
+// SBAuthorizationRuleListResultIterator provides access to a complete listing of SBAuthorizationRule
+// values.
 type SBAuthorizationRuleListResultIterator struct {
 	i    int
 	page SBAuthorizationRuleListResultPage
@@ -2293,8 +2277,11 @@ func (page SBAuthorizationRuleListResultPage) Values() []SBAuthorizationRule {
 }
 
 // Creates a new instance of the SBAuthorizationRuleListResultPage type.
-func NewSBAuthorizationRuleListResultPage(getNextPage func(context.Context, SBAuthorizationRuleListResult) (SBAuthorizationRuleListResult, error)) SBAuthorizationRuleListResultPage {
-	return SBAuthorizationRuleListResultPage{fn: getNextPage}
+func NewSBAuthorizationRuleListResultPage(cur SBAuthorizationRuleListResult, getNextPage func(context.Context, SBAuthorizationRuleListResult) (SBAuthorizationRuleListResult, error)) SBAuthorizationRuleListResultPage {
+	return SBAuthorizationRuleListResultPage{
+		fn:    getNextPage,
+		sarlr: cur,
+	}
 }
 
 // SBAuthorizationRuleProperties authorizationRule properties.
@@ -2570,8 +2557,11 @@ func (page SBNamespaceListResultPage) Values() []SBNamespace {
 }
 
 // Creates a new instance of the SBNamespaceListResultPage type.
-func NewSBNamespaceListResultPage(getNextPage func(context.Context, SBNamespaceListResult) (SBNamespaceListResult, error)) SBNamespaceListResultPage {
-	return SBNamespaceListResultPage{fn: getNextPage}
+func NewSBNamespaceListResultPage(cur SBNamespaceListResult, getNextPage func(context.Context, SBNamespaceListResult) (SBNamespaceListResult, error)) SBNamespaceListResultPage {
+	return SBNamespaceListResultPage{
+		fn:   getNextPage,
+		snlr: cur,
+	}
 }
 
 // SBNamespaceMigrate namespace Migrate Object
@@ -2933,8 +2923,11 @@ func (page SBQueueListResultPage) Values() []SBQueue {
 }
 
 // Creates a new instance of the SBQueueListResultPage type.
-func NewSBQueueListResultPage(getNextPage func(context.Context, SBQueueListResult) (SBQueueListResult, error)) SBQueueListResultPage {
-	return SBQueueListResultPage{fn: getNextPage}
+func NewSBQueueListResultPage(cur SBQueueListResult, getNextPage func(context.Context, SBQueueListResult) (SBQueueListResult, error)) SBQueueListResultPage {
+	return SBQueueListResultPage{
+		fn:   getNextPage,
+		sqlr: cur,
+	}
 }
 
 // SBQueueProperties the Queue Properties definition.
@@ -3269,8 +3262,11 @@ func (page SBSubscriptionListResultPage) Values() []SBSubscription {
 }
 
 // Creates a new instance of the SBSubscriptionListResultPage type.
-func NewSBSubscriptionListResultPage(getNextPage func(context.Context, SBSubscriptionListResult) (SBSubscriptionListResult, error)) SBSubscriptionListResultPage {
-	return SBSubscriptionListResultPage{fn: getNextPage}
+func NewSBSubscriptionListResultPage(cur SBSubscriptionListResult, getNextPage func(context.Context, SBSubscriptionListResult) (SBSubscriptionListResult, error)) SBSubscriptionListResultPage {
+	return SBSubscriptionListResultPage{
+		fn:   getNextPage,
+		sslr: cur,
+	}
 }
 
 // SBSubscriptionProperties description of Subscription Resource.
@@ -3578,8 +3574,11 @@ func (page SBTopicListResultPage) Values() []SBTopic {
 }
 
 // Creates a new instance of the SBTopicListResultPage type.
-func NewSBTopicListResultPage(getNextPage func(context.Context, SBTopicListResult) (SBTopicListResult, error)) SBTopicListResultPage {
-	return SBTopicListResultPage{fn: getNextPage}
+func NewSBTopicListResultPage(cur SBTopicListResult, getNextPage func(context.Context, SBTopicListResult) (SBTopicListResult, error)) SBTopicListResultPage {
+	return SBTopicListResultPage{
+		fn:   getNextPage,
+		stlr: cur,
+	}
 }
 
 // SBTopicProperties the Topic Properties definition.
@@ -3654,8 +3653,8 @@ func (stp SBTopicProperties) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// SQLFilter represents a filter which is a composition of an expression and an action that is executed in the
-// pub/sub pipeline.
+// SQLFilter represents a filter which is a composition of an expression and an action that is executed in
+// the pub/sub pipeline.
 type SQLFilter struct {
 	// SQLExpression - The SQL expression. e.g. MyProperty='ABC'
 	SQLExpression *string `json:"sqlExpression,omitempty"`

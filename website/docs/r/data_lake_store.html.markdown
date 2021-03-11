@@ -15,7 +15,7 @@ Manages an Azure Data Lake Store.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "northeurope"
+  location = "West Europe"
 }
 
 resource "azurerm_data_lake_store" "example" {

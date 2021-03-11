@@ -1472,11 +1472,13 @@ const (
 	TumblingWindowFrequencyHour TumblingWindowFrequency = "Hour"
 	// TumblingWindowFrequencyMinute ...
 	TumblingWindowFrequencyMinute TumblingWindowFrequency = "Minute"
+	// TumblingWindowFrequencyMonth ...
+	TumblingWindowFrequencyMonth TumblingWindowFrequency = "Month"
 )
 
 // PossibleTumblingWindowFrequencyValues returns an array of possible values for the TumblingWindowFrequency const type.
 func PossibleTumblingWindowFrequencyValues() []TumblingWindowFrequency {
-	return []TumblingWindowFrequency{TumblingWindowFrequencyHour, TumblingWindowFrequencyMinute}
+	return []TumblingWindowFrequency{TumblingWindowFrequencyHour, TumblingWindowFrequencyMinute, TumblingWindowFrequencyMonth}
 }
 
 // Type enumerates the values for type.
@@ -2667,6 +2669,8 @@ const (
 	TypeBlobTrigger TypeBasicTrigger = "BlobTrigger"
 	// TypeChainingTrigger ...
 	TypeChainingTrigger TypeBasicTrigger = "ChainingTrigger"
+	// TypeCustomEventsTrigger ...
+	TypeCustomEventsTrigger TypeBasicTrigger = "CustomEventsTrigger"
 	// TypeMultiplePipelineTrigger ...
 	TypeMultiplePipelineTrigger TypeBasicTrigger = "MultiplePipelineTrigger"
 	// TypeRerunTumblingWindowTrigger ...
@@ -2681,7 +2685,7 @@ const (
 
 // PossibleTypeBasicTriggerValues returns an array of possible values for the TypeBasicTrigger const type.
 func PossibleTypeBasicTriggerValues() []TypeBasicTrigger {
-	return []TypeBasicTrigger{TypeBlobEventsTrigger, TypeBlobTrigger, TypeChainingTrigger, TypeMultiplePipelineTrigger, TypeRerunTumblingWindowTrigger, TypeScheduleTrigger, TypeTrigger, TypeTumblingWindowTrigger}
+	return []TypeBasicTrigger{TypeBlobEventsTrigger, TypeBlobTrigger, TypeChainingTrigger, TypeCustomEventsTrigger, TypeMultiplePipelineTrigger, TypeRerunTumblingWindowTrigger, TypeScheduleTrigger, TypeTrigger, TypeTumblingWindowTrigger}
 }
 
 // VariableType enumerates the values for variable type.

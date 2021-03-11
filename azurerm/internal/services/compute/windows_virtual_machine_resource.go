@@ -7,15 +7,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
@@ -25,6 +23,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/base64"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -207,11 +206,11 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 			"patch_mode": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  string(compute.AutomaticByOS),
+				Default:  string(compute.WindowsVMGuestPatchModeAutomaticByOS),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.AutomaticByOS),
-					string(compute.AutomaticByPlatform),
-					string(compute.Manual),
+					string(compute.WindowsVMGuestPatchModeAutomaticByOS),
+					string(compute.WindowsVMGuestPatchModeAutomaticByPlatform),
+					string(compute.WindowsVMGuestPatchModeManual),
 				}, false),
 			},
 
@@ -264,7 +263,7 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 			"timezone": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.VirtualMachineTimeZone(),
+				ValidateFunc: computeValidate.VirtualMachineTimeZone(),
 			},
 
 			"virtual_machine_scale_set_id": {
@@ -419,9 +418,6 @@ func resourceWindowsVirtualMachineCreate(d *schema.ResourceData, meta interface{
 					ProvisionVMAgent:       utils.Bool(provisionVMAgent),
 					EnableAutomaticUpdates: utils.Bool(enableAutomaticUpdates),
 					WinRM:                  winRmListeners,
-					PatchSettings: &compute.PatchSettings{
-						PatchMode: compute.InGuestPatchMode(d.Get("patch_mode").(string)),
-					},
 				},
 				Secrets: secrets,
 			},
@@ -452,6 +448,13 @@ func resourceWindowsVirtualMachineCreate(d *schema.ResourceData, meta interface{
 
 	if len(additionalUnattendContentRaw) > 0 {
 		params.OsProfile.WindowsConfiguration.AdditionalUnattendContent = additionalUnattendContent
+	}
+
+	patchMode := d.Get("patch_mode").(string)
+	if patchMode != string(compute.WindowsVMGuestPatchModeAutomaticByOS) {
+		params.OsProfile.WindowsConfiguration.PatchSettings = &compute.PatchSettings{
+			PatchMode: compute.WindowsVMGuestPatchMode(patchMode),
+		}
 	}
 
 	if v, ok := d.GetOk("availability_set_id"); ok {
@@ -574,7 +577,11 @@ func resourceWindowsVirtualMachineRead(d *schema.ResourceData, meta interface{})
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	if err := d.Set("identity", flattenVirtualMachineIdentity(resp.Identity)); err != nil {
+	identity, err := flattenVirtualMachineIdentity(resp.Identity)
+	if err != nil {
+		return err
+	}
+	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
@@ -821,7 +828,7 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 		}
 
 		update.OsProfile.WindowsConfiguration.PatchSettings = &compute.PatchSettings{
-			PatchMode: compute.InGuestPatchMode(d.Get("patch_mode").(string)),
+			PatchMode: compute.WindowsVMGuestPatchMode(d.Get("patch_mode").(string)),
 		}
 	}
 
@@ -1091,7 +1098,7 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 			update := compute.DiskUpdate{
 				DiskUpdateProperties: &compute.DiskUpdateProperties{
 					Encryption: &compute.Encryption{
-						Type:                compute.EncryptionAtRestWithCustomerKey,
+						Type:                compute.EncryptionTypeEncryptionAtRestWithCustomerKey,
 						DiskEncryptionSetID: utils.String(diskEncryptionSetId),
 					},
 				},
@@ -1167,22 +1174,32 @@ func resourceWindowsVirtualMachineDelete(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("retrieving Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	// ISSUE: XXX
-	// shutting down the Virtual Machine prior to removing it means users are no longer charged for the compute
-	// thus this can be a large cost-saving when deleting larger instances
-	log.Printf("[DEBUG] Powering Off Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
-	skipShutdown := !meta.(*clients.Client).Features.VirtualMachine.GracefulShutdown
-	powerOffFuture, err := client.PowerOff(ctx, id.ResourceGroup, id.Name, utils.Bool(skipShutdown))
-	if err != nil {
-		return fmt.Errorf("powering off Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	// If the VM was in a Failed state we can skip powering off, since that'll fail
+	if strings.EqualFold(*existing.ProvisioningState, "failed") {
+		log.Printf("[DEBUG] Powering Off Windows Virtual Machine was skipped because the VM was in %q state %q (Resource Group %q).", *existing.ProvisioningState, id.Name, id.ResourceGroup)
+	} else {
+		//ISSUE: 4920
+		// shutting down the Virtual Machine prior to removing it means users are no longer charged for some Azure resources
+		// thus this can be a large cost-saving when deleting larger instances
+		// https://docs.microsoft.com/en-us/azure/virtual-machines/states-lifecycle
+		log.Printf("[DEBUG] Powering Off Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
+		skipShutdown := !meta.(*clients.Client).Features.VirtualMachine.GracefulShutdown
+		powerOffFuture, err := client.PowerOff(ctx, id.ResourceGroup, id.Name, utils.Bool(skipShutdown))
+		if err != nil {
+			return fmt.Errorf("powering off Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		}
+		if err := powerOffFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for power off of Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		}
+		log.Printf("[DEBUG] Powered Off Windows Virtual Machine %q (Resource Group %q).", id.Name, id.ResourceGroup)
 	}
-	if err := powerOffFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for power off of Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-	}
-	log.Printf("[DEBUG] Powered Off Windows Virtual Machine %q (Resource Group %q).", id.Name, id.ResourceGroup)
 
 	log.Printf("[DEBUG] Deleting Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
-	deleteFuture, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	// @tombuildsstuff: sending `nil` here omits this value from being sent - which matches
+	// the previous behaviour - we're only splitting this out so it's clear why
+	// TODO: support force deletion once it's out of Preview, if applicable
+	var forceDeletion *bool = nil
+	deleteFuture, err := client.Delete(ctx, id.ResourceGroup, id.Name, forceDeletion)
 	if err != nil {
 		return fmt.Errorf("deleting Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
@@ -1208,19 +1225,19 @@ func resourceWindowsVirtualMachineDelete(d *schema.ResourceData, meta interface{
 				return err
 			}
 
-			diskDeleteFuture, err := disksClient.Delete(ctx, diskId.ResourceGroup, diskId.Name)
+			diskDeleteFuture, err := disksClient.Delete(ctx, diskId.ResourceGroup, diskId.DiskName)
 			if err != nil {
 				if !response.WasNotFound(diskDeleteFuture.Response()) {
-					return fmt.Errorf("deleting OS Disk %q (Resource Group %q) for Windows Virtual Machine %q (Resource Group %q): %+v", diskId.Name, diskId.ResourceGroup, id.Name, id.ResourceGroup, err)
+					return fmt.Errorf("deleting OS Disk %q (Resource Group %q) for Windows Virtual Machine %q (Resource Group %q): %+v", diskId.DiskName, diskId.ResourceGroup, id.Name, id.ResourceGroup, err)
 				}
 			}
 			if !response.WasNotFound(diskDeleteFuture.Response()) {
 				if err := diskDeleteFuture.WaitForCompletionRef(ctx, disksClient.Client); err != nil {
-					return fmt.Errorf("OS Disk %q (Resource Group %q) for Windows Virtual Machine %q (Resource Group %q): %+v", diskId.Name, diskId.ResourceGroup, id.Name, id.ResourceGroup, err)
+					return fmt.Errorf("OS Disk %q (Resource Group %q) for Windows Virtual Machine %q (Resource Group %q): %+v", diskId.DiskName, diskId.ResourceGroup, id.Name, id.ResourceGroup, err)
 				}
 			}
 
-			log.Printf("[DEBUG] Deleted OS Disk from Windows Virtual Machine %q (Resource Group %q).", diskId.Name, diskId.ResourceGroup)
+			log.Printf("[DEBUG] Deleted OS Disk from Windows Virtual Machine %q (Resource Group %q).", diskId.DiskName, diskId.ResourceGroup)
 		} else {
 			log.Printf("[DEBUG] Skipping Deleting OS Disk from Windows Virtual Machine %q (Resource Group %q) - cannot determine OS Disk ID.", id.Name, id.ResourceGroup)
 		}

@@ -99,6 +99,7 @@ func (client PipelinesClient) CreateOrUpdate(ctx context.Context, resourceGroupN
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.PipelinesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -208,6 +209,7 @@ func (client PipelinesClient) CreateRun(ctx context.Context, resourceGroupName s
 	result, err = client.CreateRunResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.PipelinesClient", "CreateRun", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -318,6 +320,7 @@ func (client PipelinesClient) Delete(ctx context.Context, resourceGroupName stri
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.PipelinesClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -412,6 +415,7 @@ func (client PipelinesClient) Get(ctx context.Context, resourceGroupName string,
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.PipelinesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -505,9 +509,11 @@ func (client PipelinesClient) ListByFactory(ctx context.Context, resourceGroupNa
 	result.plr, err = client.ListByFactoryResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.PipelinesClient", "ListByFactory", resp, "Failure responding to request")
+		return
 	}
 	if result.plr.hasNextLink() && result.plr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

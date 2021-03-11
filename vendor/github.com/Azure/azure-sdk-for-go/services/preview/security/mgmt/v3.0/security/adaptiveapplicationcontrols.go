@@ -79,6 +79,7 @@ func (client AdaptiveApplicationControlsClient) Delete(ctx context.Context, grou
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AdaptiveApplicationControlsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -158,6 +159,7 @@ func (client AdaptiveApplicationControlsClient) Get(ctx context.Context, groupNa
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AdaptiveApplicationControlsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -239,6 +241,7 @@ func (client AdaptiveApplicationControlsClient) List(ctx context.Context, includ
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AdaptiveApplicationControlsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -325,6 +328,7 @@ func (client AdaptiveApplicationControlsClient) Put(ctx context.Context, groupNa
 	result, err = client.PutResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AdaptiveApplicationControlsClient", "Put", resp, "Failure responding to request")
+		return
 	}
 
 	return

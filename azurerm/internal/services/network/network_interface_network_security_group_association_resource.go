@@ -17,11 +17,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmNetworkInterfaceSecurityGroupAssociation() *schema.Resource {
+func resourceNetworkInterfaceSecurityGroupAssociation() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmNetworkInterfaceSecurityGroupAssociationCreate,
-		Read:   resourceArmNetworkInterfaceSecurityGroupAssociationRead,
-		Delete: resourceArmNetworkInterfaceSecurityGroupAssociationDelete,
+		Create: resourceNetworkInterfaceSecurityGroupAssociationCreate,
+		Read:   resourceNetworkInterfaceSecurityGroupAssociationRead,
+		Delete: resourceNetworkInterfaceSecurityGroupAssociationDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -51,7 +51,7 @@ func resourceArmNetworkInterfaceSecurityGroupAssociation() *schema.Resource {
 	}
 }
 
-func resourceArmNetworkInterfaceSecurityGroupAssociationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceSecurityGroupAssociationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.InterfacesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -116,10 +116,10 @@ func resourceArmNetworkInterfaceSecurityGroupAssociationCreate(d *schema.Resourc
 
 	d.SetId(resourceId)
 
-	return resourceArmNetworkInterfaceSecurityGroupAssociationRead(d, meta)
+	return resourceNetworkInterfaceSecurityGroupAssociationRead(d, meta)
 }
 
-func resourceArmNetworkInterfaceSecurityGroupAssociationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceSecurityGroupAssociationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.InterfacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -167,7 +167,7 @@ func resourceArmNetworkInterfaceSecurityGroupAssociationRead(d *schema.ResourceD
 	return nil
 }
 
-func resourceArmNetworkInterfaceSecurityGroupAssociationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceSecurityGroupAssociationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.InterfacesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

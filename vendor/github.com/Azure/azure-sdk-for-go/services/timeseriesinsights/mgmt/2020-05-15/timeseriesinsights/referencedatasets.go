@@ -88,6 +88,7 @@ func (client ReferenceDataSetsClient) CreateOrUpdate(ctx context.Context, resour
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "timeseriesinsights.ReferenceDataSetsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -170,6 +171,7 @@ func (client ReferenceDataSetsClient) Delete(ctx context.Context, resourceGroupN
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "timeseriesinsights.ReferenceDataSetsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -248,6 +250,7 @@ func (client ReferenceDataSetsClient) Get(ctx context.Context, resourceGroupName
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "timeseriesinsights.ReferenceDataSetsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -326,6 +329,7 @@ func (client ReferenceDataSetsClient) ListByEnvironment(ctx context.Context, res
 	result, err = client.ListByEnvironmentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "timeseriesinsights.ReferenceDataSetsClient", "ListByEnvironment", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -407,6 +411,7 @@ func (client ReferenceDataSetsClient) Update(ctx context.Context, resourceGroupN
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "timeseriesinsights.ReferenceDataSetsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

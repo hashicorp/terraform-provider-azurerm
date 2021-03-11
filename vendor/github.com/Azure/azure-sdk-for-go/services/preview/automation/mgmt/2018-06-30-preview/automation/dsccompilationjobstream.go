@@ -23,7 +23,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
-	"github.com/satori/go.uuid"
+	"github.com/gofrs/uuid"
 	"net/http"
 )
 
@@ -84,6 +84,7 @@ func (client DscCompilationJobStreamClient) ListByJob(ctx context.Context, resou
 	result, err = client.ListByJobResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.DscCompilationJobStreamClient", "ListByJob", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -15,9 +15,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmAvailabilitySet() *schema.Resource {
+func dataSourceAvailabilitySet() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmAvailabilitySetRead,
+		Read: dataSourceAvailabilitySetRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -57,7 +57,7 @@ func dataSourceArmAvailabilitySet() *schema.Resource {
 	}
 }
 
-func dataSourceArmAvailabilitySetRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAvailabilitySetRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.AvailabilitySetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

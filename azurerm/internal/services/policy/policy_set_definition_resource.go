@@ -12,7 +12,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-09-01/policy"
 	"github.com/Azure/go-autorest/autorest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
@@ -779,5 +778,5 @@ func resourceARMPolicySetDefinitionPolicyDefinitionGroupHash(v interface{}) int 
 		buf.WriteString(m["name"].(string))
 	}
 
-	return hashcode.String(buf.String())
+	return schema.HashString(buf.String())
 }

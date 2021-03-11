@@ -93,6 +93,7 @@ func (client CollectionPartitionClient) ListMetrics(ctx context.Context, resourc
 	result, err = client.ListMetricsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "documentdb.CollectionPartitionClient", "ListMetrics", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -189,6 +190,7 @@ func (client CollectionPartitionClient) ListUsages(ctx context.Context, resource
 	result, err = client.ListUsagesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "documentdb.CollectionPartitionClient", "ListUsages", resp, "Failure responding to request")
+		return
 	}
 
 	return

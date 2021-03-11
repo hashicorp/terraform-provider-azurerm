@@ -75,6 +75,7 @@ func (client DeviceSecurityGroupsClient) CreateOrUpdate(ctx context.Context, res
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.DeviceSecurityGroupsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -152,6 +153,7 @@ func (client DeviceSecurityGroupsClient) Delete(ctx context.Context, resourceID 
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.DeviceSecurityGroupsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -226,6 +228,7 @@ func (client DeviceSecurityGroupsClient) Get(ctx context.Context, resourceID str
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.DeviceSecurityGroupsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -300,9 +303,11 @@ func (client DeviceSecurityGroupsClient) List(ctx context.Context, resourceID st
 	result.dsgl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.DeviceSecurityGroupsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.dsgl.hasNextLink() && result.dsgl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

@@ -2,21 +2,24 @@ package validate
 
 import (
 	"fmt"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
+	"regexp"
 )
 
-func StorageContainerResourceManagerID(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
-		return
-	}
+func StorageContainerName(v interface{}, k string) (warnings []string, errors []error) {
+	value := v.(string)
 
-	if _, err := parse.StorageContainerResourceManagerID(v); err != nil {
-		errors = append(errors, fmt.Errorf("Can not parse %q as a resource id: %v", k, err))
-		return
+	if !regexp.MustCompile(`^\$root$|^\$web$|^[0-9a-z-]+$`).MatchString(value) {
+		errors = append(errors, fmt.Errorf(
+			"only lowercase alphanumeric characters and hyphens allowed in %q: %q",
+			k, value))
 	}
-
+	if len(value) < 3 || len(value) > 63 {
+		errors = append(errors, fmt.Errorf(
+			"%q must be between 3 and 63 characters: %q", k, value))
+	}
+	if regexp.MustCompile(`^-`).MatchString(value) {
+		errors = append(errors, fmt.Errorf(
+			"%q cannot begin with a hyphen: %q", k, value))
+	}
 	return warnings, errors
 }

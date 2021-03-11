@@ -19,12 +19,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAutomationDscConfiguration() *schema.Resource {
+func resourceAutomationDscConfiguration() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAutomationDscConfigurationCreateUpdate,
-		Read:   resourceArmAutomationDscConfigurationRead,
-		Update: resourceArmAutomationDscConfigurationCreateUpdate,
-		Delete: resourceArmAutomationDscConfigurationDelete,
+		Create: resourceAutomationDscConfigurationCreateUpdate,
+		Read:   resourceAutomationDscConfigurationRead,
+		Update: resourceAutomationDscConfigurationCreateUpdate,
+		Delete: resourceAutomationDscConfigurationDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -52,7 +52,7 @@ func resourceArmAutomationDscConfiguration() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.AutomationAccountName(),
+				ValidateFunc: validate.AutomationAccount(),
 			},
 
 			"content_embedded": {
@@ -86,7 +86,7 @@ func resourceArmAutomationDscConfiguration() *schema.Resource {
 	}
 }
 
-func resourceArmAutomationDscConfigurationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationDscConfigurationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.DscConfigurationClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -144,10 +144,10 @@ func resourceArmAutomationDscConfigurationCreateUpdate(d *schema.ResourceData, m
 
 	d.SetId(*read.ID)
 
-	return resourceArmAutomationDscConfigurationRead(d, meta)
+	return resourceAutomationDscConfigurationRead(d, meta)
 }
 
-func resourceArmAutomationDscConfigurationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationDscConfigurationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.DscConfigurationClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -200,7 +200,7 @@ func resourceArmAutomationDscConfigurationRead(d *schema.ResourceData, meta inte
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmAutomationDscConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationDscConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.DscConfigurationClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -90,6 +90,7 @@ func (client DesktopsClient) Get(ctx context.Context, resourceGroupName string, 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "desktopvirtualization.DesktopsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -179,6 +180,7 @@ func (client DesktopsClient) List(ctx context.Context, resourceGroupName string,
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "desktopvirtualization.DesktopsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -272,6 +274,7 @@ func (client DesktopsClient) Update(ctx context.Context, resourceGroupName strin
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "desktopvirtualization.DesktopsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

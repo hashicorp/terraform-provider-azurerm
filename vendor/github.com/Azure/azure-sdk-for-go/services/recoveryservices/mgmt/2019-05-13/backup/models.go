@@ -4727,8 +4727,8 @@ func (avwpi AzureVMWorkloadProtectedItem) AsBasicProtectedItem() (BasicProtected
 	return &avwpi, true
 }
 
-// AzureVMWorkloadProtectedItemExtendedInfo additional information on Azure Workload for SQL specific backup
-// item.
+// AzureVMWorkloadProtectedItemExtendedInfo additional information on Azure Workload for SQL specific
+// backup item.
 type AzureVMWorkloadProtectedItemExtendedInfo struct {
 	// OldestRecoveryPoint - The oldest backup copy available for this backup item.
 	OldestRecoveryPoint *date.Time `json:"oldestRecoveryPoint,omitempty"`
@@ -4819,8 +4819,8 @@ func (avwpp AzureVMWorkloadProtectionPolicy) AsBasicProtectionPolicy() (BasicPro
 	return &avwpp, true
 }
 
-// AzureVMWorkloadSAPAseDatabaseProtectedItem azure VM workload-specific protected item representing SAP ASE
-// Database.
+// AzureVMWorkloadSAPAseDatabaseProtectedItem azure VM workload-specific protected item representing SAP
+// ASE Database.
 type AzureVMWorkloadSAPAseDatabaseProtectedItem struct {
 	// FriendlyName - Friendly name of the DB represented by this backup item.
 	FriendlyName *string `json:"friendlyName,omitempty"`
@@ -5153,8 +5153,8 @@ func (avwsadwi AzureVMWorkloadSAPAseDatabaseWorkloadItem) AsBasicWorkloadItem() 
 	return &avwsadwi, true
 }
 
-// AzureVMWorkloadSAPAseSystemProtectableItem azure VM workload-specific protectable item representing SAP ASE
-// System.
+// AzureVMWorkloadSAPAseSystemProtectableItem azure VM workload-specific protectable item representing SAP
+// ASE System.
 type AzureVMWorkloadSAPAseSystemProtectableItem struct {
 	// ParentName - Name for instance or AG
 	ParentName *string `json:"parentName,omitempty"`
@@ -5418,8 +5418,8 @@ func (avwsaswi AzureVMWorkloadSAPAseSystemWorkloadItem) AsBasicWorkloadItem() (B
 	return &avwsaswi, true
 }
 
-// AzureVMWorkloadSAPHanaDatabaseProtectableItem azure VM workload-specific protectable item representing SAP
-// HANA Database.
+// AzureVMWorkloadSAPHanaDatabaseProtectableItem azure VM workload-specific protectable item representing
+// SAP HANA Database.
 type AzureVMWorkloadSAPHanaDatabaseProtectableItem struct {
 	// ParentName - Name for instance or AG
 	ParentName *string `json:"parentName,omitempty"`
@@ -5571,8 +5571,8 @@ func (avwshdpi AzureVMWorkloadSAPHanaDatabaseProtectableItem) AsBasicWorkloadPro
 	return &avwshdpi, true
 }
 
-// AzureVMWorkloadSAPHanaDatabaseProtectedItem azure VM workload-specific protected item representing SAP HANA
-// Database.
+// AzureVMWorkloadSAPHanaDatabaseProtectedItem azure VM workload-specific protected item representing SAP
+// HANA Database.
 type AzureVMWorkloadSAPHanaDatabaseProtectedItem struct {
 	// FriendlyName - Friendly name of the DB represented by this backup item.
 	FriendlyName *string `json:"friendlyName,omitempty"`
@@ -5793,8 +5793,8 @@ func (avwshdpi AzureVMWorkloadSAPHanaDatabaseProtectedItem) AsBasicProtectedItem
 	return &avwshdpi, true
 }
 
-// AzureVMWorkloadSAPHanaDatabaseWorkloadItem azure VM workload-specific workload item representing SAP HANA
-// Database.
+// AzureVMWorkloadSAPHanaDatabaseWorkloadItem azure VM workload-specific workload item representing SAP
+// HANA Database.
 type AzureVMWorkloadSAPHanaDatabaseWorkloadItem struct {
 	// ParentName - Name for instance or AG
 	ParentName *string `json:"parentName,omitempty"`
@@ -6170,8 +6170,8 @@ func (avwshswi AzureVMWorkloadSAPHanaSystemWorkloadItem) AsBasicWorkloadItem() (
 	return &avwshswi, true
 }
 
-// AzureVMWorkloadSQLAvailabilityGroupProtectableItem azure VM workload-specific protectable item representing
-// SQL Availability Group.
+// AzureVMWorkloadSQLAvailabilityGroupProtectableItem azure VM workload-specific protectable item
+// representing SQL Availability Group.
 type AzureVMWorkloadSQLAvailabilityGroupProtectableItem struct {
 	// ParentName - Name for instance or AG
 	ParentName *string `json:"parentName,omitempty"`
@@ -6476,7 +6476,8 @@ func (avwsdpi AzureVMWorkloadSQLDatabaseProtectableItem) AsBasicWorkloadProtecta
 	return &avwsdpi, true
 }
 
-// AzureVMWorkloadSQLDatabaseProtectedItem azure VM workload-specific protected item representing SQL Database.
+// AzureVMWorkloadSQLDatabaseProtectedItem azure VM workload-specific protected item representing SQL
+// Database.
 type AzureVMWorkloadSQLDatabaseProtectedItem struct {
 	// FriendlyName - Friendly name of the DB represented by this backup item.
 	FriendlyName *string `json:"friendlyName,omitempty"`
@@ -6697,7 +6698,8 @@ func (avwsdpi AzureVMWorkloadSQLDatabaseProtectedItem) AsBasicProtectedItem() (B
 	return &avwsdpi, true
 }
 
-// AzureVMWorkloadSQLDatabaseWorkloadItem azure VM workload-specific workload item representing SQL Database.
+// AzureVMWorkloadSQLDatabaseWorkloadItem azure VM workload-specific workload item representing SQL
+// Database.
 type AzureVMWorkloadSQLDatabaseWorkloadItem struct {
 	// ParentName - Name for instance or AG
 	ParentName *string `json:"parentName,omitempty"`
@@ -6961,7 +6963,8 @@ func (avwsipi AzureVMWorkloadSQLInstanceProtectableItem) AsBasicWorkloadProtecta
 	return &avwsipi, true
 }
 
-// AzureVMWorkloadSQLInstanceWorkloadItem azure VM workload-specific workload item representing SQL Instance.
+// AzureVMWorkloadSQLInstanceWorkloadItem azure VM workload-specific workload item representing SQL
+// Instance.
 type AzureVMWorkloadSQLInstanceWorkloadItem struct {
 	// DataDirectoryPaths - Data Directory Paths for default directories
 	DataDirectoryPaths *[]SQLDataDirectory `json:"dataDirectoryPaths,omitempty"`
@@ -9384,7 +9387,8 @@ type ClientDiscoveryDisplay struct {
 	Description *string `json:"description,omitempty"`
 }
 
-// ClientDiscoveryForLogSpecification class to represent shoebox log specification in json client discovery.
+// ClientDiscoveryForLogSpecification class to represent shoebox log specification in json client
+// discovery.
 type ClientDiscoveryForLogSpecification struct {
 	// Name - Name for shoebox log specification.
 	Name *string `json:"name,omitempty"`
@@ -9416,8 +9420,8 @@ type ClientDiscoveryResponse struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// ClientDiscoveryResponseIterator provides access to a complete listing of ClientDiscoveryValueForSingleAPI
-// values.
+// ClientDiscoveryResponseIterator provides access to a complete listing of
+// ClientDiscoveryValueForSingleAPI values.
 type ClientDiscoveryResponseIterator struct {
 	i    int
 	page ClientDiscoveryResponsePage
@@ -9560,8 +9564,11 @@ func (page ClientDiscoveryResponsePage) Values() []ClientDiscoveryValueForSingle
 }
 
 // Creates a new instance of the ClientDiscoveryResponsePage type.
-func NewClientDiscoveryResponsePage(getNextPage func(context.Context, ClientDiscoveryResponse) (ClientDiscoveryResponse, error)) ClientDiscoveryResponsePage {
-	return ClientDiscoveryResponsePage{fn: getNextPage}
+func NewClientDiscoveryResponsePage(cur ClientDiscoveryResponse, getNextPage func(context.Context, ClientDiscoveryResponse) (ClientDiscoveryResponse, error)) ClientDiscoveryResponsePage {
+	return ClientDiscoveryResponsePage{
+		fn:  getNextPage,
+		cdr: cur,
+	}
 }
 
 // ClientDiscoveryValueForSingleAPI available operation details.
@@ -10813,8 +10820,11 @@ func (page EngineBaseResourceListPage) Values() []EngineBaseResource {
 }
 
 // Creates a new instance of the EngineBaseResourceListPage type.
-func NewEngineBaseResourceListPage(getNextPage func(context.Context, EngineBaseResourceList) (EngineBaseResourceList, error)) EngineBaseResourceListPage {
-	return EngineBaseResourceListPage{fn: getNextPage}
+func NewEngineBaseResourceListPage(cur EngineBaseResourceList, getNextPage func(context.Context, EngineBaseResourceList) (EngineBaseResourceList, error)) EngineBaseResourceListPage {
+	return EngineBaseResourceListPage{
+		fn:   getNextPage,
+		ebrl: cur,
+	}
 }
 
 // EngineExtendedInfo additional information on backup engine.
@@ -12947,8 +12957,11 @@ func (page JobResourceListPage) Values() []JobResource {
 }
 
 // Creates a new instance of the JobResourceListPage type.
-func NewJobResourceListPage(getNextPage func(context.Context, JobResourceList) (JobResourceList, error)) JobResourceListPage {
-	return JobResourceListPage{fn: getNextPage}
+func NewJobResourceListPage(cur JobResourceList, getNextPage func(context.Context, JobResourceList) (JobResourceList, error)) JobResourceListPage {
+	return JobResourceListPage{
+		fn:  getNextPage,
+		jrl: cur,
+	}
 }
 
 // KEKDetails KEK is encryption key for BEK.
@@ -14809,8 +14822,11 @@ func (page ProtectableContainerResourceListPage) Values() []ProtectableContainer
 }
 
 // Creates a new instance of the ProtectableContainerResourceListPage type.
-func NewProtectableContainerResourceListPage(getNextPage func(context.Context, ProtectableContainerResourceList) (ProtectableContainerResourceList, error)) ProtectableContainerResourceListPage {
-	return ProtectableContainerResourceListPage{fn: getNextPage}
+func NewProtectableContainerResourceListPage(cur ProtectableContainerResourceList, getNextPage func(context.Context, ProtectableContainerResourceList) (ProtectableContainerResourceList, error)) ProtectableContainerResourceListPage {
+	return ProtectableContainerResourceListPage{
+		fn:   getNextPage,
+		pcrl: cur,
+	}
 }
 
 // BasicProtectedItem base class for backup items.
@@ -15360,8 +15376,11 @@ func (page ProtectedItemResourceListPage) Values() []ProtectedItemResource {
 }
 
 // Creates a new instance of the ProtectedItemResourceListPage type.
-func NewProtectedItemResourceListPage(getNextPage func(context.Context, ProtectedItemResourceList) (ProtectedItemResourceList, error)) ProtectedItemResourceListPage {
-	return ProtectedItemResourceListPage{fn: getNextPage}
+func NewProtectedItemResourceListPage(cur ProtectedItemResourceList, getNextPage func(context.Context, ProtectedItemResourceList) (ProtectedItemResourceList, error)) ProtectedItemResourceListPage {
+	return ProtectedItemResourceListPage{
+		fn:   getNextPage,
+		pirl: cur,
+	}
 }
 
 // BasicProtectionContainer base class for container with backup items. Containers with specific workloads are derived
@@ -15588,8 +15607,8 @@ func (pc ProtectionContainer) AsBasicProtectionContainer() (BasicProtectionConta
 	return &pc, true
 }
 
-// ProtectionContainerResource base class for container with backup items. Containers with specific workloads
-// are derived from this class.
+// ProtectionContainerResource base class for container with backup items. Containers with specific
+// workloads are derived from this class.
 type ProtectionContainerResource struct {
 	autorest.Response `json:"-"`
 	// Properties - ProtectionContainerResource properties
@@ -15710,8 +15729,8 @@ type ProtectionContainerResourceList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// ProtectionContainerResourceListIterator provides access to a complete listing of ProtectionContainerResource
-// values.
+// ProtectionContainerResourceListIterator provides access to a complete listing of
+// ProtectionContainerResource values.
 type ProtectionContainerResourceListIterator struct {
 	i    int
 	page ProtectionContainerResourceListPage
@@ -15854,8 +15873,11 @@ func (page ProtectionContainerResourceListPage) Values() []ProtectionContainerRe
 }
 
 // Creates a new instance of the ProtectionContainerResourceListPage type.
-func NewProtectionContainerResourceListPage(getNextPage func(context.Context, ProtectionContainerResourceList) (ProtectionContainerResourceList, error)) ProtectionContainerResourceListPage {
-	return ProtectionContainerResourceListPage{fn: getNextPage}
+func NewProtectionContainerResourceListPage(cur ProtectionContainerResourceList, getNextPage func(context.Context, ProtectionContainerResourceList) (ProtectionContainerResourceList, error)) ProtectionContainerResourceListPage {
+	return ProtectionContainerResourceListPage{
+		fn:   getNextPage,
+		pcrl: cur,
+	}
 }
 
 // BasicProtectionIntent base class for backup ProtectionIntent.
@@ -16276,8 +16298,11 @@ func (page ProtectionIntentResourceListPage) Values() []ProtectionIntentResource
 }
 
 // Creates a new instance of the ProtectionIntentResourceListPage type.
-func NewProtectionIntentResourceListPage(getNextPage func(context.Context, ProtectionIntentResourceList) (ProtectionIntentResourceList, error)) ProtectionIntentResourceListPage {
-	return ProtectionIntentResourceListPage{fn: getNextPage}
+func NewProtectionIntentResourceListPage(cur ProtectionIntentResourceList, getNextPage func(context.Context, ProtectionIntentResourceList) (ProtectionIntentResourceList, error)) ProtectionIntentResourceListPage {
+	return ProtectionIntentResourceListPage{
+		fn:   getNextPage,
+		pirl: cur,
+	}
 }
 
 // BasicProtectionPolicy base class for backup policy. Workload-specific backup policies are derived from this class.
@@ -16420,8 +16445,8 @@ type ProtectionPolicyQueryObject struct {
 	WorkloadType WorkloadType `json:"workloadType,omitempty"`
 }
 
-// ProtectionPolicyResource base class for backup policy. Workload-specific backup policies are derived from
-// this class.
+// ProtectionPolicyResource base class for backup policy. Workload-specific backup policies are derived
+// from this class.
 type ProtectionPolicyResource struct {
 	autorest.Response `json:"-"`
 	// Properties - ProtectionPolicyResource properties
@@ -16686,8 +16711,11 @@ func (page ProtectionPolicyResourceListPage) Values() []ProtectionPolicyResource
 }
 
 // Creates a new instance of the ProtectionPolicyResourceListPage type.
-func NewProtectionPolicyResourceListPage(getNextPage func(context.Context, ProtectionPolicyResourceList) (ProtectionPolicyResourceList, error)) ProtectionPolicyResourceListPage {
-	return ProtectionPolicyResourceListPage{fn: getNextPage}
+func NewProtectionPolicyResourceListPage(cur ProtectionPolicyResourceList, getNextPage func(context.Context, ProtectionPolicyResourceList) (ProtectionPolicyResourceList, error)) ProtectionPolicyResourceListPage {
+	return ProtectionPolicyResourceListPage{
+		fn:   getNextPage,
+		pprl: cur,
+	}
 }
 
 // BasicRecoveryPoint base class for backup copies. Workload-specific backup copies are derived from this class.
@@ -16874,8 +16902,8 @@ type RecoveryPointDiskConfiguration struct {
 	ExcludedDiskList *[]DiskInformation `json:"excludedDiskList,omitempty"`
 }
 
-// RecoveryPointResource base class for backup copies. Workload-specific backup copies are derived from this
-// class.
+// RecoveryPointResource base class for backup copies. Workload-specific backup copies are derived from
+// this class.
 type RecoveryPointResource struct {
 	autorest.Response `json:"-"`
 	// Properties - RecoveryPointResource properties
@@ -17139,8 +17167,11 @@ func (page RecoveryPointResourceListPage) Values() []RecoveryPointResource {
 }
 
 // Creates a new instance of the RecoveryPointResourceListPage type.
-func NewRecoveryPointResourceListPage(getNextPage func(context.Context, RecoveryPointResourceList) (RecoveryPointResourceList, error)) RecoveryPointResourceListPage {
-	return RecoveryPointResourceListPage{fn: getNextPage}
+func NewRecoveryPointResourceListPage(cur RecoveryPointResourceList, getNextPage func(context.Context, RecoveryPointResourceList) (RecoveryPointResourceList, error)) RecoveryPointResourceListPage {
+	return RecoveryPointResourceListPage{
+		fn:   getNextPage,
+		rprl: cur,
+	}
 }
 
 // RecoveryPointTierInformation recovery point tier information.
@@ -17665,8 +17696,8 @@ func (rr RestoreRequest) AsBasicRestoreRequest() (BasicRestoreRequest, bool) {
 	return &rr, true
 }
 
-// RestoreRequestResource base class for restore request. Workload-specific restore requests are derived from
-// this class.
+// RestoreRequestResource base class for restore request. Workload-specific restore requests are derived
+// from this class.
 type RestoreRequestResource struct {
 	// Properties - RestoreRequestResource properties
 	Properties BasicRestoreRequest `json:"properties,omitempty"`
@@ -18696,7 +18727,8 @@ func (wi WorkloadItem) AsBasicWorkloadItem() (BasicWorkloadItem, bool) {
 	return &wi, true
 }
 
-// WorkloadItemResource base class for backup item. Workload-specific backup items are derived from this class.
+// WorkloadItemResource base class for backup item. Workload-specific backup items are derived from this
+// class.
 type WorkloadItemResource struct {
 	// Properties - WorkloadItemResource properties
 	Properties BasicWorkloadItem `json:"properties,omitempty"`
@@ -18959,8 +18991,11 @@ func (page WorkloadItemResourceListPage) Values() []WorkloadItemResource {
 }
 
 // Creates a new instance of the WorkloadItemResourceListPage type.
-func NewWorkloadItemResourceListPage(getNextPage func(context.Context, WorkloadItemResourceList) (WorkloadItemResourceList, error)) WorkloadItemResourceListPage {
-	return WorkloadItemResourceListPage{fn: getNextPage}
+func NewWorkloadItemResourceListPage(cur WorkloadItemResourceList, getNextPage func(context.Context, WorkloadItemResourceList) (WorkloadItemResourceList, error)) WorkloadItemResourceListPage {
+	return WorkloadItemResourceListPage{
+		fn:   getNextPage,
+		wirl: cur,
+	}
 }
 
 // BasicWorkloadProtectableItem base class for backup item. Workload-specific backup items are derived from this class.
@@ -19170,8 +19205,8 @@ func (wpi WorkloadProtectableItem) AsBasicWorkloadProtectableItem() (BasicWorklo
 	return &wpi, true
 }
 
-// WorkloadProtectableItemResource base class for backup item. Workload-specific backup items are derived from
-// this class.
+// WorkloadProtectableItemResource base class for backup item. Workload-specific backup items are derived
+// from this class.
 type WorkloadProtectableItemResource struct {
 	// Properties - WorkloadProtectableItemResource properties
 	Properties BasicWorkloadProtectableItem `json:"properties,omitempty"`
@@ -19435,8 +19470,11 @@ func (page WorkloadProtectableItemResourceListPage) Values() []WorkloadProtectab
 }
 
 // Creates a new instance of the WorkloadProtectableItemResourceListPage type.
-func NewWorkloadProtectableItemResourceListPage(getNextPage func(context.Context, WorkloadProtectableItemResourceList) (WorkloadProtectableItemResourceList, error)) WorkloadProtectableItemResourceListPage {
-	return WorkloadProtectableItemResourceListPage{fn: getNextPage}
+func NewWorkloadProtectableItemResourceListPage(cur WorkloadProtectableItemResourceList, getNextPage func(context.Context, WorkloadProtectableItemResourceList) (WorkloadProtectableItemResourceList, error)) WorkloadProtectableItemResourceListPage {
+	return WorkloadProtectableItemResourceListPage{
+		fn:    getNextPage,
+		wpirl: cur,
+	}
 }
 
 // YearlyRetentionSchedule yearly retention schedule.

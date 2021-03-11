@@ -18,12 +18,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmIotHubSharedAccessPolicy() *schema.Resource {
+func resourceIotHubSharedAccessPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmIotHubSharedAccessPolicyCreateUpdate,
-		Read:   resourceArmIotHubSharedAccessPolicyRead,
-		Update: resourceArmIotHubSharedAccessPolicyCreateUpdate,
-		Delete: resourceArmIotHubSharedAccessPolicyDelete,
+		Create: resourceIotHubSharedAccessPolicyCreateUpdate,
+		Read:   resourceIotHubSharedAccessPolicyRead,
+		Update: resourceIotHubSharedAccessPolicyCreateUpdate,
+		Delete: resourceIotHubSharedAccessPolicyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -125,7 +125,7 @@ func iothubSharedAccessPolicyCustomizeDiff(d *schema.ResourceDiff, _ interface{}
 	return
 }
 
-func resourceArmIotHubSharedAccessPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubSharedAccessPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -202,10 +202,10 @@ func resourceArmIotHubSharedAccessPolicyCreateUpdate(d *schema.ResourceData, met
 
 	d.SetId(resourceId)
 
-	return resourceArmIotHubSharedAccessPolicyRead(d, meta)
+	return resourceIotHubSharedAccessPolicyRead(d, meta)
 }
 
-func resourceArmIotHubSharedAccessPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubSharedAccessPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -257,7 +257,7 @@ func resourceArmIotHubSharedAccessPolicyRead(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func resourceArmIotHubSharedAccessPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubSharedAccessPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

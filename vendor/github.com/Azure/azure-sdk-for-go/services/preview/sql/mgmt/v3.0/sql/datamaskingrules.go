@@ -90,6 +90,7 @@ func (client DataMaskingRulesClient) CreateOrUpdate(ctx context.Context, resourc
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.DataMaskingRulesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -174,6 +175,7 @@ func (client DataMaskingRulesClient) ListByDatabase(ctx context.Context, resourc
 	result, err = client.ListByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.DataMaskingRulesClient", "ListByDatabase", resp, "Failure responding to request")
+		return
 	}
 
 	return

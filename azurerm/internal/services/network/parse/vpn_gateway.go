@@ -1,83 +1,63 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type VPNGatewayConnectionId struct {
-	ResourceGroup string
-	Gateway       string
-	Name          string
+type VpnGatewayId struct {
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
-func (id VPNGatewayConnectionId) ID(subscriptionId string) string {
-	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/vpnGateways/%s/vpnConnections/%s",
-		subscriptionId, id.ResourceGroup, id.Gateway, id.Name)
-}
-
-func NewVPNGatewayConnectionID(resourceGroup, gateway, name string) VPNGatewayConnectionId {
-	return VPNGatewayConnectionId{
-		ResourceGroup: resourceGroup,
-		Gateway:       gateway,
-		Name:          name,
+func NewVpnGatewayID(subscriptionId, resourceGroup, name string) VpnGatewayId {
+	return VpnGatewayId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
 	}
 }
 
-func VPNGatewayConnectionID(input string) (*VPNGatewayConnectionId, error) {
-	rawId, err := azure.ParseAzureResourceID(input)
-	if err != nil {
-		return nil, fmt.Errorf("parsing VPNGateway Connection ID %q: %+v", input, err)
+func (id VpnGatewayId) String() string {
+	segments := []string{
+		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-
-	id := VPNGatewayConnectionId{
-		ResourceGroup: rawId.ResourceGroup,
-	}
-
-	if id.Gateway, err = rawId.PopSegment("vpnGateways"); err != nil {
-		return nil, err
-	}
-
-	if id.Name, err = rawId.PopSegment("vpnConnections"); err != nil {
-		return nil, err
-	}
-
-	if err := rawId.ValidateNoEmptySegments(input); err != nil {
-		return nil, err
-	}
-
-	return &id, nil
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Vpn Gateway", segmentsStr)
 }
 
-type VPNGatewayId struct {
-	ResourceGroup string
-	Name          string
+func (id VpnGatewayId) ID() string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/vpnGateways/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
-func (id VPNGatewayId) ID(subscriptionId string) string {
-	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/vpnGateways/%s",
-		subscriptionId, id.ResourceGroup, id.Name)
-}
-
-func NewVPNGatewayID(resourceGroup, name string) VPNGatewayId {
-	return VPNGatewayId{
-		ResourceGroup: resourceGroup,
-		Name:          name,
-	}
-}
-
-func VPNGatewayID(input string) (*VPNGatewayId, error) {
+// VpnGatewayID parses a VpnGateway ID into an VpnGatewayId struct
+func VpnGatewayID(input string) (*VpnGatewayId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse VPN Gateway ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	gateway := VPNGatewayId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := VpnGatewayId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if gateway.Name, err = id.PopSegment("vpnGateways"); err != nil {
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	if resourceId.Name, err = id.PopSegment("vpnGateways"); err != nil {
 		return nil, err
 	}
 
@@ -85,5 +65,5 @@ func VPNGatewayID(input string) (*VPNGatewayId, error) {
 		return nil, err
 	}
 
-	return &gateway, nil
+	return &resourceId, nil
 }

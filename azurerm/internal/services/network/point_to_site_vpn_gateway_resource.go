@@ -5,7 +5,8 @@ import (
 	"log"
 	"time"
 
-	validate2 "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -19,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmPointToSiteVPNGateway() *schema.Resource {
+func resourcePointToSiteVPNGateway() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmPointToSiteVPNGatewayCreateUpdate,
-		Read:   resourceArmPointToSiteVPNGatewayRead,
-		Update: resourceArmPointToSiteVPNGatewayCreateUpdate,
-		Delete: resourceArmPointToSiteVPNGatewayDelete,
+		Create: resourcePointToSiteVPNGatewayCreateUpdate,
+		Read:   resourcePointToSiteVPNGatewayRead,
+		Update: resourcePointToSiteVPNGatewayCreateUpdate,
+		Delete: resourcePointToSiteVPNGatewayDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -52,14 +53,14 @@ func resourceArmPointToSiteVPNGateway() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate2.ValidateVirtualHubID,
+				ValidateFunc: networkValidate.VirtualHubID,
 			},
 
 			"vpn_server_configuration_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateVpnServerConfigurationID,
+				ValidateFunc: networkValidate.VpnServerConfigurationID,
 			},
 
 			"connection_configuration": {
@@ -104,7 +105,7 @@ func resourceArmPointToSiteVPNGateway() *schema.Resource {
 									"associated_route_table_id": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validate2.VirtualHubRouteTableID,
+										ValidateFunc: networkValidate.HubRouteTableID,
 									},
 
 									"propagated_route_table": {
@@ -118,7 +119,7 @@ func resourceArmPointToSiteVPNGateway() *schema.Resource {
 													Required: true,
 													Elem: &schema.Schema{
 														Type:         schema.TypeString,
-														ValidateFunc: validate2.VirtualHubRouteTableID,
+														ValidateFunc: networkValidate.HubRouteTableID,
 													},
 												},
 
@@ -160,7 +161,7 @@ func resourceArmPointToSiteVPNGateway() *schema.Resource {
 	}
 }
 
-func resourceArmPointToSiteVPNGatewayCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourcePointToSiteVPNGatewayCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PointToSiteVpnGatewaysClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -225,31 +226,31 @@ func resourceArmPointToSiteVPNGatewayCreateUpdate(d *schema.ResourceData, meta i
 
 	d.SetId(*resp.ID)
 
-	return resourceArmPointToSiteVPNGatewayRead(d, meta)
+	return resourcePointToSiteVPNGatewayRead(d, meta)
 }
 
-func resourceArmPointToSiteVPNGatewayRead(d *schema.ResourceData, meta interface{}) error {
+func resourcePointToSiteVPNGatewayRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PointToSiteVpnGatewaysClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParsePointToSiteVPNGatewayID(d.Id())
+	id, err := parse.PointToSiteVpnGatewayID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.P2sVpnGatewayName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Point-to-Site VPN Gateway %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
+			log.Printf("[DEBUG] Point-to-Site VPN Gateway %q was not found in Resource Group %q - removing from state!", id.P2sVpnGatewayName, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Point-to-Site VPN Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.P2sVpnGatewayName)
 	d.Set("resource_group_name", id.ResourceGroup)
 
 	if location := resp.Location; location != nil {
@@ -285,23 +286,23 @@ func resourceArmPointToSiteVPNGatewayRead(d *schema.ResourceData, meta interface
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmPointToSiteVPNGatewayDelete(d *schema.ResourceData, meta interface{}) error {
+func resourcePointToSiteVPNGatewayDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PointToSiteVpnGatewaysClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParsePointToSiteVPNGatewayID(d.Id())
+	id, err := parse.PointToSiteVpnGatewayID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.P2sVpnGatewayName)
 	if err != nil {
-		return fmt.Errorf("Error deleting Point-to-Site VPN Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Error deleting Point-to-Site VPN Gateway %q (Resource Group %q): %+v", id.P2sVpnGatewayName, id.ResourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of Point-to-Site VPN Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Error waiting for deletion of Point-to-Site VPN Gateway %q (Resource Group %q): %+v", id.P2sVpnGatewayName, id.ResourceGroup, err)
 	}
 
 	return nil

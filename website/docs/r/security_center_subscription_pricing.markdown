@@ -28,7 +28,7 @@ resource "azurerm_security_center_subscription_pricing" "example" {
 The following arguments are supported:
 
 * `tier` - (Required) The pricing tier to use. Possible values are `Free` and `Standard`.
-* `resource_type` - (Required) The resource type this setting affects. Possible values are `AppServices`, `ContainerRegistry`, `KeyVaults`, `KubernetesService`, `SqlServers`, `SqlServerVirtualMachines`, `StorageAccounts`, and `VirtualMachines`. 
+* `resource_type` - (Required) The resource type this setting affects. Possible values are `AppServices`, `ContainerRegistry`, `KeyVaults`, `KubernetesService`, `SqlServers`, `SqlServerVirtualMachines`, `StorageAccounts`, `VirtualMachines`, `Arm` and `Dns`. 
 
 ~> **NOTE:** Changing the pricing tier to `Standard` affects all resources of the given type in the subscription and could be quite costly.
 

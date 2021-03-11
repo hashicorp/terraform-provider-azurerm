@@ -3,13 +3,14 @@ package compute
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
+	msiparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -129,15 +130,19 @@ func ExpandVirtualMachineScaleSetIdentity(input []interface{}) (*compute.Virtual
 	return &identity, nil
 }
 
-func FlattenVirtualMachineScaleSetIdentity(input *compute.VirtualMachineScaleSetIdentity) []interface{} {
+func FlattenVirtualMachineScaleSetIdentity(input *compute.VirtualMachineScaleSetIdentity) ([]interface{}, error) {
 	if input == nil || input.Type == compute.ResourceIdentityTypeNone {
-		return []interface{}{}
+		return []interface{}{}, nil
 	}
 
 	identityIds := make([]string, 0)
 	if input.UserAssignedIdentities != nil {
-		for k := range input.UserAssignedIdentities {
-			identityIds = append(identityIds, k)
+		for key := range input.UserAssignedIdentities {
+			parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(key)
+			if err != nil {
+				return nil, err
+			}
+			identityIds = append(identityIds, parsedId.ID())
 		}
 	}
 
@@ -152,7 +157,7 @@ func FlattenVirtualMachineScaleSetIdentity(input *compute.VirtualMachineScaleSet
 			"identity_ids": identityIds,
 			"principal_id": principalId,
 		},
-	}
+	}, nil
 }
 
 func VirtualMachineScaleSetNetworkInterfaceSchema() *schema.Schema {
@@ -1145,22 +1150,18 @@ func VirtualMachineScaleSetRollingUpgradePolicySchema() *schema.Schema {
 				"max_batch_instance_percent": {
 					Type:     schema.TypeInt,
 					Required: true,
-					ForceNew: true,
 				},
 				"max_unhealthy_instance_percent": {
 					Type:     schema.TypeInt,
 					Required: true,
-					ForceNew: true,
 				},
 				"max_unhealthy_upgraded_instance_percent": {
 					Type:     schema.TypeInt,
 					Required: true,
-					ForceNew: true,
 				},
 				"pause_time_between_batches": {
 					Type:         schema.TypeString,
 					Required:     true,
-					ForceNew:     true,
 					ValidateFunc: azValidate.ISO8601Duration,
 				},
 			},
@@ -1432,20 +1433,18 @@ func expandVirtualMachineScaleSetExtensions(input []interface{}) (*compute.Virtu
 			extensionProps.ForceUpdateTag = utils.String(forceUpdateTag.(string))
 		}
 
-		settings, ok := extensionRaw["settings"].(string)
-		if ok && settings != "" {
-			settings, err := structure.ExpandJsonFromString(settings)
+		if val, ok := extensionRaw["settings"]; ok && val.(string) != "" {
+			settings, err := structure.ExpandJsonFromString(val.(string))
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse JSON from `settings`: %+v", err)
 			}
 			extensionProps.Settings = settings
 		}
 
-		protectedSettings, ok := extensionRaw["protected_settings"].(string)
-		if ok && protectedSettings != "" {
-			protectedSettings, err := structure.ExpandJsonFromString(protectedSettings)
+		if val, ok := extensionRaw["protected_settings"]; ok && val.(string) != "" {
+			protectedSettings, err := structure.ExpandJsonFromString(val.(string))
 			if err != nil {
-				return nil, fmt.Errorf("failed to parse JSON from `settings`: %+v", err)
+				return nil, fmt.Errorf("failed to parse JSON from `protected_settings`: %+v", err)
 			}
 			extensionProps.ProtectedSettings = protectedSettings
 		}

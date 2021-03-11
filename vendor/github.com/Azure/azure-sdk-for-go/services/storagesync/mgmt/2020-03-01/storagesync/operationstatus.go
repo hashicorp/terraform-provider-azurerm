@@ -85,6 +85,7 @@ func (client OperationStatusClient) Get(ctx context.Context, resourceGroupName s
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storagesync.OperationStatusClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return

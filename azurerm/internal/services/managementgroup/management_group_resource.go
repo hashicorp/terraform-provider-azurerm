@@ -23,12 +23,12 @@ import (
 
 var managementGroupCacheControl = "no-cache"
 
-func resourceArmManagementGroup() *schema.Resource {
+func resourceManagementGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmManagementGroupCreateUpdate,
-		Update: resourceArmManagementGroupCreateUpdate,
-		Read:   resourceArmManagementGroupRead,
-		Delete: resourceArmManagementGroupDelete,
+		Create: resourceManagementGroupCreateUpdate,
+		Update: resourceManagementGroupCreateUpdate,
+		Read:   resourceManagementGroupRead,
+		Delete: resourceManagementGroupDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.ManagementGroupID(id)
@@ -85,7 +85,7 @@ func resourceArmManagementGroup() *schema.Resource {
 	}
 }
 
-func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceManagementGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ManagementGroups.GroupsClient
 	subscriptionsClient := meta.(*clients.Client).ManagementGroups.SubscriptionClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -207,10 +207,10 @@ func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interfa
 		}
 	}
 
-	return resourceArmManagementGroupRead(d, meta)
+	return resourceManagementGroupRead(d, meta)
 }
 
-func resourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceManagementGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ManagementGroups.GroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -220,8 +220,8 @@ func resourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) er
 		return err
 	}
 
-	recurse := true
-	resp, err := client.Get(ctx, id.Name, "children", &recurse, "", managementGroupCacheControl)
+	recurse := utils.Bool(true)
+	resp, err := client.Get(ctx, id.Name, "children", recurse, "", managementGroupCacheControl)
 	if err != nil {
 		if utils.ResponseWasForbidden(resp.Response) || utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Management Group %q doesn't exist - removing from state", d.Id())
@@ -238,7 +238,7 @@ func resourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) er
 	if props := resp.Properties; props != nil {
 		d.Set("display_name", props.DisplayName)
 
-		subscriptionIds, err := flattenArmManagementGroupSubscriptionIds(props.Children)
+		subscriptionIds, err := flattenManagementGroupSubscriptionIds(props.Children)
 		if err != nil {
 			return fmt.Errorf("unable to flatten `subscription_ids`: %+v", err)
 		}
@@ -258,7 +258,7 @@ func resourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceArmManagementGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceManagementGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ManagementGroups.GroupsClient
 	subscriptionsClient := meta.(*clients.Client).ManagementGroups.SubscriptionClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -329,7 +329,7 @@ func expandManagementGroupSubscriptionIds(input *schema.Set) []string {
 	return output
 }
 
-func flattenArmManagementGroupSubscriptionIds(input *[]managementgroups.ChildInfo) (*schema.Set, error) {
+func flattenManagementGroupSubscriptionIds(input *[]managementgroups.ChildInfo) (*schema.Set, error) {
 	subscriptionIds := &schema.Set{F: schema.HashString}
 	if input == nil {
 		return subscriptionIds, nil

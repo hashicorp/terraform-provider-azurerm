@@ -87,9 +87,11 @@ func (client StartMenuItemsClient) List(ctx context.Context, resourceGroupName s
 	result.smil, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "desktopvirtualization.StartMenuItemsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.smil.hasNextLink() && result.smil.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

@@ -14,8 +14,8 @@ Enables you to manage DNS AAAA Records within Azure DNS.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "acceptanceTestResourceGroup1"
-  location = "West US"
+  name     = "example-resources"
+  location = "West Europe"
 }
 
 resource "azurerm_dns_zone" "example" {
@@ -28,6 +28,7 @@ resource "azurerm_dns_aaaa_record" "example" {
   zone_name           = azurerm_dns_zone.example.name
   resource_group_name = azurerm_resource_group.example.name
   ttl                 = 300
+  records             = ["2001:db8::1:0:0:1"]
 }
 ```
 
@@ -35,8 +36,8 @@ resource "azurerm_dns_aaaa_record" "example" {
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "acceptanceTestResourceGroup1"
-  location = "West US"
+  name     = "example-resources"
+  location = "West Europe"
 }
 
 resource "azurerm_dns_zone" "example" {
@@ -73,7 +74,7 @@ The following arguments are supported:
 
 * `TTL` - (Required) The Time To Live (TTL) of the DNS record in seconds.
 
-* `records` - (Optional) List of IPv4 Addresses. Conflicts with `target_resource_id`.
+* `records` - (Optional) List of IPv6 Addresses. Conflicts with `target_resource_id`.
 
 * `target_resource_id` - (Optional) The Azure resource id of the target object. Conflicts with `records`
 

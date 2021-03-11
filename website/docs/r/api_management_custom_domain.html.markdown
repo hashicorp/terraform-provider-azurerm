@@ -19,7 +19,7 @@ Manages a API Management Custom Domain.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "West US"
+  location = "West Europe"
 }
 
 resource "azurerm_api_management" "example" {
@@ -135,6 +135,8 @@ A `developer_portal`, `management`, `portal` or `scm` block supports the followi
 
 A `proxy` block supports the following:
 
+-> **Tip:** The default proxy hostname ending with `.azure-api.net` must not be added as it will be automatically created by Azure and ignored by Terraform.
+
 * `host_name` - (Required) The Hostname to use for the API Proxy Endpoint.
 
 * `certificate` - (Optional) The Base64 Encoded Certificate. (Mutually exlusive with `key_vault_id`.)
@@ -167,5 +169,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 API Management Custom Domains can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_api_management_custom_domain.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service/instance1
+terraform import azurerm_api_management_custom_domain.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service/instance1/customDomains/default
 ```

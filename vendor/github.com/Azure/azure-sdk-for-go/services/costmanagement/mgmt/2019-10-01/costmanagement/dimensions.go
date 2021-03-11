@@ -104,6 +104,7 @@ func (client DimensionsClient) List(ctx context.Context, scope string, filter st
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "costmanagement.DimensionsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return

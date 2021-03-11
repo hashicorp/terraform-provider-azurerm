@@ -18,7 +18,7 @@ import (
 type AppConfigurationResource struct {
 }
 
-func TestAccAppConfigurationResource_free(t *testing.T) {
+func TestAccAppConfiguration_free(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
 	r := AppConfigurationResource{}
 
@@ -33,7 +33,7 @@ func TestAccAppConfigurationResource_free(t *testing.T) {
 	})
 }
 
-func TestAccAppConfigurationResource_standard(t *testing.T) {
+func TestAccAppConfiguration_standard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
 	r := AppConfigurationResource{}
 
@@ -48,13 +48,13 @@ func TestAccAppConfigurationResource_standard(t *testing.T) {
 	})
 }
 
-func TestAccAppConfigurationResource_requiresImport(t *testing.T) {
+func TestAccAppConfiguration_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
 	r := AppConfigurationResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.free(data),
+			Config: r.standard(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -63,7 +63,7 @@ func TestAccAppConfigurationResource_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAppConfigurationResource_complete(t *testing.T) {
+func TestAccAppConfiguration_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
 	r := AppConfigurationResource{}
 
@@ -78,7 +78,7 @@ func TestAccAppConfigurationResource_complete(t *testing.T) {
 	})
 }
 
-func TestAccAppConfigurationResource_identity(t *testing.T) {
+func TestAccAppConfiguration_identity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
 	r := AppConfigurationResource{}
 
@@ -93,7 +93,7 @@ func TestAccAppConfigurationResource_identity(t *testing.T) {
 	})
 }
 
-func TestAccAppConfigurationResource_identityUpdated(t *testing.T) {
+func TestAccAppConfiguration_identityUpdated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
 	r := AppConfigurationResource{}
 
@@ -125,7 +125,7 @@ func TestAccAppConfigurationResource_identityUpdated(t *testing.T) {
 	})
 }
 
-func TestAccAppConfigurationResource_update(t *testing.T) {
+func TestAccAppConfiguration_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
 	r := AppConfigurationResource{}
 
@@ -146,7 +146,7 @@ func TestAccAppConfigurationResource_update(t *testing.T) {
 }
 
 func (t AppConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.AppConfigurationID(state.ID)
+	id, err := parse.ConfigurationStoreID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -200,7 +200,7 @@ resource "azurerm_app_configuration" "test" {
 }
 
 func (r AppConfigurationResource) requiresImport(data acceptance.TestData) string {
-	template := r.free(data)
+	template := r.standard(data)
 	return fmt.Sprintf(`
 %s
 
@@ -228,7 +228,7 @@ resource "azurerm_app_configuration" "test" {
   name                = "testaccappconf%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "free"
+  sku                 = "standard"
 
   tags = {
     environment = "development"
@@ -259,7 +259,7 @@ resource "azurerm_app_configuration" "test" {
   }
 
   tags = {
-    environment = "development"
+    ENVironment = "DEVelopment"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -280,10 +280,10 @@ resource "azurerm_app_configuration" "test" {
   name                = "testaccappconf%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "free"
+  sku                 = "standard"
 
   tags = {
-    environment = "production"
+    Environment = "Production"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

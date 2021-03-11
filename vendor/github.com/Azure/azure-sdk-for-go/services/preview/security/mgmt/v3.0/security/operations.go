@@ -70,9 +70,11 @@ func (client OperationsClient) List(ctx context.Context) (result OperationListPa
 	result.ol, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.OperationsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.ol.hasNextLink() && result.ol.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
