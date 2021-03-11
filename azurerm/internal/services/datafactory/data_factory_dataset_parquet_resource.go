@@ -60,40 +60,27 @@ func resourceDataFactoryDatasetParquet() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			// Parquet Specific Field, one option for 'location'
-			"http_server_location": {
-				Type:     schema.TypeList,
-				MaxItems: 1,
+			"additional_properties": {
+				Type:     schema.TypeMap,
 				Optional: true,
-				// ConflictsWith: []string{"sftp_server_location", "file_server_location", "s3_location", "azure_blob_storage_location"},
-				ConflictsWith: []string{"azure_blob_storage_location"},
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"relative_url": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"path": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"filename": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-					},
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+
+			"annotations": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
 				},
 			},
 
 			// Parquet Specific Field, one option for 'location'
 			"azure_blob_storage_location": {
-				Type:     schema.TypeList,
-				MaxItems: 1,
-				Optional: true,
-				// ConflictsWith: []string{"sftp_server_location", "file_server_location", "s3_location", "azure_blob_storage_location"},
+				Type:          schema.TypeList,
+				MaxItems:      1,
+				Optional:      true,
 				ConflictsWith: []string{"http_server_location"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -116,12 +103,28 @@ func resourceDataFactoryDatasetParquet() *schema.Resource {
 				},
 			},
 
-			"parameters": {
-				Type:     schema.TypeMap,
+			"compression_codec": {
+				Type:     schema.TypeString,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
+				ValidateFunc: validation.StringInSlice([]string{
+					"bzip2",
+					"gzip",
+					"deflate",
+					"ZipDeflate",
+					"TarGzip",
+					"Tar",
+					"snappy",
+					"lz4",
+				}, false),
+			},
+
+			"compression_level": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"Optimal",
+					"Fastest",
+				}, false),
 			},
 
 			"description": {
@@ -130,21 +133,40 @@ func resourceDataFactoryDatasetParquet() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"annotations": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-			},
-
 			"folder": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"additional_properties": {
+			// Parquet Specific Field, one option for 'location'
+			"http_server_location": {
+				Type:          schema.TypeList,
+				MaxItems:      1,
+				Optional:      true,
+				ConflictsWith: []string{"azure_blob_storage_location"},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"relative_url": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"path": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"filename": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
+
+			"parameters": {
 				Type:     schema.TypeMap,
 				Optional: true,
 				Elem: &schema.Schema{
@@ -190,30 +212,6 @@ func resourceDataFactoryDatasetParquet() *schema.Resource {
 						},
 					},
 				},
-			},
-
-			"compression_codec": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"bzip2",
-					"gzip",
-					"deflate",
-					"ZipDeflate",
-					"TarGzip",
-					"Tar",
-					"snappy",
-					"lz4",
-				}, false),
-			},
-
-			"compression_level": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"Optimal",
-					"Fastest",
-				}, false),
 			},
 		},
 	}
