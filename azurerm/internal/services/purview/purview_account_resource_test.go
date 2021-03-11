@@ -25,18 +25,24 @@ func TestAccPurviewAccount_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("sku_name").HasValue("Standard_4"),
-				check.That(data.ResourceName).Key("public_network_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("identity.0.type").Exists(),
-				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
-				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
-				check.That(data.ResourceName).Key("catalog_endpoint").Exists(),
-				check.That(data.ResourceName).Key("guardian_endpoint").Exists(),
-				check.That(data.ResourceName).Key("scan_endpoint").Exists(),
-				check.That(data.ResourceName).Key("atlas_kafka_endpoint_primary_connection_string").Exists(),
-				check.That(data.ResourceName).Key("atlas_kafka_endpoint_secondary_connection_string").Exists(),
 			),
 		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccPurviewAccount_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_purview_account", "test")
+	r := PurviewAccountResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
@@ -69,6 +75,20 @@ resource "azurerm_purview_account" "test" {
   sku_name            = "Standard_4"
 }
 `, template, data.RandomInteger)
+}
+
+func (r PurviewAccountResource) requiresImport(data acceptance.TestData) string {
+	template := r.basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_purview_account" "import" {
+  name                = azurerm_purview_account.test.name
+  resource_group_name = azurerm_purview_account.test.resource_group_name
+  location            = azurerm_purview_account.test.location
+  sku_name            = azurerm_purview_account.test.sku_name
+}
+`, template)
 }
 
 func (r PurviewAccountResource) template(data acceptance.TestData) string {

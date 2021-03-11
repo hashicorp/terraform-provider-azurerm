@@ -14,8 +14,8 @@ Manages a Purview Account.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "example"
-  location = "West US"
+  name     = "example-resources"
+  location = "West Europe"
 }
 
 resource "azurerm_purview_account" "example" {
@@ -70,7 +70,7 @@ A `identity` block exports the following:
 
 * `tenant_id` - The ID of the Azure Active Directory Tenant.
 
-* `type` - The identity type.
+* `type` - The type of Managed Identity assigned to this Purview Account.
 
 ## Timeouts
 
