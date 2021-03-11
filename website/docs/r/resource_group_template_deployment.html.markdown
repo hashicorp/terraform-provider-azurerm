@@ -15,31 +15,47 @@ Manages a Resource Group Template Deployment.
 ## Example Usage
 
 ```hcl
+locals {
+  vnet_name = "example-vnet"
+}
+
 resource "azurerm_resource_group_template_deployment" "example" {
-  name                = "example-deploy"
+  name                = "lgtest1"
   resource_group_name = "example-group"
   deployment_mode     = "Complete"
+  parameters_content  = jsonencode({
+    "vnetName" = {
+      value = local.vnet_name
+    }
+  })
   template_content    = <<TEMPLATE
 {
-  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-  "contentVersion": "1.0.0.0",
-  "parameters": {},
-  "variables": {},
-  "resources": [
-    {
-      "type": "Microsoft.Network/virtualNetworks",
-      "apiVersion": "2020-05-01",
-      "name": "acctest-network",
-      "location": "[resourceGroup().location]",
-      "properties": {
-        "addressSpace": {
-          "addressPrefixes": [
-            "10.0.0.0/16"
-          ]
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "vnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the VNET"
+            }
         }
-      }
-    }
-  ]
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2020-05-01",
+            "name": "acctest-network",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "10.0.0.0/16"
+                    ]
+                }
+            }
+        }
+    ]
 }
 TEMPLATE
 
@@ -66,7 +82,7 @@ The following arguments are supported:
 
 * `debug_level` - (Optional) The Debug Level which should be used for this Resource Group Template Deployment. Possible values are `none`, `requestContent`, `responseContent` and `requestContent, responseContent`.
 
-* `parameters_content` - (Optional) The contents of the ARM Template parameters file - containing a JSON list of parameters.
+* `parameters_content` - (Optional) The contents of the ARM Template parameters file - containing a JSON list of parameters. See example for how to pass in Terraform Variable to an ARM parameter.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Resource Group Template Deployment.
 
