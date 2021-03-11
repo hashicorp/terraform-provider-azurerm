@@ -7,6 +7,7 @@ FEATURES:
 * **New Resource:** `azurerm_security_center_assessment_policy` [GH-10694]
 * **New Resource:** `azurerm_sentinel_data_connector_azure_advanced_threat_protection` [GH-10666]
 * **New Resource:** `azurerm_sentinel_data_connector_azure_security_center` [GH-10667]
+* **New Resource:** `azurerm_sentinel_data_connector_microsoft_cloud_app_security` [GH-10668]
 
 ENHANCEMENTS:
 
