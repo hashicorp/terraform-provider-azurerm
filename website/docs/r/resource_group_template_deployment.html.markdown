@@ -20,7 +20,7 @@ locals {
 }
 
 resource "azurerm_resource_group_template_deployment" "example" {
-  name                = "lgtest1"
+  name                = "example-deploy"
   resource_group_name = "example-group"
   deployment_mode     = "Complete"
   parameters_content  = jsonencode({
