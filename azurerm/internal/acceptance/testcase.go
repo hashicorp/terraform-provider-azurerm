@@ -42,6 +42,22 @@ func (td TestData) ResourceTest(t *testing.T, testResource types.TestResource, s
 	td.runAcceptanceTest(t, testCase)
 }
 
+func (td TestData) ResourceSequentialTest(t *testing.T, testResource types.TestResource, steps []resource.TestStep) {
+	testCase := resource.TestCase{
+		PreCheck: func() { PreCheck(t) },
+		CheckDestroy: func(s *terraform.State) error {
+			client, err := testclient.Build()
+			if err != nil {
+				return fmt.Errorf("building client: %+v", err)
+			}
+			return helpers.CheckDestroyedFunc(client, testResource, td.ResourceType, td.ResourceName)(s)
+		},
+		Steps: steps,
+	}
+
+	td.runAcceptanceSequentialTest(t, testCase)
+}
+
 func RunTestsInSequence(t *testing.T, tests map[string]map[string]func(t *testing.T)) {
 	for group, m := range tests {
 		m := m
@@ -69,4 +85,19 @@ func (td TestData) runAcceptanceTest(t *testing.T, testCase resource.TestCase) {
 	}
 
 	resource.ParallelTest(t, testCase)
+}
+
+func (td TestData) runAcceptanceSequentialTest(t *testing.T, testCase resource.TestCase) {
+	testCase.ProviderFactories = map[string]terraform.ResourceProviderFactory{
+		"azuread": func() (terraform.ResourceProvider, error) {
+			aad := azuread.Provider()
+			return aad, nil
+		},
+		"azurerm": func() (terraform.ResourceProvider, error) {
+			azurerm := provider.TestAzureProvider()
+			return azurerm, nil
+		},
+	}
+
+	resource.Test(t, testCase)
 }

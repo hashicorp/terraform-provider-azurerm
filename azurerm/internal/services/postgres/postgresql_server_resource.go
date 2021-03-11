@@ -177,7 +177,7 @@ func resourcePostgreSQLServer() *schema.Resource {
 				Optional:     true,
 				Computed:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotWhiteSpace,
+				ValidateFunc: validation.All(validation.StringIsNotWhiteSpace, validate.AdminUsernames),
 			},
 
 			"administrator_login_password": {
@@ -459,7 +459,6 @@ func resourcePostgreSQLServerCreate(d *schema.ResourceData, meta interface{}) er
 	case postgresql.CreateModeDefault:
 		admin := d.Get("administrator_login").(string)
 		pass := d.Get("administrator_login_password").(string)
-
 		if admin == "" {
 			return fmt.Errorf("`administrator_login` must not be empty when `create_mode` is `default`")
 		}

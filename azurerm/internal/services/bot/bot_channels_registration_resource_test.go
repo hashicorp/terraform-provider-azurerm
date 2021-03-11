@@ -21,7 +21,7 @@ func testAccBotChannelsRegistration_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channels_registration", "test")
 	r := BotChannelsRegistrationResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []resource.TestStep{
 		{
 			Config: r.basicConfig(data),
 			Check: resource.ComposeTestCheckFunc(
@@ -36,7 +36,7 @@ func testAccBotChannelsRegistration_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channels_registration", "test")
 	r := BotChannelsRegistrationResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []resource.TestStep{
 		{
 			Config: r.basicConfig(data),
 			Check: resource.ComposeTestCheckFunc(
@@ -58,7 +58,7 @@ func testAccBotChannelsRegistration_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channels_registration", "test")
 	r := BotChannelsRegistrationResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []resource.TestStep{
 		{
 			Config: r.completeConfig(data),
 			Check: resource.ComposeTestCheckFunc(

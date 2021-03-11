@@ -5,6 +5,7 @@ FEATURES:
 * **New Resource:** `azurerm_security_center_server_vulnerability_assessment` [GH-10030]
 * **New Resource:** `azurerm_security_center_assessment` [GH-10694]
 * **New Resource:** `azurerm_security_center_assessment_policy` [GH-10694]
+* **New Resource:** `azurerm_sentinel_data_connector_azure_advanced_threat_protection` [GH-10666]
 * **New Resource:** `azurerm_sentinel_data_connector_azure_security_center` [GH-10667]
 
 ENHANCEMENTS:
@@ -12,14 +13,21 @@ ENHANCEMENTS:
 * dependencies: updating to v52.3.0 of `github.com/Azure/azure-sdk-for-go` [GH-10829]
 * `azurerm_role_assignment` - support enrollment ids in `scope` argument [GH-10890]
 * `azurerm_kubernetes_cluster` - support `None` for the `private_dns_zone_id` property [GH-10774]
+* `azurerm_kubernetes_cluster` - support for `expander` in the `auto_scaler_profile` block [GH-10777]
+* `azurerm_linux_virtual_machine_scale_set` - will no longer recreate the resource when `rolling_upgrade_policy` or `health_probe_id` is updated [GH-10856]
+* `azurerm_windows_virtual_machine_scale_set` - will no longer recreate the resource when `rolling_upgrade_policy` or `health_probe_id` is updated [GH-10856]
 
 BUG FIXES:
 
-* Data Source: `log_analytics_workspace` - ensure the `id` is returned with the correct caseing [GH-10892]
+* Data Source: `azurerm_function_app_host_keys` - retrying reading the keys to work around a broken API [GH-10894]
+* Data Source: `azurerm_log_analytics_workspace` - ensure the `id` is returned with the correct casing [GH-10892]
 * Data Source: `azurerm_monitor_action_group` - add support for `aad_auth` attribute [GH-10876]
 * `azurerm_api_management_custom_domain` - prevent a perpetual diff [GH-10636]
 * `azurerm_eventhub_consumer_group` - detecting as removed when deleted in Azure [GH-10900]
+* `azurerm_kusto_eventhub_data_connection` - make `table_name` and `data_format` optional [GH-10913]
+* `azurerm_mssql_virtual_machine` - workaround for inconsistent API value for `log_backup_frequency_in_minutes` in the `manual_schedule` block [GH-10899]
 * `azurerm_postgres_server` - support for replicaset scaling [GH-10754]
+* `azurerm_postgresql_aad_administrator` - prevent invalid usernames for the `login` property [GH-10757]
 
 ---
 
