@@ -19,12 +19,11 @@ package documentdb
 
 import (
 	"context"
-	"net/http"
-
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
+	"net/http"
 )
 
 // SQLResourcesClient is the client for the SQLResources methods of the Documentdb service.
@@ -315,8 +314,8 @@ func (client SQLResourcesClient) CreateUpdateSQLRoleAssignment(ctx context.Conte
 		ctx = tracing.StartSpan(ctx, fqdn+"/SQLResourcesClient.CreateUpdateSQLRoleAssignment")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -435,8 +434,8 @@ func (client SQLResourcesClient) CreateUpdateSQLRoleDefinition(ctx context.Conte
 		ctx = tracing.StartSpan(ctx, fqdn+"/SQLResourcesClient.CreateUpdateSQLRoleDefinition")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -1483,8 +1482,8 @@ func (client SQLResourcesClient) DeleteSQLTrigger(ctx context.Context, resourceG
 		ctx = tracing.StartSpan(ctx, fqdn+"/SQLResourcesClient.DeleteSQLTrigger")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -1593,8 +1592,8 @@ func (client SQLResourcesClient) DeleteSQLUserDefinedFunction(ctx context.Contex
 		ctx = tracing.StartSpan(ctx, fqdn+"/SQLResourcesClient.DeleteSQLUserDefinedFunction")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

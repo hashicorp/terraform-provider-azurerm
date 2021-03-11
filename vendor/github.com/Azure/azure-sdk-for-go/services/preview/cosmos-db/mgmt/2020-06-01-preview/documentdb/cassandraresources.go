@@ -19,12 +19,11 @@ package documentdb
 
 import (
 	"context"
-	"net/http"
-
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
+	"net/http"
 )
 
 // CassandraResourcesClient is the client for the CassandraResources methods of the Documentdb service.
