@@ -179,7 +179,7 @@ func resourceKeyVaultAccessPolicyCreateOrDelete(d *schema.ResourceData, meta int
 		if resp.Properties == nil || resp.Properties.AccessPolicies == nil {
 			return fmt.Errorf("failed reading Access Policies for %q (resource group %q)", vaultName, id.ResourceGroup)
 		}
-		accessPolicyRaw := FindKeyVaultAccessPolicy(resp.Properties.AccessPolicies, objectId, id.Path["applicationId"])
+		accessPolicyRaw := FindKeyVaultAccessPolicy(resp.Properties.AccessPolicies, objectId, applicationIdRaw)
 		accessPolicy = *accessPolicyRaw
 
 	default:
@@ -302,6 +302,10 @@ func resourceKeyVaultAccessPolicyRead(d *schema.ResourceData, meta interface{}) 
 		}
 
 		return fmt.Errorf("making Read request on Azure KeyVault %q (Resource Group %q): %+v", vaultName, resGroup, err)
+	}
+
+	if resp.Properties == nil || resp.Properties.AccessPolicies == nil {
+		return fmt.Errorf("failed reading Access Policies for %q (resource group %q)", vaultName, id.ResourceGroup)
 	}
 
 	policy := FindKeyVaultAccessPolicy(resp.Properties.AccessPolicies, objectId, applicationId)
