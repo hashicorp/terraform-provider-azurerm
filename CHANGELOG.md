@@ -1,3 +1,5 @@
+## 2.52.0 (Unreleased)
+
 ## 2.51.0 (March 12, 2021)
 
 FEATURES:
@@ -37,8 +39,6 @@ BUG FIXES:
 * `azurerm_mssql_virtual_machine` - workaround for inconsistent API value for `log_backup_frequency_in_minutes` in the `manual_schedule` block ([#10899](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10899))
 * `azurerm_postgres_server` - support for replicaset scaling ([#10754](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10754))
 * `azurerm_postgresql_aad_administrator` - prevent invalid usernames for the `login` property ([#10757](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10757))
-
----
 
 ## 2.50.0 (March 05, 2021)
 
