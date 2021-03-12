@@ -40,7 +40,7 @@ func resourceArmExpressRouteConnection() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: validate.ExpressRouteConnectionName,
 			},
 
 			"express_route_circuit_peering_id": {

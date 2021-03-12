@@ -10,6 +10,8 @@ description: |-
 
 Manages an Express Route Connection.
 
+~> **NOTE:** The provider status of the Express Route Circuit must be provisioned while creating the Express Route Connection.
+
 ## Example Usage
 
 ```hcl
