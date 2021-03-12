@@ -98,6 +98,7 @@ func (client CacheClient) CreateOrUpdate(ctx context.Context, resourceGroupName 
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.CacheClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -196,6 +197,7 @@ func (client CacheClient) Delete(ctx context.Context, resourceGroupName string, 
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.CacheClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -286,6 +288,7 @@ func (client CacheClient) Get(ctx context.Context, resourceGroupName string, ser
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.CacheClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -376,6 +379,7 @@ func (client CacheClient) GetEntityTag(ctx context.Context, resourceGroupName st
 	result, err = client.GetEntityTagResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.CacheClient", "GetEntityTag", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -468,9 +472,11 @@ func (client CacheClient) ListByService(ctx context.Context, resourceGroupName s
 	result.cc, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.CacheClient", "ListByService", resp, "Failure responding to request")
+		return
 	}
 	if result.cc.hasNextLink() && result.cc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -606,6 +612,7 @@ func (client CacheClient) Update(ctx context.Context, resourceGroupName string, 
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.CacheClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

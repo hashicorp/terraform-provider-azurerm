@@ -3,32 +3,34 @@ package kusto
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-02-15/kusto"
+	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-09-18/kusto"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmKustoCluster() *schema.Resource {
+func resourceKustoCluster() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmKustoClusterCreateUpdate,
-		Read:   resourceArmKustoClusterRead,
-		Update: resourceArmKustoClusterCreateUpdate,
-		Delete: resourceArmKustoClusterDelete,
+		Create: resourceKustoClusterCreateUpdate,
+		Read:   resourceKustoClusterRead,
+		Update: resourceKustoClusterCreateUpdate,
+		Delete: resourceKustoClusterDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.ClusterID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),
@@ -42,7 +44,7 @@ func resourceArmKustoCluster() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMKustoClusterName,
+				ValidateFunc: validate.ClusterName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -76,6 +78,7 @@ func resourceArmKustoCluster() *schema.Resource {
 								string(kusto.StandardE16aV4),
 								string(kusto.StandardE2aV4),
 								string(kusto.StandardE4aV4),
+								string(kusto.StandardE64iV3),
 								string(kusto.StandardE8asV41TBPS),
 								string(kusto.StandardE8asV42TBPS),
 								string(kusto.StandardE8aV4),
@@ -126,6 +129,12 @@ func resourceArmKustoCluster() *schema.Resource {
 				},
 			},
 
+			"double_encryption_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
+
 			"enable_disk_encryption": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -144,6 +153,7 @@ func resourceArmKustoCluster() *schema.Resource {
 			"virtual_network_configuration": {
 				Type:     schema.TypeList,
 				Optional: true,
+				ForceNew: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -178,6 +188,17 @@ func resourceArmKustoCluster() *schema.Resource {
 				},
 			},
 
+			"engine": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  string(kusto.V2),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(kusto.V2),
+					string(kusto.V3),
+				}, false),
+			},
+
 			"uri": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -195,7 +216,7 @@ func resourceArmKustoCluster() *schema.Resource {
 	}
 }
 
-func resourceArmKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.ClustersClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -230,9 +251,12 @@ func resourceArmKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{
 	optimizedAutoScale := expandOptimizedAutoScale(d.Get("optimized_auto_scale").([]interface{}))
 
 	if optimizedAutoScale != nil && *optimizedAutoScale.IsEnabled {
-		// if Capacity has not been set use min instances
-		if *sku.Capacity == 0 {
+		// Ensure that requested Capcity is always between min and max to support updating to not overlapping autoscale ranges
+		if *sku.Capacity < *optimizedAutoScale.Minimum {
 			sku.Capacity = utils.Int32(*optimizedAutoScale.Minimum)
+		}
+		if *sku.Capacity > *optimizedAutoScale.Maximum {
+			sku.Capacity = utils.Int32(*optimizedAutoScale.Maximum)
 		}
 
 		// Capacity must be set for the initial creation when using OptimizedAutoScaling but cannot be updated
@@ -245,11 +269,15 @@ func resourceArmKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{
 		}
 	}
 
+	engine := kusto.EngineType(d.Get("engine").(string))
+
 	clusterProperties := kusto.ClusterProperties{
-		OptimizedAutoscale:    optimizedAutoScale,
-		EnableDiskEncryption:  utils.Bool(d.Get("enable_disk_encryption").(bool)),
-		EnableStreamingIngest: utils.Bool(d.Get("enable_streaming_ingest").(bool)),
-		EnablePurge:           utils.Bool(d.Get("enable_purge").(bool)),
+		OptimizedAutoscale:     optimizedAutoScale,
+		EnableDiskEncryption:   utils.Bool(d.Get("enable_disk_encryption").(bool)),
+		EnableDoubleEncryption: utils.Bool(d.Get("double_encryption_enabled").(bool)),
+		EnableStreamingIngest:  utils.Bool(d.Get("enable_streaming_ingest").(bool)),
+		EnablePurge:            utils.Bool(d.Get("enable_purge").(bool)),
+		EngineType:             engine,
 	}
 
 	if v, ok := d.GetOk("virtual_network_configuration"); ok {
@@ -274,8 +302,11 @@ func resourceArmKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
-		kustoIdentityRaw := d.Get("identity").([]interface{})
-		kustoIdentity := expandIdentity(kustoIdentityRaw)
+		kustoIdentity, err := expandIdentity(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+
 		kustoCluster.Identity = kustoIdentity
 	}
 
@@ -339,21 +370,20 @@ func resourceArmKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{
 		}
 	}
 
-	return resourceArmKustoClusterRead(d, meta)
+	return resourceKustoClusterRead(d, meta)
 }
 
-func resourceArmKustoClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoClusterRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.ClustersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.KustoClusterID(d.Id())
+	id, err := parse.ClusterID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	clusterResponse, err := client.Get(ctx, id.ResourceGroup, id.Name)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(clusterResponse.Response) {
 			d.SetId("")
@@ -369,7 +399,11 @@ func resourceArmKustoClusterRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	if err := d.Set("identity", flattenIdentity(clusterResponse.Identity)); err != nil {
+	identity, err := flattenIdentity(clusterResponse.Identity)
+	if err != nil {
+		return err
+	}
+	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("Error setting `identity`: %s", err)
 	}
 
@@ -385,6 +419,7 @@ func resourceArmKustoClusterRead(d *schema.ResourceData, meta interface{}) error
 	}
 
 	if clusterProperties := clusterResponse.ClusterProperties; clusterProperties != nil {
+		d.Set("double_encryption_enabled", clusterProperties.EnableDoubleEncryption)
 		d.Set("trusted_external_tenants", flattenTrustedExternalTenants(clusterProperties.TrustedExternalTenants))
 		d.Set("enable_disk_encryption", clusterProperties.EnableDiskEncryption)
 		d.Set("enable_streaming_ingest", clusterProperties.EnableStreamingIngest)
@@ -393,17 +428,18 @@ func resourceArmKustoClusterRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("language_extensions", flattenKustoClusterLanguageExtensions(clusterProperties.LanguageExtensions))
 		d.Set("uri", clusterProperties.URI)
 		d.Set("data_ingestion_uri", clusterProperties.DataIngestionURI)
+		d.Set("engine", clusterProperties.EngineType)
 	}
 
 	return tags.FlattenAndSet(d, clusterResponse.Tags)
 }
 
-func resourceArmKustoClusterDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoClusterDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.ClustersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.KustoClusterID(d.Id())
+	id, err := parse.ClusterID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -418,20 +454,6 @@ func resourceArmKustoClusterDelete(d *schema.ResourceData, meta interface{}) err
 	}
 
 	return nil
-}
-
-func validateAzureRMKustoClusterName(v interface{}, k string) (warnings []string, errors []error) {
-	name := v.(string)
-
-	if !regexp.MustCompile(`^[a-z][a-z0-9]+$`).MatchString(name) {
-		errors = append(errors, fmt.Errorf("%q must begin with a letter and may only contain alphanumeric characters: %q", k, name))
-	}
-
-	if len(name) < 4 || len(name) > 22 {
-		errors = append(errors, fmt.Errorf("%q must be (inclusive) between 4 and 22 characters long but is %d", k, len(name)))
-	}
-
-	return warnings, errors
 }
 
 func expandOptimizedAutoScale(input []interface{}) *kusto.OptimizedAutoscale {

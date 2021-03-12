@@ -15,7 +15,7 @@ Manages an Azure Delimited Text Dataset inside an Azure Data Factory.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "northeurope"
+  location = "West Europe"
 }
 
 resource "azurerm_data_factory" "example" {
@@ -99,6 +99,10 @@ The following supported arguments are specific to Delimited Text Dataset:
 * `first_row_as_header` - (Required) When used as input, treat the first row of data as headers. When used as output, write the headers into the output as the first row of data.
 
 * `null_value` - (Required) The null value string.
+
+* `compression_codec` - (Optional) The compression codec used to read/write text files. Valid values are `bzip2`, `gzip`, `deflate`, `ZipDeflate`, `TarGzip`, `Tar`, `snappy`, or `lz4`. Please note these values are case sensitive.
+
+* `compression_level` - (Optional) The compression ratio for the Data Factory Dataset. Valid values are `Fastest` or `Optimal`. Please note these values are case sensitive.
 
 ---
 

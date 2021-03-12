@@ -12,21 +12,21 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
-func ResourceAzureRMContainerRegistryMigrateState(
+func ResourceContainerRegistryMigrateState(
 	v int, is *terraform.InstanceState, meta interface{}) (*terraform.InstanceState, error) {
 	switch v {
 	case 0:
-		log.Println("[INFO] Found AzureRM Container Registry State v0; migrating to v1")
-		return migrateAzureRMContainerRegistryStateV0toV1(is)
+		log.Println("[INFO] Found  Container Registry State v0; migrating to v1")
+		return migrateContainerRegistryStateV0toV1(is)
 	case 1:
-		log.Println("[INFO] Found AzureRM Container Registry State v1; migrating to v2")
-		return migrateAzureRMContainerRegistryStateV1toV2(is, meta)
+		log.Println("[INFO] Found  Container Registry State v1; migrating to v2")
+		return migrateContainerRegistryStateV1toV2(is, meta)
 	default:
 		return is, fmt.Errorf("Unexpected schema version: %d", v)
 	}
 }
 
-func migrateAzureRMContainerRegistryStateV0toV1(is *terraform.InstanceState) (*terraform.InstanceState, error) {
+func migrateContainerRegistryStateV0toV1(is *terraform.InstanceState) (*terraform.InstanceState, error) {
 	if is.Empty() {
 		log.Println("[DEBUG] Empty InstanceState; nothing to migrate.")
 		return is, nil
@@ -41,7 +41,7 @@ func migrateAzureRMContainerRegistryStateV0toV1(is *terraform.InstanceState) (*t
 	return is, nil
 }
 
-func migrateAzureRMContainerRegistryStateV1toV2(is *terraform.InstanceState, meta interface{}) (*terraform.InstanceState, error) {
+func migrateContainerRegistryStateV1toV2(is *terraform.InstanceState, meta interface{}) (*terraform.InstanceState, error) {
 	if is.Empty() {
 		log.Println("[DEBUG] Empty InstanceState; nothing to migrate.")
 		return is, nil
@@ -63,7 +63,7 @@ func migrateAzureRMContainerRegistryStateV1toV2(is *terraform.InstanceState, met
 
 func updateV1ToV2StorageAccountName(is *terraform.InstanceState, meta interface{}) error {
 	reader := &schema.MapFieldReader{
-		Schema: resourceArmContainerRegistry().Schema,
+		Schema: resourceContainerRegistry().Schema,
 		Map:    schema.BasicMapReader(is.Attributes),
 	}
 

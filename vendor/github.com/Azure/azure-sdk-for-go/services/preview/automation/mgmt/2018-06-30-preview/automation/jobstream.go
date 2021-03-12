@@ -84,6 +84,7 @@ func (client JobStreamClient) Get(ctx context.Context, resourceGroupName string,
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.JobStreamClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -177,9 +178,11 @@ func (client JobStreamClient) ListByJob(ctx context.Context, resourceGroupName s
 	result.jslr, err = client.ListByJobResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.JobStreamClient", "ListByJob", resp, "Failure responding to request")
+		return
 	}
 	if result.jslr.hasNextLink() && result.jslr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

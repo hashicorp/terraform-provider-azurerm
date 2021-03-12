@@ -75,8 +75,8 @@ func (acp AccountCreateParameters) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// AccountKeys the set of keys which can be used to access the Maps REST APIs. Two keys are provided for key
-// rotation without interruption.
+// AccountKeys the set of keys which can be used to access the Maps REST APIs. Two keys are provided for
+// key rotation without interruption.
 type AccountKeys struct {
 	autorest.Response `json:"-"`
 	// ID - READ-ONLY; The full Azure resource identifier of the Maps Account.

@@ -84,6 +84,7 @@ func (client ComponentQuotaStatusClient) Get(ctx context.Context, resourceGroupN
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ComponentQuotaStatusClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return

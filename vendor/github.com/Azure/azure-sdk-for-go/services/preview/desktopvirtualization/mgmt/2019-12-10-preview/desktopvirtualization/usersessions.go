@@ -95,6 +95,7 @@ func (client UserSessionsClient) Delete(ctx context.Context, resourceGroupName s
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "desktopvirtualization.UserSessionsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -195,6 +196,7 @@ func (client UserSessionsClient) Disconnect(ctx context.Context, resourceGroupNa
 	result, err = client.DisconnectResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "desktopvirtualization.UserSessionsClient", "Disconnect", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -292,6 +294,7 @@ func (client UserSessionsClient) Get(ctx context.Context, resourceGroupName stri
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "desktopvirtualization.UserSessionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -387,9 +390,11 @@ func (client UserSessionsClient) List(ctx context.Context, resourceGroupName str
 	result.usl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "desktopvirtualization.UserSessionsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.usl.hasNextLink() && result.usl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -518,9 +523,11 @@ func (client UserSessionsClient) ListByHostPool(ctx context.Context, resourceGro
 	result.usl, err = client.ListByHostPoolResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "desktopvirtualization.UserSessionsClient", "ListByHostPool", resp, "Failure responding to request")
+		return
 	}
 	if result.usl.hasNextLink() && result.usl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -658,6 +665,7 @@ func (client UserSessionsClient) SendMessageMethod(ctx context.Context, resource
 	result, err = client.SendMessageMethodResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "desktopvirtualization.UserSessionsClient", "SendMessageMethod", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -83,6 +83,7 @@ func (client HybridRunbookWorkerGroupClient) Delete(ctx context.Context, resourc
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.HybridRunbookWorkerGroupClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -167,6 +168,7 @@ func (client HybridRunbookWorkerGroupClient) Get(ctx context.Context, resourceGr
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.HybridRunbookWorkerGroupClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -253,9 +255,11 @@ func (client HybridRunbookWorkerGroupClient) ListByAutomationAccount(ctx context
 	result.hrwglr, err = client.ListByAutomationAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.HybridRunbookWorkerGroupClient", "ListByAutomationAccount", resp, "Failure responding to request")
+		return
 	}
 	if result.hrwglr.hasNextLink() && result.hrwglr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -381,6 +385,7 @@ func (client HybridRunbookWorkerGroupClient) Update(ctx context.Context, resourc
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.HybridRunbookWorkerGroupClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

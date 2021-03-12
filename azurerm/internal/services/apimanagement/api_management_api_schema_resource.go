@@ -5,6 +5,9 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
+
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -15,12 +18,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementApiSchema() *schema.Resource {
+func resourceApiManagementApiSchema() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApiManagementApiSchemaCreateUpdate,
-		Read:   resourceArmApiManagementApiSchemaRead,
-		Update: resourceArmApiManagementApiSchemaCreateUpdate,
-		Delete: resourceArmApiManagementApiSchemaDelete,
+		Create: resourceApiManagementApiSchemaCreateUpdate,
+		Read:   resourceApiManagementApiSchemaRead,
+		Update: resourceApiManagementApiSchemaCreateUpdate,
+		Delete: resourceApiManagementApiSchemaDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -33,13 +36,13 @@ func resourceArmApiManagementApiSchema() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"schema_id": azure.SchemaApiManagementChildName(),
+			"schema_id": schemaz.SchemaApiManagementChildName(),
 
-			"api_name": azure.SchemaApiManagementApiName(),
+			"api_name": schemaz.SchemaApiManagementApiName(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"api_management_name": azure.SchemaApiManagementName(),
+			"api_management_name": schemaz.SchemaApiManagementName(),
 
 			"content_type": {
 				Type:         schema.TypeString,
@@ -56,7 +59,7 @@ func resourceArmApiManagementApiSchema() *schema.Resource {
 	}
 }
 
-func resourceArmApiManagementApiSchemaCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementApiSchemaCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiSchemasClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -103,22 +106,22 @@ func resourceArmApiManagementApiSchemaCreateUpdate(d *schema.ResourceData, meta 
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmApiManagementApiSchemaRead(d, meta)
+	return resourceApiManagementApiSchemaRead(d, meta)
 }
 
-func resourceArmApiManagementApiSchemaRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementApiSchemaRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiSchemasClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ApiSchemaID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	apiName := id.Path["apis"]
-	schemaID := id.Path["schemas"]
+	serviceName := id.ServiceName
+	apiName := id.ApiName
+	schemaID := id.SchemaName
 
 	resp, err := client.Get(ctx, resourceGroup, serviceName, apiName, schemaID)
 	if err != nil {
@@ -146,19 +149,19 @@ func resourceArmApiManagementApiSchemaRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func resourceArmApiManagementApiSchemaDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementApiSchemaDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiSchemasClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ApiSchemaID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	apiName := id.Path["apis"]
-	schemaID := id.Path["schemas"]
+	serviceName := id.ServiceName
+	apiName := id.ApiName
+	schemaID := id.SchemaName
 
 	if resp, err := client.Delete(ctx, resourceGroup, serviceName, apiName, schemaID, "", utils.Bool(false)); err != nil {
 		if !utils.ResponseWasNotFound(resp) {

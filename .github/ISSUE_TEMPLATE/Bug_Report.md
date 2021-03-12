@@ -58,11 +58,11 @@ To obtain the debug output, see the [Terraform documentation on debugging](https
 
 <!--- If Terraform produced a panic, please provide a link to a GitHub Gist containing the output of the `crash.log`. --->
 
-### Expected Behavior
+### Expected Behaviour
 
 <!--- What should have happened? --->
 
-### Actual Behavior
+### Actual Behaviour
 
 <!--- What actually happened? --->
 

@@ -101,8 +101,8 @@ func CustomHttpsConfigurationV0ToV1(rawState map[string]interface{}, _ interface
 		return rawState, fmt.Errorf("couldn't find the `frontendEndpoints` segment in the old resource id %q", oldId)
 	}
 
-	newId := parse.NewFrontendEndpointID(parse.NewFrontDoorID(resourceGroup, frontdoorName), frontendEndpointName)
-	newIdStr := newId.ID(oldParsedId.SubscriptionID)
+	newId := parse.NewFrontendEndpointID(oldParsedId.SubscriptionID, resourceGroup, frontdoorName, frontendEndpointName)
+	newIdStr := newId.ID()
 
 	log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newIdStr)
 

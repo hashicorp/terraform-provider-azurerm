@@ -46,6 +46,7 @@ type ScopeAtManagementGroup struct {
 func (id ScopeAtManagementGroup) ScopeId() string {
 	return id.scopeId
 }
+
 func PolicyScopeID(input string) (PolicyScopeId, error) {
 	if input == "" {
 		return nil, fmt.Errorf("unable to parse Remediation Scope ID: ID is empty")

@@ -78,6 +78,7 @@ func (client DatabaseThreatDetectionPoliciesClient) CreateOrUpdate(ctx context.C
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.DatabaseThreatDetectionPoliciesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -160,6 +161,7 @@ func (client DatabaseThreatDetectionPoliciesClient) Get(ctx context.Context, res
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.DatabaseThreatDetectionPoliciesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return

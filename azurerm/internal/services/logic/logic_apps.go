@@ -29,6 +29,7 @@ func flattenLogicAppActionRunAfter(input map[string]interface{}) []interface{} {
 
 	return output
 }
+
 func expandLogicAppActionRunAfter(input []interface{}) map[string]interface{} {
 	if len(input) == 0 {
 		return nil

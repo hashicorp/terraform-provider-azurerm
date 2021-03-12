@@ -7,26 +7,27 @@ import (
 	"math"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2020-03-01-preview/operationalinsights"
+	"github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/operationalinsights"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmLogAnalyticsDataSourceWindowsPerformanceCounter() *schema.Resource {
+func resourceLogAnalyticsDataSourceWindowsPerformanceCounter() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmLogAnalyticsDataSourceWindowsPerformanceCounterCreateUpdate,
-		Read:   resourceArmLogAnalyticsDataSourceWindowsPerformanceCounterRead,
-		Update: resourceArmLogAnalyticsDataSourceWindowsPerformanceCounterCreateUpdate,
-		Delete: resourceArmLogAnalyticsDataSourceWindowsPerformanceCounterDelete,
+		Create: resourceLogAnalyticsDataSourceWindowsPerformanceCounterCreateUpdate,
+		Read:   resourceLogAnalyticsDataSourceWindowsPerformanceCounterRead,
+		Update: resourceLogAnalyticsDataSourceWindowsPerformanceCounterCreateUpdate,
+		Delete: resourceLogAnalyticsDataSourceWindowsPerformanceCounterDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
 			_, err := parse.LogAnalyticsDataSourceID(id)
@@ -55,7 +56,7 @@ func resourceArmLogAnalyticsDataSourceWindowsPerformanceCounter() *schema.Resour
 				Required:         true,
 				ForceNew:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     ValidateAzureRmLogAnalyticsWorkspaceName,
+				ValidateFunc:     validate.LogAnalyticsWorkspaceName,
 			},
 
 			"counter_name": {
@@ -93,7 +94,7 @@ type dataSourceWindowsPerformanceCounterProperty struct {
 	ObjectName      string `json:"objectName"`
 }
 
-func resourceArmLogAnalyticsDataSourceWindowsPerformanceCounterCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsDataSourceWindowsPerformanceCounterCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.DataSourcesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -142,10 +143,10 @@ func resourceArmLogAnalyticsDataSourceWindowsPerformanceCounterCreateUpdate(d *s
 
 	d.SetId(*resp.ID)
 
-	return resourceArmLogAnalyticsDataSourceWindowsPerformanceCounterRead(d, meta)
+	return resourceLogAnalyticsDataSourceWindowsPerformanceCounterRead(d, meta)
 }
 
-func resourceArmLogAnalyticsDataSourceWindowsPerformanceCounterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsDataSourceWindowsPerformanceCounterRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.DataSourcesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -189,7 +190,7 @@ func resourceArmLogAnalyticsDataSourceWindowsPerformanceCounterRead(d *schema.Re
 	return nil
 }
 
-func resourceArmLogAnalyticsDataSourceWindowsPerformanceCounterDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsDataSourceWindowsPerformanceCounterDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.DataSourcesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

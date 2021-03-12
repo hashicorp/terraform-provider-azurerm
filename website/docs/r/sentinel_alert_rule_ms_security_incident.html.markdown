@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * `display_name` - (Required) The friendly name of this Sentinel MS Security Incident Alert Rule.
 
-* `product_filter` - (Required) The Microsoft Security Service from where the alert will be generated. Possible values are `Azure Active Directory Identity Protection`, `Azure Advanced Threat Protection`, `Azure Security Center`, `Azure Security Center for IoT` and `Microsoft Cloud App Security`.
+* `product_filter` - (Required) The Microsoft Security Service from where the alert will be generated. Possible values are `Azure Active Directory Identity Protection`, `Azure Advanced Threat Protection`, `Azure Security Center`, `Azure Security Center for IoT`, `Microsoft Cloud App Security`, `Microsoft Defender Advanced Threat Protection` and `Office 365 Advanced Threat Protection`.
 
 * `severity_filter` - (Required) Only create incidents from alerts when alert severity level is contained in this list. Possible values are `High`, `Medium`, `Low` and `Informational`.
 
@@ -56,11 +56,15 @@ The following arguments are supported:
 
 ---
 
+* `alert_rule_template_guid` - (Optional) The GUID of the alert rule template which is used to create this Sentinel Scheduled Alert Rule. Changing this forces a new Sentinel MS Security Incident Alert Rule to be created.
+
 * `description` - (Optional) The description of this Sentinel MS Security Incident Alert Rule.
 
 * `enabled` - (Optional) Should this Sentinel MS Security Incident Alert Rule be enabled? Defaults to `true`.
 
 * `display_name_filter` - (Optional) Only create incidents when the alert display name contain text from this list, leave empty to apply no filter.
+
+* `display_name_exclude_filter` - (Optional) Only create incidents when the alert display name doesn't contain text from this list.
 
 ## Attributes Reference
 

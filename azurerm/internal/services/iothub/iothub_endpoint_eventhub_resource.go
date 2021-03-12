@@ -17,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmIotHubEndpointEventHub() *schema.Resource {
+func resourceIotHubEndpointEventHub() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmIotHubEndpointEventHubCreateUpdate,
-		Read:   resourceArmIotHubEndpointEventHubRead,
-		Update: resourceArmIotHubEndpointEventHubCreateUpdate,
-		Delete: resourceArmIotHubEndpointEventHubDelete,
+		Create: resourceIotHubEndpointEventHubCreateUpdate,
+		Read:   resourceIotHubEndpointEventHubRead,
+		Update: resourceIotHubEndpointEventHubCreateUpdate,
+		Delete: resourceIotHubEndpointEventHubDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -68,7 +68,7 @@ func resourceArmIotHubEndpointEventHub() *schema.Resource {
 	}
 }
 
-func resourceArmIotHubEndpointEventHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubEndpointEventHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -146,10 +146,10 @@ func resourceArmIotHubEndpointEventHubCreateUpdate(d *schema.ResourceData, meta 
 	}
 
 	d.SetId(resourceId)
-	return resourceArmIotHubEndpointEventHubRead(d, meta)
+	return resourceIotHubEndpointEventHubRead(d, meta)
 }
 
-func resourceArmIotHubEndpointEventHubRead(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubEndpointEventHubRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -189,7 +189,7 @@ func resourceArmIotHubEndpointEventHubRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func resourceArmIotHubEndpointEventHubDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubEndpointEventHubDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -27,7 +27,7 @@ resource "azurerm_application_insights" "example" {
 
 resource "azurerm_application_insights_web_test" "example" {
   name                    = "tf-test-appinsights-webtest"
-  location                = azurerm_resource_group.example.location
+  location                = azurerm_application_insights.example.location
   resource_group_name     = azurerm_resource_group.example.name
   application_insights_id = azurerm_application_insights.example.id
   kind                    = "ping"
@@ -50,10 +50,6 @@ output "webtest_id" {
   value = azurerm_application_insights_web_test.example.id
 }
 
-output "webtest_provisioning_state" {
-  value = azurerm_application_insights_web_test.example.provisioning_state
-}
-
 output "webtests_synthetic_id" {
   value = azurerm_application_insights_web_test.example.synthetic_monitor_id
 }
@@ -66,17 +62,21 @@ The following arguments are supported:
 * `name` - (Required) Specifies the name of the Application Insights WebTest. Changing this forces a
     new resource to be created.
 
+* `resource_group_name` - (Required) The name of the resource group in which to create the Application Insights WebTest. Changing this forces a new resource
+
 * `application_insights_id` - (Required) The ID of the Application Insights component on which the WebTest operates. Changing this forces a new resource to be created.
 
-* `location` - (Required) The location of the resource group.
+* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created. It needs to correlate with location of parent resource (azurerm_application_insights).
 
-* `kind` = (Required) The kind of web test that this web test watches. Choices are `ping` and `multistep`.
+* `kind` = (Required) The kind of web test that this web test watches. Choices are `ping` and `multistep`. Changing this forces a new resource to be created.
 
 * `geo_locations` - (Required) A list of where to physically run the tests from to give global coverage for accessibility of your application.
 
-* `configuration` - (Required) An XML configuration specification for a WebTest.
+~> **Note:** [Valid options for geo locations are described here](https://docs.microsoft.com/en-us/azure/azure-monitor/app/monitor-web-app-availability#location-population-tags)
 
-* `frequency` - (Optional) Interval in seconds between test runs for this WebTest. Default is `300`.
+* `configuration` - (Required) An XML configuration specification for a WebTest ([see here for more information](https://docs.microsoft.com/en-us/rest/api/application-insights/webtests/createorupdate/)).
+
+* `frequency` - (Optional) Interval in seconds between test runs for this WebTest. Valid options are `300`, `600` and `900`. Defaults to `300`.
 
 * `timeout` - (Optional) Seconds until this WebTest will timeout and fail. Default is `30`.
 
@@ -86,7 +86,7 @@ The following arguments are supported:
 
 * `description` - (Optional) Purpose/user defined descriptive test for this WebTest.
 
-* `tags` - (Optional) Resource tags.
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ## Timeouts
 

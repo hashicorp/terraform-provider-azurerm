@@ -46,7 +46,7 @@ func NewIntegrationRuntimeNodesClientWithBaseURI(baseURI string, subscriptionID 
 // Delete delete an integration runtime node
 // Parameters:
 // resourceGroupName - the name of the resource group. The name is case insensitive.
-// workspaceName - the name of the workspace
+// workspaceName - the name of the workspace.
 // integrationRuntimeName - integration runtime name
 // nodeName - integration runtime node name
 func (client IntegrationRuntimeNodesClient) Delete(ctx context.Context, resourceGroupName string, workspaceName string, integrationRuntimeName string, nodeName string) (result autorest.Response, err error) {
@@ -86,6 +86,7 @@ func (client IntegrationRuntimeNodesClient) Delete(ctx context.Context, resource
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimeNodesClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -134,7 +135,7 @@ func (client IntegrationRuntimeNodesClient) DeleteResponder(resp *http.Response)
 // Get get an integration runtime node
 // Parameters:
 // resourceGroupName - the name of the resource group. The name is case insensitive.
-// workspaceName - the name of the workspace
+// workspaceName - the name of the workspace.
 // integrationRuntimeName - integration runtime name
 // nodeName - integration runtime node name
 func (client IntegrationRuntimeNodesClient) Get(ctx context.Context, resourceGroupName string, workspaceName string, integrationRuntimeName string, nodeName string) (result SelfHostedIntegrationRuntimeNode, err error) {
@@ -174,6 +175,7 @@ func (client IntegrationRuntimeNodesClient) Get(ctx context.Context, resourceGro
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimeNodesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -223,7 +225,7 @@ func (client IntegrationRuntimeNodesClient) GetResponder(resp *http.Response) (r
 // Update create an integration runtime node
 // Parameters:
 // resourceGroupName - the name of the resource group. The name is case insensitive.
-// workspaceName - the name of the workspace
+// workspaceName - the name of the workspace.
 // integrationRuntimeName - integration runtime name
 // nodeName - integration runtime node name
 // updateIntegrationRuntimeNodeRequest - the parameters for updating an integration runtime node.
@@ -264,6 +266,7 @@ func (client IntegrationRuntimeNodesClient) Update(ctx context.Context, resource
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimeNodesClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

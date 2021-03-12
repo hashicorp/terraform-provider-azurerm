@@ -71,9 +71,11 @@ func (client OperationsClient) List(ctx context.Context) (result APIOperationLis
 	result.aolr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storagecache.OperationsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.aolr.hasNextLink() && result.aolr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

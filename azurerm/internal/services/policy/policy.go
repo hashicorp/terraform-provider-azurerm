@@ -6,9 +6,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-09-01/policy"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func getPolicyDefinitionByDisplayName(ctx context.Context, client *policy.DefinitionsClient, displayName, managementGroupName string) (policy.Definition, error) {
@@ -49,7 +48,7 @@ func getPolicyDefinitionByDisplayName(ctx context.Context, client *policy.Defini
 	return results[0], nil
 }
 
-func getPolicyDefinitionByName(ctx context.Context, client *policy.DefinitionsClient, name string, managementGroupName string) (res policy.Definition, err error) {
+func getPolicyDefinitionByName(ctx context.Context, client *policy.DefinitionsClient, name, managementGroupName string) (res policy.Definition, err error) {
 	if managementGroupName == "" {
 		res, err = client.Get(ctx, name)
 		if utils.ResponseWasNotFound(res.Response) {
@@ -62,7 +61,7 @@ func getPolicyDefinitionByName(ctx context.Context, client *policy.DefinitionsCl
 	return res, err
 }
 
-func getPolicySetDefinitionByName(ctx context.Context, client *policy.SetDefinitionsClient, name string, managementGroupID string) (res policy.SetDefinition, err error) {
+func getPolicySetDefinitionByName(ctx context.Context, client *policy.SetDefinitionsClient, name, managementGroupID string) (res policy.SetDefinition, err error) {
 	if managementGroupID == "" {
 		res, err = client.Get(ctx, name)
 		if utils.ResponseWasNotFound(res.Response) {
@@ -121,7 +120,7 @@ func expandParameterDefinitionsValueFromString(jsonString string) (map[string]*p
 	return result, err
 }
 
-func flattenParameterDefintionsValueToString(input map[string]*policy.ParameterDefinitionsValue) (string, error) {
+func flattenParameterDefinitionsValueToString(input map[string]*policy.ParameterDefinitionsValue) (string, error) {
 	if len(input) == 0 {
 		return "", nil
 	}

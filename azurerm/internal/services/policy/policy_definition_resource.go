@@ -58,7 +58,8 @@ func resourceArmPolicyDefinition() *schema.Resource {
 					string(policy.Custom),
 					string(policy.NotSpecified),
 					string(policy.Static),
-				}, true)},
+				}, true),
+			},
 
 			"mode": {
 				Type:     schema.TypeString,
@@ -283,7 +284,6 @@ func resourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	resp, err := getPolicyDefinitionByName(ctx, client, id.Name, managementGroupName)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Error reading Policy Definition %q - removing from state", d.Id())
@@ -312,7 +312,7 @@ func resourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{}) e
 			d.Set("metadata", metadataStr)
 		}
 
-		if parametersStr, err := flattenParameterDefintionsValueToString(props.Parameters); err == nil {
+		if parametersStr, err := flattenParameterDefinitionsValueToString(props.Parameters); err == nil {
 			d.Set("parameters", parametersStr)
 		} else {
 			return fmt.Errorf("flattening policy definition parameters %+v", err)
@@ -356,10 +356,9 @@ func resourceArmPolicyDefinitionDelete(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func policyDefinitionRefreshFunc(ctx context.Context, client *policy.DefinitionsClient, name string, managementGroupID string) resource.StateRefreshFunc {
+func policyDefinitionRefreshFunc(ctx context.Context, client *policy.DefinitionsClient, name, managementGroupID string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := getPolicyDefinitionByName(ctx, client, name, managementGroupID)
-
 		if err != nil {
 			return nil, strconv.Itoa(res.StatusCode), fmt.Errorf("issuing read request in policyAssignmentRefreshFunc for Policy Assignment %q: %+v", name, err)
 		}

@@ -96,6 +96,7 @@ func (client IncidentRelationsClient) CreateOrUpdateRelation(ctx context.Context
 	result, err = client.CreateOrUpdateRelationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.IncidentRelationsClient", "CreateOrUpdateRelation", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -194,6 +195,7 @@ func (client IncidentRelationsClient) DeleteRelation(ctx context.Context, resour
 	result, err = client.DeleteRelationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.IncidentRelationsClient", "DeleteRelation", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -289,6 +291,7 @@ func (client IncidentRelationsClient) GetRelation(ctx context.Context, resourceG
 	result, err = client.GetRelationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.IncidentRelationsClient", "GetRelation", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -391,9 +394,11 @@ func (client IncidentRelationsClient) List(ctx context.Context, resourceGroupNam
 	result.rl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.IncidentRelationsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.rl.hasNextLink() && result.rl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

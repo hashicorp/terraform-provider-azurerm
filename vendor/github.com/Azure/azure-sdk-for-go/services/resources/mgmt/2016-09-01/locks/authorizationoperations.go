@@ -72,9 +72,11 @@ func (client AuthorizationOperationsClient) List(ctx context.Context) (result Op
 	result.olr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "locks.AuthorizationOperationsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.olr.hasNextLink() && result.olr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

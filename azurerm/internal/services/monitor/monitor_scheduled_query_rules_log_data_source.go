@@ -13,9 +13,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmMonitorScheduledQueryRulesLog() *schema.Resource {
+func dataSourceMonitorScheduledQueryRulesLog() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmMonitorScheduledQueryRulesLogRead,
+		Read: dataSourceMonitorScheduledQueryRulesLogRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -91,7 +91,7 @@ func dataSourceArmMonitorScheduledQueryRulesLog() *schema.Resource {
 	}
 }
 
-func dataSourceArmMonitorScheduledQueryRulesLogRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceMonitorScheduledQueryRulesLogRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ScheduledQueryRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -49,8 +49,8 @@ The following arguments are supported:
 * `type` - (Required) The type of the Virtual Desktop Host Pool. Valid options are
     `Personal` or `Pooled`. Changing the type forces a new resource to be created.
 
-* `load_balancer_type` -  (Optional) `Breadthfirst` load balancing distributes new user sessions across all available session hosts in the host pool.
-    `Depthfirst` load balancing distributes new user sessions to an available session host with the highest number of connections but has not reached its maximum session limit threshold.
+* `load_balancer_type` -  (Optional) `BreadthFirst` load balancing distributes new user sessions across all available session hosts in the host pool.
+    `DepthFirst` load balancing distributes new user sessions to an available session host with the highest number of connections but has not reached its maximum session limit threshold.
     `Persistent` should be used if the host pool type is `Personal`
 
 * `friendly_name` - (Optional) A friendly name for the Virtual Desktop Host Pool.
@@ -107,5 +107,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Virtual Desktop Host Pools can be imported using the `resource id`, e.g.
 
 ```
-terraform import virtual_desktop_host_pool.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myGroup1/providers/Microsoft.DesktopVirtualization/hostpools/myhostpool
+terraform import azurerm_virtual_desktop_host_pool.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myGroup1/providers/Microsoft.DesktopVirtualization/hostpools/myhostpool
 ```

@@ -12,11 +12,18 @@ import (
 
 func CreateSecurityCenterContact(client *security.ContactsClient, ctx context.Context, securityContactName string, securityContact security.Contact) (result security.Contact, err error) {
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: client.SubscriptionID,
-			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.Pattern, Rule: `^[0-9A-Fa-f]{8}-([0-9A-Fa-f]{4}-){3}[0-9A-Fa-f]{12}$`, Chain: nil}}},
-		{TargetValue: securityContact,
-			Constraints: []validation.Constraint{{Target: "securityContact.ContactProperties", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "securityContact.ContactProperties.Email", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
+		{
+			TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.Pattern, Rule: `^[0-9A-Fa-f]{8}-([0-9A-Fa-f]{4}-){3}[0-9A-Fa-f]{12}$`, Chain: nil}},
+		},
+		{
+			TargetValue: securityContact,
+			Constraints: []validation.Constraint{{
+				Target: "securityContact.ContactProperties", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "securityContact.ContactProperties.Email", Name: validation.Null, Rule: true, Chain: nil}},
+			}},
+		},
+	}); err != nil {
 		return result, validation.NewError("security.ContactsClient", "Create", err.Error())
 	}
 

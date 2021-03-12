@@ -70,9 +70,11 @@ func (client OperationsClient) List(ctx context.Context) (result OperationEntity
 	result.oelr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cognitiveservices.OperationsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.oelr.hasNextLink() && result.oelr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

@@ -3,25 +3,25 @@ package kusto
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-02-15/kusto"
+	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-09-18/kusto"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmKustoDatabasePrincipalAssignment() *schema.Resource {
+func resourceKustoDatabasePrincipalAssignment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmKustoDatabasePrincipalAssignmentCreate,
-		Read:   resourceArmKustoDatabasePrincipalAssignmentRead,
-		Delete: resourceArmKustoDatabasePrincipalAssignmentDelete,
+		Create: resourceKustoDatabasePrincipalAssignmentCreate,
+		Read:   resourceKustoDatabasePrincipalAssignmentRead,
+		Delete: resourceKustoDatabasePrincipalAssignmentDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -40,21 +40,21 @@ func resourceArmKustoDatabasePrincipalAssignment() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMKustoClusterName,
+				ValidateFunc: validate.ClusterName,
 			},
 
 			"database_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMKustoDatabaseName,
+				ValidateFunc: validate.DatabaseName,
 			},
 
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMKustoDatabasePrincipalAssignmentName,
+				ValidateFunc: validate.DatabasePrincipalAssignmentName,
 			},
 
 			"tenant_id": {
@@ -109,7 +109,7 @@ func resourceArmKustoDatabasePrincipalAssignment() *schema.Resource {
 	}
 }
 
-func resourceArmKustoDatabasePrincipalAssignmentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoDatabasePrincipalAssignmentCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DatabasePrincipalAssignmentsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -166,32 +166,32 @@ func resourceArmKustoDatabasePrincipalAssignmentCreate(d *schema.ResourceData, m
 
 	d.SetId(*resp.ID)
 
-	return resourceArmKustoDatabasePrincipalAssignmentRead(d, meta)
+	return resourceKustoDatabasePrincipalAssignmentRead(d, meta)
 }
 
-func resourceArmKustoDatabasePrincipalAssignmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoDatabasePrincipalAssignmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DatabasePrincipalAssignmentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.KustoDatabasePrincipalAssignmentID(d.Id())
+	id, err := parse.DatabasePrincipalAssignmentID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Cluster, id.Database, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ClusterName, id.DatabaseName, id.PrincipalAssignmentName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("failed to retrieve Kusto Database Principal Assignment %q (Resource Group %q, Cluster %q, Database %q): %+v", id.Name, id.ResourceGroup, id.Cluster, id.Database, err)
+		return fmt.Errorf("failed to retrieve Kusto Database Principal Assignment %q (Resource Group %q, Cluster %q, Database %q): %+v", id.PrincipalAssignmentName, id.ResourceGroup, id.ClusterName, id.DatabaseName, err)
 	}
 
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("cluster_name", id.Cluster)
-	d.Set("database_name", id.Database)
-	d.Set("name", id.Name)
+	d.Set("cluster_name", id.ClusterName)
+	d.Set("database_name", id.DatabaseName)
+	d.Set("name", id.PrincipalAssignmentName)
 
 	tenantID := ""
 	if resp.TenantID != nil {
@@ -226,42 +226,24 @@ func resourceArmKustoDatabasePrincipalAssignmentRead(d *schema.ResourceData, met
 	return nil
 }
 
-func resourceArmKustoDatabasePrincipalAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoDatabasePrincipalAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DatabasePrincipalAssignmentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.KustoDatabasePrincipalAssignmentID(d.Id())
+	id, err := parse.DatabasePrincipalAssignmentID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Cluster, id.Database, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.ClusterName, id.DatabaseName, id.PrincipalAssignmentName)
 	if err != nil {
-		return fmt.Errorf("Error deleting Kusto Database Principal Assignment %q (Resource Group %q, Cluster %q, Database %q): %+v", id.Name, id.ResourceGroup, id.Cluster, id.Database, err)
+		return fmt.Errorf("Error deleting Kusto Database Principal Assignment %q (Resource Group %q, Cluster %q, Database %q): %+v", id.PrincipalAssignmentName, id.ResourceGroup, id.ClusterName, id.DatabaseName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of Kusto Database Principal Assignment %q (Resource Group %q, Cluster %q, Database %q): %+v", id.Name, id.ResourceGroup, id.Cluster, id.Database, err)
+		return fmt.Errorf("Error waiting for deletion of Kusto Database Principal Assignment %q (Resource Group %q, Cluster %q, Database %q): %+v", id.PrincipalAssignmentName, id.ResourceGroup, id.ClusterName, id.DatabaseName, err)
 	}
 
 	return nil
-}
-
-func validateAzureRMKustoDatabasePrincipalAssignmentName(v interface{}, k string) (warnings []string, errors []error) {
-	name := v.(string)
-
-	if regexp.MustCompile(`^[\s]+$`).MatchString(name) {
-		errors = append(errors, fmt.Errorf("%q must not consist of whitespaces only", k))
-	}
-
-	if !regexp.MustCompile(`^[a-zA-Z0-9\s.-]+$`).MatchString(name) {
-		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters, whitespaces, dashes and dots: %q", k, name))
-	}
-
-	if len(name) > 260 {
-		errors = append(errors, fmt.Errorf("%q must be (inclusive) between 4 and 22 characters long but is %d", k, len(name)))
-	}
-
-	return warnings, errors
 }

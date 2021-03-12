@@ -80,6 +80,7 @@ func (client SecureScoresClient) Get(ctx context.Context, secureScoreName string
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.SecureScoresClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -92,7 +93,7 @@ func (client SecureScoresClient) GetPreparer(ctx context.Context, secureScoreNam
 		"subscriptionId":  autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-01-01-preview"
+	const APIVersion = "2020-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -158,9 +159,11 @@ func (client SecureScoresClient) List(ctx context.Context) (result SecureScoresL
 	result.ssl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.SecureScoresClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.ssl.hasNextLink() && result.ssl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -172,7 +175,7 @@ func (client SecureScoresClient) ListPreparer(ctx context.Context) (*http.Reques
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-01-01-preview"
+	const APIVersion = "2020-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

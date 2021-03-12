@@ -74,6 +74,7 @@ func (client ConsumerInvitationsClient) Get(ctx context.Context, location string
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.ConsumerInvitationsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -148,9 +149,11 @@ func (client ConsumerInvitationsClient) ListInvitations(ctx context.Context, ski
 	result.cil, err = client.ListInvitationsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.ConsumerInvitationsClient", "ListInvitations", resp, "Failure responding to request")
+		return
 	}
 	if result.cil.hasNextLink() && result.cil.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -267,6 +270,7 @@ func (client ConsumerInvitationsClient) RejectInvitation(ctx context.Context, lo
 	result, err = client.RejectInvitationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.ConsumerInvitationsClient", "RejectInvitation", resp, "Failure responding to request")
+		return
 	}
 
 	return

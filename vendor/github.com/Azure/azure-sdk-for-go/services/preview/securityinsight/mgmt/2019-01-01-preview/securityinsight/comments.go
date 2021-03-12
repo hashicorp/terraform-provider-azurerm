@@ -97,9 +97,11 @@ func (client CommentsClient) ListByCase(ctx context.Context, resourceGroupName s
 	result.ccl, err = client.ListByCaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.CommentsClient", "ListByCase", resp, "Failure responding to request")
+		return
 	}
 	if result.ccl.hasNextLink() && result.ccl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

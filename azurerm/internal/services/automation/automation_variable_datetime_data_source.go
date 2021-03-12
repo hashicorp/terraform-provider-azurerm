@@ -6,9 +6,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceArmAutomationVariableDateTime() *schema.Resource {
+func dataSourceAutomationVariableDateTime() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmAutomationVariableDateTimeRead,
+		Read: dataSourceAutomationVariableDateTimeRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -18,6 +18,6 @@ func dataSourceArmAutomationVariableDateTime() *schema.Resource {
 	}
 }
 
-func dataSourceArmAutomationVariableDateTimeRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAutomationVariableDateTimeRead(d *schema.ResourceData, meta interface{}) error {
 	return dataSourceAutomationVariableRead(d, meta, "Datetime")
 }

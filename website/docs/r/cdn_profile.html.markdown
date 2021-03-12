@@ -14,8 +14,8 @@ Manages a CDN Profile to create a collection of CDN Endpoints.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "resourceGroup1"
-  location = "West US"
+  name     = "example-resources"
+  location = "West Europe"
 }
 
 resource "azurerm_cdn_profile" "example" {

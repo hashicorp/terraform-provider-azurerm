@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement"
@@ -13,19 +14,20 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	loganalyticsParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmLogAnalyticsSolution() *schema.Resource {
+func resourceLogAnalyticsSolution() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmLogAnalyticsSolutionCreateUpdate,
-		Read:   resourceArmLogAnalyticsSolutionRead,
-		Update: resourceArmLogAnalyticsSolutionCreateUpdate,
-		Delete: resourceArmLogAnalyticsSolutionDelete,
+		Create: resourceLogAnalyticsSolutionCreateUpdate,
+		Read:   resourceLogAnalyticsSolutionRead,
+		Update: resourceLogAnalyticsSolutionCreateUpdate,
+		Delete: resourceLogAnalyticsSolutionDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -49,7 +51,7 @@ func resourceArmLogAnalyticsSolution() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateAzureRmLogAnalyticsWorkspaceName,
+				ValidateFunc: validate.LogAnalyticsWorkspaceName,
 			},
 
 			"workspace_resource_id": {
@@ -97,7 +99,7 @@ func resourceArmLogAnalyticsSolution() *schema.Resource {
 	}
 }
 
-func resourceArmLogAnalyticsSolutionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsSolutionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.SolutionsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -157,10 +159,10 @@ func resourceArmLogAnalyticsSolutionCreateUpdate(d *schema.ResourceData, meta in
 
 	d.SetId(*solution.ID)
 
-	return resourceArmLogAnalyticsSolutionRead(d, meta)
+	return resourceLogAnalyticsSolutionRead(d, meta)
 }
 
-func resourceArmLogAnalyticsSolutionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsSolutionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.SolutionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -205,7 +207,15 @@ func resourceArmLogAnalyticsSolutionRead(d *schema.ResourceData, meta interface{
 	}
 
 	if props := resp.Properties; props != nil {
-		d.Set("workspace_resource_id", props.WorkspaceResourceID)
+		var workspaceId string
+		if props.WorkspaceResourceID != nil {
+			id, err := loganalyticsParse.LogAnalyticsWorkspaceID(*props.WorkspaceResourceID)
+			if err != nil {
+				return err
+			}
+			workspaceId = id.ID()
+		}
+		d.Set("workspace_resource_id", workspaceId)
 	}
 
 	if err := d.Set("plan", flattenAzureRmLogAnalyticsSolutionPlan(resp.Plan)); err != nil {
@@ -215,7 +225,7 @@ func resourceArmLogAnalyticsSolutionRead(d *schema.ResourceData, meta interface{
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmLogAnalyticsSolutionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsSolutionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.SolutionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

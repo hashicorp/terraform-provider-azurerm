@@ -91,6 +91,7 @@ func (client EntitiesClient) Expand(ctx context.Context, resourceGroupName strin
 	result, err = client.ExpandResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.EntitiesClient", "Expand", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -187,6 +188,7 @@ func (client EntitiesClient) Get(ctx context.Context, resourceGroupName string, 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.EntitiesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -224,6 +226,107 @@ func (client EntitiesClient) GetSender(req *http.Request) (*http.Response, error
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
 func (client EntitiesClient) GetResponder(resp *http.Response) (result EntityModel, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// GetInsights execute Insights for an entity.
+// Parameters:
+// resourceGroupName - the name of the resource group within the user's subscription. The name is case
+// insensitive.
+// operationalInsightsResourceProvider - the namespace of workspaces resource provider-
+// Microsoft.OperationalInsights.
+// workspaceName - the name of the workspace.
+// entityID - entity ID
+// parameters - the parameters required to execute insights on the given entity.
+func (client EntitiesClient) GetInsights(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, entityID string, parameters EntityGetInsightsParameters) (result EntityGetInsightsResponse, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/EntitiesClient.GetInsights")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.Pattern, Rule: `^[0-9A-Fa-f]{8}-([0-9A-Fa-f]{4}-){3}[0-9A-Fa-f]{12}$`, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: workspaceName,
+			Constraints: []validation.Constraint{{Target: "workspaceName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: parameters,
+			Constraints: []validation.Constraint{{Target: "parameters.StartTime", Name: validation.Null, Rule: true, Chain: nil},
+				{Target: "parameters.EndTime", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("securityinsight.EntitiesClient", "GetInsights", err.Error())
+	}
+
+	req, err := client.GetInsightsPreparer(ctx, resourceGroupName, operationalInsightsResourceProvider, workspaceName, entityID, parameters)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "securityinsight.EntitiesClient", "GetInsights", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetInsightsSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "securityinsight.EntitiesClient", "GetInsights", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.GetInsightsResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "securityinsight.EntitiesClient", "GetInsights", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// GetInsightsPreparer prepares the GetInsights request.
+func (client EntitiesClient) GetInsightsPreparer(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, entityID string, parameters EntityGetInsightsParameters) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"entityId":                            autorest.Encode("path", entityID),
+		"operationalInsightsResourceProvider": autorest.Encode("path", operationalInsightsResourceProvider),
+		"resourceGroupName":                   autorest.Encode("path", resourceGroupName),
+		"subscriptionId":                      autorest.Encode("path", client.SubscriptionID),
+		"workspaceName":                       autorest.Encode("path", workspaceName),
+	}
+
+	const APIVersion = "2019-01-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{operationalInsightsResourceProvider}/workspaces/{workspaceName}/providers/Microsoft.SecurityInsights/entities/{entityId}/getInsights", pathParameters),
+		autorest.WithJSON(parameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetInsightsSender sends the GetInsights request. The method will close the
+// http.Response Body if it receives an error.
+func (client EntitiesClient) GetInsightsSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// GetInsightsResponder handles the response to the GetInsights request. The method always
+// closes the http.Response Body.
+func (client EntitiesClient) GetInsightsResponder(resp *http.Response) (result EntityGetInsightsResponse, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -281,9 +384,11 @@ func (client EntitiesClient) List(ctx context.Context, resourceGroupName string,
 	result.el, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.EntitiesClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.el.hasNextLink() && result.el.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -363,5 +468,101 @@ func (client EntitiesClient) ListComplete(ctx context.Context, resourceGroupName
 		}()
 	}
 	result.page, err = client.List(ctx, resourceGroupName, operationalInsightsResourceProvider, workspaceName)
+	return
+}
+
+// Queries get Insights and Activities for an entity.
+// Parameters:
+// resourceGroupName - the name of the resource group within the user's subscription. The name is case
+// insensitive.
+// operationalInsightsResourceProvider - the namespace of workspaces resource provider-
+// Microsoft.OperationalInsights.
+// workspaceName - the name of the workspace.
+// entityID - entity ID
+func (client EntitiesClient) Queries(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, entityID string) (result GetQueriesResponse, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/EntitiesClient.Queries")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.Pattern, Rule: `^[0-9A-Fa-f]{8}-([0-9A-Fa-f]{4}-){3}[0-9A-Fa-f]{12}$`, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: workspaceName,
+			Constraints: []validation.Constraint{{Target: "workspaceName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("securityinsight.EntitiesClient", "Queries", err.Error())
+	}
+
+	req, err := client.QueriesPreparer(ctx, resourceGroupName, operationalInsightsResourceProvider, workspaceName, entityID)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "securityinsight.EntitiesClient", "Queries", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.QueriesSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "securityinsight.EntitiesClient", "Queries", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.QueriesResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "securityinsight.EntitiesClient", "Queries", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// QueriesPreparer prepares the Queries request.
+func (client EntitiesClient) QueriesPreparer(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, entityID string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"entityId":                            autorest.Encode("path", entityID),
+		"operationalInsightsResourceProvider": autorest.Encode("path", operationalInsightsResourceProvider),
+		"resourceGroupName":                   autorest.Encode("path", resourceGroupName),
+		"subscriptionId":                      autorest.Encode("path", client.SubscriptionID),
+		"workspaceName":                       autorest.Encode("path", workspaceName),
+	}
+
+	const APIVersion = "2019-01-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+		"kind":        autorest.Encode("query", "Insight"),
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{operationalInsightsResourceProvider}/workspaces/{workspaceName}/providers/Microsoft.SecurityInsights/entities/{entityId}/queries", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// QueriesSender sends the Queries request. The method will close the
+// http.Response Body if it receives an error.
+func (client EntitiesClient) QueriesSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// QueriesResponder handles the response to the Queries request. The method always
+// closes the http.Response Body.
+func (client EntitiesClient) QueriesResponder(resp *http.Response) (result GetQueriesResponse, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
 	return
 }

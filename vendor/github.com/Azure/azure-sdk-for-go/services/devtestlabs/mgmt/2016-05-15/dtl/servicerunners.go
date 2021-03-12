@@ -74,6 +74,7 @@ func (client ServiceRunnersClient) CreateOrUpdate(ctx context.Context, resourceG
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.ServiceRunnersClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -153,6 +154,7 @@ func (client ServiceRunnersClient) Delete(ctx context.Context, resourceGroupName
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.ServiceRunnersClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -229,6 +231,7 @@ func (client ServiceRunnersClient) Get(ctx context.Context, resourceGroupName st
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.ServiceRunnersClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -309,9 +312,11 @@ func (client ServiceRunnersClient) List(ctx context.Context, resourceGroupName s
 	result.rwcsr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.ServiceRunnersClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.rwcsr.hasNextLink() && result.rwcsr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

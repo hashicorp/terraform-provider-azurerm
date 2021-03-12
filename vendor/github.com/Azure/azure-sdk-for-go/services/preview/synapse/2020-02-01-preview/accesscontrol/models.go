@@ -232,8 +232,11 @@ func (page RolesListResponsePage) Values() []SynapseRole {
 }
 
 // Creates a new instance of the RolesListResponsePage type.
-func NewRolesListResponsePage(getNextPage func(context.Context, RolesListResponse) (RolesListResponse, error)) RolesListResponsePage {
-	return RolesListResponsePage{fn: getNextPage}
+func NewRolesListResponsePage(cur RolesListResponse, getNextPage func(context.Context, RolesListResponse) (RolesListResponse, error)) RolesListResponsePage {
+	return RolesListResponsePage{
+		fn:  getNextPage,
+		rlr: cur,
+	}
 }
 
 // SynapseRole synapse role details

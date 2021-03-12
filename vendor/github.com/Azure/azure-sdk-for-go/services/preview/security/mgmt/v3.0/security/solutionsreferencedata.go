@@ -77,6 +77,7 @@ func (client SolutionsReferenceDataClient) List(ctx context.Context) (result Sol
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.SolutionsReferenceDataClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -153,6 +154,7 @@ func (client SolutionsReferenceDataClient) ListByHomeRegion(ctx context.Context)
 	result, err = client.ListByHomeRegionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.SolutionsReferenceDataClient", "ListByHomeRegion", resp, "Failure responding to request")
+		return
 	}
 
 	return

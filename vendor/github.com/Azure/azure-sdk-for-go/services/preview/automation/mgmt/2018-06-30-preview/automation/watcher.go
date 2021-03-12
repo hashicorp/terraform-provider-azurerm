@@ -83,6 +83,7 @@ func (client WatcherClient) CreateOrUpdate(ctx context.Context, resourceGroupNam
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.WatcherClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -170,6 +171,7 @@ func (client WatcherClient) Delete(ctx context.Context, resourceGroupName string
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.WatcherClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -254,6 +256,7 @@ func (client WatcherClient) Get(ctx context.Context, resourceGroupName string, a
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.WatcherClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -340,9 +343,11 @@ func (client WatcherClient) ListByAutomationAccount(ctx context.Context, resourc
 	result.wlr, err = client.ListByAutomationAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.WatcherClient", "ListByAutomationAccount", resp, "Failure responding to request")
+		return
 	}
 	if result.wlr.hasNextLink() && result.wlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -467,6 +472,7 @@ func (client WatcherClient) Start(ctx context.Context, resourceGroupName string,
 	result, err = client.StartResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.WatcherClient", "Start", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -551,6 +557,7 @@ func (client WatcherClient) Stop(ctx context.Context, resourceGroupName string, 
 	result, err = client.StopResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.WatcherClient", "Stop", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -636,6 +643,7 @@ func (client WatcherClient) Update(ctx context.Context, resourceGroupName string
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.WatcherClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

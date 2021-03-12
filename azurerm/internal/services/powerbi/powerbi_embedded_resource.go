@@ -13,18 +13,19 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/powerbi/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/powerbi/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmPowerBIEmbedded() *schema.Resource {
+func resourcePowerBIEmbedded() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmPowerBIEmbeddedCreate,
-		Read:   resourceArmPowerBIEmbeddedRead,
-		Update: resourceArmPowerBIEmbeddedUpdate,
-		Delete: resourceArmPowerBIEmbeddedDelete,
+		Create: resourcePowerBIEmbeddedCreate,
+		Read:   resourcePowerBIEmbeddedRead,
+		Update: resourcePowerBIEmbeddedUpdate,
+		Delete: resourcePowerBIEmbeddedDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -34,7 +35,7 @@ func resourceArmPowerBIEmbedded() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.PowerBIEmbeddedID(id)
+			_, err := parse.EmbeddedID(id)
 			return err
 		}),
 
@@ -43,7 +44,7 @@ func resourceArmPowerBIEmbedded() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidatePowerBIEmbeddedName,
+				ValidateFunc: validate.EmbeddedName,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -68,7 +69,7 @@ func resourceArmPowerBIEmbedded() *schema.Resource {
 				Required: true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: ValidatePowerBIEmbeddedAdministratorName,
+					ValidateFunc: validate.EmbeddedAdministratorName,
 				},
 			},
 
@@ -77,7 +78,7 @@ func resourceArmPowerBIEmbedded() *schema.Resource {
 	}
 }
 
-func resourceArmPowerBIEmbeddedCreate(d *schema.ResourceData, meta interface{}) error {
+func resourcePowerBIEmbeddedCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).PowerBI.CapacityClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -130,30 +131,30 @@ func resourceArmPowerBIEmbeddedCreate(d *schema.ResourceData, meta interface{}) 
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmPowerBIEmbeddedRead(d, meta)
+	return resourcePowerBIEmbeddedRead(d, meta)
 }
 
-func resourceArmPowerBIEmbeddedRead(d *schema.ResourceData, meta interface{}) error {
+func resourcePowerBIEmbeddedRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).PowerBI.CapacityClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.PowerBIEmbeddedID(d.Id())
+	id, err := parse.EmbeddedID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.GetDetails(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.GetDetails(ctx, id.ResourceGroup, id.CapacityName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] PowerBI Embedded %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading PowerBI Embedded %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Error reading PowerBI Embedded %q (Resource Group %q): %+v", id.CapacityName, id.ResourceGroup, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.CapacityName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -173,7 +174,7 @@ func resourceArmPowerBIEmbeddedRead(d *schema.ResourceData, meta interface{}) er
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmPowerBIEmbeddedUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourcePowerBIEmbeddedUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).PowerBI.CapacityClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -204,27 +205,27 @@ func resourceArmPowerBIEmbeddedUpdate(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Error waiting for update of PowerBI Embedded %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	return resourceArmPowerBIEmbeddedRead(d, meta)
+	return resourcePowerBIEmbeddedRead(d, meta)
 }
 
-func resourceArmPowerBIEmbeddedDelete(d *schema.ResourceData, meta interface{}) error {
+func resourcePowerBIEmbeddedDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).PowerBI.CapacityClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.PowerBIEmbeddedID(d.Id())
+	id, err := parse.EmbeddedID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.CapacityName)
 	if err != nil {
-		return fmt.Errorf("Error deleting PowerBI Embedded %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Error deleting PowerBI Embedded %q (Resource Group %q): %+v", id.CapacityName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error waiting for deleting PowerBI Embedded %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("Error waiting for deleting PowerBI Embedded %q (Resource Group %q): %+v", id.CapacityName, id.ResourceGroup, err)
 		}
 	}
 

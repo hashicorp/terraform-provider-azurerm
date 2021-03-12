@@ -15,12 +15,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmPublicIpPrefix() *schema.Resource {
+func resourcePublicIpPrefix() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmPublicIpPrefixCreateUpdate,
-		Read:   resourceArmPublicIpPrefixRead,
-		Update: resourceArmPublicIpPrefixCreateUpdate,
-		Delete: resourceArmPublicIpPrefixDelete,
+		Create: resourcePublicIpPrefixCreateUpdate,
+		Read:   resourcePublicIpPrefixRead,
+		Update: resourcePublicIpPrefixCreateUpdate,
+		Delete: resourcePublicIpPrefixDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -74,7 +74,7 @@ func resourceArmPublicIpPrefix() *schema.Resource {
 	}
 }
 
-func resourceArmPublicIpPrefixCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourcePublicIpPrefixCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PublicIPPrefixesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -121,10 +121,10 @@ func resourceArmPublicIpPrefixCreateUpdate(d *schema.ResourceData, meta interfac
 
 	d.SetId(*read.ID)
 
-	return resourceArmPublicIpPrefixRead(d, meta)
+	return resourcePublicIpPrefixRead(d, meta)
 }
 
-func resourceArmPublicIpPrefixRead(d *schema.ResourceData, meta interface{}) error {
+func resourcePublicIpPrefixRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PublicIPPrefixesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -165,7 +165,7 @@ func resourceArmPublicIpPrefixRead(d *schema.ResourceData, meta interface{}) err
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmPublicIpPrefixDelete(d *schema.ResourceData, meta interface{}) error {
+func resourcePublicIpPrefixDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PublicIPPrefixesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

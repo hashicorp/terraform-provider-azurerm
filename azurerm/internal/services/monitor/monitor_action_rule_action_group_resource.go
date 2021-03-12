@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/alertsmanagement/mgmt/2019-05-05/alertsmanagement"
+	"github.com/Azure/azure-sdk-for-go/services/preview/alertsmanagement/mgmt/2019-06-01-preview/alertsmanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -20,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMonitorActionRuleActionGroup() *schema.Resource {
+func resourceMonitorActionRuleActionGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMonitorActionRuleActionGroupCreateUpdate,
-		Read:   resourceArmMonitorActionRuleActionGroupRead,
-		Update: resourceArmMonitorActionRuleActionGroupCreateUpdate,
-		Delete: resourceArmMonitorActionRuleActionGroupDelete,
+		Create: resourceMonitorActionRuleActionGroupCreateUpdate,
+		Read:   resourceMonitorActionRuleActionGroupRead,
+		Update: resourceMonitorActionRuleActionGroupCreateUpdate,
+		Delete: resourceMonitorActionRuleActionGroupDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -100,7 +100,7 @@ func resourceArmMonitorActionRuleActionGroup() *schema.Resource {
 	}
 }
 
-func resourceArmMonitorActionRuleActionGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorActionRuleActionGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ActionRulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -130,8 +130,8 @@ func resourceArmMonitorActionRuleActionGroupCreateUpdate(d *schema.ResourceData,
 		Location: utils.String(location.Normalize("Global")),
 		Properties: &alertsmanagement.ActionGroup{
 			ActionGroupID: utils.String(d.Get("action_group_id").(string)),
-			Scope:         expandArmActionRuleScope(d.Get("scope").([]interface{})),
-			Conditions:    expandArmActionRuleConditions(d.Get("condition").([]interface{})),
+			Scope:         expandActionRuleScope(d.Get("scope").([]interface{})),
+			Conditions:    expandActionRuleConditions(d.Get("condition").([]interface{})),
 			Description:   utils.String(d.Get("description").(string)),
 			Status:        actionRuleStatus,
 			Type:          alertsmanagement.TypeActionGroup,
@@ -153,10 +153,10 @@ func resourceArmMonitorActionRuleActionGroupCreateUpdate(d *schema.ResourceData,
 	}
 
 	d.SetId(*resp.ID)
-	return resourceArmMonitorActionRuleActionGroupRead(d, meta)
+	return resourceMonitorActionRuleActionGroupRead(d, meta)
 }
 
-func resourceArmMonitorActionRuleActionGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorActionRuleActionGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ActionRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -183,10 +183,10 @@ func resourceArmMonitorActionRuleActionGroupRead(d *schema.ResourceData, meta in
 		d.Set("description", props.Description)
 		d.Set("action_group_id", props.ActionGroupID)
 		d.Set("enabled", props.Status == alertsmanagement.Enabled)
-		if err := d.Set("scope", flattenArmActionRuleScope(props.Scope)); err != nil {
+		if err := d.Set("scope", flattenActionRuleScope(props.Scope)); err != nil {
 			return fmt.Errorf("setting scope: %+v", err)
 		}
-		if err := d.Set("condition", flattenArmActionRuleConditions(props.Conditions)); err != nil {
+		if err := d.Set("condition", flattenActionRuleConditions(props.Conditions)); err != nil {
 			return fmt.Errorf("setting condition: %+v", err)
 		}
 	}
@@ -194,7 +194,7 @@ func resourceArmMonitorActionRuleActionGroupRead(d *schema.ResourceData, meta in
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmMonitorActionRuleActionGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorActionRuleActionGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ActionRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

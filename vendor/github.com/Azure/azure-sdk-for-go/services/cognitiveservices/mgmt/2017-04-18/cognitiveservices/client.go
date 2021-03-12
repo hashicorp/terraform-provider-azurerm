@@ -95,6 +95,7 @@ func (client BaseClient) CheckDomainAvailability(ctx context.Context, parameters
 	result, err = client.CheckDomainAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cognitiveservices.BaseClient", "CheckDomainAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -180,6 +181,7 @@ func (client BaseClient) CheckSkuAvailability(ctx context.Context, location stri
 	result, err = client.CheckSkuAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cognitiveservices.BaseClient", "CheckSkuAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return

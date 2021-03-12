@@ -1,7 +1,7 @@
 package client
 
 import (
-	appconf "github.com/Azure/azure-sdk-for-go/services/appconfiguration/mgmt/2019-10-01/appconfiguration"
+	appconf "github.com/Azure/azure-sdk-for-go/services/appconfiguration/mgmt/2020-06-01/appconfiguration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 

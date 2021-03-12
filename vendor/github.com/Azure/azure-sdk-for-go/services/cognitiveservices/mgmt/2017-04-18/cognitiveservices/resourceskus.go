@@ -77,9 +77,11 @@ func (client ResourceSkusClient) List(ctx context.Context) (result ResourceSkusR
 	result.rsr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cognitiveservices.ResourceSkusClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.rsr.hasNextLink() && result.rsr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

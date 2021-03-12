@@ -10,12 +10,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-func resourceArmLogicAppTriggerRecurrence() *schema.Resource {
+func resourceLogicAppTriggerRecurrence() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmLogicAppTriggerRecurrenceCreateUpdate,
-		Read:   resourceArmLogicAppTriggerRecurrenceRead,
-		Update: resourceArmLogicAppTriggerRecurrenceCreateUpdate,
-		Delete: resourceArmLogicAppTriggerRecurrenceDelete,
+		Create: resourceLogicAppTriggerRecurrenceCreateUpdate,
+		Read:   resourceLogicAppTriggerRecurrenceRead,
+		Update: resourceLogicAppTriggerRecurrenceCreateUpdate,
+		Delete: resourceLogicAppTriggerRecurrenceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -76,7 +76,7 @@ func resourceArmLogicAppTriggerRecurrence() *schema.Resource {
 	}
 }
 
-func resourceArmLogicAppTriggerRecurrenceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceLogicAppTriggerRecurrenceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	trigger := map[string]interface{}{
 		"recurrence": map[string]interface{}{
 			"frequency": d.Get("frequency").(string),
@@ -100,10 +100,10 @@ func resourceArmLogicAppTriggerRecurrenceCreateUpdate(d *schema.ResourceData, me
 		return err
 	}
 
-	return resourceArmLogicAppTriggerRecurrenceRead(d, meta)
+	return resourceLogicAppTriggerRecurrenceRead(d, meta)
 }
 
-func resourceArmLogicAppTriggerRecurrenceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceLogicAppTriggerRecurrenceRead(d *schema.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -158,7 +158,7 @@ func resourceArmLogicAppTriggerRecurrenceRead(d *schema.ResourceData, meta inter
 	return nil
 }
 
-func resourceArmLogicAppTriggerRecurrenceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceLogicAppTriggerRecurrenceDelete(d *schema.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err

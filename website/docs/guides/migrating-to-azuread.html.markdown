@@ -20,21 +20,49 @@ This guide covers how to migrate from using the following Data Sources and Resou
 
 ## Updating the Provider block
 
-As the AzureAD and AzureRM Provider support the same authentication methods - it's possible to update the Provider block by setting the new Provider name and version, for example:
+As the AzureAD and AzureRM Provider support the same authentication methods, it's possible to simply add the AzureAD Provider to the `required_providers` block and declare the configuration in a Provider block as per the following example:
 
 ```hcl
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "=2.46.0"
+    }
+  }
+}
+
 provider "azurerm" {
-  version = "=1.44.0"
+  features {}
 }
 ```
 
 can become:
 
 ```hcl
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "=2.46.0"
+    }
+    azuread = {
+      source  = "hashicorp/azuread"
+      version = "=1.3.0"
+    }
+  }
+}
+
+provider "azurerm" {
+  features {}
+}
+
 provider "azuread" {
-  version = "=0.10.0"
+  features {}
 }
 ```
+
+> For modules containing only resources from the AzureAD Provider, we recommend that you also remove the AzureRM Provider settings.
 
 ## Updating the Terraform Configurations
 
@@ -73,7 +101,7 @@ resource "azurerm_azuread_service_principal_password" "example" {
 }
 ```
 
-we can remove the `azurerm_` prefix from each of the resource names and interpolations to use the `AzureAD` provider instead by making this:
+we can remove the `azurerm_` prefix from each of the resource names and interpolations to use the `AzureAD` provider instead of by making this:
 
 ```hcl
 resource "azuread_application" "example" {
@@ -91,7 +119,7 @@ resource "azuread_service_principal_password" "example" {
 }
 ```
 
-At this point it should be possible to run `terraform init`, which will download the new AzureAD Provider.
+At this point, it should be possible to run `terraform init`, which will download the new AzureAD Provider.
 
 
 ## Migrating Resources in the State
@@ -174,7 +202,7 @@ $ diff current.tfstate new.tfstate
 
 There should be no unexpected or unrelated changes in your diff output.
 
-For remote state, you will need to push the new statefile to your backend.
+For a remote state, you will need to push the new statefile to your backend.
 
 ```shell
 $ terraform state push new.tfstate
@@ -201,4 +229,4 @@ configuration and real physical resources that exist. As a result, no
 actions need to be performed.
 ```
 
-At this point you've switched over to using [the new Azure Active Directory provider](http://terraform.io/docs/providers/azuread/index.html)! You can stay up to date with Releases (and file Feature Requests/Bugs) [on the Github repository](https://github.com/terraform-providers/terraform-provider-azuread).
+At this point, you've switched over to using [the new Azure Active Directory provider](https://registry.terraform.io/providers/hashicorp/azuread/latest/docs)! You can stay up to date with Releases (and file Feature Requests/Bugs) [on the Github repository](https://github.com/terraform-providers/terraform-provider-azuread).

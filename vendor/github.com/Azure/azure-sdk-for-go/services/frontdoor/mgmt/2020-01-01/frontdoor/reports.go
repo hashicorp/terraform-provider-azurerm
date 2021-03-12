@@ -91,6 +91,7 @@ func (client ReportsClient) GetLatencyScorecards(ctx context.Context, resourceGr
 	result, err = client.GetLatencyScorecardsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.ReportsClient", "GetLatencyScorecards", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -194,6 +195,7 @@ func (client ReportsClient) GetTimeseries(ctx context.Context, resourceGroupName
 	result, err = client.GetTimeseriesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.ReportsClient", "GetTimeseries", resp, "Failure responding to request")
+		return
 	}
 
 	return

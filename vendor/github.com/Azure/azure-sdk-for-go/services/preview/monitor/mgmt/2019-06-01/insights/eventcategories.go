@@ -70,6 +70,7 @@ func (client EventCategoriesClient) List(ctx context.Context) (result EventCateg
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.EventCategoriesClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return

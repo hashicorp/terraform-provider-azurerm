@@ -94,6 +94,7 @@ func (client TableClient) Create(ctx context.Context, resourceGroupName string, 
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.TableClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -191,6 +192,7 @@ func (client TableClient) Delete(ctx context.Context, resourceGroupName string, 
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.TableClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -287,6 +289,7 @@ func (client TableClient) Get(ctx context.Context, resourceGroupName string, acc
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.TableClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -379,9 +382,11 @@ func (client TableClient) List(ctx context.Context, resourceGroupName string, ac
 	result.ltr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.TableClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.ltr.hasNextLink() && result.ltr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -515,6 +520,7 @@ func (client TableClient) Update(ctx context.Context, resourceGroupName string, 
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.TableClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

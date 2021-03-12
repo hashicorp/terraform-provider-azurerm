@@ -81,6 +81,7 @@ func (client KeysClient) ListByAutomationAccount(ctx context.Context, resourceGr
 	result, err = client.ListByAutomationAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.KeysClient", "ListByAutomationAccount", resp, "Failure responding to request")
+		return
 	}
 
 	return

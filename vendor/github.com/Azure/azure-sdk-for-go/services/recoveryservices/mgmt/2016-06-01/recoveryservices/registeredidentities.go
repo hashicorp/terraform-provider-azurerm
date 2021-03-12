@@ -74,6 +74,7 @@ func (client RegisteredIdentitiesClient) Delete(ctx context.Context, resourceGro
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "recoveryservices.RegisteredIdentitiesClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
