@@ -300,17 +300,17 @@ func resourceExpressRouteCircuitPeeringRead(d *schema.ResourceData, meta interfa
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.CircuitName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ExpressRouteCircuitName, id.PeeringName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Express Route Circuit Peering %q (Circuit %q / Resource Group %q): %+v", id.Name, id.CircuitName, id.ResourceGroup, err)
+		return fmt.Errorf("Error making Read request on Express Route Circuit Peering %q (Circuit %q / Resource Group %q): %+v", id.PeeringName, id.ExpressRouteCircuitName, id.ResourceGroup, err)
 	}
 
-	d.Set("peering_type", id.Name)
-	d.Set("express_route_circuit_name", id.CircuitName)
+	d.Set("peering_type", id.PeeringName)
+	d.Set("express_route_circuit_name", id.ExpressRouteCircuitName)
 	d.Set("resource_group_name", id.ResourceGroup)
 
 	if props := resp.ExpressRouteCircuitPeeringPropertiesFormat; props != nil {
@@ -350,22 +350,22 @@ func resourceExpressRouteCircuitPeeringDelete(d *schema.ResourceData, meta inter
 		return err
 	}
 
-	locks.ByName(id.CircuitName, expressRouteCircuitResourceName)
-	defer locks.UnlockByName(id.CircuitName, expressRouteCircuitResourceName)
+	locks.ByName(id.ExpressRouteCircuitName, expressRouteCircuitResourceName)
+	defer locks.UnlockByName(id.ExpressRouteCircuitName, expressRouteCircuitResourceName)
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.CircuitName, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.ExpressRouteCircuitName, id.PeeringName)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error issuing delete request for Express Route Circuit Peering %q (Circuit %q / Resource Group %q): %+v", id.Name, id.CircuitName, id.ResourceGroup, err)
+		return fmt.Errorf("Error issuing delete request for Express Route Circuit Peering %q (Circuit %q / Resource Group %q): %+v", id.PeeringName, id.ExpressRouteCircuitName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error waiting for Express Route Circuit Peering %q (Circuit %q / Resource Group %q) to be deleted: %+v", id.Name, id.CircuitName, id.ResourceGroup, err)
+		return fmt.Errorf("Error waiting for Express Route Circuit Peering %q (Circuit %q / Resource Group %q) to be deleted: %+v", id.PeeringName, id.ExpressRouteCircuitName, id.ResourceGroup, err)
 	}
 
 	return err

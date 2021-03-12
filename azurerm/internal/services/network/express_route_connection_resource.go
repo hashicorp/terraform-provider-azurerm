@@ -153,7 +153,6 @@ func resourceArmExpressRouteConnection() *schema.Resource {
 	}
 }
 func resourceArmExpressRouteConnectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Network.ExpressRouteConnectionsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -165,7 +164,7 @@ func resourceArmExpressRouteConnectionCreateUpdate(d *schema.ResourceData, meta 
 		return err
 	}
 
-	id := parse.NewExpressRouteConnectionID(subscriptionId, resourceGroup, expressRouteGatewayId.Name, name)
+	id := parse.NewExpressRouteConnectionID(expressRouteGatewayId.SubscriptionId, expressRouteGatewayId.ResourceGroup, expressRouteGatewayId.Name, name)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, expressRouteCircuitResourceName, name)
@@ -220,7 +219,6 @@ func resourceArmExpressRouteConnectionCreateUpdate(d *schema.ResourceData, meta 
 }
 
 func resourceArmExpressRouteConnectionRead(d *schema.ResourceData, meta interface{}) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Network.ExpressRouteConnectionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -240,7 +238,7 @@ func resourceArmExpressRouteConnectionRead(d *schema.ResourceData, meta interfac
 	}
 
 	d.Set("name", id.Name)
-	d.Set("express_route_gateway_id", parse.NewExpressRouteGatewayID(id.ResourceGroup, id.ExpressRouteGatewayName).ID(subscriptionId))
+	d.Set("express_route_gateway_id", parse.NewExpressRouteGatewayID(id.SubscriptionId, id.ResourceGroup, id.ExpressRouteGatewayName).ID())
 
 	if props := resp.ExpressRouteConnectionProperties; props != nil {
 		if v := props.ExpressRouteCircuitPeering; v != nil {
