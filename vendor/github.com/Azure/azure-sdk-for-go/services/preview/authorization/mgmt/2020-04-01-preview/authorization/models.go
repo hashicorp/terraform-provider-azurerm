@@ -21,13 +21,14 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-09-01-preview/authorization"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2020-04-01-preview/authorization"
 
 // ClassicAdministrator classic Administrators
 type ClassicAdministrator struct {
@@ -550,6 +551,35 @@ type DenyAssignmentProperties struct {
 	ExcludePrincipals *[]Principal `json:"excludePrincipals,omitempty"`
 	// IsSystemProtected - Specifies whether this deny assignment was created by Azure and cannot be edited or deleted.
 	IsSystemProtected *bool `json:"isSystemProtected,omitempty"`
+}
+
+// ErrorAdditionalInfo the resource management error additional info.
+type ErrorAdditionalInfo struct {
+	// Type - READ-ONLY; The additional info type.
+	Type *string `json:"type,omitempty"`
+	// Info - READ-ONLY; The additional info.
+	Info interface{} `json:"info,omitempty"`
+}
+
+// ErrorDetail the error detail.
+type ErrorDetail struct {
+	// Code - READ-ONLY; The error code.
+	Code *string `json:"code,omitempty"`
+	// Message - READ-ONLY; The error message.
+	Message *string `json:"message,omitempty"`
+	// Target - READ-ONLY; The error target.
+	Target *string `json:"target,omitempty"`
+	// Details - READ-ONLY; The error details.
+	Details *[]ErrorDetail `json:"details,omitempty"`
+	// AdditionalInfo - READ-ONLY; The error additional info.
+	AdditionalInfo *[]ErrorAdditionalInfo `json:"additionalInfo,omitempty"`
+}
+
+// ErrorResponse common error response for all Azure Resource Manager APIs to return error details for
+// failed operations. (This also follows the OData error response format.).
+type ErrorResponse struct {
+	// Error - The error object.
+	Error *ErrorDetail `json:"error,omitempty"`
 }
 
 // Permission role definition permissions.
@@ -1223,6 +1253,12 @@ type RoleAssignmentProperties struct {
 	PrincipalType PrincipalType `json:"principalType,omitempty"`
 	// CanDelegate - The delegation flag used for creating a role assignment
 	CanDelegate *bool `json:"canDelegate,omitempty"`
+	// Description - Description of role assignment
+	Description *string `json:"description,omitempty"`
+	// Condition - The conditions on the role assignment. This limits the resources it can be assigned to. e.g.: @Resource[Microsoft.Storage/storageAccounts/blobServices/containers:ContainerName] StringEqualsIgnoreCase 'foo_storage_container'
+	Condition *string `json:"condition,omitempty"`
+	// ConditionVersion - Version of the condition. Currently accepted value is '2.0'
+	ConditionVersion *string `json:"conditionVersion,omitempty"`
 }
 
 // RoleAssignmentPropertiesWithScope role assignment properties with scope.
@@ -1237,6 +1273,22 @@ type RoleAssignmentPropertiesWithScope struct {
 	PrincipalType PrincipalType `json:"principalType,omitempty"`
 	// CanDelegate - The Delegation flag for the role assignment
 	CanDelegate *bool `json:"canDelegate,omitempty"`
+	// Description - Description of role assignment
+	Description *string `json:"description,omitempty"`
+	// Condition - The conditions on the role assignment. This limits the resources it can be assigned to. e.g.: @Resource[Microsoft.Storage/storageAccounts/blobServices/containers:ContainerName] StringEqualsIgnoreCase 'foo_storage_container'
+	Condition *string `json:"condition,omitempty"`
+	// ConditionVersion - Version of the condition. Currently accepted value is '2.0'
+	ConditionVersion *string `json:"conditionVersion,omitempty"`
+	// CreatedOn - Time it was created
+	CreatedOn *date.Time `json:"createdOn,omitempty"`
+	// UpdatedOn - Time it was updated
+	UpdatedOn *date.Time `json:"updatedOn,omitempty"`
+	// CreatedBy - Id of the user who created the assignment
+	CreatedBy *string `json:"createdBy,omitempty"`
+	// UpdatedBy - Id of the user who updated the assignment
+	UpdatedBy *string `json:"updatedBy,omitempty"`
+	// DelegatedManagedIdentityResourceID - Id of the delegated managed identity resource
+	DelegatedManagedIdentityResourceID *string `json:"delegatedManagedIdentityResourceId,omitempty"`
 }
 
 // RoleDefinition role definition.

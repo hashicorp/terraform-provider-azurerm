@@ -100,7 +100,7 @@ func (client RoleAssignmentsClient) CreatePreparer(ctx context.Context, scope st
 		"scope":              scope,
 	}
 
-	const APIVersion = "2018-09-01-preview"
+	const APIVersion = "2020-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -185,7 +185,7 @@ func (client RoleAssignmentsClient) CreateByIDPreparer(ctx context.Context, role
 		"roleId": roleID,
 	}
 
-	const APIVersion = "2018-09-01-preview"
+	const APIVersion = "2020-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -262,7 +262,7 @@ func (client RoleAssignmentsClient) DeletePreparer(ctx context.Context, scope st
 		"scope":              scope,
 	}
 
-	const APIVersion = "2018-09-01-preview"
+	const APIVersion = "2020-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -286,7 +286,7 @@ func (client RoleAssignmentsClient) DeleteSender(req *http.Request) (*http.Respo
 func (client RoleAssignmentsClient) DeleteResponder(resp *http.Response) (result RoleAssignment, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
@@ -335,7 +335,7 @@ func (client RoleAssignmentsClient) DeleteByIDPreparer(ctx context.Context, role
 		"roleId": roleID,
 	}
 
-	const APIVersion = "2018-09-01-preview"
+	const APIVersion = "2020-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -410,7 +410,7 @@ func (client RoleAssignmentsClient) GetPreparer(ctx context.Context, scope strin
 		"scope":              scope,
 	}
 
-	const APIVersion = "2018-09-01-preview"
+	const APIVersion = "2020-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -483,7 +483,7 @@ func (client RoleAssignmentsClient) GetByIDPreparer(ctx context.Context, roleID 
 		"roleId": roleID,
 	}
 
-	const APIVersion = "2018-09-01-preview"
+	const APIVersion = "2020-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -563,7 +563,7 @@ func (client RoleAssignmentsClient) ListPreparer(ctx context.Context, filter str
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-09-01-preview"
+	const APIVersion = "2020-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -693,7 +693,7 @@ func (client RoleAssignmentsClient) ListForResourcePreparer(ctx context.Context,
 		"subscriptionId":            autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-09-01-preview"
+	const APIVersion = "2020-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -815,7 +815,7 @@ func (client RoleAssignmentsClient) ListForResourceGroupPreparer(ctx context.Con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-09-01-preview"
+	const APIVersion = "2020-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -936,7 +936,7 @@ func (client RoleAssignmentsClient) ListForScopePreparer(ctx context.Context, sc
 		"scope": scope,
 	}
 
-	const APIVersion = "2018-09-01-preview"
+	const APIVersion = "2020-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
