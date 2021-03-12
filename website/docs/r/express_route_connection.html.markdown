@@ -44,8 +44,8 @@ resource "azurerm_express_route_circuit" "example" {
   name                  = "example-expressroutecircuit"
   location              = azurerm_resource_group.example.location
   resource_group_name   = azurerm_resource_group.example.name
-  service_provider_name = "Equinix"
-  peering_location      = "Silicon Valley"
+  service_provider_name = "Microsoft ER Test"
+  peering_location      = "Area51"
   bandwidth_in_mbps     = 50
 
   sku {
@@ -60,7 +60,7 @@ resource "azurerm_express_route_circuit_peering" "example" {
   peering_type                  = "AzurePrivatePeering"
   express_route_circuit_name    = azurerm_express_route_circuit.example.name
   resource_group_name           = azurerm_resource_group.example.name
-  shared_key                    = "SSSSsssssshhhhhItsASecret"
+  shared_key                    = "ItsASecret"
   peer_asn                      = 100
   primary_peer_address_prefix   = "192.168.1.0/30"
   secondary_peer_address_prefix = "192.168.2.0/30"
@@ -80,9 +80,9 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Express Route Connection. Changing this forces a new resource to be created.
 
-* `express_route_gateway_id` - (Required) The ID of the Express Route Gateway within which this connection should be created. Changing this forces a new resource to be created.
-
 * `express_route_circuit_peering_id` - (Required) The ID of the Express Route Circuit Peering within which this connection should be created. Changing this forces a new resource to be created.
+
+* `express_route_gateway_id` - (Required) The ID of the Express Route Gateway within which this connection should be created. Changing this forces a new resource to be created.
 
 * `authorization_key` - (Optional) The authorization key to establish the connection.
 

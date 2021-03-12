@@ -2,13 +2,11 @@ package network
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
@@ -81,7 +79,7 @@ func resourceArmExpressRouteConnection() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Computed:     true,
-							ValidateFunc: azure.ValidateResourceID,
+							ValidateFunc: validate.HubRouteTableID,
 						},
 
 						"propagated_route_table": {
@@ -107,7 +105,7 @@ func resourceArmExpressRouteConnection() *schema.Resource {
 										Computed: true,
 										Elem: &schema.Schema{
 											Type:         schema.TypeString,
-											ValidateFunc: azure.ValidateResourceID,
+											ValidateFunc: validate.HubRouteTableID,
 										},
 									},
 								},
@@ -155,31 +153,34 @@ func resourceArmExpressRouteConnection() *schema.Resource {
 	}
 }
 func resourceArmExpressRouteConnectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Network.ExpressRouteConnectionsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
-
-	id, err := parse.ExpressRouteGatewayID(d.Get("express_route_gateway_id").(string))
+	resourceGroup := d.Get("resource_group_name").(string)
+	expressRouteGatewayId, err := parse.ExpressRouteGatewayID(d.Get("express_route_gateway_id").(string))
 	if err != nil {
 		return err
 	}
 
+	id := parse.NewExpressRouteConnectionID(subscriptionId, resourceGroup, expressRouteGatewayId.Name, name)
+
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, name)
+		existing, err := client.Get(ctx, resourceGroup, expressRouteCircuitResourceName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for present of existing ExpressRouteConnection %q (Resource Group %q / expressRouteGatewayName %q): %+v", name, id.ResourceGroup, id.Name, err)
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_network_express_route_connection", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_express_route_connection", id.ID())
 		}
 	}
 
-	putExpressRouteConnectionParameters := network.ExpressRouteConnection{
+	expressRouteConnectionParameters := network.ExpressRouteConnection{
 		Name: utils.String(d.Get("name").(string)),
 		ExpressRouteConnectionProperties: &network.ExpressRouteConnectionProperties{
 			ExpressRouteCircuitPeering: &network.ExpressRouteCircuitPeeringID{
@@ -189,40 +190,31 @@ func resourceArmExpressRouteConnectionCreateUpdate(d *schema.ResourceData, meta 
 	}
 
 	if v, ok := d.GetOk("authorization_key"); ok {
-		putExpressRouteConnectionParameters.ExpressRouteConnectionProperties.AuthorizationKey = utils.String(v.(string))
+		expressRouteConnectionParameters.ExpressRouteConnectionProperties.AuthorizationKey = utils.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("enable_internet_security"); ok {
-		putExpressRouteConnectionParameters.ExpressRouteConnectionProperties.EnableInternetSecurity = utils.Bool(v.(bool))
+		expressRouteConnectionParameters.ExpressRouteConnectionProperties.EnableInternetSecurity = utils.Bool(v.(bool))
 	}
 
 	if v, ok := d.GetOk("routing_weight"); ok {
-		putExpressRouteConnectionParameters.ExpressRouteConnectionProperties.RoutingWeight = utils.Int32(int32(v.(int)))
+		expressRouteConnectionParameters.ExpressRouteConnectionProperties.RoutingWeight = utils.Int32(int32(v.(int)))
 	}
 
 	if v, ok := d.GetOk("routing"); ok {
-		putExpressRouteConnectionParameters.ExpressRouteConnectionProperties.RoutingConfiguration = expandArmExpressRouteConnectionRouting(v.([]interface{}))
+		expressRouteConnectionParameters.ExpressRouteConnectionProperties.RoutingConfiguration = expandArmExpressRouteConnectionRouting(v.([]interface{}))
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, name, putExpressRouteConnectionParameters)
+	future, err := client.CreateOrUpdate(ctx, resourceGroup, expressRouteGatewayId.Name, name, expressRouteConnectionParameters)
 	if err != nil {
-		return fmt.Errorf("creating/updating ExpressRouteConnection %q (Resource Group %q / expressRouteGatewayName %q): %+v", name, id.ResourceGroup, id.Name, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on creating/updating future for ExpressRouteConnection %q (Resource Group %q / expressRouteGatewayName %q): %+v", name, id.ResourceGroup, id.Name, err)
+		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, name)
-	if err != nil {
-		return fmt.Errorf("retrieving ExpressRouteConnection %q (Resource Group %q / expressRouteGatewayName %q): %+v", name, id.ResourceGroup, id.Name, err)
-	}
-
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for ExpressRouteConnection %q (Resource Group %q / expressRouteGatewayName %q) ID", name, id.ResourceGroup, id.Name)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceArmExpressRouteConnectionRead(d, meta)
 }
@@ -241,16 +233,14 @@ func resourceArmExpressRouteConnectionRead(d *schema.ResourceData, meta interfac
 	resp, err := client.Get(ctx, id.ResourceGroup, id.ExpressRouteGatewayName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] network %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-
-		return fmt.Errorf("retrieving Network ExpressRouteConnection %q (Resource Group %q / expressRouteGatewayName %q): %+v", id.Name, id.ResourceGroup, id.ExpressRouteGatewayName, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
-	d.Set("expresss_route_gateway_id", parse.NewExpressRouteGatewayID(id.ResourceGroup, id.Name).ID(subscriptionId))
+	d.Set("express_route_gateway_id", parse.NewExpressRouteGatewayID(id.ResourceGroup, id.ExpressRouteGatewayName).ID(subscriptionId))
 
 	if props := resp.ExpressRouteConnectionProperties; props != nil {
 		if v := props.ExpressRouteCircuitPeering; v != nil {
@@ -289,11 +279,11 @@ func resourceArmExpressRouteConnectionDelete(d *schema.ResourceData, meta interf
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.ExpressRouteGatewayName, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting ExpressRouteConnection %q (Resource Group %q / expressRouteGatewayName %q): %+v", id.Name, id.ResourceGroup, id.ExpressRouteGatewayName, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on deleting future for ExpressRouteConnection %q (Resource Group %q / expressRouteGatewayName %q): %+v", id.Name, id.ResourceGroup, id.ExpressRouteGatewayName, err)
+		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return nil
