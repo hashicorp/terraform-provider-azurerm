@@ -3041,6 +3041,8 @@ func flattenApplicationGatewayRewriteRuleSets(input *[]network.ApplicationGatewa
 
 					requestConfigs := make([]interface{}, 0)
 					responseConfigs := make([]interface{}, 0)
+					urlConfigs := make([]interface{}, 0)
+
 					if rule.ActionSet != nil {
 						actionSet := *rule.ActionSet
 
@@ -3075,9 +3077,28 @@ func flattenApplicationGatewayRewriteRuleSets(input *[]network.ApplicationGatewa
 								responseConfigs = append(responseConfigs, responseConfig)
 							}
 						}
+
+						if actionSet.URLConfiguration != nil {
+							config := *actionSet.URLConfiguration
+							urlConfig := map[string]interface{}{}
+
+							if config.ModifiedPath != nil {
+								urlConfig["path"] = *config.ModifiedPath
+							}
+
+							if config.ModifiedQueryString != nil {
+								urlConfig["query_string"] = *config.ModifiedQueryString
+							}
+
+							if config.Reroute != nil {
+								urlConfig["reroute"] = *config.Reroute
+							}
+							urlConfigs = append(urlConfigs, urlConfig)
+						}
 					}
 					ruleOutput["request_header_configuration"] = requestConfigs
 					ruleOutput["response_header_configuration"] = responseConfigs
+					ruleOutput["url_configuration"] = urlConfigs
 
 					rules = append(rules, ruleOutput)
 				}
