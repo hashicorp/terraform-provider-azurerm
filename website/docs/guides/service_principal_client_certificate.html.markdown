@@ -25,13 +25,13 @@ We recommend using either a Service Principal or Managed Service Identity when r
 
 A Service Principal is a security principal within Azure Active Directory which can be granted access to resources within Azure Subscriptions. To authenticate with a Service Principal, you will need to create an Application object within Azure Active Directory, which you will use as a means of authentication, either [using a Client Secret](service_principal_client_secret.html) or a Client Certificate (which is documented in this guide). This can be done using the Azure Portal.
 
-This guide will cover how to generate a client certificate, how to create an Application and linked Service Principal, and then how to assign the Client Certificate to the Application so that it can be used for authentication. Once that's done finally we're going to grant the Service Principal permission to manage resources in the Subscription - to do this we're going to assign `Contributor` rights to the Subscription - however [it's possible to assign other permissions](https://azure.microsoft.com/en-gb/documentation/articles/role-based-access-built-in-roles/) depending on your configuration.
+This guide will cover how to generate a client certificate, how to create an Application and linked Service Principal, and then how to assign the Client Certificate to the Application so that it can be used for authentication. Once that's done finally we're going to grant the Service Principal permission to manage resources in the Subscription - to do this we're going to assign `Contributor` rights to the Subscription - however, [it's possible to assign other permissions](https://azure.microsoft.com/en-gb/documentation/articles/role-based-access-built-in-roles/) depending on your configuration.
 
 ---
 
 ## Generating a Client Certificate
 
-Firstly we need to create a certificate which can be used for authentication. To do that we're going to generate a Certificate Signing Request (also known as a CSR) using `openssl` (this can also be achieved using PowerShell, however that's outside the scope of this document):
+Firstly we need to create a certificate which can be used for authentication. To do that we're going to generate a Certificate Signing Request (also known as a CSR) using `openssl` (this can also be achieved using PowerShell, however, that's outside the scope of this document):
 
 ```shell
 $ openssl req -newkey rsa:4096 -nodes -keyout "service-principal.key" -out "service-principal.csr"
@@ -60,8 +60,8 @@ Now that we've generated a certificate, we can create the Azure Active Directory
 We're going to create the Application in the Azure Portal - to do this navigate to [the **Azure Active Directory** overview](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/Overview) within the Azure Portal - [then select the **App Registration** blade](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredApps/RegisteredApps/Overview). Click the **New registration** button at the top to add a new Application within Azure Active Directory. On this page, set the following values then press **Create**:
 
 - **Name** - this is a friendly identifier and can be anything (e.g. "Terraform")
-- **Supported Account Types** - this should be set to "Accounts in this organizational directory only (single tenant)"
-- **Redirect URI** - you should choose "Web" in for the URI type. the actual value can be left blank
+- **Supported Account Types** - this should be set to "Accounts in this organizational directory only (single-tenant)"
+- **Redirect URI** - you should choose "Web" for the URI type. the actual value can be left blank
 
 At this point the newly created Azure Active Directory application should be visible on-screen - if it's not, navigate to the [the **App Registration** blade](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredApps/RegisteredApps/Overview) and select the Azure Active Directory application.
 
@@ -71,7 +71,7 @@ At the top of this page, you'll need to take note of the "Application (client) I
 
 To associate the public portion of the Client Certificate (the `*.crt` file) with the Azure Active Directory Application - to do this select **Certificates & secrets**. This screen displays the Certificates and Client Secrets (i.e. passwords) which are associated with this Azure Active Directory Application.
 
-The Public Key associated with the generated Certificate can be uploaded by selecting **Upload Certificate**, selecting the file which should be uploaded (in the example above, this'd be `service-principal.crt`) - and then hitting **Add**.
+The Public Key associated with the generated Certificate can be uploaded by selecting **Upload Certificate**, selecting the file which should be uploaded (in the example above, that'd be `service-principal.crt`) - and then hit **Add**.
 
 ### Allowing the Service Principal to manage the Subscription
 
@@ -99,12 +99,23 @@ $ export ARM_SUBSCRIPTION_ID="00000000-0000-0000-0000-000000000000"
 $ export ARM_TENANT_ID="00000000-0000-0000-0000-000000000000"
 ```
 
-The following Provider block can be specified - where `1.44.0` is the version of the Azure Provider that you'd like to use:
+The following Terraform and Provider blocks can be specified - where `2.46.0` is the version of the Azure Provider that you'd like to use:
 
 ```hcl
+# We strongly recommend using the required_providers block to set the
+# Azure Provider source and version being used
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "=2.46.0"
+    }
+  }
+}
+
+# Configure the Microsoft Azure Provider
 provider "azurerm" {
-  # Whilst version is optional, we /strongly recommend/ using it to pin the version of the Provider being used
-  version = "=1.44.0"
+  features {}
 }
 ```
 
@@ -122,9 +133,20 @@ It's also possible to configure these variables either in-line or from using var
 variable "client_certificate_path" {}
 variable "client_certificate_password" {}
 
+# We strongly recommend using the required_providers block to set the
+# Azure Provider source and version being used
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "=2.46.0"
+    }
+  }
+}
+
+# Configure the Microsoft Azure Provider
 provider "azurerm" {
-  # Whilst version is optional, we /strongly recommend/ using it to pin the version of the Provider being used
-  version = "=1.44.0"
+  features {}
 
   subscription_id             = "00000000-0000-0000-0000-000000000000"
   client_id                   = "00000000-0000-0000-0000-000000000000"

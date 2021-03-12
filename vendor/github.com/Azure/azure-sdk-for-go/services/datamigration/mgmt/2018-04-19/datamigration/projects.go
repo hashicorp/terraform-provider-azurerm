@@ -75,6 +75,7 @@ func (client ProjectsClient) CreateOrUpdate(ctx context.Context, parameters Proj
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datamigration.ProjectsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -156,6 +157,7 @@ func (client ProjectsClient) Delete(ctx context.Context, groupName string, servi
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datamigration.ProjectsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -236,6 +238,7 @@ func (client ProjectsClient) Get(ctx context.Context, groupName string, serviceN
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datamigration.ProjectsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -314,9 +317,11 @@ func (client ProjectsClient) ListByResourceGroup(ctx context.Context, groupName 
 	result.pl, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datamigration.ProjectsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.pl.hasNextLink() && result.pl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -432,6 +437,7 @@ func (client ProjectsClient) Update(ctx context.Context, parameters Project, gro
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datamigration.ProjectsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

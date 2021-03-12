@@ -15,12 +15,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmLocalNetworkGateway() *schema.Resource {
+func resourceLocalNetworkGateway() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmLocalNetworkGatewayCreateUpdate,
-		Read:   resourceArmLocalNetworkGatewayRead,
-		Update: resourceArmLocalNetworkGatewayCreateUpdate,
-		Delete: resourceArmLocalNetworkGatewayDelete,
+		Create: resourceLocalNetworkGatewayCreateUpdate,
+		Read:   resourceLocalNetworkGatewayRead,
+		Update: resourceLocalNetworkGatewayCreateUpdate,
+		Delete: resourceLocalNetworkGatewayDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -44,8 +44,15 @@ func resourceArmLocalNetworkGateway() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"gateway_address": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ExactlyOneOf: []string{"gateway_address", "gateway_fqdn"},
+			},
+
+			"gateway_fqdn": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ExactlyOneOf: []string{"gateway_address", "gateway_fqdn"},
 			},
 
 			"address_space": {
@@ -86,7 +93,7 @@ func resourceArmLocalNetworkGateway() *schema.Resource {
 	}
 }
 
-func resourceArmLocalNetworkGatewayCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceLocalNetworkGatewayCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.LocalNetworkGatewaysClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -108,8 +115,6 @@ func resourceArmLocalNetworkGatewayCreateUpdate(d *schema.ResourceData, meta int
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	ipAddress := d.Get("gateway_address").(string)
-
 	t := d.Get("tags").(map[string]interface{})
 
 	gateway := network.LocalNetworkGateway{
@@ -117,10 +122,17 @@ func resourceArmLocalNetworkGatewayCreateUpdate(d *schema.ResourceData, meta int
 		Location: &location,
 		LocalNetworkGatewayPropertiesFormat: &network.LocalNetworkGatewayPropertiesFormat{
 			LocalNetworkAddressSpace: &network.AddressSpace{},
-			GatewayIPAddress:         &ipAddress,
 			BgpSettings:              expandLocalNetworkGatewayBGPSettings(d),
 		},
 		Tags: tags.Expand(t),
+	}
+
+	ipAddress := d.Get("gateway_address").(string)
+	fqdn := d.Get("gateway_fqdn").(string)
+	if ipAddress != "" {
+		gateway.LocalNetworkGatewayPropertiesFormat.GatewayIPAddress = &ipAddress
+	} else {
+		gateway.LocalNetworkGatewayPropertiesFormat.Fqdn = &fqdn
 	}
 
 	// There is a bug in the provider where the address space ordering doesn't change as expected.
@@ -156,10 +168,10 @@ func resourceArmLocalNetworkGatewayCreateUpdate(d *schema.ResourceData, meta int
 
 	d.SetId(*read.ID)
 
-	return resourceArmLocalNetworkGatewayRead(d, meta)
+	return resourceLocalNetworkGatewayRead(d, meta)
 }
 
-func resourceArmLocalNetworkGatewayRead(d *schema.ResourceData, meta interface{}) error {
+func resourceLocalNetworkGatewayRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.LocalNetworkGatewaysClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -187,6 +199,7 @@ func resourceArmLocalNetworkGatewayRead(d *schema.ResourceData, meta interface{}
 
 	if props := resp.LocalNetworkGatewayPropertiesFormat; props != nil {
 		d.Set("gateway_address", props.GatewayIPAddress)
+		d.Set("gateway_fqdn", props.Fqdn)
 
 		if lnas := props.LocalNetworkAddressSpace; lnas != nil {
 			d.Set("address_space", lnas.AddressPrefixes)
@@ -200,7 +213,7 @@ func resourceArmLocalNetworkGatewayRead(d *schema.ResourceData, meta interface{}
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmLocalNetworkGatewayDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceLocalNetworkGatewayDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.LocalNetworkGatewaysClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

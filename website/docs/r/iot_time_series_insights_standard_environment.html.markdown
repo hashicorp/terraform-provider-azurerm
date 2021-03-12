@@ -15,7 +15,7 @@ Manages an Azure IoT Time Series Insights Standard Environment.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "northeurope"
+  location = "West Europe"
 }
 resource "azurerm_iot_time_series_insights_standard_environment" "example" {
   name                = "example"
@@ -40,7 +40,7 @@ The following arguments are supported:
 
 * `data_retention_time` - (Required) Specifies the ISO8601 timespan specifying the minimum number of days the environment's events will be available for query. Changing this forces a new resource to be created.
 
-* `storage_limit_exceeded_behavior` - (Optional) Specifies the behavior the IoT Time Series Insights service should take when the environment's capacity has been exceeded. Valid values include `PauseIngress` and `PurgeOldData`. Defaults to `PurgeOldData`.
+* `storage_limit_exceeded_behavior` - (Optional) Specifies the behaviour the IoT Time Series Insights service should take when the environment's capacity has been exceeded. Valid values include `PauseIngress` and `PurgeOldData`. Defaults to `PurgeOldData`.
 
 * `partition_key` - (Optional) The name of the event property which will be used to partition data. Changing this forces a new resource to be created.
 

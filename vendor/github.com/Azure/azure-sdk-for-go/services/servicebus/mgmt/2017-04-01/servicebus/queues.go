@@ -87,6 +87,7 @@ func (client QueuesClient) CreateOrUpdate(ctx context.Context, resourceGroupName
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.QueuesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -186,6 +187,7 @@ func (client QueuesClient) CreateOrUpdateAuthorizationRule(ctx context.Context, 
 	result, err = client.CreateOrUpdateAuthorizationRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.QueuesClient", "CreateOrUpdateAuthorizationRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -278,6 +280,7 @@ func (client QueuesClient) Delete(ctx context.Context, resourceGroupName string,
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.QueuesClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -370,6 +373,7 @@ func (client QueuesClient) DeleteAuthorizationRule(ctx context.Context, resource
 	result, err = client.DeleteAuthorizationRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.QueuesClient", "DeleteAuthorizationRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -459,6 +463,7 @@ func (client QueuesClient) Get(ctx context.Context, resourceGroupName string, na
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.QueuesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -552,6 +557,7 @@ func (client QueuesClient) GetAuthorizationRule(ctx context.Context, resourceGro
 	result, err = client.GetAuthorizationRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.QueuesClient", "GetAuthorizationRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -643,9 +649,11 @@ func (client QueuesClient) ListAuthorizationRules(ctx context.Context, resourceG
 	result.sarlr, err = client.ListAuthorizationRulesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.QueuesClient", "ListAuthorizationRules", resp, "Failure responding to request")
+		return
 	}
 	if result.sarlr.hasNextLink() && result.sarlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -784,9 +792,11 @@ func (client QueuesClient) ListByNamespace(ctx context.Context, resourceGroupNam
 	result.sqlr, err = client.ListByNamespaceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.QueuesClient", "ListByNamespace", resp, "Failure responding to request")
+		return
 	}
 	if result.sqlr.hasNextLink() && result.sqlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -922,6 +932,7 @@ func (client QueuesClient) ListKeys(ctx context.Context, resourceGroupName strin
 	result, err = client.ListKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.QueuesClient", "ListKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1017,6 +1028,7 @@ func (client QueuesClient) RegenerateKeys(ctx context.Context, resourceGroupName
 	result, err = client.RegenerateKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.QueuesClient", "RegenerateKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return

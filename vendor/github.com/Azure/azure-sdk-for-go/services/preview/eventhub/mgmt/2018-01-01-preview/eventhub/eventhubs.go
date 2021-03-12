@@ -67,7 +67,7 @@ func (client EventHubsClient) CreateOrUpdate(ctx context.Context, resourceGroupN
 			Constraints: []validation.Constraint{{Target: "namespaceName", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "namespaceName", Name: validation.MinLength, Rule: 6, Chain: nil}}},
 		{TargetValue: eventHubName,
-			Constraints: []validation.Constraint{{Target: "eventHubName", Name: validation.MaxLength, Rule: 50, Chain: nil},
+			Constraints: []validation.Constraint{{Target: "eventHubName", Name: validation.MaxLength, Rule: 256, Chain: nil},
 				{Target: "eventHubName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.Properties", Name: validation.Null, Rule: false,
@@ -105,6 +105,7 @@ func (client EventHubsClient) CreateOrUpdate(ctx context.Context, resourceGroupN
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.EventHubsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -179,7 +180,7 @@ func (client EventHubsClient) CreateOrUpdateAuthorizationRule(ctx context.Contex
 			Constraints: []validation.Constraint{{Target: "namespaceName", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "namespaceName", Name: validation.MinLength, Rule: 6, Chain: nil}}},
 		{TargetValue: eventHubName,
-			Constraints: []validation.Constraint{{Target: "eventHubName", Name: validation.MaxLength, Rule: 50, Chain: nil},
+			Constraints: []validation.Constraint{{Target: "eventHubName", Name: validation.MaxLength, Rule: 256, Chain: nil},
 				{Target: "eventHubName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: authorizationRuleName,
 			Constraints: []validation.Constraint{{Target: "authorizationRuleName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
@@ -205,6 +206,7 @@ func (client EventHubsClient) CreateOrUpdateAuthorizationRule(ctx context.Contex
 	result, err = client.CreateOrUpdateAuthorizationRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.EventHubsClient", "CreateOrUpdateAuthorizationRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -277,7 +279,7 @@ func (client EventHubsClient) Delete(ctx context.Context, resourceGroupName stri
 			Constraints: []validation.Constraint{{Target: "namespaceName", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "namespaceName", Name: validation.MinLength, Rule: 6, Chain: nil}}},
 		{TargetValue: eventHubName,
-			Constraints: []validation.Constraint{{Target: "eventHubName", Name: validation.MaxLength, Rule: 50, Chain: nil},
+			Constraints: []validation.Constraint{{Target: "eventHubName", Name: validation.MaxLength, Rule: 256, Chain: nil},
 				{Target: "eventHubName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("eventhub.EventHubsClient", "Delete", err.Error())
 	}
@@ -298,6 +300,7 @@ func (client EventHubsClient) Delete(ctx context.Context, resourceGroupName stri
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.EventHubsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -367,7 +370,7 @@ func (client EventHubsClient) DeleteAuthorizationRule(ctx context.Context, resou
 			Constraints: []validation.Constraint{{Target: "namespaceName", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "namespaceName", Name: validation.MinLength, Rule: 6, Chain: nil}}},
 		{TargetValue: eventHubName,
-			Constraints: []validation.Constraint{{Target: "eventHubName", Name: validation.MaxLength, Rule: 50, Chain: nil},
+			Constraints: []validation.Constraint{{Target: "eventHubName", Name: validation.MaxLength, Rule: 256, Chain: nil},
 				{Target: "eventHubName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: authorizationRuleName,
 			Constraints: []validation.Constraint{{Target: "authorizationRuleName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
@@ -390,6 +393,7 @@ func (client EventHubsClient) DeleteAuthorizationRule(ctx context.Context, resou
 	result, err = client.DeleteAuthorizationRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.EventHubsClient", "DeleteAuthorizationRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -459,7 +463,7 @@ func (client EventHubsClient) Get(ctx context.Context, resourceGroupName string,
 			Constraints: []validation.Constraint{{Target: "namespaceName", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "namespaceName", Name: validation.MinLength, Rule: 6, Chain: nil}}},
 		{TargetValue: eventHubName,
-			Constraints: []validation.Constraint{{Target: "eventHubName", Name: validation.MaxLength, Rule: 50, Chain: nil},
+			Constraints: []validation.Constraint{{Target: "eventHubName", Name: validation.MaxLength, Rule: 256, Chain: nil},
 				{Target: "eventHubName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("eventhub.EventHubsClient", "Get", err.Error())
 	}
@@ -480,6 +484,7 @@ func (client EventHubsClient) Get(ctx context.Context, resourceGroupName string,
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.EventHubsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -550,7 +555,7 @@ func (client EventHubsClient) GetAuthorizationRule(ctx context.Context, resource
 			Constraints: []validation.Constraint{{Target: "namespaceName", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "namespaceName", Name: validation.MinLength, Rule: 6, Chain: nil}}},
 		{TargetValue: eventHubName,
-			Constraints: []validation.Constraint{{Target: "eventHubName", Name: validation.MaxLength, Rule: 50, Chain: nil},
+			Constraints: []validation.Constraint{{Target: "eventHubName", Name: validation.MaxLength, Rule: 256, Chain: nil},
 				{Target: "eventHubName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: authorizationRuleName,
 			Constraints: []validation.Constraint{{Target: "authorizationRuleName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
@@ -573,6 +578,7 @@ func (client EventHubsClient) GetAuthorizationRule(ctx context.Context, resource
 	result, err = client.GetAuthorizationRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.EventHubsClient", "GetAuthorizationRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -643,7 +649,7 @@ func (client EventHubsClient) ListAuthorizationRules(ctx context.Context, resour
 			Constraints: []validation.Constraint{{Target: "namespaceName", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "namespaceName", Name: validation.MinLength, Rule: 6, Chain: nil}}},
 		{TargetValue: eventHubName,
-			Constraints: []validation.Constraint{{Target: "eventHubName", Name: validation.MaxLength, Rule: 50, Chain: nil},
+			Constraints: []validation.Constraint{{Target: "eventHubName", Name: validation.MaxLength, Rule: 256, Chain: nil},
 				{Target: "eventHubName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("eventhub.EventHubsClient", "ListAuthorizationRules", err.Error())
 	}
@@ -665,9 +671,11 @@ func (client EventHubsClient) ListAuthorizationRules(ctx context.Context, resour
 	result.arlr, err = client.ListAuthorizationRulesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.EventHubsClient", "ListAuthorizationRules", resp, "Failure responding to request")
+		return
 	}
 	if result.arlr.hasNextLink() && result.arlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -806,9 +814,11 @@ func (client EventHubsClient) ListByNamespace(ctx context.Context, resourceGroup
 	result.lr, err = client.ListByNamespaceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.EventHubsClient", "ListByNamespace", resp, "Failure responding to request")
+		return
 	}
 	if result.lr.hasNextLink() && result.lr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -921,7 +931,7 @@ func (client EventHubsClient) ListKeys(ctx context.Context, resourceGroupName st
 			Constraints: []validation.Constraint{{Target: "namespaceName", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "namespaceName", Name: validation.MinLength, Rule: 6, Chain: nil}}},
 		{TargetValue: eventHubName,
-			Constraints: []validation.Constraint{{Target: "eventHubName", Name: validation.MaxLength, Rule: 50, Chain: nil},
+			Constraints: []validation.Constraint{{Target: "eventHubName", Name: validation.MaxLength, Rule: 256, Chain: nil},
 				{Target: "eventHubName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: authorizationRuleName,
 			Constraints: []validation.Constraint{{Target: "authorizationRuleName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
@@ -944,6 +954,7 @@ func (client EventHubsClient) ListKeys(ctx context.Context, resourceGroupName st
 	result, err = client.ListKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.EventHubsClient", "ListKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1016,7 +1027,7 @@ func (client EventHubsClient) RegenerateKeys(ctx context.Context, resourceGroupN
 			Constraints: []validation.Constraint{{Target: "namespaceName", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "namespaceName", Name: validation.MinLength, Rule: 6, Chain: nil}}},
 		{TargetValue: eventHubName,
-			Constraints: []validation.Constraint{{Target: "eventHubName", Name: validation.MaxLength, Rule: 50, Chain: nil},
+			Constraints: []validation.Constraint{{Target: "eventHubName", Name: validation.MaxLength, Rule: 256, Chain: nil},
 				{Target: "eventHubName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: authorizationRuleName,
 			Constraints: []validation.Constraint{{Target: "authorizationRuleName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
@@ -1039,6 +1050,7 @@ func (client EventHubsClient) RegenerateKeys(ctx context.Context, resourceGroupN
 	result, err = client.RegenerateKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.EventHubsClient", "RegenerateKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return

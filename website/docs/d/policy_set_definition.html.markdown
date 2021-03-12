@@ -44,6 +44,8 @@ output "id" {
 
 * `policy_definition_reference` - One or more `policy_definition_reference` blocks as defined below.
 
+* `policy_definition_group` - One or more `policy_definition_group` blocks as defined below.
+
 * `parameters` - Any Parameters defined in the Policy Set Definition.
 
 * `metadata` - Any Metadata defined in the Policy Set Definition.
@@ -63,6 +65,22 @@ An `policy_definition_reference` block exports the following:
 * `parameter_values` - The parameter values for the referenced policy rule. This field is a json object.
 
 * `reference_id` - The unique ID within this policy set definition for this policy definition reference.
+
+* `group_names` - The list of names of the policy definition groups that this policy definition reference belongs to.
+
+---
+
+An `policy_definition_group` block exports the following:
+
+* `name` - The name of this policy definition group.
+
+* `display_name` - The display name of this policy definition group. 
+
+* `category` - The category of this policy definition group.
+
+* `description` - The description of this policy definition group.
+
+* `additional_metadata_id` - The ID of a resource that contains additional metadata about this policy definition group.
 
 ## Timeouts
 

@@ -141,7 +141,8 @@ func (adrlr ArmDisasterRecoveryListResult) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// ArmDisasterRecoveryListResultIterator provides access to a complete listing of ArmDisasterRecovery values.
+// ArmDisasterRecoveryListResultIterator provides access to a complete listing of ArmDisasterRecovery
+// values.
 type ArmDisasterRecoveryListResultIterator struct {
 	i    int
 	page ArmDisasterRecoveryListResultPage
@@ -284,14 +285,17 @@ func (page ArmDisasterRecoveryListResultPage) Values() []ArmDisasterRecovery {
 }
 
 // Creates a new instance of the ArmDisasterRecoveryListResultPage type.
-func NewArmDisasterRecoveryListResultPage(getNextPage func(context.Context, ArmDisasterRecoveryListResult) (ArmDisasterRecoveryListResult, error)) ArmDisasterRecoveryListResultPage {
-	return ArmDisasterRecoveryListResultPage{fn: getNextPage}
+func NewArmDisasterRecoveryListResultPage(cur ArmDisasterRecoveryListResult, getNextPage func(context.Context, ArmDisasterRecoveryListResult) (ArmDisasterRecoveryListResult, error)) ArmDisasterRecoveryListResultPage {
+	return ArmDisasterRecoveryListResultPage{
+		fn:    getNextPage,
+		adrlr: cur,
+	}
 }
 
 // ArmDisasterRecoveryProperties properties required to the Create Or Update Alias(Disaster Recovery
 // configurations)
 type ArmDisasterRecoveryProperties struct {
-	// ProvisioningState - READ-ONLY; Provisioning state of the Alias(Disaster Recovery configuration) - possible values 'Accepted' or 'Succeeded' or 'Failed'. Possible values include: 'Accepted', 'Succeeded', 'Failed'
+	// ProvisioningState - READ-ONLY; Provisioning state of the Alias(Disaster Recovery configuration) - possible values 'Accepted' or 'Succeeded' or 'Failed'. Possible values include: 'ProvisioningStateDRAccepted', 'ProvisioningStateDRSucceeded', 'ProvisioningStateDRFailed'
 	ProvisioningState ProvisioningStateDR `json:"provisioningState,omitempty"`
 	// PartnerNamespace - ARM Id of the Primary/Secondary eventhub namespace name, which is part of GEO DR pairing
 	PartnerNamespace *string `json:"partnerNamespace,omitempty"`
@@ -540,8 +544,11 @@ func (page AuthorizationRuleListResultPage) Values() []AuthorizationRule {
 }
 
 // Creates a new instance of the AuthorizationRuleListResultPage type.
-func NewAuthorizationRuleListResultPage(getNextPage func(context.Context, AuthorizationRuleListResult) (AuthorizationRuleListResult, error)) AuthorizationRuleListResultPage {
-	return AuthorizationRuleListResultPage{fn: getNextPage}
+func NewAuthorizationRuleListResultPage(cur AuthorizationRuleListResult, getNextPage func(context.Context, AuthorizationRuleListResult) (AuthorizationRuleListResult, error)) AuthorizationRuleListResultPage {
+	return AuthorizationRuleListResultPage{
+		fn:   getNextPage,
+		arlr: cur,
+	}
 }
 
 // AuthorizationRuleProperties properties supplied to create or update AuthorizationRule
@@ -875,8 +882,11 @@ func (page ClusterListResultPage) Values() []Cluster {
 }
 
 // Creates a new instance of the ClusterListResultPage type.
-func NewClusterListResultPage(getNextPage func(context.Context, ClusterListResult) (ClusterListResult, error)) ClusterListResultPage {
-	return ClusterListResultPage{fn: getNextPage}
+func NewClusterListResultPage(cur ClusterListResult, getNextPage func(context.Context, ClusterListResult) (ClusterListResult, error)) ClusterListResultPage {
+	return ClusterListResultPage{
+		fn:  getNextPage,
+		clr: cur,
+	}
 }
 
 // ClusterProperties event Hubs Cluster properties supplied in responses in List or Get operations.
@@ -910,52 +920,19 @@ func (cqcp ClusterQuotaConfigurationProperties) MarshalJSON() ([]byte, error) {
 // ClustersCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type ClustersCreateOrUpdateFuture struct {
-	azure.Future
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ClustersClient) (Cluster, error)
 }
 
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ClustersCreateOrUpdateFuture) Result(client ClustersClient) (c Cluster, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventhub.ClustersCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("eventhub.ClustersCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if c.Response.Response, err = future.GetResult(sender); err == nil && c.Response.Response.StatusCode != http.StatusNoContent {
-		c, err = client.CreateOrUpdateResponder(c.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "eventhub.ClustersCreateOrUpdateFuture", "Result", c.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// ClustersDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// ClustersDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type ClustersDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ClustersDeleteFuture) Result(client ClustersClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventhub.ClustersDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("eventhub.ClustersDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ClustersClient) (autorest.Response, error)
 }
 
 // ClusterSku SKU parameters particular to a cluster instance.
@@ -966,32 +943,21 @@ type ClusterSku struct {
 	Capacity *int32 `json:"capacity,omitempty"`
 }
 
-// ClustersUpdateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// ClustersUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type ClustersUpdateFuture struct {
-	azure.Future
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ClustersClient) (Cluster, error)
 }
 
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ClustersUpdateFuture) Result(client ClustersClient) (c Cluster, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventhub.ClustersUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("eventhub.ClustersUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if c.Response.Response, err = future.GetResult(sender); err == nil && c.Response.Response.StatusCode != http.StatusNoContent {
-		c, err = client.UpdateResponder(c.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "eventhub.ClustersUpdateFuture", "Result", c.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+// ConnectionState connectionState information.
+type ConnectionState struct {
+	// Status - Status of the connection. Possible values include: 'Pending', 'Approved', 'Rejected', 'Disconnected'
+	Status PrivateLinkConnectionStatus `json:"status,omitempty"`
+	// Description - Description of the connection state.
+	Description *string `json:"description,omitempty"`
 }
 
 // ConsumerGroup single item in List or Get Consumer group operation
@@ -1219,8 +1185,11 @@ func (page ConsumerGroupListResultPage) Values() []ConsumerGroup {
 }
 
 // Creates a new instance of the ConsumerGroupListResultPage type.
-func NewConsumerGroupListResultPage(getNextPage func(context.Context, ConsumerGroupListResult) (ConsumerGroupListResult, error)) ConsumerGroupListResultPage {
-	return ConsumerGroupListResultPage{fn: getNextPage}
+func NewConsumerGroupListResultPage(cur ConsumerGroupListResult, getNextPage func(context.Context, ConsumerGroupListResult) (ConsumerGroupListResult, error)) ConsumerGroupListResultPage {
+	return ConsumerGroupListResultPage{
+		fn:   getNextPage,
+		cglr: cur,
+	}
 }
 
 // ConsumerGroupProperties single item in List or Get Consumer group operation
@@ -1295,8 +1264,8 @@ func (d *Destination) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// DestinationProperties properties describing the storage account, blob container and archive name format for
-// capture destination
+// DestinationProperties properties describing the storage account, blob container and archive name format
+// for capture destination
 type DestinationProperties struct {
 	// StorageAccountResourceID - Resource id of the storage account to be used to create the blobs
 	StorageAccountResourceID *string `json:"storageAccountResourceId,omitempty"`
@@ -1600,8 +1569,11 @@ func (page EHNamespaceListResultPage) Values() []EHNamespace {
 }
 
 // Creates a new instance of the EHNamespaceListResultPage type.
-func NewEHNamespaceListResultPage(getNextPage func(context.Context, EHNamespaceListResult) (EHNamespaceListResult, error)) EHNamespaceListResultPage {
-	return EHNamespaceListResultPage{fn: getNextPage}
+func NewEHNamespaceListResultPage(cur EHNamespaceListResult, getNextPage func(context.Context, EHNamespaceListResult) (EHNamespaceListResult, error)) EHNamespaceListResultPage {
+	return EHNamespaceListResultPage{
+		fn:   getNextPage,
+		enlr: cur,
+	}
 }
 
 // EHNamespaceProperties namespace properties supplied for create namespace operation.
@@ -1662,8 +1634,8 @@ type Encryption struct {
 	KeySource KeySource `json:"keySource,omitempty"`
 }
 
-// ErrorResponse error response indicates Event Hub service is not able to process the incoming request. The
-// reason is provided in the error message.
+// ErrorResponse error response indicates Event Hub service is not able to process the incoming request.
+// The reason is provided in the error message.
 type ErrorResponse struct {
 	// Code - Error code.
 	Code *string `json:"code,omitempty"`
@@ -1906,8 +1878,11 @@ func (page IPFilterRuleListResultPage) Values() []IPFilterRule {
 }
 
 // Creates a new instance of the IPFilterRuleListResultPage type.
-func NewIPFilterRuleListResultPage(getNextPage func(context.Context, IPFilterRuleListResult) (IPFilterRuleListResult, error)) IPFilterRuleListResultPage {
-	return IPFilterRuleListResultPage{fn: getNextPage}
+func NewIPFilterRuleListResultPage(cur IPFilterRuleListResult, getNextPage func(context.Context, IPFilterRuleListResult) (IPFilterRuleListResult, error)) IPFilterRuleListResultPage {
+	return IPFilterRuleListResultPage{
+		fn:    getNextPage,
+		ifrlr: cur,
+	}
 }
 
 // IPFilterRuleProperties properties supplied to create or update IpFilterRules
@@ -2082,8 +2057,11 @@ func (page ListResultPage) Values() []Model {
 }
 
 // Creates a new instance of the ListResultPage type.
-func NewListResultPage(getNextPage func(context.Context, ListResult) (ListResult, error)) ListResultPage {
-	return ListResultPage{fn: getNextPage}
+func NewListResultPage(cur ListResult, getNextPage func(context.Context, ListResult) (ListResult, error)) ListResultPage {
+	return ListResultPage{
+		fn: getNextPage,
+		lr: cur,
+	}
 }
 
 // MessagingRegions messaging Region
@@ -2278,8 +2256,11 @@ func (page MessagingRegionsListResultPage) Values() []MessagingRegions {
 }
 
 // Creates a new instance of the MessagingRegionsListResultPage type.
-func NewMessagingRegionsListResultPage(getNextPage func(context.Context, MessagingRegionsListResult) (MessagingRegionsListResult, error)) MessagingRegionsListResultPage {
-	return MessagingRegionsListResultPage{fn: getNextPage}
+func NewMessagingRegionsListResultPage(cur MessagingRegionsListResult, getNextPage func(context.Context, MessagingRegionsListResult) (MessagingRegionsListResult, error)) MessagingRegionsListResultPage {
+	return MessagingRegionsListResultPage{
+		fn:   getNextPage,
+		mrlr: cur,
+	}
 }
 
 // MessagingRegionsProperties properties of Messaging Region
@@ -2363,55 +2344,22 @@ func (mVar *Model) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// NamespacesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// NamespacesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type NamespacesCreateOrUpdateFuture struct {
-	azure.Future
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(NamespacesClient) (EHNamespace, error)
 }
 
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *NamespacesCreateOrUpdateFuture) Result(client NamespacesClient) (en EHNamespace, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventhub.NamespacesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("eventhub.NamespacesCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if en.Response.Response, err = future.GetResult(sender); err == nil && en.Response.Response.StatusCode != http.StatusNoContent {
-		en, err = client.CreateOrUpdateResponder(en.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "eventhub.NamespacesCreateOrUpdateFuture", "Result", en.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// NamespacesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// NamespacesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type NamespacesDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *NamespacesDeleteFuture) Result(client NamespacesClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventhub.NamespacesDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("eventhub.NamespacesDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(NamespacesClient) (autorest.Response, error)
 }
 
 // NetworkRuleSet description of topic resource.
@@ -2489,6 +2437,8 @@ func (nrs *NetworkRuleSet) UnmarshalJSON(body []byte) error {
 
 // NetworkRuleSetProperties networkRuleSet properties
 type NetworkRuleSetProperties struct {
+	// TrustedServiceAccessEnabled - Value that indicates whether Trusted Service Access is Enabled or not.
+	TrustedServiceAccessEnabled *bool `json:"trustedServiceAccessEnabled,omitempty"`
 	// DefaultAction - Default Action for Network Rule Set. Possible values include: 'Allow', 'Deny'
 	DefaultAction DefaultAction `json:"defaultAction,omitempty"`
 	// VirtualNetworkRules - List VirtualNetwork Rules
@@ -2540,8 +2490,8 @@ type OperationDisplay struct {
 	Operation *string `json:"operation,omitempty"`
 }
 
-// OperationListResult result of the request to list Event Hub operations. It contains a list of operations and
-// a URL link to get the next set of results.
+// OperationListResult result of the request to list Event Hub operations. It contains a list of operations
+// and a URL link to get the next set of results.
 type OperationListResult struct {
 	autorest.Response `json:"-"`
 	// Value - READ-ONLY; List of Event Hub operations supported by the Microsoft.EventHub resource provider.
@@ -2693,8 +2643,369 @@ func (page OperationListResultPage) Values() []Operation {
 }
 
 // Creates a new instance of the OperationListResultPage type.
-func NewOperationListResultPage(getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
-	return OperationListResultPage{fn: getNextPage}
+func NewOperationListResultPage(cur OperationListResult, getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
+	return OperationListResultPage{
+		fn:  getNextPage,
+		olr: cur,
+	}
+}
+
+// PrivateEndpoint privateEndpoint information.
+type PrivateEndpoint struct {
+	// ID - The ARM identifier for Private Endpoint.
+	ID *string `json:"id,omitempty"`
+}
+
+// PrivateEndpointConnection properties of the PrivateEndpointConnection.
+type PrivateEndpointConnection struct {
+	autorest.Response `json:"-"`
+	// PrivateEndpointConnectionProperties - Properties of the PrivateEndpointConnection.
+	*PrivateEndpointConnectionProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource ID.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateEndpointConnection.
+func (pec PrivateEndpointConnection) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if pec.PrivateEndpointConnectionProperties != nil {
+		objectMap["properties"] = pec.PrivateEndpointConnectionProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for PrivateEndpointConnection struct.
+func (pec *PrivateEndpointConnection) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var privateEndpointConnectionProperties PrivateEndpointConnectionProperties
+				err = json.Unmarshal(*v, &privateEndpointConnectionProperties)
+				if err != nil {
+					return err
+				}
+				pec.PrivateEndpointConnectionProperties = &privateEndpointConnectionProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				pec.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				pec.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				pec.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// PrivateEndpointConnectionListResult result of the list of all private endpoint connections operation.
+type PrivateEndpointConnectionListResult struct {
+	autorest.Response `json:"-"`
+	// Value - A collection of private endpoint connection resources.
+	Value *[]PrivateEndpointConnection `json:"value,omitempty"`
+	// NextLink - A link for the next page of private endpoint connection resources.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// PrivateEndpointConnectionListResultIterator provides access to a complete listing of
+// PrivateEndpointConnection values.
+type PrivateEndpointConnectionListResultIterator struct {
+	i    int
+	page PrivateEndpointConnectionListResultPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *PrivateEndpointConnectionListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/PrivateEndpointConnectionListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *PrivateEndpointConnectionListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter PrivateEndpointConnectionListResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter PrivateEndpointConnectionListResultIterator) Response() PrivateEndpointConnectionListResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter PrivateEndpointConnectionListResultIterator) Value() PrivateEndpointConnection {
+	if !iter.page.NotDone() {
+		return PrivateEndpointConnection{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the PrivateEndpointConnectionListResultIterator type.
+func NewPrivateEndpointConnectionListResultIterator(page PrivateEndpointConnectionListResultPage) PrivateEndpointConnectionListResultIterator {
+	return PrivateEndpointConnectionListResultIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (peclr PrivateEndpointConnectionListResult) IsEmpty() bool {
+	return peclr.Value == nil || len(*peclr.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (peclr PrivateEndpointConnectionListResult) hasNextLink() bool {
+	return peclr.NextLink != nil && len(*peclr.NextLink) != 0
+}
+
+// privateEndpointConnectionListResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (peclr PrivateEndpointConnectionListResult) privateEndpointConnectionListResultPreparer(ctx context.Context) (*http.Request, error) {
+	if !peclr.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(peclr.NextLink)))
+}
+
+// PrivateEndpointConnectionListResultPage contains a page of PrivateEndpointConnection values.
+type PrivateEndpointConnectionListResultPage struct {
+	fn    func(context.Context, PrivateEndpointConnectionListResult) (PrivateEndpointConnectionListResult, error)
+	peclr PrivateEndpointConnectionListResult
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *PrivateEndpointConnectionListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/PrivateEndpointConnectionListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.peclr)
+		if err != nil {
+			return err
+		}
+		page.peclr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *PrivateEndpointConnectionListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page PrivateEndpointConnectionListResultPage) NotDone() bool {
+	return !page.peclr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page PrivateEndpointConnectionListResultPage) Response() PrivateEndpointConnectionListResult {
+	return page.peclr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page PrivateEndpointConnectionListResultPage) Values() []PrivateEndpointConnection {
+	if page.peclr.IsEmpty() {
+		return nil
+	}
+	return *page.peclr.Value
+}
+
+// Creates a new instance of the PrivateEndpointConnectionListResultPage type.
+func NewPrivateEndpointConnectionListResultPage(cur PrivateEndpointConnectionListResult, getNextPage func(context.Context, PrivateEndpointConnectionListResult) (PrivateEndpointConnectionListResult, error)) PrivateEndpointConnectionListResultPage {
+	return PrivateEndpointConnectionListResultPage{
+		fn:    getNextPage,
+		peclr: cur,
+	}
+}
+
+// PrivateEndpointConnectionProperties properties of the private endpoint connection resource.
+type PrivateEndpointConnectionProperties struct {
+	// PrivateEndpoint - The Private Endpoint resource for this Connection.
+	PrivateEndpoint *PrivateEndpoint `json:"privateEndpoint,omitempty"`
+	// PrivateLinkServiceConnectionState - Details about the state of the connection.
+	PrivateLinkServiceConnectionState *ConnectionState `json:"privateLinkServiceConnectionState,omitempty"`
+	// ProvisioningState - Provisioning state of the Private Endpoint Connection. Possible values include: 'Creating', 'Updating', 'Deleting', 'Succeeded', 'Canceled', 'Failed'
+	ProvisioningState EndPointProvisioningState `json:"provisioningState,omitempty"`
+}
+
+// PrivateEndpointConnectionsDeleteFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type PrivateEndpointConnectionsDeleteFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(PrivateEndpointConnectionsClient) (autorest.Response, error)
+}
+
+// PrivateLinkResource information of the private link resource.
+type PrivateLinkResource struct {
+	// PrivateLinkResourceProperties - Properties of the private link resource.
+	*PrivateLinkResourceProperties `json:"properties,omitempty"`
+	// ID - Fully qualified identifier of the resource.
+	ID *string `json:"id,omitempty"`
+	// Name - Name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - Type of the resource
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateLinkResource.
+func (plr PrivateLinkResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if plr.PrivateLinkResourceProperties != nil {
+		objectMap["properties"] = plr.PrivateLinkResourceProperties
+	}
+	if plr.ID != nil {
+		objectMap["id"] = plr.ID
+	}
+	if plr.Name != nil {
+		objectMap["name"] = plr.Name
+	}
+	if plr.Type != nil {
+		objectMap["type"] = plr.Type
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for PrivateLinkResource struct.
+func (plr *PrivateLinkResource) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var privateLinkResourceProperties PrivateLinkResourceProperties
+				err = json.Unmarshal(*v, &privateLinkResourceProperties)
+				if err != nil {
+					return err
+				}
+				plr.PrivateLinkResourceProperties = &privateLinkResourceProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				plr.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				plr.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				plr.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// PrivateLinkResourceProperties properties of PrivateLinkResource
+type PrivateLinkResourceProperties struct {
+	// GroupID - The private link resource group id.
+	GroupID *string `json:"groupId,omitempty"`
+	// RequiredMembers - The private link resource required member names.
+	RequiredMembers *[]string `json:"requiredMembers,omitempty"`
+	// RequiredZoneNames - The private link resource Private link DNS zone name.
+	RequiredZoneNames *[]string `json:"requiredZoneNames,omitempty"`
+}
+
+// PrivateLinkResourcesListResult result of the List private link resources operation.
+type PrivateLinkResourcesListResult struct {
+	autorest.Response `json:"-"`
+	// Value - A collection of private link resources
+	Value *[]PrivateLinkResource `json:"value,omitempty"`
+	// NextLink - A link for the next page of private link resources.
+	NextLink *string `json:"nextLink,omitempty"`
 }
 
 // Properties properties supplied to the Create Or Update Event Hub operation.
@@ -2709,7 +3020,7 @@ type Properties struct {
 	MessageRetentionInDays *int64 `json:"messageRetentionInDays,omitempty"`
 	// PartitionCount - Number of partitions created for the Event Hub, allowed values are from 1 to 32 partitions.
 	PartitionCount *int64 `json:"partitionCount,omitempty"`
-	// Status - Enumerates the possible values for the status of the Event Hub. Possible values include: 'Active', 'Disabled', 'Restoring', 'SendDisabled', 'ReceiveDisabled', 'Creating', 'Deleting', 'Renaming', 'Unknown'
+	// Status - Enumerates the possible values for the status of the Event Hub. Possible values include: 'EntityStatusActive', 'EntityStatusDisabled', 'EntityStatusRestoring', 'EntityStatusSendDisabled', 'EntityStatusReceiveDisabled', 'EntityStatusCreating', 'EntityStatusDeleting', 'EntityStatusRenaming', 'EntityStatusUnknown'
 	Status EntityStatus `json:"status,omitempty"`
 	// CaptureDescription - Properties of capture description
 	CaptureDescription *CaptureDescription `json:"captureDescription,omitempty"`
@@ -2733,8 +3044,8 @@ func (p Properties) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// RegenerateAccessKeyParameters parameters supplied to the Regenerate Authorization Rule operation, specifies
-// which key needs to be reset.
+// RegenerateAccessKeyParameters parameters supplied to the Regenerate Authorization Rule operation,
+// specifies which key needs to be reset.
 type RegenerateAccessKeyParameters struct {
 	// KeyType - The access key to regenerate. Possible values include: 'PrimaryKey', 'SecondaryKey'
 	KeyType KeyType `json:"keyType,omitempty"`
@@ -3019,8 +3330,11 @@ func (page VirtualNetworkRuleListResultPage) Values() []VirtualNetworkRule {
 }
 
 // Creates a new instance of the VirtualNetworkRuleListResultPage type.
-func NewVirtualNetworkRuleListResultPage(getNextPage func(context.Context, VirtualNetworkRuleListResult) (VirtualNetworkRuleListResult, error)) VirtualNetworkRuleListResultPage {
-	return VirtualNetworkRuleListResultPage{fn: getNextPage}
+func NewVirtualNetworkRuleListResultPage(cur VirtualNetworkRuleListResult, getNextPage func(context.Context, VirtualNetworkRuleListResult) (VirtualNetworkRuleListResult, error)) VirtualNetworkRuleListResultPage {
+	return VirtualNetworkRuleListResultPage{
+		fn:    getNextPage,
+		vnrlr: cur,
+	}
 }
 
 // VirtualNetworkRuleProperties properties supplied to create or update VirtualNetworkRules

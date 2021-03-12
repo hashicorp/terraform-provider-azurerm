@@ -60,11 +60,36 @@ A `storage_account` block supports the following:
 
 ~> **NOTE:** Whilst multiple `storage_account` blocks can be specified - one of them must be set to the primary
 
+* `identity` - (Optional) An `identity` block is documented below.
+
+* `storage_authentication_type` - (Optional) Specifies the storage authentication type. 
+Possible value is  `ManagedIdentity` or `System`.
+
+* `tags` - (Optional) A mapping of tags assigned to the resource.
+---
+
+A `identity` block supports the following:
+
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Media Services Account. Possible value is  `SystemAssigned`. 
+
+---
+
+
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The ID of the Media Services Account.
+
+* `identity` - An `identity` block as defined below.
+---
+
+An `identity` block exports the following:
+
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
+
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
+
 
 ## Timeouts
 

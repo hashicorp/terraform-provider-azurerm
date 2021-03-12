@@ -1,11 +1,18 @@
 package hdinsight
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight/parse"
+
+	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+
+	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -40,11 +47,18 @@ var hdInsightKafkaClusterZookeeperNodeDefinition = HDInsightNodeDefinition{
 	FixedTargetInstanceCount: utils.Int32(int32(3)),
 }
 
-func resourceArmHDInsightKafkaCluster() *schema.Resource {
+var hdInsightKafkaClusterKafkaManagementNodeDefinition = HDInsightNodeDefinition{
+	CanSpecifyInstanceCount:  false,
+	MinInstanceCount:         2,
+	CanSpecifyDisks:          false,
+	FixedTargetInstanceCount: utils.Int32(int32(2)),
+}
+
+func resourceHDInsightKafkaCluster() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmHDInsightKafkaClusterCreate,
-		Read:   resourceArmHDInsightKafkaClusterRead,
-		Update: hdinsightClusterUpdate("Kafka", resourceArmHDInsightKafkaClusterRead),
+		Create: resourceHDInsightKafkaClusterCreate,
+		Read:   resourceHDInsightKafkaClusterRead,
+		Update: hdinsightClusterUpdate("Kafka", resourceHDInsightKafkaClusterRead),
 		Delete: hdinsightClusterDelete("Kafka"),
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -99,18 +113,42 @@ func resourceArmHDInsightKafkaCluster() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"head_node": SchemaHDInsightNodeDefinition("roles.0.head_node", hdInsightKafkaClusterHeadNodeDefinition),
+						"head_node": SchemaHDInsightNodeDefinition("roles.0.head_node", hdInsightKafkaClusterHeadNodeDefinition, true),
 
-						"worker_node": SchemaHDInsightNodeDefinition("roles.0.worker_node", hdInsightKafkaClusterWorkerNodeDefinition),
+						"worker_node": SchemaHDInsightNodeDefinition("roles.0.worker_node", hdInsightKafkaClusterWorkerNodeDefinition, true),
 
-						"zookeeper_node": SchemaHDInsightNodeDefinition("roles.0.zookeeper_node", hdInsightKafkaClusterZookeeperNodeDefinition),
+						"zookeeper_node": SchemaHDInsightNodeDefinition("roles.0.zookeeper_node", hdInsightKafkaClusterZookeeperNodeDefinition, true),
+
+						"kafka_management_node": SchemaHDInsightNodeDefinition("roles.0.kafka_management_node", hdInsightKafkaClusterKafkaManagementNodeDefinition, false),
 					},
 				},
+			},
+
+			"rest_proxy": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"security_group_id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.IsUUID,
+						},
+					},
+				},
+				RequiredWith: []string{"roles.0.kafka_management_node"},
 			},
 
 			"tags": tags.Schema(),
 
 			"https_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"kafka_rest_proxy_endpoint": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -125,14 +163,17 @@ func resourceArmHDInsightKafkaCluster() *schema.Resource {
 	}
 }
 
-func resourceArmHDInsightKafkaClusterCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceHDInsightKafkaClusterCreate(d *schema.ResourceData, meta interface{}) error {
+	groupClient := meta.(*clients.Client).Authorization.GroupsClient
 	client := meta.(*clients.Client).HDInsight.ClustersClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewClusterID(subscriptionId, resourceGroup, name)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	clusterVersion := d.Get("cluster_version").(string)
 	t := d.Get("tags").(map[string]interface{})
@@ -159,9 +200,10 @@ func resourceArmHDInsightKafkaClusterCreate(d *schema.ResourceData, meta interfa
 	}
 
 	kafkaRoles := hdInsightRoleDefinition{
-		HeadNodeDef:      hdInsightKafkaClusterHeadNodeDefinition,
-		WorkerNodeDef:    hdInsightKafkaClusterWorkerNodeDefinition,
-		ZookeeperNodeDef: hdInsightKafkaClusterZookeeperNodeDefinition,
+		HeadNodeDef:            hdInsightKafkaClusterHeadNodeDefinition,
+		WorkerNodeDef:          hdInsightKafkaClusterWorkerNodeDefinition,
+		ZookeeperNodeDef:       hdInsightKafkaClusterZookeeperNodeDefinition,
+		KafkaManagementNodeDef: &hdInsightKafkaClusterKafkaManagementNodeDefinition,
 	}
 	rolesRaw := d.Get("roles").([]interface{})
 	roles, err := expandHDInsightRoles(rolesRaw, kafkaRoles)
@@ -178,6 +220,11 @@ func resourceArmHDInsightKafkaClusterCreate(d *schema.ResourceData, meta interfa
 
 	if existing.ID != nil && *existing.ID != "" {
 		return tf.ImportAsExistsError("azurerm_hdinsight_kafka_cluster", *existing.ID)
+	}
+
+	kafkaRestProperty, err := expandKafkaRestProxyProperty(ctx, groupClient, d.Get("rest_proxy").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding kafka rest proxy property")
 	}
 
 	params := hdinsight.ClusterCreateParametersExtended{
@@ -198,10 +245,12 @@ func resourceArmHDInsightKafkaClusterCreate(d *schema.ResourceData, meta interfa
 			ComputeProfile: &hdinsight.ComputeProfile{
 				Roles: roles,
 			},
+			KafkaRestProperties: kafkaRestProperty,
 		},
 		Tags:     tags.Expand(t),
 		Identity: identity,
 	}
+
 	future, err := client.Create(ctx, resourceGroup, name, params)
 	if err != nil {
 		return fmt.Errorf("failure creating HDInsight Kafka Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -220,7 +269,7 @@ func resourceArmHDInsightKafkaClusterCreate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("failure reading ID for HDInsight Kafka Cluster %q (Resource Group %q)", name, resourceGroup)
 	}
 
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	// We can only enable monitoring after creation
 	if v, ok := d.GetOk("monitor"); ok {
@@ -230,23 +279,23 @@ func resourceArmHDInsightKafkaClusterCreate(d *schema.ResourceData, meta interfa
 		}
 	}
 
-	return resourceArmHDInsightKafkaClusterRead(d, meta)
+	return resourceHDInsightKafkaClusterRead(d, meta)
 }
 
-func resourceArmHDInsightKafkaClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceHDInsightKafkaClusterRead(d *schema.ResourceData, meta interface{}) error {
 	clustersClient := meta.(*clients.Client).HDInsight.ClustersClient
 	configurationsClient := meta.(*clients.Client).HDInsight.ConfigurationsClient
 	extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ClusterID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	resourceGroup := id.ResourceGroup
-	name := id.Path["clusters"]
+	name := id.Name
 
 	resp, err := clustersClient.Get(ctx, resourceGroup, name)
 	if err != nil {
@@ -295,9 +344,10 @@ func resourceArmHDInsightKafkaClusterRead(d *schema.ResourceData, meta interface
 		}
 
 		kafkaRoles := hdInsightRoleDefinition{
-			HeadNodeDef:      hdInsightKafkaClusterHeadNodeDefinition,
-			WorkerNodeDef:    hdInsightKafkaClusterWorkerNodeDefinition,
-			ZookeeperNodeDef: hdInsightKafkaClusterZookeeperNodeDefinition,
+			HeadNodeDef:            hdInsightKafkaClusterHeadNodeDefinition,
+			WorkerNodeDef:          hdInsightKafkaClusterWorkerNodeDefinition,
+			ZookeeperNodeDef:       hdInsightKafkaClusterZookeeperNodeDefinition,
+			KafkaManagementNodeDef: &hdInsightKafkaClusterKafkaManagementNodeDefinition,
 		}
 		flattenedRoles := flattenHDInsightRoles(d, props.ComputeProfile, kafkaRoles)
 		if err := d.Set("roles", flattenedRoles); err != nil {
@@ -308,6 +358,8 @@ func resourceArmHDInsightKafkaClusterRead(d *schema.ResourceData, meta interface
 		d.Set("https_endpoint", httpEndpoint)
 		sshEndpoint := FindHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints)
 		d.Set("ssh_endpoint", sshEndpoint)
+		kafkaRestProxyEndpoint := FindHDInsightConnectivityEndpoint("KafkaRestProxyPublicEndpoint", props.ConnectivityEndpoints)
+		d.Set("kafka_rest_proxy_endpoint", kafkaRestProxyEndpoint)
 
 		monitor, err := extensionsClient.GetMonitoringStatus(ctx, resourceGroup, name)
 		if err != nil {
@@ -315,6 +367,9 @@ func resourceArmHDInsightKafkaClusterRead(d *schema.ResourceData, meta interface
 		}
 
 		d.Set("monitor", flattenHDInsightMonitoring(monitor))
+		if err := d.Set("rest_proxy", flattenKafkaRestProxyProperty(props.KafkaRestProperties)); err != nil {
+			return fmt.Errorf(`failed setting "rest_proxy" for HDInsight Kafka Cluster %q (Resource Group %q): %+v`, name, resourceGroup, err)
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -337,6 +392,48 @@ func flattenHDInsightKafkaComponentVersion(input map[string]*string) []interface
 	return []interface{}{
 		map[string]interface{}{
 			"kafka": kafkaVersion,
+		},
+	}
+}
+
+func expandKafkaRestProxyProperty(ctx context.Context, client *graphrbac.GroupsClient, input []interface{}) (*hdinsight.KafkaRestProperties, error) {
+	if len(input) == 0 || input[0] == nil {
+		return nil, nil
+	}
+
+	raw := input[0].(map[string]interface{})
+	groupId := raw["security_group_id"].(string)
+
+	// Current API requires users further specify the "security_group_name" in the client group info of the kafka rest property,
+	// which is unnecessary as user already specify the "security_group_id".
+	// https://github.com/Azure/azure-rest-api-specs/issues/10667
+	res, err := client.Get(ctx, groupId)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving AAD gruop %s: %v", groupId, err)
+	}
+
+	return &hdinsight.KafkaRestProperties{
+		ClientGroupInfo: &hdinsight.ClientGroupInfo{
+			GroupID:   &groupId,
+			GroupName: res.DisplayName,
+		},
+	}, nil
+}
+
+func flattenKafkaRestProxyProperty(input *hdinsight.KafkaRestProperties) []interface{} {
+	if input == nil || input.ClientGroupInfo == nil {
+		return []interface{}{}
+	}
+
+	groupInfo := input.ClientGroupInfo
+	groupId := ""
+	if groupInfo.GroupID != nil {
+		groupId = *groupInfo.GroupID
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"security_group_id": groupId,
 		},
 	}
 }

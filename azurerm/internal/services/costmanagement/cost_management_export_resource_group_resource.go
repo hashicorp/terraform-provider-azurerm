@@ -19,12 +19,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmCostManagementExportResourceGroup() *schema.Resource {
+func resourceCostManagementExportResourceGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmCostManagementExportResourceGroupCreateUpdate,
-		Read:   resourceArmCostManagementExportResourceGroupRead,
-		Update: resourceArmCostManagementExportResourceGroupCreateUpdate,
-		Delete: resourceArmCostManagementExportResourceGroupDelete,
+		Create: resourceCostManagementExportResourceGroupCreateUpdate,
+		Read:   resourceCostManagementExportResourceGroupRead,
+		Update: resourceCostManagementExportResourceGroupCreateUpdate,
+		Delete: resourceCostManagementExportResourceGroupDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.CostManagementExportResourceGroupID(id)
 			return err
@@ -140,7 +140,7 @@ func resourceArmCostManagementExportResourceGroup() *schema.Resource {
 	}
 }
 
-func resourceArmCostManagementExportResourceGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceCostManagementExportResourceGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).CostManagement.ExportClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -208,10 +208,10 @@ func resourceArmCostManagementExportResourceGroupCreateUpdate(d *schema.Resource
 
 	d.SetId(id)
 
-	return resourceArmCostManagementExportResourceGroupRead(d, meta)
+	return resourceCostManagementExportResourceGroupRead(d, meta)
 }
 
-func resourceArmCostManagementExportResourceGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceCostManagementExportResourceGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).CostManagement.ExportClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -257,7 +257,7 @@ func resourceArmCostManagementExportResourceGroupRead(d *schema.ResourceData, me
 	return nil
 }
 
-func resourceArmCostManagementExportResourceGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceCostManagementExportResourceGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).CostManagement.ExportClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

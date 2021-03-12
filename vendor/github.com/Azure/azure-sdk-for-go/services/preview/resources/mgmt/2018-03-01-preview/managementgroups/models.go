@@ -39,7 +39,8 @@ type CheckNameAvailabilityRequest struct {
 	Type Type `json:"type,omitempty"`
 }
 
-// CheckNameAvailabilityResult describes the result of the request to check management group name availability.
+// CheckNameAvailabilityResult describes the result of the request to check management group name
+// availability.
 type CheckNameAvailabilityResult struct {
 	autorest.Response `json:"-"`
 	// NameAvailable - READ-ONLY; Required. True indicates name is valid and available. False indicates the name is invalid, unavailable, or both.
@@ -201,32 +202,13 @@ func (cmgr *CreateManagementGroupRequest) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// CreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// CreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type CreateOrUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *CreateOrUpdateFuture) Result(client Client) (so SetObject, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "managementgroups.CreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("managementgroups.CreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if so.Response.Response, err = future.GetResult(sender); err == nil && so.Response.Response.StatusCode != http.StatusNoContent {
-		so, err = client.CreateOrUpdateResponder(so.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "managementgroups.CreateOrUpdateFuture", "Result", so.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(Client) (SetObject, error)
 }
 
 // CreateParentGroupInfo (Optional) The ID of the parent management group used during creation.
@@ -250,30 +232,10 @@ func (cpgi CreateParentGroupInfo) MarshalJSON() ([]byte, error) {
 
 // DeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type DeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *DeleteFuture) Result(client Client) (or OperationResults, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "managementgroups.DeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("managementgroups.DeleteFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if or.Response.Response, err = future.GetResult(sender); err == nil && or.Response.Response.StatusCode != http.StatusNoContent {
-		or, err = client.DeleteResponder(or.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "managementgroups.DeleteFuture", "Result", or.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(Client) (OperationResults, error)
 }
 
 // DescendantInfo the descendant.
@@ -515,8 +477,11 @@ func (page DescendantListResultPage) Values() []DescendantInfo {
 }
 
 // Creates a new instance of the DescendantListResultPage type.
-func NewDescendantListResultPage(getNextPage func(context.Context, DescendantListResult) (DescendantListResult, error)) DescendantListResultPage {
-	return DescendantListResultPage{fn: getNextPage}
+func NewDescendantListResultPage(cur DescendantListResult, getNextPage func(context.Context, DescendantListResult) (DescendantListResult, error)) DescendantListResultPage {
+	return DescendantListResultPage{
+		fn:  getNextPage,
+		dlr: cur,
+	}
 }
 
 // DescendantParentGroupInfo the ID of the parent management group.
@@ -873,8 +838,11 @@ func (page EntityListResultPage) Values() []EntityInfo {
 }
 
 // Creates a new instance of the EntityListResultPage type.
-func NewEntityListResultPage(getNextPage func(context.Context, EntityListResult) (EntityListResult, error)) EntityListResultPage {
-	return EntityListResultPage{fn: getNextPage}
+func NewEntityListResultPage(cur EntityListResult, getNextPage func(context.Context, EntityListResult) (EntityListResult, error)) EntityListResultPage {
+	return EntityListResultPage{
+		fn:  getNextPage,
+		elr: cur,
+	}
 }
 
 // EntityParentGroupInfo (Optional) The ID of the parent management group.
@@ -1138,8 +1106,11 @@ func (page ListResultPage) Values() []Info {
 }
 
 // Creates a new instance of the ListResultPage type.
-func NewListResultPage(getNextPage func(context.Context, ListResult) (ListResult, error)) ListResultPage {
-	return ListResultPage{fn: getNextPage}
+func NewListResultPage(cur ListResult, getNextPage func(context.Context, ListResult) (ListResult, error)) ListResultPage {
+	return ListResultPage{
+		fn: getNextPage,
+		lr: cur,
+	}
 }
 
 // ManagementGroup the management group details.
@@ -1394,8 +1365,11 @@ func (page OperationListResultPage) Values() []Operation {
 }
 
 // Creates a new instance of the OperationListResultPage type.
-func NewOperationListResultPage(getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
-	return OperationListResultPage{fn: getNextPage}
+func NewOperationListResultPage(cur OperationListResult, getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
+	return OperationListResultPage{
+		fn:  getNextPage,
+		olr: cur,
+	}
 }
 
 // OperationResults the results of an asynchronous operation.

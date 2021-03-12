@@ -5,7 +5,8 @@ import (
 	"log"
 	"time"
 
-	validate2 "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -19,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmPointToSiteVPNGateway() *schema.Resource {
+func resourcePointToSiteVPNGateway() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmPointToSiteVPNGatewayCreateUpdate,
-		Read:   resourceArmPointToSiteVPNGatewayRead,
-		Update: resourceArmPointToSiteVPNGatewayCreateUpdate,
-		Delete: resourceArmPointToSiteVPNGatewayDelete,
+		Create: resourcePointToSiteVPNGatewayCreateUpdate,
+		Read:   resourcePointToSiteVPNGatewayRead,
+		Update: resourcePointToSiteVPNGatewayCreateUpdate,
+		Delete: resourcePointToSiteVPNGatewayDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -52,14 +53,14 @@ func resourceArmPointToSiteVPNGateway() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate2.ValidateVirtualHubID,
+				ValidateFunc: networkValidate.VirtualHubID,
 			},
 
 			"vpn_server_configuration_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateVpnServerConfigurationID,
+				ValidateFunc: networkValidate.VpnServerConfigurationID,
 			},
 
 			"connection_configuration": {
@@ -93,6 +94,49 @@ func resourceArmPointToSiteVPNGateway() *schema.Resource {
 								},
 							},
 						},
+
+						"route": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Computed: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"associated_route_table_id": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: networkValidate.HubRouteTableID,
+									},
+
+									"propagated_route_table": {
+										Type:     schema.TypeList,
+										Optional: true,
+										MaxItems: 1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"ids": {
+													Type:     schema.TypeList,
+													Required: true,
+													Elem: &schema.Schema{
+														Type:         schema.TypeString,
+														ValidateFunc: networkValidate.HubRouteTableID,
+													},
+												},
+
+												"labels": {
+													Type:     schema.TypeSet,
+													Optional: true,
+													Elem: &schema.Schema{
+														Type:         schema.TypeString,
+														ValidateFunc: validation.StringIsNotEmpty,
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -103,12 +147,21 @@ func resourceArmPointToSiteVPNGateway() *schema.Resource {
 				ValidateFunc: validation.IntAtLeast(0),
 			},
 
+			"dns_servers": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validation.IsIPv4Address,
+				},
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
 }
 
-func resourceArmPointToSiteVPNGatewayCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourcePointToSiteVPNGatewayCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PointToSiteVpnGatewaysClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -152,6 +205,10 @@ func resourceArmPointToSiteVPNGatewayCreateUpdate(d *schema.ResourceData, meta i
 		},
 		Tags: tags.Expand(t),
 	}
+	customDNSServers := utils.ExpandStringSlice(d.Get("dns_servers").([]interface{}))
+	if len(*customDNSServers) != 0 {
+		parameters.P2SVpnGatewayProperties.CustomDNSServers = customDNSServers
+	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
 	if err != nil {
@@ -169,31 +226,31 @@ func resourceArmPointToSiteVPNGatewayCreateUpdate(d *schema.ResourceData, meta i
 
 	d.SetId(*resp.ID)
 
-	return resourceArmPointToSiteVPNGatewayRead(d, meta)
+	return resourcePointToSiteVPNGatewayRead(d, meta)
 }
 
-func resourceArmPointToSiteVPNGatewayRead(d *schema.ResourceData, meta interface{}) error {
+func resourcePointToSiteVPNGatewayRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PointToSiteVpnGatewaysClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParsePointToSiteVPNGatewayID(d.Id())
+	id, err := parse.PointToSiteVpnGatewayID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.P2sVpnGatewayName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Point-to-Site VPN Gateway %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
+			log.Printf("[DEBUG] Point-to-Site VPN Gateway %q was not found in Resource Group %q - removing from state!", id.P2sVpnGatewayName, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Point-to-Site VPN Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.P2sVpnGatewayName)
 	d.Set("resource_group_name", id.ResourceGroup)
 
 	if location := resp.Location; location != nil {
@@ -201,6 +258,7 @@ func resourceArmPointToSiteVPNGatewayRead(d *schema.ResourceData, meta interface
 	}
 
 	if props := resp.P2SVpnGatewayProperties; props != nil {
+		d.Set("dns_servers", utils.FlattenStringSlice(props.CustomDNSServers))
 		flattenedConfigurations := flattenPointToSiteVPNGatewayConnectionConfiguration(props.P2SConnectionConfigurations)
 		if err := d.Set("connection_configuration", flattenedConfigurations); err != nil {
 			return fmt.Errorf("Error setting `connection_configuration`: %+v", err)
@@ -228,23 +286,23 @@ func resourceArmPointToSiteVPNGatewayRead(d *schema.ResourceData, meta interface
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmPointToSiteVPNGatewayDelete(d *schema.ResourceData, meta interface{}) error {
+func resourcePointToSiteVPNGatewayDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PointToSiteVpnGatewaysClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParsePointToSiteVPNGatewayID(d.Id())
+	id, err := parse.PointToSiteVpnGatewayID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.P2sVpnGatewayName)
 	if err != nil {
-		return fmt.Errorf("Error deleting Point-to-Site VPN Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Error deleting Point-to-Site VPN Gateway %q (Resource Group %q): %+v", id.P2sVpnGatewayName, id.ResourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of Point-to-Site VPN Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Error waiting for deletion of Point-to-Site VPN Gateway %q (Resource Group %q): %+v", id.P2sVpnGatewayName, id.ResourceGroup, err)
 	}
 
 	return nil
@@ -275,11 +333,43 @@ func expandPointToSiteVPNGatewayConnectionConfiguration(input []interface{}) *[]
 				VpnClientAddressPool: &network.AddressSpace{
 					AddressPrefixes: &addressPrefixes,
 				},
+				RoutingConfiguration: expandPointToSiteVPNGatewayConnectionRouteConfiguration(raw["route"].([]interface{})),
 			},
 		})
 	}
 
 	return &configurations
+}
+
+func expandPointToSiteVPNGatewayConnectionRouteConfiguration(input []interface{}) *network.RoutingConfiguration {
+	if len(input) == 0 {
+		return nil
+	}
+	v := input[0].(map[string]interface{})
+	return &network.RoutingConfiguration{
+		AssociatedRouteTable: &network.SubResource{
+			ID: utils.String(v["associated_route_table_id"].(string)),
+		},
+		PropagatedRouteTables: expandPointToSiteVPNGatewayConnectionRouteConfigurationPropagatedRouteTable(v["propagated_route_table"].([]interface{})),
+	}
+}
+
+func expandPointToSiteVPNGatewayConnectionRouteConfigurationPropagatedRouteTable(input []interface{}) *network.PropagatedRouteTable {
+	if len(input) == 0 {
+		return nil
+	}
+	v := input[0].(map[string]interface{})
+	idRaws := utils.ExpandStringSlice(v["ids"].([]interface{}))
+	ids := make([]network.SubResource, len(*idRaws))
+	for i, item := range *idRaws {
+		ids[i] = network.SubResource{
+			ID: utils.String(item),
+		}
+	}
+	return &network.PropagatedRouteTable{
+		Labels: utils.ExpandStringSlice(v["labels"].(*schema.Set).List()),
+		Ids:    &ids,
+	}
 }
 
 func flattenPointToSiteVPNGatewayConnectionConfiguration(input *[]network.P2SConnectionConfiguration) []interface{} {
@@ -315,8 +405,45 @@ func flattenPointToSiteVPNGatewayConnectionConfiguration(input *[]network.P2SCon
 					"address_prefixes": addressPrefixes,
 				},
 			},
+			"route": flattenPointToSiteVPNGatewayConnectionRouteConfiguration(v.RoutingConfiguration),
 		})
 	}
 
 	return output
+}
+
+func flattenPointToSiteVPNGatewayConnectionRouteConfiguration(input *network.RoutingConfiguration) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+	var associatedRouteTableId string
+	if input.AssociatedRouteTable != nil && input.AssociatedRouteTable.ID != nil {
+		associatedRouteTableId = *input.AssociatedRouteTable.ID
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"associated_route_table_id": associatedRouteTableId,
+			"propagated_route_table":    flattenPointToSiteVPNGatewayConnectionRouteConfigurationPropagatedRouteTable(input.PropagatedRouteTables),
+		},
+	}
+}
+
+func flattenPointToSiteVPNGatewayConnectionRouteConfigurationPropagatedRouteTable(input *network.PropagatedRouteTable) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+	ids := make([]string, 0)
+	if input.Ids != nil {
+		for _, item := range *input.Ids {
+			if item.ID != nil {
+				ids = append(ids, *item.ID)
+			}
+		}
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"ids":    ids,
+			"labels": utils.FlattenStringSlice(input.Labels),
+		},
+	}
 }

@@ -72,6 +72,7 @@ func (client UsagesClient) ListByVaults(ctx context.Context, resourceGroupName s
 	result, err = client.ListByVaultsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "recoveryservices.UsagesClient", "ListByVaults", resp, "Failure responding to request")
+		return
 	}
 
 	return

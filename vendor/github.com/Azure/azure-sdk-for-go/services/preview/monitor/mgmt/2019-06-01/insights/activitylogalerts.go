@@ -86,6 +86,7 @@ func (client ActivityLogAlertsClient) CreateOrUpdate(ctx context.Context, resour
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ActivityLogAlertsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -163,6 +164,7 @@ func (client ActivityLogAlertsClient) Delete(ctx context.Context, resourceGroupN
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ActivityLogAlertsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -237,6 +239,7 @@ func (client ActivityLogAlertsClient) Get(ctx context.Context, resourceGroupName
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ActivityLogAlertsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -311,6 +314,7 @@ func (client ActivityLogAlertsClient) ListByResourceGroup(ctx context.Context, r
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ActivityLogAlertsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -382,6 +386,7 @@ func (client ActivityLogAlertsClient) ListBySubscriptionID(ctx context.Context) 
 	result, err = client.ListBySubscriptionIDResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ActivityLogAlertsClient", "ListBySubscriptionID", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -456,6 +461,7 @@ func (client ActivityLogAlertsClient) Update(ctx context.Context, resourceGroupN
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ActivityLogAlertsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -32,6 +32,25 @@ func PossibleCacheIdentityTypeValues() []CacheIdentityType {
 	return []CacheIdentityType{None, SystemAssigned}
 }
 
+// CreatedByType enumerates the values for created by type.
+type CreatedByType string
+
+const (
+	// Application ...
+	Application CreatedByType = "Application"
+	// Key ...
+	Key CreatedByType = "Key"
+	// ManagedIdentity ...
+	ManagedIdentity CreatedByType = "ManagedIdentity"
+	// User ...
+	User CreatedByType = "User"
+)
+
+// PossibleCreatedByTypeValues returns an array of possible values for the CreatedByType const type.
+func PossibleCreatedByTypeValues() []CreatedByType {
+	return []CreatedByType{Application, Key, ManagedIdentity, User}
+}
+
 // FirmwareStatusType enumerates the values for firmware status type.
 type FirmwareStatusType string
 
@@ -74,6 +93,31 @@ const (
 // PossibleHealthStateTypeValues returns an array of possible values for the HealthStateType const type.
 func PossibleHealthStateTypeValues() []HealthStateType {
 	return []HealthStateType{Degraded, Down, Flushing, Healthy, Stopped, Stopping, Transitioning, Unknown, Upgrading}
+}
+
+// MetricAggregationType enumerates the values for metric aggregation type.
+type MetricAggregationType string
+
+const (
+	// MetricAggregationTypeAverage ...
+	MetricAggregationTypeAverage MetricAggregationType = "Average"
+	// MetricAggregationTypeCount ...
+	MetricAggregationTypeCount MetricAggregationType = "Count"
+	// MetricAggregationTypeMaximum ...
+	MetricAggregationTypeMaximum MetricAggregationType = "Maximum"
+	// MetricAggregationTypeMinimum ...
+	MetricAggregationTypeMinimum MetricAggregationType = "Minimum"
+	// MetricAggregationTypeNone ...
+	MetricAggregationTypeNone MetricAggregationType = "None"
+	// MetricAggregationTypeNotSpecified ...
+	MetricAggregationTypeNotSpecified MetricAggregationType = "NotSpecified"
+	// MetricAggregationTypeTotal ...
+	MetricAggregationTypeTotal MetricAggregationType = "Total"
+)
+
+// PossibleMetricAggregationTypeValues returns an array of possible values for the MetricAggregationType const type.
+func PossibleMetricAggregationTypeValues() []MetricAggregationType {
+	return []MetricAggregationType{MetricAggregationTypeAverage, MetricAggregationTypeCount, MetricAggregationTypeMaximum, MetricAggregationTypeMinimum, MetricAggregationTypeNone, MetricAggregationTypeNotSpecified, MetricAggregationTypeTotal}
 }
 
 // ProvisioningStateType enumerates the values for provisioning state type.

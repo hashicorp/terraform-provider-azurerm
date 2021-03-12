@@ -71,6 +71,7 @@ func (client TagsClient) CreateOrUpdate(ctx context.Context, tagName string) (re
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "resources.TagsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -145,6 +146,7 @@ func (client TagsClient) CreateOrUpdateValue(ctx context.Context, tagName string
 	result, err = client.CreateOrUpdateValueResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "resources.TagsClient", "CreateOrUpdateValue", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -219,6 +221,7 @@ func (client TagsClient) Delete(ctx context.Context, tagName string) (result aut
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "resources.TagsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -292,6 +295,7 @@ func (client TagsClient) DeleteValue(ctx context.Context, tagName string, tagVal
 	result, err = client.DeleteValueResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "resources.TagsClient", "DeleteValue", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -364,9 +368,11 @@ func (client TagsClient) List(ctx context.Context) (result TagsListResultPage, e
 	result.tlr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "resources.TagsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.tlr.hasNextLink() && result.tlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

@@ -73,6 +73,7 @@ func (client MetricAlertsStatusClient) List(ctx context.Context, resourceGroupNa
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.MetricAlertsStatusClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -149,6 +150,7 @@ func (client MetricAlertsStatusClient) ListByName(ctx context.Context, resourceG
 	result, err = client.ListByNameResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.MetricAlertsStatusClient", "ListByName", resp, "Failure responding to request")
+		return
 	}
 
 	return

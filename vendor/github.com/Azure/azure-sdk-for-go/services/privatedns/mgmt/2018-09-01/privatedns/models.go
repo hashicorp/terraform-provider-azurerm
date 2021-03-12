@@ -42,21 +42,21 @@ type ARecord struct {
 	Ipv4Address *string `json:"ipv4Address,omitempty"`
 }
 
-// CloudError an error message
+// CloudError an error response from the service.
 type CloudError struct {
-	// Error - The error message body
+	// Error - Cloud error body.
 	Error *CloudErrorBody `json:"error,omitempty"`
 }
 
-// CloudErrorBody the body of an error message
+// CloudErrorBody an error response from the service.
 type CloudErrorBody struct {
-	// Code - The error code
+	// Code - An identifier for the error. Codes are invariant and are intended to be consumed programmatically.
 	Code *string `json:"code,omitempty"`
-	// Message - A description of what caused the error
+	// Message - A message describing the error, intended to be suitable for display in a user interface.
 	Message *string `json:"message,omitempty"`
-	// Target - The target resource of the error message
+	// Target - The target of the particular error. For example, the name of the property in error.
 	Target *string `json:"target,omitempty"`
-	// Details - Extra error information
+	// Details - A list of additional details about the error.
 	Details *[]CloudErrorBody `json:"details,omitempty"`
 }
 
@@ -350,8 +350,11 @@ func (page PrivateZoneListResultPage) Values() []PrivateZone {
 }
 
 // Creates a new instance of the PrivateZoneListResultPage type.
-func NewPrivateZoneListResultPage(getNextPage func(context.Context, PrivateZoneListResult) (PrivateZoneListResult, error)) PrivateZoneListResultPage {
-	return PrivateZoneListResultPage{fn: getNextPage}
+func NewPrivateZoneListResultPage(cur PrivateZoneListResult, getNextPage func(context.Context, PrivateZoneListResult) (PrivateZoneListResult, error)) PrivateZoneListResultPage {
+	return PrivateZoneListResultPage{
+		fn:   getNextPage,
+		pzlr: cur,
+	}
 }
 
 // PrivateZoneProperties represents the properties of the Private DNS zone.
@@ -372,85 +375,31 @@ type PrivateZoneProperties struct {
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 }
 
-// PrivateZonesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// PrivateZonesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type PrivateZonesCreateOrUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *PrivateZonesCreateOrUpdateFuture) Result(client PrivateZonesClient) (pz PrivateZone, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "privatedns.PrivateZonesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("privatedns.PrivateZonesCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if pz.Response.Response, err = future.GetResult(sender); err == nil && pz.Response.Response.StatusCode != http.StatusNoContent {
-		pz, err = client.CreateOrUpdateResponder(pz.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "privatedns.PrivateZonesCreateOrUpdateFuture", "Result", pz.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(PrivateZonesClient) (PrivateZone, error)
 }
 
 // PrivateZonesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type PrivateZonesDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *PrivateZonesDeleteFuture) Result(client PrivateZonesClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "privatedns.PrivateZonesDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("privatedns.PrivateZonesDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(PrivateZonesClient) (autorest.Response, error)
 }
 
 // PrivateZonesUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type PrivateZonesUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *PrivateZonesUpdateFuture) Result(client PrivateZonesClient) (pz PrivateZone, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "privatedns.PrivateZonesUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("privatedns.PrivateZonesUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if pz.Response.Response, err = future.GetResult(sender); err == nil && pz.Response.Response.StatusCode != http.StatusNoContent {
-		pz, err = client.UpdateResponder(pz.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "privatedns.PrivateZonesUpdateFuture", "Result", pz.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(PrivateZonesClient) (PrivateZone, error)
 }
 
 // ProxyResource the resource model definition for an ARM proxy resource.
@@ -469,8 +418,8 @@ type PtrRecord struct {
 	Ptrdname *string `json:"ptrdname,omitempty"`
 }
 
-// RecordSet describes a DNS record set (a collection of DNS records with the same name and type) in a Private
-// DNS zone.
+// RecordSet describes a DNS record set (a collection of DNS records with the same name and type) in a
+// Private DNS zone.
 type RecordSet struct {
 	autorest.Response `json:"-"`
 	// Etag - The ETag of the record set.
@@ -718,8 +667,11 @@ func (page RecordSetListResultPage) Values() []RecordSet {
 }
 
 // Creates a new instance of the RecordSetListResultPage type.
-func NewRecordSetListResultPage(getNextPage func(context.Context, RecordSetListResult) (RecordSetListResult, error)) RecordSetListResultPage {
-	return RecordSetListResultPage{fn: getNextPage}
+func NewRecordSetListResultPage(cur RecordSetListResult, getNextPage func(context.Context, RecordSetListResult) (RecordSetListResult, error)) RecordSetListResultPage {
+	return RecordSetListResultPage{
+		fn:   getNextPage,
+		rslr: cur,
+	}
 }
 
 // RecordSetProperties represents the properties of the records in the record set.
@@ -1140,8 +1092,11 @@ func (page VirtualNetworkLinkListResultPage) Values() []VirtualNetworkLink {
 }
 
 // Creates a new instance of the VirtualNetworkLinkListResultPage type.
-func NewVirtualNetworkLinkListResultPage(getNextPage func(context.Context, VirtualNetworkLinkListResult) (VirtualNetworkLinkListResult, error)) VirtualNetworkLinkListResultPage {
-	return VirtualNetworkLinkListResultPage{fn: getNextPage}
+func NewVirtualNetworkLinkListResultPage(cur VirtualNetworkLinkListResult, getNextPage func(context.Context, VirtualNetworkLinkListResult) (VirtualNetworkLinkListResult, error)) VirtualNetworkLinkListResultPage {
+	return VirtualNetworkLinkListResultPage{
+		fn:    getNextPage,
+		vnllr: cur,
+	}
 }
 
 // VirtualNetworkLinkProperties represents the properties of the Private DNS zone.
@@ -1171,80 +1126,26 @@ func (vnlp VirtualNetworkLinkProperties) MarshalJSON() ([]byte, error) {
 // VirtualNetworkLinksCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type VirtualNetworkLinksCreateOrUpdateFuture struct {
-	azure.Future
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(VirtualNetworkLinksClient) (VirtualNetworkLink, error)
 }
 
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *VirtualNetworkLinksCreateOrUpdateFuture) Result(client VirtualNetworkLinksClient) (vnl VirtualNetworkLink, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "privatedns.VirtualNetworkLinksCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("privatedns.VirtualNetworkLinksCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if vnl.Response.Response, err = future.GetResult(sender); err == nil && vnl.Response.Response.StatusCode != http.StatusNoContent {
-		vnl, err = client.CreateOrUpdateResponder(vnl.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "privatedns.VirtualNetworkLinksCreateOrUpdateFuture", "Result", vnl.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// VirtualNetworkLinksDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// VirtualNetworkLinksDeleteFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type VirtualNetworkLinksDeleteFuture struct {
-	azure.Future
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(VirtualNetworkLinksClient) (autorest.Response, error)
 }
 
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *VirtualNetworkLinksDeleteFuture) Result(client VirtualNetworkLinksClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "privatedns.VirtualNetworkLinksDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("privatedns.VirtualNetworkLinksDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
-}
-
-// VirtualNetworkLinksUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// VirtualNetworkLinksUpdateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type VirtualNetworkLinksUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *VirtualNetworkLinksUpdateFuture) Result(client VirtualNetworkLinksClient) (vnl VirtualNetworkLink, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "privatedns.VirtualNetworkLinksUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("privatedns.VirtualNetworkLinksUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if vnl.Response.Response, err = future.GetResult(sender); err == nil && vnl.Response.Response.StatusCode != http.StatusNoContent {
-		vnl, err = client.UpdateResponder(vnl.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "privatedns.VirtualNetworkLinksUpdateFuture", "Result", vnl.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(VirtualNetworkLinksClient) (VirtualNetworkLink, error)
 }

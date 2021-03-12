@@ -82,6 +82,7 @@ func (client BlueprintsClient) CreateOrUpdate(ctx context.Context, resourceScope
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "blueprint.BlueprintsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -160,6 +161,7 @@ func (client BlueprintsClient) Delete(ctx context.Context, resourceScope string,
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "blueprint.BlueprintsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -236,6 +238,7 @@ func (client BlueprintsClient) Get(ctx context.Context, resourceScope string, bl
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "blueprint.BlueprintsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -312,9 +315,11 @@ func (client BlueprintsClient) List(ctx context.Context, resourceScope string) (
 	result.l, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "blueprint.BlueprintsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.l.hasNextLink() && result.l.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

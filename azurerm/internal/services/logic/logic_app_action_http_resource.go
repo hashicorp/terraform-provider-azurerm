@@ -14,12 +14,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 )
 
-func resourceArmLogicAppActionHTTP() *schema.Resource {
+func resourceLogicAppActionHTTP() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmLogicAppActionHTTPCreateUpdate,
-		Read:   resourceArmLogicAppActionHTTPRead,
-		Update: resourceArmLogicAppActionHTTPCreateUpdate,
-		Delete: resourceArmLogicAppActionHTTPDelete,
+		Create: resourceLogicAppActionHTTPCreateUpdate,
+		Read:   resourceLogicAppActionHTTPRead,
+		Update: resourceLogicAppActionHTTPCreateUpdate,
+		Delete: resourceLogicAppActionHTTPDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -101,7 +101,7 @@ func resourceArmLogicAppActionHTTP() *schema.Resource {
 	}
 }
 
-func resourceArmLogicAppActionHTTPCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceLogicAppActionHTTPCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	headersRaw := d.Get("headers").(map[string]interface{})
 	headers, err := expandLogicAppActionHttpHeaders(headersRaw)
 	if err != nil {
@@ -134,10 +134,10 @@ func resourceArmLogicAppActionHTTPCreateUpdate(d *schema.ResourceData, meta inte
 		return err
 	}
 
-	return resourceArmLogicAppActionHTTPRead(d, meta)
+	return resourceLogicAppActionHTTPRead(d, meta)
 }
 
-func resourceArmLogicAppActionHTTPRead(d *schema.ResourceData, meta interface{}) error {
+func resourceLogicAppActionHTTPRead(d *schema.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -211,7 +211,7 @@ func resourceArmLogicAppActionHTTPRead(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceArmLogicAppActionHTTPDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceLogicAppActionHTTPDelete(d *schema.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err

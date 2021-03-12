@@ -11,7 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmAutomationAccount() *schema.Resource {
+func dataSourceAutomationAccount() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceAutomationAccountRead,
 

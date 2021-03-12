@@ -1,5 +1,6 @@
 package features
 
+// nolint gocritic
 // DeprecatedInThreePointOh returns the deprecation message if the provider
 // is running in 3.0 mode - otherwise is returns an empty string (such that
 // this deprecation should be ignored).

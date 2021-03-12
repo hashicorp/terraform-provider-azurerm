@@ -83,6 +83,7 @@ func (client PolicyDescriptionClient) ListByService(ctx context.Context, resourc
 	result, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.PolicyDescriptionClient", "ListByService", resp, "Failure responding to request")
+		return
 	}
 
 	return

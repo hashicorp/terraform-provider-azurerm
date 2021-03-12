@@ -1,45 +1,69 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 type SharedImageId struct {
-	ResourceGroup string
-	Gallery       string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	GalleryName    string
+	ImageName      string
 }
 
-func NewSharedImageId(id SharedImageGalleryId, name string) SharedImageId {
+func NewSharedImageID(subscriptionId, resourceGroup, galleryName, imageName string) SharedImageId {
 	return SharedImageId{
-		ResourceGroup: id.ResourceGroup,
-		Gallery:       id.Name,
-		Name:          name,
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		GalleryName:    galleryName,
+		ImageName:      imageName,
 	}
 }
 
-func (id SharedImageId) ID(subscriptionId string) string {
-	base := NewSharedImageGalleryId(id.ResourceGroup, id.Gallery).ID(subscriptionId)
-	return fmt.Sprintf("%s/images/%s", base, id.Name)
+func (id SharedImageId) String() string {
+	segments := []string{
+		fmt.Sprintf("Image Name %q", id.ImageName),
+		fmt.Sprintf("Gallery Name %q", id.GalleryName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+	}
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Shared Image", segmentsStr)
 }
 
+func (id SharedImageId) ID() string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/galleries/%s/images/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.GalleryName, id.ImageName)
+}
+
+// SharedImageID parses a SharedImage ID into an SharedImageId struct
 func SharedImageID(input string) (*SharedImageId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("unable to parse Shared Image ID %q: %+v", input, err)
-	}
-
-	image := SharedImageId{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if image.Gallery, err = id.PopSegment("galleries"); err != nil {
 		return nil, err
 	}
 
-	if image.Name, err = id.PopSegment("images"); err != nil {
+	resourceId := SharedImageId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	if resourceId.GalleryName, err = id.PopSegment("galleries"); err != nil {
+		return nil, err
+	}
+	if resourceId.ImageName, err = id.PopSegment("images"); err != nil {
 		return nil, err
 	}
 
@@ -47,5 +71,5 @@ func SharedImageID(input string) (*SharedImageId, error) {
 		return nil, err
 	}
 
-	return &image, nil
+	return &resourceId, nil
 }

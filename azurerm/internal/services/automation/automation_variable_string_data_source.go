@@ -6,9 +6,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceArmAutomationVariableString() *schema.Resource {
+func dataSourceAutomationVariableString() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmAutomationVariableStringRead,
+		Read: dataSourceAutomationVariableStringRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -18,6 +18,6 @@ func dataSourceArmAutomationVariableString() *schema.Resource {
 	}
 }
 
-func dataSourceArmAutomationVariableStringRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAutomationVariableStringRead(d *schema.ResourceData, meta interface{}) error {
 	return dataSourceAutomationVariableRead(d, meta, "String")
 }

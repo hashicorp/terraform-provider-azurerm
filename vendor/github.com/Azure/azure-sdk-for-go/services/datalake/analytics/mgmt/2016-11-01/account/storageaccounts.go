@@ -82,6 +82,7 @@ func (client StorageAccountsClient) Add(ctx context.Context, resourceGroupName s
 	result, err = client.AddResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.StorageAccountsClient", "Add", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -160,6 +161,7 @@ func (client StorageAccountsClient) Delete(ctx context.Context, resourceGroupNam
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.StorageAccountsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -236,6 +238,7 @@ func (client StorageAccountsClient) Get(ctx context.Context, resourceGroupName s
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.StorageAccountsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -315,6 +318,7 @@ func (client StorageAccountsClient) GetStorageContainer(ctx context.Context, res
 	result, err = client.GetStorageContainerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.StorageAccountsClient", "GetStorageContainer", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -414,9 +418,11 @@ func (client StorageAccountsClient) ListByAccount(ctx context.Context, resourceG
 	result.sailr, err = client.ListByAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.StorageAccountsClient", "ListByAccount", resp, "Failure responding to request")
+		return
 	}
 	if result.sailr.hasNextLink() && result.sailr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -551,9 +557,11 @@ func (client StorageAccountsClient) ListSasTokens(ctx context.Context, resourceG
 	result.stilr, err = client.ListSasTokensResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.StorageAccountsClient", "ListSasTokens", resp, "Failure responding to request")
+		return
 	}
 	if result.stilr.hasNextLink() && result.stilr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -671,9 +679,11 @@ func (client StorageAccountsClient) ListStorageContainers(ctx context.Context, r
 	result.sclr, err = client.ListStorageContainersResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.StorageAccountsClient", "ListStorageContainers", resp, "Failure responding to request")
+		return
 	}
 	if result.sclr.hasNextLink() && result.sclr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -791,6 +801,7 @@ func (client StorageAccountsClient) Update(ctx context.Context, resourceGroupNam
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.StorageAccountsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

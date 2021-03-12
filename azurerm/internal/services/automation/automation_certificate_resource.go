@@ -15,12 +15,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAutomationCertificate() *schema.Resource {
+func resourceAutomationCertificate() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAutomationCertificateCreateUpdate,
-		Read:   resourceArmAutomationCertificateRead,
-		Update: resourceArmAutomationCertificateCreateUpdate,
-		Delete: resourceArmAutomationCertificateDelete,
+		Create: resourceAutomationCertificateCreateUpdate,
+		Read:   resourceAutomationCertificateRead,
+		Update: resourceAutomationCertificateCreateUpdate,
+		Delete: resourceAutomationCertificateDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -76,7 +76,7 @@ func resourceArmAutomationCertificate() *schema.Resource {
 	}
 }
 
-func resourceArmAutomationCertificateCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationCertificateCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.CertificateClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -129,10 +129,10 @@ func resourceArmAutomationCertificateCreateUpdate(d *schema.ResourceData, meta i
 
 	d.SetId(*read.ID)
 
-	return resourceArmAutomationCertificateRead(d, meta)
+	return resourceAutomationCertificateRead(d, meta)
 }
 
-func resourceArmAutomationCertificateRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationCertificateRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.CertificateClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -168,7 +168,7 @@ func resourceArmAutomationCertificateRead(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func resourceArmAutomationCertificateDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationCertificateDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.CertificateClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

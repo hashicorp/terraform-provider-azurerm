@@ -77,6 +77,7 @@ func (client ProtectedItemOperationResultsClient) Get(ctx context.Context, vault
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ProtectedItemOperationResultsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return

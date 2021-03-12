@@ -86,6 +86,7 @@ func (client ExportConfigurationsClient) Create(ctx context.Context, resourceGro
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ExportConfigurationsClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -174,6 +175,7 @@ func (client ExportConfigurationsClient) Delete(ctx context.Context, resourceGro
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ExportConfigurationsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -261,6 +263,7 @@ func (client ExportConfigurationsClient) Get(ctx context.Context, resourceGroupN
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ExportConfigurationsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -347,6 +350,7 @@ func (client ExportConfigurationsClient) List(ctx context.Context, resourceGroup
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ExportConfigurationsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -434,6 +438,7 @@ func (client ExportConfigurationsClient) Update(ctx context.Context, resourceGro
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ExportConfigurationsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

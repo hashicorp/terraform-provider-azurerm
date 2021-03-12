@@ -22,7 +22,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/tracing"
-	"github.com/satori/go.uuid"
+	"github.com/gofrs/uuid"
 	"net/http"
 )
 
@@ -77,6 +77,7 @@ func (client AdminKeysClient) Get(ctx context.Context, resourceGroupName string,
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "search.AdminKeysClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -161,6 +162,7 @@ func (client AdminKeysClient) Regenerate(ctx context.Context, resourceGroupName 
 	result, err = client.RegenerateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "search.AdminKeysClient", "Regenerate", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -21,12 +21,14 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_subscription":  dataSourceArmSubscription(),
-		"azurerm_subscriptions": dataSourceArmSubscriptions(),
+		"azurerm_subscription":  dataSourceSubscription(),
+		"azurerm_subscriptions": dataSourceSubscriptions(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
-	return map[string]*schema.Resource{}
+	return map[string]*schema.Resource{
+		"azurerm_subscription": resourceSubscription(),
+	}
 }

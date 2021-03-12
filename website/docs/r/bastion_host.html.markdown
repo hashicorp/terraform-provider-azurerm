@@ -11,8 +11,6 @@ description: |-
 
 Manages a Bastion Host.
 
-~> **Note:** Bastion Hosts are a preview feature in Azure, and therefore are only supported in a select number of regions. [Read more](https://docs.microsoft.com/en-us/azure/bastion/bastion-faq).
-
 ## Example Usage
 
 This example deploys an Azure Bastion Host Instance to a target virtual network.
@@ -66,7 +64,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Bastion Host.
 
-* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
+* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.  Review [Azure Bastion Host FAQ](https://docs.microsoft.com/en-us/azure/bastion/bastion-faq) for supported locations.
 
 * `ip_configuration` - (Required) A `ip_configuration` block as defined below.
 

@@ -93,6 +93,7 @@ func (client ApplicationsClient) CreateOrUpdate(ctx context.Context, resourceGro
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "desktopvirtualization.ApplicationsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -188,6 +189,7 @@ func (client ApplicationsClient) Delete(ctx context.Context, resourceGroupName s
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "desktopvirtualization.ApplicationsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -280,6 +282,7 @@ func (client ApplicationsClient) Get(ctx context.Context, resourceGroupName stri
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "desktopvirtualization.ApplicationsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -370,9 +373,11 @@ func (client ApplicationsClient) List(ctx context.Context, resourceGroupName str
 	result.al, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "desktopvirtualization.ApplicationsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.al.hasNextLink() && result.al.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -503,6 +508,7 @@ func (client ApplicationsClient) Update(ctx context.Context, resourceGroupName s
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "desktopvirtualization.ApplicationsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

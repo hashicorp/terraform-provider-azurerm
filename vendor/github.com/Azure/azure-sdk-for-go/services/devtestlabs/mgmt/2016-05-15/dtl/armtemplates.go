@@ -75,6 +75,7 @@ func (client ArmTemplatesClient) Get(ctx context.Context, resourceGroupName stri
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.ArmTemplatesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -161,9 +162,11 @@ func (client ArmTemplatesClient) List(ctx context.Context, resourceGroupName str
 	result.rwcat, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.ArmTemplatesClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.rwcat.hasNextLink() && result.rwcat.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

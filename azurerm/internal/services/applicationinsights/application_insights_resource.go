@@ -12,20 +12,23 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/applicationinsights/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApplicationInsights() *schema.Resource {
+func resourceApplicationInsights() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApplicationInsightsCreateUpdate,
-		Read:   resourceArmApplicationInsightsRead,
-		Update: resourceArmApplicationInsightsCreateUpdate,
-		Delete: resourceArmApplicationInsightsDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Create: resourceApplicationInsightsCreateUpdate,
+		Read:   resourceApplicationInsightsRead,
+		Update: resourceApplicationInsightsCreateUpdate,
+		Delete: resourceApplicationInsightsDelete,
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.ComponentID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -126,11 +129,11 @@ func resourceArmApplicationInsights() *schema.Resource {
 	}
 }
 
-func resourceArmApplicationInsightsCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.ComponentsClient
 	billingClient := meta.(*clients.Client).AppInsights.BillingClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
-
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Application Insights creation.")
@@ -138,6 +141,7 @@ func resourceArmApplicationInsightsCreateUpdate(d *schema.ResourceData, meta int
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
+	resourceId := parse.NewComponentID(subscriptionId, resGroup, name).ID()
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
@@ -146,8 +150,8 @@ func resourceArmApplicationInsightsCreateUpdate(d *schema.ResourceData, meta int
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_application_insights", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_application_insights", resourceId)
 		}
 	}
 
@@ -211,43 +215,40 @@ func resourceArmApplicationInsightsCreateUpdate(d *schema.ResourceData, meta int
 		return fmt.Errorf("Error update Application Insights Billing Feature %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	d.SetId(*read.ID)
+	d.SetId(resourceId)
 
-	return resourceArmApplicationInsightsRead(d, meta)
+	return resourceApplicationInsightsRead(d, meta)
 }
 
-func resourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.ComponentsClient
 	billingClient := meta.(*clients.Client).AppInsights.BillingClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ComponentID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	log.Printf("[DEBUG] Reading AzureRM Application Insights '%s'", id)
 
-	resGroup := id.ResourceGroup
-	name := id.Path["components"]
-
-	resp, err := client.Get(ctx, resGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on AzureRM Application Insights '%s': %+v", name, err)
+		return fmt.Errorf("Error making Read request on AzureRM Application Insights '%s': %+v", id.Name, err)
 	}
 
-	billingResp, err := billingClient.Get(ctx, resGroup, name)
+	billingResp, err := billingClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error making Read request on AzureRM Application Insights Billing Feature '%s': %+v", name, err)
+		return fmt.Errorf("Error making Read request on AzureRM Application Insights Billing Feature '%s': %+v", id.Name, err)
 	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resGroup)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -272,26 +273,24 @@ func resourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmApplicationInsightsDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.ComponentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ComponentID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	name := id.Path["components"]
 
-	log.Printf("[DEBUG] Deleting AzureRM Application Insights '%s' (resource group '%s')", name, resGroup)
+	log.Printf("[DEBUG] Deleting AzureRM Application Insights %q (resource group %q)", id.Name, id.ResourceGroup)
 
-	resp, err := client.Delete(ctx, resGroup, name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if resp.StatusCode == http.StatusNotFound {
 			return nil
 		}
-		return fmt.Errorf("Error issuing AzureRM delete request for Application Insights '%s': %+v", name, err)
+		return fmt.Errorf("Error issuing AzureRM delete request for Application Insights %q: %+v", id.Name, err)
 	}
 
 	return err

@@ -84,9 +84,11 @@ func (client EventHubsClient) ListByNamespace(ctx context.Context, resourceGroup
 	result.ehlr, err = client.ListByNamespaceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.EventHubsClient", "ListByNamespace", resp, "Failure responding to request")
+		return
 	}
 	if result.ehlr.hasNextLink() && result.ehlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

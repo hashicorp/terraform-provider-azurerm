@@ -85,8 +85,8 @@ type OperationDisplay struct {
 	Description *string `json:"description,omitempty"`
 }
 
-// OperationListResult a list of service operations. It contains a list of operations and a URL link to get the
-// next set of results.
+// OperationListResult a list of service operations. It contains a list of operations and a URL link to get
+// the next set of results.
 type OperationListResult struct {
 	autorest.Response `json:"-"`
 	// NextLink - The link used to get the next page of service description objects.
@@ -247,8 +247,11 @@ func (page OperationListResultPage) Values() []Operation {
 }
 
 // Creates a new instance of the OperationListResultPage type.
-func NewOperationListResultPage(getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
-	return OperationListResultPage{fn: getNextPage}
+func NewOperationListResultPage(cur OperationListResult, getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
+	return OperationListResultPage{
+		fn:  getNextPage,
+		olr: cur,
+	}
 }
 
 // OperationResultsDescription the properties indicating the operation result of an operation on a service.
@@ -379,52 +382,19 @@ type ServiceExportConfigurationInfo struct {
 // ServicesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type ServicesCreateOrUpdateFuture struct {
-	azure.Future
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ServicesClient) (ServicesDescription, error)
 }
 
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ServicesCreateOrUpdateFuture) Result(client ServicesClient) (sd ServicesDescription, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "healthcareapis.ServicesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("healthcareapis.ServicesCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if sd.Response.Response, err = future.GetResult(sender); err == nil && sd.Response.Response.StatusCode != http.StatusNoContent {
-		sd, err = client.CreateOrUpdateResponder(sd.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "healthcareapis.ServicesCreateOrUpdateFuture", "Result", sd.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// ServicesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// ServicesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type ServicesDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ServicesDeleteFuture) Result(client ServicesClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "healthcareapis.ServicesDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("healthcareapis.ServicesDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ServicesClient) (autorest.Response, error)
 }
 
 // ServicesDescription the description of the service.
@@ -483,7 +453,8 @@ type ServicesDescriptionListResult struct {
 	Value *[]ServicesDescription `json:"value,omitempty"`
 }
 
-// ServicesDescriptionListResultIterator provides access to a complete listing of ServicesDescription values.
+// ServicesDescriptionListResultIterator provides access to a complete listing of ServicesDescription
+// values.
 type ServicesDescriptionListResultIterator struct {
 	i    int
 	page ServicesDescriptionListResultPage
@@ -626,8 +597,11 @@ func (page ServicesDescriptionListResultPage) Values() []ServicesDescription {
 }
 
 // Creates a new instance of the ServicesDescriptionListResultPage type.
-func NewServicesDescriptionListResultPage(getNextPage func(context.Context, ServicesDescriptionListResult) (ServicesDescriptionListResult, error)) ServicesDescriptionListResultPage {
-	return ServicesDescriptionListResultPage{fn: getNextPage}
+func NewServicesDescriptionListResultPage(cur ServicesDescriptionListResult, getNextPage func(context.Context, ServicesDescriptionListResult) (ServicesDescriptionListResult, error)) ServicesDescriptionListResultPage {
+	return ServicesDescriptionListResultPage{
+		fn:   getNextPage,
+		sdlr: cur,
+	}
 }
 
 // ServicesNameAvailabilityInfo the properties indicating whether a given service name is available.
@@ -702,32 +676,13 @@ func (sp ServicesProperties) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// ServicesUpdateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// ServicesUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type ServicesUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ServicesUpdateFuture) Result(client ServicesClient) (sd ServicesDescription, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "healthcareapis.ServicesUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("healthcareapis.ServicesUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if sd.Response.Response, err = future.GetResult(sender); err == nil && sd.Response.Response.StatusCode != http.StatusNoContent {
-		sd, err = client.UpdateResponder(sd.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "healthcareapis.ServicesUpdateFuture", "Result", sd.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ServicesClient) (ServicesDescription, error)
 }
 
 // SetObject ...

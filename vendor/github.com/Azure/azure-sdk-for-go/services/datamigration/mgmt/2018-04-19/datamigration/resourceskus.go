@@ -70,9 +70,11 @@ func (client ResourceSkusClient) ListSkus(ctx context.Context) (result ResourceS
 	result.rsr, err = client.ListSkusResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datamigration.ResourceSkusClient", "ListSkus", resp, "Failure responding to request")
+		return
 	}
 	if result.rsr.hasNextLink() && result.rsr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

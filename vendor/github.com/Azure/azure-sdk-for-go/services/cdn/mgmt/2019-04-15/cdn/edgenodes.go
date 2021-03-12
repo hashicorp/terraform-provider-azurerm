@@ -70,9 +70,11 @@ func (client EdgeNodesClient) List(ctx context.Context) (result EdgenodeResultPa
 	result.er, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.EdgeNodesClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.er.hasNextLink() && result.er.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

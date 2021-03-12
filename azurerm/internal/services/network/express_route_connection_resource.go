@@ -45,13 +45,6 @@ func resourceArmExpressRouteConnection() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"express_route_gateway_id": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.ExpressRouteGatewayID,
-			},
-
 			"express_route_circuit_peering_id": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -59,10 +52,17 @@ func resourceArmExpressRouteConnection() *schema.Resource {
 				ValidateFunc: validate.ExpressRouteCircuitPeeringID,
 			},
 
+			"express_route_gateway_id": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.ExpressRouteGatewayID,
+			},
+
 			"authorization_key": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: validation.IsUUID,
 			},
 
 			"enable_internet_security": {
@@ -376,18 +376,6 @@ func expandArmExpressRouteConnectionStaticVnetRoute(input []interface{}) *networ
 	}
 }
 
-func expandIDsToSubResources(input []interface{}) *[]network.SubResource {
-	ids := make([]network.SubResource, 0)
-
-	for _, v := range input {
-		ids = append(ids, network.SubResource{
-			ID: utils.String(v.(string)),
-		})
-	}
-
-	return &ids
-}
-
 func flattenArmExpressRouteConnectionRouting(input *network.RoutingConfiguration) []interface{} {
 	if input == nil {
 		return []interface{}{}
@@ -462,21 +450,4 @@ func flattenArmExpressRouteConnectionStaticVnetRoute(input *network.VnetRoute) [
 	}
 
 	return results
-}
-
-func flattenSubResourcesToIDs(input *[]network.SubResource) []interface{} {
-	ids := make([]interface{}, 0)
-	if input == nil {
-		return ids
-	}
-
-	for _, v := range *input {
-		if v.ID == nil {
-			continue
-		}
-
-		ids = append(ids, *v.ID)
-	}
-
-	return ids
 }

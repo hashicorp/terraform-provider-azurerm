@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/analysisservices/mgmt/2017-08-01/analysisservices"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -23,12 +22,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAnalysisServicesServer() *schema.Resource {
+func resourceAnalysisServicesServer() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAnalysisServicesServerCreate,
-		Read:   resourceArmAnalysisServicesServerRead,
-		Update: resourceArmAnalysisServicesServerUpdate,
-		Delete: resourceArmAnalysisServicesServerDelete,
+		Create: resourceAnalysisServicesServerCreate,
+		Read:   resourceAnalysisServicesServerRead,
+		Update: resourceAnalysisServicesServerUpdate,
+		Delete: resourceAnalysisServicesServerDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -38,7 +37,7 @@ func resourceArmAnalysisServicesServer() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.AnalysisServicesServerID(id)
+			_, err := parse.ServerID(id)
 			return err
 		}),
 
@@ -131,7 +130,7 @@ func resourceArmAnalysisServicesServer() *schema.Resource {
 	}
 }
 
-func resourceArmAnalysisServicesServerCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAnalysisServicesServerCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AnalysisServices.ServerClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -189,15 +188,15 @@ func resourceArmAnalysisServicesServerCreate(d *schema.ResourceData, meta interf
 
 	d.SetId(*resp.ID)
 
-	return resourceArmAnalysisServicesServerRead(d, meta)
+	return resourceAnalysisServicesServerRead(d, meta)
 }
 
-func resourceArmAnalysisServicesServerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAnalysisServicesServerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AnalysisServices.ServerClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AnalysisServicesServerID(d.Id())
+	id, err := parse.ServerID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -246,14 +245,14 @@ func resourceArmAnalysisServicesServerRead(d *schema.ResourceData, meta interfac
 	return tags.FlattenAndSet(d, server.Tags)
 }
 
-func resourceArmAnalysisServicesServerUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAnalysisServicesServerUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AnalysisServices.ServerClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Analysis Services Server update.")
 
-	id, err := parse.AnalysisServicesServerID(d.Id())
+	id, err := parse.ServerID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -310,15 +309,15 @@ func resourceArmAnalysisServicesServerUpdate(d *schema.ResourceData, meta interf
 		}
 	}
 
-	return resourceArmAnalysisServicesServerRead(d, meta)
+	return resourceAnalysisServicesServerRead(d, meta)
 }
 
-func resourceArmAnalysisServicesServerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAnalysisServicesServerDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AnalysisServices.ServerClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AnalysisServicesServerID(d.Id())
+	id, err := parse.ServerID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -465,5 +464,5 @@ func hashAnalysisServicesServerIpv4FirewallRule(v interface{}) int {
 	buf.WriteString(fmt.Sprintf("%s-", m["range_start"].(string)))
 	buf.WriteString(m["range_end"].(string))
 
-	return hashcode.String(buf.String())
+	return schema.HashString(buf.String())
 }

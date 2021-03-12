@@ -76,9 +76,11 @@ func (client ProtectedItemsGroupClient) List(ctx context.Context, vaultName stri
 	result.pirl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ProtectedItemsGroupClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.pirl.hasNextLink() && result.pirl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

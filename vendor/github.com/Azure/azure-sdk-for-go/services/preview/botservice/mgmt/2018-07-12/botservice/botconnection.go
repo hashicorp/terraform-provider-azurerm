@@ -91,6 +91,7 @@ func (client BotConnectionClient) Create(ctx context.Context, resourceGroupName 
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "botservice.BotConnectionClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -186,6 +187,7 @@ func (client BotConnectionClient) Delete(ctx context.Context, resourceGroupName 
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "botservice.BotConnectionClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -278,6 +280,7 @@ func (client BotConnectionClient) Get(ctx context.Context, resourceGroupName str
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "botservice.BotConnectionClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -367,9 +370,11 @@ func (client BotConnectionClient) ListByBotService(ctx context.Context, resource
 	result.csrl, err = client.ListByBotServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "botservice.BotConnectionClient", "ListByBotService", resp, "Failure responding to request")
+		return
 	}
 	if result.csrl.hasNextLink() && result.csrl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -479,6 +484,7 @@ func (client BotConnectionClient) ListServiceProviders(ctx context.Context) (res
 	result, err = client.ListServiceProvidersResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "botservice.BotConnectionClient", "ListServiceProviders", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -569,6 +575,7 @@ func (client BotConnectionClient) ListWithSecrets(ctx context.Context, resourceG
 	result, err = client.ListWithSecretsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "botservice.BotConnectionClient", "ListWithSecrets", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -663,6 +670,7 @@ func (client BotConnectionClient) Update(ctx context.Context, resourceGroupName 
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "botservice.BotConnectionClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -3,31 +3,35 @@ package eventhub
 import (
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/eventhub/mgmt/2018-01-01-preview/eventhub"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/validate"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 var eventHubResourceName = "azurerm_eventhub"
 
-func resourceArmEventHub() *schema.Resource {
+func resourceEventHub() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmEventHubCreateUpdate,
-		Read:   resourceArmEventHubRead,
-		Update: resourceArmEventHubCreateUpdate,
-		Delete: resourceArmEventHubDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Create: resourceEventHubCreateUpdate,
+		Read:   resourceEventHubRead,
+		Update: resourceEventHubCreateUpdate,
+		Delete: resourceEventHubDelete,
+
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.EventHubID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -41,14 +45,14 @@ func resourceArmEventHub() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateEventHubName(),
+				ValidateFunc: validate.ValidateEventHubName(),
 			},
 
 			"namespace_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateEventHubNamespaceName(),
+				ValidateFunc: validate.ValidateEventHubNamespaceName(),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -57,13 +61,13 @@ func resourceArmEventHub() *schema.Resource {
 				Type:         schema.TypeInt,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateEventHubPartitionCount,
+				ValidateFunc: validate.ValidateEventHubPartitionCount,
 			},
 
 			"message_retention": {
 				Type:         schema.TypeInt,
 				Required:     true,
-				ValidateFunc: ValidateEventHubMessageRetentionCount,
+				ValidateFunc: validate.ValidateEventHubMessageRetentionCount,
 			},
 
 			"capture_description": {
@@ -121,7 +125,7 @@ func resourceArmEventHub() *schema.Resource {
 									"archive_name_format": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: ValidateEventHubArchiveNameFormat,
+										ValidateFunc: validate.ValidateEventHubArchiveNameFormat,
 									},
 									"blob_container_name": {
 										Type:     schema.TypeString,
@@ -149,26 +153,26 @@ func resourceArmEventHub() *schema.Resource {
 	}
 }
 
-func resourceArmEventHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceEventHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.EventHubsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
+
 	log.Printf("[INFO] preparing arguments for Azure ARM EventHub creation.")
 
-	name := d.Get("name").(string)
-	namespaceName := d.Get("namespace_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewEventHubID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, namespaceName, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.NamespaceName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing EventHub %q (Namespace %q / Resource Group %q): %s", name, namespaceName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_eventhub", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_eventhub", id.ID())
 		}
 	}
 
@@ -186,49 +190,37 @@ func resourceArmEventHubCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		parameters.Properties.CaptureDescription = expandEventHubCaptureDescription(d)
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, namespaceName, name, parameters); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.NamespaceName, id.Name, parameters); err != nil {
 		return err
 	}
 
-	read, err := client.Get(ctx, resourceGroup, namespaceName, name)
-	if err != nil {
-		return err
-	}
+	d.SetId(id.ID())
 
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read EventHub %s (resource group %s) ID", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
-
-	return resourceArmEventHubRead(d, meta)
+	return resourceEventHubRead(d, meta)
 }
 
-func resourceArmEventHubRead(d *schema.ResourceData, meta interface{}) error {
+func resourceEventHubRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.EventHubsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.EventHubID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	namespaceName := id.Path["namespaces"]
-	name := id.Path["eventhubs"]
-	resp, err := client.Get(ctx, resourceGroup, namespaceName, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.NamespaceName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure EventHub %q (resource group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error making Read request on %s: %+v", id, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("namespace_name", namespaceName)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.Name)
+	d.Set("namespace_name", id.NamespaceName)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if props := resp.Properties; props != nil {
 		d.Set("partition_count", props.PartitionCount)
@@ -244,73 +236,26 @@ func resourceArmEventHubRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceArmEventHubDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceEventHubDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.EventHubsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	id, err := azure.ParseAzureResourceID(d.Id())
+
+	id, err := parse.EventHubID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	namespaceName := id.Path["namespaces"]
-	name := id.Path["eventhubs"]
-	resp, err := client.Delete(ctx, resourceGroup, namespaceName, name)
-
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.NamespaceName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp) {
 			return nil
 		}
 
-		return fmt.Errorf("Error issuing delete request for EventHub %q (resource group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil
-}
-
-func ValidateEventHubPartitionCount(v interface{}, _ string) (warnings []string, errors []error) {
-	value := v.(int)
-
-	if !(1024 >= value && value >= 1) {
-		errors = append(errors, fmt.Errorf("EventHub Partition Count has to be between 1 and 32 or between 1 and 1024 if using a dedicated Event Hubs Cluster"))
-	}
-
-	return warnings, errors
-}
-
-func ValidateEventHubMessageRetentionCount(v interface{}, _ string) (warnings []string, errors []error) {
-	value := v.(int)
-
-	if !(90 >= value && value >= 1) {
-		errors = append(errors, fmt.Errorf("EventHub Retention Count has to be between 1 and 7 or between 1 and 90 if using a dedicated Event Hubs Cluster"))
-	}
-
-	return warnings, errors
-}
-
-func ValidateEventHubArchiveNameFormat(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-
-	requiredComponents := []string{
-		"{Namespace}",
-		"{EventHub}",
-		"{PartitionId}",
-		"{Year}",
-		"{Month}",
-		"{Day}",
-		"{Hour}",
-		"{Minute}",
-		"{Second}",
-	}
-
-	for _, component := range requiredComponents {
-		if !strings.Contains(value, component) {
-			errors = append(errors, fmt.Errorf("%s needs to contain %q", k, component))
-		}
-	}
-
-	return warnings, errors
 }
 
 func expandEventHubCaptureDescription(d *schema.ResourceData) *eventhub.CaptureDescription {

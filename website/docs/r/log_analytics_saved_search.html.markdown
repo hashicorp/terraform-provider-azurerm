@@ -15,7 +15,7 @@ Manages a Log Analytics (formally Operational Insights) Saved Search.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "East US"
+  location = "West Europe"
 }
 
 resource "azurerm_log_analytics_workspace" "example" {
@@ -53,6 +53,8 @@ The following arguments are supported:
 * `function_alias` - (Optional) The function alias if the query serves as a function. Changing this forces a new resource to be created.
 
 * `function_parameters` - (Optional) The function parameters if the query serves as a function. Changing this forces a new resource to be created.
+
+* `tags` - (Optional) A mapping of tags which should be assigned to the Logs Analytics Saved Search.
 
 ## Attributes Reference
 

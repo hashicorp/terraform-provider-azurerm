@@ -81,6 +81,7 @@ func (client ManagedDatabaseSensitivityLabelsClient) CreateOrUpdate(ctx context.
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedDatabaseSensitivityLabelsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -168,6 +169,7 @@ func (client ManagedDatabaseSensitivityLabelsClient) Delete(ctx context.Context,
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedDatabaseSensitivityLabelsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -252,6 +254,7 @@ func (client ManagedDatabaseSensitivityLabelsClient) DisableRecommendation(ctx c
 	result, err = client.DisableRecommendationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedDatabaseSensitivityLabelsClient", "DisableRecommendation", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -337,6 +340,7 @@ func (client ManagedDatabaseSensitivityLabelsClient) EnableRecommendation(ctx co
 	result, err = client.EnableRecommendationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedDatabaseSensitivityLabelsClient", "EnableRecommendation", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -422,6 +426,7 @@ func (client ManagedDatabaseSensitivityLabelsClient) Get(ctx context.Context, re
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedDatabaseSensitivityLabelsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -506,9 +511,11 @@ func (client ManagedDatabaseSensitivityLabelsClient) ListCurrentByDatabase(ctx c
 	result.sllr, err = client.ListCurrentByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedDatabaseSensitivityLabelsClient", "ListCurrentByDatabase", resp, "Failure responding to request")
+		return
 	}
 	if result.sllr.hasNextLink() && result.sllr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -630,9 +637,11 @@ func (client ManagedDatabaseSensitivityLabelsClient) ListRecommendedByDatabase(c
 	result.sllr, err = client.ListRecommendedByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedDatabaseSensitivityLabelsClient", "ListRecommendedByDatabase", resp, "Failure responding to request")
+		return
 	}
 	if result.sllr.hasNextLink() && result.sllr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

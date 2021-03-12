@@ -81,6 +81,7 @@ func (client ArtifactSourcesClient) CreateOrUpdate(ctx context.Context, resource
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.ArtifactSourcesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -160,6 +161,7 @@ func (client ArtifactSourcesClient) Delete(ctx context.Context, resourceGroupNam
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.ArtifactSourcesClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -237,6 +239,7 @@ func (client ArtifactSourcesClient) Get(ctx context.Context, resourceGroupName s
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.ArtifactSourcesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -321,9 +324,11 @@ func (client ArtifactSourcesClient) List(ctx context.Context, resourceGroupName 
 	result.rwcas, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.ArtifactSourcesClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.rwcas.hasNextLink() && result.rwcas.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -450,6 +455,7 @@ func (client ArtifactSourcesClient) Update(ctx context.Context, resourceGroupNam
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.ArtifactSourcesClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

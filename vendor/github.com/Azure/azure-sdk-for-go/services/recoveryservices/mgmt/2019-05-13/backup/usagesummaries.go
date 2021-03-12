@@ -74,6 +74,7 @@ func (client UsageSummariesClient) List(ctx context.Context, vaultName string, r
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.UsageSummariesClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return

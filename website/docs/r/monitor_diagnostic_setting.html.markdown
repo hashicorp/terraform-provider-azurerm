@@ -75,7 +75,7 @@ The following arguments are supported:
 
 -> **NOTE:** At least one `log` or `metric` block must be specified.
 
-* `log_analytics_workspace_id` - (Optional) Specifies the ID of a Log Analytics Workspace where Diagnostics Data should be sent. Changing this forces a new resource to be created.
+* `log_analytics_workspace_id` - (Optional) Specifies the ID of a Log Analytics Workspace where Diagnostics Data should be sent.
 
 -> **NOTE:** One of `eventhub_authorization_rule_id`, `log_analytics_workspace_id` and `storage_account_id` must be specified.
 
@@ -146,7 +146,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Diagnostic Settings can be imported using the `resource id`, e.g.
 
 ```
-terraform import azurerm_monitor_diagnostics.example /subscriptions/XXX/resourcegroups/resource_group/providers/microsoft.keyvault/vaults/vault|logMonitoring
+terraform import azurerm_monitor_diagnostic_setting.example "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.KeyVault/vaults/vault1|logMonitoring1"
 ```
 
 -> **NOTE:** This is a Terraform specific Resource ID which uses the format `{resourceId}|{diagnosticSettingName}`

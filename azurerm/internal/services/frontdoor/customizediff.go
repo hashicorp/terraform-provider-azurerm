@@ -11,7 +11,7 @@ import (
 
 func customizeHttpsConfigurationCustomizeDiff(d *schema.ResourceDiff, v interface{}) error {
 	if v, ok := d.GetOk("frontend_endpoint_id"); ok && v.(string) != "" {
-		id, err := parse.FrontendEndpointIDForImport(v.(string))
+		id, err := parse.FrontendEndpointID(v.(string))
 		if err != nil {
 			return err
 		}

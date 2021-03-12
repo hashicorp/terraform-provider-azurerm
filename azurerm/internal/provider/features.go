@@ -19,10 +19,22 @@ func schemaFeatures(supportLegacyTestSuite bool) *schema.Schema {
 						Type:     schema.TypeBool,
 						Optional: true,
 					},
-
 					"purge_soft_delete_on_destroy": {
 						Type:     schema.TypeBool,
 						Optional: true,
+					},
+				},
+			},
+		},
+		"log_analytics_workspace": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"permanently_delete_on_destroy": {
+						Type:     schema.TypeBool,
+						Required: true,
 					},
 				},
 			},
@@ -64,7 +76,11 @@ func schemaFeatures(supportLegacyTestSuite bool) *schema.Schema {
 				Schema: map[string]*schema.Schema{
 					"delete_os_disk_on_deletion": {
 						Type:     schema.TypeBool,
-						Required: true,
+						Optional: true,
+					},
+					"graceful_shutdown": {
+						Type:     schema.TypeBool,
+						Optional: true,
 					},
 				},
 			},
@@ -110,25 +126,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *schema.Schema {
 
 func expandFeatures(input []interface{}) features.UserFeatures {
 	// these are the defaults if omitted from the config
-	features := features.UserFeatures{
-		// NOTE: ensure all nested objects are fully populated
-		KeyVault: features.KeyVaultFeatures{
-			PurgeSoftDeleteOnDestroy:    true,
-			RecoverSoftDeletedKeyVaults: true,
-		},
-		Network: features.NetworkFeatures{
-			RelaxedLocking: false,
-		},
-		TemplateDeployment: features.TemplateDeploymentFeatures{
-			DeleteNestedItemsDuringDeletion: true,
-		},
-		VirtualMachine: features.VirtualMachineFeatures{
-			DeleteOSDiskOnDeletion: true,
-		},
-		VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
-			RollInstancesWhenRequired: true,
-		},
-	}
+	features := features.Default()
 
 	if len(input) == 0 || input[0] == nil {
 		return features
@@ -145,6 +143,16 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			}
 			if v, ok := keyVaultRaw["recover_soft_deleted_key_vaults"]; ok {
 				features.KeyVault.RecoverSoftDeletedKeyVaults = v.(bool)
+			}
+		}
+	}
+
+	if raw, ok := val["log_analytics_workspace"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 {
+			logAnalyticsWorkspaceRaw := items[0].(map[string]interface{})
+			if v, ok := logAnalyticsWorkspaceRaw["permanently_delete_on_destroy"]; ok {
+				features.LogAnalyticsWorkspace.PermanentlyDeleteOnDestroy = v.(bool)
 			}
 		}
 	}
@@ -175,6 +183,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			virtualMachinesRaw := items[0].(map[string]interface{})
 			if v, ok := virtualMachinesRaw["delete_os_disk_on_deletion"]; ok {
 				features.VirtualMachine.DeleteOSDiskOnDeletion = v.(bool)
+			}
+			if v, ok := virtualMachinesRaw["graceful_shutdown"]; ok {
+				features.VirtualMachine.GracefulShutdown = v.(bool)
 			}
 		}
 	}

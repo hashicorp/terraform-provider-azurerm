@@ -83,6 +83,7 @@ func (client ObjectDataTypesClient) ListFieldsByModuleAndType(ctx context.Contex
 	result, err = client.ListFieldsByModuleAndTypeResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.ObjectDataTypesClient", "ListFieldsByModuleAndType", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -169,6 +170,7 @@ func (client ObjectDataTypesClient) ListFieldsByType(ctx context.Context, resour
 	result, err = client.ListFieldsByTypeResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.ObjectDataTypesClient", "ListFieldsByType", resp, "Failure responding to request")
+		return
 	}
 
 	return

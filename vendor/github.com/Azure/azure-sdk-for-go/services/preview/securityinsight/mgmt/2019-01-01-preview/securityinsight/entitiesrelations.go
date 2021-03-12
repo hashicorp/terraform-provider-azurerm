@@ -98,9 +98,11 @@ func (client EntitiesRelationsClient) List(ctx context.Context, resourceGroupNam
 	result.rl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.EntitiesRelationsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.rl.hasNextLink() && result.rl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

@@ -7,12 +7,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-04-01/containerservice"
+	privateDnsValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns/validate"
+
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-12-01/containerservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -20,21 +21,24 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/kubernetes"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/parse"
 	containerValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/validate"
+	msiparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
+	msivalidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmKubernetesCluster() *schema.Resource {
+func resourceKubernetesCluster() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmKubernetesClusterCreate,
-		Read:   resourceArmKubernetesClusterRead,
-		Update: resourceArmKubernetesClusterUpdate,
-		Delete: resourceArmKubernetesClusterDelete,
+		Create: resourceKubernetesClusterCreate,
+		Read:   resourceKubernetesClusterRead,
+		Update: resourceKubernetesClusterUpdate,
+		Delete: resourceKubernetesClusterDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.KubernetesClusterID(id)
+			_, err := parse.ClusterID(id)
 			return err
 		}),
 
@@ -68,7 +72,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.KubernetesDNSPrefix,
+				ValidateFunc: containerValidate.KubernetesDNSPrefix,
 			},
 
 			"kubernetes_version": {
@@ -104,10 +108,27 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Optional: true,
 							Default:  false,
 						},
+						"expander": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(containerservice.LeastWaste),
+								string(containerservice.MostPods),
+								string(containerservice.Priority),
+								string(containerservice.Random),
+							}, false),
+						},
 						"max_graceful_termination_sec": {
 							Type:     schema.TypeString,
 							Optional: true,
 							Computed: true,
+						},
+						"new_pod_scale_up_delay": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: containerValidate.Duration,
 						},
 						"scan_interval": {
 							Type:         schema.TypeString,
@@ -150,6 +171,16 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Optional: true,
 							Computed: true,
 						},
+						"skip_nodes_with_local_storage": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+						"skip_nodes_with_system_pods": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
 					},
 				},
 			},
@@ -178,8 +209,14 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Required: true,
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(containerservice.SystemAssigned),
+								string(containerservice.ResourceIdentityTypeSystemAssigned),
+								string(containerservice.ResourceIdentityTypeUserAssigned),
 							}, false),
+						},
+						"user_assigned_identity_id": {
+							Type:         schema.TypeString,
+							ValidateFunc: msivalidate.UserAssignedIdentityID,
+							Optional:     true,
 						},
 						"principal_id": {
 							Type:     schema.TypeString,
@@ -224,7 +261,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Type:         schema.TypeString,
 							Required:     true,
 							ForceNew:     true,
-							ValidateFunc: validate.KubernetesAdminUserName,
+							ValidateFunc: containerValidate.KubernetesAdminUserName,
 						},
 						"ssh_key": {
 							Type:     schema.TypeList,
@@ -262,6 +299,20 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(containerservice.Azure),
 								string(containerservice.Kubenet),
+							}, false),
+						},
+
+						"network_mode": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								// https://github.com/Azure/AKS/issues/1954#issuecomment-759306712
+								// Transparent is already the default and only option for CNI
+								// Bridge is only kept for backward compatibility
+								string(containerservice.Bridge),
+								string(containerservice.Transparent),
 							}, false),
 						},
 
@@ -414,7 +465,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				ForceNew:      true,
 				Computed:      true,
 				ConflictsWith: []string{"private_cluster_enabled"},
-				Deprecated:    "Deprecated in favor of `private_cluster_enabled`", // TODO -- remove this in next major version
+				Deprecated:    "Deprecated in favour of `private_cluster_enabled`", // TODO -- remove this in next major version
 			},
 
 			"private_cluster_enabled": {
@@ -423,6 +474,20 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				ForceNew:      true,
 				Computed:      true, // TODO -- remove this when deprecation resolves
 				ConflictsWith: []string{"private_link_enabled"},
+			},
+
+			"private_dns_zone_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true, // a Private Cluster is `System` by default even if unspecified
+				ForceNew: true,
+				ValidateFunc: validation.Any(
+					privateDnsValidate.PrivateDnsZoneID,
+					validation.StringInSlice([]string{
+						"System",
+						"None",
+					}, false),
+				),
 			},
 
 			"role_based_access_control": {
@@ -546,10 +611,20 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Sensitive:    true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							ValidateFunc: validation.StringLenBetween(8, 123),
 						},
 					},
 				},
+			},
+
+			"automatic_channel_upgrade": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(containerservice.UpgradeChannelPatch),
+					string(containerservice.UpgradeChannelRapid),
+					string(containerservice.UpgradeChannelStable),
+				}, false),
 			},
 
 			// Computed
@@ -647,7 +722,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 	}
 }
 
-func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceKubernetesClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.KubernetesClustersClient
 	env := meta.(*clients.Client).Containers.Environment
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -729,7 +804,9 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 
 	nodeResourceGroup := d.Get("node_resource_group").(string)
 
-	enablePodSecurityPolicy := d.Get("enable_pod_security_policy").(bool)
+	if d.Get("enable_pod_security_policy").(bool) {
+		return fmt.Errorf("The AKS API has removed support for this field on 2020-10-15 and is no longer possible to configure this the Pod Security Policy - as such you'll need to set `enable_pod_security_policy` to `false`")
+	}
 
 	autoScalerProfileRaw := d.Get("auto_scaler_profile").([]interface{})
 	autoScalerProfile := expandKubernetesClusterAutoScalerProfile(autoScalerProfileRaw)
@@ -742,21 +819,26 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 			Tier: containerservice.ManagedClusterSKUTier(d.Get("sku_tier").(string)),
 		},
 		ManagedClusterProperties: &containerservice.ManagedClusterProperties{
-			APIServerAccessProfile:  &apiAccessProfile,
-			AadProfile:              azureADProfile,
-			AddonProfiles:           *addonProfiles,
-			AgentPoolProfiles:       agentProfiles,
-			AutoScalerProfile:       autoScalerProfile,
-			DNSPrefix:               utils.String(dnsPrefix),
-			EnableRBAC:              utils.Bool(rbacEnabled),
-			KubernetesVersion:       utils.String(kubernetesVersion),
-			LinuxProfile:            linuxProfile,
-			WindowsProfile:          windowsProfile,
-			NetworkProfile:          networkProfile,
-			NodeResourceGroup:       utils.String(nodeResourceGroup),
-			EnablePodSecurityPolicy: utils.Bool(enablePodSecurityPolicy),
+			APIServerAccessProfile: &apiAccessProfile,
+			AadProfile:             azureADProfile,
+			AddonProfiles:          *addonProfiles,
+			AgentPoolProfiles:      agentProfiles,
+			AutoScalerProfile:      autoScalerProfile,
+			DNSPrefix:              utils.String(dnsPrefix),
+			EnableRBAC:             utils.Bool(rbacEnabled),
+			KubernetesVersion:      utils.String(kubernetesVersion),
+			LinuxProfile:           linuxProfile,
+			WindowsProfile:         windowsProfile,
+			NetworkProfile:         networkProfile,
+			NodeResourceGroup:      utils.String(nodeResourceGroup),
 		},
 		Tags: tags.Expand(t),
+	}
+
+	if v := d.Get("automatic_channel_upgrade").(string); v != "" {
+		parameters.ManagedClusterProperties.AutoUpgradeProfile = &containerservice.ManagedClusterAutoUpgradeProfile{
+			UpgradeChannel: containerservice.UpgradeChannel(v),
+		}
 	}
 
 	managedClusterIdentityRaw := d.Get("identity").([]interface{})
@@ -773,12 +855,21 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 		}
 	}
 
+	servicePrincipalSet := false
 	if len(servicePrincipalProfileRaw) > 0 {
 		servicePrincipalProfileVal := servicePrincipalProfileRaw[0].(map[string]interface{})
 		parameters.ManagedClusterProperties.ServicePrincipalProfile = &containerservice.ManagedClusterServicePrincipalProfile{
 			ClientID: utils.String(servicePrincipalProfileVal["client_id"].(string)),
 			Secret:   utils.String(servicePrincipalProfileVal["client_secret"].(string)),
 		}
+		servicePrincipalSet = true
+	}
+
+	if v, ok := d.GetOk("private_dns_zone_id"); ok {
+		if (parameters.Identity == nil && !servicePrincipalSet) || (v.(string) != "System" && (!servicePrincipalSet && parameters.Identity.Type != containerservice.ResourceIdentityTypeUserAssigned)) {
+			return fmt.Errorf("a user assigned identity or a service principal must be used when using a custom private dns zone")
+		}
+		apiAccessProfile.PrivateDNSZone = utils.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("disk_encryption_set_id"); ok && v.(string) != "" {
@@ -805,10 +896,10 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 
 	d.SetId(*read.ID)
 
-	return resourceArmKubernetesClusterRead(d, meta)
+	return resourceKubernetesClusterRead(d, meta)
 }
 
-func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}) error {
 	containersClient := meta.(*clients.Client).Containers
 	nodePoolsClient := containersClient.AgentPoolsClient
 	clusterClient := containersClient.KubernetesClustersClient
@@ -819,7 +910,7 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 
 	log.Printf("[INFO] preparing arguments for Managed Kubernetes Cluster update.")
 
-	id, err := parse.KubernetesClusterID(d.Id())
+	id, err := parse.ClusterID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -827,20 +918,20 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 	d.Partial(true)
 
 	// we need to conditionally update the cluster
-	existing, err := clusterClient.Get(ctx, id.ResourceGroup, id.Name)
+	existing, err := clusterClient.Get(ctx, id.ResourceGroup, id.ManagedClusterName)
 	if err != nil {
-		return fmt.Errorf("retrieving existing Kubernetes Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving existing Kubernetes Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
 	}
 	if existing.ManagedClusterProperties == nil {
-		return fmt.Errorf("retrieving existing Kubernetes Cluster %q (Resource Group %q): `properties` was nil", id.Name, id.ResourceGroup)
+		return fmt.Errorf("retrieving existing Kubernetes Cluster %q (Resource Group %q): `properties` was nil", id.ManagedClusterName, id.ResourceGroup)
 	}
 
-	if err := validateKubernetesCluster(d, &existing, id.ResourceGroup, id.Name); err != nil {
+	if err := validateKubernetesCluster(d, &existing, id.ResourceGroup, id.ManagedClusterName); err != nil {
 		return err
 	}
 
 	if d.HasChange("service_principal") {
-		log.Printf("[DEBUG] Updating the Service Principal for Kubernetes Cluster %q (Resource Group %q)..", id.Name, id.ResourceGroup)
+		log.Printf("[DEBUG] Updating the Service Principal for Kubernetes Cluster %q (Resource Group %q)..", id.ManagedClusterName, id.ResourceGroup)
 		servicePrincipals := d.Get("service_principal").([]interface{})
 		// we'll be rotating the Service Principal - removing the SP block is handled by the validate function
 		servicePrincipalRaw := servicePrincipals[0].(map[string]interface{})
@@ -852,23 +943,23 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 			Secret:   utils.String(clientSecret),
 		}
 
-		future, err := clusterClient.ResetServicePrincipalProfile(ctx, id.ResourceGroup, id.Name, params)
+		future, err := clusterClient.ResetServicePrincipalProfile(ctx, id.ResourceGroup, id.ManagedClusterName, params)
 		if err != nil {
-			return fmt.Errorf("updating Service Principal for Kubernetes Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("updating Service Principal for Kubernetes Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
 		}
 
 		if err = future.WaitForCompletionRef(ctx, clusterClient.Client); err != nil {
-			return fmt.Errorf("waiting for update of Service Principal for Kubernetes Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for update of Service Principal for Kubernetes Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
 		}
-		log.Printf("[DEBUG] Updated the Service Principal for Kubernetes Cluster %q (Resource Group %q).", id.Name, id.ResourceGroup)
+		log.Printf("[DEBUG] Updated the Service Principal for Kubernetes Cluster %q (Resource Group %q).", id.ManagedClusterName, id.ResourceGroup)
 
 		// since we're patching it, re-retrieve the latest version of the cluster
-		existing, err = clusterClient.Get(ctx, id.ResourceGroup, id.Name)
+		existing, err = clusterClient.Get(ctx, id.ResourceGroup, id.ManagedClusterName)
 		if err != nil {
-			return fmt.Errorf("retrieving existing Kubernetes Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("retrieving existing Kubernetes Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
 		}
 		if existing.ManagedClusterProperties == nil {
-			return fmt.Errorf("retrieving existing Kubernetes Cluster %q (Resource Group %q): `properties` was nil", id.Name, id.ResourceGroup)
+			return fmt.Errorf("retrieving existing Kubernetes Cluster %q (Resource Group %q): `properties` was nil", id.ManagedClusterName, id.ResourceGroup)
 		}
 	}
 
@@ -896,13 +987,13 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 			// Reset AAD profile is only possible if not managed
 			if props.AadProfile.Managed == nil || !*props.AadProfile.Managed {
 				log.Printf("[DEBUG] Updating the RBAC AAD profile")
-				future, err := clusterClient.ResetAADProfile(ctx, id.ResourceGroup, id.Name, *props.AadProfile)
+				future, err := clusterClient.ResetAADProfile(ctx, id.ResourceGroup, id.ManagedClusterName, *props.AadProfile)
 				if err != nil {
-					return fmt.Errorf("updating Managed Kubernetes Cluster AAD Profile in cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+					return fmt.Errorf("updating Managed Kubernetes Cluster AAD Profile in cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
 				}
 
 				if err = future.WaitForCompletionRef(ctx, clusterClient.Client); err != nil {
-					return fmt.Errorf("waiting for update of RBAC AAD profile of Managed Cluster %q (Resource Group %q):, %+v", id.Name, id.ResourceGroup, err)
+					return fmt.Errorf("waiting for update of RBAC AAD profile of Managed Cluster %q (Resource Group %q):, %+v", id.ManagedClusterName, id.ResourceGroup, err)
 				}
 			}
 		} else {
@@ -941,6 +1032,9 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 			AuthorizedIPRanges:   utils.ExpandStringSlice(apiServerAuthorizedIPRangesRaw),
 			EnablePrivateCluster: &enablePrivateCluster,
 		}
+		if v, ok := d.GetOk("private_dns_zone_id"); ok {
+			existing.ManagedClusterProperties.APIServerAccessProfile.PrivateDNSZone = utils.String(v.(string))
+		}
 	}
 
 	if d.HasChange("auto_scaler_profile") {
@@ -951,10 +1045,8 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 		existing.ManagedClusterProperties.AutoScalerProfile = autoScalerProfile
 	}
 
-	if d.HasChange("enable_pod_security_policy") {
-		updateCluster = true
-		enablePodSecurityPolicy := d.Get("enable_pod_security_policy").(bool)
-		existing.ManagedClusterProperties.EnablePodSecurityPolicy = utils.Bool(enablePodSecurityPolicy)
+	if d.HasChange("enable_pod_security_policy") && d.Get("enable_pod_security_policy").(bool) {
+		return fmt.Errorf("The AKS API has removed support for this field on 2020-10-15 and is no longer possible to configure this the Pod Security Policy - as such you'll need to set `enable_pod_security_policy` to `false`")
 	}
 
 	if d.HasChange("linux_profile") {
@@ -1050,40 +1142,54 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 		existing.Sku.Tier = containerservice.ManagedClusterSKUTier(d.Get("sku_tier").(string))
 	}
 
+	if d.HasChange("automatic_channel_upgrade") {
+		updateCluster = true
+		if existing.ManagedClusterProperties.AutoUpgradeProfile == nil {
+			existing.ManagedClusterProperties.AutoUpgradeProfile = &containerservice.ManagedClusterAutoUpgradeProfile{}
+		}
+
+		channel := containerservice.UpgradeChannelNone
+		if v := d.Get("automatic_channel_upgrade").(string); v != "" {
+			channel = containerservice.UpgradeChannel(v)
+		}
+
+		existing.ManagedClusterProperties.AutoUpgradeProfile.UpgradeChannel = channel
+	}
+
 	if updateCluster {
-		log.Printf("[DEBUG] Updating the Kubernetes Cluster %q (Resource Group %q)..", id.Name, id.ResourceGroup)
-		future, err := clusterClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, existing)
+		log.Printf("[DEBUG] Updating the Kubernetes Cluster %q (Resource Group %q)..", id.ManagedClusterName, id.ResourceGroup)
+		future, err := clusterClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ManagedClusterName, existing)
 		if err != nil {
-			return fmt.Errorf("updating Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("updating Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
 		}
 
 		if err = future.WaitForCompletionRef(ctx, clusterClient.Client); err != nil {
-			return fmt.Errorf("waiting for update of Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for update of Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
 		}
-		log.Printf("[DEBUG] Updated the Kubernetes Cluster %q (Resource Group %q)..", id.Name, id.ResourceGroup)
+		log.Printf("[DEBUG] Updated the Kubernetes Cluster %q (Resource Group %q)..", id.ManagedClusterName, id.ResourceGroup)
 	}
 
 	// then roll the version of Kubernetes if necessary
 	if d.HasChange("kubernetes_version") {
-		existing, err = clusterClient.Get(ctx, id.ResourceGroup, id.Name)
+		existing, err = clusterClient.Get(ctx, id.ResourceGroup, id.ManagedClusterName)
 		if err != nil {
-			return fmt.Errorf("retrieving existing Kubernetes Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("retrieving existing Kubernetes Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
 		}
 		if existing.ManagedClusterProperties == nil {
-			return fmt.Errorf("retrieving existing Kubernetes Cluster %q (Resource Group %q): `properties` was nil", id.Name, id.ResourceGroup)
+			return fmt.Errorf("retrieving existing Kubernetes Cluster %q (Resource Group %q): `properties` was nil", id.ManagedClusterName, id.ResourceGroup)
 		}
 
 		kubernetesVersion := d.Get("kubernetes_version").(string)
 		log.Printf("[DEBUG] Upgrading the version of Kubernetes to %q..", kubernetesVersion)
 		existing.ManagedClusterProperties.KubernetesVersion = utils.String(kubernetesVersion)
 
-		future, err := clusterClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, existing)
+		future, err := clusterClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ManagedClusterName, existing)
 		if err != nil {
-			return fmt.Errorf("updating Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("updating Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
 		}
 
 		if err = future.WaitForCompletionRef(ctx, clusterClient.Client); err != nil {
-			return fmt.Errorf("waiting for update of Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for update of Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
 		}
 
 		log.Printf("[DEBUG] Upgraded the version of Kubernetes to %q..", kubernetesVersion)
@@ -1103,51 +1209,51 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 
 		// if a users specified a version - confirm that version is supported on the cluster
 		if nodePoolVersion := agentProfile.ManagedClusterAgentPoolProfileProperties.OrchestratorVersion; nodePoolVersion != nil {
-			if err := validateNodePoolSupportsVersion(ctx, containersClient, id.ResourceGroup, id.Name, nodePoolName, *nodePoolVersion); err != nil {
+			if err := validateNodePoolSupportsVersion(ctx, containersClient, id.ResourceGroup, id.ManagedClusterName, nodePoolName, *nodePoolVersion); err != nil {
 				return err
 			}
 		}
 
-		agentPool, err := nodePoolsClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, nodePoolName, agentProfile)
+		agentPool, err := nodePoolsClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ManagedClusterName, nodePoolName, agentProfile)
 		if err != nil {
-			return fmt.Errorf("updating Default Node Pool %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("updating Default Node Pool %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
 		}
 
 		if err := agentPool.WaitForCompletionRef(ctx, nodePoolsClient.Client); err != nil {
-			return fmt.Errorf("waiting for update of Default Node Pool %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for update of Default Node Pool %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
 		}
 		log.Printf("[DEBUG] Updated Default Node Pool.")
 	}
 
 	d.Partial(false)
 
-	return resourceArmKubernetesClusterRead(d, meta)
+	return resourceKubernetesClusterRead(d, meta)
 }
 
-func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKubernetesClusterRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.KubernetesClustersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.KubernetesClusterID(d.Id())
+	id, err := parse.ClusterID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ManagedClusterName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Managed Kubernetes Cluster %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
+			log.Printf("[DEBUG] Managed Kubernetes Cluster %q was not found in Resource Group %q - removing from state!", id.ManagedClusterName, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
 	}
 
-	profile, err := client.GetAccessProfile(ctx, id.ResourceGroup, id.Name, "clusterUser")
+	profile, err := client.GetAccessProfile(ctx, id.ResourceGroup, id.ManagedClusterName, "clusterUser")
 	if err != nil {
-		return fmt.Errorf("retrieving Access Profile for Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Access Profile for Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -1171,6 +1277,12 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("node_resource_group", props.NodeResourceGroup)
 		d.Set("enable_pod_security_policy", props.EnablePodSecurityPolicy)
 
+		upgradeChannel := ""
+		if profile := props.AutoUpgradeProfile; profile != nil && profile.UpgradeChannel != containerservice.UpgradeChannelNone {
+			upgradeChannel = string(profile.UpgradeChannel)
+		}
+		d.Set("automatic_channel_upgrade", upgradeChannel)
+
 		// TODO: 2.0 we should introduce a access_profile block to match the new API design,
 		if accessProfile := props.APIServerAccessProfile; accessProfile != nil {
 			apiServerAuthorizedIPRanges := utils.FlattenStringSlice(accessProfile.AuthorizedIPRanges)
@@ -1180,6 +1292,7 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 
 			d.Set("private_link_enabled", accessProfile.EnablePrivateCluster)
 			d.Set("private_cluster_enabled", accessProfile.EnablePrivateCluster)
+			d.Set("private_dns_zone_id", accessProfile.PrivateDNSZone)
 		}
 
 		addonProfiles := flattenKubernetesAddOnProfiles(props.AddonProfiles)
@@ -1200,7 +1313,10 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 			return fmt.Errorf("setting `default_node_pool`: %+v", err)
 		}
 
-		kubeletIdentity := flattenKubernetesClusterIdentityProfile(props.IdentityProfile)
+		kubeletIdentity, err := flattenKubernetesClusterIdentityProfile(props.IdentityProfile)
+		if err != nil {
+			return err
+		}
 		if err := d.Set("kubelet_identity", kubeletIdentity); err != nil {
 			return fmt.Errorf("setting `kubelet_identity`: %+v", err)
 		}
@@ -1232,9 +1348,9 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 
 		// adminProfile is only available for RBAC enabled clusters with AAD
 		if props.AadProfile != nil {
-			adminProfile, err := client.GetAccessProfile(ctx, id.ResourceGroup, id.Name, "clusterAdmin")
+			adminProfile, err := client.GetAccessProfile(ctx, id.ResourceGroup, id.ManagedClusterName, "clusterAdmin")
 			if err != nil {
-				return fmt.Errorf("retrieving Admin Access Profile for Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+				return fmt.Errorf("retrieving Admin Access Profile for Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
 			}
 
 			adminKubeConfigRaw, adminKubeConfig := flattenKubernetesClusterAccessProfile(adminProfile)
@@ -1248,7 +1364,12 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
-	if err := d.Set("identity", flattenKubernetesClusterManagedClusterIdentity(resp.Identity)); err != nil {
+	identity, err := flattenKubernetesClusterManagedClusterIdentity(resp.Identity)
+	if err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
+	}
+
+	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
@@ -1261,23 +1382,23 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmKubernetesClusterDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceKubernetesClusterDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.KubernetesClustersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.KubernetesClusterID(d.Id())
+	id, err := parse.ClusterID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.ManagedClusterName)
 	if err != nil {
-		return fmt.Errorf("deleting Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the deletion of Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for the deletion of Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
 	}
 
 	return nil
@@ -1338,9 +1459,9 @@ func expandKubernetesClusterLinuxProfile(input []interface{}) *containerservice.
 	}
 }
 
-func flattenKubernetesClusterIdentityProfile(profile map[string]*containerservice.ManagedClusterPropertiesIdentityProfileValue) []interface{} {
+func flattenKubernetesClusterIdentityProfile(profile map[string]*containerservice.ManagedClusterPropertiesIdentityProfileValue) ([]interface{}, error) {
 	if profile == nil {
-		return []interface{}{}
+		return []interface{}{}, nil
 	}
 
 	kubeletIdentity := make([]interface{}, 0)
@@ -1357,7 +1478,12 @@ func flattenKubernetesClusterIdentityProfile(profile map[string]*containerservic
 
 		userAssignedIdentityId := ""
 		if resourceid := kubeletidentity.ResourceID; resourceid != nil {
-			userAssignedIdentityId = *resourceid
+			parsedId, err := msiparse.UserAssignedIdentityID(*resourceid)
+			if err != nil {
+				return nil, err
+			}
+
+			userAssignedIdentityId = parsedId.ID()
 		}
 
 		kubeletIdentity = append(kubeletIdentity, map[string]interface{}{
@@ -1367,7 +1493,7 @@ func flattenKubernetesClusterIdentityProfile(profile map[string]*containerservic
 		})
 	}
 
-	return kubeletIdentity
+	return kubeletIdentity, nil
 }
 
 func flattenKubernetesClusterLinuxProfile(profile *containerservice.LinuxProfile) []interface{} {
@@ -1445,7 +1571,7 @@ func flattenKubernetesClusterWindowsProfile(profile *containerservice.ManagedClu
 	}
 }
 
-func expandKubernetesClusterNetworkProfile(input []interface{}) (*containerservice.NetworkProfileType, error) {
+func expandKubernetesClusterNetworkProfile(input []interface{}) (*containerservice.NetworkProfile, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
@@ -1453,13 +1579,18 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*containerservi
 	config := input[0].(map[string]interface{})
 
 	networkPlugin := config["network_plugin"].(string)
+	networkMode := config["network_mode"].(string)
+	if networkPlugin != "azure" && networkMode != "" {
+		return nil, fmt.Errorf("`network_mode` cannot be set if `network_plugin` is not `azure`")
+	}
 	networkPolicy := config["network_policy"].(string)
 	loadBalancerProfileRaw := config["load_balancer_profile"].([]interface{})
 	loadBalancerSku := config["load_balancer_sku"].(string)
 	outboundType := config["outbound_type"].(string)
 
-	networkProfile := containerservice.NetworkProfileType{
+	networkProfile := containerservice.NetworkProfile{
 		NetworkPlugin:   containerservice.NetworkPlugin(networkPlugin),
+		NetworkMode:     containerservice.NetworkMode(networkMode),
 		NetworkPolicy:   containerservice.NetworkPolicy(networkPolicy),
 		LoadBalancerSku: containerservice.LoadBalancerSku(loadBalancerSku),
 		OutboundType:    containerservice.OutboundType(outboundType),
@@ -1570,7 +1701,7 @@ func resourceReferencesToIds(refs *[]containerservice.ResourceReference) []strin
 	return nil
 }
 
-func flattenKubernetesClusterNetworkProfile(profile *containerservice.NetworkProfileType) []interface{} {
+func flattenKubernetesClusterNetworkProfile(profile *containerservice.NetworkProfile) []interface{} {
 	if profile == nil {
 		return []interface{}{}
 	}
@@ -1636,6 +1767,7 @@ func flattenKubernetesClusterNetworkProfile(profile *containerservice.NetworkPro
 			"load_balancer_sku":     string(profile.LoadBalancerSku),
 			"load_balancer_profile": lbProfiles,
 			"network_plugin":        string(profile.NetworkPlugin),
+			"network_mode":          string(profile.NetworkMode),
 			"network_policy":        string(profile.NetworkPolicy),
 			"pod_cidr":              podCidr,
 			"service_cidr":          serviceCidr,
@@ -1706,11 +1838,22 @@ func expandKubernetesClusterRoleBasedAccessControl(input []interface{}, provider
 func expandKubernetesClusterManagedClusterIdentity(input []interface{}) *containerservice.ManagedClusterIdentity {
 	if len(input) == 0 || input[0] == nil {
 		return &containerservice.ManagedClusterIdentity{
-			Type: containerservice.None,
+			Type: containerservice.ResourceIdentityTypeNone,
 		}
 	}
 
 	values := input[0].(map[string]interface{})
+
+	if containerservice.ResourceIdentityType(values["type"].(string)) == containerservice.ResourceIdentityTypeUserAssigned {
+		userAssignedIdentities := map[string]*containerservice.ManagedClusterIdentityUserAssignedIdentitiesValue{
+			values["user_assigned_identity_id"].(string): {},
+		}
+
+		return &containerservice.ManagedClusterIdentity{
+			Type:                   containerservice.ResourceIdentityType(values["type"].(string)),
+			UserAssignedIdentities: userAssignedIdentities,
+		}
+	}
 
 	return &containerservice.ManagedClusterIdentity{
 		Type: containerservice.ResourceIdentityType(values["type"].(string)),
@@ -1857,10 +2000,10 @@ func flattenKubernetesClusterKubeConfigAAD(config kubernetes.KubeConfigAAD) []in
 	}
 }
 
-func flattenKubernetesClusterManagedClusterIdentity(input *containerservice.ManagedClusterIdentity) []interface{} {
+func flattenKubernetesClusterManagedClusterIdentity(input *containerservice.ManagedClusterIdentity) ([]interface{}, error) {
 	// if it's none, omit the block
-	if input == nil || input.Type == containerservice.None {
-		return []interface{}{}
+	if input == nil || input.Type == containerservice.ResourceIdentityTypeNone {
+		return []interface{}{}, nil
 	}
 
 	identity := make(map[string]interface{})
@@ -1875,9 +2018,24 @@ func flattenKubernetesClusterManagedClusterIdentity(input *containerservice.Mana
 		identity["tenant_id"] = *input.TenantID
 	}
 
+	identity["user_assigned_identity_id"] = ""
+	if input.UserAssignedIdentities != nil {
+		keys := []string{}
+		for key := range input.UserAssignedIdentities {
+			keys = append(keys, key)
+		}
+		if len(keys) > 0 {
+			parsedId, err := msiparse.UserAssignedIdentityID(keys[0])
+			if err != nil {
+				return nil, err
+			}
+			identity["user_assigned_identity_id"] = parsedId.ID()
+		}
+	}
+
 	identity["type"] = string(input.Type)
 
-	return []interface{}{identity}
+	return []interface{}{identity}, nil
 }
 
 func flattenKubernetesClusterAutoScalerProfile(profile *containerservice.ManagedClusterPropertiesAutoScalerProfile) []interface{} {
@@ -1895,6 +2053,11 @@ func flattenKubernetesClusterAutoScalerProfile(profile *containerservice.Managed
 	maxGracefulTerminationSec := ""
 	if profile.MaxGracefulTerminationSec != nil {
 		maxGracefulTerminationSec = *profile.MaxGracefulTerminationSec
+	}
+
+	newPodScaleUpDelay := ""
+	if profile.NewPodScaleUpDelay != nil {
+		newPodScaleUpDelay = *profile.NewPodScaleUpDelay
 	}
 
 	scaleDownDelayAfterAdd := ""
@@ -1932,10 +2095,22 @@ func flattenKubernetesClusterAutoScalerProfile(profile *containerservice.Managed
 		scanInterval = *profile.ScanInterval
 	}
 
+	skipNodesWithLocalStorage := true
+	if profile.SkipNodesWithLocalStorage != nil {
+		skipNodesWithLocalStorage = strings.EqualFold(*profile.SkipNodesWithLocalStorage, "true")
+	}
+
+	skipNodesWithSystemPods := true
+	if profile.SkipNodesWithSystemPods != nil {
+		skipNodesWithSystemPods = strings.EqualFold(*profile.SkipNodesWithSystemPods, "true")
+	}
+
 	return []interface{}{
 		map[string]interface{}{
 			"balance_similar_node_groups":      balanceSimilarNodeGroups,
+			"expander":                         string(profile.Expander),
 			"max_graceful_termination_sec":     maxGracefulTerminationSec,
+			"new_pod_scale_up_delay":           newPodScaleUpDelay,
 			"scale_down_delay_after_add":       scaleDownDelayAfterAdd,
 			"scale_down_delay_after_delete":    scaleDownDelayAfterDelete,
 			"scale_down_delay_after_failure":   scaleDownDelayAfterFailure,
@@ -1943,6 +2118,8 @@ func flattenKubernetesClusterAutoScalerProfile(profile *containerservice.Managed
 			"scale_down_unready":               scaleDownUnreadyTime,
 			"scale_down_utilization_threshold": scaleDownUtilizationThreshold,
 			"scan_interval":                    scanInterval,
+			"skip_nodes_with_local_storage":    skipNodesWithLocalStorage,
+			"skip_nodes_with_system_pods":      skipNodesWithSystemPods,
 		},
 	}
 }
@@ -1955,7 +2132,9 @@ func expandKubernetesClusterAutoScalerProfile(input []interface{}) *containerser
 	config := input[0].(map[string]interface{})
 
 	balanceSimilarNodeGroups := config["balance_similar_node_groups"].(bool)
+	expander := config["expander"].(string)
 	maxGracefulTerminationSec := config["max_graceful_termination_sec"].(string)
+	newPodScaleUpDelay := config["new_pod_scale_up_delay"].(string)
 	scaleDownDelayAfterAdd := config["scale_down_delay_after_add"].(string)
 	scaleDownDelayAfterDelete := config["scale_down_delay_after_delete"].(string)
 	scaleDownDelayAfterFailure := config["scale_down_delay_after_failure"].(string)
@@ -1963,10 +2142,14 @@ func expandKubernetesClusterAutoScalerProfile(input []interface{}) *containerser
 	scaleDownUnreadyTime := config["scale_down_unready"].(string)
 	scaleDownUtilizationThreshold := config["scale_down_utilization_threshold"].(string)
 	scanInterval := config["scan_interval"].(string)
+	skipNodesWithLocalStorage := config["skip_nodes_with_local_storage"].(bool)
+	skipNodesWithSystemPods := config["skip_nodes_with_system_pods"].(bool)
 
 	return &containerservice.ManagedClusterPropertiesAutoScalerProfile{
 		BalanceSimilarNodeGroups:      utils.String(strconv.FormatBool(balanceSimilarNodeGroups)),
+		Expander:                      containerservice.Expander(expander),
 		MaxGracefulTerminationSec:     utils.String(maxGracefulTerminationSec),
+		NewPodScaleUpDelay:            utils.String(newPodScaleUpDelay),
 		ScaleDownDelayAfterAdd:        utils.String(scaleDownDelayAfterAdd),
 		ScaleDownDelayAfterDelete:     utils.String(scaleDownDelayAfterDelete),
 		ScaleDownDelayAfterFailure:    utils.String(scaleDownDelayAfterFailure),
@@ -1974,5 +2157,7 @@ func expandKubernetesClusterAutoScalerProfile(input []interface{}) *containerser
 		ScaleDownUnreadyTime:          utils.String(scaleDownUnreadyTime),
 		ScaleDownUtilizationThreshold: utils.String(scaleDownUtilizationThreshold),
 		ScanInterval:                  utils.String(scanInterval),
+		SkipNodesWithLocalStorage:     utils.String(strconv.FormatBool(skipNodesWithLocalStorage)),
+		SkipNodesWithSystemPods:       utils.String(strconv.FormatBool(skipNodesWithSystemPods)),
 	}
 }

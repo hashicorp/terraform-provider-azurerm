@@ -74,6 +74,7 @@ func (client ServiceClient) Get(ctx context.Context, resourceGroupName string, a
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabricmesh.ServiceClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -152,9 +153,11 @@ func (client ServiceClient) List(ctx context.Context, resourceGroupName string, 
 	result.srdl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabricmesh.ServiceClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.srdl.hasNextLink() && result.srdl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

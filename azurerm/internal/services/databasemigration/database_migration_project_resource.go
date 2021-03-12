@@ -18,15 +18,15 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDatabaseMigrationProject() *schema.Resource {
+func resourceDatabaseMigrationProject() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDatabaseMigrationProjectCreateUpdate,
-		Read:   resourceArmDatabaseMigrationProjectRead,
-		Update: resourceArmDatabaseMigrationProjectCreateUpdate,
-		Delete: resourceArmDatabaseMigrationProjectDelete,
+		Create: resourceDatabaseMigrationProjectCreateUpdate,
+		Read:   resourceDatabaseMigrationProjectRead,
+		Update: resourceDatabaseMigrationProjectCreateUpdate,
+		Delete: resourceDatabaseMigrationProjectDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.DatabaseMigrationProjectID(id)
+			_, err := parse.ProjectID(id)
 			return err
 		}),
 
@@ -81,7 +81,7 @@ func resourceArmDatabaseMigrationProject() *schema.Resource {
 	}
 }
 
-func resourceArmDatabaseMigrationProjectCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDatabaseMigrationProjectCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DatabaseMigration.ProjectsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -129,31 +129,31 @@ func resourceArmDatabaseMigrationProjectCreateUpdate(d *schema.ResourceData, met
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmDatabaseMigrationProjectRead(d, meta)
+	return resourceDatabaseMigrationProjectRead(d, meta)
 }
 
-func resourceArmDatabaseMigrationProjectRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDatabaseMigrationProjectRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DatabaseMigration.ProjectsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DatabaseMigrationProjectID(d.Id())
+	id, err := parse.ProjectID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Service, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Database Migration Project %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading Database Migration Project (Project Name %q / Service Name %q / Group Name %q): %+v", id.Name, id.Service, id.ResourceGroup, err)
+		return fmt.Errorf("Error reading Database Migration Project (Project Name %q / Service Name %q / Group Name %q): %+v", id.Name, id.ServiceName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("service_name", id.Service)
+	d.Set("service_name", id.ServiceName)
 	d.Set("resource_group_name", id.ResourceGroup)
 
 	location := ""
@@ -170,19 +170,19 @@ func resourceArmDatabaseMigrationProjectRead(d *schema.ResourceData, meta interf
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmDatabaseMigrationProjectDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDatabaseMigrationProjectDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DatabaseMigration.ProjectsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DatabaseMigrationProjectID(d.Id())
+	id, err := parse.ProjectID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	deleteRunningTasks := false
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.Service, id.Name, &deleteRunningTasks); err != nil {
-		return fmt.Errorf("Error deleting Database Migration Project (Project Name %q / Service Name %q / Group Name %q): %+v", id.Name, id.Service, id.ResourceGroup, err)
+	if _, err := client.Delete(ctx, id.ResourceGroup, id.ServiceName, id.Name, &deleteRunningTasks); err != nil {
+		return fmt.Errorf("Error deleting Database Migration Project (Project Name %q / Service Name %q / Group Name %q): %+v", id.Name, id.ServiceName, id.ResourceGroup, err)
 	}
 
 	return nil

@@ -83,6 +83,7 @@ func (client TestJobStreamsClient) Get(ctx context.Context, resourceGroupName st
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.TestJobStreamsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -171,9 +172,11 @@ func (client TestJobStreamsClient) ListByTestJob(ctx context.Context, resourceGr
 	result.jslr, err = client.ListByTestJobResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.TestJobStreamsClient", "ListByTestJob", resp, "Failure responding to request")
+		return
 	}
 	if result.jslr.hasNextLink() && result.jslr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

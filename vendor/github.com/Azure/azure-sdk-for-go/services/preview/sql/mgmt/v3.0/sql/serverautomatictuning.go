@@ -76,6 +76,7 @@ func (client ServerAutomaticTuningClient) Get(ctx context.Context, resourceGroup
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerAutomaticTuningClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -153,6 +154,7 @@ func (client ServerAutomaticTuningClient) Update(ctx context.Context, resourceGr
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerAutomaticTuningClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

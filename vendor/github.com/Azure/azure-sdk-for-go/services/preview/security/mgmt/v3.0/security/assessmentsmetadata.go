@@ -88,6 +88,7 @@ func (client AssessmentsMetadataClient) CreateInSubscription(ctx context.Context
 	result, err = client.CreateInSubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AssessmentsMetadataClient", "CreateInSubscription", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -170,6 +171,7 @@ func (client AssessmentsMetadataClient) DeleteInSubscription(ctx context.Context
 	result, err = client.DeleteInSubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AssessmentsMetadataClient", "DeleteInSubscription", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -242,6 +244,7 @@ func (client AssessmentsMetadataClient) Get(ctx context.Context, assessmentMetad
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AssessmentsMetadataClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -320,6 +323,7 @@ func (client AssessmentsMetadataClient) GetInSubscription(ctx context.Context, a
 	result, err = client.GetInSubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AssessmentsMetadataClient", "GetInSubscription", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -392,9 +396,11 @@ func (client AssessmentsMetadataClient) List(ctx context.Context) (result Assess
 	result.aml, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AssessmentsMetadataClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.aml.hasNextLink() && result.aml.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -505,9 +511,11 @@ func (client AssessmentsMetadataClient) ListBySubscription(ctx context.Context) 
 	result.aml, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AssessmentsMetadataClient", "ListBySubscription", resp, "Failure responding to request")
+		return
 	}
 	if result.aml.hasNextLink() && result.aml.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

@@ -85,9 +85,11 @@ func (client SQLPoolUsagesClient) List(ctx context.Context, resourceGroupName st
 	result.spulr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.SQLPoolUsagesClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.spulr.hasNextLink() && result.spulr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

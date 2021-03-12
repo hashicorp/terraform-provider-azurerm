@@ -10,17 +10,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmNetworkWatcher() *schema.Resource {
+func resourceNetworkWatcher() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmNetworkWatcherCreateUpdate,
-		Read:   resourceArmNetworkWatcherRead,
-		Update: resourceArmNetworkWatcherCreateUpdate,
-		Delete: resourceArmNetworkWatcherDelete,
+		Create: resourceNetworkWatcherCreateUpdate,
+		Read:   resourceNetworkWatcherRead,
+		Update: resourceNetworkWatcherCreateUpdate,
+		Delete: resourceNetworkWatcherDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -49,7 +50,7 @@ func resourceArmNetworkWatcher() *schema.Resource {
 	}
 }
 
-func resourceArmNetworkWatcherCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkWatcherCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.WatcherClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -92,32 +93,30 @@ func resourceArmNetworkWatcherCreateUpdate(d *schema.ResourceData, meta interfac
 
 	d.SetId(*read.ID)
 
-	return resourceArmNetworkWatcherRead(d, meta)
+	return resourceNetworkWatcherRead(d, meta)
 }
 
-func resourceArmNetworkWatcherRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkWatcherRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.WatcherClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.NetworkWatcherID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["networkWatchers"]
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Network Watcher %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error making Read request on Network Watcher %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -125,27 +124,25 @@ func resourceArmNetworkWatcherRead(d *schema.ResourceData, meta interface{}) err
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmNetworkWatcherDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkWatcherDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.WatcherClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.NetworkWatcherID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["networkWatchers"]
 
-	future, err := client.Delete(ctx, resourceGroup, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error deleting Network Watcher %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("Error deleting Network Watcher %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for the deletion of Network Watcher %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error waiting for the deletion of Network Watcher %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil

@@ -82,6 +82,7 @@ func (client NotificationChannelsClient) CreateOrUpdate(ctx context.Context, res
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.NotificationChannelsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -161,6 +162,7 @@ func (client NotificationChannelsClient) Delete(ctx context.Context, resourceGro
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.NotificationChannelsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -238,6 +240,7 @@ func (client NotificationChannelsClient) Get(ctx context.Context, resourceGroupN
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.NotificationChannelsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -322,9 +325,11 @@ func (client NotificationChannelsClient) List(ctx context.Context, resourceGroup
 	result.rwcnc, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.NotificationChannelsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.rwcnc.hasNextLink() && result.rwcnc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -451,6 +456,7 @@ func (client NotificationChannelsClient) Notify(ctx context.Context, resourceGro
 	result, err = client.NotifyResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.NotificationChannelsClient", "Notify", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -530,6 +536,7 @@ func (client NotificationChannelsClient) Update(ctx context.Context, resourceGro
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.NotificationChannelsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

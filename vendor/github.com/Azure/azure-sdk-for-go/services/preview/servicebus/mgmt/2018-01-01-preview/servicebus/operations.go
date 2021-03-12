@@ -25,8 +25,7 @@ import (
 	"net/http"
 )
 
-// OperationsClient is the azure Service Bus client for managing Namespace, IPFilter Rules, VirtualNetworkRules and
-// Zone Redundant
+// OperationsClient is the client for the Operations methods of the Servicebus service.
 type OperationsClient struct {
 	BaseClient
 }
@@ -71,9 +70,11 @@ func (client OperationsClient) List(ctx context.Context) (result OperationListRe
 	result.olr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.OperationsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.olr.hasNextLink() && result.olr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

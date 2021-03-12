@@ -76,6 +76,7 @@ func (client WorkflowTriggerHistoriesClient) Get(ctx context.Context, resourceGr
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowTriggerHistoriesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -158,9 +159,11 @@ func (client WorkflowTriggerHistoriesClient) List(ctx context.Context, resourceG
 	result.wthlr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowTriggerHistoriesClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.wthlr.hasNextLink() && result.wthlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -283,6 +286,7 @@ func (client WorkflowTriggerHistoriesClient) Resubmit(ctx context.Context, resou
 	result, err = client.ResubmitResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowTriggerHistoriesClient", "Resubmit", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -13,16 +13,17 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmEventHubNamespaceAuthorizationRule() *schema.Resource {
+func resourceEventHubNamespaceAuthorizationRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmEventHubNamespaceAuthorizationRuleCreateUpdate,
-		Read:   resourceArmEventHubNamespaceAuthorizationRuleRead,
-		Update: resourceArmEventHubNamespaceAuthorizationRuleCreateUpdate,
-		Delete: resourceArmEventHubNamespaceAuthorizationRuleDelete,
+		Create: resourceEventHubNamespaceAuthorizationRuleCreateUpdate,
+		Read:   resourceEventHubNamespaceAuthorizationRuleRead,
+		Update: resourceEventHubNamespaceAuthorizationRuleCreateUpdate,
+		Delete: resourceEventHubNamespaceAuthorizationRuleDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -49,29 +50,29 @@ func resourceArmEventHubNamespaceAuthorizationRule() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: azure.EventHubAuthorizationRuleSchemaFrom(map[string]*schema.Schema{
+		Schema: eventHubAuthorizationRuleSchemaFrom(map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateEventHubAuthorizationRuleName(),
+				ValidateFunc: validate.ValidateEventHubAuthorizationRuleName(),
 			},
 
 			"namespace_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateEventHubNamespaceName(),
+				ValidateFunc: validate.ValidateEventHubNamespaceName(),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 		}),
 
-		CustomizeDiff: azure.EventHubAuthorizationRuleCustomizeDiff,
+		CustomizeDiff: eventHubAuthorizationRuleCustomizeDiff,
 	}
 }
 
-func resourceArmEventHubNamespaceAuthorizationRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceEventHubNamespaceAuthorizationRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.NamespacesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -101,7 +102,7 @@ func resourceArmEventHubNamespaceAuthorizationRuleCreateUpdate(d *schema.Resourc
 	parameters := eventhub.AuthorizationRule{
 		Name: &name,
 		AuthorizationRuleProperties: &eventhub.AuthorizationRuleProperties{
-			Rights: azure.ExpandEventHubAuthorizationRuleRights(d),
+			Rights: expandEventHubAuthorizationRuleRights(d),
 		},
 	}
 
@@ -120,10 +121,10 @@ func resourceArmEventHubNamespaceAuthorizationRuleCreateUpdate(d *schema.Resourc
 
 	d.SetId(*read.ID)
 
-	return resourceArmEventHubNamespaceAuthorizationRuleRead(d, meta)
+	return resourceEventHubNamespaceAuthorizationRuleRead(d, meta)
 }
 
-func resourceArmEventHubNamespaceAuthorizationRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceEventHubNamespaceAuthorizationRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.NamespacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -133,29 +134,29 @@ func resourceArmEventHubNamespaceAuthorizationRuleRead(d *schema.ResourceData, m
 		return err
 	}
 
-	resp, err := client.GetAuthorizationRule(ctx, id.ResourceGroup, id.NamespaceName, id.Name)
+	resp, err := client.GetAuthorizationRule(ctx, id.ResourceGroup, id.NamespaceName, id.AuthorizationRuleName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Authorization Rule %q (EventHub Namespace %q / Resource Group %q) : %+v", id.Name, id.NamespaceName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Authorization Rule %q (EventHub Namespace %q / Resource Group %q) : %+v", id.AuthorizationRuleName, id.NamespaceName, id.ResourceGroup, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.AuthorizationRuleName)
 	d.Set("namespace_name", id.NamespaceName)
 	d.Set("resource_group_name", id.ResourceGroup)
 
 	if properties := resp.AuthorizationRuleProperties; properties != nil {
-		listen, send, manage := azure.FlattenEventHubAuthorizationRuleRights(properties.Rights)
+		listen, send, manage := flattenEventHubAuthorizationRuleRights(properties.Rights)
 		d.Set("manage", manage)
 		d.Set("listen", listen)
 		d.Set("send", send)
 	}
 
-	keysResp, err := client.ListKeys(ctx, id.ResourceGroup, id.NamespaceName, id.Name)
+	keysResp, err := client.ListKeys(ctx, id.ResourceGroup, id.NamespaceName, id.AuthorizationRuleName)
 	if err != nil {
-		return fmt.Errorf("retrieving Keys for Authorization Rule %q (EventHub Namespace %q / Resource Group %q): %+v", id.Name, id.NamespaceName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Keys for Authorization Rule %q (EventHub Namespace %q / Resource Group %q): %+v", id.AuthorizationRuleName, id.NamespaceName, id.ResourceGroup, err)
 	}
 
 	d.Set("primary_key", keysResp.PrimaryKey)
@@ -168,7 +169,7 @@ func resourceArmEventHubNamespaceAuthorizationRuleRead(d *schema.ResourceData, m
 	return nil
 }
 
-func resourceArmEventHubNamespaceAuthorizationRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceEventHubNamespaceAuthorizationRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	eventhubClient := meta.(*clients.Client).Eventhub.NamespacesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -181,8 +182,8 @@ func resourceArmEventHubNamespaceAuthorizationRuleDelete(d *schema.ResourceData,
 	locks.ByName(id.NamespaceName, eventHubNamespaceResourceName)
 	defer locks.UnlockByName(id.NamespaceName, eventHubNamespaceResourceName)
 
-	if _, err := eventhubClient.DeleteAuthorizationRule(ctx, id.ResourceGroup, id.NamespaceName, id.Name); err != nil {
-		return fmt.Errorf("deleting Authorization Rule %q (EventHub Namespace %q / Resource Group %q): %+v", id.Name, id.NamespaceName, id.ResourceGroup, err)
+	if _, err := eventhubClient.DeleteAuthorizationRule(ctx, id.ResourceGroup, id.NamespaceName, id.AuthorizationRuleName); err != nil {
+		return fmt.Errorf("deleting Authorization Rule %q (EventHub Namespace %q / Resource Group %q): %+v", id.AuthorizationRuleName, id.NamespaceName, id.ResourceGroup, err)
 	}
 
 	return nil

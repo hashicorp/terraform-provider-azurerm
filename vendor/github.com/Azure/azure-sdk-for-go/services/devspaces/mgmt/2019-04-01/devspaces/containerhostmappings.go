@@ -81,6 +81,7 @@ func (client ContainerHostMappingsClient) GetContainerHostMapping(ctx context.Co
 	result, err = client.GetContainerHostMappingResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "devspaces.ContainerHostMappingsClient", "GetContainerHostMapping", resp, "Failure responding to request")
+		return
 	}
 
 	return

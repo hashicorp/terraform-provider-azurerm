@@ -6,12 +6,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceArmAutomationVariableInt() *schema.Resource {
+func resourceAutomationVariableInt() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAutomationVariableIntCreateUpdate,
-		Read:   resourceArmAutomationVariableIntRead,
-		Update: resourceArmAutomationVariableIntCreateUpdate,
-		Delete: resourceArmAutomationVariableIntDelete,
+		Create: resourceAutomationVariableIntCreateUpdate,
+		Read:   resourceAutomationVariableIntRead,
+		Update: resourceAutomationVariableIntCreateUpdate,
+		Delete: resourceAutomationVariableIntDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -28,14 +28,14 @@ func resourceArmAutomationVariableInt() *schema.Resource {
 	}
 }
 
-func resourceArmAutomationVariableIntCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationVariableIntCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	return resourceAutomationVariableCreateUpdate(d, meta, "Int")
 }
 
-func resourceArmAutomationVariableIntRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationVariableIntRead(d *schema.ResourceData, meta interface{}) error {
 	return resourceAutomationVariableRead(d, meta, "Int")
 }
 
-func resourceArmAutomationVariableIntDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationVariableIntDelete(d *schema.ResourceData, meta interface{}) error {
 	return resourceAutomationVariableDelete(d, meta, "Int")
 }

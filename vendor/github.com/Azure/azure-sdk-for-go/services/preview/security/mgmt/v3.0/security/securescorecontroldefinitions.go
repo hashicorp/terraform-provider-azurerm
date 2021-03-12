@@ -72,9 +72,11 @@ func (client SecureScoreControlDefinitionsClient) List(ctx context.Context) (res
 	result.sscdl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.SecureScoreControlDefinitionsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.sscdl.hasNextLink() && result.sscdl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -82,7 +84,7 @@ func (client SecureScoreControlDefinitionsClient) List(ctx context.Context) (res
 
 // ListPreparer prepares the List request.
 func (client SecureScoreControlDefinitionsClient) ListPreparer(ctx context.Context) (*http.Request, error) {
-	const APIVersion = "2020-01-01-preview"
+	const APIVersion = "2020-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -186,9 +188,11 @@ func (client SecureScoreControlDefinitionsClient) ListBySubscription(ctx context
 	result.sscdl, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.SecureScoreControlDefinitionsClient", "ListBySubscription", resp, "Failure responding to request")
+		return
 	}
 	if result.sscdl.hasNextLink() && result.sscdl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -200,7 +204,7 @@ func (client SecureScoreControlDefinitionsClient) ListBySubscriptionPreparer(ctx
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-01-01-preview"
+	const APIVersion = "2020-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

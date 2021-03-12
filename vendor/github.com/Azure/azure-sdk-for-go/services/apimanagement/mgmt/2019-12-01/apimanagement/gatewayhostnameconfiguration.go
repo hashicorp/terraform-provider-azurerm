@@ -91,6 +91,7 @@ func (client GatewayHostnameConfigurationClient) CreateOrUpdate(ctx context.Cont
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.GatewayHostnameConfigurationClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -187,6 +188,7 @@ func (client GatewayHostnameConfigurationClient) Delete(ctx context.Context, res
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.GatewayHostnameConfigurationClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -280,6 +282,7 @@ func (client GatewayHostnameConfigurationClient) Get(ctx context.Context, resour
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.GatewayHostnameConfigurationClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -374,6 +377,7 @@ func (client GatewayHostnameConfigurationClient) GetEntityTag(ctx context.Contex
 	result, err = client.GetEntityTagResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.GatewayHostnameConfigurationClient", "GetEntityTag", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -472,9 +476,11 @@ func (client GatewayHostnameConfigurationClient) ListByService(ctx context.Conte
 	result.ghcc, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.GatewayHostnameConfigurationClient", "ListByService", resp, "Failure responding to request")
+		return
 	}
 	if result.ghcc.hasNextLink() && result.ghcc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

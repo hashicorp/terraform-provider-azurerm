@@ -92,7 +92,7 @@ The following arguments are supported:
 
 * `restart_policy` - (Optional) Restart policy for the container group. Allowed values are `Always`, `Never`, `OnFailure`. Defaults to `Always`. Changing this forces a new resource to be created.
 
-* `tags` - (Optional) A mapping of tags to assign to the resource. Changing this forces a new resource to be created.
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 
@@ -188,6 +188,8 @@ A `volume` block supports:
 
 * `read_only` - (Optional) Specify if the volume is to be mounted as read only or not. The default value is `false`. Changing this forces a new resource to be created.
 
+* `empty_dir` - (Optional) Boolean as to whether the mounted volume should be an empty directory. Defaults to `false`. Changing this forces a new resource to be created.
+
 * `storage_account_name` - (Optional) The Azure storage account from which the volume is to be mounted. Changing this forces a new resource to be created.
 
 * `storage_account_key` - (Optional) The access key for the Azure Storage account specified as above. Changing this forces a new resource to be created.
@@ -195,6 +197,10 @@ A `volume` block supports:
 * `share_name` - (Optional) The Azure storage share that is to be mounted as a volume. This must be created on the storage account specified as above. Changing this forces a new resource to be created.
 
 * `git_repo` - (Optional) A `git_repo` block as defined below.
+
+* `secret` - (Optional) A map of secrets that will be mounted as files in the volume. Changing this forces a new resource to be created.
+
+~> **Note:** The secret values must be supplied as Base64 encoded strings, such as by using the Terraform [base64encode function](https://www.terraform.io/docs/configuration/functions/base64encode.html). The secret values are decoded to their original values when mounted in the volume on the container.
 
 ---
 
@@ -257,7 +263,9 @@ The `http_get` block supports:
 The `dns_config` block supports:
 
 * `nameservers` - (Required) A list of nameservers the containers will search out to resolve requests.
+
 * `search_domains` - (Required) A list of search domains that DNS requests will search along.
+
 * `options` - (Required) A list of [resolver configuration options](https://man7.org/linux/man-pages/man5/resolv.conf.5.html).
 
 ## Attributes Reference
@@ -275,8 +283,11 @@ The following attributes are exported:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Container Group.
+
 * `update` - (Defaults to 30 minutes) Used when updating the Container Group.
+
 * `read` - (Defaults to 5 minutes) Used when retrieving the Container Group.
+
 * `delete` - (Defaults to 30 minutes) Used when deleting the Container Group.
 
 ## Import
