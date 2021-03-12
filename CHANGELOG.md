@@ -66,6 +66,10 @@ ENHANCEMENTS:
 * dependencies: updating to `v52.4.0` of `github.com/Azure/azure-sdk-for-go` ([#10982](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10982))
 * `azurerm_api_management_subscription` - making `user_id` property optional [[#10638](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10638)}
 
+ENHANCEMENTS:
+
+* `azurerm_application_gateway.rewrite_rule` add support for URL rewriting with `url_configuration` block ([#10950](https://github.com/terraform-providers/terraform-provider-azurerm/pull/10950))
+
 BUG FIXES:
 
 * `azurerm_cosmosdb_account_resource` - marking `connection_string` as sensitive ([#10942](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10942))
