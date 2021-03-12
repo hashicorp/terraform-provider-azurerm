@@ -45,7 +45,7 @@ resource "azurerm_resource_group_template_deployment" "example" {
         {
             "type": "Microsoft.Network/virtualNetworks",
             "apiVersion": "2020-05-01",
-            "name": "acctest-network",
+            "name": "[variables("vnetName")]",
             "location": "[resourceGroup().location]",
             "properties": {
                 "addressSpace": {
