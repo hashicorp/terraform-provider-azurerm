@@ -92,6 +92,14 @@ func resourceNetAppVolume() *schema.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
+			"create_from_snapshot_resource_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
+
 			"protocols": {
 				Type:     schema.TypeSet,
 				ForceNew: true,
@@ -281,6 +289,70 @@ func resourceNetAppVolumeCreateUpdate(d *schema.ResourceData, meta interface{}) 
 		volumeType = "DataProtection"
 	}
 
+	// Handling volume creation from snapshot case
+	snapshotResourceID := d.Get("create_from_snapshot_resource_id").(string)
+	snapshotID := ""
+	if snapshotResourceID != "" {
+		// Get snapshot ID GUID value
+		parsedSnapshotResourceID, err := parse.SnapshotID(snapshotResourceID)
+		if err != nil {
+			return fmt.Errorf("Error parsing snapshotResourceID %q: %+v", snapshotResourceID, err)
+		}
+
+		snapshotClient := meta.(*clients.Client).NetApp.SnapshotClient
+		snapshotResponse, err := snapshotClient.Get(
+			ctx,
+			parsedSnapshotResourceID.ResourceGroup,
+			parsedSnapshotResourceID.NetAppAccountName,
+			parsedSnapshotResourceID.CapacityPoolName,
+			parsedSnapshotResourceID.VolumeName,
+			parsedSnapshotResourceID.Name,
+		)
+		if err != nil {
+			return fmt.Errorf("Error getting snapshot from NetApp Volume %q (Resource Group %q): %+v", parsedSnapshotResourceID.VolumeName, parsedSnapshotResourceID.ResourceGroup, err)
+		}
+		snapshotID = *snapshotResponse.SnapshotID
+
+		// Validate if properties that cannot be changed matches (protocols, subnet_id, location, resource group, account_name, pool_name, service_level)
+		sourceVolume, err := client.Get(
+			ctx,
+			parsedSnapshotResourceID.ResourceGroup,
+			parsedSnapshotResourceID.NetAppAccountName,
+			parsedSnapshotResourceID.CapacityPoolName,
+			parsedSnapshotResourceID.VolumeName,
+		)
+		if err != nil {
+			return fmt.Errorf("Error getting source NetApp Volume (snapshot's parent resource) %q (Resource Group %q): %+v", parsedSnapshotResourceID.VolumeName, parsedSnapshotResourceID.ResourceGroup, err)
+		}
+
+		parsedVolumeID, _ := parse.VolumeID(*sourceVolume.ID)
+		propertyMismatch := []string{}
+		if !ValidateSlicesEquality(*sourceVolume.ProtocolTypes, *utils.ExpandStringSlice(protocols), false) {
+			propertyMismatch = append(propertyMismatch, "protocols")
+		}
+		if !strings.EqualFold(*sourceVolume.SubnetID, subnetID) {
+			propertyMismatch = append(propertyMismatch, "subnet_id")
+		}
+		if !strings.EqualFold(*sourceVolume.Location, location) {
+			propertyMismatch = append(propertyMismatch, "location")
+		}
+		if !strings.EqualFold(string(sourceVolume.ServiceLevel), serviceLevel) {
+			propertyMismatch = append(propertyMismatch, "service_level")
+		}
+		if !strings.EqualFold(parsedVolumeID.ResourceGroup, resourceGroup) {
+			propertyMismatch = append(propertyMismatch, "resource_group_name")
+		}
+		if !strings.EqualFold(parsedVolumeID.NetAppAccountName, accountName) {
+			propertyMismatch = append(propertyMismatch, "account_name")
+		}
+		if !strings.EqualFold(parsedVolumeID.CapacityPoolName, poolName) {
+			propertyMismatch = append(propertyMismatch, "pool_name")
+		}
+		if len(propertyMismatch) > 0 {
+			return fmt.Errorf("Following NetApp Volume properties on new Volume from Snapshot does not match Snapshot's source Volume %q (Resource Group %q): %+v", name, resourceGroup, propertyMismatch)
+		}
+	}
+
 	parameters := netapp.Volume{
 		Location: utils.String(location),
 		VolumeProperties: &netapp.VolumeProperties{
@@ -291,6 +363,7 @@ func resourceNetAppVolumeCreateUpdate(d *schema.ResourceData, meta interface{}) 
 			UsageThreshold: utils.Int64(storageQuotaInGB),
 			ExportPolicy:   exportPolicyRule,
 			VolumeType:     utils.String(volumeType),
+			SnapshotID:     utils.String(snapshotID),
 			DataProtection: dataProtectionReplication,
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
