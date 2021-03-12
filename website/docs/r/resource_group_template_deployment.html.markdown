@@ -82,7 +82,9 @@ The following arguments are supported:
 
 * `debug_level` - (Optional) The Debug Level which should be used for this Resource Group Template Deployment. Possible values are `none`, `requestContent`, `responseContent` and `requestContent, responseContent`.
 
-* `parameters_content` - (Optional) The contents of the ARM Template parameters file - containing a JSON list of parameters. See example for how to pass in Terraform Variable to an ARM parameter.
+* `parameters_content` - (Optional) The contents of the ARM Template parameters file - containing a JSON list of parameters.
+
+-> An example of how to pass Terraform variables into an ARM Template can be seen in the example.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Resource Group Template Deployment.
 
