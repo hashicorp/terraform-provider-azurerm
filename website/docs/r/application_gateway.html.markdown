@@ -582,9 +582,9 @@ A `url_configuration` block supports the following:
 
 * `query_string` - (Optional) The query string to rewrite.
 
-~> **Note:** One or both of `path` and `query_string` should be specified.
+~> **Note:** One or both of `path` and `query_string` must be specified.
 
-* `reroute` - (Optional) Should the URL path map be reevaluated after this rewrite has been applied. [More info on rewrite configutation](https://docs.microsoft.com/en-us/azure/application-gateway/rewrite-http-headers-url#rewrite-configuration)
+* `reroute` - (Optional) Whether the URL path map should be reevaluated after this rewrite has been applied. [More info on rewrite configutation](https://docs.microsoft.com/en-us/azure/application-gateway/rewrite-http-headers-url#rewrite-configuration)
 
 ## Attributes Reference
 
