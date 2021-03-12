@@ -209,6 +209,35 @@ func SchemaHDInsightsMonitor() *schema.Schema {
 	}
 }
 
+func SchemaHDInsightsNetwork() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"connection_direction": {
+					Type:     schema.TypeString,
+					Optional: true,
+					ForceNew: true,
+					Default:  string(hdinsight.Inbound),
+					ValidateFunc: validation.StringInSlice([]string{
+						string(hdinsight.Inbound),
+						string(hdinsight.Outbound),
+					}, false),
+				},
+
+				"private_link_enabled": {
+					Type:     schema.TypeBool,
+					Optional: true,
+					ForceNew: true,
+					Default:  false,
+				},
+			},
+		},
+	}
+}
+
 func ExpandHDInsightsConfigurations(input []interface{}) map[string]interface{} {
 	vs := input[0].(map[string]interface{})
 
@@ -315,6 +344,52 @@ func ExpandHDInsightsMonitor(input []interface{}) hdinsight.ClusterMonitoringReq
 	return hdinsight.ClusterMonitoringRequest{
 		WorkspaceID: utils.String(workspace),
 		PrimaryKey:  utils.String(key),
+	}
+}
+
+func ExpandHDInsightsNetwork(input []interface{}) *hdinsight.NetworkProperties {
+	if len(input) == 0 {
+		return nil
+	}
+
+	vs := input[0].(map[string]interface{})
+
+	connDir := hdinsight.Outbound
+	if v, exists := vs["connection_direction"]; exists && v != string(hdinsight.Outbound) {
+		connDir = hdinsight.Inbound
+	}
+
+	privateLink := hdinsight.Disabled
+	if v, exists := vs["private_link_enabled"]; exists && v != false {
+		privateLink = hdinsight.Enabled
+	}
+
+	return &hdinsight.NetworkProperties{
+		ResourceProviderConnection: connDir,
+		PrivateLink:                privateLink,
+	}
+}
+
+func FlattenHDInsightsNetwork(input *hdinsight.NetworkProperties) []interface{} {
+	if input == nil {
+		return nil
+	}
+
+	connDir := string(hdinsight.Outbound)
+	if v := input.ResourceProviderConnection; v != "" {
+		connDir = string(v)
+	}
+
+	privateLink := false
+	if v := input.PrivateLink; v != "" {
+		privateLink = (v == hdinsight.Enabled)
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"connection_direction": connDir,
+			"private_link_enabled": privateLink,
+		},
 	}
 }
 

@@ -90,6 +90,8 @@ func resourceHDInsightInteractiveQueryCluster() *schema.Resource {
 
 			"metastores": SchemaHDInsightsExternalMetastores(),
 
+			"network": SchemaHDInsightsNetwork(),
+
 			"storage_account": SchemaHDInsightsStorageAccounts(),
 
 			"storage_account_gen2": SchemaHDInsightsGen2StorageAccounts(),
@@ -154,6 +156,9 @@ func resourceHDInsightInteractiveQueryClusterCreate(d *schema.ResourceData, meta
 		configurations[k] = v
 	}
 
+	networkPropertiesRaw := d.Get("network").([]interface{})
+	networkProperties := ExpandHDInsightsNetwork(networkPropertiesRaw)
+
 	storageAccountsRaw := d.Get("storage_account").([]interface{})
 	storageAccountsGen2Raw := d.Get("storage_account_gen2").([]interface{})
 	storageAccounts, identity, err := ExpandHDInsightsStorageAccounts(storageAccountsRaw, storageAccountsGen2Raw)
@@ -190,6 +195,7 @@ func resourceHDInsightInteractiveQueryClusterCreate(d *schema.ResourceData, meta
 			OsType:                 hdinsight.Linux,
 			ClusterVersion:         utils.String(clusterVersion),
 			MinSupportedTLSVersion: utils.String(tls),
+			NetworkProperties:      networkProperties,
 			ClusterDefinition: &hdinsight.ClusterDefinition{
 				Kind:             utils.String("INTERACTIVEHIVE"),
 				ComponentVersion: componentVersions,
@@ -295,6 +301,12 @@ func resourceHDInsightInteractiveQueryClusterRead(d *schema.ResourceData, meta i
 			}
 
 			flattenHDInsightsMetastores(d, configurations.Configurations)
+
+			if props.NetworkProperties != nil {
+				if err := d.Set("network", FlattenHDInsightsNetwork(props.NetworkProperties)); err != nil {
+					return fmt.Errorf("failure flattening `network`: %+v", err)
+				}
+			}
 		}
 
 		interactiveQueryRoles := hdInsightRoleDefinition{
