@@ -1,9 +1,12 @@
 package synapse
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/2019-06-01-preview/managedvirtualnetwork"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -118,6 +121,18 @@ func resourceSynapseManagedPrivateEndpointCreate(d *schema.ResourceData, meta in
 		return fmt.Errorf("creating Synapse Managed Private Endpoint %q (Workspace %q / Resource Group %q): %+v", privateEndpointName, workspaceId.Name, workspaceId.ResourceGroup, err)
 	}
 
+	stateConf := &resource.StateChangeConf{
+		Pending:    []string{"Provisioning"},
+		Target:     []string{"Succeeded"},
+		Refresh:    synapseManagedPrivateEndpointRefreshFunc(ctx, client, virtualNetworkName, privateEndpointName),
+		MinTimeout: 1 * time.Minute,
+		Timeout:    d.Timeout(schema.TimeoutCreate),
+	}
+
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("waiting for Synapse Managed Private Endpoint %q (Workspace %q / Resource Group %q): %+v", privateEndpointName, workspaceId.Name, workspaceId.ResourceGroup, err)
+	}
+
 	if resp.ID == nil || *resp.ID == "" {
 		return fmt.Errorf("empty or nil ID returned for Synapse Managed Private Endpoint %q (Workspace %q / Resource Group %q)", privateEndpointName, workspaceId.Name, workspaceId.ResourceGroup)
 	}
@@ -182,4 +197,29 @@ func resourceSynapseManagedPrivateEndpointDelete(d *schema.ResourceData, meta in
 	}
 
 	return nil
+}
+
+func synapseManagedPrivateEndpointRefreshFunc(ctx context.Context, client *managedvirtualnetwork.ManagedPrivateEndpointsClient, vNetName, name string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		log.Printf("[DEBUG] Checking to see if Synapse Managed Private Endpoint  %q (VNet: %q) is available..", name, vNetName)
+
+		resp, err := client.Get(ctx, vNetName, name)
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				log.Printf("[DEBUG] Retrieving Synapse Managed Private Endpoint %q (VNet Group: %q) returned 404.", name, vNetName)
+				return nil, "NotFound", nil
+			}
+
+			return nil, "", fmt.Errorf("polling for the state of the Synapse Managed Private Endpoint %q (VNet Group: %q): %+v", name, vNetName, err)
+		}
+
+		state := ""
+		if props := resp.Properties; props != nil {
+			if props.ProvisioningState != nil {
+				state = *props.ProvisioningState
+			}
+		}
+
+		return resp, state, nil
+	}
 }
