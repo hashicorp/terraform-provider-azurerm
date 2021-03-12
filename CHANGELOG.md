@@ -20,6 +20,7 @@ ENHANCEMENTS:
 * `azurerm_linux_virtual_machine` - support for configuring `platform_fault_domain` [GH-10803]
 * `azurerm_linux_virtual_machine_scale_set` - will no longer recreate the resource when `rolling_upgrade_policy` or `health_probe_id` is updated [GH-10856]
 * `azurerm_netapp_volume` - support creating from a snapshot via the `create_from_snapshot_resource_id` property [GH-10906]
+* `azurerm_role_assignment` - support for the `description`, `condition`, and `condition_version` [GH-10804]
 * `azurerm_windows_virtual_machine` - support for configuring `platform_fault_domain` [GH-10803]
 * `azurerm_windows_virtual_machine_scale_set` - will no longer recreate the resource when `rolling_upgrade_policy` or `health_probe_id` is updated [GH-10856]
 
