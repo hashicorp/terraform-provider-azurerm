@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -26,9 +27,10 @@ func resourceExpressRouteCircuitPeering() *schema.Resource {
 		Update: resourceExpressRouteCircuitPeeringCreateUpdate,
 		Delete: resourceExpressRouteCircuitPeeringDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.ExpressRouteCircuitPeeringID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -193,6 +195,7 @@ func resourceExpressRouteCircuitPeering() *schema.Resource {
 }
 
 func resourceExpressRouteCircuitPeeringCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Network.ExpressRoutePeeringsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -206,6 +209,8 @@ func resourceExpressRouteCircuitPeeringCreateUpdate(d *schema.ResourceData, meta
 	locks.ByName(circuitName, expressRouteCircuitResourceName)
 	defer locks.UnlockByName(circuitName, expressRouteCircuitResourceName)
 
+	id := parse.NewExpressRouteCircuitPeeringID(subscriptionId, resourceGroup, circuitName, peeringType)
+
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, circuitName, peeringType)
 		if err != nil {
@@ -214,8 +219,8 @@ func resourceExpressRouteCircuitPeeringCreateUpdate(d *schema.ResourceData, meta
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_express_route_circuit_peering", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_express_route_circuit_peering", id.ID())
 		}
 	}
 
@@ -280,12 +285,7 @@ func resourceExpressRouteCircuitPeeringCreateUpdate(d *schema.ResourceData, meta
 		return err
 	}
 
-	read, err := client.Get(ctx, resourceGroup, circuitName, peeringType)
-	if err != nil {
-		return err
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceExpressRouteCircuitPeeringRead(d, meta)
 }

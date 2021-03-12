@@ -174,7 +174,7 @@ func resourceArmExpressRouteConnectionCreateUpdate(d *schema.ResourceData, meta 
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
+		if !utils.ResponseWasNotFound(existing.Response) {
 			return tf.ImportAsExistsError("azurerm_express_route_connection", id.ID())
 		}
 	}
