@@ -11,10 +11,11 @@ import (
 
 func SchemaResourceGroupName() *schema.Schema {
 	return &schema.Schema{
-		Type:         schema.TypeString,
-		Required:     true,
-		ForceNew:     true,
-		ValidateFunc: validateResourceGroupName,
+		Type:             schema.TypeString,
+		Required:         true,
+		ForceNew:         true,
+		DiffSuppressFunc: suppress.CaseDifference,
+		ValidateFunc:     validateResourceGroupName,
 	}
 }
 
