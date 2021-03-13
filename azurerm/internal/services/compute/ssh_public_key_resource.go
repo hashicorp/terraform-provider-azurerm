@@ -50,7 +50,7 @@ func resourceSshPublicKey() *schema.Resource {
 				),
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"location": azure.SchemaLocation(),
 
