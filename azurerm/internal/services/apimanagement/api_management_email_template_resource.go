@@ -83,7 +83,6 @@ func resourceApiManagementEmailTemplate() *schema.Resource {
 			"parameters": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"description": {
@@ -108,24 +107,25 @@ func resourceApiManagementEmailTemplate() *schema.Resource {
 func resourceApiManagementEmailTemplateCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.EmailTemplateClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	serviceName := d.Get("api_management_name").(string)
 	templateName := apimanagement.TemplateName(d.Get("template_name").(string))
 
+	id := parse.NewEmailTemplateID(subscriptionId, resourceGroup, serviceName, d.Get("template_name").(string))
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serviceName, templateName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing email template %q (API Management Service %q / Resource Group %q): %s", templateName, serviceName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
 		// in case the template has been edited (is not default anymore) this errors and the resource should be imported manually into the state (terraform import).
-		isDefault := existing.IsDefault
-		if existing.ID != nil && *existing.ID != "" && !*isDefault {
-			return tf.ImportAsExistsError("azurerm_api_management_email_template", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) && (existing.IsDefault != nil && !*existing.IsDefault) {
+			return tf.ImportAsExistsError("azurerm_api_management_email_template", id.ID())
 		}
 	}
 
@@ -140,17 +140,10 @@ func resourceApiManagementEmailTemplateCreateUpdate(d *schema.ResourceData, meta
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, templateName, emailTemplateUpdateParameters, ""); err != nil {
-		return fmt.Errorf("creating/updating email template %q (API Management Service %q / Resource Group %q): %+v", templateName, serviceName, resourceGroup, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, serviceName, templateName)
-	if err != nil {
-		return fmt.Errorf("retrieving email template %q (API Management Service %q / Resource Group %q): %+v", templateName, serviceName, resourceGroup, err)
-	}
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read ID for email template %q (API Management Service %q / Resource Group %q): %+v", templateName, serviceName, resourceGroup, err)
-	}
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceApiManagementEmailTemplateRead(d, meta)
 }
@@ -173,12 +166,12 @@ func resourceApiManagementEmailTemplateRead(d *schema.ResourceData, meta interfa
 	resp, err := client.Get(ctx, resourceGroup, serviceName, templateName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] email template %q (API Management Service %q / Resource Group %q) does not exist - removing from state!", templateName, serviceName, resourceGroup)
+			log.Printf("[DEBUG] %s does not exist - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving email template  %q (API Management Service %q / Resource Group %q): %+v", templateName, serviceName, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("resource_group_name", resourceGroup)
@@ -213,7 +206,7 @@ func resourceApiManagementEmailTemplateDelete(d *schema.ResourceData, meta inter
 
 	if resp, err := client.Delete(ctx, resourceGroup, serviceName, templateName, ""); err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("deleting email template %q (API Management Service %q / Resource Group %q): %s", templateName, serviceName, resourceGroup, err)
+			return fmt.Errorf("deleting %s: %s", *id, err)
 		}
 	}
 
@@ -227,21 +220,26 @@ func flattenApiManagementEmailTemplateParameters(input *[]apimanagement.EmailTem
 	}
 
 	for _, prop := range *input {
-		output := make(map[string]interface{})
-
+		description := ""
 		if prop.Description != nil {
-			output["description"] = *prop.Description
+			description = *prop.Description
 		}
 
+		title := ""
 		if prop.Title != nil {
-			output["title"] = *prop.Title
+			title = *prop.Title
 		}
 
+		name := ""
 		if prop.Name != nil {
-			output["name"] = *prop.Name
+			name = *prop.Name
 		}
 
-		results = append(results, output)
+		results = append(results, map[string]interface{}{
+			"description": description,
+			"name":        name,
+			"title":       title,
+		})
 	}
 
 	return results

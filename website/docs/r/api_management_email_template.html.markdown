@@ -60,9 +60,9 @@ The following arguments are supported:
 
 * `subject` - (Required) The subject of the Email.
 
-* `body` - (Required) The body of the Email. It has to be a well-formed HTML document.
+* `body` - (Required) The body of the Email. Its format has to be a well-formed HTML document.
 
--> **NOTE:** In `subject` and `body` predefined parameters can be used. Possible values to use are `$DevFirstName`, `$DevLastName`, `$OrganizationName`, `$DevPortalUrl`, `$ConfirmUrl`, `$DevPortalHost`, `$ConfirmQuery`.
+-> **NOTE:** In `subject` and `body` predefined parameters can be used. Values such as `$DevFirstName`, `$DevLastName`, `$OrganizationName`, `$DevPortalUrl`, `$ConfirmUrl`, `$DevPortalHost`, `$ConfirmQuery`. The possible values depend on the template. Schema to use a parameter: `$` followed by the `parameter.name` - `$<parameter.name>`.
 
 ## Attributes Reference
 
