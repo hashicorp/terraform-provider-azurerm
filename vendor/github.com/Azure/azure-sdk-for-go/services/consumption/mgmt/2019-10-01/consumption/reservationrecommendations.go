@@ -45,8 +45,19 @@ func NewReservationRecommendationsClientWithBaseURI(baseURI string, subscription
 
 // List list of recommendations for purchasing reserved instances.
 // Parameters:
-// filter - may be used to filter reservationRecommendations by properties/scope and properties/lookBackPeriod.
-func (client ReservationRecommendationsClient) List(ctx context.Context, filter string) (result ReservationRecommendationsListResultPage, err error) {
+// scope - the scope associated with reservation recommendations operations. This includes
+// '/subscriptions/{subscriptionId}/' for subscription scope,
+// '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}' for resource group scope,
+// '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}' for BillingAccount scope, and
+// '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/billingProfiles/{billingProfileId}' for
+// billingProfile scope
+// filter - may be used to filter reservationRecommendations by: properties/scope with allowed values
+// ['Single', 'Shared'] and default value 'Single'; properties/resourceType with allowed values
+// ['VirtualMachines', 'SQLDatabases', 'PostgreSQL', 'ManagedDisk', 'MySQL', 'RedHat', 'MariaDB', 'RedisCache',
+// 'CosmosDB', 'SqlDataWarehouse', 'SUSELinux', 'AppService', 'BlockBlob', 'AzureDataExplorer',
+// 'VMwareCloudSimple'] and default value 'VirtualMachines'; and properties/lookBackPeriod with allowed values
+// ['Last7Days', 'Last30Days', 'Last60Days'] and default value 'Last7Days'.
+func (client ReservationRecommendationsClient) List(ctx context.Context, scope string, filter string) (result ReservationRecommendationsListResultPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReservationRecommendationsClient.List")
 		defer func() {
@@ -58,7 +69,7 @@ func (client ReservationRecommendationsClient) List(ctx context.Context, filter 
 		}()
 	}
 	result.fn = client.listNextResults
-	req, err := client.ListPreparer(ctx, filter)
+	req, err := client.ListPreparer(ctx, scope, filter)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "consumption.ReservationRecommendationsClient", "List", nil, "Failure preparing request")
 		return
@@ -85,12 +96,12 @@ func (client ReservationRecommendationsClient) List(ctx context.Context, filter 
 }
 
 // ListPreparer prepares the List request.
-func (client ReservationRecommendationsClient) ListPreparer(ctx context.Context, filter string) (*http.Request, error) {
+func (client ReservationRecommendationsClient) ListPreparer(ctx context.Context, scope string, filter string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
+		"scope": scope,
 	}
 
-	const APIVersion = "2019-01-01"
+	const APIVersion = "2019-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -101,7 +112,7 @@ func (client ReservationRecommendationsClient) ListPreparer(ctx context.Context,
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.Consumption/reservationRecommendations", pathParameters),
+		autorest.WithPathParameters("/{scope}/providers/Microsoft.Consumption/reservationRecommendations", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -109,7 +120,7 @@ func (client ReservationRecommendationsClient) ListPreparer(ctx context.Context,
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReservationRecommendationsClient) ListSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -117,7 +128,7 @@ func (client ReservationRecommendationsClient) ListSender(req *http.Request) (*h
 func (client ReservationRecommendationsClient) ListResponder(resp *http.Response) (result ReservationRecommendationsListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
@@ -146,7 +157,7 @@ func (client ReservationRecommendationsClient) listNextResults(ctx context.Conte
 }
 
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
-func (client ReservationRecommendationsClient) ListComplete(ctx context.Context, filter string) (result ReservationRecommendationsListResultIterator, err error) {
+func (client ReservationRecommendationsClient) ListComplete(ctx context.Context, scope string, filter string) (result ReservationRecommendationsListResultIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReservationRecommendationsClient.List")
 		defer func() {
@@ -157,6 +168,6 @@ func (client ReservationRecommendationsClient) ListComplete(ctx context.Context,
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.List(ctx, filter)
+	result.page, err = client.List(ctx, scope, filter)
 	return
 }

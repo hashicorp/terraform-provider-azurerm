@@ -1,4 +1,4 @@
-// Package consumption implements the Azure ARM Consumption service API version 2019-01-01.
+// Package consumption implements the Azure ARM Consumption service API version 2019-10-01.
 //
 // Consumption management client provides access to consumption resources for Azure Enterprise Subscriptions.
 package consumption

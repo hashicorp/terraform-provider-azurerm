@@ -54,19 +54,28 @@ func NewUsageDetailsClientWithBaseURI(baseURI string, subscriptionID string) Usa
 // subscription, billing account, department, enrollment account and management group, you can also add billing
 // period to the scope using '/providers/Microsoft.Billing/billingPeriods/{billingPeriodName}'. For e.g. to
 // specify billing period at department scope use
-// '/providers/Microsoft.Billing/departments/{departmentId}/providers/Microsoft.Billing/billingPeriods/{billingPeriodName}'
-// expand - may be used to expand the properties/additionalProperties or properties/meterDetails within a list
-// of usage details. By default, these fields are not included when listing usage details.
-// filter - may be used to filter usageDetails by properties/usageEnd (Utc time), properties/usageStart (Utc
-// time), properties/resourceGroup, properties/instanceName, properties/instanceId or tags. The filter supports
-// 'eq', 'lt', 'gt', 'le', 'ge', and 'and'. It does not currently support 'ne', 'or', or 'not'. Tag filter is a
-// key value pair string where key and value is separated by a colon (:).
+// '/providers/Microsoft.Billing/departments/{departmentId}/providers/Microsoft.Billing/billingPeriods/{billingPeriodName}'.
+// Also, Modern Commerce Account scopes are '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}'
+// for billingAccount scope,
+// '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/billingProfiles/{billingProfileId}' for
+// billingProfile scope,
+// 'providers/Microsoft.Billing/billingAccounts/{billingAccountId}/billingProfiles/{billingProfileId}/invoiceSections/{invoiceSectionId}'
+// for invoiceSection scope, and
+// 'providers/Microsoft.Billing/billingAccounts/{billingAccountId}/customers/{customerId}' specific for
+// partners.
+// expand - may be used to expand the properties/additionalInfo or properties/meterDetails within a list of
+// usage details. By default, these fields are not included when listing usage details.
+// filter - may be used to filter usageDetails by properties/resourceGroup, properties/resourceName,
+// properties/resourceId, properties/chargeType, properties/reservationId, properties/publisherType or tags.
+// The filter supports 'eq', 'lt', 'gt', 'le', 'ge', and 'and'. It does not currently support 'ne', 'or', or
+// 'not'. Tag filter is a key value pair string where key and value is separated by a colon (:). PublisherType
+// Filter accepts two values azure and marketplace and it is currently supported for Web Direct Offer Type
 // skiptoken - skiptoken is only used if a previous operation returned a partial result. If a previous response
 // contains a nextLink element, the value of the nextLink element will include a skiptoken parameter that
 // specifies a starting point to use for subsequent calls.
 // top - may be used to limit the number of results to the most recent N usageDetails.
-// apply - oData apply expression to aggregate usageDetails by tags or (tags and properties/usageStart)
-func (client UsageDetailsClient) List(ctx context.Context, scope string, expand string, filter string, skiptoken string, top *int32, apply string) (result UsageDetailsListResultPage, err error) {
+// metric - allows to select different type of cost/usage records.
+func (client UsageDetailsClient) List(ctx context.Context, scope string, expand string, filter string, skiptoken string, top *int32, metric Metrictype) (result UsageDetailsListResultPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/UsageDetailsClient.List")
 		defer func() {
@@ -87,7 +96,7 @@ func (client UsageDetailsClient) List(ctx context.Context, scope string, expand 
 	}
 
 	result.fn = client.listNextResults
-	req, err := client.ListPreparer(ctx, scope, expand, filter, skiptoken, top, apply)
+	req, err := client.ListPreparer(ctx, scope, expand, filter, skiptoken, top, metric)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "consumption.UsageDetailsClient", "List", nil, "Failure preparing request")
 		return
@@ -114,12 +123,12 @@ func (client UsageDetailsClient) List(ctx context.Context, scope string, expand 
 }
 
 // ListPreparer prepares the List request.
-func (client UsageDetailsClient) ListPreparer(ctx context.Context, scope string, expand string, filter string, skiptoken string, top *int32, apply string) (*http.Request, error) {
+func (client UsageDetailsClient) ListPreparer(ctx context.Context, scope string, expand string, filter string, skiptoken string, top *int32, metric Metrictype) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"scope": scope,
 	}
 
-	const APIVersion = "2019-01-01"
+	const APIVersion = "2019-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -135,8 +144,8 @@ func (client UsageDetailsClient) ListPreparer(ctx context.Context, scope string,
 	if top != nil {
 		queryParameters["$top"] = autorest.Encode("query", *top)
 	}
-	if len(apply) > 0 {
-		queryParameters["$apply"] = autorest.Encode("query", apply)
+	if len(string(metric)) > 0 {
+		queryParameters["metric"] = autorest.Encode("query", metric)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -187,7 +196,7 @@ func (client UsageDetailsClient) listNextResults(ctx context.Context, lastResult
 }
 
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
-func (client UsageDetailsClient) ListComplete(ctx context.Context, scope string, expand string, filter string, skiptoken string, top *int32, apply string) (result UsageDetailsListResultIterator, err error) {
+func (client UsageDetailsClient) ListComplete(ctx context.Context, scope string, expand string, filter string, skiptoken string, top *int32, metric Metrictype) (result UsageDetailsListResultIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/UsageDetailsClient.List")
 		defer func() {
@@ -198,6 +207,6 @@ func (client UsageDetailsClient) ListComplete(ctx context.Context, scope string,
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.List(ctx, scope, expand, filter, skiptoken, top, apply)
+	result.page, err = client.List(ctx, scope, expand, filter, skiptoken, top, metric)
 	return
 }

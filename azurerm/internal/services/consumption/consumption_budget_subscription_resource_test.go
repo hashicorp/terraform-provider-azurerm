@@ -116,21 +116,6 @@ func TestAccConsumptionBudgetSubscription_completeUpdate(t *testing.T) {
 	})
 }
 
-func TestAccConsumptionBudgetSubscription_usageCategory(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_consumption_budget_subscription", "test")
-	r := ConsumptionBudgetSubscriptionResource{}
-
-	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.withUsageCategory(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func (ConsumptionBudgetSubscriptionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.ConsumptionBudgetID(state.ID)
 	if err != nil {
@@ -165,6 +150,15 @@ resource "azurerm_consumption_budget_subscription" "test" {
     start_date = "%s"
   }
 
+  filter {
+    tag {
+      name = "foo"
+      values = [
+        "bar"
+      ]
+    }
+  }
+
   notification {
     enabled   = true
     threshold = 90.0
@@ -193,7 +187,6 @@ resource "azurerm_consumption_budget_subscription" "test" {
 
   // Changed the amount from 1000 to 2000
   amount     = 3000
-  category   = "Cost"
   time_grain = "Monthly"
 
   // Add end_date
@@ -201,6 +194,8 @@ resource "azurerm_consumption_budget_subscription" "test" {
     start_date = "%s"
     end_date   = "%s"
   }
+
+  // Remove filter
 
   // Changed threshold and operator
   notification {
@@ -227,7 +222,6 @@ resource "azurerm_consumption_budget_subscription" "import" {
   subscription_id = azurerm_consumption_budget_subscription.test.subscription_id
 
   amount     = azurerm_consumption_budget_subscription.test.amount
-  category   = azurerm_consumption_budget_subscription.test.category
   time_grain = azurerm_consumption_budget_subscription.test.time_grain
 
   time_period {
@@ -272,7 +266,6 @@ resource "azurerm_consumption_budget_subscription" "test" {
   subscription_id = data.azurerm_subscription.current.subscription_id
 
   amount     = 1000
-  category   = "Cost"
   time_grain = "Monthly"
 
   time_period {
@@ -281,15 +274,20 @@ resource "azurerm_consumption_budget_subscription" "test" {
   }
 
   filter {
-    resource_groups = [
-      azurerm_resource_group.test.name,
-    ]
-    resources = [
-      azurerm_monitor_action_group.test.id,
-    ]
-    meters = [
-      "00000000-0000-0000-0000-000000000000",
-    ]
+    dimension {
+      name = "ResourceGroupName"
+      values = [
+        azurerm_resource_group.test.name,
+      ]
+    }
+
+    dimension {
+      name = "ResourceId"
+      values = [
+        azurerm_monitor_action_group.test.id,
+      ]
+    }
+
     tag {
       name = "foo"
       values = [
@@ -366,13 +364,13 @@ resource "azurerm_consumption_budget_subscription" "test" {
   }
 
   filter {
-    resource_groups = [
-      azurerm_resource_group.test.name,
-    ]
-    // Removed resources
-    meters = [
-      "00000000-0000-0000-0000-000000000000",
-    ]
+    dimension {
+      name = "ResourceGroupName"
+      values = [
+        azurerm_resource_group.test.name,
+      ]
+    }
+
     tag {
       name = "foo"
       values = [
@@ -380,6 +378,7 @@ resource "azurerm_consumption_budget_subscription" "test" {
         "baz",
       ]
     }
+
     // Added tag: zip
     tag {
       name = "zip"
@@ -427,44 +426,4 @@ resource "azurerm_consumption_budget_subscription" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, consumptionBudgetTestStartDate().Format(time.RFC3339))
-}
-
-func (ConsumptionBudgetSubscriptionResource) withUsageCategory(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-data "azurerm_subscription" "current" {}
-
-resource "azurerm_consumption_budget_subscription" "test" {
-  name            = "acctestconsumptionbudgetsubscription-%d"
-  subscription_id = data.azurerm_subscription.current.subscription_id
-
-  amount     = 1000
-  category   = "Usage"
-  time_grain = "Monthly"
-
-  time_period {
-    start_date = "%s"
-  }
-
-  filter {
-    meters = [
-      "00000000-0000-0000-0000-000000000000",
-    ]
-  }
-
-  notification {
-    enabled   = true
-    threshold = 90.0
-    operator  = "EqualTo"
-
-    contact_emails = [
-      "foo@example.com",
-      "bar@example.com",
-    ]
-  }
-}
-`, data.RandomInteger, consumptionBudgetTestStartDate().Format(time.RFC3339))
 }

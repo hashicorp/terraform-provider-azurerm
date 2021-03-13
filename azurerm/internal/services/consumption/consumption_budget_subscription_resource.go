@@ -27,7 +27,7 @@ func resourceArmConsumptionBudgetSubscription() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: SchemaAzureConsumptionBudgetSubscriptionResource(),
+		Schema: SchemaConsumptionBudgetSubscriptionResource(),
 	}
 }
 

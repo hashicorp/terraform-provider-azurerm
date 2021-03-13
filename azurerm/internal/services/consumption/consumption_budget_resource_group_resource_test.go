@@ -109,21 +109,6 @@ func TestAccConsumptionBudgetResourceGroup_completeUpdate(t *testing.T) {
 	})
 }
 
-func TestAccConsumptionBudgetResourceGroup_usageCategory(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_consumption_budget_resource_group", "test")
-	r := ConsumptionBudgetResourceGroupResource{}
-
-	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.withUsageCategory(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func (ConsumptionBudgetResourceGroupResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.ConsumptionBudgetID(state.ID)
 	if err != nil {
@@ -157,11 +142,19 @@ resource "azurerm_consumption_budget_resource_group" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   amount     = 1000
-  category   = "Cost"
   time_grain = "Monthly"
 
   time_period {
     start_date = "%s"
+  }
+
+  filter {
+    tag {
+      name = "foo"
+      values = [
+        "bar",
+      ]
+    }
   }
 
   notification {
@@ -207,6 +200,8 @@ resource "azurerm_consumption_budget_resource_group" "test" {
     end_date   = "%s"
   }
 
+  // Remove filter
+
   // Changed threshold and operator
   notification {
     enabled   = true
@@ -233,7 +228,6 @@ resource "azurerm_consumption_budget_resource_group" "import" {
   resource_group_name = azurerm_consumption_budget_resource_group.test.resource_group_name
 
   amount     = azurerm_consumption_budget_resource_group.test.amount
-  category   = azurerm_consumption_budget_resource_group.test.category
   time_grain = azurerm_consumption_budget_resource_group.test.time_grain
 
   time_period {
@@ -279,7 +273,6 @@ resource "azurerm_consumption_budget_resource_group" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   amount     = 1000
-  category   = "Cost"
   time_grain = "Monthly"
 
   time_period {
@@ -288,15 +281,20 @@ resource "azurerm_consumption_budget_resource_group" "test" {
   }
 
   filter {
-    resource_groups = [
-      azurerm_resource_group.test.name,
-    ]
-    resources = [
-      azurerm_monitor_action_group.test.id,
-    ]
-    meters = [
-      "00000000-0000-0000-0000-000000000000",
-    ]
+    dimension {
+      name = "ResourceGroupName"
+      values = [
+        azurerm_resource_group.test.name,
+      ]
+    }
+
+    dimension {
+      name = "ResourceId"
+      values = [
+        azurerm_monitor_action_group.test.id,
+      ]
+    }
+
     tag {
       name = "foo"
       values = [
@@ -365,7 +363,6 @@ resource "azurerm_consumption_budget_resource_group" "test" {
 
   // Changed the amount from 1000 to 2000
   amount     = 2000
-  category   = "Cost"
   time_grain = "Monthly"
 
   // Removed end_date
@@ -374,13 +371,13 @@ resource "azurerm_consumption_budget_resource_group" "test" {
   }
 
   filter {
-    resource_groups = [
-      azurerm_resource_group.test.name,
-    ]
-    // Removed resources
-    meters = [
-      "00000000-0000-0000-0000-000000000000",
-    ]
+    dimension {
+      name = "ResourceGroupName"
+      values = [
+        azurerm_resource_group.test.name,
+      ]
+    }
+
     tag {
       name = "foo"
       values = [
@@ -388,6 +385,7 @@ resource "azurerm_consumption_budget_resource_group" "test" {
         "baz",
       ]
     }
+
     // Added tag: zip
     tag {
       name = "zip"
@@ -435,50 +433,4 @@ resource "azurerm_consumption_budget_resource_group" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, consumptionBudgetTestStartDate().Format(time.RFC3339))
-}
-
-func (ConsumptionBudgetResourceGroupResource) withUsageCategory(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-data "azurerm_subscription" "current" {}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_consumption_budget_resource_group" "test" {
-  name                = "acctestconsumptionbudgetresourcegroup-%d"
-  subscription_id     = data.azurerm_subscription.current.subscription_id
-  resource_group_name = azurerm_resource_group.test.name
-
-  amount     = 1000
-  category   = "Usage"
-  time_grain = "Monthly"
-
-  time_period {
-    start_date = "%s"
-  }
-
-  filter {
-    meters = [
-      "00000000-0000-0000-0000-000000000000",
-    ]
-  }
-
-  notification {
-    enabled   = true
-    threshold = 90.0
-    operator  = "EqualTo"
-
-    contact_emails = [
-      "foo@example.com",
-      "bar@example.com",
-    ]
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, consumptionBudgetTestStartDate().Format(time.RFC3339))
 }

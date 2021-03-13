@@ -115,7 +115,7 @@ func (client MarketplacesClient) ListPreparer(ctx context.Context, scope string,
 		"scope": scope,
 	}
 
-	const APIVersion = "2019-01-01"
+	const APIVersion = "2019-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

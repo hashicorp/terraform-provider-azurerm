@@ -1,22 +1,22 @@
 package consumption
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/consumption/mgmt/2019-01-01/consumption"
+	"github.com/Azure/azure-sdk-for-go/services/consumption/mgmt/2019-10-01/consumption"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/consumption/validate"
 )
 
-func SchemaAzureConsumptionBudgetResourceGroupResource() map[string]*schema.Schema {
+func SchemaConsumptionBudgetResourceGroupResource() map[string]*schema.Schema {
 	resourceGroupNameSchema := map[string]*schema.Schema{
 		"resource_group_name": azure.SchemaResourceGroupName(),
 	}
 
-	return azure.MergeSchema(SchemaAzureConsumptionBudgetSubscriptionResource(), resourceGroupNameSchema)
+	return azure.MergeSchema(SchemaConsumptionBudgetSubscriptionResource(), resourceGroupNameSchema)
 }
 
-func SchemaAzureConsumptionBudgetSubscriptionResource() map[string]*schema.Schema {
+func SchemaConsumptionBudgetSubscriptionResource() map[string]*schema.Schema {
 	subscriptionIDSchema := map[string]*schema.Schema{
 		"subscription_id": {
 			Type:         schema.TypeString,
@@ -26,15 +26,75 @@ func SchemaAzureConsumptionBudgetSubscriptionResource() map[string]*schema.Schem
 		},
 	}
 
-	return azure.MergeSchema(SchemaAzureConsumptionBudgetCommonResource(), subscriptionIDSchema)
+	return azure.MergeSchema(SchemaConsumptionBudgetCommonResource(), subscriptionIDSchema)
 }
 
-func SchemaAzureConsumptionBudgetFilterTagElement() *schema.Resource {
+func SchemaConsumptionBudgetFilterDimensionElement() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"ChargeType",
+					"Frequency",
+					"InvoiceId",
+					"Meter",
+					"MeterCategory",
+					"MeterSubCategory",
+					"PartNumber",
+					"PricingModel",
+					"Product",
+					"ProductOrderId",
+					"ProductOrderName",
+					"PublisherType",
+					"ReservationId",
+					"ReservationName",
+					"ResourceGroupName",
+					"ResourceGuid",
+					"ResourceId",
+					"ResourceLocation",
+					"ResourceType",
+					"ServiceFamily",
+					"ServiceName",
+					"UnitOfMeasure",
+				}, false),
+			},
+			"operator": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "In",
+				ValidateFunc: validation.StringInSlice([]string{
+					"In",
+				}, false),
+			},
+			"values": {
+				Type:     schema.TypeList,
+				MinItems: 1,
+				Required: true,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+		},
+	}
+}
+
+func SchemaConsumptionBudgetFilterTagElement() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"name": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
+			"operator": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "In",
+				ValidateFunc: validation.StringInSlice([]string{
+					"In",
+				}, false),
 			},
 			"values": {
 				Type:     schema.TypeList,
@@ -48,7 +108,7 @@ func SchemaAzureConsumptionBudgetFilterTagElement() *schema.Resource {
 	}
 }
 
-func SchemaAzureConsumptionBudgetNotificationElement() *schema.Resource {
+func SchemaConsumptionBudgetNotificationElement() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"enabled": {
@@ -101,7 +161,7 @@ func SchemaAzureConsumptionBudgetNotificationElement() *schema.Resource {
 	}
 }
 
-func SchemaAzureConsumptionBudgetCommonResource() map[string]*schema.Schema {
+func SchemaConsumptionBudgetCommonResource() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": {
 			Type:         schema.TypeString,
@@ -119,11 +179,10 @@ func SchemaAzureConsumptionBudgetCommonResource() map[string]*schema.Schema {
 		"category": {
 			Type:     schema.TypeString,
 			Optional: true,
-			Default:  string(consumption.Cost),
+			Default:  "Cost",
 			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
-				string(consumption.Cost),
-				string(consumption.Usage),
+				"Cost",
 			}, false),
 		},
 
@@ -133,35 +192,17 @@ func SchemaAzureConsumptionBudgetCommonResource() map[string]*schema.Schema {
 			MaxItems: 1,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
-					"resource_groups": {
-						Type:     schema.TypeList,
+					"dimension": {
+						Type:     schema.TypeSet,
 						Optional: true,
-						Elem: &schema.Schema{
-							Type:         schema.TypeString,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-					},
-					"resources": {
-						Type:     schema.TypeList,
-						Optional: true,
-						Elem: &schema.Schema{
-							Type:         schema.TypeString,
-							ValidateFunc: azure.ValidateResourceID,
-						},
-					},
-					"meters": {
-						Type:     schema.TypeList,
-						Optional: true,
-						Elem: &schema.Schema{
-							Type:         schema.TypeString,
-							ValidateFunc: validation.IsUUID,
-						},
+						Set:      schema.HashResource(SchemaConsumptionBudgetFilterDimensionElement()),
+						Elem:     SchemaConsumptionBudgetFilterDimensionElement(),
 					},
 					"tag": {
 						Type:     schema.TypeSet,
 						Optional: true,
-						Set:      schema.HashResource(SchemaAzureConsumptionBudgetFilterTagElement()),
-						Elem:     SchemaAzureConsumptionBudgetFilterTagElement(),
+						Set:      schema.HashResource(SchemaConsumptionBudgetFilterTagElement()),
+						Elem:     SchemaConsumptionBudgetFilterTagElement(),
 					},
 				},
 			},
@@ -172,8 +213,8 @@ func SchemaAzureConsumptionBudgetCommonResource() map[string]*schema.Schema {
 			Required: true,
 			MinItems: 1,
 			MaxItems: 5,
-			Set:      schema.HashResource(SchemaAzureConsumptionBudgetNotificationElement()),
-			Elem:     SchemaAzureConsumptionBudgetNotificationElement(),
+			Set:      schema.HashResource(SchemaConsumptionBudgetNotificationElement()),
+			Elem:     SchemaConsumptionBudgetNotificationElement(),
 		},
 
 		"time_grain": {

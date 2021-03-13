@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/consumption/mgmt/2019-01-01/consumption"
+	"github.com/Azure/azure-sdk-for-go/services/consumption/mgmt/2019-10-01/consumption"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/shopspring/decimal"
@@ -113,85 +113,142 @@ func FlattenConsumptionBudgetNotifications(input map[string]*consumption.Notific
 	return notifications
 }
 
-func ExpandConsumptionBudgetFilterTags(input []interface{}) map[string][]string {
-	output := make(map[string][]string, len(input))
+func ExpandConsumptionBudgetComparisonExpression(input interface{}) *consumption.BudgetComparisonExpression {
+	v := input.(map[string]interface{})
 
-	for _, v := range input {
-		tagInput := v.(map[string]interface{})
-
-		values := utils.ExpandStringSlice(tagInput["values"].([]interface{}))
-		output[tagInput["name"].(string)] = *values
+	return &consumption.BudgetComparisonExpression{
+		Name:     utils.String(v["name"].(string)),
+		Operator: utils.String(v["operator"].(string)),
+		Values:   utils.ExpandStringSlice(v["values"].([]interface{})),
 	}
-
-	return output
 }
 
-func FlattenConsumptionBudgetFilterTags(input map[string][]string) []interface{} {
-	output := make([]interface{}, 0)
+func FlattenConsumptionBudgetComparisonExpression(input *consumption.BudgetComparisonExpression) *map[string]interface{} {
+	consumptionBudgetComparisonExpression := make(map[string]interface{})
 
-	for i, v := range input {
-		if v == nil {
-			continue
-		}
-		value := utils.FlattenStringSlice(&v)
+	consumptionBudgetComparisonExpression["name"] = input.Name
+	consumptionBudgetComparisonExpression["operator"] = input.Operator
+	consumptionBudgetComparisonExpression["values"] = utils.FlattenStringSlice(input.Values)
 
-		tagBlock := make(map[string]interface{})
-		tagBlock["name"] = i
-		tagBlock["values"] = value
-
-		output = append(output, tagBlock)
-	}
-
-	return output
+	return &consumptionBudgetComparisonExpression
 }
 
-func ExpandConsumptionBudgetFilter(i []interface{}) *consumption.Filters {
-	if len(i) == 0 || i[0] == nil {
+func ExpandConsumptionBudgetFilterDimensions(input []interface{}) []consumption.BudgetFilterProperties {
+	if len(input) == 0 {
 		return nil
 	}
 
-	filters := consumption.Filters{}
+	dimensions := make([]consumption.BudgetFilterProperties, 0)
 
-	input := i[0].(map[string]interface{})
+	for _, v := range input {
+		dimension := consumption.BudgetFilterProperties{
+			Dimensions: ExpandConsumptionBudgetComparisonExpression(v),
+		}
+		dimensions = append(dimensions, dimension)
+	}
 
-	filters.ResourceGroups = utils.ExpandStringSlice(input["resource_groups"].([]interface{}))
-	filters.Resources = utils.ExpandStringSlice(input["resources"].([]interface{}))
-	filters.Tags = ExpandConsumptionBudgetFilterTags(input["tag"].(*schema.Set).List())
-	filters.Meters = utils.ExpandUUIDSlice(input["meters"].([]interface{}))
-
-	return &filters
+	return dimensions
 }
 
-func FlattenConsumptionBudgetFilter(input *consumption.Filters) []interface{} {
-	filters := make([]interface{}, 0)
+func ExpandConsumptionBudgetFilterTag(input []interface{}) []consumption.BudgetFilterProperties {
+	if len(input) == 0 {
+		return nil
+	}
+
+	tags := make([]consumption.BudgetFilterProperties, 0)
+
+	for _, v := range input {
+		tag := consumption.BudgetFilterProperties{
+			Tags: ExpandConsumptionBudgetComparisonExpression(v),
+		}
+
+		tags = append(tags, tag)
+	}
+
+	return tags
+}
+
+func ExpandConsumptionBudgetFilter(i []interface{}) *consumption.BudgetFilter {
+	if len(i) == 0 || i[0] == nil {
+		return nil
+	}
+	input := i[0].(map[string]interface{})
+
+	filter := consumption.BudgetFilter{}
+
+	tags := ExpandConsumptionBudgetFilterTag(input["tag"].(*schema.Set).List())
+	dimensions := ExpandConsumptionBudgetFilterDimensions(input["dimension"].(*schema.Set).List())
+
+	tagsLength := len(tags)
+	dimensionsLength := len(dimensions)
+
+	haveTags := tagsLength > 0
+	haveDimensions := dimensionsLength > 0
+
+	if haveDimensions && haveTags {
+		and := append(dimensions, tags...)
+		filter.And = &and
+	} else {
+		if haveDimensions {
+			if dimensionsLength > 1 {
+				filter.And = &dimensions
+			} else {
+				filter.Dimensions = dimensions[0].Dimensions
+			}
+		} else if haveTags {
+			if tagsLength > 1 {
+				filter.And = &tags
+			} else {
+				filter.Tags = tags[0].Tags
+			}
+		}
+	}
+
+	return &filter
+}
+
+func FlattenConsumptionBudgetFilter(input *consumption.BudgetFilter) []interface{} {
+	filter := make([]interface{}, 0)
 
 	if input == nil {
-		return filters
+		return nil
 	}
 
+	dimensions := make([]interface{}, 0)
+	tags := make([]interface{}, 0)
 	filterBlock := make(map[string]interface{})
 
-	if input.ResourceGroups != nil && len(*input.ResourceGroups) != 0 {
-		filterBlock["resource_groups"] = utils.FlattenStringSlice(input.ResourceGroups)
-	}
+	if input.And != nil {
+		for _, v := range *input.And {
+			if v.Dimensions != nil {
+				dimensions = append(dimensions, FlattenConsumptionBudgetComparisonExpression(v.Dimensions))
+			} else {
+				tags = append(tags, FlattenConsumptionBudgetComparisonExpression(v.Tags))
+			}
+		}
 
-	if input.Resources != nil && len(*input.Resources) != 0 {
-		filterBlock["resources"] = utils.FlattenStringSlice(input.Resources)
-	}
+		if len(dimensions) != 0 {
+			filterBlock["dimension"] = dimensions
+		}
 
-	if input.Meters != nil && len(*input.Meters) != 0 {
-		filterBlock["meters"] = utils.FlattenUUIDSlice(input.Meters)
-	}
+		if len(tags) != 0 {
+			filterBlock["tag"] = tags
+		}
+	} else {
+		if input.Tags != nil {
+			filterBlock["tag"] = append(tags, FlattenConsumptionBudgetComparisonExpression(input.Tags))
+		}
 
-	if input.Tags != nil && len(input.Tags) != 0 {
-		filterBlock["tag"] = schema.NewSet(schema.HashResource(SchemaAzureConsumptionBudgetFilterTagElement()), FlattenConsumptionBudgetFilterTags(input.Tags))
+		if input.Dimensions != nil {
+			filterBlock["dimension"] = append(dimensions, FlattenConsumptionBudgetComparisonExpression(input.Dimensions))
+		}
 	}
 
 	if len(filterBlock) != 0 {
-		filters = append(filters, filterBlock)
+		filter = append(filter, filterBlock)
 	}
 
-	return filters
+	return filter
 }
 
 // DiffSuppressFuncs

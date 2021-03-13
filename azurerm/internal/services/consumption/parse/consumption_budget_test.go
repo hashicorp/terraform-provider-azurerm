@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestParseAzureConsumptionBudgetID(t *testing.T) {
+func TestParseConsumptionBudgetID(t *testing.T) {
 	testCases := []struct {
 		id                          string
 		expectedConsumptionBudgetID *ConsumptionBudgetId

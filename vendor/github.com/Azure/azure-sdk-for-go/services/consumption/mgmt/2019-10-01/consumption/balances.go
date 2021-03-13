@@ -85,7 +85,7 @@ func (client BalancesClient) GetByBillingAccountPreparer(ctx context.Context, bi
 		"billingAccountId": autorest.Encode("path", billingAccountID),
 	}
 
-	const APIVersion = "2019-01-01"
+	const APIVersion = "2019-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -161,7 +161,7 @@ func (client BalancesClient) GetForBillingPeriodByBillingAccountPreparer(ctx con
 		"billingPeriodName": autorest.Encode("path", billingPeriodName),
 	}
 
-	const APIVersion = "2019-01-01"
+	const APIVersion = "2019-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

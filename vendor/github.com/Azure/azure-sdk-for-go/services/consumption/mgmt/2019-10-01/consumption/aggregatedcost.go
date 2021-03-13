@@ -88,7 +88,7 @@ func (client AggregatedCostClient) GetByManagementGroupPreparer(ctx context.Cont
 		"managementGroupId": autorest.Encode("path", managementGroupID),
 	}
 
-	const APIVersion = "2019-01-01"
+	const APIVersion = "2019-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -167,7 +167,7 @@ func (client AggregatedCostClient) GetForBillingPeriodByManagementGroupPreparer(
 		"managementGroupId": autorest.Encode("path", managementGroupID),
 	}
 
-	const APIVersion = "2019-01-01"
+	const APIVersion = "2019-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

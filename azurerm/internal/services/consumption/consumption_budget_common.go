@@ -5,7 +5,7 @@ import (
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/consumption/parse"
 
-	"github.com/Azure/azure-sdk-for-go/services/consumption/mgmt/2019-01-01/consumption"
+	"github.com/Azure/azure-sdk-for-go/services/consumption/mgmt/2019-10-01/consumption"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/shopspring/decimal"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -36,13 +36,13 @@ func resourceArmConsumptionBudgetRead(d *schema.ResourceData, meta interface{}) 
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("category", string(resp.Category))
+	d.Set("category", resp.Category)
 	amount, _ := resp.Amount.Float64()
 	d.Set("amount", amount)
 	d.Set("time_grain", string(resp.TimeGrain))
 	d.Set("time_period", FlattenConsumptionBudgetTimePeriod(resp.TimePeriod))
-	d.Set("notification", schema.NewSet(schema.HashResource(SchemaAzureConsumptionBudgetNotificationElement()), FlattenConsumptionBudgetNotifications(resp.Notifications)))
-	d.Set("filter", FlattenConsumptionBudgetFilter(resp.Filters))
+	d.Set("notification", schema.NewSet(schema.HashResource(SchemaConsumptionBudgetNotificationElement()), FlattenConsumptionBudgetNotifications(resp.Notifications)))
+	d.Set("filter", FlattenConsumptionBudgetFilter(resp.Filter))
 
 	return nil
 }
@@ -101,8 +101,8 @@ func resourceArmConsumptionBudgetCreateUpdate(d *schema.ResourceData, meta inter
 		Name: utils.String(name),
 		BudgetProperties: &consumption.BudgetProperties{
 			Amount:        &amount,
-			Category:      consumption.CategoryType(d.Get("category").(string)),
-			Filters:       ExpandConsumptionBudgetFilter(d.Get("filter").([]interface{})),
+			Category:      utils.String(d.Get("category").(string)),
+			Filter:        ExpandConsumptionBudgetFilter(d.Get("filter").([]interface{})),
 			Notifications: ExpandConsumptionBudgetNotifications(d.Get("notification").(*schema.Set).List()),
 			TimeGrain:     consumption.TimeGrainType(d.Get("time_grain").(string)),
 			TimePeriod:    timePeriod,

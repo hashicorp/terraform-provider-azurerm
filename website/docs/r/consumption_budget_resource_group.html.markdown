@@ -41,15 +41,13 @@ resource "azurerm_consumption_budget_resource_group" "example" {
   }
 
   filter {
-    resource_groups = [
-      azurerm_resource_group.example.name,
-    ]
-    resources = [
-      azurerm_monitor_action_group.example.id,
-    ]
-    meters = [
-      "00000000-0000-0000-0000-000000000000",
-    ]
+    dimension {
+      name = "ResourceId"
+      values = [
+        azurerm_monitor_action_group.example.id,
+      ]
+    }
+
     tag {
       name = "foo"
       values = [
@@ -105,7 +103,7 @@ The following arguments are supported:
 
 * `time_grain` - (Required) The time covered by a budget. Tracking of the amount will be reset based on the time grain. Must be one of `Monthly`, `Quarterly`, `Annually`, `BillingMonth`, `BillingQuarter`, or `BillingYear`. Defaults to `Monthly`.
 
-* `category` - (Required) The category of the budget. Must be one of `Cost` or `Usage`. Defaults to `Cost`.
+* `category` - (Required) The category of the budget. The allowed values are `Cost`. Defaults to `Cost`.
 
 * `time_period` - (Required) A `time_period` block as defined below.
 
@@ -117,11 +115,7 @@ The following arguments are supported:
 
 A `filter` block supports the following:
 
-* `meters` - (Optional) Specifies a list of meters to filter the budget on. Must be set if `category` is set to `Usage`.
-
-* `resource_groups` - (Optional) Specifies a list of resource groups to filter the budget on.
-
-* `resources` - (Optional) Specifies a list of resource IDs to filter the budget on.
+* `dimension` - (Optional) One or more `dimension` blocks as defined below to filter the budget on.
 
 * `tag` - (Optional) One or more `tag` blocks as defined below to filter the budget on.
 
@@ -143,11 +137,23 @@ A `notification` block supports the following:
 
 ---
 
+A `dimension` block supports the following:
+
+* `name` - (Required) The name of the column to use for the filter. The allowed values are
+
+* `operator` - (Optional) The operator to use for comparison. The allowed values are `In`.
+
+* `values` - (Required) Specifies a list of values for the column. The allowed values are `ChargeType`, `Frequency`, `InvoiceId`, `Meter`, `MeterCategory`, `MeterSubCategory`, `PartNumber`, `PricingModel`, `Product`, `ProductOrderId`, `ProductOrderName`, `PublisherType`, `ReservationId`, `ReservationName`, `ResourceGroupName`, `ResourceGuid`, `ResourceId`, `ResourceLocation`, `ResourceType`, `ServiceFamily`, `ServiceName`, `UnitOfMeasure`.
+
+---
+
 A `tag` block supports the following:
 
-* `name` - (Required) The key of the tag to filter the budget on.
+* `name` - (Required) The name of the tag to use for the filter.
 
-* `values` - (Required) Specifies a list of values for the tag to filter the budget on.
+* `operator` - (Optional) The operator to use for comparison. The allowed values are `In`.
+
+* `values` - (Required) Specifies a list of values for the tag.
 
 ---
 

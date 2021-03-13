@@ -43,6 +43,147 @@ func NewReservationsDetailsClientWithBaseURI(baseURI string, subscriptionID stri
 	return ReservationsDetailsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
+// List lists the reservations details for the defined scope and provided date range.
+// Parameters:
+// scope - the scope associated with reservations details operations. This includes
+// '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}' for BillingAccount scope (legacy), and
+// '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/billingProfiles/{billingProfileId}' for
+// BillingProfile scope (modern).
+// startDate - start date. Only applicable when querying with billing profile
+// endDate - end date. Only applicable when querying with billing profile
+// filter - filter reservation details by date range. The properties/UsageDate for start date and end date. The
+// filter supports 'le' and  'ge'. Not applicable when querying with billing profile
+// reservationID - reservation Id GUID. Only valid if reservationOrderId is also provided. Filter to a specific
+// reservation
+// reservationOrderID - reservation Order Id GUID. Required if reservationId is provided. Filter to a specific
+// reservation order
+func (client ReservationsDetailsClient) List(ctx context.Context, scope string, startDate string, endDate string, filter string, reservationID string, reservationOrderID string) (result ReservationDetailsListResultPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ReservationsDetailsClient.List")
+		defer func() {
+			sc := -1
+			if result.rdlr.Response.Response != nil {
+				sc = result.rdlr.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.fn = client.listNextResults
+	req, err := client.ListPreparer(ctx, scope, startDate, endDate, filter, reservationID, reservationOrderID)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "consumption.ReservationsDetailsClient", "List", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.ListSender(req)
+	if err != nil {
+		result.rdlr.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "consumption.ReservationsDetailsClient", "List", resp, "Failure sending request")
+		return
+	}
+
+	result.rdlr, err = client.ListResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "consumption.ReservationsDetailsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.rdlr.hasNextLink() && result.rdlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
+	}
+
+	return
+}
+
+// ListPreparer prepares the List request.
+func (client ReservationsDetailsClient) ListPreparer(ctx context.Context, scope string, startDate string, endDate string, filter string, reservationID string, reservationOrderID string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"scope": scope,
+	}
+
+	const APIVersion = "2019-10-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+	if len(startDate) > 0 {
+		queryParameters["startDate"] = autorest.Encode("query", startDate)
+	}
+	if len(endDate) > 0 {
+		queryParameters["endDate"] = autorest.Encode("query", endDate)
+	}
+	if len(filter) > 0 {
+		queryParameters["$filter"] = autorest.Encode("query", filter)
+	}
+	if len(reservationID) > 0 {
+		queryParameters["reservationId"] = autorest.Encode("query", reservationID)
+	}
+	if len(reservationOrderID) > 0 {
+		queryParameters["reservationOrderId"] = autorest.Encode("query", reservationOrderID)
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/{scope}/providers/Microsoft.Consumption/reservationDetails", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ListSender sends the List request. The method will close the
+// http.Response Body if it receives an error.
+func (client ReservationsDetailsClient) ListSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+}
+
+// ListResponder handles the response to the List request. The method always
+// closes the http.Response Body.
+func (client ReservationsDetailsClient) ListResponder(resp *http.Response) (result ReservationDetailsListResult, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// listNextResults retrieves the next set of results, if any.
+func (client ReservationsDetailsClient) listNextResults(ctx context.Context, lastResults ReservationDetailsListResult) (result ReservationDetailsListResult, err error) {
+	req, err := lastResults.reservationDetailsListResultPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "consumption.ReservationsDetailsClient", "listNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "consumption.ReservationsDetailsClient", "listNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "consumption.ReservationsDetailsClient", "listNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// ListComplete enumerates all values, automatically crossing page boundaries as required.
+func (client ReservationsDetailsClient) ListComplete(ctx context.Context, scope string, startDate string, endDate string, filter string, reservationID string, reservationOrderID string) (result ReservationDetailsListResultIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ReservationsDetailsClient.List")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.List(ctx, scope, startDate, endDate, filter, reservationID, reservationOrderID)
+	return
+}
+
 // ListByReservationOrder lists the reservations details for provided date range.
 // Parameters:
 // reservationOrderID - order Id of the reservation
@@ -92,7 +233,7 @@ func (client ReservationsDetailsClient) ListByReservationOrderPreparer(ctx conte
 		"reservationOrderId": autorest.Encode("path", reservationOrderID),
 	}
 
-	const APIVersion = "2019-01-01"
+	const APIVersion = "2019-10-01"
 	queryParameters := map[string]interface{}{
 		"$filter":     autorest.Encode("query", filter),
 		"api-version": APIVersion,
@@ -212,7 +353,7 @@ func (client ReservationsDetailsClient) ListByReservationOrderAndReservationPrep
 		"reservationOrderId": autorest.Encode("path", reservationOrderID),
 	}
 
-	const APIVersion = "2019-01-01"
+	const APIVersion = "2019-10-01"
 	queryParameters := map[string]interface{}{
 		"$filter":     autorest.Encode("query", filter),
 		"api-version": APIVersion,

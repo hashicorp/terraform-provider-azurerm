@@ -25,36 +25,30 @@ import (
 	"net/http"
 )
 
-// TagsClient is the consumption management client provides access to consumption resources for Azure Enterprise
+// CreditsClient is the consumption management client provides access to consumption resources for Azure Enterprise
 // Subscriptions.
-type TagsClient struct {
+type CreditsClient struct {
 	BaseClient
 }
 
-// NewTagsClient creates an instance of the TagsClient client.
-func NewTagsClient(subscriptionID string) TagsClient {
-	return NewTagsClientWithBaseURI(DefaultBaseURI, subscriptionID)
+// NewCreditsClient creates an instance of the CreditsClient client.
+func NewCreditsClient(subscriptionID string) CreditsClient {
+	return NewCreditsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewTagsClientWithBaseURI creates an instance of the TagsClient client using a custom endpoint.  Use this when
+// NewCreditsClientWithBaseURI creates an instance of the CreditsClient client using a custom endpoint.  Use this when
 // interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
-func NewTagsClientWithBaseURI(baseURI string, subscriptionID string) TagsClient {
-	return TagsClient{NewWithBaseURI(baseURI, subscriptionID)}
+func NewCreditsClientWithBaseURI(baseURI string, subscriptionID string) CreditsClient {
+	return CreditsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// Get get all available tag keys for the defined scope
+// Get the credit summary by billingAccountId and billingProfileId.
 // Parameters:
-// scope - the scope associated with tags operations. This includes '/subscriptions/{subscriptionId}/' for
-// subscription scope, '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}' for resourceGroup
-// scope, '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}' for Billing Account scope,
-// '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/departments/{departmentId}' for Department
-// scope,
-// '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/enrollmentAccounts/{enrollmentAccountId}'
-// for EnrollmentAccount scope and '/providers/Microsoft.Management/managementGroups/{managementGroupId}' for
-// Management Group scope..
-func (client TagsClient) Get(ctx context.Context, scope string) (result TagsResult, err error) {
+// billingAccountID - billingAccount ID
+// billingProfileID - azure Billing Profile ID.
+func (client CreditsClient) Get(ctx context.Context, billingAccountID string, billingProfileID string) (result CreditSummary, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/TagsClient.Get")
+		ctx = tracing.StartSpan(ctx, fqdn+"/CreditsClient.Get")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -63,22 +57,22 @@ func (client TagsClient) Get(ctx context.Context, scope string) (result TagsResu
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.GetPreparer(ctx, scope)
+	req, err := client.GetPreparer(ctx, billingAccountID, billingProfileID)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "consumption.TagsClient", "Get", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "consumption.CreditsClient", "Get", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.GetSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "consumption.TagsClient", "Get", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "consumption.CreditsClient", "Get", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.GetResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "consumption.TagsClient", "Get", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "consumption.CreditsClient", "Get", resp, "Failure responding to request")
 		return
 	}
 
@@ -86,12 +80,13 @@ func (client TagsClient) Get(ctx context.Context, scope string) (result TagsResu
 }
 
 // GetPreparer prepares the Get request.
-func (client TagsClient) GetPreparer(ctx context.Context, scope string) (*http.Request, error) {
+func (client CreditsClient) GetPreparer(ctx context.Context, billingAccountID string, billingProfileID string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"scope": scope,
+		"billingAccountId": autorest.Encode("path", billingAccountID),
+		"billingProfileId": autorest.Encode("path", billingProfileID),
 	}
 
-	const APIVersion = "2019-01-01"
+	const APIVersion = "2019-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -99,20 +94,20 @@ func (client TagsClient) GetPreparer(ctx context.Context, scope string) (*http.R
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/{scope}/providers/Microsoft.Consumption/tags", pathParameters),
+		autorest.WithPathParameters("/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/billingProfiles/{billingProfileId}/providers/Microsoft.Consumption/credits/balanceSummary", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
-func (client TagsClient) GetSender(req *http.Request) (*http.Response, error) {
+func (client CreditsClient) GetSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
-func (client TagsClient) GetResponder(resp *http.Response) (result TagsResult, err error) {
+func (client CreditsClient) GetResponder(resp *http.Response) (result CreditSummary, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
