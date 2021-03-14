@@ -301,7 +301,7 @@ resource "azurerm_consumption_budget_subscription" "test" {
         name = "zip"
         values = [
           "zap",
-		  "zop"
+          "zop"
         ]
       }
     }
@@ -397,7 +397,7 @@ resource "azurerm_consumption_budget_subscription" "test" {
         "zop",
       ]
     }
-   
+
     // Removed not block 
   }
 

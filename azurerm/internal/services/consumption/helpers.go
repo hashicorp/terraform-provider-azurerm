@@ -180,8 +180,8 @@ func ExpandConsumptionBudgetFilter(i []interface{}) *consumption.BudgetFilter {
 	if len(notBlock) != 0 && notBlock[0] != nil {
 		not := notBlock[0].(map[string]interface{})
 
-		tags := ExpandConsumptionBudgetFilterTag(not["tag"].(*schema.Set).List())
-		dimensions := ExpandConsumptionBudgetFilterDimensions(not["dimension"].(*schema.Set).List())
+		tags := ExpandConsumptionBudgetFilterTag(not["tag"].([]interface{}))
+		dimensions := ExpandConsumptionBudgetFilterDimensions(not["dimension"].([]interface{}))
 
 		if len(dimensions) != 0 {
 			filter.Not = &dimensions[0]

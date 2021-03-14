@@ -303,12 +303,12 @@ resource "azurerm_consumption_budget_resource_group" "test" {
       ]
     }
 
-	not {
+    not {
       tag {
         name = "zip"
         values = [
           "zap",
-		  "zop"
+          "zop"
         ]
       }
     }
