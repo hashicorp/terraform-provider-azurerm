@@ -176,27 +176,38 @@ func ExpandConsumptionBudgetFilter(i []interface{}) *consumption.BudgetFilter {
 
 	filter := consumption.BudgetFilter{}
 
+	notBlock := input["not"].([]interface{})
+	if len(notBlock) != 0 && notBlock[0] != nil {
+		not := notBlock[0].(map[string]interface{})
+
+		tags := ExpandConsumptionBudgetFilterTag(not["tag"].(*schema.Set).List())
+		dimensions := ExpandConsumptionBudgetFilterDimensions(not["dimension"].(*schema.Set).List())
+
+		if len(dimensions) != 0 {
+			filter.Not = &dimensions[0]
+		} else if len(tags) != 0 {
+			filter.Not = &tags[0]
+		}
+	}
+
 	tags := ExpandConsumptionBudgetFilterTag(input["tag"].(*schema.Set).List())
 	dimensions := ExpandConsumptionBudgetFilterDimensions(input["dimension"].(*schema.Set).List())
 
-	tagsLength := len(tags)
-	dimensionsLength := len(dimensions)
+	tagsSet := len(tags) > 0
+	dimensionsSet := len(dimensions) > 0
 
-	haveTags := tagsLength > 0
-	haveDimensions := dimensionsLength > 0
-
-	if haveDimensions && haveTags {
+	if dimensionsSet && tagsSet {
 		and := append(dimensions, tags...)
 		filter.And = &and
 	} else {
-		if haveDimensions {
-			if dimensionsLength > 1 {
+		if dimensionsSet {
+			if len(dimensions) > 1 {
 				filter.And = &dimensions
 			} else {
 				filter.Dimensions = dimensions[0].Dimensions
 			}
-		} else if haveTags {
-			if tagsLength > 1 {
+		} else if tagsSet {
+			if len(tags) > 1 {
 				filter.And = &tags
 			} else {
 				filter.Tags = tags[0].Tags
@@ -216,7 +227,24 @@ func FlattenConsumptionBudgetFilter(input *consumption.BudgetFilter) []interface
 
 	dimensions := make([]interface{}, 0)
 	tags := make([]interface{}, 0)
+
 	filterBlock := make(map[string]interface{})
+
+	notBlock := make(map[string]interface{})
+
+	if input.Not != nil {
+		if input.Not.Dimensions != nil {
+			notBlock["dimension"] = []interface{}{FlattenConsumptionBudgetComparisonExpression(input.Not.Dimensions)}
+		}
+
+		if input.Not.Tags != nil {
+			notBlock["tag"] = []interface{}{FlattenConsumptionBudgetComparisonExpression(input.Not.Tags)}
+		}
+
+		if len(notBlock) != 0 {
+			filterBlock["not"] = []interface{}{notBlock}
+		}
+	}
 
 	if input.And != nil {
 		for _, v := range *input.And {

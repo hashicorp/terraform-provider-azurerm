@@ -302,6 +302,16 @@ resource "azurerm_consumption_budget_resource_group" "test" {
         "baz",
       ]
     }
+
+	not {
+      tag {
+        name = "zip"
+        values = [
+          "zap",
+		  "zop"
+        ]
+      }
+    }
   }
 
   notification {
@@ -394,6 +404,8 @@ resource "azurerm_consumption_budget_resource_group" "test" {
         "zop",
       ]
     }
+
+    // Removed not block
   }
 
   notification {

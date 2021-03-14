@@ -116,6 +116,16 @@ A `filter` block supports the following:
 
 * `tag` - (Optional) One or more `tag` blocks as defined below to filter the budget on.
 
+* `not` - (Optional) A `not` block as defined below to filter the budget on.
+
+---
+
+A `not` block supports the following:
+
+* `dimension` - (Optional) One `dimension` block as defined below to filter the budget on. Conflicts with `tag`.
+
+* `tag` - (Optional) One `tag` block as defined below to filter the budget on. Conflicts with `dimension`.
+
 ---
 
 A `notification` block supports the following:

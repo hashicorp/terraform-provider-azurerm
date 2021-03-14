@@ -204,6 +204,31 @@ func SchemaConsumptionBudgetCommonResource() map[string]*schema.Schema {
 						Set:      schema.HashResource(SchemaConsumptionBudgetFilterTagElement()),
 						Elem:     SchemaConsumptionBudgetFilterTagElement(),
 					},
+					"not": {
+						Type:     schema.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &schema.Resource{
+							Schema: map[string]*schema.Schema{
+								"dimension": {
+									Type:          schema.TypeSet,
+									MaxItems:      1,
+									Optional:      true,
+									ConflictsWith: []string{"filter.0.not.0.tag"},
+									Set:           schema.HashResource(SchemaConsumptionBudgetFilterDimensionElement()),
+									Elem:          SchemaConsumptionBudgetFilterDimensionElement(),
+								},
+								"tag": {
+									Type:          schema.TypeSet,
+									MaxItems:      1,
+									Optional:      true,
+									ConflictsWith: []string{"filter.0.not.0.dimension"},
+									Set:           schema.HashResource(SchemaConsumptionBudgetFilterTagElement()),
+									Elem:          SchemaConsumptionBudgetFilterTagElement(),
+								},
+							},
+						},
+					},
 				},
 			},
 		},
