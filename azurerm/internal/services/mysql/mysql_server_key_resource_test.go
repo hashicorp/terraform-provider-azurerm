@@ -175,7 +175,7 @@ resource "azurerm_mysql_server_key" "import" {
   server_id        = azurerm_mysql_server_key.test.server_id
   key_vault_key_id = azurerm_mysql_server_key.test.key_vault_key_id
 }
-`, r.template(data))
+`, r.basic(data))
 }
 
 func (r MySQLServerKeyResource) updated(data acceptance.TestData) string {
