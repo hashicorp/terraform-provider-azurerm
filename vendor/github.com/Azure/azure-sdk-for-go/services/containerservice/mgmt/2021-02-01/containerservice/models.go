@@ -29,7 +29,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-12-01/containerservice"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-02-01/containerservice"
 
 // AccessProfile profile for enabling a user to access a managed cluster.
 type AccessProfile struct {
@@ -1131,7 +1131,7 @@ type ManagedClusterAgentPoolProfile struct {
 	OsDiskSizeGB *int32 `json:"osDiskSizeGB,omitempty"`
 	// OsDiskType - OS disk type to be used for machines in a given agent pool. Allowed values are 'Ephemeral' and 'Managed'. Defaults to 'Managed'. May not be changed after creation. Possible values include: 'Managed', 'Ephemeral'
 	OsDiskType OSDiskType `json:"osDiskType,omitempty"`
-	// KubeletDiskType - KubeletDiskType determines the placement of emptyDir volumes, container runtime data root, and Kubelet ephemeral storage. Currently allows one value, OS, resulting in Kubelet using the OS disk for data. Possible values include: 'OS'
+	// KubeletDiskType - KubeletDiskType determines the placement of emptyDir volumes, container runtime data root, and Kubelet ephemeral storage. Currently allows one value, OS, resulting in Kubelet using the OS disk for data. Possible values include: 'OS', 'Temporary'
 	KubeletDiskType KubeletDiskType `json:"kubeletDiskType,omitempty"`
 	// VnetSubnetID - VNet SubnetID specifies the VNet's subnet identifier for nodes and maybe pods
 	VnetSubnetID *string `json:"vnetSubnetID,omitempty"`
@@ -1165,6 +1165,8 @@ type ManagedClusterAgentPoolProfile struct {
 	AvailabilityZones *[]string `json:"availabilityZones,omitempty"`
 	// EnableNodePublicIP - Enable public IP for nodes
 	EnableNodePublicIP *bool `json:"enableNodePublicIP,omitempty"`
+	// NodePublicIPPrefixID - Public IP Prefix ID. VM nodes use IPs assigned from this Public IP Prefix.
+	NodePublicIPPrefixID *string `json:"nodePublicIPPrefixID,omitempty"`
 	// ScaleSetPriority - ScaleSetPriority to be used to specify virtual machine scale set priority. Default to regular. Possible values include: 'Spot', 'Regular'
 	ScaleSetPriority ScaleSetPriority `json:"scaleSetPriority,omitempty"`
 	// ScaleSetEvictionPolicy - ScaleSetEvictionPolicy to be used to specify eviction policy for Spot virtual machine scale set. Default to Delete. Possible values include: 'Delete', 'Deallocate'
@@ -1247,6 +1249,9 @@ func (mcapp ManagedClusterAgentPoolProfile) MarshalJSON() ([]byte, error) {
 	if mcapp.EnableNodePublicIP != nil {
 		objectMap["enableNodePublicIP"] = mcapp.EnableNodePublicIP
 	}
+	if mcapp.NodePublicIPPrefixID != nil {
+		objectMap["nodePublicIPPrefixID"] = mcapp.NodePublicIPPrefixID
+	}
 	if mcapp.ScaleSetPriority != "" {
 		objectMap["scaleSetPriority"] = mcapp.ScaleSetPriority
 	}
@@ -1290,7 +1295,7 @@ type ManagedClusterAgentPoolProfileProperties struct {
 	OsDiskSizeGB *int32 `json:"osDiskSizeGB,omitempty"`
 	// OsDiskType - OS disk type to be used for machines in a given agent pool. Allowed values are 'Ephemeral' and 'Managed'. Defaults to 'Managed'. May not be changed after creation. Possible values include: 'Managed', 'Ephemeral'
 	OsDiskType OSDiskType `json:"osDiskType,omitempty"`
-	// KubeletDiskType - KubeletDiskType determines the placement of emptyDir volumes, container runtime data root, and Kubelet ephemeral storage. Currently allows one value, OS, resulting in Kubelet using the OS disk for data. Possible values include: 'OS'
+	// KubeletDiskType - KubeletDiskType determines the placement of emptyDir volumes, container runtime data root, and Kubelet ephemeral storage. Currently allows one value, OS, resulting in Kubelet using the OS disk for data. Possible values include: 'OS', 'Temporary'
 	KubeletDiskType KubeletDiskType `json:"kubeletDiskType,omitempty"`
 	// VnetSubnetID - VNet SubnetID specifies the VNet's subnet identifier for nodes and maybe pods
 	VnetSubnetID *string `json:"vnetSubnetID,omitempty"`
@@ -1324,6 +1329,8 @@ type ManagedClusterAgentPoolProfileProperties struct {
 	AvailabilityZones *[]string `json:"availabilityZones,omitempty"`
 	// EnableNodePublicIP - Enable public IP for nodes
 	EnableNodePublicIP *bool `json:"enableNodePublicIP,omitempty"`
+	// NodePublicIPPrefixID - Public IP Prefix ID. VM nodes use IPs assigned from this Public IP Prefix.
+	NodePublicIPPrefixID *string `json:"nodePublicIPPrefixID,omitempty"`
 	// ScaleSetPriority - ScaleSetPriority to be used to specify virtual machine scale set priority. Default to regular. Possible values include: 'Spot', 'Regular'
 	ScaleSetPriority ScaleSetPriority `json:"scaleSetPriority,omitempty"`
 	// ScaleSetEvictionPolicy - ScaleSetEvictionPolicy to be used to specify eviction policy for Spot virtual machine scale set. Default to Delete. Possible values include: 'Delete', 'Deallocate'
@@ -1402,6 +1409,9 @@ func (mcappp ManagedClusterAgentPoolProfileProperties) MarshalJSON() ([]byte, er
 	}
 	if mcappp.EnableNodePublicIP != nil {
 		objectMap["enableNodePublicIP"] = mcappp.EnableNodePublicIP
+	}
+	if mcappp.NodePublicIPPrefixID != nil {
+		objectMap["nodePublicIPPrefixID"] = mcappp.NodePublicIPPrefixID
 	}
 	if mcappp.ScaleSetPriority != "" {
 		objectMap["scaleSetPriority"] = mcappp.ScaleSetPriority
@@ -1747,6 +1757,8 @@ func (mcpie ManagedClusterPodIdentityException) MarshalJSON() ([]byte, error) {
 type ManagedClusterPodIdentityProfile struct {
 	// Enabled - Whether the pod identity addon is enabled.
 	Enabled *bool `json:"enabled,omitempty"`
+	// AllowNetworkPluginKubenet - Customer consent for enabling AAD pod identity addon in cluster using Kubenet network plugin.
+	AllowNetworkPluginKubenet *bool `json:"allowNetworkPluginKubenet,omitempty"`
 	// UserAssignedIdentities - User assigned pod identity settings.
 	UserAssignedIdentities *[]ManagedClusterPodIdentity `json:"userAssignedIdentities,omitempty"`
 	// UserAssignedIdentityExceptions - User assigned pod identity exception settings.
@@ -1791,10 +1803,14 @@ type ManagedClusterProperties struct {
 	KubernetesVersion *string `json:"kubernetesVersion,omitempty"`
 	// DNSPrefix - DNS prefix specified when creating the managed cluster.
 	DNSPrefix *string `json:"dnsPrefix,omitempty"`
+	// FqdnSubdomain - FQDN subdomain specified when creating private cluster with custom private dns zone.
+	FqdnSubdomain *string `json:"fqdnSubdomain,omitempty"`
 	// Fqdn - READ-ONLY; FQDN for the master pool.
 	Fqdn *string `json:"fqdn,omitempty"`
 	// PrivateFQDN - READ-ONLY; FQDN of private cluster.
 	PrivateFQDN *string `json:"privateFQDN,omitempty"`
+	// AzurePortalFQDN - READ-ONLY; FQDN for the master pool which used by proxy config.
+	AzurePortalFQDN *string `json:"azurePortalFQDN,omitempty"`
 	// AgentPoolProfiles - Properties of the agent pool.
 	AgentPoolProfiles *[]ManagedClusterAgentPoolProfile `json:"agentPoolProfiles,omitempty"`
 	// LinuxProfile - Profile for Linux VMs in the container service cluster.
@@ -1837,6 +1853,9 @@ func (mcp ManagedClusterProperties) MarshalJSON() ([]byte, error) {
 	}
 	if mcp.DNSPrefix != nil {
 		objectMap["dnsPrefix"] = mcp.DNSPrefix
+	}
+	if mcp.FqdnSubdomain != nil {
+		objectMap["fqdnSubdomain"] = mcp.FqdnSubdomain
 	}
 	if mcp.AgentPoolProfiles != nil {
 		objectMap["agentPoolProfiles"] = mcp.AgentPoolProfiles
