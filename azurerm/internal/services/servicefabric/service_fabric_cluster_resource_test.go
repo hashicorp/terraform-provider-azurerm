@@ -400,7 +400,6 @@ func TestAccAzureRMServiceFabricCluster_certificateCommonNames(t *testing.T) {
 			Config: r.certificateCommonNames(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("certificate_common_names.0.common_names.2962847220.certificate_common_name").HasValue("example"),
 				check.That(data.ResourceName).Key("certificate_common_names.0.x509_store_name").HasValue("My"),
 				check.That(data.ResourceName).Key("fabric_settings.0.name").HasValue("Security"),
 				check.That(data.ResourceName).Key("fabric_settings.0.parameters.ClusterProtectionLevel").HasValue("EncryptAndSign"),
@@ -420,7 +419,6 @@ func TestAccAzureRMServiceFabricCluster_reverseProxyCertificateCommonNames(t *te
 			Config: r.reverseProxyCertificateCommonNames(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("reverse_proxy_certificate_common_names.0.common_names.2962847220.certificate_common_name").HasValue("example"),
 				check.That(data.ResourceName).Key("reverse_proxy_certificate_common_names.0.x509_store_name").HasValue("My"),
 				check.That(data.ResourceName).Key("fabric_settings.0.name").HasValue("Security"),
 				check.That(data.ResourceName).Key("fabric_settings.0.parameters.ClusterProtectionLevel").HasValue("EncryptAndSign"),
