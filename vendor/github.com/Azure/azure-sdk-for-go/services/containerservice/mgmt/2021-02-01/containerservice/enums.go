@@ -125,11 +125,13 @@ type KubeletDiskType string
 const (
 	// OS ...
 	OS KubeletDiskType = "OS"
+	// Temporary ...
+	Temporary KubeletDiskType = "Temporary"
 )
 
 // PossibleKubeletDiskTypeValues returns an array of possible values for the KubeletDiskType const type.
 func PossibleKubeletDiskTypeValues() []KubeletDiskType {
-	return []KubeletDiskType{OS}
+	return []KubeletDiskType{OS, Temporary}
 }
 
 // LicenseType enumerates the values for license type.

@@ -93,7 +93,7 @@ func (client PrivateEndpointConnectionsClient) DeletePreparer(ctx context.Contex
 		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -202,7 +202,7 @@ func (client PrivateEndpointConnectionsClient) GetPreparer(ctx context.Context, 
 		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -289,7 +289,7 @@ func (client PrivateEndpointConnectionsClient) ListPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -381,7 +381,7 @@ func (client PrivateEndpointConnectionsClient) UpdatePreparer(ctx context.Contex
 		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

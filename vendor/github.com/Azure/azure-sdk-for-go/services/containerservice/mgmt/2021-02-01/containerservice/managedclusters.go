@@ -131,7 +131,7 @@ func (client ManagedClustersClient) CreateOrUpdatePreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -244,7 +244,7 @@ func (client ManagedClustersClient) DeletePreparer(ctx context.Context, resource
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -351,7 +351,7 @@ func (client ManagedClustersClient) GetPreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -444,7 +444,7 @@ func (client ManagedClustersClient) GetAccessProfilePreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -531,7 +531,7 @@ func (client ManagedClustersClient) GetUpgradeProfilePreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -608,7 +608,7 @@ func (client ManagedClustersClient) ListPreparer(ctx context.Context) (*http.Req
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -731,7 +731,7 @@ func (client ManagedClustersClient) ListByResourceGroupPreparer(ctx context.Cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -855,7 +855,7 @@ func (client ManagedClustersClient) ListClusterAdminCredentialsPreparer(ctx cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -942,7 +942,7 @@ func (client ManagedClustersClient) ListClusterMonitoringUserCredentialsPreparer
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1029,7 +1029,7 @@ func (client ManagedClustersClient) ListClusterUserCredentialsPreparer(ctx conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1109,7 +1109,7 @@ func (client ManagedClustersClient) ResetAADProfilePreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1214,7 +1214,7 @@ func (client ManagedClustersClient) ResetServicePrincipalProfilePreparer(ctx con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1316,7 +1316,7 @@ func (client ManagedClustersClient) RotateClusterCertificatesPreparer(ctx contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1416,7 +1416,7 @@ func (client ManagedClustersClient) StartPreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1516,7 +1516,7 @@ func (client ManagedClustersClient) StopPreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1617,7 +1617,7 @@ func (client ManagedClustersClient) UpdateTagsPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-12-01"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
