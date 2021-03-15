@@ -221,7 +221,7 @@ A `auto_scaler_profile` block supports the following:
 
 * `balance_similar_node_groups` - Detect similar node groups and balance the number of nodes between them. Defaults to `false`.
 
-* `expander` - Expander to use. Possible values are `least-waste`, `priority`, `max-pods` and `random`. Defaults to `random`.
+* `expander` - Expander to use. Possible values are `least-waste`, `priority`, `most-pods` and `random`. Defaults to `random`.
 
 * `max_graceful_termination_sec` - Maximum number of seconds the cluster autoscaler waits for pod termination when trying to scale down a node. Defaults to `600`.
 
