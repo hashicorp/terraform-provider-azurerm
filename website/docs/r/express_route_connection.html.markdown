@@ -102,8 +102,6 @@ A `routing` block supports the following:
 
 * `propagated_route_table` - (Optional)  A `propagated_route_table` block as defined below.
 
-* `static_vnet_route` - (Optional)  A `static_vnet_route` block as defined below.
-
 ---
 
 A `propagated_route_table` block supports the following:
@@ -111,16 +109,6 @@ A `propagated_route_table` block supports the following:
 * `labels` - (Optional) The list of labels to assign to this route table.
 
 * `route_table_ids` - (Optional) A list of Route Table ID's to associated with this Virtual Hub Connection.
-
----
-
-A `static_vnet_route` block supports the following:
-
-* `name` - (Optional) The name which should be used for this Static Route.
-
-* `address_prefixes` - (Optional) A list of CIDR Ranges which should be used as Address Prefixes.
-
-* `next_hop_ip_address` - (Optional) The IP Address which should be used for the Next Hop.
 
 ## Attributes Reference
 

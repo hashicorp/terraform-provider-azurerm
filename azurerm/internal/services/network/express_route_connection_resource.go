@@ -111,35 +111,6 @@ func resourceArmExpressRouteConnection() *schema.Resource {
 								},
 							},
 						},
-
-						"static_vnet_route": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"name": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-
-									"address_prefixes": {
-										Type:     schema.TypeSet,
-										Optional: true,
-										Elem: &schema.Schema{
-											Type:         schema.TypeString,
-											ValidateFunc: validation.IsCIDR,
-										},
-									},
-
-									"next_hop_ip_address": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										ValidateFunc: validation.IsIPv4Address,
-									},
-								},
-							},
-						},
 					},
 				},
 			},
@@ -158,7 +129,6 @@ func resourceArmExpressRouteConnectionCreateUpdate(d *schema.ResourceData, meta 
 	defer cancel()
 
 	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
 	expressRouteGatewayId, err := parse.ExpressRouteGatewayID(d.Get("express_route_gateway_id").(string))
 	if err != nil {
 		return err
@@ -167,7 +137,7 @@ func resourceArmExpressRouteConnectionCreateUpdate(d *schema.ResourceData, meta 
 	id := parse.NewExpressRouteConnectionID(expressRouteGatewayId.SubscriptionId, expressRouteGatewayId.ResourceGroup, expressRouteGatewayId.Name, name)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, expressRouteCircuitResourceName, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.ExpressRouteGatewayName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -204,7 +174,7 @@ func resourceArmExpressRouteConnectionCreateUpdate(d *schema.ResourceData, meta 
 		expressRouteConnectionParameters.ExpressRouteConnectionProperties.RoutingConfiguration = expandArmExpressRouteConnectionRouting(v.([]interface{}))
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, expressRouteGatewayId.Name, name, expressRouteConnectionParameters)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, expressRouteGatewayId.Name, name, expressRouteConnectionParameters)
 	if err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
@@ -301,10 +271,6 @@ func expandArmExpressRouteConnectionRouting(input []interface{}) *network.Routin
 		}
 	}
 
-	if vnetStaticRoute := v["static_vnet_route"].([]interface{}); len(vnetStaticRoute) != 0 {
-		result.VnetRoutes = expandArmExpressRouteConnectionStaticVnetRoute(vnetStaticRoute)
-	}
-
 	if propagatedRouteTable := v["propagated_route_table"].([]interface{}); len(propagatedRouteTable) != 0 {
 		result.PropagatedRouteTables = expandArmExpressRouteConnectionPropagatedRouteTable(propagatedRouteTable)
 	}
@@ -332,38 +298,6 @@ func expandArmExpressRouteConnectionPropagatedRouteTable(input []interface{}) *n
 	return &result
 }
 
-func expandArmExpressRouteConnectionStaticVnetRoute(input []interface{}) *network.VnetRoute {
-	if len(input) == 0 {
-		return &network.VnetRoute{}
-	}
-
-	results := make([]network.StaticRoute, 0)
-
-	for _, item := range input {
-		v := item.(map[string]interface{})
-
-		result := network.StaticRoute{}
-
-		if name := v["name"].(string); name != "" {
-			result.Name = utils.String(name)
-		}
-
-		if addressPrefixes := v["address_prefixes"].(*schema.Set).List(); len(addressPrefixes) != 0 {
-			result.AddressPrefixes = utils.ExpandStringSlice(addressPrefixes)
-		}
-
-		if nextHopIPAddress := v["next_hop_ip_address"].(string); nextHopIPAddress != "" {
-			result.NextHopIPAddress = utils.String(nextHopIPAddress)
-		}
-
-		results = append(results, result)
-	}
-
-	return &network.VnetRoute{
-		StaticRoutes: &results,
-	}
-}
-
 func flattenArmExpressRouteConnectionRouting(input *network.RoutingConfiguration) []interface{} {
 	if input == nil {
 		return []interface{}{}
@@ -378,7 +312,6 @@ func flattenArmExpressRouteConnectionRouting(input *network.RoutingConfiguration
 		map[string]interface{}{
 			"associated_route_table_id": associatedRouteTableId,
 			"propagated_route_table":    flattenArmExpressRouteConnectionPropagatedRouteTable(input.PropagatedRouteTables),
-			"static_vnet_route":         flattenArmExpressRouteConnectionStaticVnetRoute(input.VnetRoutes),
 		},
 	}
 }
@@ -404,38 +337,4 @@ func flattenArmExpressRouteConnectionPropagatedRouteTable(input *network.Propaga
 			"route_table_ids": routeTableIds,
 		},
 	}
-}
-
-func flattenArmExpressRouteConnectionStaticVnetRoute(input *network.VnetRoute) []interface{} {
-	results := make([]interface{}, 0)
-	if input == nil || input.StaticRoutes == nil {
-		return results
-	}
-
-	for _, item := range *input.StaticRoutes {
-		var name string
-		if item.Name != nil {
-			name = *item.Name
-		}
-
-		var nextHopIpAddress string
-		if item.NextHopIPAddress != nil {
-			nextHopIpAddress = *item.NextHopIPAddress
-		}
-
-		addressPrefixes := make([]interface{}, 0)
-		if item.AddressPrefixes != nil {
-			addressPrefixes = utils.FlattenStringSlice(item.AddressPrefixes)
-		}
-
-		v := map[string]interface{}{
-			"name":                name,
-			"address_prefixes":    addressPrefixes,
-			"next_hop_ip_address": nextHopIpAddress,
-		}
-
-		results = append(results, v)
-	}
-
-	return results
 }

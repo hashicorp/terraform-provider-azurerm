@@ -106,13 +106,6 @@ func TestAccExpressRouteConnection_update(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		{
-			Config: r.basic(data, expressRouteCircuitRG, expressRouteCircuitName),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
 	})
 }
 
@@ -142,7 +135,7 @@ func (r ExpressRouteConnectionResource) basic(data acceptance.TestData, expressR
 resource "azurerm_express_route_connection" "test" {
   name                             = "acctest-ExpressRouteConnection-%d"
   express_route_gateway_id         = azurerm_express_route_gateway.test.id
-  express_route_circuit_peering_id = azurerm_express_route_circuit_peering.test.id
+  express_route_circuit_peering_id = "${azurerm_express_route_circuit.test.id}/peerings/AzurePrivatePeering"
 }
 `, r.template(data, expressRouteCircuitRG, expressRouteCircuitName), data.RandomInteger)
 }
@@ -169,15 +162,29 @@ func (r ExpressRouteConnectionResource) complete(data acceptance.TestData, expre
 	return fmt.Sprintf(`
 %s
 
+resource "azurerm_virtual_hub_route_table" "test" {
+  name           = "acctest-VHUBRT-%d"
+  virtual_hub_id = azurerm_virtual_hub.test.id
+}
+
 resource "azurerm_express_route_connection" "test" {
   name                             = "acctest-ExpressRouteConnection-%d"
   express_route_gateway_id         = azurerm_express_route_gateway.test.id
-  express_route_circuit_peering_id = azurerm_express_route_circuit_peering.test.id
+  express_route_circuit_peering_id = "${azurerm_express_route_circuit.test.id}/peerings/AzurePrivatePeering"
   routing_weight                   = 2
   authorization_key                = "90f8db47-e25b-4b65-a68b-7743ced2a16b"
   enable_internet_security         = true
+
+  routing {
+    associated_route_table_id = azurerm_virtual_hub_route_table.test.id
+
+    propagated_route_table {
+      labels          = ["label1"]
+      route_table_ids = [azurerm_virtual_hub_route_table.test.id]
+    }
+  }
 }
-`, r.template(data, expressRouteCircuitRG, expressRouteCircuitName), data.RandomInteger)
+`, r.template(data, expressRouteCircuitRG, expressRouteCircuitName), data.RandomInteger, data.RandomInteger)
 }
 
 func (r ExpressRouteConnectionResource) template(data acceptance.TestData, expressRouteCircuitRG string, expressRouteCircuitName string) string {
@@ -198,17 +205,6 @@ data "azurerm_express_route_circuit" "test" {
 resource "azurerm_resource_group" "test2" {
   name     = "acctestRG-erconnection-%d"
   location = data.azurerm_resource_group.test.location
-}
-
-resource "azurerm_express_route_circuit_peering" "test" {
-  peering_type                  = "AzurePrivatePeering"
-  express_route_circuit_name    = data.azurerm_express_route_circuit.test.name
-  resource_group_name           = data.azurerm_express_route_circuit.test.resource_group_name
-  shared_key                    = "ItsASecret"
-  peer_asn                      = 100
-  primary_peer_address_prefix   = "192.168.1.0/30"
-  secondary_peer_address_prefix = "192.168.2.0/30"
-  vlan_id                       = 100
 }
 
 resource "azurerm_virtual_wan" "test" {
