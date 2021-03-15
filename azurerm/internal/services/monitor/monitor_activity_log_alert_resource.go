@@ -151,6 +151,49 @@ func resourceMonitorActivityLogAlert() *schema.Resource {
 							Optional:      true,
 							ConflictsWith: []string{"criteria.0.recommendation_category", "criteria.0.recommendation_impact"},
 						},
+						"servicehealth": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"events": {
+										Type:     schema.TypeSet,
+										Optional: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+											ValidateFunc: validation.StringInSlice([]string{
+												"Incident",
+												"Maintenance",
+												"Informational",
+												"ActionRequired",
+											},
+												false,
+											),
+										},
+										Set: schema.HashString,
+									},
+									"regions": {
+										Type:     schema.TypeSet,
+										Optional: true,
+										Elem: &schema.Schema{
+											Type:         schema.TypeString,
+											ValidateFunc: validation.StringIsNotEmpty,
+										},
+										Set: schema.HashString,
+									},
+									"services": {
+										Type:     schema.TypeSet,
+										Optional: true,
+										Elem: &schema.Schema{
+											Type:         schema.TypeString,
+											ValidateFunc: validation.StringIsNotEmpty,
+										},
+										Set: schema.HashString,
+									},
+								},
+							},
+							ConflictsWith: []string{"criteria.0.recommendation_category", "criteria.0.recommendation_impact", "criteria.0.status", "criteria.0.sub_status", "criteria.0.recommendation_impact", "criteria.0.resource_provider", "criteria.0.resource_type", "criteria.0.operation_name", "criteria.0.caller", "criteria.0.operation_name"},
+						},
 					},
 				},
 			},
@@ -397,6 +440,51 @@ func expandMonitorActivityLogAlertCriteria(input []interface{}) *insights.AlertR
 		})
 	}
 
+	if serviceHealth := v["servicehealth"].([]interface{}); len(serviceHealth) > 0 {
+		for _, serviceItem := range serviceHealth {
+			vs := serviceItem.(map[string]interface{})
+			if regions, ok := vs["regions"]; ok {
+				if rv, ok := regions.(*schema.Set); ok {
+					if len(rv.List()) > 0 {
+						conditions = append(conditions, insights.AlertRuleAnyOfOrLeafCondition{
+							Field:       utils.String("properties.impactedServices[*].ImpactedRegions[*].RegionName"),
+							ContainsAny: utils.ExpandStringSlice(rv.List()),
+						})
+					}
+				}
+			}
+
+			if events, ok := vs["events"]; ok {
+				if ev, ok := events.(*schema.Set); ok {
+					if len(ev.List()) > 0 {
+						ruleLeafCondition := make([]insights.AlertRuleLeafCondition, 0)
+						for _, e := range ev.List() {
+							event := e.(string)
+							ruleLeafCondition = append(ruleLeafCondition, insights.AlertRuleLeafCondition{
+								Field:  utils.String("properties.incidentType"),
+								Equals: utils.String(event),
+							})
+						}
+						conditions = append(conditions, insights.AlertRuleAnyOfOrLeafCondition{
+							AnyOf: &ruleLeafCondition,
+						})
+					}
+				}
+			}
+
+			if services, ok := vs["services"]; ok {
+				if sv, ok := services.(*schema.Set); ok {
+					if len(sv.List()) > 0 {
+						conditions = append(conditions, insights.AlertRuleAnyOfOrLeafCondition{
+							Field:       utils.String("properties.impactedServices[*].ServiceName"),
+							ContainsAny: utils.ExpandStringSlice(sv.List()),
+						})
+					}
+				}
+			}
+		}
+	}
+
 	return &insights.AlertRuleAllOfCondition{
 		AllOf: &conditions,
 	}
@@ -425,7 +513,7 @@ func expandMonitorActivityLogAlertAction(input []interface{}) *insights.ActionLi
 	}
 }
 
-func flattenMonitorActivityLogAlertCriteria(input *insights.ActivityLogAlertAllOfCondition) []interface{} {
+func flattenMonitorActivityLogAlertCriteria(input *insights.AlertRuleAllOfCondition) []interface{} {
 	result := make(map[string]interface{})
 	if input == nil || input.AllOf == nil {
 		return []interface{}{result}
@@ -459,7 +547,7 @@ func flattenMonitorActivityLogAlertCriteria(input *insights.ActivityLogAlertAllO
 	return []interface{}{result}
 }
 
-func flattenMonitorActivityLogAlertAction(input *insights.ActivityLogAlertActionList) (result []interface{}) {
+func flattenMonitorActivityLogAlertAction(input *insights.ActionList) (result []interface{}) {
 	result = make([]interface{}, 0)
 	if input == nil || input.ActionGroups == nil {
 		return

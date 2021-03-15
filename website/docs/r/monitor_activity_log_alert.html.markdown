@@ -96,6 +96,15 @@ A `criteria` block supports the following:
 * `recommendation_type` - (Optional) The recommendation type of the event. It is only allowed when `category` is `Recommendation`.
 * `recommendation_category` - (Optional) The recommendation category of the event. Possible values are `Cost`, `Reliability`, `OperationalExcellence` and `Performance`. It is only allowed when `category` is `Recommendation`.
 * `recommendation_impact` - (Optional) The recommendation impact of the event. Possible values are `High`, `Medium` and `Low`. It is only allowed when `category` is `Recommendation`.
+* `servicehealth` - (Optional) A block to define fine grain service health settings.
+
+---
+
+A `servicehealth` block supports the following:
+
+* `events` (Optional) Events this alert will monitor Possible values are `Incident`, `Maintenance`, `Informational`, and `ActionRequired`.
+* `regions` (Optional) Regions this alert will monitor. For example, `West Europe` . Defaults to `Global`.
+* `services` (Optional) Services this alert will monitor. For example, `Activity Logs & Alerts`, `Action Groups`. Defaults to all Services.
 
 
 ## Attributes Reference

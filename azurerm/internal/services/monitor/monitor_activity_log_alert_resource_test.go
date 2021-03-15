@@ -160,6 +160,28 @@ func TestAccMonitorActivityLogAlert_basicAndCompleteUpdate(t *testing.T) {
 	})
 }
 
+func TestAccMonitorActivityLogAlert_basicServiceHealth(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_activity_log_alert", "test")
+	r := MonitorActivityLogAlertResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.serviceHealth(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("description").HasValue(""),
+				check.That(data.ResourceName).Key("scopes.#").HasValue("1"),
+				check.That(data.ResourceName).Key("criteria.#").HasValue("1"),
+				check.That(data.ResourceName).Key("criteria.0.servicehealth.0.events.0").HasValue("Incident"),
+				check.That(data.ResourceName).Key("criteria.0.servicehealth.0.events.1").HasValue("Maintenance"),
+				check.That(data.ResourceName).Key("criteria.0.servicehealth.0.regions.0").HasValue("Global"),
+				check.That(data.ResourceName).Key("criteria.0.servicehealth.0.regions.1").HasValue("West Europe"),
+			),
+		},
+	})
+}
+
 func (MonitorActivityLogAlertResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -293,6 +315,73 @@ resource "azurerm_monitor_activity_log_alert" "test" {
     resource_id             = azurerm_storage_account.test.id
     recommendation_category = "OperationalExcellence"
     recommendation_impact   = "High"
+  }
+
+  action {
+    action_group_id = azurerm_monitor_action_group.test1.id
+  }
+
+  action {
+    action_group_id = azurerm_monitor_action_group.test2.id
+
+    webhook_properties = {
+      from = "terraform test"
+      to   = "microsoft azure"
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger)
+}
+
+func (MonitorActivityLogAlertResource) serviceHealth(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_monitor_action_group" "test1" {
+  name                = "acctestActionGroup1-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  short_name          = "acctestag1"
+}
+
+resource "azurerm_monitor_action_group" "test2" {
+  name                = "acctestActionGroup2-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  short_name          = "acctestag2"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_monitor_activity_log_alert" "test" {
+  name                = "acctestActivityLogAlert-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  enabled             = true
+  description         = "This is just a test resource."
+
+  scopes = [
+    azurerm_resource_group.test.id,
+    azurerm_storage_account.test.id,
+  ]
+
+  criteria {
+    category = "Recommendation"
+    servicehealth {
+      events   = ["Incident", "Maintenance"]
+      services = ["Action Groups", "Activity Logs & Alerts"]
+      regions  = ["Global", "West Europe"]
+    }
   }
 
   action {
