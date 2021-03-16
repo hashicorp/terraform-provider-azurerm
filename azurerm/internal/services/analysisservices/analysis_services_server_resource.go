@@ -4,20 +4,19 @@ import (
 	"bytes"
 	"fmt"
 	"log"
-	"regexp"
 	"strings"
 	"time"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 
 	"github.com/Azure/azure-sdk-for-go/services/analysisservices/mgmt/2017-08-01/analysisservices"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/analysisservices/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/analysisservices/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -48,7 +47,7 @@ func resourceAnalysisServicesServer() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAnalysisServicesServerName,
+				ValidateFunc: validate.ServerName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -96,12 +95,12 @@ func resourceAnalysisServicesServer() *schema.Resource {
 						"range_start": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.IPv4Address,
+							ValidateFunc: azValidate.IPv4Address,
 						},
 						"range_end": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.IPv4Address,
+							ValidateFunc: azValidate.IPv4Address,
 						},
 					},
 				},
@@ -112,7 +111,7 @@ func resourceAnalysisServicesServer() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validateQuerypoolConnectionMode(),
+				ValidateFunc: validate.QueryPoolConnectionMode(),
 			},
 
 			"backup_blob_container_uri": {
@@ -319,25 +318,6 @@ func resourceAnalysisServicesServerDelete(d *schema.ResourceData, meta interface
 	}
 
 	return nil
-}
-
-func validateAnalysisServicesServerName(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-
-	if !regexp.MustCompile(`^[a-z][0-9a-z]{2,62}$`).Match([]byte(value)) {
-		errors = append(errors, fmt.Errorf("%q must begin with a letter, be lowercase alphanumeric, and be between 3 and 63 characters in length", k))
-	}
-
-	return warnings, errors
-}
-
-func validateQuerypoolConnectionMode() schema.SchemaValidateFunc {
-	connectionModes := make([]string, len(analysisservices.PossibleConnectionModeValues()))
-	for i, v := range analysisservices.PossibleConnectionModeValues() {
-		connectionModes[i] = string(v)
-	}
-
-	return validation.StringInSlice(connectionModes, true)
 }
 
 func expandAnalysisServicesServerProperties(d *schema.ResourceData) *analysisservices.ServerProperties {
