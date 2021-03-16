@@ -7,10 +7,10 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -72,38 +72,32 @@ func TestAccMySqlAdministrator_disappears(t *testing.T) {
 }
 
 func (r MySqlAdministratorResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.AzureActiveDirectoryAdministratorID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceGroup := id.ResourceGroup
-	serverName := id.Path["servers"]
-
-	resp, err := clients.MySQL.ServerAdministratorsClient.Get(ctx, resourceGroup, serverName)
+	resp, err := clients.MySQL.ServerAdministratorsClient.Get(ctx, id.ResourceGroup, id.ServerName)
 	if err != nil {
-		return nil, fmt.Errorf("reading MySQL Administrator (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil
 }
 
 func (r MySqlAdministratorResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.AzureActiveDirectoryAdministratorID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceGroup := id.ResourceGroup
-	serverName := id.Path["servers"]
-
-	future, err := client.MySQL.ServerAdministratorsClient.Delete(ctx, resourceGroup, serverName)
+	future, err := client.MySQL.ServerAdministratorsClient.Delete(ctx, id.ResourceGroup, id.ServerName)
 	if err != nil {
-		return nil, fmt.Errorf("deleting MySQL Administrator (%s): %+v", id, err)
+		return nil, fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.MySQL.ServerAdministratorsClient.Client); err != nil {
-		return nil, fmt.Errorf("waiting for deletion of MySQL Administrator (%s): %+v", id, err)
+		return nil, fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return utils.Bool(true), nil
