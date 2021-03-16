@@ -23,7 +23,6 @@ func resourceExpressRouteGateway() *schema.Resource {
 		Read:   resourceExpressRouteGatewayRead,
 		Update: resourceExpressRouteGatewayCreateUpdate,
 		Delete: resourceExpressRouteGatewayDelete,
-
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -82,7 +81,6 @@ func resourceExpressRouteGatewayCreateUpdate(d *schema.ResourceData, meta interf
 				return fmt.Errorf("Error checking for present of existing ExpressRoute Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
-
 		if resp.ID != nil && *resp.ID != "" {
 			return tf.ImportAsExistsError("azurerm_express_route_gateway", *resp.ID)
 		}

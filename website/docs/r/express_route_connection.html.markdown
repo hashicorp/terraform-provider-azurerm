@@ -82,23 +82,23 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Express Route Connection. Changing this forces a new resource to be created.
 
-* `express_route_circuit_peering_id` - (Required) The ID of the Express Route Circuit Peering within which this connection should be created. Changing this forces a new resource to be created.
+* `express_route_circuit_peering_id` - (Required) The ID of the Express Route Circuit Peering within this Express Route Connection should be created. Changing this forces a new resource to be created.
 
-* `express_route_gateway_id` - (Required) The ID of the Express Route Gateway within which this connection should be created. Changing this forces a new resource to be created.
+* `express_route_gateway_id` - (Required) The ID of the Express Route Gateway within this Express Route Connection should be created. Changing this forces a new resource to be created.
 
-* `authorization_key` - (Optional) The authorization key to establish the connection.
+* `authorization_key` - (Optional) The authorization key to establish the Express Route Connection.
 
-* `enable_internet_security` - (Optional) Enable internet security.
+* `enable_internet_security` - (Optional) Is internet security enabled for this Express Route Connection?
 
 * `routing` - (Optional)  A `routing` block as defined below.
 
-* `routing_weight` - (Optional) The routing weight associated to the connection. Must be between `0` and `32000`.
+* `routing_weight` - (Optional) The routing weight associated to the Express Route Connection. Valid values are between `0` and `32000`.
 
 ---
 
 A `routing` block supports the following:
 
-* `associated_route_table_id` - (Optional) The ID of the route table associated with this Virtual Hub connection.
+* `associated_route_table_id` - (Optional) The ID of the Virtual Hub Route Table associated with this Virtual Hub Connection.
 
 * `propagated_route_table` - (Optional)  A `propagated_route_table` block as defined below.
 
@@ -106,9 +106,9 @@ A `routing` block supports the following:
 
 A `propagated_route_table` block supports the following:
 
-* `labels` - (Optional) The list of labels to assign to this route table.
+* `labels` - (Optional) The list of labels to assign to this Virtual Hub Route Table.
 
-* `route_table_ids` - (Optional) A list of Route Table ID's to associated with this Virtual Hub Connection.
+* `route_table_ids` - (Optional) A list of IDs of the Virtual Hub Route Table which are associated with the Virtual Hub Connection.
 
 ## Attributes Reference
 
