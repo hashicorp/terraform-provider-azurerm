@@ -629,7 +629,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
-  upgrade_mode = "Rolling"
+  upgrade_mode        = "Rolling"
   rolling_upgrade_policy {
     max_batch_instance_percent              = 21
     max_unhealthy_instance_percent          = 22
@@ -685,7 +685,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
-  upgrade_mode = "Automatic"
+  upgrade_mode        = "Automatic"
   automatic_os_upgrade_policy {
     disable_automatic_rollback  = true
     enable_automatic_os_upgrade = true
