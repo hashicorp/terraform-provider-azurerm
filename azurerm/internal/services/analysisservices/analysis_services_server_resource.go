@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+
 	"github.com/Azure/azure-sdk-for-go/services/analysisservices/mgmt/2017-08-01/analysisservices"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -132,24 +134,23 @@ func resourceAnalysisServicesServer() *schema.Resource {
 
 func resourceAnalysisServicesServerCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AnalysisServices.ServerClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Analysis Services Server creation.")
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
+	id := parse.NewServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		server, err := client.GetDetails(ctx, resourceGroup, name)
+		server, err := client.GetDetails(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(server.Response) {
-				return fmt.Errorf("Error checking for presence of existing Analysis Services Server %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if server.ID != nil && *server.ID != "" {
-			return tf.ImportAsExistsError("azurerm_analysis_services_server", *server.ID)
+		if !utils.ResponseWasNotFound(server.Response) {
+			return tf.ImportAsExistsError("azurerm_analysis_services_server", id.ID())
 		}
 	}
 
@@ -161,33 +162,22 @@ func resourceAnalysisServicesServerCreate(d *schema.ResourceData, meta interface
 	t := d.Get("tags").(map[string]interface{})
 
 	analysisServicesServer := analysisservices.Server{
-		Name:             &name,
 		Location:         &location,
 		Sku:              &analysisservices.ResourceSku{Name: &sku},
 		ServerProperties: serverProperties,
 		Tags:             tags.Expand(t),
 	}
 
-	future, err := client.Create(ctx, resourceGroup, name, analysisServicesServer)
+	future, err := client.Create(ctx, id.ResourceGroup, id.Name, analysisServicesServer)
 	if err != nil {
-		return fmt.Errorf("Error creating Analysis Services Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for completion of Analysis Services Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for completion of %s: %+v", id, err)
 	}
 
-	resp, getDetailsErr := client.GetDetails(ctx, resourceGroup, name)
-	if getDetailsErr != nil {
-		return fmt.Errorf("Error retrieving Analytics Services Server %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read ID for Analytics Services Server %q (Resource Group %q)", name, resourceGroup)
-	}
-
-	d.SetId(*resp.ID)
-
+	d.SetId(id.ID())
 	return resourceAnalysisServicesServerRead(d, meta)
 }
 
@@ -207,15 +197,12 @@ func resourceAnalysisServicesServerRead(d *schema.ResourceData, meta interface{}
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving Analytics Services Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-
-	if location := server.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(server.Location))
 
 	if server.Sku != nil {
 		d.Set("sku", server.Sku.Name)
