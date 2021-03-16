@@ -80,26 +80,6 @@ func resourceApiManagementEmailTemplate() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"parameters": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"description": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"name": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"title": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
 		},
 	}
 }
@@ -182,9 +162,6 @@ func resourceApiManagementEmailTemplateRead(d *schema.ResourceData, meta interfa
 		d.Set("description", properties.Description)
 		d.Set("subject", properties.Subject)
 		d.Set("body", properties.Body)
-		if err := d.Set("parameters", flattenApiManagementEmailTemplateParameters(properties.Parameters)); err != nil {
-			return fmt.Errorf("setting `parameters`: %s", err)
-		}
 	}
 
 	return nil
@@ -211,36 +188,4 @@ func resourceApiManagementEmailTemplateDelete(d *schema.ResourceData, meta inter
 	}
 
 	return nil
-}
-
-func flattenApiManagementEmailTemplateParameters(input *[]apimanagement.EmailTemplateParametersContractProperties) []interface{} {
-	results := make([]interface{}, 0)
-	if input == nil {
-		return results
-	}
-
-	for _, prop := range *input {
-		description := ""
-		if prop.Description != nil {
-			description = *prop.Description
-		}
-
-		title := ""
-		if prop.Title != nil {
-			title = *prop.Title
-		}
-
-		name := ""
-		if prop.Name != nil {
-			name = *prop.Name
-		}
-
-		results = append(results, map[string]interface{}{
-			"description": description,
-			"name":        name,
-			"title":       title,
-		})
-	}
-
-	return results
 }

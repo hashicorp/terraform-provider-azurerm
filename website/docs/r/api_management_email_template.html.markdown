@@ -62,7 +62,7 @@ The following arguments are supported:
 
 * `body` - (Required) The body of the Email. Its format has to be a well-formed HTML document.
 
--> **NOTE:** In `subject` and `body` predefined parameters can be used. Values such as `$DevFirstName`, `$DevLastName`, `$OrganizationName`, `$DevPortalUrl`, `$ConfirmUrl`, `$DevPortalHost`, `$ConfirmQuery`. The possible values depend on the template. Schema to use a parameter: `$` followed by the `parameter.name` - `$<parameter.name>`.
+-> **NOTE:** In `subject` and `body` predefined parameters can be used. The available parameters depend on the template. Schema to use a parameter: `$` followed by the `parameter.name` - `$<parameter.name>`. The available parameters can be seen in the Notification templates section of the API-Management Service instance within the Azure Portal.
 
 ## Attributes Reference
 
@@ -73,18 +73,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `title` - The title of the Email Template.
 
 * `description` - The description of the Email Template.
-
-* `parameters` - A `parameters` block as defined below.
-
----
-
-A `parameters` block exports the following:
-
-* `name` - The name of this parameter.
-
-* `title` - The title of this parameter.
-
-* `description` - The description of this parameter.
 
 ## Timeouts
 
