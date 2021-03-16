@@ -1,6 +1,8 @@
 ## 2.52.0 (Unreleased)
 
 BUG FIXES:
+
+* `azurerm_cosmosdb_account_resource` - marking `connection_string` as sensitive [GH-10942]
 * `azurerm_management_group` - validation for `subscription_id` list property entries [GH-10948]
 
 ## 2.51.0 (March 12, 2021)
