@@ -109,15 +109,7 @@ func resourceMySQLAdministratorCreateUpdate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("waiting for create/update of %s: %+v", id, err)
 	}
 
-	// TODO: remove this once testing is done
-	resp, err := client.Get(ctx, resGroup, serverName)
-	if err != nil {
-		return err
-	}
-	d.SetId(*resp.ID)
-
-	//d.SetId(id.ID())
-
+	d.SetId(id.ID())
 	return nil
 }
 

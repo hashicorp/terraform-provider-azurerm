@@ -108,15 +108,7 @@ func resourceMySqlDatabaseCreate(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("waiting on creation of %s: %v", id, err)
 	}
 
-	// TODO: remove once testing completed
-	read, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
-	if err != nil {
-		return err
-	}
-	d.SetId(*read.ID)
-
-	// d.SetId(id.ID())
-
+	d.SetId(id.ID())
 	return resourceMySqlDatabaseRead(d, meta)
 }
 

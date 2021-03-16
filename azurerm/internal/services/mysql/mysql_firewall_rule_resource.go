@@ -107,14 +107,7 @@ func resourceMySqlFirewallRuleCreateUpdate(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("waiting for create/update of %s: %v", id, err)
 	}
 
-	// TODO: remove once the tests are done
-	read, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
-	if err != nil {
-		return err
-	}
-	d.SetId(*read.ID)
-
-	// d.SetId(id.ID())
+	d.SetId(id.ID())
 	return resourceMySqlFirewallRuleRead(d, meta)
 }
 
