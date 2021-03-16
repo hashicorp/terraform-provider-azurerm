@@ -25,7 +25,7 @@ import (
 	"net/http"
 )
 
-// ApplyUpdatesClient is the azure Maintenance Management Client
+// ApplyUpdatesClient is the maintenance Client
 type ApplyUpdatesClient struct {
 	BaseClient
 }
@@ -74,6 +74,7 @@ func (client ApplyUpdatesClient) CreateOrUpdate(ctx context.Context, resourceGro
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "maintenance.ApplyUpdatesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -113,7 +114,6 @@ func (client ApplyUpdatesClient) CreateOrUpdateSender(req *http.Request) (*http.
 func (client ApplyUpdatesClient) CreateOrUpdateResponder(resp *http.Response) (result ApplyUpdate, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -156,6 +156,7 @@ func (client ApplyUpdatesClient) CreateOrUpdateParent(ctx context.Context, resou
 	result, err = client.CreateOrUpdateParentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "maintenance.ApplyUpdatesClient", "CreateOrUpdateParent", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -197,7 +198,6 @@ func (client ApplyUpdatesClient) CreateOrUpdateParentSender(req *http.Request) (
 func (client ApplyUpdatesClient) CreateOrUpdateParentResponder(resp *http.Response) (result ApplyUpdate, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -239,6 +239,7 @@ func (client ApplyUpdatesClient) Get(ctx context.Context, resourceGroupName stri
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "maintenance.ApplyUpdatesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -279,7 +280,6 @@ func (client ApplyUpdatesClient) GetSender(req *http.Request) (*http.Response, e
 func (client ApplyUpdatesClient) GetResponder(resp *http.Response) (result ApplyUpdate, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -323,6 +323,7 @@ func (client ApplyUpdatesClient) GetParent(ctx context.Context, resourceGroupNam
 	result, err = client.GetParentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "maintenance.ApplyUpdatesClient", "GetParent", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -365,7 +366,6 @@ func (client ApplyUpdatesClient) GetParentSender(req *http.Request) (*http.Respo
 func (client ApplyUpdatesClient) GetParentResponder(resp *http.Response) (result ApplyUpdate, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

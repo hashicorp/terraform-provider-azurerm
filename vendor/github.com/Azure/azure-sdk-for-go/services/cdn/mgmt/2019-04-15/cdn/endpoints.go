@@ -54,8 +54,8 @@ func (client EndpointsClient) Create(ctx context.Context, resourceGroupName stri
 		ctx = tracing.StartSpan(ctx, fqdn+"/EndpointsClient.Create")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -79,7 +79,7 @@ func (client EndpointsClient) Create(ctx context.Context, resourceGroupName stri
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "cdn.EndpointsClient", "Create", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "cdn.EndpointsClient", "Create", nil, "Failure sending request")
 		return
 	}
 
@@ -118,7 +118,33 @@ func (client EndpointsClient) CreateSender(req *http.Request) (future EndpointsC
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client EndpointsClient) (e Endpoint, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "cdn.EndpointsCreateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("cdn.EndpointsCreateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		e.Response.Response, err = future.GetResult(sender)
+		if e.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "cdn.EndpointsCreateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && e.Response.Response.StatusCode != http.StatusNoContent {
+			e, err = client.CreateResponder(e.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "cdn.EndpointsCreateFuture", "Result", e.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -127,7 +153,6 @@ func (client EndpointsClient) CreateSender(req *http.Request) (future EndpointsC
 func (client EndpointsClient) CreateResponder(resp *http.Response) (result Endpoint, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -146,8 +171,8 @@ func (client EndpointsClient) Delete(ctx context.Context, resourceGroupName stri
 		ctx = tracing.StartSpan(ctx, fqdn+"/EndpointsClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -168,7 +193,7 @@ func (client EndpointsClient) Delete(ctx context.Context, resourceGroupName stri
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "cdn.EndpointsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "cdn.EndpointsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -205,7 +230,23 @@ func (client EndpointsClient) DeleteSender(req *http.Request) (future EndpointsD
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client EndpointsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "cdn.EndpointsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("cdn.EndpointsDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -214,7 +255,6 @@ func (client EndpointsClient) DeleteSender(req *http.Request) (future EndpointsD
 func (client EndpointsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -262,6 +302,7 @@ func (client EndpointsClient) Get(ctx context.Context, resourceGroupName string,
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.EndpointsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -300,7 +341,6 @@ func (client EndpointsClient) GetSender(req *http.Request) (*http.Response, erro
 func (client EndpointsClient) GetResponder(resp *http.Response) (result Endpoint, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -348,6 +388,11 @@ func (client EndpointsClient) ListByProfile(ctx context.Context, resourceGroupNa
 	result.elr, err = client.ListByProfileResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.EndpointsClient", "ListByProfile", resp, "Failure responding to request")
+		return
+	}
+	if result.elr.hasNextLink() && result.elr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -385,7 +430,6 @@ func (client EndpointsClient) ListByProfileSender(req *http.Request) (*http.Resp
 func (client EndpointsClient) ListByProfileResponder(resp *http.Response) (result EndpointListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -471,6 +515,11 @@ func (client EndpointsClient) ListResourceUsage(ctx context.Context, resourceGro
 	result.rulr, err = client.ListResourceUsageResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.EndpointsClient", "ListResourceUsage", resp, "Failure responding to request")
+		return
+	}
+	if result.rulr.hasNextLink() && result.rulr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -509,7 +558,6 @@ func (client EndpointsClient) ListResourceUsageSender(req *http.Request) (*http.
 func (client EndpointsClient) ListResourceUsageResponder(resp *http.Response) (result ResourceUsageListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -566,8 +614,8 @@ func (client EndpointsClient) LoadContent(ctx context.Context, resourceGroupName
 		ctx = tracing.StartSpan(ctx, fqdn+"/EndpointsClient.LoadContent")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -590,7 +638,7 @@ func (client EndpointsClient) LoadContent(ctx context.Context, resourceGroupName
 
 	result, err = client.LoadContentSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "cdn.EndpointsClient", "LoadContent", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "cdn.EndpointsClient", "LoadContent", nil, "Failure sending request")
 		return
 	}
 
@@ -629,7 +677,23 @@ func (client EndpointsClient) LoadContentSender(req *http.Request) (future Endpo
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client EndpointsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "cdn.EndpointsLoadContentFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("cdn.EndpointsLoadContentFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -638,7 +702,6 @@ func (client EndpointsClient) LoadContentSender(req *http.Request) (future Endpo
 func (client EndpointsClient) LoadContentResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -658,8 +721,8 @@ func (client EndpointsClient) PurgeContent(ctx context.Context, resourceGroupNam
 		ctx = tracing.StartSpan(ctx, fqdn+"/EndpointsClient.PurgeContent")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -682,7 +745,7 @@ func (client EndpointsClient) PurgeContent(ctx context.Context, resourceGroupNam
 
 	result, err = client.PurgeContentSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "cdn.EndpointsClient", "PurgeContent", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "cdn.EndpointsClient", "PurgeContent", nil, "Failure sending request")
 		return
 	}
 
@@ -721,7 +784,23 @@ func (client EndpointsClient) PurgeContentSender(req *http.Request) (future Endp
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client EndpointsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "cdn.EndpointsPurgeContentFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("cdn.EndpointsPurgeContentFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -730,7 +809,6 @@ func (client EndpointsClient) PurgeContentSender(req *http.Request) (future Endp
 func (client EndpointsClient) PurgeContentResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -747,8 +825,8 @@ func (client EndpointsClient) Start(ctx context.Context, resourceGroupName strin
 		ctx = tracing.StartSpan(ctx, fqdn+"/EndpointsClient.Start")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -769,7 +847,7 @@ func (client EndpointsClient) Start(ctx context.Context, resourceGroupName strin
 
 	result, err = client.StartSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "cdn.EndpointsClient", "Start", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "cdn.EndpointsClient", "Start", nil, "Failure sending request")
 		return
 	}
 
@@ -806,7 +884,33 @@ func (client EndpointsClient) StartSender(req *http.Request) (future EndpointsSt
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client EndpointsClient) (e Endpoint, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "cdn.EndpointsStartFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("cdn.EndpointsStartFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		e.Response.Response, err = future.GetResult(sender)
+		if e.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "cdn.EndpointsStartFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && e.Response.Response.StatusCode != http.StatusNoContent {
+			e, err = client.StartResponder(e.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "cdn.EndpointsStartFuture", "Result", e.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -815,7 +919,6 @@ func (client EndpointsClient) StartSender(req *http.Request) (future EndpointsSt
 func (client EndpointsClient) StartResponder(resp *http.Response) (result Endpoint, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -833,8 +936,8 @@ func (client EndpointsClient) Stop(ctx context.Context, resourceGroupName string
 		ctx = tracing.StartSpan(ctx, fqdn+"/EndpointsClient.Stop")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -855,7 +958,7 @@ func (client EndpointsClient) Stop(ctx context.Context, resourceGroupName string
 
 	result, err = client.StopSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "cdn.EndpointsClient", "Stop", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "cdn.EndpointsClient", "Stop", nil, "Failure sending request")
 		return
 	}
 
@@ -892,7 +995,33 @@ func (client EndpointsClient) StopSender(req *http.Request) (future EndpointsSto
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client EndpointsClient) (e Endpoint, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "cdn.EndpointsStopFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("cdn.EndpointsStopFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		e.Response.Response, err = future.GetResult(sender)
+		if e.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "cdn.EndpointsStopFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && e.Response.Response.StatusCode != http.StatusNoContent {
+			e, err = client.StopResponder(e.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "cdn.EndpointsStopFuture", "Result", e.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -901,7 +1030,6 @@ func (client EndpointsClient) StopSender(req *http.Request) (future EndpointsSto
 func (client EndpointsClient) StopResponder(resp *http.Response) (result Endpoint, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -922,8 +1050,8 @@ func (client EndpointsClient) Update(ctx context.Context, resourceGroupName stri
 		ctx = tracing.StartSpan(ctx, fqdn+"/EndpointsClient.Update")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -944,7 +1072,7 @@ func (client EndpointsClient) Update(ctx context.Context, resourceGroupName stri
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "cdn.EndpointsClient", "Update", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "cdn.EndpointsClient", "Update", nil, "Failure sending request")
 		return
 	}
 
@@ -983,7 +1111,33 @@ func (client EndpointsClient) UpdateSender(req *http.Request) (future EndpointsU
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client EndpointsClient) (e Endpoint, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "cdn.EndpointsUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("cdn.EndpointsUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		e.Response.Response, err = future.GetResult(sender)
+		if e.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "cdn.EndpointsUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && e.Response.Response.StatusCode != http.StatusNoContent {
+			e, err = client.UpdateResponder(e.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "cdn.EndpointsUpdateFuture", "Result", e.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -992,7 +1146,6 @@ func (client EndpointsClient) UpdateSender(req *http.Request) (future EndpointsU
 func (client EndpointsClient) UpdateResponder(resp *http.Response) (result Endpoint, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1043,6 +1196,7 @@ func (client EndpointsClient) ValidateCustomDomain(ctx context.Context, resource
 	result, err = client.ValidateCustomDomainResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.EndpointsClient", "ValidateCustomDomain", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1083,7 +1237,6 @@ func (client EndpointsClient) ValidateCustomDomainSender(req *http.Request) (*ht
 func (client EndpointsClient) ValidateCustomDomainResponder(resp *http.Response) (result ValidateCustomDomainOutput, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

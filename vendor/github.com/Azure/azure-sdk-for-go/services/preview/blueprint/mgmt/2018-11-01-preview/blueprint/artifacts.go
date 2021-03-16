@@ -76,6 +76,7 @@ func (client ArtifactsClient) CreateOrUpdate(ctx context.Context, resourceScope 
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "blueprint.ArtifactsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -115,7 +116,6 @@ func (client ArtifactsClient) CreateOrUpdateSender(req *http.Request) (*http.Res
 func (client ArtifactsClient) CreateOrUpdateResponder(resp *http.Response) (result ArtifactModel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -157,6 +157,7 @@ func (client ArtifactsClient) Delete(ctx context.Context, resourceScope string, 
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "blueprint.ArtifactsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -194,7 +195,6 @@ func (client ArtifactsClient) DeleteSender(req *http.Request) (*http.Response, e
 func (client ArtifactsClient) DeleteResponder(resp *http.Response) (result ArtifactModel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -236,6 +236,7 @@ func (client ArtifactsClient) Get(ctx context.Context, resourceScope string, blu
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "blueprint.ArtifactsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -273,7 +274,6 @@ func (client ArtifactsClient) GetSender(req *http.Request) (*http.Response, erro
 func (client ArtifactsClient) GetResponder(resp *http.Response) (result ArtifactModel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -315,6 +315,11 @@ func (client ArtifactsClient) List(ctx context.Context, resourceScope string, bl
 	result.al, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "blueprint.ArtifactsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.al.hasNextLink() && result.al.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -351,7 +356,6 @@ func (client ArtifactsClient) ListSender(req *http.Request) (*http.Response, err
 func (client ArtifactsClient) ListResponder(resp *http.Response) (result ArtifactList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

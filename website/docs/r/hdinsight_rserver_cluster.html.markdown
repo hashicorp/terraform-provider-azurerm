@@ -10,6 +10,8 @@ description: |-
 
 Manages a HDInsight RServer Cluster.
 
+!> **Note:** [HDInsight 3.6 is deprecated and will be retired on 2020-12-31 - HDInsight 4.0 no longer supports RServer Clusters](https://docs.microsoft.com/en-us/azure/hdinsight/hdinsight-component-versioning#available-versions) - as such this Terraform resource is deprecated and will be removed in the next major version of the AzureRM Terraform Provider.
+
 ## Example Usage
 
 ```hcl
@@ -257,5 +259,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 HDInsight RServer Clusters can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_hdinsight_rserver_cluster.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.HDInsight/clusters/cluster1}
+terraform import azurerm_hdinsight_rserver_cluster.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.HDInsight/clusters/cluster1
 ```

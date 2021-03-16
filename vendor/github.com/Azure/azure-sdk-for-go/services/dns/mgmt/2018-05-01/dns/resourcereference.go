@@ -72,6 +72,7 @@ func (client ResourceReferenceClient) GetByTargetResources(ctx context.Context, 
 	result, err = client.GetByTargetResourcesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dns.ResourceReferenceClient", "GetByTargetResources", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -109,7 +110,6 @@ func (client ResourceReferenceClient) GetByTargetResourcesSender(req *http.Reque
 func (client ResourceReferenceClient) GetByTargetResourcesResponder(resp *http.Response) (result ResourceReferenceResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

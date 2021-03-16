@@ -73,6 +73,7 @@ func (client MetricDefinitionsClient) List(ctx context.Context, resourceURI stri
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.MetricDefinitionsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -111,7 +112,6 @@ func (client MetricDefinitionsClient) ListSender(req *http.Request) (*http.Respo
 func (client MetricDefinitionsClient) ListResponder(resp *http.Response) (result MetricDefinitionCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

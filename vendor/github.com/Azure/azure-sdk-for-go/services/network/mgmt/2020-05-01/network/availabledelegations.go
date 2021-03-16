@@ -73,6 +73,11 @@ func (client AvailableDelegationsClient) List(ctx context.Context, location stri
 	result.adr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.AvailableDelegationsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.adr.hasNextLink() && result.adr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -109,7 +114,6 @@ func (client AvailableDelegationsClient) ListSender(req *http.Request) (*http.Re
 func (client AvailableDelegationsClient) ListResponder(resp *http.Response) (result AvailableDelegationsResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

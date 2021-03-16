@@ -73,6 +73,7 @@ func (client OperationResultsClient) Get(ctx context.Context, locationName strin
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "healthcareapis.OperationResultsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -110,7 +111,6 @@ func (client OperationResultsClient) GetSender(req *http.Request) (*http.Respons
 func (client OperationResultsClient) GetResponder(resp *http.Response) (result SetObject, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())

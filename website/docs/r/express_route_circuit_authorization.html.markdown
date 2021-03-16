@@ -15,7 +15,7 @@ Manages an ExpressRoute Circuit Authorization.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "exprtTest"
-  location = "West US"
+  location = "West Europe"
 }
 
 resource "azurerm_express_route_circuit" "example" {
@@ -62,7 +62,7 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The Resource ID of the ExpressRoute Circuit Authorization.
+* `id` - The ID of the ExpressRoute Circuit Authorization.
 
 * `authorization_key` - The Authorization Key.
 

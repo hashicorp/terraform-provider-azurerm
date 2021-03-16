@@ -72,6 +72,7 @@ func (client SecurityPINsClient) Get(ctx context.Context, vaultName string, reso
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.SecurityPINsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -109,7 +110,6 @@ func (client SecurityPINsClient) GetSender(req *http.Request) (*http.Response, e
 func (client SecurityPINsClient) GetResponder(resp *http.Response) (result TokenInformation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

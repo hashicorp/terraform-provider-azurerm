@@ -53,8 +53,8 @@ func (client PacketCapturesClient) Create(ctx context.Context, resourceGroupName
 		ctx = tracing.StartSpan(ctx, fqdn+"/PacketCapturesClient.Create")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -76,7 +76,7 @@ func (client PacketCapturesClient) Create(ctx context.Context, resourceGroupName
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "network.PacketCapturesClient", "Create", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "network.PacketCapturesClient", "Create", nil, "Failure sending request")
 		return
 	}
 
@@ -115,7 +115,33 @@ func (client PacketCapturesClient) CreateSender(req *http.Request) (future Packe
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client PacketCapturesClient) (pcr PacketCaptureResult, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "network.PacketCapturesCreateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("network.PacketCapturesCreateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		pcr.Response.Response, err = future.GetResult(sender)
+		if pcr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "network.PacketCapturesCreateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && pcr.Response.Response.StatusCode != http.StatusNoContent {
+			pcr, err = client.CreateResponder(pcr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "network.PacketCapturesCreateFuture", "Result", pcr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -124,7 +150,6 @@ func (client PacketCapturesClient) CreateSender(req *http.Request) (future Packe
 func (client PacketCapturesClient) CreateResponder(resp *http.Response) (result PacketCaptureResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -142,8 +167,8 @@ func (client PacketCapturesClient) Delete(ctx context.Context, resourceGroupName
 		ctx = tracing.StartSpan(ctx, fqdn+"/PacketCapturesClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -156,7 +181,7 @@ func (client PacketCapturesClient) Delete(ctx context.Context, resourceGroupName
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "network.PacketCapturesClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "network.PacketCapturesClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -193,7 +218,23 @@ func (client PacketCapturesClient) DeleteSender(req *http.Request) (future Packe
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client PacketCapturesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "network.PacketCapturesDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("network.PacketCapturesDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -202,7 +243,6 @@ func (client PacketCapturesClient) DeleteSender(req *http.Request) (future Packe
 func (client PacketCapturesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -241,6 +281,7 @@ func (client PacketCapturesClient) Get(ctx context.Context, resourceGroupName st
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.PacketCapturesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -279,7 +320,6 @@ func (client PacketCapturesClient) GetSender(req *http.Request) (*http.Response,
 func (client PacketCapturesClient) GetResponder(resp *http.Response) (result PacketCaptureResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -297,8 +337,8 @@ func (client PacketCapturesClient) GetStatus(ctx context.Context, resourceGroupN
 		ctx = tracing.StartSpan(ctx, fqdn+"/PacketCapturesClient.GetStatus")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -311,7 +351,7 @@ func (client PacketCapturesClient) GetStatus(ctx context.Context, resourceGroupN
 
 	result, err = client.GetStatusSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "network.PacketCapturesClient", "GetStatus", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "network.PacketCapturesClient", "GetStatus", nil, "Failure sending request")
 		return
 	}
 
@@ -348,7 +388,33 @@ func (client PacketCapturesClient) GetStatusSender(req *http.Request) (future Pa
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client PacketCapturesClient) (pcqsr PacketCaptureQueryStatusResult, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "network.PacketCapturesGetStatusFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("network.PacketCapturesGetStatusFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		pcqsr.Response.Response, err = future.GetResult(sender)
+		if pcqsr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "network.PacketCapturesGetStatusFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && pcqsr.Response.Response.StatusCode != http.StatusNoContent {
+			pcqsr, err = client.GetStatusResponder(pcqsr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "network.PacketCapturesGetStatusFuture", "Result", pcqsr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -357,7 +423,6 @@ func (client PacketCapturesClient) GetStatusSender(req *http.Request) (future Pa
 func (client PacketCapturesClient) GetStatusResponder(resp *http.Response) (result PacketCaptureQueryStatusResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -396,6 +461,7 @@ func (client PacketCapturesClient) List(ctx context.Context, resourceGroupName s
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.PacketCapturesClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -433,7 +499,6 @@ func (client PacketCapturesClient) ListSender(req *http.Request) (*http.Response
 func (client PacketCapturesClient) ListResponder(resp *http.Response) (result PacketCaptureListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -451,8 +516,8 @@ func (client PacketCapturesClient) Stop(ctx context.Context, resourceGroupName s
 		ctx = tracing.StartSpan(ctx, fqdn+"/PacketCapturesClient.Stop")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -465,7 +530,7 @@ func (client PacketCapturesClient) Stop(ctx context.Context, resourceGroupName s
 
 	result, err = client.StopSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "network.PacketCapturesClient", "Stop", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "network.PacketCapturesClient", "Stop", nil, "Failure sending request")
 		return
 	}
 
@@ -502,7 +567,23 @@ func (client PacketCapturesClient) StopSender(req *http.Request) (future PacketC
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client PacketCapturesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "network.PacketCapturesStopFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("network.PacketCapturesStopFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -511,7 +592,6 @@ func (client PacketCapturesClient) StopSender(req *http.Request) (future PacketC
 func (client PacketCapturesClient) StopResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp

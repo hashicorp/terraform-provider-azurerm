@@ -13,30 +13,35 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 // Default Authorization Rule/Policy created by Azure, used to populate the
 // default connection strings and keys
-var eventHubNamespaceDefaultAuthorizationRule = "RootManageSharedAccessKey"
-var eventHubNamespaceResourceName = "azurerm_eventhub_namespace"
+var (
+	eventHubNamespaceDefaultAuthorizationRule = "RootManageSharedAccessKey"
+	eventHubNamespaceResourceName             = "azurerm_eventhub_namespace"
+)
 
-func resourceArmEventHubNamespace() *schema.Resource {
+func resourceEventHubNamespace() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmEventHubNamespaceCreateUpdate,
-		Read:   resourceArmEventHubNamespaceRead,
-		Update: resourceArmEventHubNamespaceCreateUpdate,
-		Delete: resourceArmEventHubNamespaceDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Create: resourceEventHubNamespaceCreateUpdate,
+		Read:   resourceEventHubNamespaceRead,
+		Update: resourceEventHubNamespaceCreateUpdate,
+		Delete: resourceEventHubNamespaceDelete,
+
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.NamespaceID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -50,7 +55,7 @@ func resourceArmEventHubNamespace() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateEventHubNamespaceName(),
+				ValidateFunc: validate.ValidateEventHubNamespaceName(),
 			},
 
 			"location": azure.SchemaLocation(),
@@ -68,10 +73,9 @@ func resourceArmEventHubNamespace() *schema.Resource {
 			},
 
 			"capacity": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				Default:      1,
-				ValidateFunc: validation.IntBetween(1, 20),
+				Type:     schema.TypeInt,
+				Optional: true,
+				Default:  1,
 			},
 
 			"auto_inflate_enabled": {
@@ -91,7 +95,34 @@ func resourceArmEventHubNamespace() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ValidateEventHubDedicatedClusterID,
+				ValidateFunc: validate.ClusterID,
+			},
+
+			"identity": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(eventhub.SystemAssigned),
+							}, false),
+						},
+
+						"principal_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
 			},
 
 			"maximum_throughput_units": {
@@ -117,6 +148,11 @@ func resourceArmEventHubNamespace() *schema.Resource {
 								string(eventhub.Allow),
 								string(eventhub.Deny),
 							}, false),
+						},
+
+						"trusted_service_access_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
 						},
 
 						// 128 limit per https://docs.microsoft.com/azure/event-hubs/event-hubs-quotas
@@ -214,7 +250,7 @@ func resourceArmEventHubNamespace() *schema.Resource {
 	}
 }
 
-func resourceArmEventHubNamespaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceEventHubNamespaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.NamespacesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -223,7 +259,7 @@ func resourceArmEventHubNamespaceCreateUpdate(d *schema.ResourceData, meta inter
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -250,6 +286,7 @@ func resourceArmEventHubNamespaceCreateUpdate(d *schema.ResourceData, meta inter
 			Tier:     eventhub.SkuTier(sku),
 			Capacity: &capacity,
 		},
+		Identity: expandEventHubIdentity(d.Get("identity").([]interface{})),
 		EHNamespaceProperties: &eventhub.EHNamespaceProperties{
 			IsAutoInflateEnabled: utils.Bool(autoInflateEnabled),
 			ZoneRedundant:        utils.Bool(zoneRedundant),
@@ -263,6 +300,15 @@ func resourceArmEventHubNamespaceCreateUpdate(d *schema.ResourceData, meta inter
 
 	if v, ok := d.GetOk("maximum_throughput_units"); ok {
 		parameters.EHNamespaceProperties.MaximumThroughputUnits = utils.Int32(int32(v.(int)))
+	}
+
+	// @favoretti: if we are downgrading from Standard to Basic SKU and namespace had both autoInflate enabled and
+	// maximumThroughputUnits set - we need to force throughput units back to 0, otherwise downgrade fails
+	//
+	// See: https://github.com/terraform-providers/terraform-provider-azurerm/issues/10244
+	//
+	if parameters.Sku.Tier == eventhub.SkuTierBasic && !autoInflateEnabled {
+		parameters.EHNamespaceProperties.MaximumThroughputUnits = utils.Int32(0)
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, parameters)
@@ -306,32 +352,30 @@ func resourceArmEventHubNamespaceCreateUpdate(d *schema.ResourceData, meta inter
 		}
 	}
 
-	return resourceArmEventHubNamespaceRead(d, meta)
+	return resourceEventHubNamespaceRead(d, meta)
 }
 
-func resourceArmEventHubNamespaceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceEventHubNamespaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.NamespacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.NamespaceID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	name := id.Path["namespaces"]
 
-	resp, err := client.Get(ctx, resGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on EventHub Namespace %q: %+v", name, err)
+		return fmt.Errorf("Error making Read request on EventHub Namespace %q: %+v", id.Name, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resGroup)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -341,6 +385,10 @@ func resourceArmEventHubNamespaceRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("capacity", sku.Capacity)
 	}
 
+	if err := d.Set("identity", flattenEventHubIdentity(resp.Identity)); err != nil {
+		return fmt.Errorf("Error setting `identity`: %+v", err)
+	}
+
 	if props := resp.EHNamespaceProperties; props != nil {
 		d.Set("auto_inflate_enabled", props.IsAutoInflateEnabled)
 		d.Set("maximum_throughput_units", int(*props.MaximumThroughputUnits))
@@ -348,18 +396,18 @@ func resourceArmEventHubNamespaceRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("dedicated_cluster_id", props.ClusterArmID)
 	}
 
-	ruleset, err := client.GetNetworkRuleSet(ctx, resGroup, name)
+	ruleset, err := client.GetNetworkRuleSet(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error making Read request on EventHub Namespace %q Network Ruleset: %+v", name, err)
+		return fmt.Errorf("Error making Read request on EventHub Namespace %q Network Ruleset: %+v", id.Name, err)
 	}
 
 	if err := d.Set("network_rulesets", flattenEventHubNamespaceNetworkRuleset(ruleset)); err != nil {
-		return fmt.Errorf("Error setting `network_ruleset` for Evenhub Namespace %s: %v", name, err)
+		return fmt.Errorf("Error setting `network_ruleset` for Evenhub Namespace %s: %v", id.Name, err)
 	}
 
-	keys, err := client.ListKeys(ctx, resGroup, name, eventHubNamespaceDefaultAuthorizationRule)
+	keys, err := client.ListKeys(ctx, id.ResourceGroup, id.Name, eventHubNamespaceDefaultAuthorizationRule)
 	if err != nil {
-		log.Printf("[WARN] Unable to List default keys for EventHub Namespace %q: %+v", name, err)
+		log.Printf("[WARN] Unable to List default keys for EventHub Namespace %q: %+v", id.Name, err)
 	} else {
 		d.Set("default_primary_connection_string_alias", keys.AliasPrimaryConnectionString)
 		d.Set("default_secondary_connection_string_alias", keys.AliasSecondaryConnectionString)
@@ -372,27 +420,25 @@ func resourceArmEventHubNamespaceRead(d *schema.ResourceData, meta interface{}) 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmEventHubNamespaceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceEventHubNamespaceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.NamespacesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.NamespaceID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	name := id.Path["namespaces"]
 
-	future, err := client.Delete(ctx, resGroup, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error issuing delete request of EventHub Namespace %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error issuing delete request of EventHub Namespace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	return waitForEventHubNamespaceToBeDeleted(ctx, client, resGroup, name, d)
+	return waitForEventHubNamespaceToBeDeleted(ctx, client, id.ResourceGroup, id.Name, d)
 }
 
 func waitForEventHubNamespaceToBeDeleted(ctx context.Context, client *eventhub.NamespacesClient, resourceGroup, name string, d *schema.ResourceData) error {
@@ -438,6 +484,10 @@ func expandEventHubNamespaceNetworkRuleset(input []interface{}) *eventhub.Networ
 
 	ruleset := eventhub.NetworkRuleSetProperties{
 		DefaultAction: eventhub.DefaultAction(block["default_action"].(string)),
+	}
+
+	if v, ok := block["trusted_service_access_enabled"]; ok {
+		ruleset.TrustedServiceAccessEnabled = utils.Bool(v.(bool))
 	}
 
 	if v, ok := block["virtual_network_rule"].([]interface{}); ok {
@@ -514,8 +564,44 @@ func flattenEventHubNamespaceNetworkRuleset(ruleset eventhub.NetworkRuleSet) []i
 	}
 
 	return []interface{}{map[string]interface{}{
-		"default_action":       string(ruleset.DefaultAction),
-		"virtual_network_rule": vnetBlocks,
-		"ip_rule":              ipBlocks,
+		"default_action":                 string(ruleset.DefaultAction),
+		"virtual_network_rule":           vnetBlocks,
+		"ip_rule":                        ipBlocks,
+		"trusted_service_access_enabled": ruleset.TrustedServiceAccessEnabled,
 	}}
+}
+
+func expandEventHubIdentity(input []interface{}) *eventhub.Identity {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	return &eventhub.Identity{
+		Type: eventhub.IdentityType(v["type"].(string)),
+	}
+}
+
+func flattenEventHubIdentity(input *eventhub.Identity) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	principalID := ""
+	if input.PrincipalID != nil {
+		principalID = *input.PrincipalID
+	}
+
+	tenantID := ""
+	if input.TenantID != nil {
+		tenantID = *input.TenantID
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"type":         string(input.Type),
+			"principal_id": principalID,
+			"tenant_id":    tenantID,
+		},
+	}
 }

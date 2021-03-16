@@ -53,8 +53,8 @@ func (client Client) CreateOrUpdate(ctx context.Context, groupID string, createM
 		ctx = tracing.StartSpan(ctx, fqdn+"/Client.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -67,7 +67,7 @@ func (client Client) CreateOrUpdate(ctx context.Context, groupID string, createM
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "managementgroups.Client", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "managementgroups.Client", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -112,7 +112,33 @@ func (client Client) CreateOrUpdateSender(req *http.Request) (future CreateOrUpd
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client Client) (so SetObject, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "managementgroups.CreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("managementgroups.CreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		so.Response.Response, err = future.GetResult(sender)
+		if so.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "managementgroups.CreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && so.Response.Response.StatusCode != http.StatusNoContent {
+			so, err = client.CreateOrUpdateResponder(so.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "managementgroups.CreateOrUpdateFuture", "Result", so.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -121,7 +147,6 @@ func (client Client) CreateOrUpdateSender(req *http.Request) (future CreateOrUpd
 func (client Client) CreateOrUpdateResponder(resp *http.Response) (result SetObject, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -138,8 +163,8 @@ func (client Client) Delete(ctx context.Context, groupID string, cacheControl st
 		ctx = tracing.StartSpan(ctx, fqdn+"/Client.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -152,7 +177,7 @@ func (client Client) Delete(ctx context.Context, groupID string, cacheControl st
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "managementgroups.Client", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "managementgroups.Client", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -193,7 +218,33 @@ func (client Client) DeleteSender(req *http.Request) (future DeleteFuture, err e
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client Client) (or OperationResults, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "managementgroups.DeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("managementgroups.DeleteFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		or.Response.Response, err = future.GetResult(sender)
+		if or.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "managementgroups.DeleteFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && or.Response.Response.StatusCode != http.StatusNoContent {
+			or, err = client.DeleteResponder(or.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "managementgroups.DeleteFuture", "Result", or.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -202,7 +253,6 @@ func (client Client) DeleteSender(req *http.Request) (future DeleteFuture, err e
 func (client Client) DeleteResponder(resp *http.Response) (result OperationResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -247,6 +297,7 @@ func (client Client) Get(ctx context.Context, groupID string, expand string, rec
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managementgroups.Client", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -298,7 +349,6 @@ func (client Client) GetSender(req *http.Request) (*http.Response, error) {
 func (client Client) GetResponder(resp *http.Response) (result ManagementGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -341,6 +391,11 @@ func (client Client) GetDescendants(ctx context.Context, groupID string, skiptok
 	result.dlr, err = client.GetDescendantsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managementgroups.Client", "GetDescendants", resp, "Failure responding to request")
+		return
+	}
+	if result.dlr.hasNextLink() && result.dlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -382,7 +437,6 @@ func (client Client) GetDescendantsSender(req *http.Request) (*http.Response, er
 func (client Client) GetDescendantsResponder(resp *http.Response) (result DescendantListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -461,6 +515,11 @@ func (client Client) List(ctx context.Context, cacheControl string, skiptoken st
 	result.lr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managementgroups.Client", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.lr.hasNextLink() && result.lr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -502,7 +561,6 @@ func (client Client) ListSender(req *http.Request) (*http.Response, error) {
 func (client Client) ListResponder(resp *http.Response) (result ListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -579,6 +637,7 @@ func (client Client) Update(ctx context.Context, groupID string, patchGroupReque
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managementgroups.Client", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -623,7 +682,6 @@ func (client Client) UpdateSender(req *http.Request) (*http.Response, error) {
 func (client Client) UpdateResponder(resp *http.Response) (result ManagementGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

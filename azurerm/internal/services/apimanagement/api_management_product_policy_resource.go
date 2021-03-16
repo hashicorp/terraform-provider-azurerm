@@ -2,25 +2,28 @@ package apimanagement
 
 import (
 	"fmt"
+	"html"
 	"log"
 	"time"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementProductPolicy() *schema.Resource {
+func resourceApiManagementProductPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApiManagementProductPolicyCreateUpdate,
-		Read:   resourceArmApiManagementProductPolicyRead,
-		Update: resourceArmApiManagementProductPolicyCreateUpdate,
-		Delete: resourceArmApiManagementProductPolicyDelete,
+		Create: resourceApiManagementProductPolicyCreateUpdate,
+		Read:   resourceApiManagementProductPolicyRead,
+		Update: resourceApiManagementProductPolicyCreateUpdate,
+		Delete: resourceApiManagementProductPolicyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -35,16 +38,16 @@ func resourceArmApiManagementProductPolicy() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"api_management_name": azure.SchemaApiManagementName(),
+			"api_management_name": schemaz.SchemaApiManagementName(),
 
-			"product_id": azure.SchemaApiManagementChildName(),
+			"product_id": schemaz.SchemaApiManagementChildName(),
 
 			"xml_content": {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
 				ConflictsWith:    []string{"xml_link"},
-				DiffSuppressFunc: suppress.XmlDiff,
+				DiffSuppressFunc: XmlWithDotNetInterpolationsDiffSuppress,
 			},
 
 			"xml_link": {
@@ -56,7 +59,7 @@ func resourceArmApiManagementProductPolicy() *schema.Resource {
 	}
 }
 
-func resourceArmApiManagementProductPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementProductPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ProductPoliciesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -85,14 +88,14 @@ func resourceArmApiManagementProductPolicyCreateUpdate(d *schema.ResourceData, m
 
 	if xmlContent != "" {
 		parameters.PolicyContractProperties = &apimanagement.PolicyContractProperties{
-			Format: apimanagement.XML,
+			Format: apimanagement.Rawxml,
 			Value:  utils.String(xmlContent),
 		}
 	}
 
 	if xmlLink != "" {
 		parameters.PolicyContractProperties = &apimanagement.PolicyContractProperties{
-			Format: apimanagement.XMLLink,
+			Format: apimanagement.RawxmlLink,
 			Value:  utils.String(xmlLink),
 		}
 	}
@@ -114,21 +117,21 @@ func resourceArmApiManagementProductPolicyCreateUpdate(d *schema.ResourceData, m
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmApiManagementProductPolicyRead(d, meta)
+	return resourceApiManagementProductPolicyRead(d, meta)
 }
 
-func resourceArmApiManagementProductPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementProductPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ProductPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ProductPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	productID := id.Path["products"]
+	serviceName := id.ServiceName
+	productID := id.ProductName
 
 	resp, err := client.Get(ctx, resourceGroup, serviceName, productID, apimanagement.PolicyExportFormatXML)
 	if err != nil {
@@ -148,24 +151,24 @@ func resourceArmApiManagementProductPolicyRead(d *schema.ResourceData, meta inte
 	if properties := resp.PolicyContractProperties; properties != nil {
 		// when you submit an `xml_link` to the API, the API downloads this link and stores it as `xml_content`
 		// as such there is no way to set `xml_link` and we'll let Terraform handle it
-		d.Set("xml_content", properties.Value)
+		d.Set("xml_content", html.UnescapeString(*properties.Value))
 	}
 
 	return nil
 }
 
-func resourceArmApiManagementProductPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementProductPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ProductPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ProductPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	productID := id.Path["products"]
+	serviceName := id.ServiceName
+	productID := id.ProductName
 
 	if resp, err := client.Delete(ctx, resourceGroup, serviceName, productID, ""); err != nil {
 		if !utils.ResponseWasNotFound(resp) {

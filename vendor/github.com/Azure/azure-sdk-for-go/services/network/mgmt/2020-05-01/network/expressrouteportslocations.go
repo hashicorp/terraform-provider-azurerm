@@ -73,6 +73,7 @@ func (client ExpressRoutePortsLocationsClient) Get(ctx context.Context, location
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ExpressRoutePortsLocationsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -109,7 +110,6 @@ func (client ExpressRoutePortsLocationsClient) GetSender(req *http.Request) (*ht
 func (client ExpressRoutePortsLocationsClient) GetResponder(resp *http.Response) (result ExpressRoutePortsLocation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -147,6 +147,11 @@ func (client ExpressRoutePortsLocationsClient) List(ctx context.Context) (result
 	result.erpllr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ExpressRoutePortsLocationsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.erpllr.hasNextLink() && result.erpllr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -182,7 +187,6 @@ func (client ExpressRoutePortsLocationsClient) ListSender(req *http.Request) (*h
 func (client ExpressRoutePortsLocationsClient) ListResponder(resp *http.Response) (result ExpressRoutePortsLocationListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

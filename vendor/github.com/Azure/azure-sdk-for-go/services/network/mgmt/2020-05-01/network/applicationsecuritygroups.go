@@ -52,8 +52,8 @@ func (client ApplicationSecurityGroupsClient) CreateOrUpdate(ctx context.Context
 		ctx = tracing.StartSpan(ctx, fqdn+"/ApplicationSecurityGroupsClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -66,7 +66,7 @@ func (client ApplicationSecurityGroupsClient) CreateOrUpdate(ctx context.Context
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "network.ApplicationSecurityGroupsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "network.ApplicationSecurityGroupsClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -105,7 +105,33 @@ func (client ApplicationSecurityGroupsClient) CreateOrUpdateSender(req *http.Req
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ApplicationSecurityGroupsClient) (asg ApplicationSecurityGroup, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "network.ApplicationSecurityGroupsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("network.ApplicationSecurityGroupsCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		asg.Response.Response, err = future.GetResult(sender)
+		if asg.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "network.ApplicationSecurityGroupsCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && asg.Response.Response.StatusCode != http.StatusNoContent {
+			asg, err = client.CreateOrUpdateResponder(asg.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "network.ApplicationSecurityGroupsCreateOrUpdateFuture", "Result", asg.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -114,7 +140,6 @@ func (client ApplicationSecurityGroupsClient) CreateOrUpdateSender(req *http.Req
 func (client ApplicationSecurityGroupsClient) CreateOrUpdateResponder(resp *http.Response) (result ApplicationSecurityGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -131,8 +156,8 @@ func (client ApplicationSecurityGroupsClient) Delete(ctx context.Context, resour
 		ctx = tracing.StartSpan(ctx, fqdn+"/ApplicationSecurityGroupsClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -145,7 +170,7 @@ func (client ApplicationSecurityGroupsClient) Delete(ctx context.Context, resour
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "network.ApplicationSecurityGroupsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "network.ApplicationSecurityGroupsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -181,7 +206,23 @@ func (client ApplicationSecurityGroupsClient) DeleteSender(req *http.Request) (f
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ApplicationSecurityGroupsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "network.ApplicationSecurityGroupsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("network.ApplicationSecurityGroupsDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -190,7 +231,6 @@ func (client ApplicationSecurityGroupsClient) DeleteSender(req *http.Request) (f
 func (client ApplicationSecurityGroupsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -228,6 +268,7 @@ func (client ApplicationSecurityGroupsClient) Get(ctx context.Context, resourceG
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ApplicationSecurityGroupsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -265,7 +306,6 @@ func (client ApplicationSecurityGroupsClient) GetSender(req *http.Request) (*htt
 func (client ApplicationSecurityGroupsClient) GetResponder(resp *http.Response) (result ApplicationSecurityGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -304,6 +344,11 @@ func (client ApplicationSecurityGroupsClient) List(ctx context.Context, resource
 	result.asglr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ApplicationSecurityGroupsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.asglr.hasNextLink() && result.asglr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -340,7 +385,6 @@ func (client ApplicationSecurityGroupsClient) ListSender(req *http.Request) (*ht
 func (client ApplicationSecurityGroupsClient) ListResponder(resp *http.Response) (result ApplicationSecurityGroupListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -414,6 +458,11 @@ func (client ApplicationSecurityGroupsClient) ListAll(ctx context.Context) (resu
 	result.asglr, err = client.ListAllResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ApplicationSecurityGroupsClient", "ListAll", resp, "Failure responding to request")
+		return
+	}
+	if result.asglr.hasNextLink() && result.asglr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -449,7 +498,6 @@ func (client ApplicationSecurityGroupsClient) ListAllSender(req *http.Request) (
 func (client ApplicationSecurityGroupsClient) ListAllResponder(resp *http.Response) (result ApplicationSecurityGroupListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -526,6 +574,7 @@ func (client ApplicationSecurityGroupsClient) UpdateTags(ctx context.Context, re
 	result, err = client.UpdateTagsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ApplicationSecurityGroupsClient", "UpdateTags", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -565,7 +614,6 @@ func (client ApplicationSecurityGroupsClient) UpdateTagsSender(req *http.Request
 func (client ApplicationSecurityGroupsClient) UpdateTagsResponder(resp *http.Response) (result ApplicationSecurityGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

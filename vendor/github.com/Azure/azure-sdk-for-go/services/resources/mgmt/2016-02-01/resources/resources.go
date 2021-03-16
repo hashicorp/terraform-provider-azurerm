@@ -84,6 +84,7 @@ func (client Client) CheckExistence(ctx context.Context, resourceGroupName strin
 	result, err = client.CheckExistenceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "resources.Client", "CheckExistence", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -123,7 +124,6 @@ func (client Client) CheckExistenceSender(req *http.Request) (*http.Response, er
 func (client Client) CheckExistenceResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent, http.StatusNotFound),
 		autorest.ByClosing())
 	result.Response = resp
@@ -173,6 +173,7 @@ func (client Client) CreateOrUpdate(ctx context.Context, resourceGroupName strin
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "resources.Client", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -214,7 +215,6 @@ func (client Client) CreateOrUpdateSender(req *http.Request) (*http.Response, er
 func (client Client) CreateOrUpdateResponder(resp *http.Response) (result GenericResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -264,6 +264,7 @@ func (client Client) Delete(ctx context.Context, resourceGroupName string, resou
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "resources.Client", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -303,7 +304,6 @@ func (client Client) DeleteSender(req *http.Request) (*http.Response, error) {
 func (client Client) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -352,6 +352,7 @@ func (client Client) Get(ctx context.Context, resourceGroupName string, resource
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "resources.Client", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -391,7 +392,6 @@ func (client Client) GetSender(req *http.Request) (*http.Response, error) {
 func (client Client) GetResponder(resp *http.Response) (result GenericResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -433,6 +433,11 @@ func (client Client) List(ctx context.Context, filter string, expand string, top
 	result.lr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "resources.Client", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.lr.hasNextLink() && result.lr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -477,7 +482,6 @@ func (client Client) ListSender(req *http.Request) (*http.Response, error) {
 func (client Client) ListResponder(resp *http.Response) (result ListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -532,8 +536,8 @@ func (client Client) MoveResources(ctx context.Context, sourceResourceGroupName 
 		ctx = tracing.StartSpan(ctx, fqdn+"/Client.MoveResources")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -554,7 +558,7 @@ func (client Client) MoveResources(ctx context.Context, sourceResourceGroupName 
 
 	result, err = client.MoveResourcesSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.Client", "MoveResources", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "resources.Client", "MoveResources", nil, "Failure sending request")
 		return
 	}
 
@@ -591,7 +595,23 @@ func (client Client) MoveResourcesSender(req *http.Request) (future MoveResource
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client Client) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "resources.MoveResourcesFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("resources.MoveResourcesFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -600,7 +620,6 @@ func (client Client) MoveResourcesSender(req *http.Request) (future MoveResource
 func (client Client) MoveResourcesResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -621,8 +640,8 @@ func (client Client) Update(ctx context.Context, resourceGroupName string, resou
 		ctx = tracing.StartSpan(ctx, fqdn+"/Client.Update")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -643,7 +662,7 @@ func (client Client) Update(ctx context.Context, resourceGroupName string, resou
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.Client", "Update", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "resources.Client", "Update", nil, "Failure sending request")
 		return
 	}
 
@@ -683,7 +702,33 @@ func (client Client) UpdateSender(req *http.Request) (future UpdateFuture, err e
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client Client) (gr GenericResource, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "resources.UpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("resources.UpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		gr.Response.Response, err = future.GetResult(sender)
+		if gr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "resources.UpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && gr.Response.Response.StatusCode != http.StatusNoContent {
+			gr, err = client.UpdateResponder(gr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "resources.UpdateFuture", "Result", gr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -692,7 +737,6 @@ func (client Client) UpdateSender(req *http.Request) (future UpdateFuture, err e
 func (client Client) UpdateResponder(resp *http.Response) (result GenericResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

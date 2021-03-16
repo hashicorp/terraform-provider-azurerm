@@ -80,6 +80,7 @@ func (client FunctionsClient) CreateOrReplace(ctx context.Context, function Func
 	result, err = client.CreateOrReplaceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.FunctionsClient", "CreateOrReplace", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -128,7 +129,6 @@ func (client FunctionsClient) CreateOrReplaceSender(req *http.Request) (*http.Re
 func (client FunctionsClient) CreateOrReplaceResponder(resp *http.Response) (result Function, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -169,6 +169,7 @@ func (client FunctionsClient) Delete(ctx context.Context, resourceGroupName stri
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.FunctionsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -207,7 +208,6 @@ func (client FunctionsClient) DeleteSender(req *http.Request) (*http.Response, e
 func (client FunctionsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -247,6 +247,7 @@ func (client FunctionsClient) Get(ctx context.Context, resourceGroupName string,
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.FunctionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -285,7 +286,6 @@ func (client FunctionsClient) GetSender(req *http.Request) (*http.Response, erro
 func (client FunctionsClient) GetResponder(resp *http.Response) (result Function, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -329,6 +329,11 @@ func (client FunctionsClient) ListByStreamingJob(ctx context.Context, resourceGr
 	result.flr, err = client.ListByStreamingJobResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.FunctionsClient", "ListByStreamingJob", resp, "Failure responding to request")
+		return
+	}
+	if result.flr.hasNextLink() && result.flr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -369,7 +374,6 @@ func (client FunctionsClient) ListByStreamingJobSender(req *http.Request) (*http
 func (client FunctionsClient) ListByStreamingJobResponder(resp *http.Response) (result FunctionListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -449,6 +453,7 @@ func (client FunctionsClient) RetrieveDefaultDefinition(ctx context.Context, res
 	result, err = client.RetrieveDefaultDefinitionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.FunctionsClient", "RetrieveDefaultDefinition", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -492,7 +497,6 @@ func (client FunctionsClient) RetrieveDefaultDefinitionSender(req *http.Request)
 func (client FunctionsClient) RetrieveDefaultDefinitionResponder(resp *http.Response) (result Function, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -517,8 +521,8 @@ func (client FunctionsClient) Test(ctx context.Context, resourceGroupName string
 		ctx = tracing.StartSpan(ctx, fqdn+"/FunctionsClient.Test")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -531,7 +535,7 @@ func (client FunctionsClient) Test(ctx context.Context, resourceGroupName string
 
 	result, err = client.TestSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "streamanalytics.FunctionsClient", "Test", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "streamanalytics.FunctionsClient", "Test", nil, "Failure sending request")
 		return
 	}
 
@@ -573,7 +577,33 @@ func (client FunctionsClient) TestSender(req *http.Request) (future FunctionsTes
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client FunctionsClient) (rts ResourceTestStatus, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "streamanalytics.FunctionsTestFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("streamanalytics.FunctionsTestFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		rts.Response.Response, err = future.GetResult(sender)
+		if rts.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "streamanalytics.FunctionsTestFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && rts.Response.Response.StatusCode != http.StatusNoContent {
+			rts, err = client.TestResponder(rts.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "streamanalytics.FunctionsTestFuture", "Result", rts.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -582,7 +612,6 @@ func (client FunctionsClient) TestSender(req *http.Request) (future FunctionsTes
 func (client FunctionsClient) TestResponder(resp *http.Response) (result ResourceTestStatus, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -630,6 +659,7 @@ func (client FunctionsClient) Update(ctx context.Context, function Function, res
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.FunctionsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -674,7 +704,6 @@ func (client FunctionsClient) UpdateSender(req *http.Request) (*http.Response, e
 func (client FunctionsClient) UpdateResponder(resp *http.Response) (result Function, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

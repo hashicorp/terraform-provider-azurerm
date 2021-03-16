@@ -74,6 +74,7 @@ func (client ExposureControlClient) GetFeatureValue(ctx context.Context, locatio
 	result, err = client.GetFeatureValueResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.ExposureControlClient", "GetFeatureValue", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -112,7 +113,6 @@ func (client ExposureControlClient) GetFeatureValueSender(req *http.Request) (*h
 func (client ExposureControlClient) GetFeatureValueResponder(resp *http.Response) (result ExposureControlResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -164,6 +164,7 @@ func (client ExposureControlClient) GetFeatureValueByFactory(ctx context.Context
 	result, err = client.GetFeatureValueByFactoryResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.ExposureControlClient", "GetFeatureValueByFactory", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -203,7 +204,99 @@ func (client ExposureControlClient) GetFeatureValueByFactorySender(req *http.Req
 func (client ExposureControlClient) GetFeatureValueByFactoryResponder(resp *http.Response) (result ExposureControlResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// QueryFeatureValuesByFactory get list of exposure control features for specific factory.
+// Parameters:
+// resourceGroupName - the resource group name.
+// factoryName - the factory name.
+// exposureControlBatchRequest - the exposure control request for list of features.
+func (client ExposureControlClient) QueryFeatureValuesByFactory(ctx context.Context, resourceGroupName string, factoryName string, exposureControlBatchRequest ExposureControlBatchRequest) (result ExposureControlBatchResponse, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ExposureControlClient.QueryFeatureValuesByFactory")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: factoryName,
+			Constraints: []validation.Constraint{{Target: "factoryName", Name: validation.MaxLength, Rule: 63, Chain: nil},
+				{Target: "factoryName", Name: validation.MinLength, Rule: 3, Chain: nil},
+				{Target: "factoryName", Name: validation.Pattern, Rule: `^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$`, Chain: nil}}},
+		{TargetValue: exposureControlBatchRequest,
+			Constraints: []validation.Constraint{{Target: "exposureControlBatchRequest.ExposureControlRequests", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("datafactory.ExposureControlClient", "QueryFeatureValuesByFactory", err.Error())
+	}
+
+	req, err := client.QueryFeatureValuesByFactoryPreparer(ctx, resourceGroupName, factoryName, exposureControlBatchRequest)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "datafactory.ExposureControlClient", "QueryFeatureValuesByFactory", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.QueryFeatureValuesByFactorySender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "datafactory.ExposureControlClient", "QueryFeatureValuesByFactory", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.QueryFeatureValuesByFactoryResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "datafactory.ExposureControlClient", "QueryFeatureValuesByFactory", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// QueryFeatureValuesByFactoryPreparer prepares the QueryFeatureValuesByFactory request.
+func (client ExposureControlClient) QueryFeatureValuesByFactoryPreparer(ctx context.Context, resourceGroupName string, factoryName string, exposureControlBatchRequest ExposureControlBatchRequest) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"factoryName":       autorest.Encode("path", factoryName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2018-06-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DataFactory/factories/{factoryName}/queryFeaturesValue", pathParameters),
+		autorest.WithJSON(exposureControlBatchRequest),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// QueryFeatureValuesByFactorySender sends the QueryFeatureValuesByFactory request. The method will close the
+// http.Response Body if it receives an error.
+func (client ExposureControlClient) QueryFeatureValuesByFactorySender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// QueryFeatureValuesByFactoryResponder handles the response to the QueryFeatureValuesByFactory request. The method always
+// closes the http.Response Body.
+func (client ExposureControlClient) QueryFeatureValuesByFactoryResponder(resp *http.Response) (result ExposureControlBatchResponse, err error) {
+	err = autorest.Respond(
+		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

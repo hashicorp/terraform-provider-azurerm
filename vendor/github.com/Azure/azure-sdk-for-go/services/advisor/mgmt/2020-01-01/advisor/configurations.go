@@ -72,6 +72,7 @@ func (client ConfigurationsClient) CreateInResourceGroup(ctx context.Context, co
 	result, err = client.CreateInResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "advisor.ConfigurationsClient", "CreateInResourceGroup", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -111,7 +112,6 @@ func (client ConfigurationsClient) CreateInResourceGroupSender(req *http.Request
 func (client ConfigurationsClient) CreateInResourceGroupResponder(resp *http.Response) (result ConfigData, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -150,6 +150,7 @@ func (client ConfigurationsClient) CreateInSubscription(ctx context.Context, con
 	result, err = client.CreateInSubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "advisor.ConfigurationsClient", "CreateInSubscription", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -188,7 +189,6 @@ func (client ConfigurationsClient) CreateInSubscriptionSender(req *http.Request)
 func (client ConfigurationsClient) CreateInSubscriptionResponder(resp *http.Response) (result ConfigData, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -226,6 +226,7 @@ func (client ConfigurationsClient) ListByResourceGroup(ctx context.Context, reso
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "advisor.ConfigurationsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -262,7 +263,6 @@ func (client ConfigurationsClient) ListByResourceGroupSender(req *http.Request) 
 func (client ConfigurationsClient) ListByResourceGroupResponder(resp *http.Response) (result ConfigurationListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -300,6 +300,11 @@ func (client ConfigurationsClient) ListBySubscription(ctx context.Context) (resu
 	result.clr, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "advisor.ConfigurationsClient", "ListBySubscription", resp, "Failure responding to request")
+		return
+	}
+	if result.clr.hasNextLink() && result.clr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -335,7 +340,6 @@ func (client ConfigurationsClient) ListBySubscriptionSender(req *http.Request) (
 func (client ConfigurationsClient) ListBySubscriptionResponder(resp *http.Response) (result ConfigurationListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

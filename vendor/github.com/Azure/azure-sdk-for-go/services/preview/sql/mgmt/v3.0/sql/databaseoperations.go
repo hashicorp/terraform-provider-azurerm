@@ -22,7 +22,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/tracing"
-	"github.com/satori/go.uuid"
+	"github.com/gofrs/uuid"
 	"net/http"
 )
 
@@ -79,6 +79,7 @@ func (client DatabaseOperationsClient) Cancel(ctx context.Context, resourceGroup
 	result, err = client.CancelResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.DatabaseOperationsClient", "Cancel", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -118,7 +119,6 @@ func (client DatabaseOperationsClient) CancelSender(req *http.Request) (*http.Re
 func (client DatabaseOperationsClient) CancelResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -159,6 +159,11 @@ func (client DatabaseOperationsClient) ListByDatabase(ctx context.Context, resou
 	result.dolr, err = client.ListByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.DatabaseOperationsClient", "ListByDatabase", resp, "Failure responding to request")
+		return
+	}
+	if result.dolr.hasNextLink() && result.dolr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -197,7 +202,6 @@ func (client DatabaseOperationsClient) ListByDatabaseSender(req *http.Request) (
 func (client DatabaseOperationsClient) ListByDatabaseResponder(resp *http.Response) (result DatabaseOperationListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

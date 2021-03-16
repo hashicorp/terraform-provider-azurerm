@@ -12,17 +12,16 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/azuresdkhacks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmNetworkInterfaceSecurityGroupAssociation() *schema.Resource {
+func resourceNetworkInterfaceSecurityGroupAssociation() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmNetworkInterfaceSecurityGroupAssociationCreate,
-		Read:   resourceArmNetworkInterfaceSecurityGroupAssociationRead,
-		Delete: resourceArmNetworkInterfaceSecurityGroupAssociationDelete,
+		Create: resourceNetworkInterfaceSecurityGroupAssociationCreate,
+		Read:   resourceNetworkInterfaceSecurityGroupAssociationRead,
+		Delete: resourceNetworkInterfaceSecurityGroupAssociationDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -52,7 +51,7 @@ func resourceArmNetworkInterfaceSecurityGroupAssociation() *schema.Resource {
 	}
 }
 
-func resourceArmNetworkInterfaceSecurityGroupAssociationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceSecurityGroupAssociationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.InterfacesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -98,10 +97,8 @@ func resourceArmNetworkInterfaceSecurityGroupAssociationCreate(d *schema.Resourc
 
 	// first double-check it doesn't exist
 	resourceId := fmt.Sprintf("%s|%s", networkInterfaceId, networkSecurityGroupId)
-	if features.ShouldResourcesBeImported() {
-		if props.NetworkSecurityGroup != nil {
-			return tf.ImportAsExistsError("azurerm_network_interface_security_group_association", resourceId)
-		}
+	if props.NetworkSecurityGroup != nil {
+		return tf.ImportAsExistsError("azurerm_network_interface_security_group_association", resourceId)
 	}
 
 	props.NetworkSecurityGroup = &network.SecurityGroup{
@@ -119,10 +116,10 @@ func resourceArmNetworkInterfaceSecurityGroupAssociationCreate(d *schema.Resourc
 
 	d.SetId(resourceId)
 
-	return resourceArmNetworkInterfaceSecurityGroupAssociationRead(d, meta)
+	return resourceNetworkInterfaceSecurityGroupAssociationRead(d, meta)
 }
 
-func resourceArmNetworkInterfaceSecurityGroupAssociationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceSecurityGroupAssociationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.InterfacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -143,7 +140,9 @@ func resourceArmNetworkInterfaceSecurityGroupAssociationRead(d *schema.ResourceD
 	read, err := client.Get(ctx, resourceGroup, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(read.Response) {
-			return fmt.Errorf("Network Interface %q (Resource Group %q) was not found!", name, resourceGroup)
+			log.Printf("Network Interface %q (Resource Group %q) was not found - removing from state!", name, resourceGroup)
+			d.SetId("")
+			return nil
 		}
 
 		return fmt.Errorf("Error retrieving Network Interface %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -168,7 +167,7 @@ func resourceArmNetworkInterfaceSecurityGroupAssociationRead(d *schema.ResourceD
 	return nil
 }
 
-func resourceArmNetworkInterfaceSecurityGroupAssociationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceSecurityGroupAssociationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.InterfacesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

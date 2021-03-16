@@ -80,6 +80,7 @@ func (client IotDpsResourceClient) CheckProvisioningServiceNameAvailability(ctx 
 	result, err = client.CheckProvisioningServiceNameAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "iothub.IotDpsResourceClient", "CheckProvisioningServiceNameAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -117,7 +118,6 @@ func (client IotDpsResourceClient) CheckProvisioningServiceNameAvailabilitySende
 func (client IotDpsResourceClient) CheckProvisioningServiceNameAvailabilityResponder(resp *http.Response) (result NameAvailabilityInfo, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -137,8 +137,8 @@ func (client IotDpsResourceClient) CreateOrUpdate(ctx context.Context, resourceG
 		ctx = tracing.StartSpan(ctx, fqdn+"/IotDpsResourceClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -158,7 +158,7 @@ func (client IotDpsResourceClient) CreateOrUpdate(ctx context.Context, resourceG
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "iothub.IotDpsResourceClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "iothub.IotDpsResourceClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -196,7 +196,33 @@ func (client IotDpsResourceClient) CreateOrUpdateSender(req *http.Request) (futu
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client IotDpsResourceClient) (psd ProvisioningServiceDescription, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "iothub.IotDpsResourceCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("iothub.IotDpsResourceCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		psd.Response.Response, err = future.GetResult(sender)
+		if psd.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "iothub.IotDpsResourceCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && psd.Response.Response.StatusCode != http.StatusNoContent {
+			psd, err = client.CreateOrUpdateResponder(psd.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "iothub.IotDpsResourceCreateOrUpdateFuture", "Result", psd.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -205,7 +231,6 @@ func (client IotDpsResourceClient) CreateOrUpdateSender(req *http.Request) (futu
 func (client IotDpsResourceClient) CreateOrUpdateResponder(resp *http.Response) (result ProvisioningServiceDescription, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -222,8 +247,8 @@ func (client IotDpsResourceClient) Delete(ctx context.Context, provisioningServi
 		ctx = tracing.StartSpan(ctx, fqdn+"/IotDpsResourceClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -236,7 +261,7 @@ func (client IotDpsResourceClient) Delete(ctx context.Context, provisioningServi
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "iothub.IotDpsResourceClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "iothub.IotDpsResourceClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -272,7 +297,23 @@ func (client IotDpsResourceClient) DeleteSender(req *http.Request) (future IotDp
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client IotDpsResourceClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "iothub.IotDpsResourceDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("iothub.IotDpsResourceDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -281,7 +322,6 @@ func (client IotDpsResourceClient) DeleteSender(req *http.Request) (future IotDp
 func (client IotDpsResourceClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent, http.StatusNotFound),
 		autorest.ByClosing())
 	result.Response = resp
@@ -319,6 +359,7 @@ func (client IotDpsResourceClient) Get(ctx context.Context, provisioningServiceN
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "iothub.IotDpsResourceClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -356,7 +397,6 @@ func (client IotDpsResourceClient) GetSender(req *http.Request) (*http.Response,
 func (client IotDpsResourceClient) GetResponder(resp *http.Response) (result ProvisioningServiceDescription, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -399,6 +439,7 @@ func (client IotDpsResourceClient) GetOperationResult(ctx context.Context, opera
 	result, err = client.GetOperationResultResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "iothub.IotDpsResourceClient", "GetOperationResult", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -438,7 +479,6 @@ func (client IotDpsResourceClient) GetOperationResultSender(req *http.Request) (
 func (client IotDpsResourceClient) GetOperationResultResponder(resp *http.Response) (result AsyncOperationResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -477,6 +517,11 @@ func (client IotDpsResourceClient) ListByResourceGroup(ctx context.Context, reso
 	result.psdlr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "iothub.IotDpsResourceClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.psdlr.hasNextLink() && result.psdlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -513,7 +558,6 @@ func (client IotDpsResourceClient) ListByResourceGroupSender(req *http.Request) 
 func (client IotDpsResourceClient) ListByResourceGroupResponder(resp *http.Response) (result ProvisioningServiceDescriptionListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -587,6 +631,11 @@ func (client IotDpsResourceClient) ListBySubscription(ctx context.Context) (resu
 	result.psdlr, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "iothub.IotDpsResourceClient", "ListBySubscription", resp, "Failure responding to request")
+		return
+	}
+	if result.psdlr.hasNextLink() && result.psdlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -622,7 +671,6 @@ func (client IotDpsResourceClient) ListBySubscriptionSender(req *http.Request) (
 func (client IotDpsResourceClient) ListBySubscriptionResponder(resp *http.Response) (result ProvisioningServiceDescriptionListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -699,6 +747,11 @@ func (client IotDpsResourceClient) ListKeys(ctx context.Context, provisioningSer
 	result.sasarlr, err = client.ListKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "iothub.IotDpsResourceClient", "ListKeys", resp, "Failure responding to request")
+		return
+	}
+	if result.sasarlr.hasNextLink() && result.sasarlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -736,7 +789,6 @@ func (client IotDpsResourceClient) ListKeysSender(req *http.Request) (*http.Resp
 func (client IotDpsResourceClient) ListKeysResponder(resp *http.Response) (result SharedAccessSignatureAuthorizationRuleListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -813,6 +865,7 @@ func (client IotDpsResourceClient) ListKeysForKeyName(ctx context.Context, provi
 	result, err = client.ListKeysForKeyNameResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "iothub.IotDpsResourceClient", "ListKeysForKeyName", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -851,7 +904,6 @@ func (client IotDpsResourceClient) ListKeysForKeyNameSender(req *http.Request) (
 func (client IotDpsResourceClient) ListKeysForKeyNameResponder(resp *http.Response) (result SharedAccessSignatureAuthorizationRuleAccessRightsDescription, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -891,6 +943,11 @@ func (client IotDpsResourceClient) ListValidSkus(ctx context.Context, provisioni
 	result.idsdlr, err = client.ListValidSkusResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "iothub.IotDpsResourceClient", "ListValidSkus", resp, "Failure responding to request")
+		return
+	}
+	if result.idsdlr.hasNextLink() && result.idsdlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -928,7 +985,6 @@ func (client IotDpsResourceClient) ListValidSkusSender(req *http.Request) (*http
 func (client IotDpsResourceClient) ListValidSkusResponder(resp *http.Response) (result IotDpsSkuDefinitionListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -983,8 +1039,8 @@ func (client IotDpsResourceClient) Update(ctx context.Context, resourceGroupName
 		ctx = tracing.StartSpan(ctx, fqdn+"/IotDpsResourceClient.Update")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -997,7 +1053,7 @@ func (client IotDpsResourceClient) Update(ctx context.Context, resourceGroupName
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "iothub.IotDpsResourceClient", "Update", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "iothub.IotDpsResourceClient", "Update", nil, "Failure sending request")
 		return
 	}
 
@@ -1035,7 +1091,33 @@ func (client IotDpsResourceClient) UpdateSender(req *http.Request) (future IotDp
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client IotDpsResourceClient) (psd ProvisioningServiceDescription, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "iothub.IotDpsResourceUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("iothub.IotDpsResourceUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		psd.Response.Response, err = future.GetResult(sender)
+		if psd.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "iothub.IotDpsResourceUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && psd.Response.Response.StatusCode != http.StatusNoContent {
+			psd, err = client.UpdateResponder(psd.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "iothub.IotDpsResourceUpdateFuture", "Result", psd.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -1044,7 +1126,6 @@ func (client IotDpsResourceClient) UpdateSender(req *http.Request) (future IotDp
 func (client IotDpsResourceClient) UpdateResponder(resp *http.Response) (result ProvisioningServiceDescription, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

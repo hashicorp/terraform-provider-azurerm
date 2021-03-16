@@ -6,46 +6,44 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccDataSourceAzureRMDevTestLab_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_dev_test_lab", "test")
+type AzureRMDevTestLabDataSource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceDevTestLab_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "storage_type", "Premium"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-				),
-			},
+func TestAccAzureRMDevTestLabDataSource_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_dev_test_lab", "test")
+	r := AzureRMDevTestLabDataSource{}
+
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("storage_type").HasValue("Premium"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+			),
 		},
 	})
 }
 
-func TestAccDataSourceAzureRMDevTestLab_complete(t *testing.T) {
+func TestAccAzureRMDevTestLabDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_dev_test_lab", "test")
+	r := AzureRMDevTestLabDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceDevTestLab_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "storage_type", "Standard"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.Hello", "World"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("storage_type").HasValue("Standard"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.Hello").HasValue("World"),
+			),
 		},
 	})
 }
 
-func testAccDataSourceDevTestLab_basic(data acceptance.TestData) string {
+func (AzureRMDevTestLabDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -69,7 +67,7 @@ data "azurerm_dev_test_lab" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccDataSourceDevTestLab_complete(data acceptance.TestData) string {
+func (AzureRMDevTestLabDataSource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -84,6 +84,11 @@ func (client BaseClient) ListOperations(ctx context.Context) (result OperationLi
 	result.olr, err = client.ListOperationsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managedapplications.BaseClient", "ListOperations", resp, "Failure responding to request")
+		return
+	}
+	if result.olr.hasNextLink() && result.olr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -115,7 +120,6 @@ func (client BaseClient) ListOperationsSender(req *http.Request) (*http.Response
 func (client BaseClient) ListOperationsResponder(resp *http.Response) (result OperationListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

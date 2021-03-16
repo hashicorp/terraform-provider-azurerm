@@ -76,6 +76,7 @@ func (client SuppressionsClient) Create(ctx context.Context, resourceURI string,
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "advisor.SuppressionsClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -115,7 +116,6 @@ func (client SuppressionsClient) CreateSender(req *http.Request) (*http.Response
 func (client SuppressionsClient) CreateResponder(resp *http.Response) (result SuppressionContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -157,6 +157,7 @@ func (client SuppressionsClient) Delete(ctx context.Context, resourceURI string,
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "advisor.SuppressionsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -194,7 +195,6 @@ func (client SuppressionsClient) DeleteSender(req *http.Request) (*http.Response
 func (client SuppressionsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -207,7 +207,7 @@ func (client SuppressionsClient) DeleteResponder(resp *http.Response) (result au
 // recommendation applies.
 // recommendationID - the recommendation ID.
 // name - the name of the suppression.
-func (client SuppressionsClient) Get(ctx context.Context, resourceURI string, recommendationID string, name string) (result SuppressionContract, err error) {
+func (client SuppressionsClient) Get(ctx context.Context, resourceURI string, recommendationID string, name string) (result SetObject, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SuppressionsClient.Get")
 		defer func() {
@@ -234,6 +234,7 @@ func (client SuppressionsClient) Get(ctx context.Context, resourceURI string, re
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "advisor.SuppressionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -268,12 +269,11 @@ func (client SuppressionsClient) GetSender(req *http.Request) (*http.Response, e
 
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
-func (client SuppressionsClient) GetResponder(resp *http.Response) (result SuppressionContract, err error) {
+func (client SuppressionsClient) GetResponder(resp *http.Response) (result SetObject, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingJSON(&result),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
+		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
 	return
@@ -312,6 +312,11 @@ func (client SuppressionsClient) List(ctx context.Context, top *int32, skipToken
 	result.sclr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "advisor.SuppressionsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.sclr.hasNextLink() && result.sclr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -353,7 +358,6 @@ func (client SuppressionsClient) ListSender(req *http.Request) (*http.Response, 
 func (client SuppressionsClient) ListResponder(resp *http.Response) (result SuppressionContractListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

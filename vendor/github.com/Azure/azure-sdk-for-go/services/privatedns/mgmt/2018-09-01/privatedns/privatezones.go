@@ -56,8 +56,8 @@ func (client PrivateZonesClient) CreateOrUpdate(ctx context.Context, resourceGro
 		ctx = tracing.StartSpan(ctx, fqdn+"/PrivateZonesClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -70,7 +70,7 @@ func (client PrivateZonesClient) CreateOrUpdate(ctx context.Context, resourceGro
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "privatedns.PrivateZonesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "privatedns.PrivateZonesClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -116,7 +116,33 @@ func (client PrivateZonesClient) CreateOrUpdateSender(req *http.Request) (future
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client PrivateZonesClient) (pz PrivateZone, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "privatedns.PrivateZonesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("privatedns.PrivateZonesCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		pz.Response.Response, err = future.GetResult(sender)
+		if pz.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "privatedns.PrivateZonesCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && pz.Response.Response.StatusCode != http.StatusNoContent {
+			pz, err = client.CreateOrUpdateResponder(pz.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "privatedns.PrivateZonesCreateOrUpdateFuture", "Result", pz.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -125,7 +151,6 @@ func (client PrivateZonesClient) CreateOrUpdateSender(req *http.Request) (future
 func (client PrivateZonesClient) CreateOrUpdateResponder(resp *http.Response) (result PrivateZone, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -145,8 +170,8 @@ func (client PrivateZonesClient) Delete(ctx context.Context, resourceGroupName s
 		ctx = tracing.StartSpan(ctx, fqdn+"/PrivateZonesClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -159,7 +184,7 @@ func (client PrivateZonesClient) Delete(ctx context.Context, resourceGroupName s
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "privatedns.PrivateZonesClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "privatedns.PrivateZonesClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -199,7 +224,23 @@ func (client PrivateZonesClient) DeleteSender(req *http.Request) (future Private
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client PrivateZonesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "privatedns.PrivateZonesDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("privatedns.PrivateZonesDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -208,7 +249,6 @@ func (client PrivateZonesClient) DeleteSender(req *http.Request) (future Private
 func (client PrivateZonesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -247,6 +287,7 @@ func (client PrivateZonesClient) Get(ctx context.Context, resourceGroupName stri
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "privatedns.PrivateZonesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -284,7 +325,6 @@ func (client PrivateZonesClient) GetSender(req *http.Request) (*http.Response, e
 func (client PrivateZonesClient) GetResponder(resp *http.Response) (result PrivateZone, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -323,6 +363,11 @@ func (client PrivateZonesClient) List(ctx context.Context, top *int32) (result P
 	result.pzlr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "privatedns.PrivateZonesClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.pzlr.hasNextLink() && result.pzlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -361,7 +406,6 @@ func (client PrivateZonesClient) ListSender(req *http.Request) (*http.Response, 
 func (client PrivateZonesClient) ListResponder(resp *http.Response) (result PrivateZoneListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -438,6 +482,11 @@ func (client PrivateZonesClient) ListByResourceGroup(ctx context.Context, resour
 	result.pzlr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "privatedns.PrivateZonesClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.pzlr.hasNextLink() && result.pzlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -477,7 +526,6 @@ func (client PrivateZonesClient) ListByResourceGroupSender(req *http.Request) (*
 func (client PrivateZonesClient) ListByResourceGroupResponder(resp *http.Response) (result PrivateZoneListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -534,8 +582,8 @@ func (client PrivateZonesClient) Update(ctx context.Context, resourceGroupName s
 		ctx = tracing.StartSpan(ctx, fqdn+"/PrivateZonesClient.Update")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -548,7 +596,7 @@ func (client PrivateZonesClient) Update(ctx context.Context, resourceGroupName s
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "privatedns.PrivateZonesClient", "Update", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "privatedns.PrivateZonesClient", "Update", nil, "Failure sending request")
 		return
 	}
 
@@ -590,7 +638,33 @@ func (client PrivateZonesClient) UpdateSender(req *http.Request) (future Private
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client PrivateZonesClient) (pz PrivateZone, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "privatedns.PrivateZonesUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("privatedns.PrivateZonesUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		pz.Response.Response, err = future.GetResult(sender)
+		if pz.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "privatedns.PrivateZonesUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && pz.Response.Response.StatusCode != http.StatusNoContent {
+			pz, err = client.UpdateResponder(pz.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "privatedns.PrivateZonesUpdateFuture", "Result", pz.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -599,7 +673,6 @@ func (client PrivateZonesClient) UpdateSender(req *http.Request) (future Private
 func (client PrivateZonesClient) UpdateResponder(resp *http.Response) (result PrivateZone, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

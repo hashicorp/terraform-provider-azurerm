@@ -55,8 +55,8 @@ func (client ConfigurationsClient) CreateOrUpdate(ctx context.Context, resourceG
 		ctx = tracing.StartSpan(ctx, fqdn+"/ConfigurationsClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -79,7 +79,7 @@ func (client ConfigurationsClient) CreateOrUpdate(ctx context.Context, resourceG
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "mariadb.ConfigurationsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "mariadb.ConfigurationsClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -104,7 +104,7 @@ func (client ConfigurationsClient) CreateOrUpdatePreparer(ctx context.Context, r
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DBforMariaDB/servers/{serverName}/configurations/{configurationName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DBForMariaDB/servers/{serverName}/configurations/{configurationName}", pathParameters),
 		autorest.WithJSON(parameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -118,7 +118,33 @@ func (client ConfigurationsClient) CreateOrUpdateSender(req *http.Request) (futu
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ConfigurationsClient) (c Configuration, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "mariadb.ConfigurationsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("mariadb.ConfigurationsCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		c.Response.Response, err = future.GetResult(sender)
+		if c.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "mariadb.ConfigurationsCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && c.Response.Response.StatusCode != http.StatusNoContent {
+			c, err = client.CreateOrUpdateResponder(c.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "mariadb.ConfigurationsCreateOrUpdateFuture", "Result", c.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -127,7 +153,6 @@ func (client ConfigurationsClient) CreateOrUpdateSender(req *http.Request) (futu
 func (client ConfigurationsClient) CreateOrUpdateResponder(resp *http.Response) (result Configuration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -177,6 +202,7 @@ func (client ConfigurationsClient) Get(ctx context.Context, resourceGroupName st
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mariadb.ConfigurationsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -199,7 +225,7 @@ func (client ConfigurationsClient) GetPreparer(ctx context.Context, resourceGrou
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DBforMariaDB/servers/{serverName}/configurations/{configurationName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DBForMariaDB/servers/{serverName}/configurations/{configurationName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -215,7 +241,6 @@ func (client ConfigurationsClient) GetSender(req *http.Request) (*http.Response,
 func (client ConfigurationsClient) GetResponder(resp *http.Response) (result Configuration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -264,6 +289,7 @@ func (client ConfigurationsClient) ListByServer(ctx context.Context, resourceGro
 	result, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mariadb.ConfigurationsClient", "ListByServer", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -285,7 +311,7 @@ func (client ConfigurationsClient) ListByServerPreparer(ctx context.Context, res
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DBforMariaDB/servers/{serverName}/configurations", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DBForMariaDB/servers/{serverName}/configurations", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -301,7 +327,6 @@ func (client ConfigurationsClient) ListByServerSender(req *http.Request) (*http.
 func (client ConfigurationsClient) ListByServerResponder(resp *http.Response) (result ConfigurationListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

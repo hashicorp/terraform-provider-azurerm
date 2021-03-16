@@ -53,8 +53,8 @@ func (client VpnConnectionsClient) CreateOrUpdate(ctx context.Context, resourceG
 		ctx = tracing.StartSpan(ctx, fqdn+"/VpnConnectionsClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -67,7 +67,7 @@ func (client VpnConnectionsClient) CreateOrUpdate(ctx context.Context, resourceG
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "network.VpnConnectionsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "network.VpnConnectionsClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -107,7 +107,33 @@ func (client VpnConnectionsClient) CreateOrUpdateSender(req *http.Request) (futu
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client VpnConnectionsClient) (vc VpnConnection, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "network.VpnConnectionsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("network.VpnConnectionsCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		vc.Response.Response, err = future.GetResult(sender)
+		if vc.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "network.VpnConnectionsCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && vc.Response.Response.StatusCode != http.StatusNoContent {
+			vc, err = client.CreateOrUpdateResponder(vc.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "network.VpnConnectionsCreateOrUpdateFuture", "Result", vc.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -116,7 +142,6 @@ func (client VpnConnectionsClient) CreateOrUpdateSender(req *http.Request) (futu
 func (client VpnConnectionsClient) CreateOrUpdateResponder(resp *http.Response) (result VpnConnection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -134,8 +159,8 @@ func (client VpnConnectionsClient) Delete(ctx context.Context, resourceGroupName
 		ctx = tracing.StartSpan(ctx, fqdn+"/VpnConnectionsClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -148,7 +173,7 @@ func (client VpnConnectionsClient) Delete(ctx context.Context, resourceGroupName
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "network.VpnConnectionsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "network.VpnConnectionsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -185,7 +210,23 @@ func (client VpnConnectionsClient) DeleteSender(req *http.Request) (future VpnCo
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client VpnConnectionsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "network.VpnConnectionsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("network.VpnConnectionsDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -194,7 +235,6 @@ func (client VpnConnectionsClient) DeleteSender(req *http.Request) (future VpnCo
 func (client VpnConnectionsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -233,6 +273,7 @@ func (client VpnConnectionsClient) Get(ctx context.Context, resourceGroupName st
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VpnConnectionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -271,7 +312,6 @@ func (client VpnConnectionsClient) GetSender(req *http.Request) (*http.Response,
 func (client VpnConnectionsClient) GetResponder(resp *http.Response) (result VpnConnection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -311,6 +351,11 @@ func (client VpnConnectionsClient) ListByVpnGateway(ctx context.Context, resourc
 	result.lvcr, err = client.ListByVpnGatewayResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VpnConnectionsClient", "ListByVpnGateway", resp, "Failure responding to request")
+		return
+	}
+	if result.lvcr.hasNextLink() && result.lvcr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -348,7 +393,6 @@ func (client VpnConnectionsClient) ListByVpnGatewaySender(req *http.Request) (*h
 func (client VpnConnectionsClient) ListByVpnGatewayResponder(resp *http.Response) (result ListVpnConnectionsResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

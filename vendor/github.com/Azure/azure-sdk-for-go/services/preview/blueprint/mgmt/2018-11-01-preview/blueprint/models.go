@@ -30,131 +30,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/blueprint/mgmt/2018-11-01-preview/blueprint"
 
-// AssignmentLockMode enumerates the values for assignment lock mode.
-type AssignmentLockMode string
-
-const (
-	// AllResourcesDoNotDelete ...
-	AllResourcesDoNotDelete AssignmentLockMode = "AllResourcesDoNotDelete"
-	// AllResourcesReadOnly ...
-	AllResourcesReadOnly AssignmentLockMode = "AllResourcesReadOnly"
-	// None ...
-	None AssignmentLockMode = "None"
-)
-
-// PossibleAssignmentLockModeValues returns an array of possible values for the AssignmentLockMode const type.
-func PossibleAssignmentLockModeValues() []AssignmentLockMode {
-	return []AssignmentLockMode{AllResourcesDoNotDelete, AllResourcesReadOnly, None}
-}
-
-// AssignmentProvisioningState enumerates the values for assignment provisioning state.
-type AssignmentProvisioningState string
-
-const (
-	// Canceled ...
-	Canceled AssignmentProvisioningState = "canceled"
-	// Cancelling ...
-	Cancelling AssignmentProvisioningState = "cancelling"
-	// Creating ...
-	Creating AssignmentProvisioningState = "creating"
-	// Deleting ...
-	Deleting AssignmentProvisioningState = "deleting"
-	// Deploying ...
-	Deploying AssignmentProvisioningState = "deploying"
-	// Failed ...
-	Failed AssignmentProvisioningState = "failed"
-	// Locking ...
-	Locking AssignmentProvisioningState = "locking"
-	// Succeeded ...
-	Succeeded AssignmentProvisioningState = "succeeded"
-	// Validating ...
-	Validating AssignmentProvisioningState = "validating"
-	// Waiting ...
-	Waiting AssignmentProvisioningState = "waiting"
-)
-
-// PossibleAssignmentProvisioningStateValues returns an array of possible values for the AssignmentProvisioningState const type.
-func PossibleAssignmentProvisioningStateValues() []AssignmentProvisioningState {
-	return []AssignmentProvisioningState{Canceled, Cancelling, Creating, Deleting, Deploying, Failed, Locking, Succeeded, Validating, Waiting}
-}
-
-// Kind enumerates the values for kind.
-type Kind string
-
-const (
-	// KindArtifact ...
-	KindArtifact Kind = "Artifact"
-	// KindPolicyAssignment ...
-	KindPolicyAssignment Kind = "policyAssignment"
-	// KindRoleAssignment ...
-	KindRoleAssignment Kind = "roleAssignment"
-	// KindTemplate ...
-	KindTemplate Kind = "template"
-)
-
-// PossibleKindValues returns an array of possible values for the Kind const type.
-func PossibleKindValues() []Kind {
-	return []Kind{KindArtifact, KindPolicyAssignment, KindRoleAssignment, KindTemplate}
-}
-
-// ManagedServiceIdentityType enumerates the values for managed service identity type.
-type ManagedServiceIdentityType string
-
-const (
-	// ManagedServiceIdentityTypeNone ...
-	ManagedServiceIdentityTypeNone ManagedServiceIdentityType = "None"
-	// ManagedServiceIdentityTypeSystemAssigned ...
-	ManagedServiceIdentityTypeSystemAssigned ManagedServiceIdentityType = "SystemAssigned"
-	// ManagedServiceIdentityTypeUserAssigned ...
-	ManagedServiceIdentityTypeUserAssigned ManagedServiceIdentityType = "UserAssigned"
-)
-
-// PossibleManagedServiceIdentityTypeValues returns an array of possible values for the ManagedServiceIdentityType const type.
-func PossibleManagedServiceIdentityTypeValues() []ManagedServiceIdentityType {
-	return []ManagedServiceIdentityType{ManagedServiceIdentityTypeNone, ManagedServiceIdentityTypeSystemAssigned, ManagedServiceIdentityTypeUserAssigned}
-}
-
-// TargetScope enumerates the values for target scope.
-type TargetScope string
-
-const (
-	// ManagementGroup The blueprint targets a management group during blueprint assignment. This is reserved
-	// for future use.
-	ManagementGroup TargetScope = "managementGroup"
-	// Subscription The blueprint targets a subscription during blueprint assignment.
-	Subscription TargetScope = "subscription"
-)
-
-// PossibleTargetScopeValues returns an array of possible values for the TargetScope const type.
-func PossibleTargetScopeValues() []TargetScope {
-	return []TargetScope{ManagementGroup, Subscription}
-}
-
-// TemplateParameterType enumerates the values for template parameter type.
-type TemplateParameterType string
-
-const (
-	// Array ...
-	Array TemplateParameterType = "array"
-	// Bool ...
-	Bool TemplateParameterType = "bool"
-	// Int ...
-	Int TemplateParameterType = "int"
-	// Object ...
-	Object TemplateParameterType = "object"
-	// SecureObject ...
-	SecureObject TemplateParameterType = "secureObject"
-	// SecureString ...
-	SecureString TemplateParameterType = "secureString"
-	// String ...
-	String TemplateParameterType = "string"
-)
-
-// PossibleTemplateParameterTypeValues returns an array of possible values for the TemplateParameterType const type.
-func PossibleTemplateParameterTypeValues() []TemplateParameterType {
-	return []TemplateParameterType{Array, Bool, Int, Object, SecureObject, SecureString, String}
-}
-
 // BasicArtifact represents a blueprint artifact.
 type BasicArtifact interface {
 	AsTemplateArtifact() (*TemplateArtifact, bool)
@@ -265,6 +140,15 @@ type ArtifactList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ArtifactList.
+func (al ArtifactList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if al.Value != nil {
+		objectMap["value"] = al.Value
+	}
+	return json.Marshal(objectMap)
+}
+
 // UnmarshalJSON is the custom unmarshaler for ArtifactList struct.
 func (al *ArtifactList) UnmarshalJSON(body []byte) error {
 	var m map[string]*json.RawMessage
@@ -365,10 +249,15 @@ func (al ArtifactList) IsEmpty() bool {
 	return al.Value == nil || len(*al.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (al ArtifactList) hasNextLink() bool {
+	return al.NextLink != nil && len(*al.NextLink) != 0
+}
+
 // artifactListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (al ArtifactList) artifactListPreparer(ctx context.Context) (*http.Request, error) {
-	if al.NextLink == nil || len(to.String(al.NextLink)) < 1 {
+	if !al.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -396,11 +285,16 @@ func (page *ArtifactListPage) NextWithContext(ctx context.Context) (err error) {
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.al)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.al)
+		if err != nil {
+			return err
+		}
+		page.al = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.al = next
 	return nil
 }
 
@@ -430,8 +324,11 @@ func (page ArtifactListPage) Values() []BasicArtifact {
 }
 
 // Creates a new instance of the ArtifactListPage type.
-func NewArtifactListPage(getNextPage func(context.Context, ArtifactList) (ArtifactList, error)) ArtifactListPage {
-	return ArtifactListPage{fn: getNextPage}
+func NewArtifactListPage(cur ArtifactList, getNextPage func(context.Context, ArtifactList) (ArtifactList, error)) ArtifactListPage {
+	return ArtifactListPage{
+		fn: getNextPage,
+		al: cur,
+	}
 }
 
 // ArtifactModel ...
@@ -614,6 +511,15 @@ type AssignmentList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for AssignmentList.
+func (al AssignmentList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if al.Value != nil {
+		objectMap["value"] = al.Value
+	}
+	return json.Marshal(objectMap)
+}
+
 // AssignmentListIterator provides access to a complete listing of Assignment values.
 type AssignmentListIterator struct {
 	i    int
@@ -682,10 +588,15 @@ func (al AssignmentList) IsEmpty() bool {
 	return al.Value == nil || len(*al.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (al AssignmentList) hasNextLink() bool {
+	return al.NextLink != nil && len(*al.NextLink) != 0
+}
+
 // assignmentListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (al AssignmentList) assignmentListPreparer(ctx context.Context) (*http.Request, error) {
-	if al.NextLink == nil || len(to.String(al.NextLink)) < 1 {
+	if !al.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -713,11 +624,16 @@ func (page *AssignmentListPage) NextWithContext(ctx context.Context) (err error)
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.al)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.al)
+		if err != nil {
+			return err
+		}
+		page.al = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.al = next
 	return nil
 }
 
@@ -747,13 +663,16 @@ func (page AssignmentListPage) Values() []Assignment {
 }
 
 // Creates a new instance of the AssignmentListPage type.
-func NewAssignmentListPage(getNextPage func(context.Context, AssignmentList) (AssignmentList, error)) AssignmentListPage {
-	return AssignmentListPage{fn: getNextPage}
+func NewAssignmentListPage(cur AssignmentList, getNextPage func(context.Context, AssignmentList) (AssignmentList, error)) AssignmentListPage {
+	return AssignmentListPage{
+		fn: getNextPage,
+		al: cur,
+	}
 }
 
 // AssignmentLockSettings defines how resources deployed by a blueprint assignment are locked.
 type AssignmentLockSettings struct {
-	// Mode - Lock mode. Possible values include: 'None', 'AllResourcesReadOnly', 'AllResourcesDoNotDelete'
+	// Mode - Lock mode. Possible values include: 'AssignmentLockModeNone', 'AssignmentLockModeAllResourcesReadOnly', 'AssignmentLockModeAllResourcesDoNotDelete'
 	Mode AssignmentLockMode `json:"mode,omitempty"`
 	// ExcludedPrincipals - List of AAD principals excluded from blueprint locks. Up to 5 principals are permitted.
 	ExcludedPrincipals *[]string `json:"excludedPrincipals,omitempty"`
@@ -843,6 +762,15 @@ type AssignmentOperationList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for AssignmentOperationList.
+func (aol AssignmentOperationList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if aol.Value != nil {
+		objectMap["value"] = aol.Value
+	}
+	return json.Marshal(objectMap)
+}
+
 // AssignmentOperationListIterator provides access to a complete listing of AssignmentOperation values.
 type AssignmentOperationListIterator struct {
 	i    int
@@ -911,10 +839,15 @@ func (aol AssignmentOperationList) IsEmpty() bool {
 	return aol.Value == nil || len(*aol.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (aol AssignmentOperationList) hasNextLink() bool {
+	return aol.NextLink != nil && len(*aol.NextLink) != 0
+}
+
 // assignmentOperationListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (aol AssignmentOperationList) assignmentOperationListPreparer(ctx context.Context) (*http.Request, error) {
-	if aol.NextLink == nil || len(to.String(aol.NextLink)) < 1 {
+	if !aol.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -942,11 +875,16 @@ func (page *AssignmentOperationListPage) NextWithContext(ctx context.Context) (e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.aol)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.aol)
+		if err != nil {
+			return err
+		}
+		page.aol = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.aol = next
 	return nil
 }
 
@@ -976,8 +914,11 @@ func (page AssignmentOperationListPage) Values() []AssignmentOperation {
 }
 
 // Creates a new instance of the AssignmentOperationListPage type.
-func NewAssignmentOperationListPage(getNextPage func(context.Context, AssignmentOperationList) (AssignmentOperationList, error)) AssignmentOperationListPage {
-	return AssignmentOperationListPage{fn: getNextPage}
+func NewAssignmentOperationListPage(cur AssignmentOperationList, getNextPage func(context.Context, AssignmentOperationList) (AssignmentOperationList, error)) AssignmentOperationListPage {
+	return AssignmentOperationListPage{
+		fn:  getNextPage,
+		aol: cur,
+	}
 }
 
 // AssignmentOperationProperties properties of AssignmentOperation.
@@ -1088,6 +1029,15 @@ type List struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for List.
+func (l List) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if l.Value != nil {
+		objectMap["value"] = l.Value
+	}
+	return json.Marshal(objectMap)
+}
+
 // ListIterator provides access to a complete listing of Model values.
 type ListIterator struct {
 	i    int
@@ -1156,10 +1106,15 @@ func (l List) IsEmpty() bool {
 	return l.Value == nil || len(*l.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (l List) hasNextLink() bool {
+	return l.NextLink != nil && len(*l.NextLink) != 0
+}
+
 // listPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (l List) listPreparer(ctx context.Context) (*http.Request, error) {
-	if l.NextLink == nil || len(to.String(l.NextLink)) < 1 {
+	if !l.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1187,11 +1142,16 @@ func (page *ListPage) NextWithContext(ctx context.Context) (err error) {
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.l)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.l)
+		if err != nil {
+			return err
+		}
+		page.l = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.l = next
 	return nil
 }
 
@@ -1221,8 +1181,11 @@ func (page ListPage) Values() []Model {
 }
 
 // Creates a new instance of the ListPage type.
-func NewListPage(getNextPage func(context.Context, List) (List, error)) ListPage {
-	return ListPage{fn: getNextPage}
+func NewListPage(cur List, getNextPage func(context.Context, List) (List, error)) ListPage {
+	return ListPage{
+		fn: getNextPage,
+		l:  cur,
+	}
 }
 
 // ManagedServiceIdentity managed identity generic object.
@@ -1708,6 +1671,15 @@ type PublishedBlueprintList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for PublishedBlueprintList.
+func (pbl PublishedBlueprintList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if pbl.Value != nil {
+		objectMap["value"] = pbl.Value
+	}
+	return json.Marshal(objectMap)
+}
+
 // PublishedBlueprintListIterator provides access to a complete listing of PublishedBlueprint values.
 type PublishedBlueprintListIterator struct {
 	i    int
@@ -1776,10 +1748,15 @@ func (pbl PublishedBlueprintList) IsEmpty() bool {
 	return pbl.Value == nil || len(*pbl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (pbl PublishedBlueprintList) hasNextLink() bool {
+	return pbl.NextLink != nil && len(*pbl.NextLink) != 0
+}
+
 // publishedBlueprintListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (pbl PublishedBlueprintList) publishedBlueprintListPreparer(ctx context.Context) (*http.Request, error) {
-	if pbl.NextLink == nil || len(to.String(pbl.NextLink)) < 1 {
+	if !pbl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1807,11 +1784,16 @@ func (page *PublishedBlueprintListPage) NextWithContext(ctx context.Context) (er
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.pbl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.pbl)
+		if err != nil {
+			return err
+		}
+		page.pbl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.pbl = next
 	return nil
 }
 
@@ -1841,8 +1823,11 @@ func (page PublishedBlueprintListPage) Values() []PublishedBlueprint {
 }
 
 // Creates a new instance of the PublishedBlueprintListPage type.
-func NewPublishedBlueprintListPage(getNextPage func(context.Context, PublishedBlueprintList) (PublishedBlueprintList, error)) PublishedBlueprintListPage {
-	return PublishedBlueprintListPage{fn: getNextPage}
+func NewPublishedBlueprintListPage(cur PublishedBlueprintList, getNextPage func(context.Context, PublishedBlueprintList) (PublishedBlueprintList, error)) PublishedBlueprintListPage {
+	return PublishedBlueprintListPage{
+		fn:  getNextPage,
+		pbl: cur,
+	}
 }
 
 // PublishedBlueprintProperties schema for published blueprint definition properties.
@@ -2382,6 +2367,15 @@ type TrackedResource struct {
 	Type *string `json:"type,omitempty"`
 	// Name - READ-ONLY; Name of this resource.
 	Name *string `json:"name,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for TrackedResource.
+func (tr TrackedResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if tr.Location != nil {
+		objectMap["location"] = tr.Location
+	}
+	return json.Marshal(objectMap)
 }
 
 // UserAssignedIdentity user-assigned managed identity.

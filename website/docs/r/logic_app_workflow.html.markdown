@@ -15,7 +15,7 @@ Manages a Logic App Workflow.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "workflow-resources"
-  location = "East US"
+  location = "West Europe"
 }
 
 resource "azurerm_logic_app_workflow" "example" {
@@ -34,6 +34,8 @@ The following arguments are supported:
 * `resource_group_name` - (Required) The name of the Resource Group in which the Logic App Workflow should be created. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the Logic App Workflow exists. Changing this forces a new resource to be created.
+
+* `integration_service_environment_id` - (Optional) The ID of the Integration Service Environment to which this Logic App Workflow belongs.  Changing this forces a new Logic App Workflow to be created.
 
 * `logic_app_integration_account_id` - (Optional) The ID of the integration account linked by this Logic App Workflow.
 

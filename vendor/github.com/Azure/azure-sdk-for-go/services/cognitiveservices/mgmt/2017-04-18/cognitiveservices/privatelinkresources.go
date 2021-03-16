@@ -88,6 +88,7 @@ func (client PrivateLinkResourcesClient) List(ctx context.Context, resourceGroup
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cognitiveservices.PrivateLinkResourcesClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -125,7 +126,6 @@ func (client PrivateLinkResourcesClient) ListSender(req *http.Request) (*http.Re
 func (client PrivateLinkResourcesClient) ListResponder(resp *http.Response) (result PrivateLinkResourceListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

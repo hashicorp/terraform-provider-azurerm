@@ -55,8 +55,8 @@ func (client ServerSecurityAlertPoliciesClient) CreateOrUpdate(ctx context.Conte
 		ctx = tracing.StartSpan(ctx, fqdn+"/ServerSecurityAlertPoliciesClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -79,7 +79,7 @@ func (client ServerSecurityAlertPoliciesClient) CreateOrUpdate(ctx context.Conte
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "mariadb.ServerSecurityAlertPoliciesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "mariadb.ServerSecurityAlertPoliciesClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -118,7 +118,33 @@ func (client ServerSecurityAlertPoliciesClient) CreateOrUpdateSender(req *http.R
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ServerSecurityAlertPoliciesClient) (ssap ServerSecurityAlertPolicy, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "mariadb.ServerSecurityAlertPoliciesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("mariadb.ServerSecurityAlertPoliciesCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		ssap.Response.Response, err = future.GetResult(sender)
+		if ssap.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "mariadb.ServerSecurityAlertPoliciesCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && ssap.Response.Response.StatusCode != http.StatusNoContent {
+			ssap, err = client.CreateOrUpdateResponder(ssap.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "mariadb.ServerSecurityAlertPoliciesCreateOrUpdateFuture", "Result", ssap.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -127,7 +153,6 @@ func (client ServerSecurityAlertPoliciesClient) CreateOrUpdateSender(req *http.R
 func (client ServerSecurityAlertPoliciesClient) CreateOrUpdateResponder(resp *http.Response) (result ServerSecurityAlertPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -176,6 +201,7 @@ func (client ServerSecurityAlertPoliciesClient) Get(ctx context.Context, resourc
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mariadb.ServerSecurityAlertPoliciesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -214,7 +240,6 @@ func (client ServerSecurityAlertPoliciesClient) GetSender(req *http.Request) (*h
 func (client ServerSecurityAlertPoliciesClient) GetResponder(resp *http.Response) (result ServerSecurityAlertPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -78,6 +78,7 @@ func (client TransparentDataEncryptionsClient) CreateOrUpdate(ctx context.Contex
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.TransparentDataEncryptionsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -120,7 +121,6 @@ func (client TransparentDataEncryptionsClient) CreateOrUpdateSender(req *http.Re
 func (client TransparentDataEncryptionsClient) CreateOrUpdateResponder(resp *http.Response) (result TransparentDataEncryption, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -161,6 +161,7 @@ func (client TransparentDataEncryptionsClient) Get(ctx context.Context, resource
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.TransparentDataEncryptionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -200,7 +201,6 @@ func (client TransparentDataEncryptionsClient) GetSender(req *http.Request) (*ht
 func (client TransparentDataEncryptionsClient) GetResponder(resp *http.Response) (result TransparentDataEncryption, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

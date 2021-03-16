@@ -54,8 +54,8 @@ func (client HubVirtualNetworkConnectionsClient) CreateOrUpdate(ctx context.Cont
 		ctx = tracing.StartSpan(ctx, fqdn+"/HubVirtualNetworkConnectionsClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -68,7 +68,7 @@ func (client HubVirtualNetworkConnectionsClient) CreateOrUpdate(ctx context.Cont
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "network.HubVirtualNetworkConnectionsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "network.HubVirtualNetworkConnectionsClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -108,7 +108,33 @@ func (client HubVirtualNetworkConnectionsClient) CreateOrUpdateSender(req *http.
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client HubVirtualNetworkConnectionsClient) (hvnc HubVirtualNetworkConnection, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "network.HubVirtualNetworkConnectionsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("network.HubVirtualNetworkConnectionsCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		hvnc.Response.Response, err = future.GetResult(sender)
+		if hvnc.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "network.HubVirtualNetworkConnectionsCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && hvnc.Response.Response.StatusCode != http.StatusNoContent {
+			hvnc, err = client.CreateOrUpdateResponder(hvnc.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "network.HubVirtualNetworkConnectionsCreateOrUpdateFuture", "Result", hvnc.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -117,7 +143,6 @@ func (client HubVirtualNetworkConnectionsClient) CreateOrUpdateSender(req *http.
 func (client HubVirtualNetworkConnectionsClient) CreateOrUpdateResponder(resp *http.Response) (result HubVirtualNetworkConnection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -135,8 +160,8 @@ func (client HubVirtualNetworkConnectionsClient) Delete(ctx context.Context, res
 		ctx = tracing.StartSpan(ctx, fqdn+"/HubVirtualNetworkConnectionsClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -149,7 +174,7 @@ func (client HubVirtualNetworkConnectionsClient) Delete(ctx context.Context, res
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "network.HubVirtualNetworkConnectionsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "network.HubVirtualNetworkConnectionsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -186,7 +211,23 @@ func (client HubVirtualNetworkConnectionsClient) DeleteSender(req *http.Request)
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client HubVirtualNetworkConnectionsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "network.HubVirtualNetworkConnectionsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("network.HubVirtualNetworkConnectionsDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -195,7 +236,6 @@ func (client HubVirtualNetworkConnectionsClient) DeleteSender(req *http.Request)
 func (client HubVirtualNetworkConnectionsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -234,6 +274,7 @@ func (client HubVirtualNetworkConnectionsClient) Get(ctx context.Context, resour
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.HubVirtualNetworkConnectionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -272,7 +313,6 @@ func (client HubVirtualNetworkConnectionsClient) GetSender(req *http.Request) (*
 func (client HubVirtualNetworkConnectionsClient) GetResponder(resp *http.Response) (result HubVirtualNetworkConnection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -312,6 +352,11 @@ func (client HubVirtualNetworkConnectionsClient) List(ctx context.Context, resou
 	result.lhvncr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.HubVirtualNetworkConnectionsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.lhvncr.hasNextLink() && result.lhvncr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -349,7 +394,6 @@ func (client HubVirtualNetworkConnectionsClient) ListSender(req *http.Request) (
 func (client HubVirtualNetworkConnectionsClient) ListResponder(resp *http.Response) (result ListHubVirtualNetworkConnectionsResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

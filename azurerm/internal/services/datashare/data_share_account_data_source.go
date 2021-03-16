@@ -15,7 +15,7 @@ import (
 
 func dataSourceDataShareAccount() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmDataShareAccountRead,
+		Read: dataSourceDataShareAccountRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -25,7 +25,7 @@ func dataSourceDataShareAccount() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.DataShareAccountName(),
+				ValidateFunc: validate.AccountName(),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
@@ -56,7 +56,7 @@ func dataSourceDataShareAccount() *schema.Resource {
 	}
 }
 
-func dataSourceArmDataShareAccountRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDataShareAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataShare.AccountClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

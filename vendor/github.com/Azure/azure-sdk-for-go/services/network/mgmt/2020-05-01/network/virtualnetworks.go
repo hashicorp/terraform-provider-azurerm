@@ -74,6 +74,7 @@ func (client VirtualNetworksClient) CheckIPAddressAvailability(ctx context.Conte
 	result, err = client.CheckIPAddressAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualNetworksClient", "CheckIPAddressAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -112,7 +113,6 @@ func (client VirtualNetworksClient) CheckIPAddressAvailabilitySender(req *http.R
 func (client VirtualNetworksClient) CheckIPAddressAvailabilityResponder(resp *http.Response) (result IPAddressAvailabilityResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -130,8 +130,8 @@ func (client VirtualNetworksClient) CreateOrUpdate(ctx context.Context, resource
 		ctx = tracing.StartSpan(ctx, fqdn+"/VirtualNetworksClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -153,7 +153,7 @@ func (client VirtualNetworksClient) CreateOrUpdate(ctx context.Context, resource
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "network.VirtualNetworksClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "network.VirtualNetworksClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -192,7 +192,33 @@ func (client VirtualNetworksClient) CreateOrUpdateSender(req *http.Request) (fut
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client VirtualNetworksClient) (vn VirtualNetwork, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "network.VirtualNetworksCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("network.VirtualNetworksCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		vn.Response.Response, err = future.GetResult(sender)
+		if vn.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "network.VirtualNetworksCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && vn.Response.Response.StatusCode != http.StatusNoContent {
+			vn, err = client.CreateOrUpdateResponder(vn.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "network.VirtualNetworksCreateOrUpdateFuture", "Result", vn.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -201,7 +227,6 @@ func (client VirtualNetworksClient) CreateOrUpdateSender(req *http.Request) (fut
 func (client VirtualNetworksClient) CreateOrUpdateResponder(resp *http.Response) (result VirtualNetwork, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -218,8 +243,8 @@ func (client VirtualNetworksClient) Delete(ctx context.Context, resourceGroupNam
 		ctx = tracing.StartSpan(ctx, fqdn+"/VirtualNetworksClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -232,7 +257,7 @@ func (client VirtualNetworksClient) Delete(ctx context.Context, resourceGroupNam
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "network.VirtualNetworksClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "network.VirtualNetworksClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -268,7 +293,23 @@ func (client VirtualNetworksClient) DeleteSender(req *http.Request) (future Virt
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client VirtualNetworksClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "network.VirtualNetworksDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("network.VirtualNetworksDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -277,7 +318,6 @@ func (client VirtualNetworksClient) DeleteSender(req *http.Request) (future Virt
 func (client VirtualNetworksClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -316,6 +356,7 @@ func (client VirtualNetworksClient) Get(ctx context.Context, resourceGroupName s
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualNetworksClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -356,7 +397,82 @@ func (client VirtualNetworksClient) GetSender(req *http.Request) (*http.Response
 func (client VirtualNetworksClient) GetResponder(resp *http.Response) (result VirtualNetwork, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// GetBastionHosts get a list of bastion hosts accessible from the given network.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// virtualNetworkName - the name of the virtual network.
+func (client VirtualNetworksClient) GetBastionHosts(ctx context.Context, resourceGroupName string, virtualNetworkName string) (result BastionHostListResult, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/VirtualNetworksClient.GetBastionHosts")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.GetBastionHostsPreparer(ctx, resourceGroupName, virtualNetworkName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "network.VirtualNetworksClient", "GetBastionHosts", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetBastionHostsSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "network.VirtualNetworksClient", "GetBastionHosts", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.GetBastionHostsResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "network.VirtualNetworksClient", "GetBastionHosts", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// GetBastionHostsPreparer prepares the GetBastionHosts request.
+func (client VirtualNetworksClient) GetBastionHostsPreparer(ctx context.Context, resourceGroupName string, virtualNetworkName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"resourceGroupName":  autorest.Encode("path", resourceGroupName),
+		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
+		"virtualNetworkName": autorest.Encode("path", virtualNetworkName),
+	}
+
+	const APIVersion = "2020-05-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/virtualNetworks/{virtualNetworkName}/bastionHosts", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetBastionHostsSender sends the GetBastionHosts request. The method will close the
+// http.Response Body if it receives an error.
+func (client VirtualNetworksClient) GetBastionHostsSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// GetBastionHostsResponder handles the response to the GetBastionHosts request. The method always
+// closes the http.Response Body.
+func (client VirtualNetworksClient) GetBastionHostsResponder(resp *http.Response) (result BastionHostListResult, err error) {
+	err = autorest.Respond(
+		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -395,6 +511,11 @@ func (client VirtualNetworksClient) List(ctx context.Context, resourceGroupName 
 	result.vnlr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualNetworksClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.vnlr.hasNextLink() && result.vnlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -431,7 +552,6 @@ func (client VirtualNetworksClient) ListSender(req *http.Request) (*http.Respons
 func (client VirtualNetworksClient) ListResponder(resp *http.Response) (result VirtualNetworkListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -505,6 +625,11 @@ func (client VirtualNetworksClient) ListAll(ctx context.Context) (result Virtual
 	result.vnlr, err = client.ListAllResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualNetworksClient", "ListAll", resp, "Failure responding to request")
+		return
+	}
+	if result.vnlr.hasNextLink() && result.vnlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -540,7 +665,6 @@ func (client VirtualNetworksClient) ListAllSender(req *http.Request) (*http.Resp
 func (client VirtualNetworksClient) ListAllResponder(resp *http.Response) (result VirtualNetworkListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -617,6 +741,11 @@ func (client VirtualNetworksClient) ListUsage(ctx context.Context, resourceGroup
 	result.vnlur, err = client.ListUsageResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualNetworksClient", "ListUsage", resp, "Failure responding to request")
+		return
+	}
+	if result.vnlur.hasNextLink() && result.vnlur.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -654,7 +783,6 @@ func (client VirtualNetworksClient) ListUsageSender(req *http.Request) (*http.Re
 func (client VirtualNetworksClient) ListUsageResponder(resp *http.Response) (result VirtualNetworkListUsageResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -731,6 +859,7 @@ func (client VirtualNetworksClient) UpdateTags(ctx context.Context, resourceGrou
 	result, err = client.UpdateTagsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualNetworksClient", "UpdateTags", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -770,7 +899,6 @@ func (client VirtualNetworksClient) UpdateTagsSender(req *http.Request) (*http.R
 func (client VirtualNetworksClient) UpdateTagsResponder(resp *http.Response) (result VirtualNetwork, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

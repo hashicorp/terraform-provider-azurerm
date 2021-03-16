@@ -76,6 +76,7 @@ func (client EndpointsClient) CreateOrUpdate(ctx context.Context, resourceGroupN
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "trafficmanager.EndpointsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -117,7 +118,6 @@ func (client EndpointsClient) CreateOrUpdateSender(req *http.Request) (*http.Res
 func (client EndpointsClient) CreateOrUpdateResponder(resp *http.Response) (result Endpoint, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -158,6 +158,7 @@ func (client EndpointsClient) Delete(ctx context.Context, resourceGroupName stri
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "trafficmanager.EndpointsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -197,7 +198,6 @@ func (client EndpointsClient) DeleteSender(req *http.Request) (*http.Response, e
 func (client EndpointsClient) DeleteResponder(resp *http.Response) (result DeleteOperationResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -238,6 +238,7 @@ func (client EndpointsClient) Get(ctx context.Context, resourceGroupName string,
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "trafficmanager.EndpointsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -277,7 +278,6 @@ func (client EndpointsClient) GetSender(req *http.Request) (*http.Response, erro
 func (client EndpointsClient) GetResponder(resp *http.Response) (result Endpoint, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -319,6 +319,7 @@ func (client EndpointsClient) Update(ctx context.Context, resourceGroupName stri
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "trafficmanager.EndpointsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -360,7 +361,6 @@ func (client EndpointsClient) UpdateSender(req *http.Request) (*http.Response, e
 func (client EndpointsClient) UpdateResponder(resp *http.Response) (result Endpoint, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

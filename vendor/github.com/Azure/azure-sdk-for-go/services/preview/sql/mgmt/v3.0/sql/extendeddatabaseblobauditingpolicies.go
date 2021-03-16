@@ -79,6 +79,7 @@ func (client ExtendedDatabaseBlobAuditingPoliciesClient) CreateOrUpdate(ctx cont
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ExtendedDatabaseBlobAuditingPoliciesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -120,7 +121,6 @@ func (client ExtendedDatabaseBlobAuditingPoliciesClient) CreateOrUpdateSender(re
 func (client ExtendedDatabaseBlobAuditingPoliciesClient) CreateOrUpdateResponder(resp *http.Response) (result ExtendedDatabaseBlobAuditingPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -161,6 +161,7 @@ func (client ExtendedDatabaseBlobAuditingPoliciesClient) Get(ctx context.Context
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ExtendedDatabaseBlobAuditingPoliciesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -200,7 +201,6 @@ func (client ExtendedDatabaseBlobAuditingPoliciesClient) GetSender(req *http.Req
 func (client ExtendedDatabaseBlobAuditingPoliciesClient) GetResponder(resp *http.Response) (result ExtendedDatabaseBlobAuditingPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -242,6 +242,11 @@ func (client ExtendedDatabaseBlobAuditingPoliciesClient) ListByDatabase(ctx cont
 	result.edbaplr, err = client.ListByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ExtendedDatabaseBlobAuditingPoliciesClient", "ListByDatabase", resp, "Failure responding to request")
+		return
+	}
+	if result.edbaplr.hasNextLink() && result.edbaplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -280,7 +285,6 @@ func (client ExtendedDatabaseBlobAuditingPoliciesClient) ListByDatabaseSender(re
 func (client ExtendedDatabaseBlobAuditingPoliciesClient) ListByDatabaseResponder(resp *http.Response) (result ExtendedDatabaseBlobAuditingPolicyListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

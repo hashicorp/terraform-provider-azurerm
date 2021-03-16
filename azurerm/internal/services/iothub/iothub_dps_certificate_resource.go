@@ -9,19 +9,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmIotHubDPSCertificate() *schema.Resource {
+func resourceIotHubDPSCertificate() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmIotHubDPSCertificateCreateUpdate,
-		Read:   resourceArmIotHubDPSCertificateRead,
-		Update: resourceArmIotHubDPSCertificateCreateUpdate,
-		Delete: resourceArmIotHubDPSCertificateDelete,
+		Create: resourceIotHubDPSCertificateCreateUpdate,
+		Read:   resourceIotHubDPSCertificateRead,
+		Update: resourceIotHubDPSCertificateCreateUpdate,
+		Delete: resourceIotHubDPSCertificateDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -61,7 +60,7 @@ func resourceArmIotHubDPSCertificate() *schema.Resource {
 	}
 }
 
-func resourceArmIotHubDPSCertificateCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubDPSCertificateCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.DPSCertificateClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -70,7 +69,7 @@ func resourceArmIotHubDPSCertificateCreateUpdate(d *schema.ResourceData, meta in
 	resourceGroup := d.Get("resource_group_name").(string)
 	iotDPSName := d.Get("iot_dps_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, name, resourceGroup, iotDPSName, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -102,10 +101,10 @@ func resourceArmIotHubDPSCertificateCreateUpdate(d *schema.ResourceData, meta in
 
 	d.SetId(*resp.ID)
 
-	return resourceArmIotHubDPSCertificateRead(d, meta)
+	return resourceIotHubDPSCertificateRead(d, meta)
 }
 
-func resourceArmIotHubDPSCertificateRead(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubDPSCertificateRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.DPSCertificateClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -135,7 +134,7 @@ func resourceArmIotHubDPSCertificateRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func resourceArmIotHubDPSCertificateDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubDPSCertificateDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.DPSCertificateClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

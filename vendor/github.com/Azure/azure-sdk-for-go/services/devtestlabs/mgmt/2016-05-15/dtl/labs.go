@@ -51,8 +51,8 @@ func (client LabsClient) ClaimAnyVM(ctx context.Context, resourceGroupName strin
 		ctx = tracing.StartSpan(ctx, fqdn+"/LabsClient.ClaimAnyVM")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -65,7 +65,7 @@ func (client LabsClient) ClaimAnyVM(ctx context.Context, resourceGroupName strin
 
 	result, err = client.ClaimAnyVMSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.LabsClient", "ClaimAnyVM", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dtl.LabsClient", "ClaimAnyVM", nil, "Failure sending request")
 		return
 	}
 
@@ -101,7 +101,23 @@ func (client LabsClient) ClaimAnyVMSender(req *http.Request) (future LabsClaimAn
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client LabsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "dtl.LabsClaimAnyVMFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("dtl.LabsClaimAnyVMFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -110,7 +126,6 @@ func (client LabsClient) ClaimAnyVMSender(req *http.Request) (future LabsClaimAn
 func (client LabsClient) ClaimAnyVMResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -127,8 +142,8 @@ func (client LabsClient) CreateEnvironment(ctx context.Context, resourceGroupNam
 		ctx = tracing.StartSpan(ctx, fqdn+"/LabsClient.CreateEnvironment")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -156,7 +171,7 @@ func (client LabsClient) CreateEnvironment(ctx context.Context, resourceGroupNam
 
 	result, err = client.CreateEnvironmentSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.LabsClient", "CreateEnvironment", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dtl.LabsClient", "CreateEnvironment", nil, "Failure sending request")
 		return
 	}
 
@@ -194,7 +209,23 @@ func (client LabsClient) CreateEnvironmentSender(req *http.Request) (future Labs
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client LabsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "dtl.LabsCreateEnvironmentFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("dtl.LabsCreateEnvironmentFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -203,7 +234,6 @@ func (client LabsClient) CreateEnvironmentSender(req *http.Request) (future Labs
 func (client LabsClient) CreateEnvironmentResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -220,8 +250,8 @@ func (client LabsClient) CreateOrUpdate(ctx context.Context, resourceGroupName s
 		ctx = tracing.StartSpan(ctx, fqdn+"/LabsClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -234,7 +264,7 @@ func (client LabsClient) CreateOrUpdate(ctx context.Context, resourceGroupName s
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.LabsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dtl.LabsClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -272,7 +302,33 @@ func (client LabsClient) CreateOrUpdateSender(req *http.Request) (future LabsCre
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client LabsClient) (l Lab, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "dtl.LabsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("dtl.LabsCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		l.Response.Response, err = future.GetResult(sender)
+		if l.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "dtl.LabsCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && l.Response.Response.StatusCode != http.StatusNoContent {
+			l, err = client.CreateOrUpdateResponder(l.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "dtl.LabsCreateOrUpdateFuture", "Result", l.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -281,7 +337,6 @@ func (client LabsClient) CreateOrUpdateSender(req *http.Request) (future LabsCre
 func (client LabsClient) CreateOrUpdateResponder(resp *http.Response) (result Lab, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -298,8 +353,8 @@ func (client LabsClient) Delete(ctx context.Context, resourceGroupName string, n
 		ctx = tracing.StartSpan(ctx, fqdn+"/LabsClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -312,7 +367,7 @@ func (client LabsClient) Delete(ctx context.Context, resourceGroupName string, n
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.LabsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dtl.LabsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -348,7 +403,23 @@ func (client LabsClient) DeleteSender(req *http.Request) (future LabsDeleteFutur
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client LabsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "dtl.LabsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("dtl.LabsDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -357,7 +428,6 @@ func (client LabsClient) DeleteSender(req *http.Request) (future LabsDeleteFutur
 func (client LabsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -375,8 +445,8 @@ func (client LabsClient) ExportResourceUsage(ctx context.Context, resourceGroupN
 		ctx = tracing.StartSpan(ctx, fqdn+"/LabsClient.ExportResourceUsage")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -389,7 +459,7 @@ func (client LabsClient) ExportResourceUsage(ctx context.Context, resourceGroupN
 
 	result, err = client.ExportResourceUsageSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.LabsClient", "ExportResourceUsage", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dtl.LabsClient", "ExportResourceUsage", nil, "Failure sending request")
 		return
 	}
 
@@ -427,7 +497,23 @@ func (client LabsClient) ExportResourceUsageSender(req *http.Request) (future La
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client LabsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "dtl.LabsExportResourceUsageFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("dtl.LabsExportResourceUsageFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -436,7 +522,6 @@ func (client LabsClient) ExportResourceUsageSender(req *http.Request) (future La
 func (client LabsClient) ExportResourceUsageResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -475,6 +560,7 @@ func (client LabsClient) GenerateUploadURI(ctx context.Context, resourceGroupNam
 	result, err = client.GenerateUploadURIResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.LabsClient", "GenerateUploadURI", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -514,7 +600,6 @@ func (client LabsClient) GenerateUploadURISender(req *http.Request) (*http.Respo
 func (client LabsClient) GenerateUploadURIResponder(resp *http.Response) (result GenerateUploadURIResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -554,6 +639,7 @@ func (client LabsClient) Get(ctx context.Context, resourceGroupName string, name
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.LabsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -594,7 +680,6 @@ func (client LabsClient) GetSender(req *http.Request) (*http.Response, error) {
 func (client LabsClient) GetResponder(resp *http.Response) (result Lab, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -637,6 +722,11 @@ func (client LabsClient) ListByResourceGroup(ctx context.Context, resourceGroupN
 	result.rwcl, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.LabsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.rwcl.hasNextLink() && result.rwcl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -685,7 +775,6 @@ func (client LabsClient) ListByResourceGroupSender(req *http.Request) (*http.Res
 func (client LabsClient) ListByResourceGroupResponder(resp *http.Response) (result ResponseWithContinuationLab, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -764,6 +853,11 @@ func (client LabsClient) ListBySubscription(ctx context.Context, expand string, 
 	result.rwcl, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.LabsClient", "ListBySubscription", resp, "Failure responding to request")
+		return
+	}
+	if result.rwcl.hasNextLink() && result.rwcl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -811,7 +905,6 @@ func (client LabsClient) ListBySubscriptionSender(req *http.Request) (*http.Resp
 func (client LabsClient) ListBySubscriptionResponder(resp *http.Response) (result ResponseWithContinuationLab, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -888,6 +981,11 @@ func (client LabsClient) ListVhds(ctx context.Context, resourceGroupName string,
 	result.rwclv, err = client.ListVhdsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.LabsClient", "ListVhds", resp, "Failure responding to request")
+		return
+	}
+	if result.rwclv.hasNextLink() && result.rwclv.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -925,7 +1023,6 @@ func (client LabsClient) ListVhdsSender(req *http.Request) (*http.Response, erro
 func (client LabsClient) ListVhdsResponder(resp *http.Response) (result ResponseWithContinuationLabVhd, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1002,6 +1099,7 @@ func (client LabsClient) Update(ctx context.Context, resourceGroupName string, n
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.LabsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1041,7 +1139,6 @@ func (client LabsClient) UpdateSender(req *http.Request) (*http.Response, error)
 func (client LabsClient) UpdateResponder(resp *http.Response) (result Lab, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

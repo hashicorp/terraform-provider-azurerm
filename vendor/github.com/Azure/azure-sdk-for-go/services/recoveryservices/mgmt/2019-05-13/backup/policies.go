@@ -75,6 +75,11 @@ func (client PoliciesClient) List(ctx context.Context, vaultName string, resourc
 	result.pprl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.PoliciesClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.pprl.hasNextLink() && result.pprl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -115,7 +120,6 @@ func (client PoliciesClient) ListSender(req *http.Request) (*http.Response, erro
 func (client PoliciesClient) ListResponder(resp *http.Response) (result ProtectionPolicyResourceList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

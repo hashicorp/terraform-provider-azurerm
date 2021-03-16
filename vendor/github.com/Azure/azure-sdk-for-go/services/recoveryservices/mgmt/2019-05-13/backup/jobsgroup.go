@@ -73,6 +73,7 @@ func (client JobsGroupClient) Export(ctx context.Context, vaultName string, reso
 	result, err = client.ExportResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.JobsGroupClient", "Export", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -113,7 +114,6 @@ func (client JobsGroupClient) ExportSender(req *http.Request) (*http.Response, e
 func (client JobsGroupClient) ExportResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp

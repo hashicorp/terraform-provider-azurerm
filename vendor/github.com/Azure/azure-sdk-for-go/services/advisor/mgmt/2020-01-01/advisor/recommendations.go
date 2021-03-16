@@ -22,7 +22,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/tracing"
-	"github.com/satori/go.uuid"
+	"github.com/gofrs/uuid"
 	"net/http"
 )
 
@@ -71,6 +71,7 @@ func (client RecommendationsClient) Generate(ctx context.Context) (result autore
 	result, err = client.GenerateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "advisor.RecommendationsClient", "Generate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -106,7 +107,6 @@ func (client RecommendationsClient) GenerateSender(req *http.Request) (*http.Res
 func (client RecommendationsClient) GenerateResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -145,6 +145,7 @@ func (client RecommendationsClient) Get(ctx context.Context, resourceURI string,
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "advisor.RecommendationsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -181,7 +182,6 @@ func (client RecommendationsClient) GetSender(req *http.Request) (*http.Response
 func (client RecommendationsClient) GetResponder(resp *http.Response) (result ResourceRecommendationBase, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -222,6 +222,7 @@ func (client RecommendationsClient) GetGenerateStatus(ctx context.Context, opera
 	result, err = client.GetGenerateStatusResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "advisor.RecommendationsClient", "GetGenerateStatus", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -258,7 +259,6 @@ func (client RecommendationsClient) GetGenerateStatusSender(req *http.Request) (
 func (client RecommendationsClient) GetGenerateStatusResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -301,6 +301,11 @@ func (client RecommendationsClient) List(ctx context.Context, filter string, top
 	result.rrblr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "advisor.RecommendationsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.rrblr.hasNextLink() && result.rrblr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -345,7 +350,6 @@ func (client RecommendationsClient) ListSender(req *http.Request) (*http.Respons
 func (client RecommendationsClient) ListResponder(resp *http.Response) (result ResourceRecommendationBaseListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

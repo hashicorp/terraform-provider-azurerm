@@ -68,7 +68,6 @@ func (client ScheduledQueryRulesClient) CreateOrUpdate(ctx context.Context, reso
 						Chain: []validation.Constraint{{Target: "parameters.LogSearchRule.Schedule.FrequencyInMinutes", Name: validation.Null, Rule: true, Chain: nil},
 							{Target: "parameters.LogSearchRule.Schedule.TimeWindowInMinutes", Name: validation.Null, Rule: true, Chain: nil},
 						}},
-					{Target: "parameters.LogSearchRule.Action", Name: validation.Null, Rule: true, Chain: nil},
 				}}}}}); err != nil {
 		return result, validation.NewError("insights.ScheduledQueryRulesClient", "CreateOrUpdate", err.Error())
 	}
@@ -89,6 +88,7 @@ func (client ScheduledQueryRulesClient) CreateOrUpdate(ctx context.Context, reso
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ScheduledQueryRulesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -128,7 +128,6 @@ func (client ScheduledQueryRulesClient) CreateOrUpdateSender(req *http.Request) 
 func (client ScheduledQueryRulesClient) CreateOrUpdateResponder(resp *http.Response) (result LogSearchRuleResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -167,6 +166,7 @@ func (client ScheduledQueryRulesClient) Delete(ctx context.Context, resourceGrou
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ScheduledQueryRulesClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -204,7 +204,6 @@ func (client ScheduledQueryRulesClient) DeleteSender(req *http.Request) (*http.R
 func (client ScheduledQueryRulesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -242,6 +241,7 @@ func (client ScheduledQueryRulesClient) Get(ctx context.Context, resourceGroupNa
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ScheduledQueryRulesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -279,7 +279,6 @@ func (client ScheduledQueryRulesClient) GetSender(req *http.Request) (*http.Resp
 func (client ScheduledQueryRulesClient) GetResponder(resp *http.Response) (result LogSearchRuleResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -319,6 +318,7 @@ func (client ScheduledQueryRulesClient) ListByResourceGroup(ctx context.Context,
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ScheduledQueryRulesClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -358,7 +358,6 @@ func (client ScheduledQueryRulesClient) ListByResourceGroupSender(req *http.Requ
 func (client ScheduledQueryRulesClient) ListByResourceGroupResponder(resp *http.Response) (result LogSearchRuleResourceCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -397,6 +396,7 @@ func (client ScheduledQueryRulesClient) ListBySubscription(ctx context.Context, 
 	result, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ScheduledQueryRulesClient", "ListBySubscription", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -435,7 +435,6 @@ func (client ScheduledQueryRulesClient) ListBySubscriptionSender(req *http.Reque
 func (client ScheduledQueryRulesClient) ListBySubscriptionResponder(resp *http.Response) (result LogSearchRuleResourceCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -475,6 +474,7 @@ func (client ScheduledQueryRulesClient) Update(ctx context.Context, resourceGrou
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ScheduledQueryRulesClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -514,7 +514,6 @@ func (client ScheduledQueryRulesClient) UpdateSender(req *http.Request) (*http.R
 func (client ScheduledQueryRulesClient) UpdateResponder(resp *http.Response) (result LogSearchRuleResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

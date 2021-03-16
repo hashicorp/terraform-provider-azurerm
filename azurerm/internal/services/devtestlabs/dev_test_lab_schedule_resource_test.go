@@ -1,163 +1,119 @@
 package devtestlabs_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+type DevTestLabScheduleResource struct {
+}
 
 func TestAccDevTestLabSchedule_autoShutdownBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_schedule", "test")
+	r := DevTestLabScheduleResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDevTestLabScheduleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDevTestLabSchedule_autoShutdownBasic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDevTestLabScheduleExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "status", "Disabled"),
-					resource.TestCheckResourceAttr(data.ResourceName, "notification_settings.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "notification_settings.0.status", "Disabled"),
-					resource.TestCheckResourceAttr(data.ResourceName, "daily_recurrence.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "daily_recurrence.0.time", "0100"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccDevTestLabSchedule_autoShutdownBasicUpdate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDevTestLabScheduleExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "status", "Enabled"),
-					resource.TestCheckResourceAttr(data.ResourceName, "notification_settings.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "notification_settings.0.status", "Enabled"),
-					resource.TestCheckResourceAttr(data.ResourceName, "notification_settings.0.time_in_minutes", "30"),
-					resource.TestCheckResourceAttr(data.ResourceName, "notification_settings.0.webhook_url", "https://www.bing.com/2/4"),
-					resource.TestCheckResourceAttr(data.ResourceName, "daily_recurrence.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "daily_recurrence.0.time", "0900"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.autoShutdownBasic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("status").HasValue("Disabled"),
+				check.That(data.ResourceName).Key("notification_settings.#").HasValue("1"),
+				check.That(data.ResourceName).Key("notification_settings.0.status").HasValue("Disabled"),
+				check.That(data.ResourceName).Key("daily_recurrence.#").HasValue("1"),
+				check.That(data.ResourceName).Key("daily_recurrence.0.time").HasValue("0100"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.autoShutdownBasicUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("status").HasValue("Enabled"),
+				check.That(data.ResourceName).Key("notification_settings.#").HasValue("1"),
+				check.That(data.ResourceName).Key("notification_settings.0.status").HasValue("Enabled"),
+				check.That(data.ResourceName).Key("notification_settings.0.time_in_minutes").HasValue("30"),
+				check.That(data.ResourceName).Key("notification_settings.0.webhook_url").HasValue("https://www.bing.com/2/4"),
+				check.That(data.ResourceName).Key("daily_recurrence.#").HasValue("1"),
+				check.That(data.ResourceName).Key("daily_recurrence.0.time").HasValue("0900"),
+			),
 		},
 	})
 }
 
 func TestAccDevTestLabSchedule_autoStartupBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_schedule", "test")
+	r := DevTestLabScheduleResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDevTestLabScheduleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDevTestLabSchedule_autoStartupBasic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDevTestLabScheduleExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "status", "Disabled"),
-					resource.TestCheckResourceAttr(data.ResourceName, "weekly_recurrence.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "weekly_recurrence.0.time", "1100"),
-					resource.TestCheckResourceAttr(data.ResourceName, "weekly_recurrence.0.week_days.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "weekly_recurrence.0.week_days.1", "Tuesday"),
-				),
-			},
-			data.ImportStep("task_type"),
-			{
-				Config: testAccDevTestLabSchedule_autoStartupBasicUpdate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDevTestLabScheduleExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "status", "Enabled"),
-					resource.TestCheckResourceAttr(data.ResourceName, "weekly_recurrence.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "weekly_recurrence.0.time", "1000"),
-					resource.TestCheckResourceAttr(data.ResourceName, "weekly_recurrence.0.week_days.#", "3"),
-					resource.TestCheckResourceAttr(data.ResourceName, "weekly_recurrence.0.week_days.1", "Thursday"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.autoStartupBasic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("status").HasValue("Disabled"),
+				check.That(data.ResourceName).Key("weekly_recurrence.#").HasValue("1"),
+				check.That(data.ResourceName).Key("weekly_recurrence.0.time").HasValue("1100"),
+				check.That(data.ResourceName).Key("weekly_recurrence.0.week_days.#").HasValue("2"),
+				check.That(data.ResourceName).Key("weekly_recurrence.0.week_days.1").HasValue("Tuesday"),
+			),
+		},
+		data.ImportStep("task_type"),
+		{
+			Config: r.autoStartupBasicUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("status").HasValue("Enabled"),
+				check.That(data.ResourceName).Key("weekly_recurrence.#").HasValue("1"),
+				check.That(data.ResourceName).Key("weekly_recurrence.0.time").HasValue("1000"),
+				check.That(data.ResourceName).Key("weekly_recurrence.0.week_days.#").HasValue("3"),
+				check.That(data.ResourceName).Key("weekly_recurrence.0.week_days.1").HasValue("Thursday"),
+			),
 		},
 	})
 }
 
 func TestAccDevTestLabSchedule_concurrent(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_schedule", "test")
+	r := DevTestLabScheduleResource{}
 	secondResourceName := "azurerm_dev_test_schedule.test2"
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDevTestLabScheduleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDevTestLabSchedule_concurrent(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDevTestLabScheduleExists(data.ResourceName),
-					testCheckDevTestLabScheduleExists(secondResourceName),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.concurrent(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(secondResourceName).ExistsInAzure(r),
+			),
 		},
 	})
 }
 
-func testCheckDevTestLabScheduleExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).DevTestLabs.LabSchedulesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		devTestLabName := rs.Primary.Attributes["lab_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, devTestLabName, name, "")
-		if err != nil {
-			return fmt.Errorf("Bad: Get on devTestLabSchedulesClient: %s", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Dev Test Lab Schedule %q (resource group: %q) does not exist", name, resourceGroup)
-		}
-
-		return nil
+func (DevTestLabScheduleResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
-}
+	devTestLabName := id.Path["labs"]
+	name := id.Path["schedules"]
 
-func testCheckDevTestLabScheduleDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).DevTestLabs.LabSchedulesClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_dev_test_schedule" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		devTestLabName := rs.Primary.Attributes["azurerm_dev_test_lab"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, devTestLabName, name, "")
-
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Dev Test Lab Schedule still exists:\n%#v", resp.ScheduleProperties)
-		}
+	resp, err := clients.DevTestLabs.LabSchedulesClient.Get(ctx, id.ResourceGroup, devTestLabName, name, "")
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Dev Test Lab Schedule %q (resource group: %q): %+v", name, id.ResourceGroup, err)
 	}
 
-	return nil
+	return utils.Bool(resp.ScheduleProperties != nil), nil
 }
 
-func testAccDevTestLabSchedule_autoShutdownBasic(data acceptance.TestData) string {
+func (DevTestLabScheduleResource) autoShutdownBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -194,7 +150,7 @@ resource "azurerm_dev_test_schedule" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccDevTestLabSchedule_autoShutdownBasicUpdate(data acceptance.TestData) string {
+func (DevTestLabScheduleResource) autoShutdownBasicUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -234,7 +190,7 @@ resource "azurerm_dev_test_schedule" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccDevTestLabSchedule_autoStartupBasic(data acceptance.TestData) string {
+func (DevTestLabScheduleResource) autoStartupBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -274,7 +230,7 @@ resource "azurerm_dev_test_schedule" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccDevTestLabSchedule_autoStartupBasicUpdate(data acceptance.TestData) string {
+func (DevTestLabScheduleResource) autoStartupBasicUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -316,7 +272,7 @@ resource "azurerm_dev_test_schedule" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccDevTestLabSchedule_concurrent(data acceptance.TestData) string {
+func (DevTestLabScheduleResource) concurrent(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

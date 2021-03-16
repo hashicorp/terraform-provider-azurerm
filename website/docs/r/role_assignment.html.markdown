@@ -54,7 +54,7 @@ resource "azurerm_role_definition" "example" {
 resource "azurerm_role_assignment" "example" {
   name               = "00000000-0000-0000-0000-000000000000"
   scope              = data.azurerm_subscription.primary.id
-  role_definition_id = azurerm_role_definition.example.id
+  role_definition_id = azurerm_role_definition.example.role_definition_resource_id
   principal_id       = data.azurerm_client_config.example.object_id
 }
 ```
@@ -86,8 +86,8 @@ resource "azurerm_role_definition" "example" {
 resource "azurerm_role_assignment" "example" {
   name               = "00000000-0000-0000-0000-000000000000"
   scope              = data.azurerm_subscription.primary.id
-  role_definition_id = azurerm_role_definition.example.id
-  principal_id       = data.azurerm_client_config.example.client_id
+  role_definition_id = azurerm_role_definition.example.role_definition_resource_id
+  principal_id       = data.azurerm_client_config.example.object_id
 }
 ```
 
@@ -121,8 +121,8 @@ resource "azurerm_role_definition" "example" {
 resource "azurerm_role_assignment" "example" {
   name               = "00000000-0000-0000-0000-000000000000"
   scope              = data.azurerm_management_group.primary.id
-  role_definition_id = azurerm_role_definition.example.id
-  principal_id       = data.azurerm_client_config.example.client_id
+  role_definition_id = azurerm_role_definition.example.role_definition_resource_id
+  principal_id       = data.azurerm_client_config.example.object_id
 }
 ```
 
@@ -142,8 +142,14 @@ The following arguments are supported:
 
 ~> **NOTE:** The Principal ID is also known as the Object ID (ie not the "Application ID" for applications).
 
-* `skip_service_principal_aad_check` - (Optional) If the `principal_id` is a newly provisioned `Service Principal` set this value to `true` to skip the `Azure Active Directory` check which may fail due to replication lag. This argument is only valid if the `principal_id` is a `Service Principal` identity. If it is not a `Service Principal` identity it will cause the role assignment to fail. Defaults to `false`.
+* `condition` - (Optional) The condition that limits the resources that the role can be assigned to. Changing this forces a new resource to be created.
 
+* `condition_version` - (Optional) The version of the condition. Possible values are `1.0` or `2.0`. Changing this forces a new resource to be created.
+
+* `description` - (Optional) The description for this Role Assignment. Changing this forces a new resource to be created.
+  
+* `skip_service_principal_aad_check` - (Optional) If the `principal_id` is a newly provisioned `Service Principal` set this value to `true` to skip the `Azure Active Directory` check which may fail due to replication lag. This argument is only valid if the `principal_id` is a `Service Principal` identity. If it is not a `Service Principal` identity it will cause the role assignment to fail. Defaults to `false`.
+  
 ## Attributes Reference
 
 The following attributes are exported:

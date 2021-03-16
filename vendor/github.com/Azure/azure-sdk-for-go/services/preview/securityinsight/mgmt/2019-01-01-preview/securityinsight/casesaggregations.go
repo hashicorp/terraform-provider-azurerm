@@ -91,6 +91,7 @@ func (client CasesAggregationsClient) Get(ctx context.Context, resourceGroupName
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.CasesAggregationsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -130,7 +131,6 @@ func (client CasesAggregationsClient) GetSender(req *http.Request) (*http.Respon
 func (client CasesAggregationsClient) GetResponder(resp *http.Response) (result AggregationsModel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

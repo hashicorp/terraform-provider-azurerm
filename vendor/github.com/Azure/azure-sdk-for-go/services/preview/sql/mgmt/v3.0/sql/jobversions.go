@@ -78,6 +78,7 @@ func (client JobVersionsClient) Get(ctx context.Context, resourceGroupName strin
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobVersionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -118,7 +119,6 @@ func (client JobVersionsClient) GetSender(req *http.Request) (*http.Response, er
 func (client JobVersionsClient) GetResponder(resp *http.Response) (result JobVersion, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -161,6 +161,11 @@ func (client JobVersionsClient) ListByJob(ctx context.Context, resourceGroupName
 	result.jvlr, err = client.ListByJobResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobVersionsClient", "ListByJob", resp, "Failure responding to request")
+		return
+	}
+	if result.jvlr.hasNextLink() && result.jvlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -200,7 +205,6 @@ func (client JobVersionsClient) ListByJobSender(req *http.Request) (*http.Respon
 func (client JobVersionsClient) ListByJobResponder(resp *http.Response) (result JobVersionListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

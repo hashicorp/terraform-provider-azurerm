@@ -72,6 +72,7 @@ func (client VirtualApplianceSkusClient) Get(ctx context.Context, skuName string
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualApplianceSkusClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -108,7 +109,6 @@ func (client VirtualApplianceSkusClient) GetSender(req *http.Request) (*http.Res
 func (client VirtualApplianceSkusClient) GetResponder(resp *http.Response) (result VirtualApplianceSku, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -145,6 +145,11 @@ func (client VirtualApplianceSkusClient) List(ctx context.Context) (result Virtu
 	result.vaslr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualApplianceSkusClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.vaslr.hasNextLink() && result.vaslr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -180,7 +185,6 @@ func (client VirtualApplianceSkusClient) ListSender(req *http.Request) (*http.Re
 func (client VirtualApplianceSkusClient) ListResponder(resp *http.Response) (result VirtualApplianceSkuListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

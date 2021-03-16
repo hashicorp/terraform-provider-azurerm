@@ -92,6 +92,7 @@ func (client MetricsClient) List(ctx context.Context, resourceURI string, timesp
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.MetricsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -154,7 +155,6 @@ func (client MetricsClient) ListSender(req *http.Request) (*http.Response, error
 func (client MetricsClient) ListResponder(resp *http.Response) (result Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

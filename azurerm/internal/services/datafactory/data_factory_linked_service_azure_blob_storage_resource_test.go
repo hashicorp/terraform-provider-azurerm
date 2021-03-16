@@ -1,129 +1,115 @@
 package datafactory_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMDataFactoryLinkedServiceAzureBlobStorage_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_blob_storage", "test")
+type LinkedServiceAzureBlobStorageResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceAzureBlobStorageDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDataFactoryLinkedServiceAzureBlobStorage_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryLinkedServiceAzureBlobStorageExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("connection_string"),
+func TestAccDataFactoryLinkedServiceAzureBlobStorage_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_blob_storage", "test")
+	r := LinkedServiceAzureBlobStorageResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("connection_string"),
 	})
 }
 
-func TestAccAzureRMDataFactoryLinkedServiceAzureBlobStorage_update(t *testing.T) {
+func TestAccDataFactoryLinkedServiceAzureBlobStorage_managed_id(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_blob_storage", "test")
+	r := LinkedServiceAzureBlobStorageResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceAzureBlobStorageDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDataFactoryLinkedServiceAzureBlobStorage_update1(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryLinkedServiceAzureBlobStorageExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "annotations.#", "3"),
-					resource.TestCheckResourceAttr(data.ResourceName, "additional_properties.%", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", "test description"),
-				),
-			},
-			data.ImportStep("connection_string"),
-			{
-				Config: testAccAzureRMDataFactoryLinkedServiceAzureBlobStorage_update2(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryLinkedServiceAzureBlobStorageExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "3"),
-					resource.TestCheckResourceAttr(data.ResourceName, "annotations.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "additional_properties.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", "test description 2"),
-				),
-			},
-			data.ImportStep("connection_string"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.managed_id(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("connection_string"),
 	})
 }
 
-func testCheckAzureRMDataFactoryLinkedServiceAzureBlobStorageExists(name string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.LinkedServiceClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func TestAccDataFactoryLinkedServiceAzureBlobStorage_sas_uri(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_blob_storage", "test")
+	r := LinkedServiceAzureBlobStorageResource{}
 
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
-		if !ok {
-			return fmt.Errorf("Not found: %s", name)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		dataFactoryName := rs.Primary.Attributes["data_factory_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Data Factory: %s", name)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
-		if err != nil {
-			return fmt.Errorf("Bad: Get on dataFactoryLinkedServiceClient: %+v", err)
-		}
-
-		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Bad: Data Factory Linked Service BlobStorage %q (data factory name: %q / resource group: %q) does not exist", name, dataFactoryName, resourceGroup)
-		}
-
-		return nil
-	}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.sas_uri(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("sas_uri"),
+	})
 }
 
-func testCheckAzureRMDataFactoryLinkedServiceAzureBlobStorageDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.LinkedServiceClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func TestAccDataFactoryLinkedServiceAzureBlobStorage_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_blob_storage", "test")
+	r := LinkedServiceAzureBlobStorageResource{}
 
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_data_factory_linked_service_azure_blob_storage" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		dataFactoryName := rs.Primary.Attributes["data_factory_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
-
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Data Factory Linked Service BlobStorage still exists:\n%#v", resp.Properties)
-		}
-	}
-
-	return nil
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.update1(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("parameters.%").HasValue("2"),
+				check.That(data.ResourceName).Key("annotations.#").HasValue("3"),
+				check.That(data.ResourceName).Key("additional_properties.%").HasValue("2"),
+				check.That(data.ResourceName).Key("description").HasValue("test description"),
+			),
+		},
+		data.ImportStep("connection_string"),
+		{
+			Config: r.update2(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("parameters.%").HasValue("3"),
+				check.That(data.ResourceName).Key("annotations.#").HasValue("2"),
+				check.That(data.ResourceName).Key("additional_properties.%").HasValue("1"),
+				check.That(data.ResourceName).Key("description").HasValue("test description 2"),
+			),
+		},
+		data.ImportStep("connection_string"),
+	})
 }
 
-func testAccAzureRMDataFactoryLinkedServiceAzureBlobStorage_basic(data acceptance.TestData) string {
+func (t LinkedServiceAzureBlobStorageResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+	resourceGroup := id.ResourceGroup
+	dataFactoryName := id.Path["factories"]
+	name := id.Path["linkedservices"]
+
+	resp, err := clients.DataFactory.LinkedServiceClient.Get(ctx, resourceGroup, dataFactoryName, name, "")
+	if err != nil {
+		return nil, fmt.Errorf("reading Data Factory Linked Service Azure Storage Blob (%s): %+v", id, err)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
+}
+
+func (LinkedServiceAzureBlobStorageResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -149,7 +135,7 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDataFactoryLinkedServiceAzureBlobStorage_update1(data acceptance.TestData) string {
+func (LinkedServiceAzureBlobStorageResource) update1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -187,7 +173,7 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDataFactoryLinkedServiceAzureBlobStorage_update2(data acceptance.TestData) string {
+func (LinkedServiceAzureBlobStorageResource) update2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -222,6 +208,71 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
   additional_properties = {
     foo = "test1"
   }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (LinkedServiceAzureBlobStorageResource) managed_id(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
+  name                 = "acctestBlobStorage%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  data_factory_name    = azurerm_data_factory.test.name
+  connection_string    = "DefaultEndpointsProtocol=https;AccountName=foo;AccountKey=bar"
+  use_managed_identity = true
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (LinkedServiceAzureBlobStorageResource) sas_uri(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
+  name                = "acctestBlobStorage%d"
+  resource_group_name = azurerm_resource_group.test.name
+  data_factory_name   = azurerm_data_factory.test.name
+  sas_uri             = "https://storageaccountname.blob.core.windows.net/sascontainer/sasblob.txt?sv=2019-02-02&st=2019-04-29T22:18:26Z&se=2019-04-30T02:23:26Z&sr=b&sp=rw&sip=168.1.5.60-168.1.5.70&spr=https&sig=koLniLcK0tMLuMfYeuSQwB+BLnWibhPqnrINxaIRbvU<"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

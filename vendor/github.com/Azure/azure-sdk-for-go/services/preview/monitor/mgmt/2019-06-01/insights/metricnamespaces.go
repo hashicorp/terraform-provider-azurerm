@@ -73,6 +73,7 @@ func (client MetricNamespacesClient) List(ctx context.Context, resourceURI strin
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.MetricNamespacesClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -111,7 +112,6 @@ func (client MetricNamespacesClient) ListSender(req *http.Request) (*http.Respon
 func (client MetricNamespacesClient) ListResponder(resp *http.Response) (result MetricNamespaceCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

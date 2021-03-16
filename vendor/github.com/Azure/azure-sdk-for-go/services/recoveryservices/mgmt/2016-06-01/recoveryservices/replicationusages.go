@@ -73,6 +73,7 @@ func (client ReplicationUsagesClient) List(ctx context.Context, resourceGroupNam
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "recoveryservices.ReplicationUsagesClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -110,7 +111,6 @@ func (client ReplicationUsagesClient) ListSender(req *http.Request) (*http.Respo
 func (client ReplicationUsagesClient) ListResponder(resp *http.Response) (result ReplicationUsageList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

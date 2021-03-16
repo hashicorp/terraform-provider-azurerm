@@ -89,6 +89,7 @@ func (client DisasterRecoveryConfigsClient) BreakPairing(ctx context.Context, re
 	result, err = client.BreakPairingResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.DisasterRecoveryConfigsClient", "BreakPairing", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -127,7 +128,6 @@ func (client DisasterRecoveryConfigsClient) BreakPairingSender(req *http.Request
 func (client DisasterRecoveryConfigsClient) BreakPairingResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -178,6 +178,7 @@ func (client DisasterRecoveryConfigsClient) CheckNameAvailability(ctx context.Co
 	result, err = client.CheckNameAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.DisasterRecoveryConfigsClient", "CheckNameAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -217,7 +218,6 @@ func (client DisasterRecoveryConfigsClient) CheckNameAvailabilitySender(req *htt
 func (client DisasterRecoveryConfigsClient) CheckNameAvailabilityResponder(resp *http.Response) (result CheckNameAvailabilityResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -271,6 +271,7 @@ func (client DisasterRecoveryConfigsClient) CreateOrUpdate(ctx context.Context, 
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.DisasterRecoveryConfigsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -311,7 +312,6 @@ func (client DisasterRecoveryConfigsClient) CreateOrUpdateSender(req *http.Reque
 func (client DisasterRecoveryConfigsClient) CreateOrUpdateResponder(resp *http.Response) (result ArmDisasterRecovery, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -364,6 +364,7 @@ func (client DisasterRecoveryConfigsClient) Delete(ctx context.Context, resource
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.DisasterRecoveryConfigsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -402,7 +403,6 @@ func (client DisasterRecoveryConfigsClient) DeleteSender(req *http.Request) (*ht
 func (client DisasterRecoveryConfigsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -454,6 +454,7 @@ func (client DisasterRecoveryConfigsClient) FailOver(ctx context.Context, resour
 	result, err = client.FailOverResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.DisasterRecoveryConfigsClient", "FailOver", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -492,7 +493,6 @@ func (client DisasterRecoveryConfigsClient) FailOverSender(req *http.Request) (*
 func (client DisasterRecoveryConfigsClient) FailOverResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -544,6 +544,7 @@ func (client DisasterRecoveryConfigsClient) Get(ctx context.Context, resourceGro
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.DisasterRecoveryConfigsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -582,7 +583,6 @@ func (client DisasterRecoveryConfigsClient) GetSender(req *http.Request) (*http.
 func (client DisasterRecoveryConfigsClient) GetResponder(resp *http.Response) (result ArmDisasterRecovery, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -638,6 +638,7 @@ func (client DisasterRecoveryConfigsClient) GetAuthorizationRule(ctx context.Con
 	result, err = client.GetAuthorizationRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.DisasterRecoveryConfigsClient", "GetAuthorizationRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -677,7 +678,6 @@ func (client DisasterRecoveryConfigsClient) GetAuthorizationRuleSender(req *http
 func (client DisasterRecoveryConfigsClient) GetAuthorizationRuleResponder(resp *http.Response) (result AuthorizationRule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -727,6 +727,11 @@ func (client DisasterRecoveryConfigsClient) List(ctx context.Context, resourceGr
 	result.adrlr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.DisasterRecoveryConfigsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.adrlr.hasNextLink() && result.adrlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -764,7 +769,6 @@ func (client DisasterRecoveryConfigsClient) ListSender(req *http.Request) (*http
 func (client DisasterRecoveryConfigsClient) ListResponder(resp *http.Response) (result ArmDisasterRecoveryListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -855,6 +859,11 @@ func (client DisasterRecoveryConfigsClient) ListAuthorizationRules(ctx context.C
 	result.arlr, err = client.ListAuthorizationRulesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.DisasterRecoveryConfigsClient", "ListAuthorizationRules", resp, "Failure responding to request")
+		return
+	}
+	if result.arlr.hasNextLink() && result.arlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -893,7 +902,6 @@ func (client DisasterRecoveryConfigsClient) ListAuthorizationRulesSender(req *ht
 func (client DisasterRecoveryConfigsClient) ListAuthorizationRulesResponder(resp *http.Response) (result AuthorizationRuleListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -986,6 +994,7 @@ func (client DisasterRecoveryConfigsClient) ListKeys(ctx context.Context, resour
 	result, err = client.ListKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.DisasterRecoveryConfigsClient", "ListKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1025,7 +1034,6 @@ func (client DisasterRecoveryConfigsClient) ListKeysSender(req *http.Request) (*
 func (client DisasterRecoveryConfigsClient) ListKeysResponder(resp *http.Response) (result AccessKeys, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

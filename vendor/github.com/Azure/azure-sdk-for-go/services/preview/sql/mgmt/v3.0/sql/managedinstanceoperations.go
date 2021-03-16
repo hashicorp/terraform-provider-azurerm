@@ -22,7 +22,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/tracing"
-	"github.com/satori/go.uuid"
+	"github.com/gofrs/uuid"
 	"net/http"
 )
 
@@ -77,6 +77,7 @@ func (client ManagedInstanceOperationsClient) Cancel(ctx context.Context, resour
 	result, err = client.CancelResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceOperationsClient", "Cancel", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -115,7 +116,6 @@ func (client ManagedInstanceOperationsClient) CancelSender(req *http.Request) (*
 func (client ManagedInstanceOperationsClient) CancelResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -154,6 +154,7 @@ func (client ManagedInstanceOperationsClient) Get(ctx context.Context, resourceG
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceOperationsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -192,7 +193,6 @@ func (client ManagedInstanceOperationsClient) GetSender(req *http.Request) (*htt
 func (client ManagedInstanceOperationsClient) GetResponder(resp *http.Response) (result ManagedInstanceOperation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -233,6 +233,11 @@ func (client ManagedInstanceOperationsClient) ListByManagedInstance(ctx context.
 	result.miolr, err = client.ListByManagedInstanceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceOperationsClient", "ListByManagedInstance", resp, "Failure responding to request")
+		return
+	}
+	if result.miolr.hasNextLink() && result.miolr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -270,7 +275,6 @@ func (client ManagedInstanceOperationsClient) ListByManagedInstanceSender(req *h
 func (client ManagedInstanceOperationsClient) ListByManagedInstanceResponder(resp *http.Response) (result ManagedInstanceOperationListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

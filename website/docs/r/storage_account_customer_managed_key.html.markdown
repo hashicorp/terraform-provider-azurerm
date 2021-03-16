@@ -28,7 +28,6 @@ resource "azurerm_key_vault" "example" {
   tenant_id           = data.azurerm_client_config.current.tenant_id
   sku_name            = "standard"
 
-  soft_delete_enabled      = true
   purge_protection_enabled = true
 }
 
@@ -81,7 +80,6 @@ resource "azurerm_storage_account_customer_managed_key" "example" {
   storage_account_id = azurerm_storage_account.example.id
   key_vault_id       = azurerm_key_vault.example.id
   key_name           = azurerm_key_vault_key.example.name
-  key_version        = azurerm_key_vault_key.example.version
 }
 ```
 
@@ -95,7 +93,7 @@ The following arguments are supported:
 
 * `key_name` - (Required) The name of Key Vault Key.
 
-* `key_version` - (Required) The version of Key Vault Key.
+* `key_version` - (Optional) The version of Key Vault Key. Remove or omit this argument to enable Automatic Key Rotation.
 
 ## Attributes Reference
 

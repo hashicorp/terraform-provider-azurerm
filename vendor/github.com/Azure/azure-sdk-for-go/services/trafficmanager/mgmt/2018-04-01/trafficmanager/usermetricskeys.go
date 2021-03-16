@@ -69,6 +69,7 @@ func (client UserMetricsKeysClient) CreateOrUpdate(ctx context.Context) (result 
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "trafficmanager.UserMetricsKeysClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -104,7 +105,6 @@ func (client UserMetricsKeysClient) CreateOrUpdateSender(req *http.Request) (*ht
 func (client UserMetricsKeysClient) CreateOrUpdateResponder(resp *http.Response) (result UserMetricsModel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -140,6 +140,7 @@ func (client UserMetricsKeysClient) Delete(ctx context.Context) (result DeleteOp
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "trafficmanager.UserMetricsKeysClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -175,7 +176,6 @@ func (client UserMetricsKeysClient) DeleteSender(req *http.Request) (*http.Respo
 func (client UserMetricsKeysClient) DeleteResponder(resp *http.Response) (result DeleteOperationResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -211,6 +211,7 @@ func (client UserMetricsKeysClient) Get(ctx context.Context) (result UserMetrics
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "trafficmanager.UserMetricsKeysClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -246,7 +247,6 @@ func (client UserMetricsKeysClient) GetSender(req *http.Request) (*http.Response
 func (client UserMetricsKeysClient) GetResponder(resp *http.Response) (result UserMetricsModel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

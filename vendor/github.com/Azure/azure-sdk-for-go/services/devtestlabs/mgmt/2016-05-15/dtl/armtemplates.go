@@ -75,6 +75,7 @@ func (client ArmTemplatesClient) Get(ctx context.Context, resourceGroupName stri
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.ArmTemplatesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -117,7 +118,6 @@ func (client ArmTemplatesClient) GetSender(req *http.Request) (*http.Response, e
 func (client ArmTemplatesClient) GetResponder(resp *http.Response) (result ArmTemplate, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -162,6 +162,11 @@ func (client ArmTemplatesClient) List(ctx context.Context, resourceGroupName str
 	result.rwcat, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.ArmTemplatesClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.rwcat.hasNextLink() && result.rwcat.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -212,7 +217,6 @@ func (client ArmTemplatesClient) ListSender(req *http.Request) (*http.Response, 
 func (client ArmTemplatesClient) ListResponder(resp *http.Response) (result ResponseWithContinuationArmTemplate, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

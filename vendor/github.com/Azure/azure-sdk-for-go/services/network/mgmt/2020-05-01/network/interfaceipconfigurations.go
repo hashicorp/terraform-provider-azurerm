@@ -74,6 +74,7 @@ func (client InterfaceIPConfigurationsClient) Get(ctx context.Context, resourceG
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.InterfaceIPConfigurationsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -112,7 +113,6 @@ func (client InterfaceIPConfigurationsClient) GetSender(req *http.Request) (*htt
 func (client InterfaceIPConfigurationsClient) GetResponder(resp *http.Response) (result InterfaceIPConfiguration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -152,6 +152,11 @@ func (client InterfaceIPConfigurationsClient) List(ctx context.Context, resource
 	result.iiclr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.InterfaceIPConfigurationsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.iiclr.hasNextLink() && result.iiclr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -189,7 +194,6 @@ func (client InterfaceIPConfigurationsClient) ListSender(req *http.Request) (*ht
 func (client InterfaceIPConfigurationsClient) ListResponder(resp *http.Response) (result InterfaceIPConfigurationListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

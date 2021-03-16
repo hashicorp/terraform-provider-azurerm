@@ -52,8 +52,8 @@ func (client ExpressRoutePortsClient) CreateOrUpdate(ctx context.Context, resour
 		ctx = tracing.StartSpan(ctx, fqdn+"/ExpressRoutePortsClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -66,7 +66,7 @@ func (client ExpressRoutePortsClient) CreateOrUpdate(ctx context.Context, resour
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "network.ExpressRoutePortsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "network.ExpressRoutePortsClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -105,7 +105,33 @@ func (client ExpressRoutePortsClient) CreateOrUpdateSender(req *http.Request) (f
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ExpressRoutePortsClient) (erp ExpressRoutePort, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "network.ExpressRoutePortsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("network.ExpressRoutePortsCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		erp.Response.Response, err = future.GetResult(sender)
+		if erp.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "network.ExpressRoutePortsCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && erp.Response.Response.StatusCode != http.StatusNoContent {
+			erp, err = client.CreateOrUpdateResponder(erp.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "network.ExpressRoutePortsCreateOrUpdateFuture", "Result", erp.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -114,7 +140,6 @@ func (client ExpressRoutePortsClient) CreateOrUpdateSender(req *http.Request) (f
 func (client ExpressRoutePortsClient) CreateOrUpdateResponder(resp *http.Response) (result ExpressRoutePort, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -131,8 +156,8 @@ func (client ExpressRoutePortsClient) Delete(ctx context.Context, resourceGroupN
 		ctx = tracing.StartSpan(ctx, fqdn+"/ExpressRoutePortsClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -145,7 +170,7 @@ func (client ExpressRoutePortsClient) Delete(ctx context.Context, resourceGroupN
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "network.ExpressRoutePortsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "network.ExpressRoutePortsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -181,7 +206,23 @@ func (client ExpressRoutePortsClient) DeleteSender(req *http.Request) (future Ex
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ExpressRoutePortsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "network.ExpressRoutePortsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("network.ExpressRoutePortsDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -190,7 +231,6 @@ func (client ExpressRoutePortsClient) DeleteSender(req *http.Request) (future Ex
 func (client ExpressRoutePortsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -228,6 +268,7 @@ func (client ExpressRoutePortsClient) Get(ctx context.Context, resourceGroupName
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ExpressRoutePortsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -265,7 +306,6 @@ func (client ExpressRoutePortsClient) GetSender(req *http.Request) (*http.Respon
 func (client ExpressRoutePortsClient) GetResponder(resp *http.Response) (result ExpressRoutePort, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -302,6 +342,11 @@ func (client ExpressRoutePortsClient) List(ctx context.Context) (result ExpressR
 	result.erplr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ExpressRoutePortsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.erplr.hasNextLink() && result.erplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -337,7 +382,6 @@ func (client ExpressRoutePortsClient) ListSender(req *http.Request) (*http.Respo
 func (client ExpressRoutePortsClient) ListResponder(resp *http.Response) (result ExpressRoutePortListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -413,6 +457,11 @@ func (client ExpressRoutePortsClient) ListByResourceGroup(ctx context.Context, r
 	result.erplr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ExpressRoutePortsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.erplr.hasNextLink() && result.erplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -449,7 +498,6 @@ func (client ExpressRoutePortsClient) ListByResourceGroupSender(req *http.Reques
 func (client ExpressRoutePortsClient) ListByResourceGroupResponder(resp *http.Response) (result ExpressRoutePortListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -526,6 +574,7 @@ func (client ExpressRoutePortsClient) UpdateTags(ctx context.Context, resourceGr
 	result, err = client.UpdateTagsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ExpressRoutePortsClient", "UpdateTags", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -565,7 +614,6 @@ func (client ExpressRoutePortsClient) UpdateTagsSender(req *http.Request) (*http
 func (client ExpressRoutePortsClient) UpdateTagsResponder(resp *http.Response) (result ExpressRoutePort, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

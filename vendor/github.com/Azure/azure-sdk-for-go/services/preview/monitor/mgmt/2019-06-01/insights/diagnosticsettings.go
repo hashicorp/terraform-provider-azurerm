@@ -74,6 +74,7 @@ func (client DiagnosticSettingsClient) CreateOrUpdate(ctx context.Context, resou
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.DiagnosticSettingsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -112,7 +113,6 @@ func (client DiagnosticSettingsClient) CreateOrUpdateSender(req *http.Request) (
 func (client DiagnosticSettingsClient) CreateOrUpdateResponder(resp *http.Response) (result DiagnosticSettingsResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -151,6 +151,7 @@ func (client DiagnosticSettingsClient) Delete(ctx context.Context, resourceURI s
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.DiagnosticSettingsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -187,7 +188,6 @@ func (client DiagnosticSettingsClient) DeleteSender(req *http.Request) (*http.Re
 func (client DiagnosticSettingsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -225,6 +225,7 @@ func (client DiagnosticSettingsClient) Get(ctx context.Context, resourceURI stri
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.DiagnosticSettingsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -261,7 +262,6 @@ func (client DiagnosticSettingsClient) GetSender(req *http.Request) (*http.Respo
 func (client DiagnosticSettingsClient) GetResponder(resp *http.Response) (result DiagnosticSettingsResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -299,6 +299,7 @@ func (client DiagnosticSettingsClient) List(ctx context.Context, resourceURI str
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.DiagnosticSettingsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -334,7 +335,6 @@ func (client DiagnosticSettingsClient) ListSender(req *http.Request) (*http.Resp
 func (client DiagnosticSettingsClient) ListResponder(resp *http.Response) (result DiagnosticSettingsResourceCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

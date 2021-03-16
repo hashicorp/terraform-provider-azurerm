@@ -83,6 +83,7 @@ func (client LocationBasedRecommendedActionSessionsOperationStatusClient) Get(ct
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mariadb.LocationBasedRecommendedActionSessionsOperationStatusClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -120,7 +121,6 @@ func (client LocationBasedRecommendedActionSessionsOperationStatusClient) GetSen
 func (client LocationBasedRecommendedActionSessionsOperationStatusClient) GetResponder(resp *http.Response) (result RecommendedActionSessionsOperationStatus, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

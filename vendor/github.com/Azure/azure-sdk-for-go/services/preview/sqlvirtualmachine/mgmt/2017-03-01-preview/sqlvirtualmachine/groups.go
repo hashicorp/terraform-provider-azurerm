@@ -54,8 +54,8 @@ func (client GroupsClient) CreateOrUpdate(ctx context.Context, resourceGroupName
 		ctx = tracing.StartSpan(ctx, fqdn+"/GroupsClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -68,7 +68,7 @@ func (client GroupsClient) CreateOrUpdate(ctx context.Context, resourceGroupName
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.GroupsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.GroupsClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -106,7 +106,33 @@ func (client GroupsClient) CreateOrUpdateSender(req *http.Request) (future Group
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client GroupsClient) (g Group, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sqlvirtualmachine.GroupsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sqlvirtualmachine.GroupsCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		g.Response.Response, err = future.GetResult(sender)
+		if g.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "sqlvirtualmachine.GroupsCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && g.Response.Response.StatusCode != http.StatusNoContent {
+			g, err = client.CreateOrUpdateResponder(g.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "sqlvirtualmachine.GroupsCreateOrUpdateFuture", "Result", g.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -115,7 +141,6 @@ func (client GroupsClient) CreateOrUpdateSender(req *http.Request) (future Group
 func (client GroupsClient) CreateOrUpdateResponder(resp *http.Response) (result Group, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -133,8 +158,8 @@ func (client GroupsClient) Delete(ctx context.Context, resourceGroupName string,
 		ctx = tracing.StartSpan(ctx, fqdn+"/GroupsClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -147,7 +172,7 @@ func (client GroupsClient) Delete(ctx context.Context, resourceGroupName string,
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.GroupsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.GroupsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -183,7 +208,23 @@ func (client GroupsClient) DeleteSender(req *http.Request) (future GroupsDeleteF
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client GroupsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sqlvirtualmachine.GroupsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sqlvirtualmachine.GroupsDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -192,7 +233,6 @@ func (client GroupsClient) DeleteSender(req *http.Request) (future GroupsDeleteF
 func (client GroupsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -231,6 +271,7 @@ func (client GroupsClient) Get(ctx context.Context, resourceGroupName string, SQ
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.GroupsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -268,7 +309,6 @@ func (client GroupsClient) GetSender(req *http.Request) (*http.Response, error) 
 func (client GroupsClient) GetResponder(resp *http.Response) (result Group, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -305,6 +345,11 @@ func (client GroupsClient) List(ctx context.Context) (result GroupListResultPage
 	result.glr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.GroupsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.glr.hasNextLink() && result.glr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -340,7 +385,6 @@ func (client GroupsClient) ListSender(req *http.Request) (*http.Response, error)
 func (client GroupsClient) ListResponder(resp *http.Response) (result GroupListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -417,6 +461,11 @@ func (client GroupsClient) ListByResourceGroup(ctx context.Context, resourceGrou
 	result.glr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.GroupsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.glr.hasNextLink() && result.glr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -453,7 +502,6 @@ func (client GroupsClient) ListByResourceGroupSender(req *http.Request) (*http.R
 func (client GroupsClient) ListByResourceGroupResponder(resp *http.Response) (result GroupListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -509,8 +557,8 @@ func (client GroupsClient) Update(ctx context.Context, resourceGroupName string,
 		ctx = tracing.StartSpan(ctx, fqdn+"/GroupsClient.Update")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -523,7 +571,7 @@ func (client GroupsClient) Update(ctx context.Context, resourceGroupName string,
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.GroupsClient", "Update", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.GroupsClient", "Update", nil, "Failure sending request")
 		return
 	}
 
@@ -561,7 +609,33 @@ func (client GroupsClient) UpdateSender(req *http.Request) (future GroupsUpdateF
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client GroupsClient) (g Group, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sqlvirtualmachine.GroupsUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sqlvirtualmachine.GroupsUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		g.Response.Response, err = future.GetResult(sender)
+		if g.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "sqlvirtualmachine.GroupsUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && g.Response.Response.StatusCode != http.StatusNoContent {
+			g, err = client.UpdateResponder(g.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "sqlvirtualmachine.GroupsUpdateFuture", "Result", g.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -570,7 +644,6 @@ func (client GroupsClient) UpdateSender(req *http.Request) (future GroupsUpdateF
 func (client GroupsClient) UpdateResponder(resp *http.Response) (result Group, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

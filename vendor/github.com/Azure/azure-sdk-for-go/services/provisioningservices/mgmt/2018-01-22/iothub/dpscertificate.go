@@ -84,6 +84,7 @@ func (client DpsCertificateClient) CreateOrUpdate(ctx context.Context, resourceG
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "iothub.DpsCertificateClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -128,7 +129,6 @@ func (client DpsCertificateClient) CreateOrUpdateSender(req *http.Request) (*htt
 func (client DpsCertificateClient) CreateOrUpdateResponder(resp *http.Response) (result CertificateResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -178,6 +178,7 @@ func (client DpsCertificateClient) Delete(ctx context.Context, resourceGroupName
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "iothub.DpsCertificateClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -241,7 +242,6 @@ func (client DpsCertificateClient) DeleteSender(req *http.Request) (*http.Respon
 func (client DpsCertificateClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -291,6 +291,7 @@ func (client DpsCertificateClient) GenerateVerificationCode(ctx context.Context,
 	result, err = client.GenerateVerificationCodeResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "iothub.DpsCertificateClient", "GenerateVerificationCode", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -354,7 +355,6 @@ func (client DpsCertificateClient) GenerateVerificationCodeSender(req *http.Requ
 func (client DpsCertificateClient) GenerateVerificationCodeResponder(resp *http.Response) (result VerificationCodeResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -395,6 +395,7 @@ func (client DpsCertificateClient) Get(ctx context.Context, certificateName stri
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "iothub.DpsCertificateClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -437,7 +438,6 @@ func (client DpsCertificateClient) GetSender(req *http.Request) (*http.Response,
 func (client DpsCertificateClient) GetResponder(resp *http.Response) (result CertificateResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -476,6 +476,7 @@ func (client DpsCertificateClient) List(ctx context.Context, resourceGroupName s
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "iothub.DpsCertificateClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -513,7 +514,6 @@ func (client DpsCertificateClient) ListSender(req *http.Request) (*http.Response
 func (client DpsCertificateClient) ListResponder(resp *http.Response) (result CertificateListDescription, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -565,6 +565,7 @@ func (client DpsCertificateClient) VerifyCertificate(ctx context.Context, certif
 	result, err = client.VerifyCertificateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "iothub.DpsCertificateClient", "VerifyCertificate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -630,7 +631,6 @@ func (client DpsCertificateClient) VerifyCertificateSender(req *http.Request) (*
 func (client DpsCertificateClient) VerifyCertificateResponder(resp *http.Response) (result CertificateResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

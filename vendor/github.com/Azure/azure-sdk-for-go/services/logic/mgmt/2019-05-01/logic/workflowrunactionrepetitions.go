@@ -76,6 +76,7 @@ func (client WorkflowRunActionRepetitionsClient) Get(ctx context.Context, resour
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowRunActionRepetitionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -116,7 +117,6 @@ func (client WorkflowRunActionRepetitionsClient) GetSender(req *http.Request) (*
 func (client WorkflowRunActionRepetitionsClient) GetResponder(resp *http.Response) (result WorkflowRunActionRepetitionDefinition, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -157,6 +157,7 @@ func (client WorkflowRunActionRepetitionsClient) List(ctx context.Context, resou
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowRunActionRepetitionsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -196,7 +197,6 @@ func (client WorkflowRunActionRepetitionsClient) ListSender(req *http.Request) (
 func (client WorkflowRunActionRepetitionsClient) ListResponder(resp *http.Response) (result WorkflowRunActionRepetitionDefinitionCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -238,6 +238,7 @@ func (client WorkflowRunActionRepetitionsClient) ListExpressionTraces(ctx contex
 	result, err = client.ListExpressionTracesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowRunActionRepetitionsClient", "ListExpressionTraces", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -278,7 +279,6 @@ func (client WorkflowRunActionRepetitionsClient) ListExpressionTracesSender(req 
 func (client WorkflowRunActionRepetitionsClient) ListExpressionTracesResponder(resp *http.Response) (result ExpressionTraces, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

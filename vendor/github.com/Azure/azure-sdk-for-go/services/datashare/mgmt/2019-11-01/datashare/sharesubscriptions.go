@@ -54,8 +54,8 @@ func (client ShareSubscriptionsClient) CancelSynchronization(ctx context.Context
 		ctx = tracing.StartSpan(ctx, fqdn+"/ShareSubscriptionsClient.CancelSynchronization")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -74,7 +74,7 @@ func (client ShareSubscriptionsClient) CancelSynchronization(ctx context.Context
 
 	result, err = client.CancelSynchronizationSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsClient", "CancelSynchronization", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsClient", "CancelSynchronization", nil, "Failure sending request")
 		return
 	}
 
@@ -119,7 +119,33 @@ func (client ShareSubscriptionsClient) CancelSynchronizationSender(req *http.Req
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ShareSubscriptionsClient) (sss ShareSubscriptionSynchronization, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsCancelSynchronizationFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("datashare.ShareSubscriptionsCancelSynchronizationFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		sss.Response.Response, err = future.GetResult(sender)
+		if sss.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsCancelSynchronizationFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && sss.Response.Response.StatusCode != http.StatusNoContent {
+			sss, err = client.CancelSynchronizationResponder(sss.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsCancelSynchronizationFuture", "Result", sss.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -128,7 +154,6 @@ func (client ShareSubscriptionsClient) CancelSynchronizationSender(req *http.Req
 func (client ShareSubscriptionsClient) CancelSynchronizationResponder(resp *http.Response) (result ShareSubscriptionSynchronization, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -178,6 +203,7 @@ func (client ShareSubscriptionsClient) Create(ctx context.Context, resourceGroup
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -218,7 +244,6 @@ func (client ShareSubscriptionsClient) CreateSender(req *http.Request) (*http.Re
 func (client ShareSubscriptionsClient) CreateResponder(resp *http.Response) (result ShareSubscription, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -236,8 +261,8 @@ func (client ShareSubscriptionsClient) Delete(ctx context.Context, resourceGroup
 		ctx = tracing.StartSpan(ctx, fqdn+"/ShareSubscriptionsClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -250,7 +275,7 @@ func (client ShareSubscriptionsClient) Delete(ctx context.Context, resourceGroup
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -287,7 +312,33 @@ func (client ShareSubscriptionsClient) DeleteSender(req *http.Request) (future S
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ShareSubscriptionsClient) (or OperationResponse, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("datashare.ShareSubscriptionsDeleteFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		or.Response.Response, err = future.GetResult(sender)
+		if or.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsDeleteFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && or.Response.Response.StatusCode != http.StatusNoContent {
+			or, err = client.DeleteResponder(or.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsDeleteFuture", "Result", or.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -296,7 +347,6 @@ func (client ShareSubscriptionsClient) DeleteSender(req *http.Request) (future S
 func (client ShareSubscriptionsClient) DeleteResponder(resp *http.Response) (result OperationResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -336,6 +386,7 @@ func (client ShareSubscriptionsClient) Get(ctx context.Context, resourceGroupNam
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -374,7 +425,6 @@ func (client ShareSubscriptionsClient) GetSender(req *http.Request) (*http.Respo
 func (client ShareSubscriptionsClient) GetResponder(resp *http.Response) (result ShareSubscription, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -387,7 +437,9 @@ func (client ShareSubscriptionsClient) GetResponder(resp *http.Response) (result
 // resourceGroupName - the resource group name.
 // accountName - the name of the share account.
 // skipToken - continuation Token
-func (client ShareSubscriptionsClient) ListByAccount(ctx context.Context, resourceGroupName string, accountName string, skipToken string) (result ShareSubscriptionListPage, err error) {
+// filter - filters the results using OData syntax.
+// orderby - sorts the results using OData syntax.
+func (client ShareSubscriptionsClient) ListByAccount(ctx context.Context, resourceGroupName string, accountName string, skipToken string, filter string, orderby string) (result ShareSubscriptionListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ShareSubscriptionsClient.ListByAccount")
 		defer func() {
@@ -399,7 +451,7 @@ func (client ShareSubscriptionsClient) ListByAccount(ctx context.Context, resour
 		}()
 	}
 	result.fn = client.listByAccountNextResults
-	req, err := client.ListByAccountPreparer(ctx, resourceGroupName, accountName, skipToken)
+	req, err := client.ListByAccountPreparer(ctx, resourceGroupName, accountName, skipToken, filter, orderby)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsClient", "ListByAccount", nil, "Failure preparing request")
 		return
@@ -415,13 +467,18 @@ func (client ShareSubscriptionsClient) ListByAccount(ctx context.Context, resour
 	result.ssl, err = client.ListByAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsClient", "ListByAccount", resp, "Failure responding to request")
+		return
+	}
+	if result.ssl.hasNextLink() && result.ssl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
 }
 
 // ListByAccountPreparer prepares the ListByAccount request.
-func (client ShareSubscriptionsClient) ListByAccountPreparer(ctx context.Context, resourceGroupName string, accountName string, skipToken string) (*http.Request, error) {
+func (client ShareSubscriptionsClient) ListByAccountPreparer(ctx context.Context, resourceGroupName string, accountName string, skipToken string, filter string, orderby string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"accountName":       autorest.Encode("path", accountName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -434,6 +491,12 @@ func (client ShareSubscriptionsClient) ListByAccountPreparer(ctx context.Context
 	}
 	if len(skipToken) > 0 {
 		queryParameters["$skipToken"] = autorest.Encode("query", skipToken)
+	}
+	if len(filter) > 0 {
+		queryParameters["$filter"] = autorest.Encode("query", filter)
+	}
+	if len(orderby) > 0 {
+		queryParameters["$orderby"] = autorest.Encode("query", orderby)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -455,7 +518,6 @@ func (client ShareSubscriptionsClient) ListByAccountSender(req *http.Request) (*
 func (client ShareSubscriptionsClient) ListByAccountResponder(resp *http.Response) (result ShareSubscriptionList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -485,7 +547,7 @@ func (client ShareSubscriptionsClient) listByAccountNextResults(ctx context.Cont
 }
 
 // ListByAccountComplete enumerates all values, automatically crossing page boundaries as required.
-func (client ShareSubscriptionsClient) ListByAccountComplete(ctx context.Context, resourceGroupName string, accountName string, skipToken string) (result ShareSubscriptionListIterator, err error) {
+func (client ShareSubscriptionsClient) ListByAccountComplete(ctx context.Context, resourceGroupName string, accountName string, skipToken string, filter string, orderby string) (result ShareSubscriptionListIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ShareSubscriptionsClient.ListByAccount")
 		defer func() {
@@ -496,7 +558,7 @@ func (client ShareSubscriptionsClient) ListByAccountComplete(ctx context.Context
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.ListByAccount(ctx, resourceGroupName, accountName, skipToken)
+	result.page, err = client.ListByAccount(ctx, resourceGroupName, accountName, skipToken, filter, orderby)
 	return
 }
 
@@ -534,6 +596,11 @@ func (client ShareSubscriptionsClient) ListSourceShareSynchronizationSettings(ct
 	result.ssssl, err = client.ListSourceShareSynchronizationSettingsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsClient", "ListSourceShareSynchronizationSettings", resp, "Failure responding to request")
+		return
+	}
+	if result.ssssl.hasNextLink() && result.ssssl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -575,7 +642,6 @@ func (client ShareSubscriptionsClient) ListSourceShareSynchronizationSettingsSen
 func (client ShareSubscriptionsClient) ListSourceShareSynchronizationSettingsResponder(resp *http.Response) (result SourceShareSynchronizationSettingList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -627,7 +693,9 @@ func (client ShareSubscriptionsClient) ListSourceShareSynchronizationSettingsCom
 // shareSubscriptionName - the name of the share subscription.
 // shareSubscriptionSynchronization - share Subscription Synchronization payload.
 // skipToken - continuation token
-func (client ShareSubscriptionsClient) ListSynchronizationDetails(ctx context.Context, resourceGroupName string, accountName string, shareSubscriptionName string, shareSubscriptionSynchronization ShareSubscriptionSynchronization, skipToken string) (result SynchronizationDetailsListPage, err error) {
+// filter - filters the results using OData syntax.
+// orderby - sorts the results using OData syntax.
+func (client ShareSubscriptionsClient) ListSynchronizationDetails(ctx context.Context, resourceGroupName string, accountName string, shareSubscriptionName string, shareSubscriptionSynchronization ShareSubscriptionSynchronization, skipToken string, filter string, orderby string) (result SynchronizationDetailsListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ShareSubscriptionsClient.ListSynchronizationDetails")
 		defer func() {
@@ -645,7 +713,7 @@ func (client ShareSubscriptionsClient) ListSynchronizationDetails(ctx context.Co
 	}
 
 	result.fn = client.listSynchronizationDetailsNextResults
-	req, err := client.ListSynchronizationDetailsPreparer(ctx, resourceGroupName, accountName, shareSubscriptionName, shareSubscriptionSynchronization, skipToken)
+	req, err := client.ListSynchronizationDetailsPreparer(ctx, resourceGroupName, accountName, shareSubscriptionName, shareSubscriptionSynchronization, skipToken, filter, orderby)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsClient", "ListSynchronizationDetails", nil, "Failure preparing request")
 		return
@@ -661,13 +729,18 @@ func (client ShareSubscriptionsClient) ListSynchronizationDetails(ctx context.Co
 	result.sdl, err = client.ListSynchronizationDetailsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsClient", "ListSynchronizationDetails", resp, "Failure responding to request")
+		return
+	}
+	if result.sdl.hasNextLink() && result.sdl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
 }
 
 // ListSynchronizationDetailsPreparer prepares the ListSynchronizationDetails request.
-func (client ShareSubscriptionsClient) ListSynchronizationDetailsPreparer(ctx context.Context, resourceGroupName string, accountName string, shareSubscriptionName string, shareSubscriptionSynchronization ShareSubscriptionSynchronization, skipToken string) (*http.Request, error) {
+func (client ShareSubscriptionsClient) ListSynchronizationDetailsPreparer(ctx context.Context, resourceGroupName string, accountName string, shareSubscriptionName string, shareSubscriptionSynchronization ShareSubscriptionSynchronization, skipToken string, filter string, orderby string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"accountName":           autorest.Encode("path", accountName),
 		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
@@ -681,6 +754,12 @@ func (client ShareSubscriptionsClient) ListSynchronizationDetailsPreparer(ctx co
 	}
 	if len(skipToken) > 0 {
 		queryParameters["$skipToken"] = autorest.Encode("query", skipToken)
+	}
+	if len(filter) > 0 {
+		queryParameters["$filter"] = autorest.Encode("query", filter)
+	}
+	if len(orderby) > 0 {
+		queryParameters["$orderby"] = autorest.Encode("query", orderby)
 	}
 
 	shareSubscriptionSynchronization.DurationMs = nil
@@ -710,7 +789,6 @@ func (client ShareSubscriptionsClient) ListSynchronizationDetailsSender(req *htt
 func (client ShareSubscriptionsClient) ListSynchronizationDetailsResponder(resp *http.Response) (result SynchronizationDetailsList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -740,7 +818,7 @@ func (client ShareSubscriptionsClient) listSynchronizationDetailsNextResults(ctx
 }
 
 // ListSynchronizationDetailsComplete enumerates all values, automatically crossing page boundaries as required.
-func (client ShareSubscriptionsClient) ListSynchronizationDetailsComplete(ctx context.Context, resourceGroupName string, accountName string, shareSubscriptionName string, shareSubscriptionSynchronization ShareSubscriptionSynchronization, skipToken string) (result SynchronizationDetailsListIterator, err error) {
+func (client ShareSubscriptionsClient) ListSynchronizationDetailsComplete(ctx context.Context, resourceGroupName string, accountName string, shareSubscriptionName string, shareSubscriptionSynchronization ShareSubscriptionSynchronization, skipToken string, filter string, orderby string) (result SynchronizationDetailsListIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ShareSubscriptionsClient.ListSynchronizationDetails")
 		defer func() {
@@ -751,7 +829,7 @@ func (client ShareSubscriptionsClient) ListSynchronizationDetailsComplete(ctx co
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.ListSynchronizationDetails(ctx, resourceGroupName, accountName, shareSubscriptionName, shareSubscriptionSynchronization, skipToken)
+	result.page, err = client.ListSynchronizationDetails(ctx, resourceGroupName, accountName, shareSubscriptionName, shareSubscriptionSynchronization, skipToken, filter, orderby)
 	return
 }
 
@@ -761,7 +839,9 @@ func (client ShareSubscriptionsClient) ListSynchronizationDetailsComplete(ctx co
 // accountName - the name of the share account.
 // shareSubscriptionName - the name of the share subscription.
 // skipToken - continuation token
-func (client ShareSubscriptionsClient) ListSynchronizations(ctx context.Context, resourceGroupName string, accountName string, shareSubscriptionName string, skipToken string) (result ShareSubscriptionSynchronizationListPage, err error) {
+// filter - filters the results using OData syntax.
+// orderby - sorts the results using OData syntax.
+func (client ShareSubscriptionsClient) ListSynchronizations(ctx context.Context, resourceGroupName string, accountName string, shareSubscriptionName string, skipToken string, filter string, orderby string) (result ShareSubscriptionSynchronizationListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ShareSubscriptionsClient.ListSynchronizations")
 		defer func() {
@@ -773,7 +853,7 @@ func (client ShareSubscriptionsClient) ListSynchronizations(ctx context.Context,
 		}()
 	}
 	result.fn = client.listSynchronizationsNextResults
-	req, err := client.ListSynchronizationsPreparer(ctx, resourceGroupName, accountName, shareSubscriptionName, skipToken)
+	req, err := client.ListSynchronizationsPreparer(ctx, resourceGroupName, accountName, shareSubscriptionName, skipToken, filter, orderby)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsClient", "ListSynchronizations", nil, "Failure preparing request")
 		return
@@ -789,13 +869,18 @@ func (client ShareSubscriptionsClient) ListSynchronizations(ctx context.Context,
 	result.sssl, err = client.ListSynchronizationsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsClient", "ListSynchronizations", resp, "Failure responding to request")
+		return
+	}
+	if result.sssl.hasNextLink() && result.sssl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
 }
 
 // ListSynchronizationsPreparer prepares the ListSynchronizations request.
-func (client ShareSubscriptionsClient) ListSynchronizationsPreparer(ctx context.Context, resourceGroupName string, accountName string, shareSubscriptionName string, skipToken string) (*http.Request, error) {
+func (client ShareSubscriptionsClient) ListSynchronizationsPreparer(ctx context.Context, resourceGroupName string, accountName string, shareSubscriptionName string, skipToken string, filter string, orderby string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"accountName":           autorest.Encode("path", accountName),
 		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
@@ -809,6 +894,12 @@ func (client ShareSubscriptionsClient) ListSynchronizationsPreparer(ctx context.
 	}
 	if len(skipToken) > 0 {
 		queryParameters["$skipToken"] = autorest.Encode("query", skipToken)
+	}
+	if len(filter) > 0 {
+		queryParameters["$filter"] = autorest.Encode("query", filter)
+	}
+	if len(orderby) > 0 {
+		queryParameters["$orderby"] = autorest.Encode("query", orderby)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -830,7 +921,6 @@ func (client ShareSubscriptionsClient) ListSynchronizationsSender(req *http.Requ
 func (client ShareSubscriptionsClient) ListSynchronizationsResponder(resp *http.Response) (result ShareSubscriptionSynchronizationList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -860,7 +950,7 @@ func (client ShareSubscriptionsClient) listSynchronizationsNextResults(ctx conte
 }
 
 // ListSynchronizationsComplete enumerates all values, automatically crossing page boundaries as required.
-func (client ShareSubscriptionsClient) ListSynchronizationsComplete(ctx context.Context, resourceGroupName string, accountName string, shareSubscriptionName string, skipToken string) (result ShareSubscriptionSynchronizationListIterator, err error) {
+func (client ShareSubscriptionsClient) ListSynchronizationsComplete(ctx context.Context, resourceGroupName string, accountName string, shareSubscriptionName string, skipToken string, filter string, orderby string) (result ShareSubscriptionSynchronizationListIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ShareSubscriptionsClient.ListSynchronizations")
 		defer func() {
@@ -871,7 +961,7 @@ func (client ShareSubscriptionsClient) ListSynchronizationsComplete(ctx context.
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.ListSynchronizations(ctx, resourceGroupName, accountName, shareSubscriptionName, skipToken)
+	result.page, err = client.ListSynchronizations(ctx, resourceGroupName, accountName, shareSubscriptionName, skipToken, filter, orderby)
 	return
 }
 
@@ -886,8 +976,8 @@ func (client ShareSubscriptionsClient) SynchronizeMethod(ctx context.Context, re
 		ctx = tracing.StartSpan(ctx, fqdn+"/ShareSubscriptionsClient.SynchronizeMethod")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -900,7 +990,7 @@ func (client ShareSubscriptionsClient) SynchronizeMethod(ctx context.Context, re
 
 	result, err = client.SynchronizeMethodSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsClient", "SynchronizeMethod", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsClient", "SynchronizeMethod", nil, "Failure sending request")
 		return
 	}
 
@@ -939,7 +1029,33 @@ func (client ShareSubscriptionsClient) SynchronizeMethodSender(req *http.Request
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ShareSubscriptionsClient) (sss ShareSubscriptionSynchronization, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsSynchronizeMethodFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("datashare.ShareSubscriptionsSynchronizeMethodFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		sss.Response.Response, err = future.GetResult(sender)
+		if sss.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsSynchronizeMethodFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && sss.Response.Response.StatusCode != http.StatusNoContent {
+			sss, err = client.SynchronizeMethodResponder(sss.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsSynchronizeMethodFuture", "Result", sss.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -948,7 +1064,6 @@ func (client ShareSubscriptionsClient) SynchronizeMethodSender(req *http.Request
 func (client ShareSubscriptionsClient) SynchronizeMethodResponder(resp *http.Response) (result ShareSubscriptionSynchronization, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

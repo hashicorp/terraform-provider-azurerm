@@ -11,8 +11,13 @@ import (
 // This functionality calls out to the Azure MetaData Service to cache the list of supported
 // Azure Locations for the specified Endpoint - and then uses that to provide enhanced validation
 //
-// This can be enabled using the Environment Variable `ARM_PROVIDER_ENHANCED_VALIDATION` and
-// defaults to 'false' at the present time - but may change in a future release.
+// This is enabled by default as of version 2.20 of the Azure Provider, and can be disabled by
+// setting the Environment Variable `ARM_PROVIDER_ENHANCED_VALIDATION` to `false`.
 func EnhancedValidationEnabled() bool {
-	return strings.EqualFold(os.Getenv("ARM_PROVIDER_ENHANCED_VALIDATION"), "true")
+	value := os.Getenv("ARM_PROVIDER_ENHANCED_VALIDATION")
+	if value == "" {
+		return true
+	}
+
+	return strings.EqualFold(value, "true")
 }

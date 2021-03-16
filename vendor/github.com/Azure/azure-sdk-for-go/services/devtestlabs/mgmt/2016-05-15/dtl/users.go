@@ -74,6 +74,7 @@ func (client UsersClient) CreateOrUpdate(ctx context.Context, resourceGroupName 
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.UsersClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -114,7 +115,6 @@ func (client UsersClient) CreateOrUpdateSender(req *http.Request) (*http.Respons
 func (client UsersClient) CreateOrUpdateResponder(resp *http.Response) (result User, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -132,8 +132,8 @@ func (client UsersClient) Delete(ctx context.Context, resourceGroupName string, 
 		ctx = tracing.StartSpan(ctx, fqdn+"/UsersClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -146,7 +146,7 @@ func (client UsersClient) Delete(ctx context.Context, resourceGroupName string, 
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.UsersClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dtl.UsersClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -183,7 +183,23 @@ func (client UsersClient) DeleteSender(req *http.Request) (future UsersDeleteFut
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client UsersClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "dtl.UsersDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("dtl.UsersDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -192,7 +208,6 @@ func (client UsersClient) DeleteSender(req *http.Request) (future UsersDeleteFut
 func (client UsersClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -232,6 +247,7 @@ func (client UsersClient) Get(ctx context.Context, resourceGroupName string, lab
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.UsersClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -273,7 +289,6 @@ func (client UsersClient) GetSender(req *http.Request) (*http.Response, error) {
 func (client UsersClient) GetResponder(resp *http.Response) (result User, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -317,6 +332,11 @@ func (client UsersClient) List(ctx context.Context, resourceGroupName string, la
 	result.rwcu, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.UsersClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.rwcu.hasNextLink() && result.rwcu.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -366,7 +386,6 @@ func (client UsersClient) ListSender(req *http.Request) (*http.Response, error) 
 func (client UsersClient) ListResponder(resp *http.Response) (result ResponseWithContinuationUser, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -444,6 +463,7 @@ func (client UsersClient) Update(ctx context.Context, resourceGroupName string, 
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.UsersClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -484,7 +504,6 @@ func (client UsersClient) UpdateSender(req *http.Request) (*http.Response, error
 func (client UsersClient) UpdateResponder(resp *http.Response) (result User, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

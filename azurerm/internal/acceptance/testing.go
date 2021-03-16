@@ -1,6 +1,7 @@
 package acceptance
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"regexp"
@@ -9,12 +10,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
-
-var AzureProvider *schema.Provider
-var SupportedProviders map[string]terraform.ResourceProvider
 
 func PreCheck(t *testing.T) {
 	variables := []string{
@@ -46,7 +42,8 @@ func EnvironmentName() string {
 
 func Environment() (*azure.Environment, error) {
 	envName := EnvironmentName()
-	return authentication.DetermineEnvironment(envName)
+	metadataURL := os.Getenv("ARM_METADATA_URL")
+	return authentication.AzureEnvironmentByNameFromEndpoint(context.TODO(), metadataURL, envName)
 }
 
 func GetAuthConfig(t *testing.T) *authentication.Config {
@@ -63,6 +60,7 @@ func GetAuthConfig(t *testing.T) *authentication.Config {
 		TenantID:       os.Getenv("ARM_TENANT_ID"),
 		ClientSecret:   os.Getenv("ARM_CLIENT_SECRET"),
 		Environment:    environment,
+		MetadataHost:   os.Getenv("ARM_METADATA_HOST"),
 
 		// we intentionally only support Client Secret auth for tests (since those variables are used all over)
 		SupportsClientSecretAuth: true,

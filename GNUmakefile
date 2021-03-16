@@ -17,7 +17,9 @@ tools:
 	GO111MODULE=off go get -u github.com/bflad/tfproviderlint/cmd/tfproviderlint
 	GO111MODULE=off go get -u github.com/bflad/tfproviderdocs
 	GO111MODULE=off go get -u github.com/katbyte/terrafmt
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$GOPATH/bin v1.24.0
+	GO111MODULE=off go get -u golang.org/x/tools/cmd/goimports
+	GO111MODULE=off go get -u mvdan.cc/gofumpt
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH || $$GOPATH)/bin v1.32.0
 
 build: fmtcheck generate
 	go install
@@ -30,6 +32,11 @@ fmt:
 	@echo "==> Fixing source code with gofmt..."
 	# This logic should match the search logic in scripts/gofmtcheck.sh
 	find . -name '*.go' | grep -v vendor | xargs gofmt -s -w
+
+fumpt:
+	@echo "==> Fixing source code with Gofumpt..."
+	# This logic should match the search logic in scripts/gofmtcheck.sh
+	find . -name '*.go' | grep -v vendor | xargs gofumpt -s -w
 
 # Currently required by tf-deploy compile, duplicated by linters
 fmtcheck:
@@ -44,6 +51,7 @@ terrafmt:
 	@find . | egrep html.markdown | sort | while read f; do terrafmt fmt $$f; done
 
 generate:
+	go generate ./azurerm/internal/services/...
 	go generate ./azurerm/internal/provider/
 
 goimports:
@@ -52,15 +60,6 @@ goimports:
 
 lint:
 	./scripts/run-lint.sh
-
-# we have split off static check because it causes travis to fail with an OOM error
-lintunused:
-	@echo "==> Checking source code against static check linters..."
-	(while true; do sleep 300; echo "(I'm still alive and linting!)"; done) & PID=$$!; echo $$PID; \
-	golangci-lint run ./... -v --no-config --concurrency 1 --deadline=30m10s --disable-all --enable=unused; ES=$$?; kill -9 $$PID; exit $$ES
-
-lintrest:
-	./scripts/run-lint-rest.sh
 
 depscheck:
 	@echo "==> Checking source code with go mod tidy..."
@@ -71,6 +70,13 @@ depscheck:
 	@go mod vendor
 	@git diff --compact-summary --exit-code -- vendor || \
 		(echo; echo "Unexpected difference in vendor/ directory. Run 'go mod vendor' command or revert any go.mod/go.sum/vendor changes and commit."; exit 1)
+
+gencheck:
+	@echo "==> Generating..."
+	@make generate
+	@echo "==> Comparing generated code to committed code..."
+	@git diff --compact-summary --exit-code -- ./ || \
+    		(echo; echo "Unexpected difference in generated code. Run 'go generate' to update the generated code and commit."; exit 1)
 
 tflint:
 	./scripts/run-tflint.sh
@@ -98,7 +104,7 @@ testacc: fmtcheck
 	TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout $(TESTTIMEOUT) -ldflags="-X=github.com/terraform-providers/terraform-provider-azurerm/version.ProviderVersion=acc"
 
 acctests: fmtcheck
-	TF_ACC=1 go test -v ./azurerm/internal/services/$(SERVICE)/tests/ $(TESTARGS) -timeout $(TESTTIMEOUT) -ldflags="-X=github.com/terraform-providers/terraform-provider-azurerm/version.ProviderVersion=acc"
+	TF_ACC=1 go test -v ./azurerm/internal/services/$(SERVICE) $(TESTARGS) -timeout $(TESTTIMEOUT) -ldflags="-X=github.com/terraform-providers/terraform-provider-azurerm/version.ProviderVersion=acc"
 
 debugacc: fmtcheck
 	TF_ACC=1 dlv test $(TEST) --headless --listen=:2345 --api-version=2 -- -test.v $(TESTARGS)
@@ -121,11 +127,9 @@ endif
 scaffold-website:
 	./scripts/scaffold-website.sh
 
-website-test:
-ifeq (,$(wildcard $(GOPATH)/src/$(WEBSITE_REPO)))
-	echo "$(WEBSITE_REPO) not found in your GOPATH (necessary for layouts and assets), get-ting..."
-	git clone https://$(WEBSITE_REPO) $(GOPATH)/src/$(WEBSITE_REPO)
-endif
-	@$(MAKE) -C $(GOPATH)/src/$(WEBSITE_REPO) website-provider-test PROVIDER_PATH=$(shell pwd) PROVIDER_NAME=$(PKG_NAME)
+teamcity-test:
+	@$(MAKE) -C .teamcity tools
+	@$(MAKE) -C .teamcity test
+
 
 .PHONY: build build-docker test test-docker testacc vet fmt fmtcheck errcheck scaffold-website test-compile website website-test

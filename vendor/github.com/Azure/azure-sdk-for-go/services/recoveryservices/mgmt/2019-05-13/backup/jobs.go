@@ -75,6 +75,11 @@ func (client JobsClient) List(ctx context.Context, vaultName string, resourceGro
 	result.jrl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.JobsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.jrl.hasNextLink() && result.jrl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -118,7 +123,6 @@ func (client JobsClient) ListSender(req *http.Request) (*http.Response, error) {
 func (client JobsClient) ListResponder(resp *http.Response) (result JobResourceList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

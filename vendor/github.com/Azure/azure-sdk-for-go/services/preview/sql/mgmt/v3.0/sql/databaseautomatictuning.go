@@ -77,6 +77,7 @@ func (client DatabaseAutomaticTuningClient) Get(ctx context.Context, resourceGro
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.DatabaseAutomaticTuningClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -115,7 +116,6 @@ func (client DatabaseAutomaticTuningClient) GetSender(req *http.Request) (*http.
 func (client DatabaseAutomaticTuningClient) GetResponder(resp *http.Response) (result DatabaseAutomaticTuning, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -157,6 +157,7 @@ func (client DatabaseAutomaticTuningClient) Update(ctx context.Context, resource
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.DatabaseAutomaticTuningClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -197,7 +198,6 @@ func (client DatabaseAutomaticTuningClient) UpdateSender(req *http.Request) (*ht
 func (client DatabaseAutomaticTuningClient) UpdateResponder(resp *http.Response) (result DatabaseAutomaticTuning, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

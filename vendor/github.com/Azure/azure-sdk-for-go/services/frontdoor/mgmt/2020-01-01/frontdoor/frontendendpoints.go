@@ -53,8 +53,8 @@ func (client FrontendEndpointsClient) DisableHTTPS(ctx context.Context, resource
 		ctx = tracing.StartSpan(ctx, fqdn+"/FrontendEndpointsClient.DisableHTTPS")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -83,7 +83,7 @@ func (client FrontendEndpointsClient) DisableHTTPS(ctx context.Context, resource
 
 	result, err = client.DisableHTTPSSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "frontdoor.FrontendEndpointsClient", "DisableHTTPS", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "frontdoor.FrontendEndpointsClient", "DisableHTTPS", nil, "Failure sending request")
 		return
 	}
 
@@ -120,7 +120,23 @@ func (client FrontendEndpointsClient) DisableHTTPSSender(req *http.Request) (fut
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client FrontendEndpointsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "frontdoor.FrontendEndpointsDisableHTTPSFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("frontdoor.FrontendEndpointsDisableHTTPSFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -129,7 +145,6 @@ func (client FrontendEndpointsClient) DisableHTTPSSender(req *http.Request) (fut
 func (client FrontendEndpointsClient) DisableHTTPSResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -147,8 +162,8 @@ func (client FrontendEndpointsClient) EnableHTTPS(ctx context.Context, resourceG
 		ctx = tracing.StartSpan(ctx, fqdn+"/FrontendEndpointsClient.EnableHTTPS")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -179,7 +194,7 @@ func (client FrontendEndpointsClient) EnableHTTPS(ctx context.Context, resourceG
 
 	result, err = client.EnableHTTPSSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "frontdoor.FrontendEndpointsClient", "EnableHTTPS", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "frontdoor.FrontendEndpointsClient", "EnableHTTPS", nil, "Failure sending request")
 		return
 	}
 
@@ -218,7 +233,23 @@ func (client FrontendEndpointsClient) EnableHTTPSSender(req *http.Request) (futu
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client FrontendEndpointsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "frontdoor.FrontendEndpointsEnableHTTPSFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("frontdoor.FrontendEndpointsEnableHTTPSFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -227,7 +258,6 @@ func (client FrontendEndpointsClient) EnableHTTPSSender(req *http.Request) (futu
 func (client FrontendEndpointsClient) EnableHTTPSResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -282,6 +312,7 @@ func (client FrontendEndpointsClient) Get(ctx context.Context, resourceGroupName
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.FrontendEndpointsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -320,7 +351,6 @@ func (client FrontendEndpointsClient) GetSender(req *http.Request) (*http.Respon
 func (client FrontendEndpointsClient) GetResponder(resp *http.Response) (result FrontendEndpoint, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -372,6 +402,11 @@ func (client FrontendEndpointsClient) ListByFrontDoor(ctx context.Context, resou
 	result.felr, err = client.ListByFrontDoorResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.FrontendEndpointsClient", "ListByFrontDoor", resp, "Failure responding to request")
+		return
+	}
+	if result.felr.hasNextLink() && result.felr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -409,7 +444,6 @@ func (client FrontendEndpointsClient) ListByFrontDoorSender(req *http.Request) (
 func (client FrontendEndpointsClient) ListByFrontDoorResponder(resp *http.Response) (result FrontendEndpointsListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

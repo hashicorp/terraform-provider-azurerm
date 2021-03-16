@@ -86,6 +86,7 @@ func (client ActivityLogAlertsClient) CreateOrUpdate(ctx context.Context, resour
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ActivityLogAlertsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -125,7 +126,6 @@ func (client ActivityLogAlertsClient) CreateOrUpdateSender(req *http.Request) (*
 func (client ActivityLogAlertsClient) CreateOrUpdateResponder(resp *http.Response) (result ActivityLogAlertResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -164,6 +164,7 @@ func (client ActivityLogAlertsClient) Delete(ctx context.Context, resourceGroupN
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ActivityLogAlertsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -201,7 +202,6 @@ func (client ActivityLogAlertsClient) DeleteSender(req *http.Request) (*http.Res
 func (client ActivityLogAlertsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -239,6 +239,7 @@ func (client ActivityLogAlertsClient) Get(ctx context.Context, resourceGroupName
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ActivityLogAlertsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -276,7 +277,6 @@ func (client ActivityLogAlertsClient) GetSender(req *http.Request) (*http.Respon
 func (client ActivityLogAlertsClient) GetResponder(resp *http.Response) (result ActivityLogAlertResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -314,6 +314,7 @@ func (client ActivityLogAlertsClient) ListByResourceGroup(ctx context.Context, r
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ActivityLogAlertsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -350,7 +351,6 @@ func (client ActivityLogAlertsClient) ListByResourceGroupSender(req *http.Reques
 func (client ActivityLogAlertsClient) ListByResourceGroupResponder(resp *http.Response) (result ActivityLogAlertList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -386,6 +386,7 @@ func (client ActivityLogAlertsClient) ListBySubscriptionID(ctx context.Context) 
 	result, err = client.ListBySubscriptionIDResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ActivityLogAlertsClient", "ListBySubscriptionID", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -421,7 +422,6 @@ func (client ActivityLogAlertsClient) ListBySubscriptionIDSender(req *http.Reque
 func (client ActivityLogAlertsClient) ListBySubscriptionIDResponder(resp *http.Response) (result ActivityLogAlertList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -461,6 +461,7 @@ func (client ActivityLogAlertsClient) Update(ctx context.Context, resourceGroupN
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ActivityLogAlertsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -500,7 +501,6 @@ func (client ActivityLogAlertsClient) UpdateSender(req *http.Request) (*http.Res
 func (client ActivityLogAlertsClient) UpdateResponder(resp *http.Response) (result ActivityLogAlertResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

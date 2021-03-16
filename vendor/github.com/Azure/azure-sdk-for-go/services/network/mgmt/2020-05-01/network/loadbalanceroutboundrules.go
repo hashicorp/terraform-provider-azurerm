@@ -74,6 +74,7 @@ func (client LoadBalancerOutboundRulesClient) Get(ctx context.Context, resourceG
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.LoadBalancerOutboundRulesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -112,7 +113,6 @@ func (client LoadBalancerOutboundRulesClient) GetSender(req *http.Request) (*htt
 func (client LoadBalancerOutboundRulesClient) GetResponder(resp *http.Response) (result OutboundRule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -152,6 +152,11 @@ func (client LoadBalancerOutboundRulesClient) List(ctx context.Context, resource
 	result.lborlr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.LoadBalancerOutboundRulesClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.lborlr.hasNextLink() && result.lborlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -189,7 +194,6 @@ func (client LoadBalancerOutboundRulesClient) ListSender(req *http.Request) (*ht
 func (client LoadBalancerOutboundRulesClient) ListResponder(resp *http.Response) (result LoadBalancerOutboundRuleListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

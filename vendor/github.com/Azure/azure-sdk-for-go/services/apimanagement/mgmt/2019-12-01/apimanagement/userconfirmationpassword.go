@@ -48,7 +48,9 @@ func NewUserConfirmationPasswordClientWithBaseURI(baseURI string, subscriptionID
 // resourceGroupName - the name of the resource group.
 // serviceName - the name of the API Management service.
 // userID - user identifier. Must be unique in the current API Management service instance.
-func (client UserConfirmationPasswordClient) SendMethod(ctx context.Context, resourceGroupName string, serviceName string, userID string) (result autorest.Response, err error) {
+// appType - determines the type of application which send the create user request. Default is legacy publisher
+// portal.
+func (client UserConfirmationPasswordClient) SendMethod(ctx context.Context, resourceGroupName string, serviceName string, userID string, appType AppType) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/UserConfirmationPasswordClient.SendMethod")
 		defer func() {
@@ -70,7 +72,7 @@ func (client UserConfirmationPasswordClient) SendMethod(ctx context.Context, res
 		return result, validation.NewError("apimanagement.UserConfirmationPasswordClient", "SendMethod", err.Error())
 	}
 
-	req, err := client.SendMethodPreparer(ctx, resourceGroupName, serviceName, userID)
+	req, err := client.SendMethodPreparer(ctx, resourceGroupName, serviceName, userID, appType)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.UserConfirmationPasswordClient", "SendMethod", nil, "Failure preparing request")
 		return
@@ -86,13 +88,14 @@ func (client UserConfirmationPasswordClient) SendMethod(ctx context.Context, res
 	result, err = client.SendMethodResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.UserConfirmationPasswordClient", "SendMethod", resp, "Failure responding to request")
+		return
 	}
 
 	return
 }
 
 // SendMethodPreparer prepares the SendMethod request.
-func (client UserConfirmationPasswordClient) SendMethodPreparer(ctx context.Context, resourceGroupName string, serviceName string, userID string) (*http.Request, error) {
+func (client UserConfirmationPasswordClient) SendMethodPreparer(ctx context.Context, resourceGroupName string, serviceName string, userID string, appType AppType) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"serviceName":       autorest.Encode("path", serviceName),
@@ -103,6 +106,11 @@ func (client UserConfirmationPasswordClient) SendMethodPreparer(ctx context.Cont
 	const APIVersion = "2019-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
+	}
+	if len(string(appType)) > 0 {
+		queryParameters["appType"] = autorest.Encode("query", appType)
+	} else {
+		queryParameters["appType"] = autorest.Encode("query", "portal")
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -124,7 +132,6 @@ func (client UserConfirmationPasswordClient) SendMethodSender(req *http.Request)
 func (client UserConfirmationPasswordClient) SendMethodResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp

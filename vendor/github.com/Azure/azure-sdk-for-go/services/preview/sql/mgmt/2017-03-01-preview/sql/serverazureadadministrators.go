@@ -57,8 +57,8 @@ func (client ServerAzureADAdministratorsClient) CreateOrUpdate(ctx context.Conte
 		ctx = tracing.StartSpan(ctx, fqdn+"/ServerAzureADAdministratorsClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -82,7 +82,7 @@ func (client ServerAzureADAdministratorsClient) CreateOrUpdate(ctx context.Conte
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ServerAzureADAdministratorsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ServerAzureADAdministratorsClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -121,7 +121,33 @@ func (client ServerAzureADAdministratorsClient) CreateOrUpdateSender(req *http.R
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ServerAzureADAdministratorsClient) (saaa ServerAzureADAdministrator, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ServerAzureADAdministratorsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.ServerAzureADAdministratorsCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		saaa.Response.Response, err = future.GetResult(sender)
+		if saaa.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "sql.ServerAzureADAdministratorsCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && saaa.Response.Response.StatusCode != http.StatusNoContent {
+			saaa, err = client.CreateOrUpdateResponder(saaa.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "sql.ServerAzureADAdministratorsCreateOrUpdateFuture", "Result", saaa.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -130,7 +156,6 @@ func (client ServerAzureADAdministratorsClient) CreateOrUpdateSender(req *http.R
 func (client ServerAzureADAdministratorsClient) CreateOrUpdateResponder(resp *http.Response) (result ServerAzureADAdministrator, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -148,8 +173,8 @@ func (client ServerAzureADAdministratorsClient) Delete(ctx context.Context, reso
 		ctx = tracing.StartSpan(ctx, fqdn+"/ServerAzureADAdministratorsClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -162,7 +187,7 @@ func (client ServerAzureADAdministratorsClient) Delete(ctx context.Context, reso
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ServerAzureADAdministratorsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ServerAzureADAdministratorsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -199,7 +224,33 @@ func (client ServerAzureADAdministratorsClient) DeleteSender(req *http.Request) 
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ServerAzureADAdministratorsClient) (saaa ServerAzureADAdministrator, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ServerAzureADAdministratorsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.ServerAzureADAdministratorsDeleteFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		saaa.Response.Response, err = future.GetResult(sender)
+		if saaa.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "sql.ServerAzureADAdministratorsDeleteFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && saaa.Response.Response.StatusCode != http.StatusNoContent {
+			saaa, err = client.DeleteResponder(saaa.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "sql.ServerAzureADAdministratorsDeleteFuture", "Result", saaa.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -208,7 +259,6 @@ func (client ServerAzureADAdministratorsClient) DeleteSender(req *http.Request) 
 func (client ServerAzureADAdministratorsClient) DeleteResponder(resp *http.Response) (result ServerAzureADAdministrator, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -248,6 +298,7 @@ func (client ServerAzureADAdministratorsClient) Get(ctx context.Context, resourc
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerAzureADAdministratorsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -286,7 +337,6 @@ func (client ServerAzureADAdministratorsClient) GetSender(req *http.Request) (*h
 func (client ServerAzureADAdministratorsClient) GetResponder(resp *http.Response) (result ServerAzureADAdministrator, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -326,6 +376,7 @@ func (client ServerAzureADAdministratorsClient) ListByServer(ctx context.Context
 	result, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerAzureADAdministratorsClient", "ListByServer", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -363,7 +414,6 @@ func (client ServerAzureADAdministratorsClient) ListByServerSender(req *http.Req
 func (client ServerAzureADAdministratorsClient) ListByServerResponder(resp *http.Response) (result ServerAdministratorListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

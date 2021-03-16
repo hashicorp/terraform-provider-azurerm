@@ -50,7 +50,7 @@ func NewEntityQueriesClientWithBaseURI(baseURI string, subscriptionID string) En
 // Microsoft.OperationalInsights.
 // workspaceName - the name of the workspace.
 // entityQueryID - entity query ID
-func (client EntityQueriesClient) Get(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, entityQueryID string) (result EntityQuery, err error) {
+func (client EntityQueriesClient) Get(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, entityQueryID string) (result EntityQueryModel, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/EntityQueriesClient.Get")
 		defer func() {
@@ -90,6 +90,7 @@ func (client EntityQueriesClient) Get(ctx context.Context, resourceGroupName str
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.EntityQueriesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -126,10 +127,9 @@ func (client EntityQueriesClient) GetSender(req *http.Request) (*http.Response, 
 
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
-func (client EntityQueriesClient) GetResponder(resp *http.Response) (result EntityQuery, err error) {
+func (client EntityQueriesClient) GetResponder(resp *http.Response) (result EntityQueryModel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -185,6 +185,11 @@ func (client EntityQueriesClient) List(ctx context.Context, resourceGroupName st
 	result.eql, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.EntityQueriesClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.eql.hasNextLink() && result.eql.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -223,7 +228,6 @@ func (client EntityQueriesClient) ListSender(req *http.Request) (*http.Response,
 func (client EntityQueriesClient) ListResponder(resp *http.Response) (result EntityQueryList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

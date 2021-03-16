@@ -86,6 +86,7 @@ func (client IntegrationAccountBatchConfigurationsClient) CreateOrUpdate(ctx con
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountBatchConfigurationsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -126,7 +127,6 @@ func (client IntegrationAccountBatchConfigurationsClient) CreateOrUpdateSender(r
 func (client IntegrationAccountBatchConfigurationsClient) CreateOrUpdateResponder(resp *http.Response) (result BatchConfiguration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -166,6 +166,7 @@ func (client IntegrationAccountBatchConfigurationsClient) Delete(ctx context.Con
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountBatchConfigurationsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -204,7 +205,6 @@ func (client IntegrationAccountBatchConfigurationsClient) DeleteSender(req *http
 func (client IntegrationAccountBatchConfigurationsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -243,6 +243,7 @@ func (client IntegrationAccountBatchConfigurationsClient) Get(ctx context.Contex
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountBatchConfigurationsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -281,7 +282,6 @@ func (client IntegrationAccountBatchConfigurationsClient) GetSender(req *http.Re
 func (client IntegrationAccountBatchConfigurationsClient) GetResponder(resp *http.Response) (result BatchConfiguration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -320,6 +320,7 @@ func (client IntegrationAccountBatchConfigurationsClient) List(ctx context.Conte
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountBatchConfigurationsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -357,7 +358,6 @@ func (client IntegrationAccountBatchConfigurationsClient) ListSender(req *http.R
 func (client IntegrationAccountBatchConfigurationsClient) ListResponder(resp *http.Response) (result BatchConfigurationCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

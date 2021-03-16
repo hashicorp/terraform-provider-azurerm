@@ -70,6 +70,7 @@ func (client EventCategoriesClient) List(ctx context.Context) (result EventCateg
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.EventCategoriesClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -101,7 +102,6 @@ func (client EventCategoriesClient) ListSender(req *http.Request) (*http.Respons
 func (client EventCategoriesClient) ListResponder(resp *http.Response) (result EventCategoryCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

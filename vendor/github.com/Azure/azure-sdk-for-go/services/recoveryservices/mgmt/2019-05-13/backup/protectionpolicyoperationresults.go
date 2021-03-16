@@ -75,6 +75,7 @@ func (client ProtectionPolicyOperationResultsClient) Get(ctx context.Context, va
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ProtectionPolicyOperationResultsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -114,7 +115,6 @@ func (client ProtectionPolicyOperationResultsClient) GetSender(req *http.Request
 func (client ProtectionPolicyOperationResultsClient) GetResponder(resp *http.Response) (result ProtectionPolicyResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

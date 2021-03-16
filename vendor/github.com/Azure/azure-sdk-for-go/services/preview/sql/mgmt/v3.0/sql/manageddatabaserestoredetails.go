@@ -21,6 +21,7 @@ import (
 	"context"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
@@ -46,8 +47,7 @@ func NewManagedDatabaseRestoreDetailsClientWithBaseURI(baseURI string, subscript
 
 // Get gets managed database restore details.
 // Parameters:
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // managedInstanceName - the name of the managed instance.
 // databaseName - the name of the database.
 func (client ManagedDatabaseRestoreDetailsClient) Get(ctx context.Context, resourceGroupName string, managedInstanceName string, databaseName string) (result ManagedDatabaseRestoreDetailsResult, err error) {
@@ -61,6 +61,14 @@ func (client ManagedDatabaseRestoreDetailsClient) Get(ctx context.Context, resou
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("sql.ManagedDatabaseRestoreDetailsClient", "Get", err.Error())
+	}
+
 	req, err := client.GetPreparer(ctx, resourceGroupName, managedInstanceName, databaseName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedDatabaseRestoreDetailsClient", "Get", nil, "Failure preparing request")
@@ -77,6 +85,7 @@ func (client ManagedDatabaseRestoreDetailsClient) Get(ctx context.Context, resou
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedDatabaseRestoreDetailsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -92,7 +101,7 @@ func (client ManagedDatabaseRestoreDetailsClient) GetPreparer(ctx context.Contex
 		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-06-01-preview"
+	const APIVersion = "2020-02-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -116,7 +125,6 @@ func (client ManagedDatabaseRestoreDetailsClient) GetSender(req *http.Request) (
 func (client ManagedDatabaseRestoreDetailsClient) GetResponder(resp *http.Response) (result ManagedDatabaseRestoreDetailsResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

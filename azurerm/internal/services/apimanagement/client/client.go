@@ -7,6 +7,7 @@ import (
 
 type Client struct {
 	ApiClient                  *apimanagement.APIClient
+	ApiDiagnosticClient        *apimanagement.APIDiagnosticClient
 	ApiPoliciesClient          *apimanagement.APIPolicyClient
 	ApiOperationsClient        *apimanagement.APIOperationClient
 	ApiOperationPoliciesClient *apimanagement.APIOperationPolicyClient
@@ -31,12 +32,16 @@ type Client struct {
 	SignInClient               *apimanagement.SignInSettingsClient
 	SignUpClient               *apimanagement.SignUpSettingsClient
 	SubscriptionsClient        *apimanagement.SubscriptionClient
+	TenantAccessClient         *apimanagement.TenantAccessClient
 	UsersClient                *apimanagement.UserClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
 	apiClient := apimanagement.NewAPIClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&apiClient.Client, o.ResourceManagerAuthorizer)
+
+	apiDiagnosticClient := apimanagement.NewAPIDiagnosticClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&apiDiagnosticClient.Client, o.ResourceManagerAuthorizer)
 
 	apiPoliciesClient := apimanagement.NewAPIPolicyClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&apiPoliciesClient.Client, o.ResourceManagerAuthorizer)
@@ -110,11 +115,15 @@ func NewClient(o *common.ClientOptions) *Client {
 	subscriptionsClient := apimanagement.NewSubscriptionClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&subscriptionsClient.Client, o.ResourceManagerAuthorizer)
 
+	tenantAccessClient := apimanagement.NewTenantAccessClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&tenantAccessClient.Client, o.ResourceManagerAuthorizer)
+
 	usersClient := apimanagement.NewUserClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&usersClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
 		ApiClient:                  &apiClient,
+		ApiDiagnosticClient:        &apiDiagnosticClient,
 		ApiPoliciesClient:          &apiPoliciesClient,
 		ApiOperationsClient:        &apiOperationsClient,
 		ApiOperationPoliciesClient: &apiOperationPoliciesClient,
@@ -139,6 +148,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		SignInClient:               &signInClient,
 		SignUpClient:               &signUpClient,
 		SubscriptionsClient:        &subscriptionsClient,
+		TenantAccessClient:         &tenantAccessClient,
 		UsersClient:                &usersClient,
 	}
 }

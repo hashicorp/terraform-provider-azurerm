@@ -83,6 +83,7 @@ func (client SignUpSettingsClient) CreateOrUpdate(ctx context.Context, resourceG
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.SignUpSettingsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -126,7 +127,6 @@ func (client SignUpSettingsClient) CreateOrUpdateSender(req *http.Request) (*htt
 func (client SignUpSettingsClient) CreateOrUpdateResponder(resp *http.Response) (result PortalSignupSettings, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -173,6 +173,7 @@ func (client SignUpSettingsClient) Get(ctx context.Context, resourceGroupName st
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.SignUpSettingsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -210,7 +211,6 @@ func (client SignUpSettingsClient) GetSender(req *http.Request) (*http.Response,
 func (client SignUpSettingsClient) GetResponder(resp *http.Response) (result PortalSignupSettings, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -257,6 +257,7 @@ func (client SignUpSettingsClient) GetEntityTag(ctx context.Context, resourceGro
 	result, err = client.GetEntityTagResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.SignUpSettingsClient", "GetEntityTag", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -294,7 +295,6 @@ func (client SignUpSettingsClient) GetEntityTagSender(req *http.Request) (*http.
 func (client SignUpSettingsClient) GetEntityTagResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -343,6 +343,7 @@ func (client SignUpSettingsClient) Update(ctx context.Context, resourceGroupName
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.SignUpSettingsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -383,7 +384,6 @@ func (client SignUpSettingsClient) UpdateSender(req *http.Request) (*http.Respon
 func (client SignUpSettingsClient) UpdateResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp

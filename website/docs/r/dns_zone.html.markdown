@@ -14,8 +14,8 @@ Enables you to manage DNS zones within Azure DNS. These zones are hosted on Azur
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "acceptanceTestResourceGroup1"
-  location = "West US"
+  name     = "example-resources"
+  location = "West Europe"
 }
 
 resource "azurerm_dns_zone" "example-public" {
@@ -36,7 +36,31 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the resource group where the resource exists. Changing this forces a new resource to be created.
 
+* `soa_record` - (Optional) An `soa_record` block as defined below. Changing this forces a new resource to be created.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+The `soa_record` block supports:
+
+* `email` - (Required) The email contact for the SOA record.
+
+* `host_name` - (Required) The domain name of the authoritative name server for the SOA record. Defaults to `ns1-03.azure-dns.com.`.
+
+* `expire_time` - (Optional) The expire time for the SOA record. Defaults to `2419200`.
+
+* `minimum_ttl` - (Optional) The minimum Time To Live for the SOA record. By convention, it is used to determine the negative caching duration. Defaults to `300`.
+
+* `refresh_time` - (Optional) The refresh time for the SOA record. Defaults to `3600`.
+
+* `retry_time` - (Optional) The retry time for the SOA record. Defaults to `300`.
+
+* `serial_number` - (Optional) The serial number for the SOA record. Defaults to `1`.
+
+* `ttl` - (Optional) The Time To Live of the SOA Record in seconds. Defaults to `3600`.
+
+* `tags` - (Optional) A mapping of tags to assign to the Record Set.
 
 ## Attributes Reference
 

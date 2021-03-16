@@ -72,6 +72,7 @@ func (client RecommendationMetadataClient) Get(ctx context.Context, name string)
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "advisor.RecommendationMetadataClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -107,7 +108,6 @@ func (client RecommendationMetadataClient) GetSender(req *http.Request) (*http.R
 func (client RecommendationMetadataClient) GetResponder(resp *http.Response) (result SetObject, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
@@ -144,6 +144,11 @@ func (client RecommendationMetadataClient) List(ctx context.Context) (result Met
 	result.melr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "advisor.RecommendationMetadataClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.melr.hasNextLink() && result.melr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -175,7 +180,6 @@ func (client RecommendationMetadataClient) ListSender(req *http.Request) (*http.
 func (client RecommendationMetadataClient) ListResponder(resp *http.Response) (result MetadataEntityListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

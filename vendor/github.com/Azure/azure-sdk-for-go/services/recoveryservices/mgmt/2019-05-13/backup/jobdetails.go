@@ -73,6 +73,7 @@ func (client JobDetailsClient) Get(ctx context.Context, vaultName string, resour
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.JobDetailsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -111,7 +112,6 @@ func (client JobDetailsClient) GetSender(req *http.Request) (*http.Response, err
 func (client JobDetailsClient) GetResponder(resp *http.Response) (result JobResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

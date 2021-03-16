@@ -104,6 +104,11 @@ func (client ProductSubscriptionsClient) List(ctx context.Context, resourceGroup
 	result.sc, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.ProductSubscriptionsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.sc.hasNextLink() && result.sc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -151,7 +156,6 @@ func (client ProductSubscriptionsClient) ListSender(req *http.Request) (*http.Re
 func (client ProductSubscriptionsClient) ListResponder(resp *http.Response) (result SubscriptionCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

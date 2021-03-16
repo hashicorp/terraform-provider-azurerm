@@ -76,6 +76,7 @@ func (client ServerAutomaticTuningClient) Get(ctx context.Context, resourceGroup
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerAutomaticTuningClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -113,7 +114,6 @@ func (client ServerAutomaticTuningClient) GetSender(req *http.Request) (*http.Re
 func (client ServerAutomaticTuningClient) GetResponder(resp *http.Response) (result ServerAutomaticTuning, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -154,6 +154,7 @@ func (client ServerAutomaticTuningClient) Update(ctx context.Context, resourceGr
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerAutomaticTuningClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -193,7 +194,6 @@ func (client ServerAutomaticTuningClient) UpdateSender(req *http.Request) (*http
 func (client ServerAutomaticTuningClient) UpdateResponder(resp *http.Response) (result ServerAutomaticTuning, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

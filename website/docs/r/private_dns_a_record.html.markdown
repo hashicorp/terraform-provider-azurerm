@@ -14,8 +14,8 @@ Enables you to manage DNS A Records within Azure Private DNS.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "acceptanceTestResourceGroup1"
-  location = "West US"
+  name     = "example-resources"
+  location = "West Europe"
 }
 
 resource "azurerm_private_dns_zone" "example" {
@@ -38,7 +38,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the DNS A Record.
 
-* `resource_group_name` - (Required) Specifies the resource group where the resource exists. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) Specifies the resource group where the Private DNS Zone exists. Changing this forces a new resource to be created.
 
 * `zone_name` - (Required) Specifies the Private DNS Zone where the resource exists. Changing this forces a new resource to be created.
 

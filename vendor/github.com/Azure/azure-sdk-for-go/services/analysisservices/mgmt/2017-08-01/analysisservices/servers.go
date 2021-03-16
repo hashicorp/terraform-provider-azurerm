@@ -84,6 +84,7 @@ func (client ServersClient) CheckNameAvailability(ctx context.Context, location 
 	result, err = client.CheckNameAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "analysisservices.ServersClient", "CheckNameAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -122,7 +123,6 @@ func (client ServersClient) CheckNameAvailabilitySender(req *http.Request) (*htt
 func (client ServersClient) CheckNameAvailabilityResponder(resp *http.Response) (result CheckServerNameAvailabilityResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -142,8 +142,8 @@ func (client ServersClient) Create(ctx context.Context, resourceGroupName string
 		ctx = tracing.StartSpan(ctx, fqdn+"/ServersClient.Create")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -168,7 +168,7 @@ func (client ServersClient) Create(ctx context.Context, resourceGroupName string
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "analysisservices.ServersClient", "Create", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "analysisservices.ServersClient", "Create", nil, "Failure sending request")
 		return
 	}
 
@@ -206,7 +206,33 @@ func (client ServersClient) CreateSender(req *http.Request) (future ServersCreat
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ServersClient) (s Server, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "analysisservices.ServersCreateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("analysisservices.ServersCreateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		s.Response.Response, err = future.GetResult(sender)
+		if s.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "analysisservices.ServersCreateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && s.Response.Response.StatusCode != http.StatusNoContent {
+			s, err = client.CreateResponder(s.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "analysisservices.ServersCreateFuture", "Result", s.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -215,7 +241,6 @@ func (client ServersClient) CreateSender(req *http.Request) (future ServersCreat
 func (client ServersClient) CreateResponder(resp *http.Response) (result Server, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -234,8 +259,8 @@ func (client ServersClient) Delete(ctx context.Context, resourceGroupName string
 		ctx = tracing.StartSpan(ctx, fqdn+"/ServersClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -260,7 +285,7 @@ func (client ServersClient) Delete(ctx context.Context, resourceGroupName string
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "analysisservices.ServersClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "analysisservices.ServersClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -296,7 +321,23 @@ func (client ServersClient) DeleteSender(req *http.Request) (future ServersDelet
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ServersClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "analysisservices.ServersDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("analysisservices.ServersDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -305,7 +346,6 @@ func (client ServersClient) DeleteSender(req *http.Request) (future ServersDelet
 func (client ServersClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -357,6 +397,7 @@ func (client ServersClient) DissociateGateway(ctx context.Context, resourceGroup
 	result, err = client.DissociateGatewayResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "analysisservices.ServersClient", "DissociateGateway", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -394,7 +435,6 @@ func (client ServersClient) DissociateGatewaySender(req *http.Request) (*http.Re
 func (client ServersClient) DissociateGatewayResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -446,6 +486,7 @@ func (client ServersClient) GetDetails(ctx context.Context, resourceGroupName st
 	result, err = client.GetDetailsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "analysisservices.ServersClient", "GetDetails", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -483,7 +524,6 @@ func (client ServersClient) GetDetailsSender(req *http.Request) (*http.Response,
 func (client ServersClient) GetDetailsResponder(resp *http.Response) (result Server, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -519,6 +559,7 @@ func (client ServersClient) List(ctx context.Context) (result Servers, err error
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "analysisservices.ServersClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -554,7 +595,6 @@ func (client ServersClient) ListSender(req *http.Request) (*http.Response, error
 func (client ServersClient) ListResponder(resp *http.Response) (result Servers, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -601,6 +641,7 @@ func (client ServersClient) ListByResourceGroup(ctx context.Context, resourceGro
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "analysisservices.ServersClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -637,7 +678,6 @@ func (client ServersClient) ListByResourceGroupSender(req *http.Request) (*http.
 func (client ServersClient) ListByResourceGroupResponder(resp *http.Response) (result Servers, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -689,6 +729,7 @@ func (client ServersClient) ListGatewayStatus(ctx context.Context, resourceGroup
 	result, err = client.ListGatewayStatusResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "analysisservices.ServersClient", "ListGatewayStatus", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -726,7 +767,6 @@ func (client ServersClient) ListGatewayStatusSender(req *http.Request) (*http.Re
 func (client ServersClient) ListGatewayStatusResponder(resp *http.Response) (result GatewayListStatusLive, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -765,6 +805,7 @@ func (client ServersClient) ListOperationResults(ctx context.Context, location s
 	result, err = client.ListOperationResultsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "analysisservices.ServersClient", "ListOperationResults", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -802,7 +843,6 @@ func (client ServersClient) ListOperationResultsSender(req *http.Request) (*http
 func (client ServersClient) ListOperationResultsResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -840,6 +880,7 @@ func (client ServersClient) ListOperationStatuses(ctx context.Context, location 
 	result, err = client.ListOperationStatusesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "analysisservices.ServersClient", "ListOperationStatuses", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -877,7 +918,6 @@ func (client ServersClient) ListOperationStatusesSender(req *http.Request) (*htt
 func (client ServersClient) ListOperationStatusesResponder(resp *http.Response) (result OperationStatus, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -930,6 +970,7 @@ func (client ServersClient) ListSkusForExisting(ctx context.Context, resourceGro
 	result, err = client.ListSkusForExistingResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "analysisservices.ServersClient", "ListSkusForExisting", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -967,7 +1008,6 @@ func (client ServersClient) ListSkusForExistingSender(req *http.Request) (*http.
 func (client ServersClient) ListSkusForExistingResponder(resp *http.Response) (result SkuEnumerationForExistingResourceResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1003,6 +1043,7 @@ func (client ServersClient) ListSkusForNew(ctx context.Context) (result SkuEnume
 	result, err = client.ListSkusForNewResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "analysisservices.ServersClient", "ListSkusForNew", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1038,7 +1079,6 @@ func (client ServersClient) ListSkusForNewSender(req *http.Request) (*http.Respo
 func (client ServersClient) ListSkusForNewResponder(resp *http.Response) (result SkuEnumerationForNewResourceResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1057,8 +1097,8 @@ func (client ServersClient) Resume(ctx context.Context, resourceGroupName string
 		ctx = tracing.StartSpan(ctx, fqdn+"/ServersClient.Resume")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -1083,7 +1123,7 @@ func (client ServersClient) Resume(ctx context.Context, resourceGroupName string
 
 	result, err = client.ResumeSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "analysisservices.ServersClient", "Resume", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "analysisservices.ServersClient", "Resume", nil, "Failure sending request")
 		return
 	}
 
@@ -1119,7 +1159,23 @@ func (client ServersClient) ResumeSender(req *http.Request) (future ServersResum
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ServersClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "analysisservices.ServersResumeFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("analysisservices.ServersResumeFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -1128,7 +1184,6 @@ func (client ServersClient) ResumeSender(req *http.Request) (future ServersResum
 func (client ServersClient) ResumeResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1146,8 +1201,8 @@ func (client ServersClient) Suspend(ctx context.Context, resourceGroupName strin
 		ctx = tracing.StartSpan(ctx, fqdn+"/ServersClient.Suspend")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -1172,7 +1227,7 @@ func (client ServersClient) Suspend(ctx context.Context, resourceGroupName strin
 
 	result, err = client.SuspendSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "analysisservices.ServersClient", "Suspend", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "analysisservices.ServersClient", "Suspend", nil, "Failure sending request")
 		return
 	}
 
@@ -1208,7 +1263,23 @@ func (client ServersClient) SuspendSender(req *http.Request) (future ServersSusp
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ServersClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "analysisservices.ServersSuspendFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("analysisservices.ServersSuspendFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -1217,7 +1288,6 @@ func (client ServersClient) SuspendSender(req *http.Request) (future ServersSusp
 func (client ServersClient) SuspendResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1236,8 +1306,8 @@ func (client ServersClient) Update(ctx context.Context, resourceGroupName string
 		ctx = tracing.StartSpan(ctx, fqdn+"/ServersClient.Update")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -1262,7 +1332,7 @@ func (client ServersClient) Update(ctx context.Context, resourceGroupName string
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "analysisservices.ServersClient", "Update", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "analysisservices.ServersClient", "Update", nil, "Failure sending request")
 		return
 	}
 
@@ -1300,7 +1370,33 @@ func (client ServersClient) UpdateSender(req *http.Request) (future ServersUpdat
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ServersClient) (s Server, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "analysisservices.ServersUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("analysisservices.ServersUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		s.Response.Response, err = future.GetResult(sender)
+		if s.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "analysisservices.ServersUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && s.Response.Response.StatusCode != http.StatusNoContent {
+			s, err = client.UpdateResponder(s.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "analysisservices.ServersUpdateFuture", "Result", s.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -1309,7 +1405,6 @@ func (client ServersClient) UpdateSender(req *http.Request) (future ServersUpdat
 func (client ServersClient) UpdateResponder(resp *http.Response) (result Server, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

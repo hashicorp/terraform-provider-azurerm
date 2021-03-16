@@ -73,6 +73,7 @@ func (client ServicesClient) CheckNameAvailability(ctx context.Context, location
 	result, err = client.CheckNameAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datamigration.ServicesClient", "CheckNameAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -111,7 +112,6 @@ func (client ServicesClient) CheckNameAvailabilitySender(req *http.Request) (*ht
 func (client ServicesClient) CheckNameAvailabilityResponder(resp *http.Response) (result NameAvailabilityResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -151,6 +151,7 @@ func (client ServicesClient) CheckStatus(ctx context.Context, groupName string, 
 	result, err = client.CheckStatusResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datamigration.ServicesClient", "CheckStatus", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -188,7 +189,6 @@ func (client ServicesClient) CheckStatusSender(req *http.Request) (*http.Respons
 func (client ServicesClient) CheckStatusResponder(resp *http.Response) (result ServiceStatusResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -212,8 +212,8 @@ func (client ServicesClient) CreateOrUpdate(ctx context.Context, parameters Serv
 		ctx = tracing.StartSpan(ctx, fqdn+"/ServicesClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -233,7 +233,7 @@ func (client ServicesClient) CreateOrUpdate(ctx context.Context, parameters Serv
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "datamigration.ServicesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "datamigration.ServicesClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -271,7 +271,33 @@ func (client ServicesClient) CreateOrUpdateSender(req *http.Request) (future Ser
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ServicesClient) (s Service, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "datamigration.ServicesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("datamigration.ServicesCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		s.Response.Response, err = future.GetResult(sender)
+		if s.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "datamigration.ServicesCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && s.Response.Response.StatusCode != http.StatusNoContent {
+			s, err = client.CreateOrUpdateResponder(s.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "datamigration.ServicesCreateOrUpdateFuture", "Result", s.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -280,7 +306,6 @@ func (client ServicesClient) CreateOrUpdateSender(req *http.Request) (future Ser
 func (client ServicesClient) CreateOrUpdateResponder(resp *http.Response) (result Service, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -299,8 +324,8 @@ func (client ServicesClient) Delete(ctx context.Context, groupName string, servi
 		ctx = tracing.StartSpan(ctx, fqdn+"/ServicesClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -313,7 +338,7 @@ func (client ServicesClient) Delete(ctx context.Context, groupName string, servi
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "datamigration.ServicesClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "datamigration.ServicesClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -352,7 +377,23 @@ func (client ServicesClient) DeleteSender(req *http.Request) (future ServicesDel
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ServicesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "datamigration.ServicesDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("datamigration.ServicesDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -361,7 +402,6 @@ func (client ServicesClient) DeleteSender(req *http.Request) (future ServicesDel
 func (client ServicesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -400,6 +440,7 @@ func (client ServicesClient) Get(ctx context.Context, groupName string, serviceN
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datamigration.ServicesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -437,7 +478,6 @@ func (client ServicesClient) GetSender(req *http.Request) (*http.Response, error
 func (client ServicesClient) GetResponder(resp *http.Response) (result Service, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -475,6 +515,11 @@ func (client ServicesClient) List(ctx context.Context) (result ServiceListPage, 
 	result.sl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datamigration.ServicesClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.sl.hasNextLink() && result.sl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -510,7 +555,6 @@ func (client ServicesClient) ListSender(req *http.Request) (*http.Response, erro
 func (client ServicesClient) ListResponder(resp *http.Response) (result ServiceList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -587,6 +631,11 @@ func (client ServicesClient) ListByResourceGroup(ctx context.Context, groupName 
 	result.sl, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datamigration.ServicesClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.sl.hasNextLink() && result.sl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -623,7 +672,6 @@ func (client ServicesClient) ListByResourceGroupSender(req *http.Request) (*http
 func (client ServicesClient) ListByResourceGroupResponder(resp *http.Response) (result ServiceList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -701,6 +749,11 @@ func (client ServicesClient) ListSkus(ctx context.Context, groupName string, ser
 	result.ssl, err = client.ListSkusResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datamigration.ServicesClient", "ListSkus", resp, "Failure responding to request")
+		return
+	}
+	if result.ssl.hasNextLink() && result.ssl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -738,7 +791,6 @@ func (client ServicesClient) ListSkusSender(req *http.Request) (*http.Response, 
 func (client ServicesClient) ListSkusResponder(resp *http.Response) (result ServiceSkuList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -815,6 +867,7 @@ func (client ServicesClient) NestedCheckNameAvailability(ctx context.Context, gr
 	result, err = client.NestedCheckNameAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datamigration.ServicesClient", "NestedCheckNameAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -854,7 +907,6 @@ func (client ServicesClient) NestedCheckNameAvailabilitySender(req *http.Request
 func (client ServicesClient) NestedCheckNameAvailabilityResponder(resp *http.Response) (result NameAvailabilityResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -872,8 +924,8 @@ func (client ServicesClient) Start(ctx context.Context, groupName string, servic
 		ctx = tracing.StartSpan(ctx, fqdn+"/ServicesClient.Start")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -886,7 +938,7 @@ func (client ServicesClient) Start(ctx context.Context, groupName string, servic
 
 	result, err = client.StartSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "datamigration.ServicesClient", "Start", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "datamigration.ServicesClient", "Start", nil, "Failure sending request")
 		return
 	}
 
@@ -922,7 +974,23 @@ func (client ServicesClient) StartSender(req *http.Request) (future ServicesStar
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ServicesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "datamigration.ServicesStartFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("datamigration.ServicesStartFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -931,7 +999,6 @@ func (client ServicesClient) StartSender(req *http.Request) (future ServicesStar
 func (client ServicesClient) StartResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -949,8 +1016,8 @@ func (client ServicesClient) Stop(ctx context.Context, groupName string, service
 		ctx = tracing.StartSpan(ctx, fqdn+"/ServicesClient.Stop")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -963,7 +1030,7 @@ func (client ServicesClient) Stop(ctx context.Context, groupName string, service
 
 	result, err = client.StopSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "datamigration.ServicesClient", "Stop", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "datamigration.ServicesClient", "Stop", nil, "Failure sending request")
 		return
 	}
 
@@ -999,7 +1066,23 @@ func (client ServicesClient) StopSender(req *http.Request) (future ServicesStopF
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ServicesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "datamigration.ServicesStopFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("datamigration.ServicesStopFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -1008,7 +1091,6 @@ func (client ServicesClient) StopSender(req *http.Request) (future ServicesStopF
 func (client ServicesClient) StopResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1027,8 +1109,8 @@ func (client ServicesClient) Update(ctx context.Context, parameters Service, gro
 		ctx = tracing.StartSpan(ctx, fqdn+"/ServicesClient.Update")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -1041,7 +1123,7 @@ func (client ServicesClient) Update(ctx context.Context, parameters Service, gro
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "datamigration.ServicesClient", "Update", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "datamigration.ServicesClient", "Update", nil, "Failure sending request")
 		return
 	}
 
@@ -1079,7 +1161,33 @@ func (client ServicesClient) UpdateSender(req *http.Request) (future ServicesUpd
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ServicesClient) (s Service, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "datamigration.ServicesUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("datamigration.ServicesUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		s.Response.Response, err = future.GetResult(sender)
+		if s.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "datamigration.ServicesUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && s.Response.Response.StatusCode != http.StatusNoContent {
+			s, err = client.UpdateResponder(s.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "datamigration.ServicesUpdateFuture", "Result", s.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -1088,7 +1196,6 @@ func (client ServicesClient) UpdateSender(req *http.Request) (future ServicesUpd
 func (client ServicesClient) UpdateResponder(resp *http.Response) (result Service, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

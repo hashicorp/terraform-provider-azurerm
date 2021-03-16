@@ -80,6 +80,11 @@ func (client RegionsClient) ListBySku(ctx context.Context, sku string) (result M
 	result.mrlr, err = client.ListBySkuResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.RegionsClient", "ListBySku", resp, "Failure responding to request")
+		return
+	}
+	if result.mrlr.hasNextLink() && result.mrlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -116,7 +121,6 @@ func (client RegionsClient) ListBySkuSender(req *http.Request) (*http.Response, 
 func (client RegionsClient) ListBySkuResponder(resp *http.Response) (result MessagingRegionsListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -9,18 +9,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataFactoryLinkedServiceAzureBlobStorage() *schema.Resource {
+func resourceDataFactoryLinkedServiceAzureBlobStorage() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryLinkedServiceBlobStorageCreateUpdate,
-		Read:   resourceArmDataFactoryLinkedServiceBlobStorageRead,
-		Update: resourceArmDataFactoryLinkedServiceBlobStorageCreateUpdate,
-		Delete: resourceArmDataFactoryLinkedServiceBlobStorageDelete,
+		Create: resourceDataFactoryLinkedServiceBlobStorageCreateUpdate,
+		Read:   resourceDataFactoryLinkedServiceBlobStorageRead,
+		Update: resourceDataFactoryLinkedServiceBlobStorageCreateUpdate,
+		Delete: resourceDataFactoryLinkedServiceBlobStorageDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -54,9 +54,18 @@ func resourceArmDataFactoryLinkedServiceAzureBlobStorage() *schema.Resource {
 
 			"connection_string": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
+				ExactlyOneOf: []string{"connection_string", "sas_uri"},
+			},
+
+			"sas_uri": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Sensitive:    true,
+				ValidateFunc: validation.StringIsNotEmpty,
+				ExactlyOneOf: []string{"connection_string", "sas_uri"},
 			},
 
 			"description": {
@@ -66,6 +75,38 @@ func resourceArmDataFactoryLinkedServiceAzureBlobStorage() *schema.Resource {
 			},
 
 			"integration_runtime_name": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"use_managed_identity": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+				ConflictsWith: []string{
+					"service_principal_id",
+				},
+			},
+
+			"service_principal_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.IsUUID,
+				RequiredWith: []string{"service_principal_key"},
+				ConflictsWith: []string{
+					"use_managed_identity",
+				},
+			},
+
+			"service_principal_key": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+				RequiredWith: []string{"service_principal_id"},
+			},
+
+			"tenant_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -98,7 +139,7 @@ func resourceArmDataFactoryLinkedServiceAzureBlobStorage() *schema.Resource {
 	}
 }
 
-func resourceArmDataFactoryLinkedServiceBlobStorageCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceBlobStorageCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -120,14 +161,38 @@ func resourceArmDataFactoryLinkedServiceBlobStorageCreateUpdate(d *schema.Resour
 		}
 	}
 
+	blobStorageProperties := &datafactory.AzureBlobStorageLinkedServiceTypeProperties{}
+
+	if v, ok := d.GetOk("connection_string"); ok {
+		blobStorageProperties.ConnectionString = &datafactory.SecureString{
+			Value: utils.String(v.(string)),
+			Type:  datafactory.TypeSecureString,
+		}
+	}
+
+	if v, ok := d.GetOk("sas_uri"); ok {
+		blobStorageProperties.SasURI = &datafactory.SecureString{
+			Value: utils.String(v.(string)),
+			Type:  datafactory.TypeSecureString,
+		}
+	}
+
+	if d.Get("use_managed_identity").(bool) {
+		blobStorageProperties.Tenant = utils.String(d.Get("tenant_id").(string))
+	} else {
+		secureString := datafactory.SecureString{
+			Value: utils.String(d.Get("service_principal_key").(string)),
+			Type:  datafactory.TypeSecureString,
+		}
+
+		blobStorageProperties.ServicePrincipalID = utils.String(d.Get("service_principal_id").(string))
+		blobStorageProperties.Tenant = utils.String(d.Get("tenant_id").(string))
+		blobStorageProperties.ServicePrincipalKey = &secureString
+	}
+
 	blobStorageLinkedService := &datafactory.AzureBlobStorageLinkedService{
 		Description: utils.String(d.Get("description").(string)),
-		AzureBlobStorageLinkedServiceTypeProperties: &datafactory.AzureBlobStorageLinkedServiceTypeProperties{
-			ConnectionString: &datafactory.SecureString{
-				Value: utils.String(d.Get("connection_string").(string)),
-				Type:  datafactory.TypeSecureString,
-			},
-		},
+		AzureBlobStorageLinkedServiceTypeProperties: blobStorageProperties,
 		Type: datafactory.TypeAzureBlobStorage,
 	}
 
@@ -167,10 +232,10 @@ func resourceArmDataFactoryLinkedServiceBlobStorageCreateUpdate(d *schema.Resour
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDataFactoryLinkedServiceBlobStorageRead(d, meta)
+	return resourceDataFactoryLinkedServiceBlobStorageRead(d, meta)
 }
 
-func resourceArmDataFactoryLinkedServiceBlobStorageRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceBlobStorageRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -199,7 +264,20 @@ func resourceArmDataFactoryLinkedServiceBlobStorageRead(d *schema.ResourceData, 
 
 	blobStorage, ok := resp.Properties.AsAzureBlobStorageLinkedService()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Linked Service BlobStorage %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeWeb, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Linked Service BlobStorage %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeAzureBlobStorage, *resp.Type)
+	}
+
+	if blobStorage != nil {
+		if blobStorage.Tenant != nil {
+			d.Set("tenant_id", blobStorage.Tenant)
+		}
+
+		if blobStorage.ServicePrincipalID != nil {
+			d.Set("service_principal_id", blobStorage.ServicePrincipalID)
+			d.Set("use_managed_identity", false)
+		} else {
+			d.Set("use_managed_identity", true)
+		}
 	}
 
 	d.Set("additional_properties", blobStorage.AdditionalProperties)
@@ -224,7 +302,7 @@ func resourceArmDataFactoryLinkedServiceBlobStorageRead(d *schema.ResourceData, 
 	return nil
 }
 
-func resourceArmDataFactoryLinkedServiceBlobStorageDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceBlobStorageDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

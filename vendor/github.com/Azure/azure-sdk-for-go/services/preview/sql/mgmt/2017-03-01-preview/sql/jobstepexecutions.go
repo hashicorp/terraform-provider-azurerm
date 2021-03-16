@@ -23,7 +23,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/Azure/go-autorest/tracing"
-	"github.com/satori/go.uuid"
+	"github.com/gofrs/uuid"
 	"net/http"
 )
 
@@ -82,6 +82,7 @@ func (client JobStepExecutionsClient) Get(ctx context.Context, resourceGroupName
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobStepExecutionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -123,7 +124,6 @@ func (client JobStepExecutionsClient) GetSender(req *http.Request) (*http.Respon
 func (client JobStepExecutionsClient) GetResponder(resp *http.Response) (result JobExecution, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -174,6 +174,11 @@ func (client JobStepExecutionsClient) ListByJobExecution(ctx context.Context, re
 	result.jelr, err = client.ListByJobExecutionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobStepExecutionsClient", "ListByJobExecution", resp, "Failure responding to request")
+		return
+	}
+	if result.jelr.hasNextLink() && result.jelr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -235,7 +240,6 @@ func (client JobStepExecutionsClient) ListByJobExecutionSender(req *http.Request
 func (client JobStepExecutionsClient) ListByJobExecutionResponder(resp *http.Response) (result JobExecutionListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

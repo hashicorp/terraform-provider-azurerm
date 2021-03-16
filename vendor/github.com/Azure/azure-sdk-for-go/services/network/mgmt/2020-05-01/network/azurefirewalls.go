@@ -52,8 +52,8 @@ func (client AzureFirewallsClient) CreateOrUpdate(ctx context.Context, resourceG
 		ctx = tracing.StartSpan(ctx, fqdn+"/AzureFirewallsClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -73,7 +73,7 @@ func (client AzureFirewallsClient) CreateOrUpdate(ctx context.Context, resourceG
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "network.AzureFirewallsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "network.AzureFirewallsClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -112,7 +112,33 @@ func (client AzureFirewallsClient) CreateOrUpdateSender(req *http.Request) (futu
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client AzureFirewallsClient) (af AzureFirewall, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "network.AzureFirewallsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("network.AzureFirewallsCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		af.Response.Response, err = future.GetResult(sender)
+		if af.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "network.AzureFirewallsCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && af.Response.Response.StatusCode != http.StatusNoContent {
+			af, err = client.CreateOrUpdateResponder(af.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "network.AzureFirewallsCreateOrUpdateFuture", "Result", af.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -121,7 +147,6 @@ func (client AzureFirewallsClient) CreateOrUpdateSender(req *http.Request) (futu
 func (client AzureFirewallsClient) CreateOrUpdateResponder(resp *http.Response) (result AzureFirewall, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -138,8 +163,8 @@ func (client AzureFirewallsClient) Delete(ctx context.Context, resourceGroupName
 		ctx = tracing.StartSpan(ctx, fqdn+"/AzureFirewallsClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -152,7 +177,7 @@ func (client AzureFirewallsClient) Delete(ctx context.Context, resourceGroupName
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "network.AzureFirewallsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "network.AzureFirewallsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -188,7 +213,23 @@ func (client AzureFirewallsClient) DeleteSender(req *http.Request) (future Azure
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client AzureFirewallsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "network.AzureFirewallsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("network.AzureFirewallsDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -197,7 +238,6 @@ func (client AzureFirewallsClient) DeleteSender(req *http.Request) (future Azure
 func (client AzureFirewallsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -235,6 +275,7 @@ func (client AzureFirewallsClient) Get(ctx context.Context, resourceGroupName st
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.AzureFirewallsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -272,7 +313,6 @@ func (client AzureFirewallsClient) GetSender(req *http.Request) (*http.Response,
 func (client AzureFirewallsClient) GetResponder(resp *http.Response) (result AzureFirewall, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -311,6 +351,11 @@ func (client AzureFirewallsClient) List(ctx context.Context, resourceGroupName s
 	result.aflr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.AzureFirewallsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.aflr.hasNextLink() && result.aflr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -347,7 +392,6 @@ func (client AzureFirewallsClient) ListSender(req *http.Request) (*http.Response
 func (client AzureFirewallsClient) ListResponder(resp *http.Response) (result AzureFirewallListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -421,6 +465,11 @@ func (client AzureFirewallsClient) ListAll(ctx context.Context) (result AzureFir
 	result.aflr, err = client.ListAllResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.AzureFirewallsClient", "ListAll", resp, "Failure responding to request")
+		return
+	}
+	if result.aflr.hasNextLink() && result.aflr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -456,7 +505,6 @@ func (client AzureFirewallsClient) ListAllSender(req *http.Request) (*http.Respo
 func (client AzureFirewallsClient) ListAllResponder(resp *http.Response) (result AzureFirewallListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -511,8 +559,8 @@ func (client AzureFirewallsClient) UpdateTags(ctx context.Context, resourceGroup
 		ctx = tracing.StartSpan(ctx, fqdn+"/AzureFirewallsClient.UpdateTags")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -525,7 +573,7 @@ func (client AzureFirewallsClient) UpdateTags(ctx context.Context, resourceGroup
 
 	result, err = client.UpdateTagsSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "network.AzureFirewallsClient", "UpdateTags", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "network.AzureFirewallsClient", "UpdateTags", nil, "Failure sending request")
 		return
 	}
 
@@ -563,7 +611,33 @@ func (client AzureFirewallsClient) UpdateTagsSender(req *http.Request) (future A
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client AzureFirewallsClient) (af AzureFirewall, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "network.AzureFirewallsUpdateTagsFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("network.AzureFirewallsUpdateTagsFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		af.Response.Response, err = future.GetResult(sender)
+		if af.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "network.AzureFirewallsUpdateTagsFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && af.Response.Response.StatusCode != http.StatusNoContent {
+			af, err = client.UpdateTagsResponder(af.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "network.AzureFirewallsUpdateTagsFuture", "Result", af.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -572,7 +646,6 @@ func (client AzureFirewallsClient) UpdateTagsSender(req *http.Request) (future A
 func (client AzureFirewallsClient) UpdateTagsResponder(resp *http.Response) (result AzureFirewall, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

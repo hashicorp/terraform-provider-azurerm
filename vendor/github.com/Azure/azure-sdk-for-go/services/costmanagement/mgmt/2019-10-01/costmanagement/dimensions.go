@@ -104,6 +104,7 @@ func (client DimensionsClient) List(ctx context.Context, scope string, filter st
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "costmanagement.DimensionsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -151,7 +152,6 @@ func (client DimensionsClient) ListSender(req *http.Request) (*http.Response, er
 func (client DimensionsClient) ListResponder(resp *http.Response) (result DimensionsListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

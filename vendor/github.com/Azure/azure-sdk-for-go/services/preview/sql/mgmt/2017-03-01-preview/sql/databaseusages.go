@@ -76,6 +76,7 @@ func (client DatabaseUsagesClient) ListByDatabase(ctx context.Context, resourceG
 	result, err = client.ListByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.DatabaseUsagesClient", "ListByDatabase", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -114,7 +115,6 @@ func (client DatabaseUsagesClient) ListByDatabaseSender(req *http.Request) (*htt
 func (client DatabaseUsagesClient) ListByDatabaseResponder(resp *http.Response) (result DatabaseUsageListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

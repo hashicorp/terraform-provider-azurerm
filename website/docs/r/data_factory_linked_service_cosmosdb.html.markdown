@@ -17,7 +17,7 @@ Manages a Linked Service (connection) between a SFTP Server and Azure Data Facto
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "northeurope"
+  location = "West Europe"
 }
 
 data "azurerm_cosmosdb_account" "example" {
@@ -46,7 +46,8 @@ resource "azurerm_data_factory_linked_service_cosmosdb" "example" {
 
 The following supported arguments are common across all Azure Data Factory Linked Services:
 
-* `name` - (Required) Specifies the name of the Data Factory Linked Service. Changing this forces a new resource to be created. Must be globally unique. See the [Microsoft documentation](https://docs.microsoft.com/en-us/azure/data-factory/naming-rules) for all restrictions.
+* `name` - (Required) Specifies the name of the Data Factory Linked Service. Changing this forces a new resource to be created. Must be unique within a data
+  factory. See the [Microsoft documentation](https://docs.microsoft.com/en-us/azure/data-factory/naming-rules) for all restrictions.
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Data Factory Linked Service. Changing this forces a new resource
 
@@ -58,13 +59,13 @@ The following supported arguments are common across all Azure Data Factory Linke
 
 * `annotations` - (Optional) List of tags that can be used for describing the Data Factory Linked Service.
 
-* `parameters` - (Optional) A map of parameters to associate with the Data Factory Linfked Service.
+* `parameters` - (Optional) A map of parameters to associate with the Data Factory Linked Service.
 
 * `additional_properties` - (Optional) A map of additional properties to associate with the Data Factory Linked Service.
 
 The following supported arguments are specific to CosmosDB Linked Service:
 
-* `account_endpoint` - (Optional) The endpoint of he Azure CosmosDB account. Required if `connection_string` is unspecified.
+* `account_endpoint` - (Optional) The endpoint of the Azure CosmosDB account. Required if `connection_string` is unspecified.
 
 * `account_key` - (Optional) The account key of the Azure Cosmos DB account. Required if `connection_string` is unspecified.
 

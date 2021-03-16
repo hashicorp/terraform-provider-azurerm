@@ -80,6 +80,7 @@ func (client InputsClient) CreateOrReplace(ctx context.Context, input Input, res
 	result, err = client.CreateOrReplaceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.InputsClient", "CreateOrReplace", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -128,7 +129,6 @@ func (client InputsClient) CreateOrReplaceSender(req *http.Request) (*http.Respo
 func (client InputsClient) CreateOrReplaceResponder(resp *http.Response) (result Input, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -169,6 +169,7 @@ func (client InputsClient) Delete(ctx context.Context, resourceGroupName string,
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.InputsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -207,7 +208,6 @@ func (client InputsClient) DeleteSender(req *http.Request) (*http.Response, erro
 func (client InputsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -247,6 +247,7 @@ func (client InputsClient) Get(ctx context.Context, resourceGroupName string, jo
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.InputsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -285,7 +286,6 @@ func (client InputsClient) GetSender(req *http.Request) (*http.Response, error) 
 func (client InputsClient) GetResponder(resp *http.Response) (result Input, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -329,6 +329,11 @@ func (client InputsClient) ListByStreamingJob(ctx context.Context, resourceGroup
 	result.ilr, err = client.ListByStreamingJobResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.InputsClient", "ListByStreamingJob", resp, "Failure responding to request")
+		return
+	}
+	if result.ilr.hasNextLink() && result.ilr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -369,7 +374,6 @@ func (client InputsClient) ListByStreamingJobSender(req *http.Request) (*http.Re
 func (client InputsClient) ListByStreamingJobResponder(resp *http.Response) (result InputListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -429,8 +433,8 @@ func (client InputsClient) Test(ctx context.Context, resourceGroupName string, j
 		ctx = tracing.StartSpan(ctx, fqdn+"/InputsClient.Test")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -443,7 +447,7 @@ func (client InputsClient) Test(ctx context.Context, resourceGroupName string, j
 
 	result, err = client.TestSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "streamanalytics.InputsClient", "Test", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "streamanalytics.InputsClient", "Test", nil, "Failure sending request")
 		return
 	}
 
@@ -485,7 +489,33 @@ func (client InputsClient) TestSender(req *http.Request) (future InputsTestFutur
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client InputsClient) (rts ResourceTestStatus, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "streamanalytics.InputsTestFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("streamanalytics.InputsTestFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		rts.Response.Response, err = future.GetResult(sender)
+		if rts.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "streamanalytics.InputsTestFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && rts.Response.Response.StatusCode != http.StatusNoContent {
+			rts, err = client.TestResponder(rts.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "streamanalytics.InputsTestFuture", "Result", rts.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -494,7 +524,6 @@ func (client InputsClient) TestSender(req *http.Request) (future InputsTestFutur
 func (client InputsClient) TestResponder(resp *http.Response) (result ResourceTestStatus, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -542,6 +571,7 @@ func (client InputsClient) Update(ctx context.Context, input Input, resourceGrou
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.InputsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -586,7 +616,6 @@ func (client InputsClient) UpdateSender(req *http.Request) (*http.Response, erro
 func (client InputsClient) UpdateResponder(resp *http.Response) (result Input, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

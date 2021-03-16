@@ -52,8 +52,8 @@ func (client ServiceEndpointPoliciesClient) CreateOrUpdate(ctx context.Context, 
 		ctx = tracing.StartSpan(ctx, fqdn+"/ServiceEndpointPoliciesClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -66,7 +66,7 @@ func (client ServiceEndpointPoliciesClient) CreateOrUpdate(ctx context.Context, 
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "network.ServiceEndpointPoliciesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "network.ServiceEndpointPoliciesClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -105,7 +105,33 @@ func (client ServiceEndpointPoliciesClient) CreateOrUpdateSender(req *http.Reque
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ServiceEndpointPoliciesClient) (sep ServiceEndpointPolicy, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "network.ServiceEndpointPoliciesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("network.ServiceEndpointPoliciesCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		sep.Response.Response, err = future.GetResult(sender)
+		if sep.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "network.ServiceEndpointPoliciesCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && sep.Response.Response.StatusCode != http.StatusNoContent {
+			sep, err = client.CreateOrUpdateResponder(sep.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "network.ServiceEndpointPoliciesCreateOrUpdateFuture", "Result", sep.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -114,7 +140,6 @@ func (client ServiceEndpointPoliciesClient) CreateOrUpdateSender(req *http.Reque
 func (client ServiceEndpointPoliciesClient) CreateOrUpdateResponder(resp *http.Response) (result ServiceEndpointPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -131,8 +156,8 @@ func (client ServiceEndpointPoliciesClient) Delete(ctx context.Context, resource
 		ctx = tracing.StartSpan(ctx, fqdn+"/ServiceEndpointPoliciesClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -145,7 +170,7 @@ func (client ServiceEndpointPoliciesClient) Delete(ctx context.Context, resource
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "network.ServiceEndpointPoliciesClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "network.ServiceEndpointPoliciesClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -181,7 +206,23 @@ func (client ServiceEndpointPoliciesClient) DeleteSender(req *http.Request) (fut
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ServiceEndpointPoliciesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "network.ServiceEndpointPoliciesDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("network.ServiceEndpointPoliciesDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -190,7 +231,6 @@ func (client ServiceEndpointPoliciesClient) DeleteSender(req *http.Request) (fut
 func (client ServiceEndpointPoliciesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -229,6 +269,7 @@ func (client ServiceEndpointPoliciesClient) Get(ctx context.Context, resourceGro
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ServiceEndpointPoliciesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -269,7 +310,6 @@ func (client ServiceEndpointPoliciesClient) GetSender(req *http.Request) (*http.
 func (client ServiceEndpointPoliciesClient) GetResponder(resp *http.Response) (result ServiceEndpointPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -306,6 +346,11 @@ func (client ServiceEndpointPoliciesClient) List(ctx context.Context) (result Se
 	result.seplr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ServiceEndpointPoliciesClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.seplr.hasNextLink() && result.seplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -341,7 +386,6 @@ func (client ServiceEndpointPoliciesClient) ListSender(req *http.Request) (*http
 func (client ServiceEndpointPoliciesClient) ListResponder(resp *http.Response) (result ServiceEndpointPolicyListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -417,6 +461,11 @@ func (client ServiceEndpointPoliciesClient) ListByResourceGroup(ctx context.Cont
 	result.seplr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ServiceEndpointPoliciesClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.seplr.hasNextLink() && result.seplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -453,7 +502,6 @@ func (client ServiceEndpointPoliciesClient) ListByResourceGroupSender(req *http.
 func (client ServiceEndpointPoliciesClient) ListByResourceGroupResponder(resp *http.Response) (result ServiceEndpointPolicyListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -530,6 +578,7 @@ func (client ServiceEndpointPoliciesClient) UpdateTags(ctx context.Context, reso
 	result, err = client.UpdateTagsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ServiceEndpointPoliciesClient", "UpdateTags", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -569,7 +618,6 @@ func (client ServiceEndpointPoliciesClient) UpdateTagsSender(req *http.Request) 
 func (client ServiceEndpointPoliciesClient) UpdateTagsResponder(resp *http.Response) (result ServiceEndpointPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

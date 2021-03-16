@@ -3,18 +3,23 @@ package clients
 import (
 	"context"
 	"fmt"
+	"log"
 	"strings"
 
+	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/go-azure-helpers/sender"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceproviders"
 )
 
 type ClientBuilder struct {
 	AuthConfig                  *authentication.Config
 	DisableCorrelationRequestID bool
+	CustomCorrelationRequestID  string
 	DisableTerraformPartnerID   bool
 	PartnerId                   string
 	SkipProviderRegistration    bool
@@ -38,7 +43,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		return nil, fmt.Errorf(azureStackEnvironmentError)
 	}
 
-	isAzureStack, err := authentication.IsEnvironmentAzureStack(ctx, builder.AuthConfig.MetadataURL, builder.AuthConfig.Environment)
+	isAzureStack, err := authentication.IsEnvironmentAzureStack(ctx, builder.AuthConfig.MetadataHost, builder.AuthConfig.Environment)
 	if err != nil {
 		return nil, err
 	}
@@ -46,20 +51,13 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		return nil, fmt.Errorf(azureStackEnvironmentError)
 	}
 
-	env, err := authentication.AzureEnvironmentByNameFromEndpoint(ctx, builder.AuthConfig.MetadataURL, builder.AuthConfig.Environment)
+	env, err := authentication.AzureEnvironmentByNameFromEndpoint(ctx, builder.AuthConfig.MetadataHost, builder.AuthConfig.Environment)
 	if err != nil {
 		return nil, err
 	}
 
-	if features.EnhancedValidationEnabled() {
-		// e.g. https://management.azure.com/ but we need management.azure.com
-		endpoint := strings.TrimPrefix(env.ResourceManagerEndpoint, "https://")
-		endpoint = strings.TrimSuffix(endpoint, "/")
-		location.CacheSupportedLocations(ctx, endpoint)
-	}
-
 	// client declarations:
-	account, err := NewResourceManagerAccount(ctx, *builder.AuthConfig, *env)
+	account, err := NewResourceManagerAccount(ctx, *builder.AuthConfig, *env, builder.SkipProviderRegistration)
 	if err != nil {
 		return nil, fmt.Errorf("Error building account: %+v", err)
 	}
@@ -100,6 +98,17 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		return nil, err
 	}
 
+	// Synapse Endpoints
+	var synapseAuth autorest.Authorizer = nil
+	if env.ResourceIdentifiers.Synapse != azure.NotAvailable {
+		synapseAuth, err = builder.AuthConfig.GetAuthorizationToken(sender, oauthConfig, env.ResourceIdentifiers.Synapse)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		log.Printf("[DEBUG] Skipping building the Synapse Authorizer since this is not supported in the current Azure Environment")
+	}
+
 	// Key Vault Endpoints
 	keyVaultAuth := builder.AuthConfig.BearerAuthorizerCallback(sender, oauthConfig)
 
@@ -114,8 +123,10 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		ResourceManagerAuthorizer:   auth,
 		ResourceManagerEndpoint:     endpoint,
 		StorageAuthorizer:           storageAuth,
+		SynapseAuthorizer:           synapseAuth,
 		SkipProviderReg:             builder.SkipProviderRegistration,
 		DisableCorrelationRequestID: builder.DisableCorrelationRequestID,
+		CustomCorrelationRequestID:  builder.CustomCorrelationRequestID,
 		DisableTerraformPartnerID:   builder.DisableTerraformPartnerID,
 		Environment:                 *env,
 		Features:                    builder.Features,
@@ -124,6 +135,11 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 
 	if err := client.Build(ctx, o); err != nil {
 		return nil, fmt.Errorf("Error building Client: %+v", err)
+	}
+
+	if features.EnhancedValidationEnabled() {
+		location.CacheSupportedLocations(ctx, env)
+		resourceproviders.CacheSupportedProviders(ctx, client.Resource.ProvidersClient)
 	}
 
 	return &client, nil

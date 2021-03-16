@@ -86,6 +86,7 @@ func (client QueryTextsClient) Get(ctx context.Context, resourceGroupName string
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mariadb.QueryTextsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -124,7 +125,6 @@ func (client QueryTextsClient) GetSender(req *http.Request) (*http.Response, err
 func (client QueryTextsClient) GetResponder(resp *http.Response) (result QueryText, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -177,6 +177,11 @@ func (client QueryTextsClient) ListByServer(ctx context.Context, resourceGroupNa
 	result.qtrl, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mariadb.QueryTextsClient", "ListByServer", resp, "Failure responding to request")
+		return
+	}
+	if result.qtrl.hasNextLink() && result.qtrl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -215,7 +220,6 @@ func (client QueryTextsClient) ListByServerSender(req *http.Request) (*http.Resp
 func (client QueryTextsClient) ListByServerResponder(resp *http.Response) (result QueryTextsResultList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

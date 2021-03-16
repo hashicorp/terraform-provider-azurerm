@@ -74,6 +74,7 @@ func (client ServiceAssociationLinksClient) List(ctx context.Context, resourceGr
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ServiceAssociationLinksClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -112,7 +113,6 @@ func (client ServiceAssociationLinksClient) ListSender(req *http.Request) (*http
 func (client ServiceAssociationLinksClient) ListResponder(resp *http.Response) (result ServiceAssociationLinksListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

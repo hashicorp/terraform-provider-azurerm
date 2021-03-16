@@ -81,6 +81,7 @@ func (client TenantAccessGitClient) Get(ctx context.Context, resourceGroupName s
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.TenantAccessGitClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -119,7 +120,6 @@ func (client TenantAccessGitClient) GetSender(req *http.Request) (*http.Response
 func (client TenantAccessGitClient) GetResponder(resp *http.Response) (result AccessInformationContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -166,6 +166,7 @@ func (client TenantAccessGitClient) ListSecrets(ctx context.Context, resourceGro
 	result, err = client.ListSecretsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.TenantAccessGitClient", "ListSecrets", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -204,7 +205,6 @@ func (client TenantAccessGitClient) ListSecretsSender(req *http.Request) (*http.
 func (client TenantAccessGitClient) ListSecretsResponder(resp *http.Response) (result AccessInformationContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -251,6 +251,7 @@ func (client TenantAccessGitClient) RegeneratePrimaryKey(ctx context.Context, re
 	result, err = client.RegeneratePrimaryKeyResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.TenantAccessGitClient", "RegeneratePrimaryKey", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -289,7 +290,6 @@ func (client TenantAccessGitClient) RegeneratePrimaryKeySender(req *http.Request
 func (client TenantAccessGitClient) RegeneratePrimaryKeyResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -335,6 +335,7 @@ func (client TenantAccessGitClient) RegenerateSecondaryKey(ctx context.Context, 
 	result, err = client.RegenerateSecondaryKeyResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.TenantAccessGitClient", "RegenerateSecondaryKey", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -373,7 +374,6 @@ func (client TenantAccessGitClient) RegenerateSecondaryKeySender(req *http.Reque
 func (client TenantAccessGitClient) RegenerateSecondaryKeyResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp

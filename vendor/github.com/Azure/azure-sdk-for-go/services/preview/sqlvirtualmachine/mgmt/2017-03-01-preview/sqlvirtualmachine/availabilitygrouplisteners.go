@@ -57,8 +57,8 @@ func (client AvailabilityGroupListenersClient) CreateOrUpdate(ctx context.Contex
 		ctx = tracing.StartSpan(ctx, fqdn+"/AvailabilityGroupListenersClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -71,7 +71,7 @@ func (client AvailabilityGroupListenersClient) CreateOrUpdate(ctx context.Contex
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.AvailabilityGroupListenersClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.AvailabilityGroupListenersClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -110,7 +110,33 @@ func (client AvailabilityGroupListenersClient) CreateOrUpdateSender(req *http.Re
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client AvailabilityGroupListenersClient) (agl AvailabilityGroupListener, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sqlvirtualmachine.AvailabilityGroupListenersCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sqlvirtualmachine.AvailabilityGroupListenersCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		agl.Response.Response, err = future.GetResult(sender)
+		if agl.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "sqlvirtualmachine.AvailabilityGroupListenersCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && agl.Response.Response.StatusCode != http.StatusNoContent {
+			agl, err = client.CreateOrUpdateResponder(agl.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "sqlvirtualmachine.AvailabilityGroupListenersCreateOrUpdateFuture", "Result", agl.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -119,7 +145,6 @@ func (client AvailabilityGroupListenersClient) CreateOrUpdateSender(req *http.Re
 func (client AvailabilityGroupListenersClient) CreateOrUpdateResponder(resp *http.Response) (result AvailabilityGroupListener, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -138,8 +163,8 @@ func (client AvailabilityGroupListenersClient) Delete(ctx context.Context, resou
 		ctx = tracing.StartSpan(ctx, fqdn+"/AvailabilityGroupListenersClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -152,7 +177,7 @@ func (client AvailabilityGroupListenersClient) Delete(ctx context.Context, resou
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.AvailabilityGroupListenersClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.AvailabilityGroupListenersClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -189,7 +214,23 @@ func (client AvailabilityGroupListenersClient) DeleteSender(req *http.Request) (
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client AvailabilityGroupListenersClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sqlvirtualmachine.AvailabilityGroupListenersDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sqlvirtualmachine.AvailabilityGroupListenersDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -198,7 +239,6 @@ func (client AvailabilityGroupListenersClient) DeleteSender(req *http.Request) (
 func (client AvailabilityGroupListenersClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -238,6 +278,7 @@ func (client AvailabilityGroupListenersClient) Get(ctx context.Context, resource
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.AvailabilityGroupListenersClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -276,7 +317,6 @@ func (client AvailabilityGroupListenersClient) GetSender(req *http.Request) (*ht
 func (client AvailabilityGroupListenersClient) GetResponder(resp *http.Response) (result AvailabilityGroupListener, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -317,6 +357,11 @@ func (client AvailabilityGroupListenersClient) ListByGroup(ctx context.Context, 
 	result.agllr, err = client.ListByGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.AvailabilityGroupListenersClient", "ListByGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.agllr.hasNextLink() && result.agllr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -354,7 +399,6 @@ func (client AvailabilityGroupListenersClient) ListByGroupSender(req *http.Reque
 func (client AvailabilityGroupListenersClient) ListByGroupResponder(resp *http.Response) (result AvailabilityGroupListenerListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -7,31 +7,31 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2018-09-01/containerregistry"
+	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2019-05-01/containerregistry"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmContainerRegistry() *schema.Resource {
+func resourceContainerRegistry() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmContainerRegistryCreate,
-		Read:   resourceArmContainerRegistryRead,
-		Update: resourceArmContainerRegistryUpdate,
-		Delete: resourceArmContainerRegistryDelete,
+		Create: resourceContainerRegistryCreate,
+		Read:   resourceContainerRegistryRead,
+		Update: resourceContainerRegistryUpdate,
+		Delete: resourceContainerRegistryDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
-		MigrateState:  ResourceAzureRMContainerRegistryMigrateState,
+		MigrateState:  ResourceContainerRegistryMigrateState,
 		SchemaVersion: 2,
 
 		Timeouts: &schema.ResourceTimeout{
@@ -46,7 +46,7 @@ func resourceArmContainerRegistry() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateAzureRMContainerRegistryName,
+				ValidateFunc: ValidateContainerRegistryName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -86,6 +86,7 @@ func resourceArmContainerRegistry() *schema.Resource {
 			"storage_account_id": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ForceNew: true,
 			},
 
 			"login_server": {
@@ -169,6 +170,46 @@ func resourceArmContainerRegistry() *schema.Resource {
 				},
 			},
 
+			"retention_policy": {
+				Type:       schema.TypeList,
+				MaxItems:   1,
+				Optional:   true,
+				Computed:   true,
+				ConfigMode: schema.SchemaConfigModeAttr,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"days": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							Default:  7,
+						},
+
+						"enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+					},
+				},
+			},
+
+			"trust_policy": {
+				Type:       schema.TypeList,
+				MaxItems:   1,
+				Optional:   true,
+				Computed:   true,
+				ConfigMode: schema.SchemaConfigModeAttr,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+					},
+				},
+			},
+
 			"tags": tags.Schema(),
 		},
 
@@ -180,16 +221,26 @@ func resourceArmContainerRegistry() *schema.Resource {
 				return fmt.Errorf("ACR geo-replication can only be applied when using the Premium Sku.")
 			}
 
+			retentionPolicyEnabled, ok := d.GetOk("retention_policy.0.enabled")
+			if ok && retentionPolicyEnabled.(bool) && !strings.EqualFold(sku, string(containerregistry.Premium)) {
+				return fmt.Errorf("ACR retention policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please set retention_policy {}")
+			}
+
+			trustPolicyEnabled, ok := d.GetOk("trust_policy.0.enabled")
+			if ok && trustPolicyEnabled.(bool) && !strings.EqualFold(sku, string(containerregistry.Premium)) {
+				return fmt.Errorf("ACR trust policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please set trust_policy {}")
+			}
+
 			return nil
 		},
 	}
 }
 
-func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceContainerRegistryCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.RegistriesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing arguments for AzureRM Container Registry creation.")
+	log.Printf("[INFO] preparing arguments for  Container Registry creation.")
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
@@ -231,6 +282,12 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("`network_rule_set_set` can only be specified for a Premium Sku. If you are reverting from a Premium to Basic SKU plese set network_rule_set = []")
 	}
 
+	retentionPolicyRaw := d.Get("retention_policy").([]interface{})
+	retentionPolicy := expandRetentionPolicy(retentionPolicyRaw)
+
+	trustPolicyRaw := d.Get("trust_policy").([]interface{})
+	trustPolicy := expandTrustPolicy(trustPolicyRaw)
+
 	parameters := containerregistry.Registry{
 		Location: &location,
 		Sku: &containerregistry.Sku{
@@ -240,6 +297,10 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 		RegistryProperties: &containerregistry.RegistryProperties{
 			AdminUserEnabled: utils.Bool(adminUserEnabled),
 			NetworkRuleSet:   networkRuleSet,
+			Policies: &containerregistry.Policies{
+				RetentionPolicy: retentionPolicy,
+				TrustPolicy:     trustPolicy,
+			},
 		},
 
 		Tags: tags.Expand(t),
@@ -287,19 +348,24 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 
 	d.SetId(*read.ID)
 
-	return resourceArmContainerRegistryRead(d, meta)
+	return resourceContainerRegistryRead(d, meta)
 }
 
-func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceContainerRegistryUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.RegistriesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing arguments for AzureRM Container Registry update.")
+	log.Printf("[INFO] preparing arguments for  Container Registry update.")
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
 
 	sku := d.Get("sku").(string)
+	skuChange := d.HasChange("sku")
+	isBasicSku := strings.EqualFold(sku, string(containerregistry.Basic))
+	isPremiumSku := strings.EqualFold(sku, string(containerregistry.Premium))
+	isStandardSku := strings.EqualFold(sku, string(containerregistry.Standard))
+
 	adminUserEnabled := d.Get("admin_enabled").(bool)
 	t := d.Get("tags").(map[string]interface{})
 
@@ -308,33 +374,30 @@ func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}
 	oldGeoReplicationLocations := old.(*schema.Set)
 	newGeoReplicationLocations := new.(*schema.Set)
 
+	// handle upgrade to Premium SKU first
+	if skuChange && isPremiumSku {
+		if err := applyContainerRegistrySku(d, meta, sku, resourceGroup, name); err != nil {
+			return fmt.Errorf("Error applying sku %q for Container Registry %q (Resource Group %q): %+v", sku, name, resourceGroup, err)
+		}
+	}
+
 	networkRuleSet := expandNetworkRuleSet(d.Get("network_rule_set").([]interface{}))
-	if networkRuleSet != nil && !strings.EqualFold(sku, string(containerregistry.Premium)) {
+	if networkRuleSet != nil && isBasicSku {
 		return fmt.Errorf("`network_rule_set_set` can only be specified for a Premium Sku. If you are reverting from a Premium to Basic SKU plese set network_rule_set = []")
 	}
 
+	retentionPolicy := expandRetentionPolicy(d.Get("retention_policy").([]interface{}))
+	trustPolicy := expandTrustPolicy(d.Get("trust_policy").([]interface{}))
 	parameters := containerregistry.RegistryUpdateParameters{
 		RegistryPropertiesUpdateParameters: &containerregistry.RegistryPropertiesUpdateParameters{
 			AdminUserEnabled: utils.Bool(adminUserEnabled),
 			NetworkRuleSet:   networkRuleSet,
-		},
-		Sku: &containerregistry.Sku{
-			Name: containerregistry.SkuName(sku),
-			Tier: containerregistry.SkuTier(sku),
+			Policies: &containerregistry.Policies{
+				RetentionPolicy: retentionPolicy,
+				TrustPolicy:     trustPolicy,
+			},
 		},
 		Tags: tags.Expand(t),
-	}
-
-	if v, ok := d.GetOk("storage_account_id"); ok {
-		if !strings.EqualFold(sku, string(containerregistry.Classic)) {
-			return fmt.Errorf("`storage_account_id` can only be specified for a Classic (unmanaged) Sku.")
-		}
-
-		parameters.StorageAccount = &containerregistry.StorageAccountProperties{
-			ID: utils.String(v.(string)),
-		}
-	} else if strings.EqualFold(sku, string(containerregistry.Classic)) {
-		return fmt.Errorf("`storage_account_id` must be specified for a Classic (unmanaged) Sku.")
 	}
 
 	// geo replication is only supported by Premium Sku
@@ -366,6 +429,13 @@ func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}
 		}
 	}
 
+	// downgrade to Basic or Standard SKU
+	if skuChange && (isBasicSku || isStandardSku) {
+		if err := applyContainerRegistrySku(d, meta, sku, resourceGroup, name); err != nil {
+			return fmt.Errorf("Error applying sku %q for Container Registry %q (Resource Group %q): %+v", sku, name, resourceGroup, err)
+		}
+	}
+
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error retrieving Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -377,14 +447,38 @@ func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}
 
 	d.SetId(*read.ID)
 
-	return resourceArmContainerRegistryRead(d, meta)
+	return resourceContainerRegistryRead(d, meta)
+}
+
+func applyContainerRegistrySku(d *schema.ResourceData, meta interface{}, sku string, resourceGroup string, name string) error {
+	client := meta.(*clients.Client).Containers.RegistriesClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	parameters := containerregistry.RegistryUpdateParameters{
+		Sku: &containerregistry.Sku{
+			Name: containerregistry.SkuName(sku),
+			Tier: containerregistry.SkuTier(sku),
+		},
+	}
+
+	future, err := client.Update(ctx, resourceGroup, name, parameters)
+	if err != nil {
+		return fmt.Errorf("Error updating Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("Error waiting for update of Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	return nil
 }
 
 func applyGeoReplicationLocations(d *schema.ResourceData, meta interface{}, resourceGroup string, name string, oldGeoReplicationLocations []interface{}, newGeoReplicationLocations []interface{}) error {
 	replicationClient := meta.(*clients.Client).Containers.ReplicationsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing to apply geo-replications for AzureRM Container Registry.")
+	log.Printf("[INFO] preparing to apply geo-replications for  Container Registry.")
 
 	createLocations := make(map[string]bool)
 
@@ -450,7 +544,7 @@ func applyGeoReplicationLocations(d *schema.ResourceData, meta interface{}, reso
 	return nil
 }
 
-func resourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) error {
+func resourceContainerRegistryRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.RegistriesClient
 	replicationClient := meta.(*clients.Client).Containers.ReplicationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -487,6 +581,15 @@ func resourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) 
 	networkRuleSet := flattenNetworkRuleSet(resp.NetworkRuleSet)
 	if err := d.Set("network_rule_set", networkRuleSet); err != nil {
 		return fmt.Errorf("Error setting `network_rule_set`: %+v", err)
+	}
+
+	if properties := resp.RegistryProperties; properties != nil {
+		if err := d.Set("retention_policy", flattenRetentionPolicy(properties.Policies)); err != nil {
+			return fmt.Errorf("Error setting `retention_policy`: %+v", err)
+		}
+		if err := d.Set("trust_policy", flattenTrustPolicy(properties.Policies)); err != nil {
+			return fmt.Errorf("Error setting `trust_policy`: %+v", err)
+		}
 	}
 
 	if sku := resp.Sku; sku != nil {
@@ -539,7 +642,7 @@ func resourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmContainerRegistryDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceContainerRegistryDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.RegistriesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -569,7 +672,7 @@ func resourceArmContainerRegistryDelete(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func ValidateAzureRMContainerRegistryName(v interface{}, k string) (warnings []string, errors []error) {
+func ValidateContainerRegistryName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 	if !regexp.MustCompile(`^[a-zA-Z0-9]+$`).MatchString(value) {
 		errors = append(errors, fmt.Errorf(
@@ -624,6 +727,41 @@ func expandNetworkRuleSet(profiles []interface{}) *containerregistry.NetworkRule
 	return &networkRuleSet
 }
 
+func expandRetentionPolicy(p []interface{}) *containerregistry.RetentionPolicy {
+	retentionPolicy := containerregistry.RetentionPolicy{
+		Status: containerregistry.Disabled,
+	}
+
+	if len(p) > 0 {
+		v := p[0].(map[string]interface{})
+		days := int32(v["days"].(int))
+		enabled := v["enabled"].(bool)
+		if enabled {
+			retentionPolicy.Status = containerregistry.Enabled
+		}
+		retentionPolicy.Days = utils.Int32(days)
+	}
+
+	return &retentionPolicy
+}
+
+func expandTrustPolicy(p []interface{}) *containerregistry.TrustPolicy {
+	trustPolicy := containerregistry.TrustPolicy{
+		Status: containerregistry.Disabled,
+	}
+
+	if len(p) > 0 {
+		v := p[0].(map[string]interface{})
+		enabled := v["enabled"].(bool)
+		if enabled {
+			trustPolicy.Status = containerregistry.Enabled
+		}
+		trustPolicy.Type = containerregistry.Notary
+	}
+
+	return &trustPolicy
+}
+
 func flattenNetworkRuleSet(networkRuleSet *containerregistry.NetworkRuleSet) []interface{} {
 	if networkRuleSet == nil {
 		return []interface{}{}
@@ -664,4 +802,29 @@ func flattenNetworkRuleSet(networkRuleSet *containerregistry.NetworkRuleSet) []i
 	values["virtual_network"] = virtualNetworkRules
 
 	return []interface{}{values}
+}
+
+func flattenRetentionPolicy(p *containerregistry.Policies) []interface{} {
+	if p == nil || p.RetentionPolicy == nil {
+		return nil
+	}
+
+	r := *p.RetentionPolicy
+	retentionPolicy := make(map[string]interface{})
+	retentionPolicy["days"] = r.Days
+	enabled := strings.EqualFold(string(r.Status), string(containerregistry.Enabled))
+	retentionPolicy["enabled"] = utils.Bool(enabled)
+	return []interface{}{retentionPolicy}
+}
+
+func flattenTrustPolicy(p *containerregistry.Policies) []interface{} {
+	if p == nil || p.TrustPolicy == nil {
+		return nil
+	}
+
+	t := *p.TrustPolicy
+	trustPolicy := make(map[string]interface{})
+	enabled := strings.EqualFold(string(t.Status), string(containerregistry.Enabled))
+	trustPolicy["enabled"] = utils.Bool(enabled)
+	return []interface{}{trustPolicy}
 }

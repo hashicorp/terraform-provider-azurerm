@@ -71,6 +71,11 @@ func (client PremiumMessagingRegionsClient) List(ctx context.Context) (result Pr
 	result.pmrlr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.PremiumMessagingRegionsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.pmrlr.hasNextLink() && result.pmrlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -106,7 +111,6 @@ func (client PremiumMessagingRegionsClient) ListSender(req *http.Request) (*http
 func (client PremiumMessagingRegionsClient) ListResponder(resp *http.Response) (result PremiumMessagingRegionsListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

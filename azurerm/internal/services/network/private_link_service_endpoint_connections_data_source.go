@@ -12,9 +12,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmPrivateLinkServiceEndpointConnections() *schema.Resource {
+func dataSourcePrivateLinkServiceEndpointConnections() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmPrivateLinkServiceEndpointConnectionsRead,
+		Read: dataSourcePrivateLinkServiceEndpointConnectionsRead,
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
 		},
@@ -75,7 +75,7 @@ func dataSourceArmPrivateLinkServiceEndpointConnections() *schema.Resource {
 	}
 }
 
-func dataSourceArmPrivateLinkServiceEndpointConnectionsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourcePrivateLinkServiceEndpointConnectionsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PrivateLinkServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -107,7 +107,7 @@ func dataSourceArmPrivateLinkServiceEndpointConnectionsRead(d *schema.ResourceDa
 	d.Set("location", azure.NormalizeLocation(*resp.Location))
 
 	if props := resp.PrivateLinkServiceProperties; props != nil {
-		if err := d.Set("private_endpoint_connections", dataSourceflattenArmPrivateLinkServicePrivateEndpointConnections(props.PrivateEndpointConnections)); err != nil {
+		if err := d.Set("private_endpoint_connections", dataSourceflattenPrivateLinkServicePrivateEndpointConnections(props.PrivateEndpointConnections)); err != nil {
 			return fmt.Errorf("Error setting `private_endpoint_connections`: %+v", err)
 		}
 	}
@@ -117,7 +117,7 @@ func dataSourceArmPrivateLinkServiceEndpointConnectionsRead(d *schema.ResourceDa
 	return nil
 }
 
-func dataSourceflattenArmPrivateLinkServicePrivateEndpointConnections(input *[]network.PrivateEndpointConnection) []interface{} {
+func dataSourceflattenPrivateLinkServicePrivateEndpointConnections(input *[]network.PrivateEndpointConnection) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results

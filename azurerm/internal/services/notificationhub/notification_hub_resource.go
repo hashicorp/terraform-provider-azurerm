@@ -14,28 +14,33 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 var notificationHubResourceName = "azurerm_notification_hub"
 
-const apnsProductionName = "Production"
-const apnsProductionEndpoint = "https://api.push.apple.com:443/3/device"
-const apnsSandboxName = "Sandbox"
-const apnsSandboxEndpoint = "https://api.development.push.apple.com:443/3/device"
+const (
+	apnsProductionName     = "Production"
+	apnsProductionEndpoint = "https://api.push.apple.com:443/3/device"
+	apnsSandboxName        = "Sandbox"
+	apnsSandboxEndpoint    = "https://api.development.push.apple.com:443/3/device"
+)
 
-func resourceArmNotificationHub() *schema.Resource {
+func resourceNotificationHub() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmNotificationHubCreateUpdate,
-		Read:   resourceArmNotificationHubRead,
-		Update: resourceArmNotificationHubCreateUpdate,
-		Delete: resourceArmNotificationHubDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Create: resourceNotificationHubCreateUpdate,
+		Read:   resourceNotificationHubRead,
+		Update: resourceNotificationHubCreateUpdate,
+		Delete: resourceNotificationHubDelete,
+
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.NotificationHubID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -141,7 +146,7 @@ func resourceArmNotificationHub() *schema.Resource {
 	}
 }
 
-func resourceArmNotificationHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceNotificationHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NotificationHubs.HubsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -151,7 +156,7 @@ func resourceArmNotificationHubCreateUpdate(d *schema.ResourceData, meta interfa
 	resourceGroup := d.Get("resource_group_name").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, namespaceName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -208,7 +213,7 @@ func resourceArmNotificationHubCreateUpdate(d *schema.ResourceData, meta interfa
 
 	d.SetId(*read.ID)
 
-	return resourceArmNotificationHubRead(d, meta)
+	return resourceNotificationHubRead(d, meta)
 }
 
 func notificationHubStateRefreshFunc(ctx context.Context, client *notificationhubs.Client, resourceGroup, namespaceName, name string) resource.StateRefreshFunc {
@@ -226,38 +231,35 @@ func notificationHubStateRefreshFunc(ctx context.Context, client *notificationhu
 	}
 }
 
-func resourceArmNotificationHubRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNotificationHubRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NotificationHubs.HubsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.NotificationHubID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	namespaceName := id.Path["namespaces"]
-	name := id.Path["notificationHubs"]
 
-	resp, err := client.Get(ctx, resourceGroup, namespaceName, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.NamespaceName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Notification Hub %q was not found in Namespace %q / Resource Group %q", name, namespaceName, resourceGroup)
+			log.Printf("[DEBUG] Notification Hub %q was not found in Namespace %q / Resource Group %q", id.Name, id.NamespaceName, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Notification Hub %q (Namespace %q / Resource Group %q): %+v", name, namespaceName, resourceGroup, err)
+		return fmt.Errorf("Error making Read request on Notification Hub %q (Namespace %q / Resource Group %q): %+v", id.Name, id.NamespaceName, id.ResourceGroup, err)
 	}
 
-	credentials, err := client.GetPnsCredentials(ctx, resourceGroup, namespaceName, name)
+	credentials, err := client.GetPnsCredentials(ctx, id.ResourceGroup, id.NamespaceName, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Credentials for Notification Hub %q (Namespace %q / Resource Group %q): %+v", name, namespaceName, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Credentials for Notification Hub %q (Namespace %q / Resource Group %q): %+v", id.Name, id.NamespaceName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("namespace_name", namespaceName)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("namespace_name", id.NamespaceName)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -277,23 +279,20 @@ func resourceArmNotificationHubRead(d *schema.ResourceData, meta interface{}) er
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmNotificationHubDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNotificationHubDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NotificationHubs.HubsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.NotificationHubID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	namespaceName := id.Path["namespaces"]
-	name := id.Path["notificationHubs"]
 
-	resp, err := client.Delete(ctx, resourceGroup, namespaceName, name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.NamespaceName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error deleting Notification Hub %q (Namespace %q / Resource Group %q): %+v", name, namespaceName, resourceGroup, err)
+			return fmt.Errorf("Error deleting Notification Hub %q (Namespace %q / Resource Group %q): %+v", id.Name, id.NamespaceName, id.ResourceGroup, err)
 		}
 	}
 

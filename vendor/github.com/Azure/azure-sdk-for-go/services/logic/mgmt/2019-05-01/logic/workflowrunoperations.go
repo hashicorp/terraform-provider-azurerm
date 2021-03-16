@@ -75,6 +75,7 @@ func (client WorkflowRunOperationsClient) Get(ctx context.Context, resourceGroup
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowRunOperationsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -114,7 +115,6 @@ func (client WorkflowRunOperationsClient) GetSender(req *http.Request) (*http.Re
 func (client WorkflowRunOperationsClient) GetResponder(resp *http.Response) (result WorkflowRun, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

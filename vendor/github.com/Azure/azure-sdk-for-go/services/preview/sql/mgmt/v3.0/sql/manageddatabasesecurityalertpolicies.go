@@ -79,6 +79,7 @@ func (client ManagedDatabaseSecurityAlertPoliciesClient) CreateOrUpdate(ctx cont
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedDatabaseSecurityAlertPoliciesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -120,7 +121,6 @@ func (client ManagedDatabaseSecurityAlertPoliciesClient) CreateOrUpdateSender(re
 func (client ManagedDatabaseSecurityAlertPoliciesClient) CreateOrUpdateResponder(resp *http.Response) (result ManagedDatabaseSecurityAlertPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -161,6 +161,7 @@ func (client ManagedDatabaseSecurityAlertPoliciesClient) Get(ctx context.Context
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedDatabaseSecurityAlertPoliciesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -200,7 +201,6 @@ func (client ManagedDatabaseSecurityAlertPoliciesClient) GetSender(req *http.Req
 func (client ManagedDatabaseSecurityAlertPoliciesClient) GetResponder(resp *http.Response) (result ManagedDatabaseSecurityAlertPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -242,6 +242,11 @@ func (client ManagedDatabaseSecurityAlertPoliciesClient) ListByDatabase(ctx cont
 	result.mdsaplr, err = client.ListByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedDatabaseSecurityAlertPoliciesClient", "ListByDatabase", resp, "Failure responding to request")
+		return
+	}
+	if result.mdsaplr.hasNextLink() && result.mdsaplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -280,7 +285,6 @@ func (client ManagedDatabaseSecurityAlertPoliciesClient) ListByDatabaseSender(re
 func (client ManagedDatabaseSecurityAlertPoliciesClient) ListByDatabaseResponder(resp *http.Response) (result ManagedDatabaseSecurityAlertPolicyListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

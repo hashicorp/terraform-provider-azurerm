@@ -21,7 +21,7 @@ and *not* a [Service SAS](https://docs.microsoft.com/en-us/rest/api/storageservi
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "resourceGroupName"
-  location = "westus"
+  location = "West Europe"
 }
 
 resource "azurerm_storage_account" "example" {
@@ -39,6 +39,7 @@ resource "azurerm_storage_account" "example" {
 data "azurerm_storage_account_sas" "example" {
   connection_string = azurerm_storage_account.example.primary_connection_string
   https_only        = true
+  signed_version    = "2017-07-29"
 
   resource_types {
     service   = true
@@ -53,8 +54,8 @@ data "azurerm_storage_account_sas" "example" {
     file  = false
   }
 
-  start  = "2018-03-21"
-  expiry = "2020-03-21"
+  start  = "2018-03-21T00:00:00Z"
+  expiry = "2020-03-21T00:00:00Z"
 
   permissions {
     read    = true
@@ -77,6 +78,7 @@ output "sas_url_query_string" {
 
 * `connection_string` - The connection string for the storage account to which this SAS applies. Typically directly from the `primary_connection_string` attribute of a terraform created `azurerm_storage_account` resource.
 * `https_only` - (Optional) Only permit `https` access. If `false`, both `http` and `https` are permitted. Defaults to `true`.
+* `signed_version` - (Optional) Specifies the signed storage service version to use to authorize requests made with this account SAS. Defaults to `2017-07-29`.
 * `resource_types` - A `resource_types` block as defined below.
 * `services` - A `services` block as defined below.
 * `start` - The starting time and date of validity of this SAS. Must be a valid ISO-8601 format time/date string.

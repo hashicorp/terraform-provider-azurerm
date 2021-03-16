@@ -10,25 +10,24 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	computeParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
+	computeValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devtestlabs/parse"
-	devtestValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devtestlabs/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDevTestLabGlobalVMShutdownSchedule() *schema.Resource {
+func resourceDevTestGlobalVMShutdownSchedule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDevTestLabGlobalVMShutdownScheduleCreateUpdate,
-		Read:   resourceArmDevTestLabGlobalVMShutdownScheduleRead,
-		Update: resourceArmDevTestLabGlobalVMShutdownScheduleCreateUpdate,
-		Delete: resourceArmDevTestLabGlobalVMShutdownScheduleDelete,
+		Create: resourceDevTestGlobalVMShutdownScheduleCreateUpdate,
+		Read:   resourceDevTestGlobalVMShutdownScheduleRead,
+		Update: resourceDevTestGlobalVMShutdownScheduleCreateUpdate,
+		Delete: resourceDevTestGlobalVMShutdownScheduleDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.GlobalScheduleID(id)
+			_, err := parse.ScheduleID(id)
 			return err
 		}),
 
@@ -46,7 +45,7 @@ func resourceArmDevTestLabGlobalVMShutdownSchedule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: devtestValidate.GlobalScheduleVirtualMachineID,
+				ValidateFunc: computeValidate.VirtualMachineID,
 			},
 
 			"enabled": {
@@ -67,7 +66,7 @@ func resourceArmDevTestLabGlobalVMShutdownSchedule() *schema.Resource {
 			"timezone": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.VirtualMachineTimeZoneCaseInsensitive(),
+				ValidateFunc: computeValidate.VirtualMachineTimeZoneCaseInsensitive(),
 			},
 
 			"notification_settings": {
@@ -99,13 +98,13 @@ func resourceArmDevTestLabGlobalVMShutdownSchedule() *schema.Resource {
 	}
 }
 
-func resourceArmDevTestLabGlobalVMShutdownScheduleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDevTestGlobalVMShutdownScheduleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DevTestLabs.GlobalLabSchedulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	vmID := d.Get("virtual_machine_id").(string)
-	id, err := parse.GlobalScheduleVirtualMachineID(vmID)
+	id, err := computeParse.VirtualMachineID(vmID)
 	if err != nil {
 		return err
 	}
@@ -114,7 +113,7 @@ func resourceArmDevTestLabGlobalVMShutdownScheduleCreateUpdate(d *schema.Resourc
 	// The best example I could find is here: https://social.msdn.microsoft.com/Forums/en-US/25a02403-dba9-4bcb-bdcc-1f4afcba5b65/powershell-script-to-autoshutdown-azure-virtual-machine?forum=WAVirtualMachinesforWindows
 	name := "shutdown-computevm-" + id.Name
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -150,12 +149,12 @@ func resourceArmDevTestLabGlobalVMShutdownScheduleCreateUpdate(d *schema.Resourc
 	}
 
 	if v, ok := d.GetOk("daily_recurrence_time"); ok {
-		dailyRecurrence := expandArmDevTestLabGlobalVMShutdownScheduleRecurrenceDaily(v)
+		dailyRecurrence := expandDevTestGlobalVMShutdownScheduleRecurrenceDaily(v)
 		schedule.DailyRecurrence = dailyRecurrence
 	}
 
 	if _, ok := d.GetOk("notification_settings"); ok {
-		notificationSettings := expandArmDevTestLabGlobalVMShutdownScheduleNotificationSettings(d)
+		notificationSettings := expandDevTestGlobalVMShutdownScheduleNotificationSettings(d)
 		schedule.NotificationSettings = notificationSettings
 	}
 
@@ -174,21 +173,20 @@ func resourceArmDevTestLabGlobalVMShutdownScheduleCreateUpdate(d *schema.Resourc
 
 	d.SetId(*read.ID)
 
-	return resourceArmDevTestLabGlobalVMShutdownScheduleRead(d, meta)
+	return resourceDevTestGlobalVMShutdownScheduleRead(d, meta)
 }
 
-func resourceArmDevTestLabGlobalVMShutdownScheduleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDevTestGlobalVMShutdownScheduleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DevTestLabs.GlobalLabSchedulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.GlobalScheduleID(d.Id())
+	id, err := parse.ScheduleID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -206,11 +204,11 @@ func resourceArmDevTestLabGlobalVMShutdownScheduleRead(d *schema.ResourceData, m
 		d.Set("timezone", props.TimeZoneID)
 		d.Set("enabled", props.Status == dtl.EnableStatusEnabled)
 
-		if err := d.Set("daily_recurrence_time", flattenArmDevTestLabGlobalVMShutdownScheduleRecurrenceDaily(props.DailyRecurrence)); err != nil {
+		if err := d.Set("daily_recurrence_time", flattenDevTestGlobalVMShutdownScheduleRecurrenceDaily(props.DailyRecurrence)); err != nil {
 			return fmt.Errorf("Error setting `dailyRecurrence`: %#v", err)
 		}
 
-		if err := d.Set("notification_settings", flattenArmDevTestLabGlobalVMShutdownScheduleNotificationSettings(props.NotificationSettings)); err != nil {
+		if err := d.Set("notification_settings", flattenDevTestGlobalVMShutdownScheduleNotificationSettings(props.NotificationSettings)); err != nil {
 			return fmt.Errorf("Error setting `notificationSettings`: %#v", err)
 		}
 	}
@@ -218,12 +216,12 @@ func resourceArmDevTestLabGlobalVMShutdownScheduleRead(d *schema.ResourceData, m
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmDevTestLabGlobalVMShutdownScheduleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDevTestGlobalVMShutdownScheduleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DevTestLabs.GlobalLabSchedulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.GlobalScheduleID(d.Id())
+	id, err := parse.ScheduleID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -235,14 +233,14 @@ func resourceArmDevTestLabGlobalVMShutdownScheduleDelete(d *schema.ResourceData,
 	return nil
 }
 
-func expandArmDevTestLabGlobalVMShutdownScheduleRecurrenceDaily(dailyTime interface{}) *dtl.DayDetails {
+func expandDevTestGlobalVMShutdownScheduleRecurrenceDaily(dailyTime interface{}) *dtl.DayDetails {
 	time := dailyTime.(string)
 	return &dtl.DayDetails{
 		Time: &time,
 	}
 }
 
-func flattenArmDevTestLabGlobalVMShutdownScheduleRecurrenceDaily(dailyRecurrence *dtl.DayDetails) interface{} {
+func flattenDevTestGlobalVMShutdownScheduleRecurrenceDaily(dailyRecurrence *dtl.DayDetails) interface{} {
 	if dailyRecurrence == nil {
 		return nil
 	}
@@ -255,7 +253,7 @@ func flattenArmDevTestLabGlobalVMShutdownScheduleRecurrenceDaily(dailyRecurrence
 	return result
 }
 
-func expandArmDevTestLabGlobalVMShutdownScheduleNotificationSettings(d *schema.ResourceData) *dtl.NotificationSettings {
+func expandDevTestGlobalVMShutdownScheduleNotificationSettings(d *schema.ResourceData) *dtl.NotificationSettings {
 	notificationSettingsConfigs := d.Get("notification_settings").([]interface{})
 	notificationSettingsConfig := notificationSettingsConfigs[0].(map[string]interface{})
 	webhookUrl := notificationSettingsConfig["webhook_url"].(string)
@@ -275,7 +273,7 @@ func expandArmDevTestLabGlobalVMShutdownScheduleNotificationSettings(d *schema.R
 	}
 }
 
-func flattenArmDevTestLabGlobalVMShutdownScheduleNotificationSettings(notificationSettings *dtl.NotificationSettings) []interface{} {
+func flattenDevTestGlobalVMShutdownScheduleNotificationSettings(notificationSettings *dtl.NotificationSettings) []interface{} {
 	if notificationSettings == nil {
 		return []interface{}{}
 	}

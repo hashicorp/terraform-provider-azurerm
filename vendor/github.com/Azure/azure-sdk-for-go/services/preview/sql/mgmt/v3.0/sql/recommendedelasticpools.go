@@ -77,6 +77,7 @@ func (client RecommendedElasticPoolsClient) Get(ctx context.Context, resourceGro
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.RecommendedElasticPoolsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -115,7 +116,6 @@ func (client RecommendedElasticPoolsClient) GetSender(req *http.Request) (*http.
 func (client RecommendedElasticPoolsClient) GetResponder(resp *http.Response) (result RecommendedElasticPool, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -155,6 +155,7 @@ func (client RecommendedElasticPoolsClient) ListByServer(ctx context.Context, re
 	result, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.RecommendedElasticPoolsClient", "ListByServer", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -192,7 +193,6 @@ func (client RecommendedElasticPoolsClient) ListByServerSender(req *http.Request
 func (client RecommendedElasticPoolsClient) ListByServerResponder(resp *http.Response) (result RecommendedElasticPoolListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -233,6 +233,7 @@ func (client RecommendedElasticPoolsClient) ListMetrics(ctx context.Context, res
 	result, err = client.ListMetricsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.RecommendedElasticPoolsClient", "ListMetrics", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -271,7 +272,6 @@ func (client RecommendedElasticPoolsClient) ListMetricsSender(req *http.Request)
 func (client RecommendedElasticPoolsClient) ListMetricsResponder(resp *http.Response) (result RecommendedElasticPoolListMetricsResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

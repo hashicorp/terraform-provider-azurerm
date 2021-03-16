@@ -74,6 +74,7 @@ func (client UsageSummariesClient) List(ctx context.Context, vaultName string, r
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.UsageSummariesClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -117,7 +118,6 @@ func (client UsageSummariesClient) ListSender(req *http.Request) (*http.Response
 func (client UsageSummariesClient) ListResponder(resp *http.Response) (result ManagementUsageList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

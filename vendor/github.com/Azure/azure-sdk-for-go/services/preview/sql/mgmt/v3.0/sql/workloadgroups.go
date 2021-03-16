@@ -57,8 +57,8 @@ func (client WorkloadGroupsClient) CreateOrUpdate(ctx context.Context, resourceG
 		ctx = tracing.StartSpan(ctx, fqdn+"/WorkloadGroupsClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -81,7 +81,7 @@ func (client WorkloadGroupsClient) CreateOrUpdate(ctx context.Context, resourceG
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.WorkloadGroupsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.WorkloadGroupsClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -121,7 +121,33 @@ func (client WorkloadGroupsClient) CreateOrUpdateSender(req *http.Request) (futu
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client WorkloadGroupsClient) (wg WorkloadGroup, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.WorkloadGroupsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.WorkloadGroupsCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		wg.Response.Response, err = future.GetResult(sender)
+		if wg.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "sql.WorkloadGroupsCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && wg.Response.Response.StatusCode != http.StatusNoContent {
+			wg, err = client.CreateOrUpdateResponder(wg.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "sql.WorkloadGroupsCreateOrUpdateFuture", "Result", wg.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -130,7 +156,6 @@ func (client WorkloadGroupsClient) CreateOrUpdateSender(req *http.Request) (futu
 func (client WorkloadGroupsClient) CreateOrUpdateResponder(resp *http.Response) (result WorkloadGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -150,8 +175,8 @@ func (client WorkloadGroupsClient) Delete(ctx context.Context, resourceGroupName
 		ctx = tracing.StartSpan(ctx, fqdn+"/WorkloadGroupsClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -164,7 +189,7 @@ func (client WorkloadGroupsClient) Delete(ctx context.Context, resourceGroupName
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.WorkloadGroupsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.WorkloadGroupsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -202,7 +227,23 @@ func (client WorkloadGroupsClient) DeleteSender(req *http.Request) (future Workl
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client WorkloadGroupsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.WorkloadGroupsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.WorkloadGroupsDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -211,7 +252,6 @@ func (client WorkloadGroupsClient) DeleteSender(req *http.Request) (future Workl
 func (client WorkloadGroupsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -252,6 +292,7 @@ func (client WorkloadGroupsClient) Get(ctx context.Context, resourceGroupName st
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.WorkloadGroupsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -291,7 +332,6 @@ func (client WorkloadGroupsClient) GetSender(req *http.Request) (*http.Response,
 func (client WorkloadGroupsClient) GetResponder(resp *http.Response) (result WorkloadGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -333,6 +373,11 @@ func (client WorkloadGroupsClient) ListByDatabase(ctx context.Context, resourceG
 	result.wglr, err = client.ListByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.WorkloadGroupsClient", "ListByDatabase", resp, "Failure responding to request")
+		return
+	}
+	if result.wglr.hasNextLink() && result.wglr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -371,7 +416,6 @@ func (client WorkloadGroupsClient) ListByDatabaseSender(req *http.Request) (*htt
 func (client WorkloadGroupsClient) ListByDatabaseResponder(resp *http.Response) (result WorkloadGroupListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

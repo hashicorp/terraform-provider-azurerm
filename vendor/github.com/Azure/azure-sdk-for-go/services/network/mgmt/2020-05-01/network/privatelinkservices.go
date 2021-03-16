@@ -46,13 +46,13 @@ func NewPrivateLinkServicesClientWithBaseURI(baseURI string, subscriptionID stri
 // Parameters:
 // location - the location of the domain name.
 // parameters - the request body of CheckPrivateLinkService API call.
-func (client PrivateLinkServicesClient) CheckPrivateLinkServiceVisibility(ctx context.Context, location string, parameters CheckPrivateLinkServiceVisibilityRequest) (result PrivateLinkServiceVisibility, err error) {
+func (client PrivateLinkServicesClient) CheckPrivateLinkServiceVisibility(ctx context.Context, location string, parameters CheckPrivateLinkServiceVisibilityRequest) (result PrivateLinkServicesCheckPrivateLinkServiceVisibilityFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/PrivateLinkServicesClient.CheckPrivateLinkServiceVisibility")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -63,16 +63,10 @@ func (client PrivateLinkServicesClient) CheckPrivateLinkServiceVisibility(ctx co
 		return
 	}
 
-	resp, err := client.CheckPrivateLinkServiceVisibilitySender(req)
+	result, err = client.CheckPrivateLinkServiceVisibilitySender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "network.PrivateLinkServicesClient", "CheckPrivateLinkServiceVisibility", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "network.PrivateLinkServicesClient", "CheckPrivateLinkServiceVisibility", nil, "Failure sending request")
 		return
-	}
-
-	result, err = client.CheckPrivateLinkServiceVisibilityResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "network.PrivateLinkServicesClient", "CheckPrivateLinkServiceVisibility", resp, "Failure responding to request")
 	}
 
 	return
@@ -102,8 +96,40 @@ func (client PrivateLinkServicesClient) CheckPrivateLinkServiceVisibilityPrepare
 
 // CheckPrivateLinkServiceVisibilitySender sends the CheckPrivateLinkServiceVisibility request. The method will close the
 // http.Response Body if it receives an error.
-func (client PrivateLinkServicesClient) CheckPrivateLinkServiceVisibilitySender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+func (client PrivateLinkServicesClient) CheckPrivateLinkServiceVisibilitySender(req *http.Request) (future PrivateLinkServicesCheckPrivateLinkServiceVisibilityFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client PrivateLinkServicesClient) (plsv PrivateLinkServiceVisibility, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "network.PrivateLinkServicesCheckPrivateLinkServiceVisibilityFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("network.PrivateLinkServicesCheckPrivateLinkServiceVisibilityFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		plsv.Response.Response, err = future.GetResult(sender)
+		if plsv.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "network.PrivateLinkServicesCheckPrivateLinkServiceVisibilityFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && plsv.Response.Response.StatusCode != http.StatusNoContent {
+			plsv, err = client.CheckPrivateLinkServiceVisibilityResponder(plsv.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "network.PrivateLinkServicesCheckPrivateLinkServiceVisibilityFuture", "Result", plsv.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
+	return
 }
 
 // CheckPrivateLinkServiceVisibilityResponder handles the response to the CheckPrivateLinkServiceVisibility request. The method always
@@ -111,8 +137,7 @@ func (client PrivateLinkServicesClient) CheckPrivateLinkServiceVisibilitySender(
 func (client PrivateLinkServicesClient) CheckPrivateLinkServiceVisibilityResponder(resp *http.Response) (result PrivateLinkServiceVisibility, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
@@ -125,13 +150,13 @@ func (client PrivateLinkServicesClient) CheckPrivateLinkServiceVisibilityRespond
 // location - the location of the domain name.
 // resourceGroupName - the name of the resource group.
 // parameters - the request body of CheckPrivateLinkService API call.
-func (client PrivateLinkServicesClient) CheckPrivateLinkServiceVisibilityByResourceGroup(ctx context.Context, location string, resourceGroupName string, parameters CheckPrivateLinkServiceVisibilityRequest) (result PrivateLinkServiceVisibility, err error) {
+func (client PrivateLinkServicesClient) CheckPrivateLinkServiceVisibilityByResourceGroup(ctx context.Context, location string, resourceGroupName string, parameters CheckPrivateLinkServiceVisibilityRequest) (result PrivateLinkServicesCheckPrivateLinkServiceVisibilityByResourceGroupFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/PrivateLinkServicesClient.CheckPrivateLinkServiceVisibilityByResourceGroup")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -142,16 +167,10 @@ func (client PrivateLinkServicesClient) CheckPrivateLinkServiceVisibilityByResou
 		return
 	}
 
-	resp, err := client.CheckPrivateLinkServiceVisibilityByResourceGroupSender(req)
+	result, err = client.CheckPrivateLinkServiceVisibilityByResourceGroupSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "network.PrivateLinkServicesClient", "CheckPrivateLinkServiceVisibilityByResourceGroup", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "network.PrivateLinkServicesClient", "CheckPrivateLinkServiceVisibilityByResourceGroup", nil, "Failure sending request")
 		return
-	}
-
-	result, err = client.CheckPrivateLinkServiceVisibilityByResourceGroupResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "network.PrivateLinkServicesClient", "CheckPrivateLinkServiceVisibilityByResourceGroup", resp, "Failure responding to request")
 	}
 
 	return
@@ -182,8 +201,40 @@ func (client PrivateLinkServicesClient) CheckPrivateLinkServiceVisibilityByResou
 
 // CheckPrivateLinkServiceVisibilityByResourceGroupSender sends the CheckPrivateLinkServiceVisibilityByResourceGroup request. The method will close the
 // http.Response Body if it receives an error.
-func (client PrivateLinkServicesClient) CheckPrivateLinkServiceVisibilityByResourceGroupSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+func (client PrivateLinkServicesClient) CheckPrivateLinkServiceVisibilityByResourceGroupSender(req *http.Request) (future PrivateLinkServicesCheckPrivateLinkServiceVisibilityByResourceGroupFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client PrivateLinkServicesClient) (plsv PrivateLinkServiceVisibility, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "network.PrivateLinkServicesCheckPrivateLinkServiceVisibilityByResourceGroupFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("network.PrivateLinkServicesCheckPrivateLinkServiceVisibilityByResourceGroupFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		plsv.Response.Response, err = future.GetResult(sender)
+		if plsv.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "network.PrivateLinkServicesCheckPrivateLinkServiceVisibilityByResourceGroupFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && plsv.Response.Response.StatusCode != http.StatusNoContent {
+			plsv, err = client.CheckPrivateLinkServiceVisibilityByResourceGroupResponder(plsv.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "network.PrivateLinkServicesCheckPrivateLinkServiceVisibilityByResourceGroupFuture", "Result", plsv.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
+	return
 }
 
 // CheckPrivateLinkServiceVisibilityByResourceGroupResponder handles the response to the CheckPrivateLinkServiceVisibilityByResourceGroup request. The method always
@@ -191,8 +242,7 @@ func (client PrivateLinkServicesClient) CheckPrivateLinkServiceVisibilityByResou
 func (client PrivateLinkServicesClient) CheckPrivateLinkServiceVisibilityByResourceGroupResponder(resp *http.Response) (result PrivateLinkServiceVisibility, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
@@ -209,8 +259,8 @@ func (client PrivateLinkServicesClient) CreateOrUpdate(ctx context.Context, reso
 		ctx = tracing.StartSpan(ctx, fqdn+"/PrivateLinkServicesClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -223,7 +273,7 @@ func (client PrivateLinkServicesClient) CreateOrUpdate(ctx context.Context, reso
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "network.PrivateLinkServicesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "network.PrivateLinkServicesClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -262,7 +312,33 @@ func (client PrivateLinkServicesClient) CreateOrUpdateSender(req *http.Request) 
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client PrivateLinkServicesClient) (pls PrivateLinkService, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "network.PrivateLinkServicesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("network.PrivateLinkServicesCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		pls.Response.Response, err = future.GetResult(sender)
+		if pls.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "network.PrivateLinkServicesCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && pls.Response.Response.StatusCode != http.StatusNoContent {
+			pls, err = client.CreateOrUpdateResponder(pls.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "network.PrivateLinkServicesCreateOrUpdateFuture", "Result", pls.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -271,7 +347,6 @@ func (client PrivateLinkServicesClient) CreateOrUpdateSender(req *http.Request) 
 func (client PrivateLinkServicesClient) CreateOrUpdateResponder(resp *http.Response) (result PrivateLinkService, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -288,8 +363,8 @@ func (client PrivateLinkServicesClient) Delete(ctx context.Context, resourceGrou
 		ctx = tracing.StartSpan(ctx, fqdn+"/PrivateLinkServicesClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -302,7 +377,7 @@ func (client PrivateLinkServicesClient) Delete(ctx context.Context, resourceGrou
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "network.PrivateLinkServicesClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "network.PrivateLinkServicesClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -338,7 +413,23 @@ func (client PrivateLinkServicesClient) DeleteSender(req *http.Request) (future 
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client PrivateLinkServicesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "network.PrivateLinkServicesDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("network.PrivateLinkServicesDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -347,7 +438,6 @@ func (client PrivateLinkServicesClient) DeleteSender(req *http.Request) (future 
 func (client PrivateLinkServicesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -364,8 +454,8 @@ func (client PrivateLinkServicesClient) DeletePrivateEndpointConnection(ctx cont
 		ctx = tracing.StartSpan(ctx, fqdn+"/PrivateLinkServicesClient.DeletePrivateEndpointConnection")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -378,7 +468,7 @@ func (client PrivateLinkServicesClient) DeletePrivateEndpointConnection(ctx cont
 
 	result, err = client.DeletePrivateEndpointConnectionSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "network.PrivateLinkServicesClient", "DeletePrivateEndpointConnection", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "network.PrivateLinkServicesClient", "DeletePrivateEndpointConnection", nil, "Failure sending request")
 		return
 	}
 
@@ -415,7 +505,23 @@ func (client PrivateLinkServicesClient) DeletePrivateEndpointConnectionSender(re
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client PrivateLinkServicesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "network.PrivateLinkServicesDeletePrivateEndpointConnectionFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("network.PrivateLinkServicesDeletePrivateEndpointConnectionFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -424,7 +530,6 @@ func (client PrivateLinkServicesClient) DeletePrivateEndpointConnectionSender(re
 func (client PrivateLinkServicesClient) DeletePrivateEndpointConnectionResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -463,6 +568,7 @@ func (client PrivateLinkServicesClient) Get(ctx context.Context, resourceGroupNa
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.PrivateLinkServicesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -503,7 +609,6 @@ func (client PrivateLinkServicesClient) GetSender(req *http.Request) (*http.Resp
 func (client PrivateLinkServicesClient) GetResponder(resp *http.Response) (result PrivateLinkService, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -545,6 +650,7 @@ func (client PrivateLinkServicesClient) GetPrivateEndpointConnection(ctx context
 	result, err = client.GetPrivateEndpointConnectionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.PrivateLinkServicesClient", "GetPrivateEndpointConnection", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -586,7 +692,6 @@ func (client PrivateLinkServicesClient) GetPrivateEndpointConnectionSender(req *
 func (client PrivateLinkServicesClient) GetPrivateEndpointConnectionResponder(resp *http.Response) (result PrivateEndpointConnection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -625,6 +730,11 @@ func (client PrivateLinkServicesClient) List(ctx context.Context, resourceGroupN
 	result.plslr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.PrivateLinkServicesClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.plslr.hasNextLink() && result.plslr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -661,7 +771,6 @@ func (client PrivateLinkServicesClient) ListSender(req *http.Request) (*http.Res
 func (client PrivateLinkServicesClient) ListResponder(resp *http.Response) (result PrivateLinkServiceListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -738,6 +847,11 @@ func (client PrivateLinkServicesClient) ListAutoApprovedPrivateLinkServices(ctx 
 	result.aaplsr, err = client.ListAutoApprovedPrivateLinkServicesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.PrivateLinkServicesClient", "ListAutoApprovedPrivateLinkServices", resp, "Failure responding to request")
+		return
+	}
+	if result.aaplsr.hasNextLink() && result.aaplsr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -774,7 +888,6 @@ func (client PrivateLinkServicesClient) ListAutoApprovedPrivateLinkServicesSende
 func (client PrivateLinkServicesClient) ListAutoApprovedPrivateLinkServicesResponder(resp *http.Response) (result AutoApprovedPrivateLinkServicesResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -852,6 +965,11 @@ func (client PrivateLinkServicesClient) ListAutoApprovedPrivateLinkServicesByRes
 	result.aaplsr, err = client.ListAutoApprovedPrivateLinkServicesByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.PrivateLinkServicesClient", "ListAutoApprovedPrivateLinkServicesByResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.aaplsr.hasNextLink() && result.aaplsr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -889,7 +1007,6 @@ func (client PrivateLinkServicesClient) ListAutoApprovedPrivateLinkServicesByRes
 func (client PrivateLinkServicesClient) ListAutoApprovedPrivateLinkServicesByResourceGroupResponder(resp *http.Response) (result AutoApprovedPrivateLinkServicesResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -963,6 +1080,11 @@ func (client PrivateLinkServicesClient) ListBySubscription(ctx context.Context) 
 	result.plslr, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.PrivateLinkServicesClient", "ListBySubscription", resp, "Failure responding to request")
+		return
+	}
+	if result.plslr.hasNextLink() && result.plslr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -998,7 +1120,6 @@ func (client PrivateLinkServicesClient) ListBySubscriptionSender(req *http.Reque
 func (client PrivateLinkServicesClient) ListBySubscriptionResponder(resp *http.Response) (result PrivateLinkServiceListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1075,6 +1196,11 @@ func (client PrivateLinkServicesClient) ListPrivateEndpointConnections(ctx conte
 	result.peclr, err = client.ListPrivateEndpointConnectionsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.PrivateLinkServicesClient", "ListPrivateEndpointConnections", resp, "Failure responding to request")
+		return
+	}
+	if result.peclr.hasNextLink() && result.peclr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -1112,7 +1238,6 @@ func (client PrivateLinkServicesClient) ListPrivateEndpointConnectionsSender(req
 func (client PrivateLinkServicesClient) ListPrivateEndpointConnectionsResponder(resp *http.Response) (result PrivateEndpointConnectionListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1191,6 +1316,7 @@ func (client PrivateLinkServicesClient) UpdatePrivateEndpointConnection(ctx cont
 	result, err = client.UpdatePrivateEndpointConnectionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.PrivateLinkServicesClient", "UpdatePrivateEndpointConnection", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1233,7 +1359,6 @@ func (client PrivateLinkServicesClient) UpdatePrivateEndpointConnectionSender(re
 func (client PrivateLinkServicesClient) UpdatePrivateEndpointConnectionResponder(resp *http.Response) (result PrivateEndpointConnection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

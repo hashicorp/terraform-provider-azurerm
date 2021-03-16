@@ -10,17 +10,16 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmExpressRouteCircuitAuthorization() *schema.Resource {
+func resourceExpressRouteCircuitAuthorization() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmExpressRouteCircuitAuthorizationCreate,
-		Read:   resourceArmExpressRouteCircuitAuthorizationRead,
-		Delete: resourceArmExpressRouteCircuitAuthorizationDelete,
+		Create: resourceExpressRouteCircuitAuthorizationCreate,
+		Read:   resourceExpressRouteCircuitAuthorizationRead,
+		Delete: resourceExpressRouteCircuitAuthorizationDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -61,7 +60,7 @@ func resourceArmExpressRouteCircuitAuthorization() *schema.Resource {
 	}
 }
 
-func resourceArmExpressRouteCircuitAuthorizationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceExpressRouteCircuitAuthorizationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ExpressRouteAuthsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -73,7 +72,7 @@ func resourceArmExpressRouteCircuitAuthorizationCreate(d *schema.ResourceData, m
 	locks.ByName(circuitName, expressRouteCircuitResourceName)
 	defer locks.UnlockByName(circuitName, expressRouteCircuitResourceName)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, circuitName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -106,10 +105,10 @@ func resourceArmExpressRouteCircuitAuthorizationCreate(d *schema.ResourceData, m
 
 	d.SetId(*read.ID)
 
-	return resourceArmExpressRouteCircuitAuthorizationRead(d, meta)
+	return resourceExpressRouteCircuitAuthorizationRead(d, meta)
 }
 
-func resourceArmExpressRouteCircuitAuthorizationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceExpressRouteCircuitAuthorizationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ExpressRouteAuthsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -144,7 +143,7 @@ func resourceArmExpressRouteCircuitAuthorizationRead(d *schema.ResourceData, met
 	return nil
 }
 
-func resourceArmExpressRouteCircuitAuthorizationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceExpressRouteCircuitAuthorizationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ExpressRouteAuthsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

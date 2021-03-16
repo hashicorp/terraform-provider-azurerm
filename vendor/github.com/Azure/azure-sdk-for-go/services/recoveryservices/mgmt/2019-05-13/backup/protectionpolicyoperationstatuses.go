@@ -79,6 +79,7 @@ func (client ProtectionPolicyOperationStatusesClient) Get(ctx context.Context, v
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ProtectionPolicyOperationStatusesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -118,7 +119,6 @@ func (client ProtectionPolicyOperationStatusesClient) GetSender(req *http.Reques
 func (client ProtectionPolicyOperationStatusesClient) GetResponder(resp *http.Response) (result OperationStatus, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

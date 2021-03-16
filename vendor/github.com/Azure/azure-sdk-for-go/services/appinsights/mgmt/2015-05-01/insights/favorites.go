@@ -86,6 +86,7 @@ func (client FavoritesClient) Add(ctx context.Context, resourceGroupName string,
 	result, err = client.AddResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.FavoritesClient", "Add", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -129,7 +130,6 @@ func (client FavoritesClient) AddSender(req *http.Request) (*http.Response, erro
 func (client FavoritesClient) AddResponder(resp *http.Response) (result ApplicationInsightsComponentFavorite, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -179,6 +179,7 @@ func (client FavoritesClient) Delete(ctx context.Context, resourceGroupName stri
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.FavoritesClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -217,7 +218,6 @@ func (client FavoritesClient) DeleteSender(req *http.Request) (*http.Response, e
 func (client FavoritesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -266,6 +266,7 @@ func (client FavoritesClient) Get(ctx context.Context, resourceGroupName string,
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.FavoritesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -304,7 +305,6 @@ func (client FavoritesClient) GetSender(req *http.Request) (*http.Response, erro
 func (client FavoritesClient) GetResponder(resp *http.Response) (result ApplicationInsightsComponentFavorite, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -359,6 +359,7 @@ func (client FavoritesClient) List(ctx context.Context, resourceGroupName string
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.FavoritesClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -410,7 +411,6 @@ func (client FavoritesClient) ListSender(req *http.Request) (*http.Response, err
 func (client FavoritesClient) ListResponder(resp *http.Response) (result ListApplicationInsightsComponentFavorite, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
@@ -461,6 +461,7 @@ func (client FavoritesClient) Update(ctx context.Context, resourceGroupName stri
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.FavoritesClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -504,7 +505,6 @@ func (client FavoritesClient) UpdateSender(req *http.Request) (*http.Response, e
 func (client FavoritesClient) UpdateResponder(resp *http.Response) (result ApplicationInsightsComponentFavorite, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

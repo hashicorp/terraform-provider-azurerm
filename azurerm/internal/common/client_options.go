@@ -2,7 +2,6 @@ package common
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"strings"
 
@@ -26,8 +25,10 @@ type ClientOptions struct {
 	ResourceManagerAuthorizer autorest.Authorizer
 	ResourceManagerEndpoint   string
 	StorageAuthorizer         autorest.Authorizer
+	SynapseAuthorizer         autorest.Authorizer
 
 	SkipProviderReg             bool
+	CustomCorrelationRequestID  string
 	DisableCorrelationRequestID bool
 	DisableTerraformPartnerID   bool
 	Environment                 azure.Environment
@@ -42,7 +43,11 @@ func (o ClientOptions) ConfigureClient(c *autorest.Client, authorizer autorest.A
 	c.Sender = sender.BuildSender("AzureRM")
 	c.SkipResourceProviderRegistration = o.SkipProviderReg
 	if !o.DisableCorrelationRequestID {
-		c.RequestInspector = withCorrelationRequestID(correlationRequestID())
+		id := o.CustomCorrelationRequestID
+		if id == "" {
+			id = correlationRequestID()
+		}
+		c.RequestInspector = withCorrelationRequestID(id)
 	}
 }
 
@@ -68,6 +73,4 @@ func setUserAgent(client *autorest.Client, tfVersion, partnerID string, disableT
 	if partnerID != "" {
 		client.UserAgent = fmt.Sprintf("%s pid-%s", client.UserAgent, partnerID)
 	}
-
-	log.Printf("[DEBUG] AzureRM Client User Agent: %s\n", client.UserAgent)
 }

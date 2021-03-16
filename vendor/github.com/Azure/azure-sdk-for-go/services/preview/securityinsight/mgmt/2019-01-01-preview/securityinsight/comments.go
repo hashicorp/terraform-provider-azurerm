@@ -97,6 +97,11 @@ func (client CommentsClient) ListByCase(ctx context.Context, resourceGroupName s
 	result.ccl, err = client.ListByCaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.CommentsClient", "ListByCase", resp, "Failure responding to request")
+		return
+	}
+	if result.ccl.hasNextLink() && result.ccl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -148,7 +153,6 @@ func (client CommentsClient) ListByCaseSender(req *http.Request) (*http.Response
 func (client CommentsClient) ListByCaseResponder(resp *http.Response) (result CaseCommentList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

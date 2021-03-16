@@ -73,6 +73,7 @@ func (client Client) CheckNameAvailability(ctx context.Context, resourceGroupNam
 	result, err = client.CheckNameAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "recoveryservices.Client", "CheckNameAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -112,7 +113,6 @@ func (client Client) CheckNameAvailabilitySender(req *http.Request) (*http.Respo
 func (client Client) CheckNameAvailabilityResponder(resp *http.Response) (result CheckNameAvailabilityResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

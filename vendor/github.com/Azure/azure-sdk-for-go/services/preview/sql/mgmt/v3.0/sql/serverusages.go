@@ -75,6 +75,7 @@ func (client ServerUsagesClient) ListByServer(ctx context.Context, resourceGroup
 	result, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerUsagesClient", "ListByServer", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -112,7 +113,6 @@ func (client ServerUsagesClient) ListByServerSender(req *http.Request) (*http.Re
 func (client ServerUsagesClient) ListByServerResponder(resp *http.Response) (result ServerUsageListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

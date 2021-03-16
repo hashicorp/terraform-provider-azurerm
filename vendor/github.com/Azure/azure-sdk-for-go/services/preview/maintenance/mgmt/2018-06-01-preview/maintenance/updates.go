@@ -25,7 +25,7 @@ import (
 	"net/http"
 )
 
-// UpdatesClient is the azure Maintenance Management Client
+// UpdatesClient is the maintenance Client
 type UpdatesClient struct {
 	BaseClient
 }
@@ -74,6 +74,7 @@ func (client UpdatesClient) List(ctx context.Context, resourceGroupName string, 
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "maintenance.UpdatesClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -113,7 +114,6 @@ func (client UpdatesClient) ListSender(req *http.Request) (*http.Response, error
 func (client UpdatesClient) ListResponder(resp *http.Response) (result ListUpdatesResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -156,6 +156,7 @@ func (client UpdatesClient) ListParent(ctx context.Context, resourceGroupName st
 	result, err = client.ListParentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "maintenance.UpdatesClient", "ListParent", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -197,7 +198,6 @@ func (client UpdatesClient) ListParentSender(req *http.Request) (*http.Response,
 func (client UpdatesClient) ListParentResponder(resp *http.Response) (result ListUpdatesResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

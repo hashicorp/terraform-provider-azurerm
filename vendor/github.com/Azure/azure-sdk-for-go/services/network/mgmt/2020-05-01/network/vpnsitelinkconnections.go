@@ -75,6 +75,7 @@ func (client VpnSiteLinkConnectionsClient) Get(ctx context.Context, resourceGrou
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VpnSiteLinkConnectionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -114,7 +115,6 @@ func (client VpnSiteLinkConnectionsClient) GetSender(req *http.Request) (*http.R
 func (client VpnSiteLinkConnectionsClient) GetResponder(resp *http.Response) (result VpnSiteLinkConnection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

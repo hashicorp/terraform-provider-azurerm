@@ -56,8 +56,8 @@ func (client BackupLongTermRetentionPoliciesClient) CreateOrUpdate(ctx context.C
 		ctx = tracing.StartSpan(ctx, fqdn+"/BackupLongTermRetentionPoliciesClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -70,7 +70,7 @@ func (client BackupLongTermRetentionPoliciesClient) CreateOrUpdate(ctx context.C
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.BackupLongTermRetentionPoliciesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.BackupLongTermRetentionPoliciesClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -110,7 +110,33 @@ func (client BackupLongTermRetentionPoliciesClient) CreateOrUpdateSender(req *ht
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client BackupLongTermRetentionPoliciesClient) (bltrp BackupLongTermRetentionPolicy, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.BackupLongTermRetentionPoliciesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.BackupLongTermRetentionPoliciesCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		bltrp.Response.Response, err = future.GetResult(sender)
+		if bltrp.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "sql.BackupLongTermRetentionPoliciesCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && bltrp.Response.Response.StatusCode != http.StatusNoContent {
+			bltrp, err = client.CreateOrUpdateResponder(bltrp.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "sql.BackupLongTermRetentionPoliciesCreateOrUpdateFuture", "Result", bltrp.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -119,7 +145,6 @@ func (client BackupLongTermRetentionPoliciesClient) CreateOrUpdateSender(req *ht
 func (client BackupLongTermRetentionPoliciesClient) CreateOrUpdateResponder(resp *http.Response) (result BackupLongTermRetentionPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -160,6 +185,7 @@ func (client BackupLongTermRetentionPoliciesClient) Get(ctx context.Context, res
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.BackupLongTermRetentionPoliciesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -199,7 +225,6 @@ func (client BackupLongTermRetentionPoliciesClient) GetSender(req *http.Request)
 func (client BackupLongTermRetentionPoliciesClient) GetResponder(resp *http.Response) (result BackupLongTermRetentionPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -240,6 +265,7 @@ func (client BackupLongTermRetentionPoliciesClient) ListByDatabase(ctx context.C
 	result, err = client.ListByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.BackupLongTermRetentionPoliciesClient", "ListByDatabase", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -278,7 +304,6 @@ func (client BackupLongTermRetentionPoliciesClient) ListByDatabaseSender(req *ht
 func (client BackupLongTermRetentionPoliciesClient) ListByDatabaseResponder(resp *http.Response) (result BackupLongTermRetentionPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

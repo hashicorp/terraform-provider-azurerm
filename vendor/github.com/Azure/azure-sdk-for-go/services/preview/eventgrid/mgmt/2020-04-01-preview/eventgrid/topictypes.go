@@ -71,6 +71,7 @@ func (client TopicTypesClient) Get(ctx context.Context, topicTypeName string) (r
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.TopicTypesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -106,7 +107,6 @@ func (client TopicTypesClient) GetSender(req *http.Request) (*http.Response, err
 func (client TopicTypesClient) GetResponder(resp *http.Response) (result TopicTypeInfo, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -142,6 +142,7 @@ func (client TopicTypesClient) List(ctx context.Context) (result TopicTypesListR
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.TopicTypesClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -173,7 +174,6 @@ func (client TopicTypesClient) ListSender(req *http.Request) (*http.Response, er
 func (client TopicTypesClient) ListResponder(resp *http.Response) (result TopicTypesListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -211,6 +211,7 @@ func (client TopicTypesClient) ListEventTypes(ctx context.Context, topicTypeName
 	result, err = client.ListEventTypesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.TopicTypesClient", "ListEventTypes", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -246,7 +247,6 @@ func (client TopicTypesClient) ListEventTypesSender(req *http.Request) (*http.Re
 func (client TopicTypesClient) ListEventTypesResponder(resp *http.Response) (result EventTypesListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

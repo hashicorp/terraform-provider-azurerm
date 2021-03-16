@@ -82,6 +82,7 @@ func (client StorageAccountsClient) Add(ctx context.Context, resourceGroupName s
 	result, err = client.AddResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.StorageAccountsClient", "Add", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -122,7 +123,6 @@ func (client StorageAccountsClient) AddSender(req *http.Request) (*http.Response
 func (client StorageAccountsClient) AddResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -161,6 +161,7 @@ func (client StorageAccountsClient) Delete(ctx context.Context, resourceGroupNam
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.StorageAccountsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -199,7 +200,6 @@ func (client StorageAccountsClient) DeleteSender(req *http.Request) (*http.Respo
 func (client StorageAccountsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -238,6 +238,7 @@ func (client StorageAccountsClient) Get(ctx context.Context, resourceGroupName s
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.StorageAccountsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -276,7 +277,6 @@ func (client StorageAccountsClient) GetSender(req *http.Request) (*http.Response
 func (client StorageAccountsClient) GetResponder(resp *http.Response) (result StorageAccountInformation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -318,6 +318,7 @@ func (client StorageAccountsClient) GetStorageContainer(ctx context.Context, res
 	result, err = client.GetStorageContainerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.StorageAccountsClient", "GetStorageContainer", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -357,7 +358,6 @@ func (client StorageAccountsClient) GetStorageContainerSender(req *http.Request)
 func (client StorageAccountsClient) GetStorageContainerResponder(resp *http.Response) (result StorageContainer, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -418,6 +418,11 @@ func (client StorageAccountsClient) ListByAccount(ctx context.Context, resourceG
 	result.sailr, err = client.ListByAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.StorageAccountsClient", "ListByAccount", resp, "Failure responding to request")
+		return
+	}
+	if result.sailr.hasNextLink() && result.sailr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -473,7 +478,6 @@ func (client StorageAccountsClient) ListByAccountSender(req *http.Request) (*htt
 func (client StorageAccountsClient) ListByAccountResponder(resp *http.Response) (result StorageAccountInformationListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -553,6 +557,11 @@ func (client StorageAccountsClient) ListSasTokens(ctx context.Context, resourceG
 	result.stilr, err = client.ListSasTokensResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.StorageAccountsClient", "ListSasTokens", resp, "Failure responding to request")
+		return
+	}
+	if result.stilr.hasNextLink() && result.stilr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -592,7 +601,6 @@ func (client StorageAccountsClient) ListSasTokensSender(req *http.Request) (*htt
 func (client StorageAccountsClient) ListSasTokensResponder(resp *http.Response) (result SasTokenInformationListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -671,6 +679,11 @@ func (client StorageAccountsClient) ListStorageContainers(ctx context.Context, r
 	result.sclr, err = client.ListStorageContainersResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.StorageAccountsClient", "ListStorageContainers", resp, "Failure responding to request")
+		return
+	}
+	if result.sclr.hasNextLink() && result.sclr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -709,7 +722,6 @@ func (client StorageAccountsClient) ListStorageContainersSender(req *http.Reques
 func (client StorageAccountsClient) ListStorageContainersResponder(resp *http.Response) (result StorageContainerListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -789,6 +801,7 @@ func (client StorageAccountsClient) Update(ctx context.Context, resourceGroupNam
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.StorageAccountsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -832,7 +845,6 @@ func (client StorageAccountsClient) UpdateSender(req *http.Request) (*http.Respo
 func (client StorageAccountsClient) UpdateResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp

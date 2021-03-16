@@ -73,6 +73,7 @@ func (client ServiceTagsClient) List(ctx context.Context, location string) (resu
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ServiceTagsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -109,7 +110,6 @@ func (client ServiceTagsClient) ListSender(req *http.Request) (*http.Response, e
 func (client ServiceTagsClient) ListResponder(resp *http.Response) (result ServiceTagsListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

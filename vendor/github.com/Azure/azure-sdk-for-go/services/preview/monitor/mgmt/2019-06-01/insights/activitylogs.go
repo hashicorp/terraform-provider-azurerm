@@ -88,6 +88,11 @@ func (client ActivityLogsClient) List(ctx context.Context, filter string, select
 	result.edc, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ActivityLogsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.edc.hasNextLink() && result.edc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -127,7 +132,6 @@ func (client ActivityLogsClient) ListSender(req *http.Request) (*http.Response, 
 func (client ActivityLogsClient) ListResponder(resp *http.Response) (result EventDataCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

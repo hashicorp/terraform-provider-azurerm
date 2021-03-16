@@ -15,7 +15,7 @@ Allows you to add, update, or remove an Azure SQL server to a subnet of a virtua
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-sql-server-vnet-rule"
-  location = "West US"
+  location = "West Europe"
 }
 
 resource "azurerm_virtual_network" "vnet" {
@@ -29,7 +29,7 @@ resource "azurerm_subnet" "subnet" {
   name                 = "example-subnet"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefix       = "10.7.29.0/29"
+  address_prefixes     = ["10.7.29.0/29"]
   service_endpoints    = ["Microsoft.Sql"]
 }
 
@@ -56,7 +56,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the SQL virtual network rule. Changing this forces a new resource to be created. Cannot be empty and must only contain alphanumeric characters and hyphens. Cannot start with a number, and cannot start or end with a hyphen.
 
-~> **NOTE:** `name` must be between 1-128 characters long and must satisfy all of the requirements below:
+~> **NOTE:** `name` must be between 1-64 characters long and must satisfy all of the requirements below:
 1. Contains only alphanumeric and hyphen characters
 2. Cannot start with a number or hyphen
 3. Cannot end with a hyphen

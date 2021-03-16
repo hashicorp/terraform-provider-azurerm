@@ -26,103 +26,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/datalake/store/2016-11-01/filesystem"
 
-// AppendModeType enumerates the values for append mode type.
-type AppendModeType string
-
-const (
-	// Autocreate ...
-	Autocreate AppendModeType = "autocreate"
-)
-
-// PossibleAppendModeTypeValues returns an array of possible values for the AppendModeType const type.
-func PossibleAppendModeTypeValues() []AppendModeType {
-	return []AppendModeType{Autocreate}
-}
-
-// Exception enumerates the values for exception.
-type Exception string
-
-const (
-	// ExceptionAccessControlException ...
-	ExceptionAccessControlException Exception = "AccessControlException"
-	// ExceptionAdlsRemoteException ...
-	ExceptionAdlsRemoteException Exception = "AdlsRemoteException"
-	// ExceptionBadOffsetException ...
-	ExceptionBadOffsetException Exception = "BadOffsetException"
-	// ExceptionFileAlreadyExistsException ...
-	ExceptionFileAlreadyExistsException Exception = "FileAlreadyExistsException"
-	// ExceptionFileNotFoundException ...
-	ExceptionFileNotFoundException Exception = "FileNotFoundException"
-	// ExceptionIllegalArgumentException ...
-	ExceptionIllegalArgumentException Exception = "IllegalArgumentException"
-	// ExceptionIOException ...
-	ExceptionIOException Exception = "IOException"
-	// ExceptionRuntimeException ...
-	ExceptionRuntimeException Exception = "RuntimeException"
-	// ExceptionSecurityException ...
-	ExceptionSecurityException Exception = "SecurityException"
-	// ExceptionThrottledException ...
-	ExceptionThrottledException Exception = "ThrottledException"
-	// ExceptionUnsupportedOperationException ...
-	ExceptionUnsupportedOperationException Exception = "UnsupportedOperationException"
-)
-
-// PossibleExceptionValues returns an array of possible values for the Exception const type.
-func PossibleExceptionValues() []Exception {
-	return []Exception{ExceptionAccessControlException, ExceptionAdlsRemoteException, ExceptionBadOffsetException, ExceptionFileAlreadyExistsException, ExceptionFileNotFoundException, ExceptionIllegalArgumentException, ExceptionIOException, ExceptionRuntimeException, ExceptionSecurityException, ExceptionThrottledException, ExceptionUnsupportedOperationException}
-}
-
-// ExpiryOptionType enumerates the values for expiry option type.
-type ExpiryOptionType string
-
-const (
-	// Absolute ...
-	Absolute ExpiryOptionType = "Absolute"
-	// NeverExpire ...
-	NeverExpire ExpiryOptionType = "NeverExpire"
-	// RelativeToCreationDate ...
-	RelativeToCreationDate ExpiryOptionType = "RelativeToCreationDate"
-	// RelativeToNow ...
-	RelativeToNow ExpiryOptionType = "RelativeToNow"
-)
-
-// PossibleExpiryOptionTypeValues returns an array of possible values for the ExpiryOptionType const type.
-func PossibleExpiryOptionTypeValues() []ExpiryOptionType {
-	return []ExpiryOptionType{Absolute, NeverExpire, RelativeToCreationDate, RelativeToNow}
-}
-
-// FileType enumerates the values for file type.
-type FileType string
-
-const (
-	// DIRECTORY ...
-	DIRECTORY FileType = "DIRECTORY"
-	// FILE ...
-	FILE FileType = "FILE"
-)
-
-// PossibleFileTypeValues returns an array of possible values for the FileType const type.
-func PossibleFileTypeValues() []FileType {
-	return []FileType{DIRECTORY, FILE}
-}
-
-// SyncFlag enumerates the values for sync flag.
-type SyncFlag string
-
-const (
-	// CLOSE ...
-	CLOSE SyncFlag = "CLOSE"
-	// DATA ...
-	DATA SyncFlag = "DATA"
-	// METADATA ...
-	METADATA SyncFlag = "METADATA"
-)
-
-// PossibleSyncFlagValues returns an array of possible values for the SyncFlag const type.
-func PossibleSyncFlagValues() []SyncFlag {
-	return []SyncFlag{CLOSE, DATA, METADATA}
-}
-
 // ACLStatus data Lake Store file or directory Access Control List information.
 type ACLStatus struct {
 	// Entries - the list of ACLSpec entries on a file or directory.
@@ -135,6 +38,24 @@ type ACLStatus struct {
 	Permission *string `json:"permission,omitempty"`
 	// StickyBit - READ-ONLY; the indicator of whether the sticky bit is on or off.
 	StickyBit *bool `json:"stickyBit,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ACLStatus.
+func (as ACLStatus) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if as.Entries != nil {
+		objectMap["entries"] = as.Entries
+	}
+	if as.Group != nil {
+		objectMap["group"] = as.Group
+	}
+	if as.Owner != nil {
+		objectMap["owner"] = as.Owner
+	}
+	if as.Permission != nil {
+		objectMap["permission"] = as.Permission
+	}
+	return json.Marshal(objectMap)
 }
 
 // ACLStatusResult data Lake Store file or directory Access Control List information.

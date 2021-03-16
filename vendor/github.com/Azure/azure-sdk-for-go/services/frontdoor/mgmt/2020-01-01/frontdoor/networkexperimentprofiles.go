@@ -53,8 +53,8 @@ func (client NetworkExperimentProfilesClient) CreateOrUpdate(ctx context.Context
 		ctx = tracing.StartSpan(ctx, fqdn+"/NetworkExperimentProfilesClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -77,7 +77,7 @@ func (client NetworkExperimentProfilesClient) CreateOrUpdate(ctx context.Context
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "frontdoor.NetworkExperimentProfilesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "frontdoor.NetworkExperimentProfilesClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -115,7 +115,33 @@ func (client NetworkExperimentProfilesClient) CreateOrUpdateSender(req *http.Req
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client NetworkExperimentProfilesClient) (p Profile, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "frontdoor.NetworkExperimentProfilesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("frontdoor.NetworkExperimentProfilesCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		p.Response.Response, err = future.GetResult(sender)
+		if p.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "frontdoor.NetworkExperimentProfilesCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && p.Response.Response.StatusCode != http.StatusNoContent {
+			p, err = client.CreateOrUpdateResponder(p.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "frontdoor.NetworkExperimentProfilesCreateOrUpdateFuture", "Result", p.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -124,7 +150,6 @@ func (client NetworkExperimentProfilesClient) CreateOrUpdateSender(req *http.Req
 func (client NetworkExperimentProfilesClient) CreateOrUpdateResponder(resp *http.Response) (result Profile, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -141,8 +166,8 @@ func (client NetworkExperimentProfilesClient) Delete(ctx context.Context, resour
 		ctx = tracing.StartSpan(ctx, fqdn+"/NetworkExperimentProfilesClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -165,7 +190,7 @@ func (client NetworkExperimentProfilesClient) Delete(ctx context.Context, resour
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "frontdoor.NetworkExperimentProfilesClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "frontdoor.NetworkExperimentProfilesClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -201,7 +226,23 @@ func (client NetworkExperimentProfilesClient) DeleteSender(req *http.Request) (f
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client NetworkExperimentProfilesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "frontdoor.NetworkExperimentProfilesDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("frontdoor.NetworkExperimentProfilesDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -210,7 +251,6 @@ func (client NetworkExperimentProfilesClient) DeleteSender(req *http.Request) (f
 func (client NetworkExperimentProfilesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -258,6 +298,7 @@ func (client NetworkExperimentProfilesClient) Get(ctx context.Context, resourceG
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.NetworkExperimentProfilesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -295,7 +336,6 @@ func (client NetworkExperimentProfilesClient) GetSender(req *http.Request) (*htt
 func (client NetworkExperimentProfilesClient) GetResponder(resp *http.Response) (result Profile, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -332,6 +372,11 @@ func (client NetworkExperimentProfilesClient) List(ctx context.Context) (result 
 	result.pl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.NetworkExperimentProfilesClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.pl.hasNextLink() && result.pl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -367,7 +412,6 @@ func (client NetworkExperimentProfilesClient) ListSender(req *http.Request) (*ht
 func (client NetworkExperimentProfilesClient) ListResponder(resp *http.Response) (result ProfileList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -451,6 +495,11 @@ func (client NetworkExperimentProfilesClient) ListByResourceGroup(ctx context.Co
 	result.pl, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.NetworkExperimentProfilesClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.pl.hasNextLink() && result.pl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -487,7 +536,6 @@ func (client NetworkExperimentProfilesClient) ListByResourceGroupSender(req *htt
 func (client NetworkExperimentProfilesClient) ListByResourceGroupResponder(resp *http.Response) (result ProfileList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -542,8 +590,8 @@ func (client NetworkExperimentProfilesClient) Update(ctx context.Context, resour
 		ctx = tracing.StartSpan(ctx, fqdn+"/NetworkExperimentProfilesClient.Update")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -566,7 +614,7 @@ func (client NetworkExperimentProfilesClient) Update(ctx context.Context, resour
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "frontdoor.NetworkExperimentProfilesClient", "Update", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "frontdoor.NetworkExperimentProfilesClient", "Update", nil, "Failure sending request")
 		return
 	}
 
@@ -604,7 +652,33 @@ func (client NetworkExperimentProfilesClient) UpdateSender(req *http.Request) (f
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client NetworkExperimentProfilesClient) (p Profile, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "frontdoor.NetworkExperimentProfilesUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("frontdoor.NetworkExperimentProfilesUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		p.Response.Response, err = future.GetResult(sender)
+		if p.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "frontdoor.NetworkExperimentProfilesUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && p.Response.Response.StatusCode != http.StatusNoContent {
+			p, err = client.UpdateResponder(p.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "frontdoor.NetworkExperimentProfilesUpdateFuture", "Result", p.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -613,7 +687,6 @@ func (client NetworkExperimentProfilesClient) UpdateSender(req *http.Request) (f
 func (client NetworkExperimentProfilesClient) UpdateResponder(resp *http.Response) (result Profile, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

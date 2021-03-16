@@ -84,6 +84,7 @@ func (client CapacitiesClient) CheckNameAvailability(ctx context.Context, locati
 	result, err = client.CheckNameAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "powerbidedicated.CapacitiesClient", "CheckNameAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -122,7 +123,6 @@ func (client CapacitiesClient) CheckNameAvailabilitySender(req *http.Request) (*
 func (client CapacitiesClient) CheckNameAvailabilityResponder(resp *http.Response) (result CheckCapacityNameAvailabilityResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -142,8 +142,8 @@ func (client CapacitiesClient) Create(ctx context.Context, resourceGroupName str
 		ctx = tracing.StartSpan(ctx, fqdn+"/CapacitiesClient.Create")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -168,7 +168,7 @@ func (client CapacitiesClient) Create(ctx context.Context, resourceGroupName str
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "powerbidedicated.CapacitiesClient", "Create", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "powerbidedicated.CapacitiesClient", "Create", nil, "Failure sending request")
 		return
 	}
 
@@ -206,7 +206,33 @@ func (client CapacitiesClient) CreateSender(req *http.Request) (future Capacitie
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client CapacitiesClient) (dc DedicatedCapacity, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "powerbidedicated.CapacitiesCreateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("powerbidedicated.CapacitiesCreateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		dc.Response.Response, err = future.GetResult(sender)
+		if dc.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "powerbidedicated.CapacitiesCreateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && dc.Response.Response.StatusCode != http.StatusNoContent {
+			dc, err = client.CreateResponder(dc.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "powerbidedicated.CapacitiesCreateFuture", "Result", dc.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -215,7 +241,6 @@ func (client CapacitiesClient) CreateSender(req *http.Request) (future Capacitie
 func (client CapacitiesClient) CreateResponder(resp *http.Response) (result DedicatedCapacity, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -234,8 +259,8 @@ func (client CapacitiesClient) Delete(ctx context.Context, resourceGroupName str
 		ctx = tracing.StartSpan(ctx, fqdn+"/CapacitiesClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -260,7 +285,7 @@ func (client CapacitiesClient) Delete(ctx context.Context, resourceGroupName str
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "powerbidedicated.CapacitiesClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "powerbidedicated.CapacitiesClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -296,7 +321,23 @@ func (client CapacitiesClient) DeleteSender(req *http.Request) (future Capacitie
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client CapacitiesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "powerbidedicated.CapacitiesDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("powerbidedicated.CapacitiesDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -305,7 +346,6 @@ func (client CapacitiesClient) DeleteSender(req *http.Request) (future Capacitie
 func (client CapacitiesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -357,6 +397,7 @@ func (client CapacitiesClient) GetDetails(ctx context.Context, resourceGroupName
 	result, err = client.GetDetailsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "powerbidedicated.CapacitiesClient", "GetDetails", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -394,7 +435,6 @@ func (client CapacitiesClient) GetDetailsSender(req *http.Request) (*http.Respon
 func (client CapacitiesClient) GetDetailsResponder(resp *http.Response) (result DedicatedCapacity, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -430,6 +470,7 @@ func (client CapacitiesClient) List(ctx context.Context) (result DedicatedCapaci
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "powerbidedicated.CapacitiesClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -465,7 +506,6 @@ func (client CapacitiesClient) ListSender(req *http.Request) (*http.Response, er
 func (client CapacitiesClient) ListResponder(resp *http.Response) (result DedicatedCapacities, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -512,6 +552,7 @@ func (client CapacitiesClient) ListByResourceGroup(ctx context.Context, resource
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "powerbidedicated.CapacitiesClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -548,7 +589,6 @@ func (client CapacitiesClient) ListByResourceGroupSender(req *http.Request) (*ht
 func (client CapacitiesClient) ListByResourceGroupResponder(resp *http.Response) (result DedicatedCapacities, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -584,6 +624,7 @@ func (client CapacitiesClient) ListSkus(ctx context.Context) (result SkuEnumerat
 	result, err = client.ListSkusResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "powerbidedicated.CapacitiesClient", "ListSkus", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -619,7 +660,6 @@ func (client CapacitiesClient) ListSkusSender(req *http.Request) (*http.Response
 func (client CapacitiesClient) ListSkusResponder(resp *http.Response) (result SkuEnumerationForNewResourceResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -672,6 +712,7 @@ func (client CapacitiesClient) ListSkusForCapacity(ctx context.Context, resource
 	result, err = client.ListSkusForCapacityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "powerbidedicated.CapacitiesClient", "ListSkusForCapacity", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -709,7 +750,6 @@ func (client CapacitiesClient) ListSkusForCapacitySender(req *http.Request) (*ht
 func (client CapacitiesClient) ListSkusForCapacityResponder(resp *http.Response) (result SkuEnumerationForExistingResourceResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -728,8 +768,8 @@ func (client CapacitiesClient) Resume(ctx context.Context, resourceGroupName str
 		ctx = tracing.StartSpan(ctx, fqdn+"/CapacitiesClient.Resume")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -754,7 +794,7 @@ func (client CapacitiesClient) Resume(ctx context.Context, resourceGroupName str
 
 	result, err = client.ResumeSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "powerbidedicated.CapacitiesClient", "Resume", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "powerbidedicated.CapacitiesClient", "Resume", nil, "Failure sending request")
 		return
 	}
 
@@ -790,7 +830,23 @@ func (client CapacitiesClient) ResumeSender(req *http.Request) (future Capacitie
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client CapacitiesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "powerbidedicated.CapacitiesResumeFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("powerbidedicated.CapacitiesResumeFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -799,7 +855,6 @@ func (client CapacitiesClient) ResumeSender(req *http.Request) (future Capacitie
 func (client CapacitiesClient) ResumeResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -817,8 +872,8 @@ func (client CapacitiesClient) Suspend(ctx context.Context, resourceGroupName st
 		ctx = tracing.StartSpan(ctx, fqdn+"/CapacitiesClient.Suspend")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -843,7 +898,7 @@ func (client CapacitiesClient) Suspend(ctx context.Context, resourceGroupName st
 
 	result, err = client.SuspendSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "powerbidedicated.CapacitiesClient", "Suspend", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "powerbidedicated.CapacitiesClient", "Suspend", nil, "Failure sending request")
 		return
 	}
 
@@ -879,7 +934,23 @@ func (client CapacitiesClient) SuspendSender(req *http.Request) (future Capaciti
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client CapacitiesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "powerbidedicated.CapacitiesSuspendFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("powerbidedicated.CapacitiesSuspendFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -888,7 +959,6 @@ func (client CapacitiesClient) SuspendSender(req *http.Request) (future Capaciti
 func (client CapacitiesClient) SuspendResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -907,8 +977,8 @@ func (client CapacitiesClient) Update(ctx context.Context, resourceGroupName str
 		ctx = tracing.StartSpan(ctx, fqdn+"/CapacitiesClient.Update")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -933,7 +1003,7 @@ func (client CapacitiesClient) Update(ctx context.Context, resourceGroupName str
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "powerbidedicated.CapacitiesClient", "Update", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "powerbidedicated.CapacitiesClient", "Update", nil, "Failure sending request")
 		return
 	}
 
@@ -971,7 +1041,33 @@ func (client CapacitiesClient) UpdateSender(req *http.Request) (future Capacitie
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client CapacitiesClient) (dc DedicatedCapacity, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "powerbidedicated.CapacitiesUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("powerbidedicated.CapacitiesUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		dc.Response.Response, err = future.GetResult(sender)
+		if dc.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "powerbidedicated.CapacitiesUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && dc.Response.Response.StatusCode != http.StatusNoContent {
+			dc, err = client.UpdateResponder(dc.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "powerbidedicated.CapacitiesUpdateFuture", "Result", dc.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -980,7 +1076,6 @@ func (client CapacitiesClient) UpdateSender(req *http.Request) (future Capacitie
 func (client CapacitiesClient) UpdateResponder(resp *http.Response) (result DedicatedCapacity, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

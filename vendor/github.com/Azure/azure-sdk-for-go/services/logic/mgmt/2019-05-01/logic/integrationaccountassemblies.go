@@ -83,6 +83,7 @@ func (client IntegrationAccountAssembliesClient) CreateOrUpdate(ctx context.Cont
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountAssembliesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -123,7 +124,6 @@ func (client IntegrationAccountAssembliesClient) CreateOrUpdateSender(req *http.
 func (client IntegrationAccountAssembliesClient) CreateOrUpdateResponder(resp *http.Response) (result AssemblyDefinition, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -163,6 +163,7 @@ func (client IntegrationAccountAssembliesClient) Delete(ctx context.Context, res
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountAssembliesClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -201,7 +202,6 @@ func (client IntegrationAccountAssembliesClient) DeleteSender(req *http.Request)
 func (client IntegrationAccountAssembliesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -240,6 +240,7 @@ func (client IntegrationAccountAssembliesClient) Get(ctx context.Context, resour
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountAssembliesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -278,7 +279,6 @@ func (client IntegrationAccountAssembliesClient) GetSender(req *http.Request) (*
 func (client IntegrationAccountAssembliesClient) GetResponder(resp *http.Response) (result AssemblyDefinition, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -317,6 +317,7 @@ func (client IntegrationAccountAssembliesClient) List(ctx context.Context, resou
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountAssembliesClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -354,7 +355,6 @@ func (client IntegrationAccountAssembliesClient) ListSender(req *http.Request) (
 func (client IntegrationAccountAssembliesClient) ListResponder(resp *http.Response) (result AssemblyCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -394,6 +394,7 @@ func (client IntegrationAccountAssembliesClient) ListContentCallbackURL(ctx cont
 	result, err = client.ListContentCallbackURLResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountAssembliesClient", "ListContentCallbackURL", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -432,7 +433,6 @@ func (client IntegrationAccountAssembliesClient) ListContentCallbackURLSender(re
 func (client IntegrationAccountAssembliesClient) ListContentCallbackURLResponder(resp *http.Response) (result WorkflowTriggerCallbackURL, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

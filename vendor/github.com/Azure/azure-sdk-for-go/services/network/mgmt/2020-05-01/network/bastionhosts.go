@@ -51,8 +51,8 @@ func (client BastionHostsClient) CreateOrUpdate(ctx context.Context, resourceGro
 		ctx = tracing.StartSpan(ctx, fqdn+"/BastionHostsClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -65,7 +65,7 @@ func (client BastionHostsClient) CreateOrUpdate(ctx context.Context, resourceGro
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "network.BastionHostsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "network.BastionHostsClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -104,7 +104,33 @@ func (client BastionHostsClient) CreateOrUpdateSender(req *http.Request) (future
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client BastionHostsClient) (bh BastionHost, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "network.BastionHostsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("network.BastionHostsCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		bh.Response.Response, err = future.GetResult(sender)
+		if bh.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "network.BastionHostsCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && bh.Response.Response.StatusCode != http.StatusNoContent {
+			bh, err = client.CreateOrUpdateResponder(bh.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "network.BastionHostsCreateOrUpdateFuture", "Result", bh.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -113,7 +139,6 @@ func (client BastionHostsClient) CreateOrUpdateSender(req *http.Request) (future
 func (client BastionHostsClient) CreateOrUpdateResponder(resp *http.Response) (result BastionHost, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -130,8 +155,8 @@ func (client BastionHostsClient) Delete(ctx context.Context, resourceGroupName s
 		ctx = tracing.StartSpan(ctx, fqdn+"/BastionHostsClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -144,7 +169,7 @@ func (client BastionHostsClient) Delete(ctx context.Context, resourceGroupName s
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "network.BastionHostsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "network.BastionHostsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -180,7 +205,23 @@ func (client BastionHostsClient) DeleteSender(req *http.Request) (future Bastion
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client BastionHostsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "network.BastionHostsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("network.BastionHostsDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -189,7 +230,6 @@ func (client BastionHostsClient) DeleteSender(req *http.Request) (future Bastion
 func (client BastionHostsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -227,6 +267,7 @@ func (client BastionHostsClient) Get(ctx context.Context, resourceGroupName stri
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.BastionHostsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -264,7 +305,6 @@ func (client BastionHostsClient) GetSender(req *http.Request) (*http.Response, e
 func (client BastionHostsClient) GetResponder(resp *http.Response) (result BastionHost, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -301,6 +341,11 @@ func (client BastionHostsClient) List(ctx context.Context) (result BastionHostLi
 	result.bhlr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.BastionHostsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.bhlr.hasNextLink() && result.bhlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -336,7 +381,6 @@ func (client BastionHostsClient) ListSender(req *http.Request) (*http.Response, 
 func (client BastionHostsClient) ListResponder(resp *http.Response) (result BastionHostListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -412,6 +456,11 @@ func (client BastionHostsClient) ListByResourceGroup(ctx context.Context, resour
 	result.bhlr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.BastionHostsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.bhlr.hasNextLink() && result.bhlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -448,7 +497,6 @@ func (client BastionHostsClient) ListByResourceGroupSender(req *http.Request) (*
 func (client BastionHostsClient) ListByResourceGroupResponder(resp *http.Response) (result BastionHostListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

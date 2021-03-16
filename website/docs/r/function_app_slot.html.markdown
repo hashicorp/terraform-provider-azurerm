@@ -16,7 +16,7 @@ Manages a Function App deployment Slot.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "azure-functions-test-rg"
-  location = "westus2"
+  location = "West Europe"
 }
 
 resource "azurerm_storage_account" "example" {
@@ -69,6 +69,8 @@ The following arguments are supported:
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
 * `app_service_plan_id` - (Required) The ID of the App Service Plan within which to create this Function App Slot.
+
+* `function_app_name` - (Required) The name of the Function App within which to create the Function App Slot. Changing this forces a new resource to be created.
 
 * `storage_account_name` - (Required) The backend storage account name which will be used by the Function App (such as the dashboard, logs).
 
@@ -139,6 +141,8 @@ The following arguments are supported:
 * `cors` - (Optional) A `cors` block as defined below.
 
 * `ip_restriction` - (Optional) A [List of objects](/docs/configuration/attr-as-blocks.html) representing ip restrictions as defined below.
+
+* `auto_swap_slot_name` - (Optional) The name of the slot to automatically swap to during deployment
 
 ---
 
@@ -236,11 +240,19 @@ A `microsoft` block supports the following:
 
 A `ip_restriction` block supports the following:
 
-* `ip_address` - (Optional) The IP Address CIDR notation used for this IP Restriction.
+* `ip_address` - (Optional) The IP Address used for this IP Restriction in CIDR notation.
 
-* `subnet_id` - (Optional) The Subnet ID used for this IP Restriction.
+* `service_tag` - (Optional) The Service Tag used for this IP Restriction.
 
--> **NOTE:** One of either `ip_address` or `subnet_id` must be specified
+* `virtual_network_subnet_id` - (Optional) The Virtual Network Subnet ID used for this IP Restriction.
+
+-> **NOTE:** One of either `ip_address`, `service_tag` or `virtual_network_subnet_id` must be specified
+
+* `name` - (Optional) The name for this IP Restriction.
+
+* `priority` - (Optional) The priority for this IP Restriction. Restrictions are enforced in priority order. By default, priority is set to 65000 if not specified.
+
+* `action` - (Optional) Does this restriction `Allow` or `Deny` access for this IP range. Defaults to `Allow`.  
 
 ## Attributes Reference
 

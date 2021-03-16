@@ -77,6 +77,7 @@ func (client BackupsClient) Trigger(ctx context.Context, vaultName string, resou
 	result, err = client.TriggerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.BackupsClient", "Trigger", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -119,7 +120,6 @@ func (client BackupsClient) TriggerSender(req *http.Request) (*http.Response, er
 func (client BackupsClient) TriggerResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp

@@ -57,8 +57,8 @@ func (client ManagedBackupShortTermRetentionPoliciesClient) CreateOrUpdate(ctx c
 		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedBackupShortTermRetentionPoliciesClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -71,7 +71,7 @@ func (client ManagedBackupShortTermRetentionPoliciesClient) CreateOrUpdate(ctx c
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ManagedBackupShortTermRetentionPoliciesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ManagedBackupShortTermRetentionPoliciesClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -111,7 +111,33 @@ func (client ManagedBackupShortTermRetentionPoliciesClient) CreateOrUpdateSender
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ManagedBackupShortTermRetentionPoliciesClient) (mbstrp ManagedBackupShortTermRetentionPolicy, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ManagedBackupShortTermRetentionPoliciesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.ManagedBackupShortTermRetentionPoliciesCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		mbstrp.Response.Response, err = future.GetResult(sender)
+		if mbstrp.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "sql.ManagedBackupShortTermRetentionPoliciesCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && mbstrp.Response.Response.StatusCode != http.StatusNoContent {
+			mbstrp, err = client.CreateOrUpdateResponder(mbstrp.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "sql.ManagedBackupShortTermRetentionPoliciesCreateOrUpdateFuture", "Result", mbstrp.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -120,7 +146,6 @@ func (client ManagedBackupShortTermRetentionPoliciesClient) CreateOrUpdateSender
 func (client ManagedBackupShortTermRetentionPoliciesClient) CreateOrUpdateResponder(resp *http.Response) (result ManagedBackupShortTermRetentionPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -161,6 +186,7 @@ func (client ManagedBackupShortTermRetentionPoliciesClient) Get(ctx context.Cont
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedBackupShortTermRetentionPoliciesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -200,7 +226,6 @@ func (client ManagedBackupShortTermRetentionPoliciesClient) GetSender(req *http.
 func (client ManagedBackupShortTermRetentionPoliciesClient) GetResponder(resp *http.Response) (result ManagedBackupShortTermRetentionPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -242,6 +267,11 @@ func (client ManagedBackupShortTermRetentionPoliciesClient) ListByDatabase(ctx c
 	result.mbstrplr, err = client.ListByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedBackupShortTermRetentionPoliciesClient", "ListByDatabase", resp, "Failure responding to request")
+		return
+	}
+	if result.mbstrplr.hasNextLink() && result.mbstrplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -280,7 +310,6 @@ func (client ManagedBackupShortTermRetentionPoliciesClient) ListByDatabaseSender
 func (client ManagedBackupShortTermRetentionPoliciesClient) ListByDatabaseResponder(resp *http.Response) (result ManagedBackupShortTermRetentionPolicyListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -337,8 +366,8 @@ func (client ManagedBackupShortTermRetentionPoliciesClient) Update(ctx context.C
 		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedBackupShortTermRetentionPoliciesClient.Update")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -351,7 +380,7 @@ func (client ManagedBackupShortTermRetentionPoliciesClient) Update(ctx context.C
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ManagedBackupShortTermRetentionPoliciesClient", "Update", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ManagedBackupShortTermRetentionPoliciesClient", "Update", nil, "Failure sending request")
 		return
 	}
 
@@ -391,7 +420,33 @@ func (client ManagedBackupShortTermRetentionPoliciesClient) UpdateSender(req *ht
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ManagedBackupShortTermRetentionPoliciesClient) (mbstrp ManagedBackupShortTermRetentionPolicy, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ManagedBackupShortTermRetentionPoliciesUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.ManagedBackupShortTermRetentionPoliciesUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		mbstrp.Response.Response, err = future.GetResult(sender)
+		if mbstrp.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "sql.ManagedBackupShortTermRetentionPoliciesUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && mbstrp.Response.Response.StatusCode != http.StatusNoContent {
+			mbstrp, err = client.UpdateResponder(mbstrp.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "sql.ManagedBackupShortTermRetentionPoliciesUpdateFuture", "Result", mbstrp.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -400,7 +455,6 @@ func (client ManagedBackupShortTermRetentionPoliciesClient) UpdateSender(req *ht
 func (client ManagedBackupShortTermRetentionPoliciesClient) UpdateResponder(resp *http.Response) (result ManagedBackupShortTermRetentionPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

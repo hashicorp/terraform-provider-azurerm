@@ -76,6 +76,11 @@ func (client IntegrationServiceEnvironmentManagedAPIOperationsClient) List(ctx c
 	result.aolr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentManagedAPIOperationsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.aolr.hasNextLink() && result.aolr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -114,7 +119,6 @@ func (client IntegrationServiceEnvironmentManagedAPIOperationsClient) ListSender
 func (client IntegrationServiceEnvironmentManagedAPIOperationsClient) ListResponder(resp *http.Response) (result APIOperationListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

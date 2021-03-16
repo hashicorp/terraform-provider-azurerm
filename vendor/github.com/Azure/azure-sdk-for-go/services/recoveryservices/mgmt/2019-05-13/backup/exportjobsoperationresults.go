@@ -76,6 +76,7 @@ func (client ExportJobsOperationResultsClient) Get(ctx context.Context, vaultNam
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ExportJobsOperationResultsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -114,7 +115,6 @@ func (client ExportJobsOperationResultsClient) GetSender(req *http.Request) (*ht
 func (client ExportJobsOperationResultsClient) GetResponder(resp *http.Response) (result OperationResultInfoBaseResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

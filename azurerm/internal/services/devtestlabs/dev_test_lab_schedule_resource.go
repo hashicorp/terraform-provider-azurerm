@@ -10,19 +10,20 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	computeValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
+	devTestValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devtestlabs/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDevTestLabSchedules() *schema.Resource {
+func resourceDevTestLabSchedules() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDevTestLabSchedulesCreateUpdate,
-		Read:   resourceArmDevTestLabSchedulesRead,
-		Update: resourceArmDevTestLabSchedulesCreateUpdate,
-		Delete: resourceArmDevTestLabSchedulesDelete,
+		Create: resourceDevTestLabSchedulesCreateUpdate,
+		Read:   resourceDevTestLabSchedulesRead,
+		Update: resourceDevTestLabSchedulesCreateUpdate,
+		Delete: resourceDevTestLabSchedulesDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -52,7 +53,7 @@ func resourceArmDevTestLabSchedules() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.DevTestLabName(),
+				ValidateFunc: devTestValidate.DevTestLabName(),
 			},
 
 			"status": {
@@ -141,7 +142,7 @@ func resourceArmDevTestLabSchedules() *schema.Resource {
 			"time_zone_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.VirtualMachineTimeZoneCaseInsensitive(),
+				ValidateFunc: computeValidate.VirtualMachineTimeZoneCaseInsensitive(),
 			},
 
 			"notification_settings": {
@@ -177,7 +178,7 @@ func resourceArmDevTestLabSchedules() *schema.Resource {
 	}
 }
 
-func resourceArmDevTestLabSchedulesCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDevTestLabSchedulesCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DevTestLabs.LabSchedulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -225,24 +226,24 @@ func resourceArmDevTestLabSchedulesCreateUpdate(d *schema.ResourceData, meta int
 	}
 
 	if v, ok := d.GetOk("weekly_recurrence"); ok {
-		weekRecurrence := expandArmDevTestLabScheduleRecurrenceWeekly(v)
+		weekRecurrence := expandDevTestScheduleRecurrenceWeekly(v)
 
 		schedule.WeeklyRecurrence = weekRecurrence
 	}
 
 	if v, ok := d.GetOk("daily_recurrence"); ok {
-		dailyRecurrence := expandArmDevTestLabScheduleRecurrenceDaily(v)
+		dailyRecurrence := expandDevTestScheduleRecurrenceDaily(v)
 		schedule.DailyRecurrence = dailyRecurrence
 	}
 
 	if v, ok := d.GetOk("hourly_recurrence"); ok {
-		hourlyRecurrence := expandArmDevTestLabScheduleRecurrenceHourly(v)
+		hourlyRecurrence := expandDevTestScheduleRecurrenceHourly(v)
 
 		schedule.HourlyRecurrence = hourlyRecurrence
 	}
 
 	if _, ok := d.GetOk("notification_settings"); ok {
-		notificationSettings := expandArmDevTestLabScheduleNotificationSettings(d)
+		notificationSettings := expandDevTestScheduleNotificationSettings(d)
 		schedule.NotificationSettings = notificationSettings
 	}
 
@@ -261,10 +262,10 @@ func resourceArmDevTestLabSchedulesCreateUpdate(d *schema.ResourceData, meta int
 
 	d.SetId(*read.ID)
 
-	return resourceArmDevTestLabSchedulesRead(d, meta)
+	return resourceDevTestLabSchedulesRead(d, meta)
 }
 
-func resourceArmDevTestLabSchedulesRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDevTestLabSchedulesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DevTestLabs.LabSchedulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -278,7 +279,6 @@ func resourceArmDevTestLabSchedulesRead(d *schema.ResourceData, meta interface{}
 	name := id.Path["schedules"]
 
 	resp, err := client.Get(ctx, resGroup, devTestLabName, name, "")
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -320,7 +320,7 @@ func resourceArmDevTestLabSchedulesRead(d *schema.ResourceData, meta interface{}
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmDevTestLabSchedulesDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDevTestLabSchedulesDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMExtensionClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -341,7 +341,7 @@ func resourceArmDevTestLabSchedulesDelete(d *schema.ResourceData, meta interface
 	return future.WaitForCompletionRef(ctx, client.Client)
 }
 
-func expandArmDevTestLabScheduleRecurrenceDaily(recurrence interface{}) *dtl.DayDetails {
+func expandDevTestScheduleRecurrenceDaily(recurrence interface{}) *dtl.DayDetails {
 	dailyRecurrenceConfigs := recurrence.([]interface{})
 	dailyRecurrenceConfig := dailyRecurrenceConfigs[0].(map[string]interface{})
 	dailyTime := dailyRecurrenceConfig["time"].(string)
@@ -365,7 +365,7 @@ func flattenAzureRmDevTestLabScheduleRecurrenceDaily(dailyRecurrence *dtl.DayDet
 	return []interface{}{result}
 }
 
-func expandArmDevTestLabScheduleRecurrenceWeekly(recurrence interface{}) *dtl.WeekDetails {
+func expandDevTestScheduleRecurrenceWeekly(recurrence interface{}) *dtl.WeekDetails {
 	weeklyRecurrenceConfigs := recurrence.([]interface{})
 	weeklyRecurrenceConfig := weeklyRecurrenceConfigs[0].(map[string]interface{})
 	weeklyTime := weeklyRecurrenceConfig["time"].(string)
@@ -401,7 +401,7 @@ func flattenAzureRmDevTestLabScheduleRecurrenceWeekly(weeklyRecurrence *dtl.Week
 	return []interface{}{result}
 }
 
-func expandArmDevTestLabScheduleRecurrenceHourly(recurrence interface{}) *dtl.HourDetails {
+func expandDevTestScheduleRecurrenceHourly(recurrence interface{}) *dtl.HourDetails {
 	hourlyRecurrenceConfigs := recurrence.([]interface{})
 	hourlyRecurrenceConfig := hourlyRecurrenceConfigs[0].(map[string]interface{})
 	hourlyMinute := int32(hourlyRecurrenceConfig["minute"].(int))
@@ -425,7 +425,7 @@ func flattenAzureRmDevTestLabScheduleRecurrenceHourly(hourlyRecurrence *dtl.Hour
 	return []interface{}{result}
 }
 
-func expandArmDevTestLabScheduleNotificationSettings(d *schema.ResourceData) *dtl.NotificationSettings {
+func expandDevTestScheduleNotificationSettings(d *schema.ResourceData) *dtl.NotificationSettings {
 	notificationSettingsConfigs := d.Get("notification_settings").([]interface{})
 	notificationSettingsConfig := notificationSettingsConfigs[0].(map[string]interface{})
 	webhookUrl := notificationSettingsConfig["webhook_url"].(string)

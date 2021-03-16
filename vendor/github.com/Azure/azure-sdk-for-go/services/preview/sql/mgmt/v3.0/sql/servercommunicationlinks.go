@@ -57,8 +57,8 @@ func (client ServerCommunicationLinksClient) CreateOrUpdate(ctx context.Context,
 		ctx = tracing.StartSpan(ctx, fqdn+"/ServerCommunicationLinksClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -78,7 +78,7 @@ func (client ServerCommunicationLinksClient) CreateOrUpdate(ctx context.Context,
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ServerCommunicationLinksClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ServerCommunicationLinksClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -119,7 +119,33 @@ func (client ServerCommunicationLinksClient) CreateOrUpdateSender(req *http.Requ
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ServerCommunicationLinksClient) (scl ServerCommunicationLink, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ServerCommunicationLinksCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.ServerCommunicationLinksCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		scl.Response.Response, err = future.GetResult(sender)
+		if scl.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "sql.ServerCommunicationLinksCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && scl.Response.Response.StatusCode != http.StatusNoContent {
+			scl, err = client.CreateOrUpdateResponder(scl.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "sql.ServerCommunicationLinksCreateOrUpdateFuture", "Result", scl.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -128,7 +154,6 @@ func (client ServerCommunicationLinksClient) CreateOrUpdateSender(req *http.Requ
 func (client ServerCommunicationLinksClient) CreateOrUpdateResponder(resp *http.Response) (result ServerCommunicationLink, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -169,6 +194,7 @@ func (client ServerCommunicationLinksClient) Delete(ctx context.Context, resourc
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerCommunicationLinksClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -207,7 +233,6 @@ func (client ServerCommunicationLinksClient) DeleteSender(req *http.Request) (*h
 func (client ServerCommunicationLinksClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -247,6 +272,7 @@ func (client ServerCommunicationLinksClient) Get(ctx context.Context, resourceGr
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerCommunicationLinksClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -285,7 +311,6 @@ func (client ServerCommunicationLinksClient) GetSender(req *http.Request) (*http
 func (client ServerCommunicationLinksClient) GetResponder(resp *http.Response) (result ServerCommunicationLink, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -325,6 +350,7 @@ func (client ServerCommunicationLinksClient) ListByServer(ctx context.Context, r
 	result, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerCommunicationLinksClient", "ListByServer", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -362,7 +388,6 @@ func (client ServerCommunicationLinksClient) ListByServerSender(req *http.Reques
 func (client ServerCommunicationLinksClient) ListByServerResponder(resp *http.Response) (result ServerCommunicationLinkListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

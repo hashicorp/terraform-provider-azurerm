@@ -73,6 +73,7 @@ func (client VaultsClient) CreateOrUpdate(ctx context.Context, resourceGroupName
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "recoveryservices.VaultsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -112,7 +113,6 @@ func (client VaultsClient) CreateOrUpdateSender(req *http.Request) (*http.Respon
 func (client VaultsClient) CreateOrUpdateResponder(resp *http.Response) (result Vault, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -151,6 +151,7 @@ func (client VaultsClient) Delete(ctx context.Context, resourceGroupName string,
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "recoveryservices.VaultsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -188,7 +189,6 @@ func (client VaultsClient) DeleteSender(req *http.Request) (*http.Response, erro
 func (client VaultsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -226,6 +226,7 @@ func (client VaultsClient) Get(ctx context.Context, resourceGroupName string, va
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "recoveryservices.VaultsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -263,7 +264,6 @@ func (client VaultsClient) GetSender(req *http.Request) (*http.Response, error) 
 func (client VaultsClient) GetResponder(resp *http.Response) (result Vault, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -302,6 +302,11 @@ func (client VaultsClient) ListByResourceGroup(ctx context.Context, resourceGrou
 	result.vl, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "recoveryservices.VaultsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.vl.hasNextLink() && result.vl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -338,7 +343,6 @@ func (client VaultsClient) ListByResourceGroupSender(req *http.Request) (*http.R
 func (client VaultsClient) ListByResourceGroupResponder(resp *http.Response) (result VaultList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -412,6 +416,11 @@ func (client VaultsClient) ListBySubscriptionID(ctx context.Context) (result Vau
 	result.vl, err = client.ListBySubscriptionIDResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "recoveryservices.VaultsClient", "ListBySubscriptionID", resp, "Failure responding to request")
+		return
+	}
+	if result.vl.hasNextLink() && result.vl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -447,7 +456,6 @@ func (client VaultsClient) ListBySubscriptionIDSender(req *http.Request) (*http.
 func (client VaultsClient) ListBySubscriptionIDResponder(resp *http.Response) (result VaultList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -524,6 +532,7 @@ func (client VaultsClient) Update(ctx context.Context, resourceGroupName string,
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "recoveryservices.VaultsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -563,7 +572,6 @@ func (client VaultsClient) UpdateSender(req *http.Request) (*http.Response, erro
 func (client VaultsClient) UpdateResponder(resp *http.Response) (result Vault, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

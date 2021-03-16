@@ -79,6 +79,14 @@ func (client AccountsClient) Create(ctx context.Context, resourceGroupName strin
 							Chain: []validation.Constraint{{Target: "account.Properties.APIProperties.StorageAccountConnectionString", Name: validation.MaxLength, Rule: 1000, Chain: nil},
 								{Target: "account.Properties.APIProperties.StorageAccountConnectionString", Name: validation.Pattern, Rule: `^(( *)DefaultEndpointsProtocol=(http|https)( *);( *))?AccountName=(.*)AccountKey=(.*)EndpointSuffix=(.*)$`, Chain: nil},
 							}},
+						{Target: "account.Properties.APIProperties.AadClientID", Name: validation.Null, Rule: false,
+							Chain: []validation.Constraint{{Target: "account.Properties.APIProperties.AadClientID", Name: validation.MaxLength, Rule: 500, Chain: nil}}},
+						{Target: "account.Properties.APIProperties.AadTenantID", Name: validation.Null, Rule: false,
+							Chain: []validation.Constraint{{Target: "account.Properties.APIProperties.AadTenantID", Name: validation.MaxLength, Rule: 500, Chain: nil}}},
+						{Target: "account.Properties.APIProperties.SuperUser", Name: validation.Null, Rule: false,
+							Chain: []validation.Constraint{{Target: "account.Properties.APIProperties.SuperUser", Name: validation.MaxLength, Rule: 500, Chain: nil}}},
+						{Target: "account.Properties.APIProperties.WebsiteName", Name: validation.Null, Rule: false,
+							Chain: []validation.Constraint{{Target: "account.Properties.APIProperties.WebsiteName", Name: validation.MaxLength, Rule: 500, Chain: nil}}},
 					}},
 				}},
 				{Target: "account.Sku", Name: validation.Null, Rule: false,
@@ -104,6 +112,7 @@ func (client AccountsClient) Create(ctx context.Context, resourceGroupName strin
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cognitiveservices.AccountsClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -147,7 +156,6 @@ func (client AccountsClient) CreateSender(req *http.Request) (*http.Response, er
 func (client AccountsClient) CreateResponder(resp *http.Response) (result Account, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -200,6 +208,7 @@ func (client AccountsClient) Delete(ctx context.Context, resourceGroupName strin
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cognitiveservices.AccountsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -237,7 +246,6 @@ func (client AccountsClient) DeleteSender(req *http.Request) (*http.Response, er
 func (client AccountsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -289,6 +297,7 @@ func (client AccountsClient) GetProperties(ctx context.Context, resourceGroupNam
 	result, err = client.GetPropertiesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cognitiveservices.AccountsClient", "GetProperties", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -326,7 +335,6 @@ func (client AccountsClient) GetPropertiesSender(req *http.Request) (*http.Respo
 func (client AccountsClient) GetPropertiesResponder(resp *http.Response) (result Account, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -381,6 +389,7 @@ func (client AccountsClient) GetUsages(ctx context.Context, resourceGroupName st
 	result, err = client.GetUsagesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cognitiveservices.AccountsClient", "GetUsages", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -421,7 +430,6 @@ func (client AccountsClient) GetUsagesSender(req *http.Request) (*http.Response,
 func (client AccountsClient) GetUsagesResponder(resp *http.Response) (result UsagesResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -464,6 +472,11 @@ func (client AccountsClient) List(ctx context.Context) (result AccountListResult
 	result.alr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cognitiveservices.AccountsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.alr.hasNextLink() && result.alr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -499,7 +512,6 @@ func (client AccountsClient) ListSender(req *http.Request) (*http.Response, erro
 func (client AccountsClient) ListResponder(resp *http.Response) (result AccountListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -585,6 +597,11 @@ func (client AccountsClient) ListByResourceGroup(ctx context.Context, resourceGr
 	result.alr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cognitiveservices.AccountsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.alr.hasNextLink() && result.alr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -621,7 +638,6 @@ func (client AccountsClient) ListByResourceGroupSender(req *http.Request) (*http
 func (client AccountsClient) ListByResourceGroupResponder(resp *http.Response) (result AccountListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -711,6 +727,7 @@ func (client AccountsClient) ListKeys(ctx context.Context, resourceGroupName str
 	result, err = client.ListKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cognitiveservices.AccountsClient", "ListKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -748,7 +765,6 @@ func (client AccountsClient) ListKeysSender(req *http.Request) (*http.Response, 
 func (client AccountsClient) ListKeysResponder(resp *http.Response) (result AccountKeys, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -801,6 +817,7 @@ func (client AccountsClient) ListSkus(ctx context.Context, resourceGroupName str
 	result, err = client.ListSkusResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cognitiveservices.AccountsClient", "ListSkus", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -838,7 +855,6 @@ func (client AccountsClient) ListSkusSender(req *http.Request) (*http.Response, 
 func (client AccountsClient) ListSkusResponder(resp *http.Response) (result AccountEnumerateSkusResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -892,6 +908,7 @@ func (client AccountsClient) RegenerateKey(ctx context.Context, resourceGroupNam
 	result, err = client.RegenerateKeyResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cognitiveservices.AccountsClient", "RegenerateKey", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -931,7 +948,6 @@ func (client AccountsClient) RegenerateKeySender(req *http.Request) (*http.Respo
 func (client AccountsClient) RegenerateKeyResponder(resp *http.Response) (result AccountKeys, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -985,6 +1001,7 @@ func (client AccountsClient) Update(ctx context.Context, resourceGroupName strin
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cognitiveservices.AccountsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1028,7 +1045,6 @@ func (client AccountsClient) UpdateSender(req *http.Request) (*http.Response, er
 func (client AccountsClient) UpdateResponder(resp *http.Response) (result Account, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

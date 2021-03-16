@@ -72,6 +72,7 @@ func (client PartnerTopicsClient) Activate(ctx context.Context, resourceGroupNam
 	result, err = client.ActivateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicsClient", "Activate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -109,7 +110,6 @@ func (client PartnerTopicsClient) ActivateSender(req *http.Request) (*http.Respo
 func (client PartnerTopicsClient) ActivateResponder(resp *http.Response) (result PartnerTopic, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -148,6 +148,7 @@ func (client PartnerTopicsClient) Deactivate(ctx context.Context, resourceGroupN
 	result, err = client.DeactivateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicsClient", "Deactivate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -185,7 +186,6 @@ func (client PartnerTopicsClient) DeactivateSender(req *http.Request) (*http.Res
 func (client PartnerTopicsClient) DeactivateResponder(resp *http.Response) (result PartnerTopic, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -202,8 +202,8 @@ func (client PartnerTopicsClient) Delete(ctx context.Context, resourceGroupName 
 		ctx = tracing.StartSpan(ctx, fqdn+"/PartnerTopicsClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -216,7 +216,7 @@ func (client PartnerTopicsClient) Delete(ctx context.Context, resourceGroupName 
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -252,7 +252,23 @@ func (client PartnerTopicsClient) DeleteSender(req *http.Request) (future Partne
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client PartnerTopicsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("eventgrid.PartnerTopicsDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -261,7 +277,6 @@ func (client PartnerTopicsClient) DeleteSender(req *http.Request) (future Partne
 func (client PartnerTopicsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -299,6 +314,7 @@ func (client PartnerTopicsClient) Get(ctx context.Context, resourceGroupName str
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -336,7 +352,6 @@ func (client PartnerTopicsClient) GetSender(req *http.Request) (*http.Response, 
 func (client PartnerTopicsClient) GetResponder(resp *http.Response) (result PartnerTopic, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -383,6 +398,11 @@ func (client PartnerTopicsClient) ListByResourceGroup(ctx context.Context, resou
 	result.ptlr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.ptlr.hasNextLink() && result.ptlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -425,7 +445,6 @@ func (client PartnerTopicsClient) ListByResourceGroupSender(req *http.Request) (
 func (client PartnerTopicsClient) ListByResourceGroupResponder(resp *http.Response) (result PartnerTopicsListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -508,6 +527,11 @@ func (client PartnerTopicsClient) ListBySubscription(ctx context.Context, filter
 	result.ptlr, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicsClient", "ListBySubscription", resp, "Failure responding to request")
+		return
+	}
+	if result.ptlr.hasNextLink() && result.ptlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -549,7 +573,6 @@ func (client PartnerTopicsClient) ListBySubscriptionSender(req *http.Request) (*
 func (client PartnerTopicsClient) ListBySubscriptionResponder(resp *http.Response) (result PartnerTopicsListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -626,6 +649,7 @@ func (client PartnerTopicsClient) Update(ctx context.Context, resourceGroupName 
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.PartnerTopicsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -665,7 +689,6 @@ func (client PartnerTopicsClient) UpdateSender(req *http.Request) (*http.Respons
 func (client PartnerTopicsClient) UpdateResponder(resp *http.Response) (result PartnerTopic, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

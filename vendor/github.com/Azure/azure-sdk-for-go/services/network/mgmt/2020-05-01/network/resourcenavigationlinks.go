@@ -74,6 +74,7 @@ func (client ResourceNavigationLinksClient) List(ctx context.Context, resourceGr
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ResourceNavigationLinksClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -112,7 +113,6 @@ func (client ResourceNavigationLinksClient) ListSender(req *http.Request) (*http
 func (client ResourceNavigationLinksClient) ListResponder(resp *http.Response) (result ResourceNavigationLinksListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

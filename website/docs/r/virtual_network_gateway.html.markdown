@@ -17,7 +17,7 @@ Manages a Virtual Network Gateway to establish secure, cross-premises connectivi
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "test"
-  location = "West US"
+  location = "West Europe"
 }
 
 resource "azurerm_virtual_network" "example" {
@@ -31,7 +31,7 @@ resource "azurerm_subnet" "example" {
   name                 = "GatewaySubnet"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_public_ip" "example" {
@@ -128,6 +128,8 @@ The following arguments are supported:
     `UltraPerformance` sku. If `false`, an active-standby gateway will be created.
     Defaults to `false`.
 
+* `private_ip_address_enabled` - (Optional) Should private IP be enabled on this gateway for connections? Changing this forces a new resource to be created.
+
 * `default_local_network_gateway_id` -  (Optional) The ID of the local network gateway
     through which outbound Internet traffic from the virtual network in which the
     gateway is created will be routed (*forced tunnelling*). Refer to the
@@ -160,6 +162,8 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
+---
+
 The `ip_configuration` block supports:
 
 * `name` - (Optional) A user-defined name of the IP configuration. Defaults to
@@ -177,40 +181,79 @@ The `ip_configuration` block supports:
 * `public_ip_address_id` - (Required) The ID of the public ip address to associate
     with the Virtual Network Gateway.
 
+---
+
 The `vpn_client_configuration` block supports:
 
 * `address_space` - (Required) The address space out of which ip addresses for
     vpn clients will be taken. You can provide more than one address space, e.g.
     in CIDR notation.
+
+* `aad_tenant` - (Optional) AzureAD Tenant URL
+    This setting is incompatible with the use of 
+    `root_certificate` and `revoked_certificate`, `radius_server_address`, and `radius_server_secret`.
+
+* `aad_audience` - (Optional) The client id of the Azure VPN application.
+    See [Create an Active Directory (AD) tenant for P2S OpenVPN protocol connections](https://docs.microsoft.com/en-gb/azure/vpn-gateway/openvpn-azure-ad-tenant-multi-app) for values
+    This setting is incompatible with the use of 
+    `root_certificate` and `revoked_certificate`, `radius_server_address`, and `radius_server_secret`.
+
+* `aad_issuer` - (Optional) The STS url for your tenant
+    This setting is incompatible with the use of 
+    `root_certificate` and `revoked_certificate`, `radius_server_address`, and `radius_server_secret`.
+
 * `root_certificate` - (Optional) One or more `root_certificate` blocks which are
     defined below. These root certificates are used to sign the client certificate
     used by the VPN clients to connect to the gateway.
-    This setting is incompatible with the use of `radius_server_address` and `radius_server_secret`.
+    This setting is incompatible with the use of 
+    `aad_tenant`, `aad_audience`, `aad_issuer`, `radius_server_address`, and `radius_server_secret`.
 
 * `revoked_certificate` - (Optional) One or more `revoked_certificate` blocks which
     are defined below.
-    This setting is incompatible with the use of `radius_server_address` and `radius_server_secret`.
+    This setting is incompatible with the use of 
+    `aad_tenant`, `aad_audience`, `aad_issuer`, `radius_server_address`, and `radius_server_secret`.
 
 * `radius_server_address` - (Optional) The address of the Radius server.
-    This setting is incompatible with the use of `root_certificate` and `revoked_certificate`.
+    This setting is incompatible with the use of
+    `aad_tenant`, `aad_audience`, `aad_issuer`, `root_certificate` and `revoked_certificate`.
 
 * `radius_server_secret` - (Optional) The secret used by the Radius server.
-    This setting is incompatible with the use of `root_certificate` and `revoked_certificate`.
+    This setting is incompatible with the use of
+    `aad_tenant`, `aad_audience`, `aad_issuer`, `root_certificate` and `revoked_certificate`.
 
 * `vpn_client_protocols` - (Optional) List of the protocols supported by the vpn client.
     The supported values are `SSTP`, `IkeV2` and `OpenVPN`.
+    Values `SSTP` and `IkeV2` are incompatible with the use of 
+    `aad_tenant`, `aad_audience` and `aad_issuer`.
+  
+---
 
 The `bgp_settings` block supports:
 
 * `asn` - (Optional) The Autonomous System Number (ASN) to use as part of the BGP.
 
-* `peering_address` - (Optional) The BGP peer IP address of the virtual network
-    gateway. This address is needed to configure the created gateway as a BGP Peer
-    on the on-premises VPN devices. The IP address must be part of the subnet of
-    the Virtual Network Gateway. Changing this forces a new resource to be created.
+* `peering_addresses` - (Optional) A list of `peering_addresses` as defined below. Only one `peering_addresses` block can be specified except when `active_active` of this Virtual Network Gateway is `true`.
 
 * `peer_weight` - (Optional) The weight added to routes which have been learned
     through BGP peering. Valid values can be between `0` and `100`.
+  
+---
+
+A `custom_route` block supports the following:
+
+* `address_prefixes` - (Optional) A list of address blocks reserved for this virtual network in CIDR notation. Changing this forces a new resource to be created.
+
+---
+
+A `peering_addresses` supports the following:
+
+* `ip_configuration_name` - (Optional) The name of the IP configuration of this Virtual Network Gateway. In case there are multiple `ip_configuration` blocks defined, this property is **required** to specify.
+
+* `apipa_addresses` - (Optional) A list of Azure custom APIPA addresses assigned to the BGP peer of the Virtual Network Gateway.
+  
+~> **Note:** The valid range for the reserved APIPA address in Azure Public is from `169.254.21.0` to `169.254.22.255`.
+
+---
 
 The `root_certificate` block supports:
 
@@ -220,6 +263,8 @@ The `root_certificate` block supports:
     authority. The certificate must be provided in Base-64 encoded X.509 format
     (PEM). In particular, this argument *must not* include the
     `-----BEGIN CERTIFICATE-----` or `-----END CERTIFICATE-----` markers.
+ 
+---
 
 The `root_revoked_certificate` block supports:
 
@@ -227,12 +272,29 @@ The `root_revoked_certificate` block supports:
 
 * `public_cert_data` - (Required) The SHA1 thumbprint of the certificate to be
     revoked.
-
+  
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The ID of the Virtual Network Gateway.
+
+* `bgp_settings` - A block of `bgp_settings`.
+
+---
+
+The `bgp_settings` block supports:
+
+* `peering_addresses` - A list of `peering_addresses` as defined below.
+
+---
+
+The `peering_addresses` supports:
+
+* `default_addresses` - A list of peering address assigned to the BGP peer of the Virtual Network Gateway.
+
+* `tunnel_ip_addresses` - A list of tunnel IP addresses assigned to the BGP peer of the Virtual Network Gateway.
+
 
 ## Timeouts
 

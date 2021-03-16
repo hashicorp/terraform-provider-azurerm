@@ -76,6 +76,11 @@ func (client ConsumerSourceDataSetsClient) ListByShareSubscription(ctx context.C
 	result.csdsl, err = client.ListByShareSubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.ConsumerSourceDataSetsClient", "ListByShareSubscription", resp, "Failure responding to request")
+		return
+	}
+	if result.csdsl.hasNextLink() && result.csdsl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -117,7 +122,6 @@ func (client ConsumerSourceDataSetsClient) ListByShareSubscriptionSender(req *ht
 func (client ConsumerSourceDataSetsClient) ListByShareSubscriptionResponder(resp *http.Response) (result ConsumerSourceDataSetList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

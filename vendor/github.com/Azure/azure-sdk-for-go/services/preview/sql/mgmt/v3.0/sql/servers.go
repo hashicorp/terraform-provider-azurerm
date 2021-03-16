@@ -81,6 +81,7 @@ func (client ServersClient) CheckNameAvailability(ctx context.Context, parameter
 	result, err = client.CheckNameAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServersClient", "CheckNameAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -118,7 +119,6 @@ func (client ServersClient) CheckNameAvailabilitySender(req *http.Request) (*htt
 func (client ServersClient) CheckNameAvailabilityResponder(resp *http.Response) (result CheckNameAvailabilityResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -137,8 +137,8 @@ func (client ServersClient) CreateOrUpdate(ctx context.Context, resourceGroupNam
 		ctx = tracing.StartSpan(ctx, fqdn+"/ServersClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -151,7 +151,7 @@ func (client ServersClient) CreateOrUpdate(ctx context.Context, resourceGroupNam
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ServersClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ServersClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -190,7 +190,33 @@ func (client ServersClient) CreateOrUpdateSender(req *http.Request) (future Serv
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ServersClient) (s Server, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ServersCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.ServersCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		s.Response.Response, err = future.GetResult(sender)
+		if s.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "sql.ServersCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && s.Response.Response.StatusCode != http.StatusNoContent {
+			s, err = client.CreateOrUpdateResponder(s.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "sql.ServersCreateOrUpdateFuture", "Result", s.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -199,7 +225,6 @@ func (client ServersClient) CreateOrUpdateSender(req *http.Request) (future Serv
 func (client ServersClient) CreateOrUpdateResponder(resp *http.Response) (result Server, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -217,8 +242,8 @@ func (client ServersClient) Delete(ctx context.Context, resourceGroupName string
 		ctx = tracing.StartSpan(ctx, fqdn+"/ServersClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -231,7 +256,7 @@ func (client ServersClient) Delete(ctx context.Context, resourceGroupName string
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ServersClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ServersClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -267,7 +292,23 @@ func (client ServersClient) DeleteSender(req *http.Request) (future ServersDelet
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ServersClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ServersDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.ServersDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -276,7 +317,6 @@ func (client ServersClient) DeleteSender(req *http.Request) (future ServersDelet
 func (client ServersClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -315,6 +355,7 @@ func (client ServersClient) Get(ctx context.Context, resourceGroupName string, s
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServersClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -352,8 +393,121 @@ func (client ServersClient) GetSender(req *http.Request) (*http.Response, error)
 func (client ServersClient) GetResponder(resp *http.Response) (result Server, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// ImportDatabase imports a bacpac into a new database.
+// Parameters:
+// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
+// from the Azure Resource Manager API or the portal.
+// serverName - the name of the server.
+// parameters - the database import request parameters.
+func (client ServersClient) ImportDatabase(ctx context.Context, resourceGroupName string, serverName string, parameters ImportNewDatabaseDefinition) (result ServersImportDatabaseFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ServersClient.ImportDatabase")
+		defer func() {
+			sc := -1
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: parameters,
+			Constraints: []validation.Constraint{{Target: "parameters.StorageKey", Name: validation.Null, Rule: true, Chain: nil},
+				{Target: "parameters.StorageURI", Name: validation.Null, Rule: true, Chain: nil},
+				{Target: "parameters.AdministratorLogin", Name: validation.Null, Rule: true, Chain: nil},
+				{Target: "parameters.AdministratorLoginPassword", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("sql.ServersClient", "ImportDatabase", err.Error())
+	}
+
+	req, err := client.ImportDatabasePreparer(ctx, resourceGroupName, serverName, parameters)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.ServersClient", "ImportDatabase", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.ImportDatabaseSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.ServersClient", "ImportDatabase", nil, "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// ImportDatabasePreparer prepares the ImportDatabase request.
+func (client ServersClient) ImportDatabasePreparer(ctx context.Context, resourceGroupName string, serverName string, parameters ImportNewDatabaseDefinition) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"serverName":        autorest.Encode("path", serverName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2020-02-02-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Sql/servers/{serverName}/import", pathParameters),
+		autorest.WithJSON(parameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ImportDatabaseSender sends the ImportDatabase request. The method will close the
+// http.Response Body if it receives an error.
+func (client ServersClient) ImportDatabaseSender(req *http.Request) (future ServersImportDatabaseFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ServersClient) (ieor ImportExportOperationResult, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ServersImportDatabaseFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.ServersImportDatabaseFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		ieor.Response.Response, err = future.GetResult(sender)
+		if ieor.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "sql.ServersImportDatabaseFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && ieor.Response.Response.StatusCode != http.StatusNoContent {
+			ieor, err = client.ImportDatabaseResponder(ieor.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "sql.ServersImportDatabaseFuture", "Result", ieor.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
+	return
+}
+
+// ImportDatabaseResponder handles the response to the ImportDatabase request. The method always
+// closes the http.Response Body.
+func (client ServersClient) ImportDatabaseResponder(resp *http.Response) (result ImportExportOperationResult, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
@@ -389,6 +543,11 @@ func (client ServersClient) List(ctx context.Context) (result ServerListResultPa
 	result.slr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServersClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.slr.hasNextLink() && result.slr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -424,7 +583,6 @@ func (client ServersClient) ListSender(req *http.Request) (*http.Response, error
 func (client ServersClient) ListResponder(resp *http.Response) (result ServerListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -501,6 +659,11 @@ func (client ServersClient) ListByResourceGroup(ctx context.Context, resourceGro
 	result.slr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServersClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.slr.hasNextLink() && result.slr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -537,7 +700,6 @@ func (client ServersClient) ListByResourceGroupSender(req *http.Request) (*http.
 func (client ServersClient) ListByResourceGroupResponder(resp *http.Response) (result ServerListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -593,8 +755,8 @@ func (client ServersClient) Update(ctx context.Context, resourceGroupName string
 		ctx = tracing.StartSpan(ctx, fqdn+"/ServersClient.Update")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -607,7 +769,7 @@ func (client ServersClient) Update(ctx context.Context, resourceGroupName string
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ServersClient", "Update", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ServersClient", "Update", nil, "Failure sending request")
 		return
 	}
 
@@ -645,7 +807,33 @@ func (client ServersClient) UpdateSender(req *http.Request) (future ServersUpdat
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ServersClient) (s Server, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ServersUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.ServersUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		s.Response.Response, err = future.GetResult(sender)
+		if s.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "sql.ServersUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && s.Response.Response.StatusCode != http.StatusNoContent {
+			s, err = client.UpdateResponder(s.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "sql.ServersUpdateFuture", "Result", s.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -654,7 +842,6 @@ func (client ServersClient) UpdateSender(req *http.Request) (future ServersUpdat
 func (client ServersClient) UpdateResponder(resp *http.Response) (result Server, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

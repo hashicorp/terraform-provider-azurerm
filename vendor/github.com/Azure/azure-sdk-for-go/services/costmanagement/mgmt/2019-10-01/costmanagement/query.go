@@ -122,6 +122,7 @@ func (client QueryClient) Usage(ctx context.Context, scope string, parameters Qu
 	result, err = client.UsageResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "costmanagement.QueryClient", "Usage", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -159,7 +160,6 @@ func (client QueryClient) UsageSender(req *http.Request) (*http.Response, error)
 func (client QueryClient) UsageResponder(resp *http.Response) (result QueryResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -74,6 +74,11 @@ func (client VirtualHubBgpConnectionsClient) List(ctx context.Context, resourceG
 	result.lvhbcr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualHubBgpConnectionsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.lvhbcr.hasNextLink() && result.lvhbcr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -111,7 +116,6 @@ func (client VirtualHubBgpConnectionsClient) ListSender(req *http.Request) (*htt
 func (client VirtualHubBgpConnectionsClient) ListResponder(resp *http.Response) (result ListVirtualHubBgpConnectionResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

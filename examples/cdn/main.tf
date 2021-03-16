@@ -30,7 +30,7 @@ resource "azurerm_cdn_endpoint" "example" {
 
   origin {
     name       = "${var.prefix}origin1"
-    host_name  = "www.example.com"
+    host_name  = "www.contoso.com"
     http_port  = 80
     https_port = 443
   }

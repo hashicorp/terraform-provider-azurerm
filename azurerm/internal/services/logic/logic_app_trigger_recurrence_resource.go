@@ -10,12 +10,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-func resourceArmLogicAppTriggerRecurrence() *schema.Resource {
+func resourceLogicAppTriggerRecurrence() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmLogicAppTriggerRecurrenceCreateUpdate,
-		Read:   resourceArmLogicAppTriggerRecurrenceRead,
-		Update: resourceArmLogicAppTriggerRecurrenceCreateUpdate,
-		Delete: resourceArmLogicAppTriggerRecurrenceDelete,
+		Create: resourceLogicAppTriggerRecurrenceCreateUpdate,
+		Read:   resourceLogicAppTriggerRecurrenceRead,
+		Update: resourceLogicAppTriggerRecurrenceCreateUpdate,
+		Delete: resourceLogicAppTriggerRecurrenceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -65,11 +65,18 @@ func resourceArmLogicAppTriggerRecurrence() *schema.Resource {
 				Optional:     true,
 				ValidateFunc: validation.IsRFC3339Time,
 			},
+
+			"time_zone": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validateLogicAppTriggerRecurrenceTimeZone(),
+			},
 		},
 	}
 }
 
-func resourceArmLogicAppTriggerRecurrenceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceLogicAppTriggerRecurrenceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	trigger := map[string]interface{}{
 		"recurrence": map[string]interface{}{
 			"frequency": d.Get("frequency").(string),
@@ -80,6 +87,11 @@ func resourceArmLogicAppTriggerRecurrenceCreateUpdate(d *schema.ResourceData, me
 
 	if v, ok := d.GetOk("start_time"); ok {
 		trigger["recurrence"].(map[string]interface{})["startTime"] = v.(string)
+
+		// time_zone only allowed when start_time is specified
+		if v, ok := d.GetOk("time_zone"); ok {
+			trigger["recurrence"].(map[string]interface{})["timeZone"] = v.(string)
+		}
 	}
 
 	logicAppId := d.Get("logic_app_id").(string)
@@ -88,10 +100,10 @@ func resourceArmLogicAppTriggerRecurrenceCreateUpdate(d *schema.ResourceData, me
 		return err
 	}
 
-	return resourceArmLogicAppTriggerRecurrenceRead(d, meta)
+	return resourceLogicAppTriggerRecurrenceRead(d, meta)
 }
 
-func resourceArmLogicAppTriggerRecurrenceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceLogicAppTriggerRecurrenceRead(d *schema.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -139,10 +151,14 @@ func resourceArmLogicAppTriggerRecurrenceRead(d *schema.ResourceData, meta inter
 		d.Set("start_time", startTime.(string))
 	}
 
+	if timeZone := recurrence["timeZone"]; timeZone != nil {
+		d.Set("time_zone", timeZone.(string))
+	}
+
 	return nil
 }
 
-func resourceArmLogicAppTriggerRecurrenceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceLogicAppTriggerRecurrenceDelete(d *schema.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -158,4 +174,105 @@ func resourceArmLogicAppTriggerRecurrenceDelete(d *schema.ResourceData, meta int
 	}
 
 	return nil
+}
+
+func validateLogicAppTriggerRecurrenceTimeZone() schema.SchemaValidateFunc {
+	// from https://support.microsoft.com/en-us/help/973627/microsoft-time-zone-index-values
+	timeZones := []string{
+		"Dateline Standard Time",
+		"Samoa Standard Time",
+		"Hawaiian Standard Time",
+		"Alaskan Standard Time",
+		"Pacific Standard Time",
+		"Mountain Standard Time",
+		"Mexico Standard Time",
+		"US Mountain Standard Time",
+		"Central Standard Time",
+		"Canada Central Standard Time",
+		"Mexico Standard Time",
+		"Central America Standard Time",
+		"Eastern Standard Time",
+		"US Eastern Standard Time",
+		"SA Pacific Standard Time",
+		"Atlantic Standard Time",
+		"SA Western Standard Time",
+		"Pacific SA Standard Time",
+		"Newfoundland and Labrador Standard Time",
+		"E South America Standard Time",
+		"SA Eastern Standard Time",
+		"Greenland Standard Time",
+		"Mid-Atlantic Standard Time",
+		"Azores Standard Time",
+		"Cape Verde Standard Time",
+		"GMT Standard Time",
+		"Greenwich Standard Time",
+		"Central Europe Standard Time",
+		"Central European Standard Time",
+		"Romance Standard Time",
+		"W Europe Standard Time",
+		"W Central Africa Standard Time",
+		"E Europe Standard Time",
+		"Egypt Standard Time",
+		"FLE Standard Time",
+		"GTB Standard Time",
+		"Israel Standard Time",
+		"South Africa Standard Time",
+		"Russian Standard Time",
+		"Arab Standard Time",
+		"E Africa Standard Time",
+		"Arabic Standard Time",
+		"Iran Standard Time",
+		"Arabian Standard Time",
+		"Caucasus Standard Time",
+		"Transitional Islamic State of Afghanistan Standard Time",
+		"Ekaterinburg Standard Time",
+		"West Asia Standard Time",
+		"India Standard Time",
+		"Nepal Standard Time",
+		"Central Asia Standard Time",
+		"Sri Lanka Standard Time",
+		"N Central Asia Standard Time",
+		"Myanmar Standard Time",
+		"SE Asia Standard Time",
+		"North Asia Standard Time",
+		"China Standard Time",
+		"Singapore Standard Time",
+		"Taipei Standard Time",
+		"W Australia Standard Time",
+		"North Asia East Standard Time",
+		"Korea Standard Time",
+		"Tokyo Standard Time",
+		"Yakutsk Standard Time",
+		"AUS Central Standard Time",
+		"Cen Australia Standard Time",
+		"AUS Eastern Standard Time",
+		"E Australia Standard Time",
+		"Tasmania Standard Time",
+		"Vladivostok Standard Time",
+		"West Pacific Standard Time",
+		"Central Pacific Standard Time",
+		"Fiji Islands Standard Time",
+		"New Zealand Standard Time",
+		"Tonga Standard Time",
+		"Azerbaijan Standard Time",
+		"Middle East Standard Time",
+		"Jordan Standard Time",
+		"Central Standard Time (Mexico)",
+		"Mountain Standard Time (Mexico)",
+		"Pacific Standard Time (Mexico)",
+		"Namibia Standard Time",
+		"Georgian Standard Time",
+		"Central Brazilian Standard Time",
+		"Montevideo Standard Time",
+		"Armenian Standard Time",
+		"Venezuela Standard Time",
+		"Argentina Standard Time",
+		"Morocco Standard Time",
+		"Pakistan Standard Time",
+		"Mauritius Standard Time",
+		"UTC",
+		"Paraguay Standard Time",
+		"Kamchatka Standard Time",
+	}
+	return validation.StringInSlice(timeZones, false)
 }

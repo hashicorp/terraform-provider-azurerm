@@ -81,6 +81,7 @@ func (client CostsClient) CreateOrUpdate(ctx context.Context, resourceGroupName 
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.CostsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -121,7 +122,6 @@ func (client CostsClient) CreateOrUpdateSender(req *http.Request) (*http.Respons
 func (client CostsClient) CreateOrUpdateResponder(resp *http.Response) (result LabCost, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -162,6 +162,7 @@ func (client CostsClient) Get(ctx context.Context, resourceGroupName string, lab
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.CostsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -203,7 +204,6 @@ func (client CostsClient) GetSender(req *http.Request) (*http.Response, error) {
 func (client CostsClient) GetResponder(resp *http.Response) (result LabCost, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

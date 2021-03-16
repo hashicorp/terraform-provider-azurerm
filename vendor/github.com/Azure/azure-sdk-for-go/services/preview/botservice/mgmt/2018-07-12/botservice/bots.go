@@ -92,6 +92,7 @@ func (client BotsClient) Create(ctx context.Context, resourceGroupName string, r
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "botservice.BotsClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -131,7 +132,6 @@ func (client BotsClient) CreateSender(req *http.Request) (*http.Response, error)
 func (client BotsClient) CreateResponder(resp *http.Response) (result Bot, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -182,6 +182,7 @@ func (client BotsClient) Delete(ctx context.Context, resourceGroupName string, r
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "botservice.BotsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -219,7 +220,6 @@ func (client BotsClient) DeleteSender(req *http.Request) (*http.Response, error)
 func (client BotsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -269,6 +269,7 @@ func (client BotsClient) Get(ctx context.Context, resourceGroupName string, reso
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "botservice.BotsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -306,7 +307,6 @@ func (client BotsClient) GetSender(req *http.Request) (*http.Response, error) {
 func (client BotsClient) GetResponder(resp *http.Response) (result Bot, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -344,6 +344,7 @@ func (client BotsClient) GetCheckNameAvailability(ctx context.Context, parameter
 	result, err = client.GetCheckNameAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "botservice.BotsClient", "GetCheckNameAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -377,7 +378,6 @@ func (client BotsClient) GetCheckNameAvailabilitySender(req *http.Request) (*htt
 func (client BotsClient) GetCheckNameAvailabilityResponder(resp *http.Response) (result CheckNameAvailabilityResponseBody, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -414,6 +414,11 @@ func (client BotsClient) List(ctx context.Context) (result BotResponseListPage, 
 	result.brl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "botservice.BotsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.brl.hasNextLink() && result.brl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -449,7 +454,6 @@ func (client BotsClient) ListSender(req *http.Request) (*http.Response, error) {
 func (client BotsClient) ListResponder(resp *http.Response) (result BotResponseList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -533,6 +537,11 @@ func (client BotsClient) ListByResourceGroup(ctx context.Context, resourceGroupN
 	result.brl, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "botservice.BotsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.brl.hasNextLink() && result.brl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -569,7 +578,6 @@ func (client BotsClient) ListByResourceGroupSender(req *http.Request) (*http.Res
 func (client BotsClient) ListByResourceGroupResponder(resp *http.Response) (result BotResponseList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -658,6 +666,7 @@ func (client BotsClient) Update(ctx context.Context, resourceGroupName string, r
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "botservice.BotsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -697,7 +706,6 @@ func (client BotsClient) UpdateSender(req *http.Request) (*http.Response, error)
 func (client BotsClient) UpdateResponder(resp *http.Response) (result Bot, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

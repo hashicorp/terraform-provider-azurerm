@@ -72,6 +72,7 @@ func (client SubscriptionsClient) ListQuotas(ctx context.Context, location strin
 	result, err = client.ListQuotasResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.SubscriptionsClient", "ListQuotas", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -108,7 +109,6 @@ func (client SubscriptionsClient) ListQuotasSender(req *http.Request) (*http.Res
 func (client SubscriptionsClient) ListQuotasResponder(resp *http.Response) (result SubscriptionQuotasListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

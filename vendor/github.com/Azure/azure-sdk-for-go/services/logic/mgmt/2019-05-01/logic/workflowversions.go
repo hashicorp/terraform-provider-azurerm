@@ -74,6 +74,7 @@ func (client WorkflowVersionsClient) Get(ctx context.Context, resourceGroupName 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowVersionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -112,7 +113,6 @@ func (client WorkflowVersionsClient) GetSender(req *http.Request) (*http.Respons
 func (client WorkflowVersionsClient) GetResponder(resp *http.Response) (result WorkflowVersion, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -153,6 +153,11 @@ func (client WorkflowVersionsClient) List(ctx context.Context, resourceGroupName
 	result.wvlr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowVersionsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.wvlr.hasNextLink() && result.wvlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -193,7 +198,6 @@ func (client WorkflowVersionsClient) ListSender(req *http.Request) (*http.Respon
 func (client WorkflowVersionsClient) ListResponder(resp *http.Response) (result WorkflowVersionListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

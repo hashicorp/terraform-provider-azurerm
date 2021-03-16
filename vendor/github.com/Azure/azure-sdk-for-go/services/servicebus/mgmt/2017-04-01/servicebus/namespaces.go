@@ -78,6 +78,7 @@ func (client NamespacesClient) CheckNameAvailabilityMethod(ctx context.Context, 
 	result, err = client.CheckNameAvailabilityMethodResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.NamespacesClient", "CheckNameAvailabilityMethod", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -115,7 +116,6 @@ func (client NamespacesClient) CheckNameAvailabilityMethodSender(req *http.Reque
 func (client NamespacesClient) CheckNameAvailabilityMethodResponder(resp *http.Response) (result CheckNameAvailabilityResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -134,8 +134,8 @@ func (client NamespacesClient) CreateOrUpdate(ctx context.Context, resourceGroup
 		ctx = tracing.StartSpan(ctx, fqdn+"/NamespacesClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -155,7 +155,7 @@ func (client NamespacesClient) CreateOrUpdate(ctx context.Context, resourceGroup
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "servicebus.NamespacesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "servicebus.NamespacesClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -193,7 +193,33 @@ func (client NamespacesClient) CreateOrUpdateSender(req *http.Request) (future N
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client NamespacesClient) (sn SBNamespace, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "servicebus.NamespacesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("servicebus.NamespacesCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		sn.Response.Response, err = future.GetResult(sender)
+		if sn.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "servicebus.NamespacesCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && sn.Response.Response.StatusCode != http.StatusNoContent {
+			sn, err = client.CreateOrUpdateResponder(sn.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "servicebus.NamespacesCreateOrUpdateFuture", "Result", sn.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -202,7 +228,6 @@ func (client NamespacesClient) CreateOrUpdateSender(req *http.Request) (future N
 func (client NamespacesClient) CreateOrUpdateResponder(resp *http.Response) (result SBNamespace, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -259,6 +284,7 @@ func (client NamespacesClient) CreateOrUpdateAuthorizationRule(ctx context.Conte
 	result, err = client.CreateOrUpdateAuthorizationRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.NamespacesClient", "CreateOrUpdateAuthorizationRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -299,7 +325,6 @@ func (client NamespacesClient) CreateOrUpdateAuthorizationRuleSender(req *http.R
 func (client NamespacesClient) CreateOrUpdateAuthorizationRuleResponder(resp *http.Response) (result SBAuthorizationRule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -349,6 +374,7 @@ func (client NamespacesClient) CreateOrUpdateNetworkRuleSet(ctx context.Context,
 	result, err = client.CreateOrUpdateNetworkRuleSetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.NamespacesClient", "CreateOrUpdateNetworkRuleSet", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -388,7 +414,6 @@ func (client NamespacesClient) CreateOrUpdateNetworkRuleSetSender(req *http.Requ
 func (client NamespacesClient) CreateOrUpdateNetworkRuleSetResponder(resp *http.Response) (result NetworkRuleSet, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -405,8 +430,8 @@ func (client NamespacesClient) Delete(ctx context.Context, resourceGroupName str
 		ctx = tracing.StartSpan(ctx, fqdn+"/NamespacesClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -429,7 +454,7 @@ func (client NamespacesClient) Delete(ctx context.Context, resourceGroupName str
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "servicebus.NamespacesClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "servicebus.NamespacesClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -465,7 +490,23 @@ func (client NamespacesClient) DeleteSender(req *http.Request) (future Namespace
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client NamespacesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "servicebus.NamespacesDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("servicebus.NamespacesDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -474,7 +515,6 @@ func (client NamespacesClient) DeleteSender(req *http.Request) (future Namespace
 func (client NamespacesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -526,6 +566,7 @@ func (client NamespacesClient) DeleteAuthorizationRule(ctx context.Context, reso
 	result, err = client.DeleteAuthorizationRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.NamespacesClient", "DeleteAuthorizationRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -564,7 +605,6 @@ func (client NamespacesClient) DeleteAuthorizationRuleSender(req *http.Request) 
 func (client NamespacesClient) DeleteAuthorizationRuleResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -612,6 +652,7 @@ func (client NamespacesClient) Get(ctx context.Context, resourceGroupName string
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.NamespacesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -649,7 +690,6 @@ func (client NamespacesClient) GetSender(req *http.Request) (*http.Response, err
 func (client NamespacesClient) GetResponder(resp *http.Response) (result SBNamespace, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -702,6 +742,7 @@ func (client NamespacesClient) GetAuthorizationRule(ctx context.Context, resourc
 	result, err = client.GetAuthorizationRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.NamespacesClient", "GetAuthorizationRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -740,7 +781,6 @@ func (client NamespacesClient) GetAuthorizationRuleSender(req *http.Request) (*h
 func (client NamespacesClient) GetAuthorizationRuleResponder(resp *http.Response) (result SBAuthorizationRule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -789,6 +829,7 @@ func (client NamespacesClient) GetNetworkRuleSet(ctx context.Context, resourceGr
 	result, err = client.GetNetworkRuleSetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.NamespacesClient", "GetNetworkRuleSet", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -826,7 +867,6 @@ func (client NamespacesClient) GetNetworkRuleSetSender(req *http.Request) (*http
 func (client NamespacesClient) GetNetworkRuleSetResponder(resp *http.Response) (result NetworkRuleSet, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -863,6 +903,11 @@ func (client NamespacesClient) List(ctx context.Context) (result SBNamespaceList
 	result.snlr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.NamespacesClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.snlr.hasNextLink() && result.snlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -898,7 +943,6 @@ func (client NamespacesClient) ListSender(req *http.Request) (*http.Response, er
 func (client NamespacesClient) ListResponder(resp *http.Response) (result SBNamespaceListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -985,6 +1029,11 @@ func (client NamespacesClient) ListAuthorizationRules(ctx context.Context, resou
 	result.sarlr, err = client.ListAuthorizationRulesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.NamespacesClient", "ListAuthorizationRules", resp, "Failure responding to request")
+		return
+	}
+	if result.sarlr.hasNextLink() && result.sarlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -1022,7 +1071,6 @@ func (client NamespacesClient) ListAuthorizationRulesSender(req *http.Request) (
 func (client NamespacesClient) ListAuthorizationRulesResponder(resp *http.Response) (result SBAuthorizationRuleListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1105,6 +1153,11 @@ func (client NamespacesClient) ListByResourceGroup(ctx context.Context, resource
 	result.snlr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.NamespacesClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.snlr.hasNextLink() && result.snlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -1141,7 +1194,6 @@ func (client NamespacesClient) ListByResourceGroupSender(req *http.Request) (*ht
 func (client NamespacesClient) ListByResourceGroupResponder(resp *http.Response) (result SBNamespaceListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1231,6 +1283,7 @@ func (client NamespacesClient) ListKeys(ctx context.Context, resourceGroupName s
 	result, err = client.ListKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.NamespacesClient", "ListKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1269,7 +1322,6 @@ func (client NamespacesClient) ListKeysSender(req *http.Request) (*http.Response
 func (client NamespacesClient) ListKeysResponder(resp *http.Response) (result AccessKeys, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1319,6 +1371,11 @@ func (client NamespacesClient) ListNetworkRuleSets(ctx context.Context, resource
 	result.nrslr, err = client.ListNetworkRuleSetsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.NamespacesClient", "ListNetworkRuleSets", resp, "Failure responding to request")
+		return
+	}
+	if result.nrslr.hasNextLink() && result.nrslr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -1356,7 +1413,6 @@ func (client NamespacesClient) ListNetworkRuleSetsSender(req *http.Request) (*ht
 func (client NamespacesClient) ListNetworkRuleSetsResponder(resp *http.Response) (result NetworkRuleSetListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1443,6 +1499,7 @@ func (client NamespacesClient) Migrate(ctx context.Context, resourceGroupName st
 	result, err = client.MigrateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.NamespacesClient", "Migrate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1482,7 +1539,6 @@ func (client NamespacesClient) MigrateSender(req *http.Request) (*http.Response,
 func (client NamespacesClient) MigrateResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1535,6 +1591,7 @@ func (client NamespacesClient) RegenerateKeys(ctx context.Context, resourceGroup
 	result, err = client.RegenerateKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.NamespacesClient", "RegenerateKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1575,7 +1632,6 @@ func (client NamespacesClient) RegenerateKeysSender(req *http.Request) (*http.Re
 func (client NamespacesClient) RegenerateKeysResponder(resp *http.Response) (result AccessKeys, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1626,6 +1682,7 @@ func (client NamespacesClient) Update(ctx context.Context, resourceGroupName str
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.NamespacesClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1665,7 +1722,6 @@ func (client NamespacesClient) UpdateSender(req *http.Request) (*http.Response, 
 func (client NamespacesClient) UpdateResponder(resp *http.Response) (result SBNamespace, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

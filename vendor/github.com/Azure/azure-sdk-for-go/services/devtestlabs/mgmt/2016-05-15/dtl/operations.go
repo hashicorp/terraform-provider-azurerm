@@ -72,6 +72,7 @@ func (client OperationsClient) Get(ctx context.Context, locationName string, nam
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.OperationsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -109,7 +110,6 @@ func (client OperationsClient) GetSender(req *http.Request) (*http.Response, err
 func (client OperationsClient) GetResponder(resp *http.Response) (result OperationResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -56,8 +56,8 @@ func (client ManagedInstancesClient) CreateOrUpdate(ctx context.Context, resourc
 		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedInstancesClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -77,7 +77,7 @@ func (client ManagedInstancesClient) CreateOrUpdate(ctx context.Context, resourc
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ManagedInstancesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ManagedInstancesClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -92,7 +92,7 @@ func (client ManagedInstancesClient) CreateOrUpdatePreparer(ctx context.Context,
 		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01-preview"
+	const APIVersion = "2020-02-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -115,7 +115,33 @@ func (client ManagedInstancesClient) CreateOrUpdateSender(req *http.Request) (fu
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ManagedInstancesClient) (mi ManagedInstance, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ManagedInstancesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.ManagedInstancesCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		mi.Response.Response, err = future.GetResult(sender)
+		if mi.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "sql.ManagedInstancesCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && mi.Response.Response.StatusCode != http.StatusNoContent {
+			mi, err = client.CreateOrUpdateResponder(mi.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "sql.ManagedInstancesCreateOrUpdateFuture", "Result", mi.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -124,7 +150,6 @@ func (client ManagedInstancesClient) CreateOrUpdateSender(req *http.Request) (fu
 func (client ManagedInstancesClient) CreateOrUpdateResponder(resp *http.Response) (result ManagedInstance, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -142,8 +167,8 @@ func (client ManagedInstancesClient) Delete(ctx context.Context, resourceGroupNa
 		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedInstancesClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -156,7 +181,7 @@ func (client ManagedInstancesClient) Delete(ctx context.Context, resourceGroupNa
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ManagedInstancesClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ManagedInstancesClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -171,7 +196,7 @@ func (client ManagedInstancesClient) DeletePreparer(ctx context.Context, resourc
 		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01-preview"
+	const APIVersion = "2020-02-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -192,7 +217,23 @@ func (client ManagedInstancesClient) DeleteSender(req *http.Request) (future Man
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ManagedInstancesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ManagedInstancesDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.ManagedInstancesDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -201,8 +242,109 @@ func (client ManagedInstancesClient) DeleteSender(req *http.Request) (future Man
 func (client ManagedInstancesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
+		autorest.ByClosing())
+	result.Response = resp
+	return
+}
+
+// Failover failovers a managed instance.
+// Parameters:
+// resourceGroupName - the name of the resource group. The name is case insensitive.
+// managedInstanceName - the name of the managed instance.
+// replicaType - the type of replica to be failed over.
+func (client ManagedInstancesClient) Failover(ctx context.Context, resourceGroupName string, managedInstanceName string, replicaType ReplicaType) (result ManagedInstancesFailoverFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedInstancesClient.Failover")
+		defer func() {
+			sc := -1
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("sql.ManagedInstancesClient", "Failover", err.Error())
+	}
+
+	req, err := client.FailoverPreparer(ctx, resourceGroupName, managedInstanceName, replicaType)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.ManagedInstancesClient", "Failover", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.FailoverSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.ManagedInstancesClient", "Failover", nil, "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// FailoverPreparer prepares the Failover request.
+func (client ManagedInstancesClient) FailoverPreparer(ctx context.Context, resourceGroupName string, managedInstanceName string, replicaType ReplicaType) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"managedInstanceName": autorest.Encode("path", managedInstanceName),
+		"resourceGroupName":   autorest.Encode("path", resourceGroupName),
+		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2019-06-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+	if len(string(replicaType)) > 0 {
+		queryParameters["replicaType"] = autorest.Encode("query", replicaType)
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Sql/managedInstances/{managedInstanceName}/failover", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// FailoverSender sends the Failover request. The method will close the
+// http.Response Body if it receives an error.
+func (client ManagedInstancesClient) FailoverSender(req *http.Request) (future ManagedInstancesFailoverFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ManagedInstancesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ManagedInstancesFailoverFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.ManagedInstancesFailoverFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
+	return
+}
+
+// FailoverResponder handles the response to the Failover request. The method always
+// closes the http.Response Body.
+func (client ManagedInstancesClient) FailoverResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
 	return
@@ -240,6 +382,7 @@ func (client ManagedInstancesClient) Get(ctx context.Context, resourceGroupName 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstancesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -253,7 +396,7 @@ func (client ManagedInstancesClient) GetPreparer(ctx context.Context, resourceGr
 		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01-preview"
+	const APIVersion = "2020-02-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -277,7 +420,6 @@ func (client ManagedInstancesClient) GetSender(req *http.Request) (*http.Respons
 func (client ManagedInstancesClient) GetResponder(resp *http.Response) (result ManagedInstance, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -314,6 +456,11 @@ func (client ManagedInstancesClient) List(ctx context.Context) (result ManagedIn
 	result.milr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstancesClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.milr.hasNextLink() && result.milr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -325,7 +472,7 @@ func (client ManagedInstancesClient) ListPreparer(ctx context.Context) (*http.Re
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01-preview"
+	const APIVersion = "2020-02-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -349,7 +496,6 @@ func (client ManagedInstancesClient) ListSender(req *http.Request) (*http.Respon
 func (client ManagedInstancesClient) ListResponder(resp *http.Response) (result ManagedInstanceListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -427,6 +573,11 @@ func (client ManagedInstancesClient) ListByInstancePool(ctx context.Context, res
 	result.milr, err = client.ListByInstancePoolResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstancesClient", "ListByInstancePool", resp, "Failure responding to request")
+		return
+	}
+	if result.milr.hasNextLink() && result.milr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -440,7 +591,7 @@ func (client ManagedInstancesClient) ListByInstancePoolPreparer(ctx context.Cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01-preview"
+	const APIVersion = "2020-02-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -464,7 +615,6 @@ func (client ManagedInstancesClient) ListByInstancePoolSender(req *http.Request)
 func (client ManagedInstancesClient) ListByInstancePoolResponder(resp *http.Response) (result ManagedInstanceListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -541,6 +691,11 @@ func (client ManagedInstancesClient) ListByResourceGroup(ctx context.Context, re
 	result.milr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstancesClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.milr.hasNextLink() && result.milr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -553,7 +708,7 @@ func (client ManagedInstancesClient) ListByResourceGroupPreparer(ctx context.Con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01-preview"
+	const APIVersion = "2020-02-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -577,7 +732,6 @@ func (client ManagedInstancesClient) ListByResourceGroupSender(req *http.Request
 func (client ManagedInstancesClient) ListByResourceGroupResponder(resp *http.Response) (result ManagedInstanceListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -633,8 +787,8 @@ func (client ManagedInstancesClient) Update(ctx context.Context, resourceGroupNa
 		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedInstancesClient.Update")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -647,7 +801,7 @@ func (client ManagedInstancesClient) Update(ctx context.Context, resourceGroupNa
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ManagedInstancesClient", "Update", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.ManagedInstancesClient", "Update", nil, "Failure sending request")
 		return
 	}
 
@@ -662,7 +816,7 @@ func (client ManagedInstancesClient) UpdatePreparer(ctx context.Context, resourc
 		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01-preview"
+	const APIVersion = "2020-02-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -685,7 +839,33 @@ func (client ManagedInstancesClient) UpdateSender(req *http.Request) (future Man
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ManagedInstancesClient) (mi ManagedInstance, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ManagedInstancesUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("sql.ManagedInstancesUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		mi.Response.Response, err = future.GetResult(sender)
+		if mi.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "sql.ManagedInstancesUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && mi.Response.Response.StatusCode != http.StatusNoContent {
+			mi, err = client.UpdateResponder(mi.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "sql.ManagedInstancesUpdateFuture", "Result", mi.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -694,7 +874,6 @@ func (client ManagedInstancesClient) UpdateSender(req *http.Request) (future Man
 func (client ManagedInstancesClient) UpdateResponder(resp *http.Response) (result ManagedInstance, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

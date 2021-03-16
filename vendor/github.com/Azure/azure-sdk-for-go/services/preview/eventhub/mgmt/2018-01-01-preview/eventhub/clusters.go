@@ -42,6 +42,128 @@ func NewClustersClientWithBaseURI(baseURI string, subscriptionID string) Cluster
 	return ClustersClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
+// CreateOrUpdate creates or updates an instance of an Event Hubs Cluster.
+// Parameters:
+// resourceGroupName - name of the resource group within the azure subscription.
+// clusterName - the name of the Event Hubs Cluster.
+// parameters - parameters for creating a eventhub cluster resource.
+func (client ClustersClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, clusterName string, parameters Cluster) (result ClustersCreateOrUpdateFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ClustersClient.CreateOrUpdate")
+		defer func() {
+			sc := -1
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: clusterName,
+			Constraints: []validation.Constraint{{Target: "clusterName", Name: validation.MaxLength, Rule: 50, Chain: nil},
+				{Target: "clusterName", Name: validation.MinLength, Rule: 6, Chain: nil}}},
+		{TargetValue: parameters,
+			Constraints: []validation.Constraint{{Target: "parameters.Sku", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "parameters.Sku.Name", Name: validation.Null, Rule: true, Chain: nil},
+					{Target: "parameters.Sku.Capacity", Name: validation.Null, Rule: false,
+						Chain: []validation.Constraint{{Target: "parameters.Sku.Capacity", Name: validation.InclusiveMaximum, Rule: int64(32), Chain: nil},
+							{Target: "parameters.Sku.Capacity", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
+						}},
+				}}}}}); err != nil {
+		return result, validation.NewError("eventhub.ClustersClient", "CreateOrUpdate", err.Error())
+	}
+
+	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, clusterName, parameters)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "eventhub.ClustersClient", "CreateOrUpdate", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.CreateOrUpdateSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "eventhub.ClustersClient", "CreateOrUpdate", nil, "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// CreateOrUpdatePreparer prepares the CreateOrUpdate request.
+func (client ClustersClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, clusterName string, parameters Cluster) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"clusterName":       autorest.Encode("path", clusterName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2018-01-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPut(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventHub/clusters/{clusterName}", pathParameters),
+		autorest.WithJSON(parameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
+// http.Response Body if it receives an error.
+func (client ClustersClient) CreateOrUpdateSender(req *http.Request) (future ClustersCreateOrUpdateFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ClustersClient) (c Cluster, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "eventhub.ClustersCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("eventhub.ClustersCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		c.Response.Response, err = future.GetResult(sender)
+		if c.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "eventhub.ClustersCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && c.Response.Response.StatusCode != http.StatusNoContent {
+			c, err = client.CreateOrUpdateResponder(c.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "eventhub.ClustersCreateOrUpdateFuture", "Result", c.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
+	return
+}
+
+// CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
+// closes the http.Response Body.
+func (client ClustersClient) CreateOrUpdateResponder(resp *http.Response) (result Cluster, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
 // Delete deletes an existing Event Hubs Cluster. This operation is idempotent.
 // Parameters:
 // resourceGroupName - name of the resource group within the azure subscription.
@@ -51,8 +173,8 @@ func (client ClustersClient) Delete(ctx context.Context, resourceGroupName strin
 		ctx = tracing.StartSpan(ctx, fqdn+"/ClustersClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -75,7 +197,7 @@ func (client ClustersClient) Delete(ctx context.Context, resourceGroupName strin
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventhub.ClustersClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "eventhub.ClustersClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -111,7 +233,23 @@ func (client ClustersClient) DeleteSender(req *http.Request) (future ClustersDel
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ClustersClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "eventhub.ClustersDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("eventhub.ClustersDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -120,7 +258,6 @@ func (client ClustersClient) DeleteSender(req *http.Request) (future ClustersDel
 func (client ClustersClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -168,6 +305,7 @@ func (client ClustersClient) Get(ctx context.Context, resourceGroupName string, 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.ClustersClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -205,7 +343,6 @@ func (client ClustersClient) GetSender(req *http.Request) (*http.Response, error
 func (client ClustersClient) GetResponder(resp *http.Response) (result Cluster, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -242,6 +379,7 @@ func (client ClustersClient) ListAvailableClusterRegion(ctx context.Context) (re
 	result, err = client.ListAvailableClusterRegionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.ClustersClient", "ListAvailableClusterRegion", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -277,7 +415,6 @@ func (client ClustersClient) ListAvailableClusterRegionSender(req *http.Request)
 func (client ClustersClient) ListAvailableClusterRegionResponder(resp *http.Response) (result AvailableClustersList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -323,6 +460,11 @@ func (client ClustersClient) ListByResourceGroup(ctx context.Context, resourceGr
 	result.clr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.ClustersClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.clr.hasNextLink() && result.clr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -359,7 +501,6 @@ func (client ClustersClient) ListByResourceGroupSender(req *http.Request) (*http
 func (client ClustersClient) ListByResourceGroupResponder(resp *http.Response) (result ClusterListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -445,6 +586,7 @@ func (client ClustersClient) ListNamespaces(ctx context.Context, resourceGroupNa
 	result, err = client.ListNamespacesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.ClustersClient", "ListNamespaces", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -482,7 +624,6 @@ func (client ClustersClient) ListNamespacesSender(req *http.Request) (*http.Resp
 func (client ClustersClient) ListNamespacesResponder(resp *http.Response) (result EHNamespaceIDListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -490,18 +631,18 @@ func (client ClustersClient) ListNamespacesResponder(resp *http.Response) (resul
 	return
 }
 
-// Patch modifies mutable properties on the Event Hubs Cluster. This operation is idempotent.
+// Update modifies mutable properties on the Event Hubs Cluster. This operation is idempotent.
 // Parameters:
 // resourceGroupName - name of the resource group within the azure subscription.
 // clusterName - the name of the Event Hubs Cluster.
 // parameters - the properties of the Event Hubs Cluster which should be updated.
-func (client ClustersClient) Patch(ctx context.Context, resourceGroupName string, clusterName string, parameters Cluster) (result ClustersPatchFuture, err error) {
+func (client ClustersClient) Update(ctx context.Context, resourceGroupName string, clusterName string, parameters Cluster) (result ClustersUpdateFuture, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/ClustersClient.Patch")
+		ctx = tracing.StartSpan(ctx, fqdn+"/ClustersClient.Update")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -513,26 +654,26 @@ func (client ClustersClient) Patch(ctx context.Context, resourceGroupName string
 		{TargetValue: clusterName,
 			Constraints: []validation.Constraint{{Target: "clusterName", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "clusterName", Name: validation.MinLength, Rule: 6, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("eventhub.ClustersClient", "Patch", err.Error())
+		return result, validation.NewError("eventhub.ClustersClient", "Update", err.Error())
 	}
 
-	req, err := client.PatchPreparer(ctx, resourceGroupName, clusterName, parameters)
+	req, err := client.UpdatePreparer(ctx, resourceGroupName, clusterName, parameters)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventhub.ClustersClient", "Patch", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "eventhub.ClustersClient", "Update", nil, "Failure preparing request")
 		return
 	}
 
-	result, err = client.PatchSender(req)
+	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventhub.ClustersClient", "Patch", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "eventhub.ClustersClient", "Update", nil, "Failure sending request")
 		return
 	}
 
 	return
 }
 
-// PatchPreparer prepares the Patch request.
-func (client ClustersClient) PatchPreparer(ctx context.Context, resourceGroupName string, clusterName string, parameters Cluster) (*http.Request, error) {
+// UpdatePreparer prepares the Update request.
+func (client ClustersClient) UpdatePreparer(ctx context.Context, resourceGroupName string, clusterName string, parameters Cluster) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"clusterName":       autorest.Encode("path", clusterName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -554,121 +695,49 @@ func (client ClustersClient) PatchPreparer(ctx context.Context, resourceGroupNam
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// PatchSender sends the Patch request. The method will close the
+// UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
-func (client ClustersClient) PatchSender(req *http.Request) (future ClustersPatchFuture, err error) {
+func (client ClustersClient) UpdateSender(req *http.Request) (future ClustersUpdateFuture, err error) {
 	var resp *http.Response
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
-	return
-}
-
-// PatchResponder handles the response to the Patch request. The method always
-// closes the http.Response Body.
-func (client ClustersClient) PatchResponder(resp *http.Response) (result Cluster, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
-		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-	return
-}
-
-// Put creates or updates an instance of an Event Hubs Cluster.
-// Parameters:
-// resourceGroupName - name of the resource group within the azure subscription.
-// clusterName - the name of the Event Hubs Cluster.
-// parameters - parameters for creating a eventhub cluster resource.
-func (client ClustersClient) Put(ctx context.Context, resourceGroupName string, clusterName string, parameters Cluster) (result ClustersPutFuture, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/ClustersClient.Put")
-		defer func() {
-			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client ClustersClient) (c Cluster, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "eventhub.ClustersUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("eventhub.ClustersUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		c.Response.Response, err = future.GetResult(sender)
+		if c.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "eventhub.ClustersUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && c.Response.Response.StatusCode != http.StatusNoContent {
+			c, err = client.UpdateResponder(c.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "eventhub.ClustersUpdateFuture", "Result", c.Response.Response, "Failure responding to request")
 			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
-		{TargetValue: clusterName,
-			Constraints: []validation.Constraint{{Target: "clusterName", Name: validation.MaxLength, Rule: 50, Chain: nil},
-				{Target: "clusterName", Name: validation.MinLength, Rule: 6, Chain: nil}}},
-		{TargetValue: parameters,
-			Constraints: []validation.Constraint{{Target: "parameters.Sku", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "parameters.Sku.Name", Name: validation.Null, Rule: true, Chain: nil},
-					{Target: "parameters.Sku.Capacity", Name: validation.Null, Rule: false,
-						Chain: []validation.Constraint{{Target: "parameters.Sku.Capacity", Name: validation.InclusiveMaximum, Rule: int64(32), Chain: nil},
-							{Target: "parameters.Sku.Capacity", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
-						}},
-				}}}}}); err != nil {
-		return result, validation.NewError("eventhub.ClustersClient", "Put", err.Error())
-	}
-
-	req, err := client.PutPreparer(ctx, resourceGroupName, clusterName, parameters)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventhub.ClustersClient", "Put", nil, "Failure preparing request")
+		}
 		return
 	}
-
-	result, err = client.PutSender(req)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventhub.ClustersClient", "Put", result.Response(), "Failure sending request")
-		return
-	}
-
 	return
 }
 
-// PutPreparer prepares the Put request.
-func (client ClustersClient) PutPreparer(ctx context.Context, resourceGroupName string, clusterName string, parameters Cluster) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"clusterName":       autorest.Encode("path", clusterName),
-		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-	}
-
-	const APIVersion = "2018-01-01-preview"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsContentType("application/json; charset=utf-8"),
-		autorest.AsPut(),
-		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventHub/clusters/{clusterName}", pathParameters),
-		autorest.WithJSON(parameters),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// PutSender sends the Put request. The method will close the
-// http.Response Body if it receives an error.
-func (client ClustersClient) PutSender(req *http.Request) (future ClustersPutFuture, err error) {
-	var resp *http.Response
-	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
-	if err != nil {
-		return
-	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
-	return
-}
-
-// PutResponder handles the response to the Put request. The method always
+// UpdateResponder handles the response to the Update request. The method always
 // closes the http.Response Body.
-func (client ClustersClient) PutResponder(resp *http.Response) (result Cluster, err error) {
+func (client ClustersClient) UpdateResponder(resp *http.Response) (result Cluster, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -76,6 +76,7 @@ func (client ExtensionTopicsClient) Get(ctx context.Context, scope string) (resu
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.ExtensionTopicsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -111,7 +112,6 @@ func (client ExtensionTopicsClient) GetSender(req *http.Request) (*http.Response
 func (client ExtensionTopicsClient) GetResponder(resp *http.Response) (result ExtensionTopic, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

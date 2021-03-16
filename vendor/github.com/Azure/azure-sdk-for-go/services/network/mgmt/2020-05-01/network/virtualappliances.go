@@ -53,8 +53,8 @@ func (client VirtualAppliancesClient) CreateOrUpdate(ctx context.Context, resour
 		ctx = tracing.StartSpan(ctx, fqdn+"/VirtualAppliancesClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -78,7 +78,7 @@ func (client VirtualAppliancesClient) CreateOrUpdate(ctx context.Context, resour
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "network.VirtualAppliancesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "network.VirtualAppliancesClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -117,7 +117,33 @@ func (client VirtualAppliancesClient) CreateOrUpdateSender(req *http.Request) (f
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client VirtualAppliancesClient) (va VirtualAppliance, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "network.VirtualAppliancesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("network.VirtualAppliancesCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		va.Response.Response, err = future.GetResult(sender)
+		if va.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "network.VirtualAppliancesCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && va.Response.Response.StatusCode != http.StatusNoContent {
+			va, err = client.CreateOrUpdateResponder(va.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "network.VirtualAppliancesCreateOrUpdateFuture", "Result", va.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -126,7 +152,6 @@ func (client VirtualAppliancesClient) CreateOrUpdateSender(req *http.Request) (f
 func (client VirtualAppliancesClient) CreateOrUpdateResponder(resp *http.Response) (result VirtualAppliance, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -143,8 +168,8 @@ func (client VirtualAppliancesClient) Delete(ctx context.Context, resourceGroupN
 		ctx = tracing.StartSpan(ctx, fqdn+"/VirtualAppliancesClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -157,7 +182,7 @@ func (client VirtualAppliancesClient) Delete(ctx context.Context, resourceGroupN
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "network.VirtualAppliancesClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "network.VirtualAppliancesClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -193,7 +218,23 @@ func (client VirtualAppliancesClient) DeleteSender(req *http.Request) (future Vi
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client VirtualAppliancesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "network.VirtualAppliancesDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("network.VirtualAppliancesDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -202,7 +243,6 @@ func (client VirtualAppliancesClient) DeleteSender(req *http.Request) (future Vi
 func (client VirtualAppliancesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -241,6 +281,7 @@ func (client VirtualAppliancesClient) Get(ctx context.Context, resourceGroupName
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualAppliancesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -281,7 +322,6 @@ func (client VirtualAppliancesClient) GetSender(req *http.Request) (*http.Respon
 func (client VirtualAppliancesClient) GetResponder(resp *http.Response) (result VirtualAppliance, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -318,6 +358,11 @@ func (client VirtualAppliancesClient) List(ctx context.Context) (result VirtualA
 	result.valr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualAppliancesClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.valr.hasNextLink() && result.valr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -353,7 +398,6 @@ func (client VirtualAppliancesClient) ListSender(req *http.Request) (*http.Respo
 func (client VirtualAppliancesClient) ListResponder(resp *http.Response) (result VirtualApplianceListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -429,6 +473,11 @@ func (client VirtualAppliancesClient) ListByResourceGroup(ctx context.Context, r
 	result.valr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualAppliancesClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.valr.hasNextLink() && result.valr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -465,7 +514,6 @@ func (client VirtualAppliancesClient) ListByResourceGroupSender(req *http.Reques
 func (client VirtualAppliancesClient) ListByResourceGroupResponder(resp *http.Response) (result VirtualApplianceListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -542,6 +590,7 @@ func (client VirtualAppliancesClient) UpdateTags(ctx context.Context, resourceGr
 	result, err = client.UpdateTagsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualAppliancesClient", "UpdateTags", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -581,7 +630,6 @@ func (client VirtualAppliancesClient) UpdateTagsSender(req *http.Request) (*http
 func (client VirtualAppliancesClient) UpdateTagsResponder(resp *http.Response) (result VirtualAppliance, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

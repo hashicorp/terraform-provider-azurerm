@@ -6,11 +6,12 @@ import (
 )
 
 type Client struct {
-	AnalyticsItemsClient *insights.AnalyticsItemsClient
-	APIKeysClient        *insights.APIKeysClient
-	ComponentsClient     *insights.ComponentsClient
-	WebTestsClient       *insights.WebTestsClient
-	BillingClient        *insights.ComponentCurrentBillingFeaturesClient
+	AnalyticsItemsClient     *insights.AnalyticsItemsClient
+	APIKeysClient            *insights.APIKeysClient
+	ComponentsClient         *insights.ComponentsClient
+	WebTestsClient           *insights.WebTestsClient
+	BillingClient            *insights.ComponentCurrentBillingFeaturesClient
+	SmartDetectionRuleClient *insights.ProactiveDetectionConfigurationsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -29,11 +30,15 @@ func NewClient(o *common.ClientOptions) *Client {
 	billingClient := insights.NewComponentCurrentBillingFeaturesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&billingClient.Client, o.ResourceManagerAuthorizer)
 
+	smartDetectionRuleClient := insights.NewProactiveDetectionConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&smartDetectionRuleClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
-		AnalyticsItemsClient: &analyticsItemsClient,
-		APIKeysClient:        &apiKeysClient,
-		ComponentsClient:     &componentsClient,
-		WebTestsClient:       &webTestsClient,
-		BillingClient:        &billingClient,
+		AnalyticsItemsClient:     &analyticsItemsClient,
+		APIKeysClient:            &apiKeysClient,
+		ComponentsClient:         &componentsClient,
+		WebTestsClient:           &webTestsClient,
+		BillingClient:            &billingClient,
+		SmartDetectionRuleClient: &smartDetectionRuleClient,
 	}
 }

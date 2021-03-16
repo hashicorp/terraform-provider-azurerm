@@ -13,10 +13,6 @@ Use this data source to access information about a Policy Definition, both custo
 ## Example Usage
 
 ```hcl
-provider "azurerm" {
-  features {}
-}
-
 data "azurerm_policy_definition" "example" {
   display_name = "Allowed resource types"
 }

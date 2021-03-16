@@ -84,6 +84,7 @@ func (client DelegationSettingsClient) CreateOrUpdate(ctx context.Context, resou
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.DelegationSettingsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -127,7 +128,6 @@ func (client DelegationSettingsClient) CreateOrUpdateSender(req *http.Request) (
 func (client DelegationSettingsClient) CreateOrUpdateResponder(resp *http.Response) (result PortalDelegationSettings, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -174,6 +174,7 @@ func (client DelegationSettingsClient) Get(ctx context.Context, resourceGroupNam
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.DelegationSettingsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -211,7 +212,6 @@ func (client DelegationSettingsClient) GetSender(req *http.Request) (*http.Respo
 func (client DelegationSettingsClient) GetResponder(resp *http.Response) (result PortalDelegationSettings, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -258,6 +258,7 @@ func (client DelegationSettingsClient) GetEntityTag(ctx context.Context, resourc
 	result, err = client.GetEntityTagResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.DelegationSettingsClient", "GetEntityTag", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -295,7 +296,6 @@ func (client DelegationSettingsClient) GetEntityTagSender(req *http.Request) (*h
 func (client DelegationSettingsClient) GetEntityTagResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -341,6 +341,7 @@ func (client DelegationSettingsClient) ListSecrets(ctx context.Context, resource
 	result, err = client.ListSecretsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.DelegationSettingsClient", "ListSecrets", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -378,7 +379,6 @@ func (client DelegationSettingsClient) ListSecretsSender(req *http.Request) (*ht
 func (client DelegationSettingsClient) ListSecretsResponder(resp *http.Response) (result PortalSettingValidationKeyContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -428,6 +428,7 @@ func (client DelegationSettingsClient) Update(ctx context.Context, resourceGroup
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.DelegationSettingsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -468,7 +469,6 @@ func (client DelegationSettingsClient) UpdateSender(req *http.Request) (*http.Re
 func (client DelegationSettingsClient) UpdateResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp

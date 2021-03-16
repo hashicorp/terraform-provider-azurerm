@@ -53,8 +53,8 @@ func (client CustomResourceProviderClient) CreateOrUpdate(ctx context.Context, r
 		ctx = tracing.StartSpan(ctx, fqdn+"/CustomResourceProviderClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -74,7 +74,7 @@ func (client CustomResourceProviderClient) CreateOrUpdate(ctx context.Context, r
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "customproviders.CustomResourceProviderClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "customproviders.CustomResourceProviderClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -112,7 +112,33 @@ func (client CustomResourceProviderClient) CreateOrUpdateSender(req *http.Reques
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client CustomResourceProviderClient) (crm CustomRPManifest, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "customproviders.CustomResourceProviderCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("customproviders.CustomResourceProviderCreateOrUpdateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		crm.Response.Response, err = future.GetResult(sender)
+		if crm.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "customproviders.CustomResourceProviderCreateOrUpdateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && crm.Response.Response.StatusCode != http.StatusNoContent {
+			crm, err = client.CreateOrUpdateResponder(crm.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "customproviders.CustomResourceProviderCreateOrUpdateFuture", "Result", crm.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -121,7 +147,6 @@ func (client CustomResourceProviderClient) CreateOrUpdateSender(req *http.Reques
 func (client CustomResourceProviderClient) CreateOrUpdateResponder(resp *http.Response) (result CustomRPManifest, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -138,8 +163,8 @@ func (client CustomResourceProviderClient) Delete(ctx context.Context, resourceG
 		ctx = tracing.StartSpan(ctx, fqdn+"/CustomResourceProviderClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -159,7 +184,7 @@ func (client CustomResourceProviderClient) Delete(ctx context.Context, resourceG
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "customproviders.CustomResourceProviderClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "customproviders.CustomResourceProviderClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -195,7 +220,23 @@ func (client CustomResourceProviderClient) DeleteSender(req *http.Request) (futu
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client CustomResourceProviderClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "customproviders.CustomResourceProviderDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("customproviders.CustomResourceProviderDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -204,7 +245,6 @@ func (client CustomResourceProviderClient) DeleteSender(req *http.Request) (futu
 func (client CustomResourceProviderClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -249,6 +289,7 @@ func (client CustomResourceProviderClient) Get(ctx context.Context, resourceGrou
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "customproviders.CustomResourceProviderClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -286,7 +327,6 @@ func (client CustomResourceProviderClient) GetSender(req *http.Request) (*http.R
 func (client CustomResourceProviderClient) GetResponder(resp *http.Response) (result CustomRPManifest, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -325,6 +365,11 @@ func (client CustomResourceProviderClient) ListByResourceGroup(ctx context.Conte
 	result.lbcrm, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "customproviders.CustomResourceProviderClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.lbcrm.hasNextLink() && result.lbcrm.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -361,7 +406,6 @@ func (client CustomResourceProviderClient) ListByResourceGroupSender(req *http.R
 func (client CustomResourceProviderClient) ListByResourceGroupResponder(resp *http.Response) (result ListByCustomRPManifest, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -435,6 +479,11 @@ func (client CustomResourceProviderClient) ListBySubscription(ctx context.Contex
 	result.lbcrm, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "customproviders.CustomResourceProviderClient", "ListBySubscription", resp, "Failure responding to request")
+		return
+	}
+	if result.lbcrm.hasNextLink() && result.lbcrm.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -470,7 +519,6 @@ func (client CustomResourceProviderClient) ListBySubscriptionSender(req *http.Re
 func (client CustomResourceProviderClient) ListBySubscriptionResponder(resp *http.Response) (result ListByCustomRPManifest, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -555,6 +603,7 @@ func (client CustomResourceProviderClient) Update(ctx context.Context, resourceG
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "customproviders.CustomResourceProviderClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -594,7 +643,6 @@ func (client CustomResourceProviderClient) UpdateSender(req *http.Request) (*htt
 func (client CustomResourceProviderClient) UpdateResponder(resp *http.Response) (result CustomRPManifest, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

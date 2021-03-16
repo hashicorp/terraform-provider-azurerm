@@ -73,6 +73,7 @@ func (client OperationClient) Validate(ctx context.Context, vaultName string, re
 	result, err = client.ValidateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.OperationClient", "Validate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -112,7 +113,6 @@ func (client OperationClient) ValidateSender(req *http.Request) (*http.Response,
 func (client OperationClient) ValidateResponder(resp *http.Response) (result ValidateOperationsResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

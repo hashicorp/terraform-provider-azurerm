@@ -70,6 +70,11 @@ func (client EdgeNodesClient) List(ctx context.Context) (result EdgenodeResultPa
 	result.er, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.EdgeNodesClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.er.hasNextLink() && result.er.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -101,7 +106,6 @@ func (client EdgeNodesClient) ListSender(req *http.Request) (*http.Response, err
 func (client EdgeNodesClient) ListResponder(resp *http.Response) (result EdgenodeResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

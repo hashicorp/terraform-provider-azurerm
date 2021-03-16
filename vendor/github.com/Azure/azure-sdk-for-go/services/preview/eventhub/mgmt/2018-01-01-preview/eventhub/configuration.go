@@ -84,6 +84,7 @@ func (client ConfigurationClient) Get(ctx context.Context, resourceGroupName str
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.ConfigurationClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -121,7 +122,6 @@ func (client ConfigurationClient) GetSender(req *http.Request) (*http.Response, 
 func (client ConfigurationClient) GetResponder(resp *http.Response) (result ClusterQuotaConfigurationProperties, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -172,6 +172,7 @@ func (client ConfigurationClient) Patch(ctx context.Context, resourceGroupName s
 	result, err = client.PatchResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.ConfigurationClient", "Patch", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -211,7 +212,6 @@ func (client ConfigurationClient) PatchSender(req *http.Request) (*http.Response
 func (client ConfigurationClient) PatchResponder(resp *http.Response) (result ClusterQuotaConfigurationProperties, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

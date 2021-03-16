@@ -86,6 +86,7 @@ func (client ProactiveDetectionConfigurationsClient) Get(ctx context.Context, re
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ProactiveDetectionConfigurationsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -124,7 +125,6 @@ func (client ProactiveDetectionConfigurationsClient) GetSender(req *http.Request
 func (client ProactiveDetectionConfigurationsClient) GetResponder(resp *http.Response) (result ApplicationInsightsComponentProactiveDetectionConfiguration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -173,6 +173,7 @@ func (client ProactiveDetectionConfigurationsClient) List(ctx context.Context, r
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ProactiveDetectionConfigurationsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -210,7 +211,6 @@ func (client ProactiveDetectionConfigurationsClient) ListSender(req *http.Reques
 func (client ProactiveDetectionConfigurationsClient) ListResponder(resp *http.Response) (result ListApplicationInsightsComponentProactiveDetectionConfiguration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
@@ -263,6 +263,7 @@ func (client ProactiveDetectionConfigurationsClient) Update(ctx context.Context,
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ProactiveDetectionConfigurationsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -303,7 +304,6 @@ func (client ProactiveDetectionConfigurationsClient) UpdateSender(req *http.Requ
 func (client ProactiveDetectionConfigurationsClient) UpdateResponder(resp *http.Response) (result ApplicationInsightsComponentProactiveDetectionConfiguration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

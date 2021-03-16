@@ -53,8 +53,8 @@ func (client IntegrationServiceEnvironmentManagedApisClient) Delete(ctx context.
 		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationServiceEnvironmentManagedApisClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -67,7 +67,7 @@ func (client IntegrationServiceEnvironmentManagedApisClient) Delete(ctx context.
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentManagedApisClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentManagedApisClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -104,7 +104,23 @@ func (client IntegrationServiceEnvironmentManagedApisClient) DeleteSender(req *h
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client IntegrationServiceEnvironmentManagedApisClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentManagedApisDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("logic.IntegrationServiceEnvironmentManagedApisDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -113,7 +129,6 @@ func (client IntegrationServiceEnvironmentManagedApisClient) DeleteSender(req *h
 func (client IntegrationServiceEnvironmentManagedApisClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -152,6 +167,7 @@ func (client IntegrationServiceEnvironmentManagedApisClient) Get(ctx context.Con
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentManagedApisClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -190,7 +206,6 @@ func (client IntegrationServiceEnvironmentManagedApisClient) GetSender(req *http
 func (client IntegrationServiceEnvironmentManagedApisClient) GetResponder(resp *http.Response) (result ManagedAPI, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -230,6 +245,11 @@ func (client IntegrationServiceEnvironmentManagedApisClient) List(ctx context.Co
 	result.malr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentManagedApisClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.malr.hasNextLink() && result.malr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -267,7 +287,6 @@ func (client IntegrationServiceEnvironmentManagedApisClient) ListSender(req *htt
 func (client IntegrationServiceEnvironmentManagedApisClient) ListResponder(resp *http.Response) (result ManagedAPIListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -322,8 +341,8 @@ func (client IntegrationServiceEnvironmentManagedApisClient) Put(ctx context.Con
 		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationServiceEnvironmentManagedApisClient.Put")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -336,7 +355,7 @@ func (client IntegrationServiceEnvironmentManagedApisClient) Put(ctx context.Con
 
 	result, err = client.PutSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentManagedApisClient", "Put", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentManagedApisClient", "Put", nil, "Failure sending request")
 		return
 	}
 
@@ -373,7 +392,33 @@ func (client IntegrationServiceEnvironmentManagedApisClient) PutSender(req *http
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client IntegrationServiceEnvironmentManagedApisClient) (ma ManagedAPI, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentManagedApisPutFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("logic.IntegrationServiceEnvironmentManagedApisPutFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		ma.Response.Response, err = future.GetResult(sender)
+		if ma.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentManagedApisPutFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && ma.Response.Response.StatusCode != http.StatusNoContent {
+			ma, err = client.PutResponder(ma.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentManagedApisPutFuture", "Result", ma.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -382,7 +427,6 @@ func (client IntegrationServiceEnvironmentManagedApisClient) PutSender(req *http
 func (client IntegrationServiceEnvironmentManagedApisClient) PutResponder(resp *http.Response) (result ManagedAPI, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

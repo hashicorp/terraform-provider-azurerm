@@ -92,6 +92,11 @@ func (client ReportsClient) ListByAPI(ctx context.Context, resourceGroupName str
 	result.rc, err = client.ListByAPIResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.ReportsClient", "ListByAPI", resp, "Failure responding to request")
+		return
+	}
+	if result.rc.hasNextLink() && result.rc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -139,7 +144,6 @@ func (client ReportsClient) ListByAPISender(req *http.Request) (*http.Response, 
 func (client ReportsClient) ListByAPIResponder(resp *http.Response) (result ReportCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -243,6 +247,11 @@ func (client ReportsClient) ListByGeo(ctx context.Context, resourceGroupName str
 	result.rc, err = client.ListByGeoResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.ReportsClient", "ListByGeo", resp, "Failure responding to request")
+		return
+	}
+	if result.rc.hasNextLink() && result.rc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -287,7 +296,6 @@ func (client ReportsClient) ListByGeoSender(req *http.Request) (*http.Response, 
 func (client ReportsClient) ListByGeoResponder(resp *http.Response) (result ReportCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -393,6 +401,11 @@ func (client ReportsClient) ListByOperation(ctx context.Context, resourceGroupNa
 	result.rc, err = client.ListByOperationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.ReportsClient", "ListByOperation", resp, "Failure responding to request")
+		return
+	}
+	if result.rc.hasNextLink() && result.rc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -440,7 +453,6 @@ func (client ReportsClient) ListByOperationSender(req *http.Request) (*http.Resp
 func (client ReportsClient) ListByOperationResponder(resp *http.Response) (result ReportCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -545,6 +557,11 @@ func (client ReportsClient) ListByProduct(ctx context.Context, resourceGroupName
 	result.rc, err = client.ListByProductResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.ReportsClient", "ListByProduct", resp, "Failure responding to request")
+		return
+	}
+	if result.rc.hasNextLink() && result.rc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -592,7 +609,6 @@ func (client ReportsClient) ListByProductSender(req *http.Request) (*http.Respon
 func (client ReportsClient) ListByProductResponder(resp *http.Response) (result ReportCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -689,6 +705,7 @@ func (client ReportsClient) ListByRequest(ctx context.Context, resourceGroupName
 	result, err = client.ListByRequestResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.ReportsClient", "ListByRequest", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -733,7 +750,6 @@ func (client ReportsClient) ListByRequestSender(req *http.Request) (*http.Respon
 func (client ReportsClient) ListByRequestResponder(resp *http.Response) (result RequestReportCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -801,6 +817,11 @@ func (client ReportsClient) ListBySubscription(ctx context.Context, resourceGrou
 	result.rc, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.ReportsClient", "ListBySubscription", resp, "Failure responding to request")
+		return
+	}
+	if result.rc.hasNextLink() && result.rc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -848,7 +869,6 @@ func (client ReportsClient) ListBySubscriptionSender(req *http.Request) (*http.R
 func (client ReportsClient) ListBySubscriptionResponder(resp *http.Response) (result ReportCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -956,6 +976,11 @@ func (client ReportsClient) ListByTime(ctx context.Context, resourceGroupName st
 	result.rc, err = client.ListByTimeResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.ReportsClient", "ListByTime", resp, "Failure responding to request")
+		return
+	}
+	if result.rc.hasNextLink() && result.rc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -1004,7 +1029,6 @@ func (client ReportsClient) ListByTimeSender(req *http.Request) (*http.Response,
 func (client ReportsClient) ListByTimeResponder(resp *http.Response) (result ReportCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1110,6 +1134,11 @@ func (client ReportsClient) ListByUser(ctx context.Context, resourceGroupName st
 	result.rc, err = client.ListByUserResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.ReportsClient", "ListByUser", resp, "Failure responding to request")
+		return
+	}
+	if result.rc.hasNextLink() && result.rc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -1157,7 +1186,6 @@ func (client ReportsClient) ListByUserSender(req *http.Request) (*http.Response,
 func (client ReportsClient) ListByUserResponder(resp *http.Response) (result ReportCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

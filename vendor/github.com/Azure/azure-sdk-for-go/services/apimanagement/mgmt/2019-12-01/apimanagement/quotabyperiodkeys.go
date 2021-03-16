@@ -88,6 +88,7 @@ func (client QuotaByPeriodKeysClient) Get(ctx context.Context, resourceGroupName
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.QuotaByPeriodKeysClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -127,7 +128,6 @@ func (client QuotaByPeriodKeysClient) GetSender(req *http.Request) (*http.Respon
 func (client QuotaByPeriodKeysClient) GetResponder(resp *http.Response) (result QuotaCounterContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -145,7 +145,7 @@ func (client QuotaByPeriodKeysClient) GetResponder(resp *http.Response) (result 
 // by "ba" key
 // quotaPeriodKey - quota period key identifier.
 // parameters - the value of the Quota counter to be applied on the specified period.
-func (client QuotaByPeriodKeysClient) Update(ctx context.Context, resourceGroupName string, serviceName string, quotaCounterKey string, quotaPeriodKey string, parameters QuotaCounterValueContractProperties) (result autorest.Response, err error) {
+func (client QuotaByPeriodKeysClient) Update(ctx context.Context, resourceGroupName string, serviceName string, quotaCounterKey string, quotaPeriodKey string, parameters QuotaCounterValueUpdateContract) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/QuotaByPeriodKeysClient.Update")
 		defer func() {
@@ -180,13 +180,14 @@ func (client QuotaByPeriodKeysClient) Update(ctx context.Context, resourceGroupN
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.QuotaByPeriodKeysClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
 }
 
 // UpdatePreparer prepares the Update request.
-func (client QuotaByPeriodKeysClient) UpdatePreparer(ctx context.Context, resourceGroupName string, serviceName string, quotaCounterKey string, quotaPeriodKey string, parameters QuotaCounterValueContractProperties) (*http.Request, error) {
+func (client QuotaByPeriodKeysClient) UpdatePreparer(ctx context.Context, resourceGroupName string, serviceName string, quotaCounterKey string, quotaPeriodKey string, parameters QuotaCounterValueUpdateContract) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"quotaCounterKey":   autorest.Encode("path", quotaCounterKey),
 		"quotaPeriodKey":    autorest.Encode("path", quotaPeriodKey),
@@ -221,7 +222,6 @@ func (client QuotaByPeriodKeysClient) UpdateSender(req *http.Request) (*http.Res
 func (client QuotaByPeriodKeysClient) UpdateResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp

@@ -82,6 +82,7 @@ func (client SetDefinitionsClient) CreateOrUpdate(ctx context.Context, policySet
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policy.SetDefinitionsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -123,7 +124,6 @@ func (client SetDefinitionsClient) CreateOrUpdateSender(req *http.Request) (*htt
 func (client SetDefinitionsClient) CreateOrUpdateResponder(resp *http.Response) (result SetDefinition, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -171,6 +171,7 @@ func (client SetDefinitionsClient) CreateOrUpdateAtManagementGroup(ctx context.C
 	result, err = client.CreateOrUpdateAtManagementGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policy.SetDefinitionsClient", "CreateOrUpdateAtManagementGroup", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -212,7 +213,6 @@ func (client SetDefinitionsClient) CreateOrUpdateAtManagementGroupSender(req *ht
 func (client SetDefinitionsClient) CreateOrUpdateAtManagementGroupResponder(resp *http.Response) (result SetDefinition, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -250,6 +250,7 @@ func (client SetDefinitionsClient) Delete(ctx context.Context, policySetDefiniti
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policy.SetDefinitionsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -286,7 +287,6 @@ func (client SetDefinitionsClient) DeleteSender(req *http.Request) (*http.Respon
 func (client SetDefinitionsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -325,6 +325,7 @@ func (client SetDefinitionsClient) DeleteAtManagementGroup(ctx context.Context, 
 	result, err = client.DeleteAtManagementGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policy.SetDefinitionsClient", "DeleteAtManagementGroup", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -361,7 +362,6 @@ func (client SetDefinitionsClient) DeleteAtManagementGroupSender(req *http.Reque
 func (client SetDefinitionsClient) DeleteAtManagementGroupResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -398,6 +398,7 @@ func (client SetDefinitionsClient) Get(ctx context.Context, policySetDefinitionN
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policy.SetDefinitionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -434,7 +435,6 @@ func (client SetDefinitionsClient) GetSender(req *http.Request) (*http.Response,
 func (client SetDefinitionsClient) GetResponder(resp *http.Response) (result SetDefinition, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -474,6 +474,7 @@ func (client SetDefinitionsClient) GetAtManagementGroup(ctx context.Context, pol
 	result, err = client.GetAtManagementGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policy.SetDefinitionsClient", "GetAtManagementGroup", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -510,7 +511,6 @@ func (client SetDefinitionsClient) GetAtManagementGroupSender(req *http.Request)
 func (client SetDefinitionsClient) GetAtManagementGroupResponder(resp *http.Response) (result SetDefinition, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -548,6 +548,7 @@ func (client SetDefinitionsClient) GetBuiltIn(ctx context.Context, policySetDefi
 	result, err = client.GetBuiltInResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policy.SetDefinitionsClient", "GetBuiltIn", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -583,7 +584,6 @@ func (client SetDefinitionsClient) GetBuiltInSender(req *http.Request) (*http.Re
 func (client SetDefinitionsClient) GetBuiltInResponder(resp *http.Response) (result SetDefinition, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -620,6 +620,11 @@ func (client SetDefinitionsClient) List(ctx context.Context) (result SetDefiniti
 	result.sdlr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policy.SetDefinitionsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.sdlr.hasNextLink() && result.sdlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -655,7 +660,6 @@ func (client SetDefinitionsClient) ListSender(req *http.Request) (*http.Response
 func (client SetDefinitionsClient) ListResponder(resp *http.Response) (result SetDefinitionListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -729,6 +733,11 @@ func (client SetDefinitionsClient) ListBuiltIn(ctx context.Context) (result SetD
 	result.sdlr, err = client.ListBuiltInResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policy.SetDefinitionsClient", "ListBuiltIn", resp, "Failure responding to request")
+		return
+	}
+	if result.sdlr.hasNextLink() && result.sdlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -760,7 +769,6 @@ func (client SetDefinitionsClient) ListBuiltInSender(req *http.Request) (*http.R
 func (client SetDefinitionsClient) ListBuiltInResponder(resp *http.Response) (result SetDefinitionListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -837,6 +845,11 @@ func (client SetDefinitionsClient) ListByManagementGroup(ctx context.Context, ma
 	result.sdlr, err = client.ListByManagementGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policy.SetDefinitionsClient", "ListByManagementGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.sdlr.hasNextLink() && result.sdlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -872,7 +885,6 @@ func (client SetDefinitionsClient) ListByManagementGroupSender(req *http.Request
 func (client SetDefinitionsClient) ListByManagementGroupResponder(resp *http.Response) (result SetDefinitionListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

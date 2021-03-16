@@ -15,8 +15,8 @@ Manages an EventGrid Event Subscription
 
 ```hcl
 resource "azurerm_resource_group" "default" {
-  name     = "defaultResourceGroup"
-  location = "West US 2"
+  name     = "example-resources"
+  location = "West Europe"
 }
 
 resource "azurerm_storage_account" "default" {
@@ -174,7 +174,7 @@ Each nested block consists of a key and a value(s) element.
 
 * `values` - (Required) Specifies an array of values to compare to when using a multiple values operator.
 
-~> **NOTE:** A maximum of 5 advanced filters are allowed.
+~> **NOTE:** A maximum of total number of advanced filter values allowed on event subscription is 25.
 
 ---
 
@@ -190,7 +190,7 @@ A `retry_policy` supports the following:
 
 * `max_delivery_attempts` - (Required) Specifies the maximum number of delivery retry attempts for events.
 
-* `event_time_to_live` - (Required) Specifies the time to live (in minutes) for events.
+* `event_time_to_live` - (Required) Specifies the time to live (in minutes) for events. Supported range is `1` to `1440`. Defaults to `1440`. See [official documentation](https://docs.microsoft.com/en-us/azure/event-grid/manage-event-delivery#set-retry-policy) for more details.
 
 ## Attributes Reference
 
@@ -198,7 +198,7 @@ The following attributes are exported:
 
 * `id` - The ID of the EventGrid Event Subscription.
 
-* `topic_name` - (Optional) Specifies the name of the topic to associate with the event subscription.
+* `topic_name` - (Optional/ **Deprecated) Specifies the name of the topic to associate with the event subscription.
 
 ## Timeouts
 

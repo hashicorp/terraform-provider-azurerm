@@ -57,14 +57,86 @@ func dataSourceArmPolicySetDefinition() *schema.Resource {
 				Computed: true,
 			},
 
-			"policy_definitions": {
+			"policy_definitions": { // TODO -- remove in the next major version
 				Type:     schema.TypeString,
 				Computed: true,
+			},
+
+			"policy_definition_reference": { // TODO -- rename this back to `policy_definition` after the deprecation
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"policy_definition_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"parameters": { // TODO -- remove this attribute in the next major version
+							Type:     schema.TypeMap,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+
+						"parameter_values": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"reference_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"policy_group_names": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+					},
+				},
 			},
 
 			"policy_type": {
 				Type:     schema.TypeString,
 				Computed: true,
+			},
+
+			"policy_definition_group": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"display_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"category": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"description": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"additional_metadata_resource_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
 			},
 		},
 	}
@@ -86,16 +158,19 @@ func dataSourceArmPolicySetDefinitionRead(d *schema.ResourceData, meta interface
 	if displayName != "" {
 		setDefinition, err = getPolicySetDefinitionByDisplayName(ctx, client, displayName, managementGroupID)
 		if err != nil {
-			return fmt.Errorf("failed to read Policy Set Definition (Display Name %q): %+v", displayName, err)
+			return fmt.Errorf("reading Policy Set Definition (Display Name %q): %+v", displayName, err)
 		}
 	}
 	if name != "" {
 		setDefinition, err = getPolicySetDefinitionByName(ctx, client, name, managementGroupID)
 		if err != nil {
-			return fmt.Errorf("failed to read Policy Set Definition %q: %+v", name, err)
+			return fmt.Errorf("reading Policy Set Definition %q: %+v", name, err)
 		}
 	}
 
+	if setDefinition.ID == nil || *setDefinition.ID == "" {
+		return fmt.Errorf("empty or nil ID returned for Policy Set Definition %q", name)
+	}
 	d.SetId(*setDefinition.ID)
 	d.Set("name", setDefinition.Name)
 	d.Set("display_name", setDefinition.DisplayName)
@@ -103,17 +178,29 @@ func dataSourceArmPolicySetDefinitionRead(d *schema.ResourceData, meta interface
 	d.Set("policy_type", setDefinition.PolicyType)
 	d.Set("metadata", flattenJSON(setDefinition.Metadata))
 
-	if paramsStr, err := flattenParameterDefintionsValueToString(setDefinition.Parameters); err != nil {
-		return fmt.Errorf("unable to flatten JSON for `parameters`: %+v", err)
+	if paramsStr, err := flattenParameterDefinitionsValueToString(setDefinition.Parameters); err != nil {
+		return fmt.Errorf("flattening JSON for `parameters`: %+v", err)
 	} else {
 		d.Set("parameters", paramsStr)
 	}
 
 	definitionBytes, err := json.Marshal(setDefinition.PolicyDefinitions)
 	if err != nil {
-		return fmt.Errorf("unable to flatten JSON for `policy_defintions`: %+v", err)
+		return fmt.Errorf("flattening JSON for `policy_defintions`: %+v", err)
 	}
 	d.Set("policy_definitions", string(definitionBytes))
+
+	references, err := flattenAzureRMPolicySetDefinitionPolicyDefinitions(setDefinition.PolicyDefinitions)
+	if err != nil {
+		return fmt.Errorf("flattening `policy_definition_reference`: %+v", err)
+	}
+	if err := d.Set("policy_definition_reference", references); err != nil {
+		return fmt.Errorf("setting `policy_definition_reference`: %+v", err)
+	}
+
+	if err := d.Set("policy_definition_group", flattenAzureRMPolicySetDefinitionPolicyGroups(setDefinition.PolicyDefinitionGroups)); err != nil {
+		return fmt.Errorf("setting `policy_definition_group`: %+v", err)
+	}
 
 	return nil
 }
