@@ -174,7 +174,7 @@ func resourceArmExpressRouteConnectionCreateUpdate(d *schema.ResourceData, meta 
 		expressRouteConnectionParameters.ExpressRouteConnectionProperties.RoutingConfiguration = expandArmExpressRouteConnectionRouting(v.([]interface{}))
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, expressRouteGatewayId.Name, name, expressRouteConnectionParameters)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ExpressRouteGatewayName, name, expressRouteConnectionParameters)
 	if err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}

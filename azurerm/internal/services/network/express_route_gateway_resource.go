@@ -12,9 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -26,10 +24,9 @@ func resourceExpressRouteGateway() *schema.Resource {
 		Update: resourceExpressRouteGatewayCreateUpdate,
 		Delete: resourceExpressRouteGatewayDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.ExpressRouteGatewayID(id)
-			return err
-		}),
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(90 * time.Minute),
@@ -69,7 +66,6 @@ func resourceExpressRouteGateway() *schema.Resource {
 }
 
 func resourceExpressRouteGatewayCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Network.ExpressRouteGatewaysClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -79,18 +75,16 @@ func resourceExpressRouteGatewayCreateUpdate(d *schema.ResourceData, meta interf
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	id := parse.NewExpressRouteGatewayID(subscriptionId, resourceGroup, name)
-
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Error checking for present of existing ExpressRoute Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_express_route_gateway", id.ID())
+		if resp.ID != nil && *resp.ID != "" {
+			return tf.ImportAsExistsError("azurerm_express_route_gateway", *resp.ID)
 		}
 	}
 
@@ -122,7 +116,14 @@ func resourceExpressRouteGatewayCreateUpdate(d *schema.ResourceData, meta interf
 		return fmt.Errorf("Error waiting for creation of ExpressRoute Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	d.SetId(id.ID())
+	resp, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error retrieving ExpressRoute Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+	if resp.ID == nil || *resp.ID == "" {
+		return fmt.Errorf("Cannot read ExpressRoute Gateway %q (Resource Group %q) ID", name, resourceGroup)
+	}
+	d.SetId(*resp.ID)
 
 	return resourceExpressRouteGatewayRead(d, meta)
 }
@@ -132,23 +133,25 @@ func resourceExpressRouteGatewayRead(d *schema.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ExpressRouteGatewayID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
+	resourceGroup := id.ResourceGroup
+	name := id.Path["expressRouteGateways"]
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] ExpressRoute Gateway %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading ExpressRoute Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Error reading ExpressRoute Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -175,22 +178,24 @@ func resourceExpressRouteGatewayDelete(d *schema.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ExpressRouteGatewayID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
+	resourceGroup := id.ResourceGroup
+	name := id.Path["expressRouteGateways"]
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error deleting ExpressRoute Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Error deleting ExpressRoute Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error waiting for deleting ExpressRoute Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("Error waiting for deleting ExpressRoute Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
