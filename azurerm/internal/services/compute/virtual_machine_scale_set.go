@@ -1449,7 +1449,7 @@ func expandVirtualMachineScaleSetExtensions(input []interface{}) (extensionProfi
 		if val, ok := extensionRaw["protected_settings"]; ok && val.(string) != "" {
 			protectedSettings, err := structure.ExpandJsonFromString(val.(string))
 			if err != nil {
-				return nil, false, fmt.Errorf("failed to parse JSON from `settings`: %+v", err)
+				return nil, false, fmt.Errorf("failed to parse JSON from `protected_settings`: %+v", err)
 			}
 			extensionProps.ProtectedSettings = protectedSettings
 		}

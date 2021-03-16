@@ -157,7 +157,7 @@ func TestAccWindowsVirtualMachineScaleSet_extensionUpdate(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_extensionsRollingUpgradeWithHealthExtension(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_extensionsRollingUpgradeWithHealthExtension(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -172,7 +172,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_extensionsRollingUpgradeWithHea
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_otherVmExtensionsAutomaticUpgradeWithHealthExtension(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_otherVmExtensionsAutomaticUpgradeWithHealthExtension(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 

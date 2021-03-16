@@ -157,7 +157,7 @@ func TestAccLinuxVirtualMachineScaleSet_extensionsUpdate(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLinuxVirtualMachineScaleSet_extensionsRollingUpgradeWithHealthExtension(t *testing.T) {
+func TestAccLinuxVirtualMachineScaleSet_extensionsRollingUpgradeWithHealthExtension(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
@@ -172,7 +172,7 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_extensionsRollingUpgradeWithHealt
 	})
 }
 
-func TestAccAzureRMLinuxVirtualMachineScaleSet_extensionsAutomaticUpgradeWithHealthExtension(t *testing.T) {
+func TestAccLinuxVirtualMachineScaleSet_extensionsAutomaticUpgradeWithHealthExtension(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
