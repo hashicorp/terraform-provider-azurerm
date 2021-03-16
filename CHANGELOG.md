@@ -1,5 +1,9 @@
 ## 2.52.0 (Unreleased)
 
+ENHANCEMENTS:
+
+* dependencies: updating to `v52.4.0` of `github.com/Azure/azure-sdk-for-go` [GH-10982]
+
 BUG FIXES:
 
 * `azurerm_cosmosdb_account_resource` - marking `connection_string` as sensitive [GH-10942]
