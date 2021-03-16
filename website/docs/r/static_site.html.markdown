@@ -3,12 +3,14 @@ subcategory: "App Service (Web Apps)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_static_site"
 description: |-
-  Manages an App Service Static Site.
+  Manages a Static Site.
 ---
 
 # azurerm_static_site
 
 Manages an App Service Static Site.
+
+->**NOTE**: After the Static Site is provisioned, you'll need to associate your target repository, which contains your web app, to the Static Site, by following the [Azure Static Site document](https://docs.microsoft.com/en-us/azure/static-web-apps/github-actions-workflow).
 
 ## Example Usage
 
@@ -17,10 +19,6 @@ resource "azurerm_static_site" "example" {
   name                = "example"
   resource_group_name = "example"
   location            = "West Europe"
-  github_repo_url     = "https://github.com/example/static-web-app-example"
-  github_token        = "personal-access-token-github"
-  branch              = "release"
-  app_directory       = "/"
 }
 ```
 
@@ -34,26 +32,15 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Static Web App should exist. Changing this forces a new Static Web App to be created.
 
-* `app_directory` - (Required) The path to the Static Web App site code within the repository.
-
-* `branch` - (Required) The target branch in the repository.
-
-* `github_token` - (Required) A user's github repository token. This is used to setup the Github Actions workflow file and API secrets.
-
-* `github_repo_url` - (Required) URL for the repository of the Static Web App site.
- 
-* `api_directory` - (Optional) The path to the Function App api code within the repository.
-
-* `artifact_directory` - (Optional) The path of the Static Web App artifacts after building.
-
-* `tags` - (Optional) A mapping of tags which should be assigned to the Static Web App.
-
-
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
 * `id` - The ID of the Static Web App.
+
+* `api_key` - The API key of this Static Web App, which is used for later interacting with this Static Web App from other clients, e.g. Github Action.
+  
+* `default_host_name` - The default host name of the Static Web App.
 
 ## Timeouts
 

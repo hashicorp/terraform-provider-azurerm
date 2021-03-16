@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2019-08-01/web"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -12,7 +14,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -46,52 +47,29 @@ func resourceArmStaticSite() *schema.Resource {
 
 			"location": azure.SchemaLocation(),
 
-			"github_token": {
-				Type:      schema.TypeString,
-				Required:  true,
-				Sensitive: true,
-			},
-
-			"github_repo_url": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-
-			"branch": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-
-			"app_directory": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-
-			"api_directory": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "",
-			},
-
-			"artifact_directory": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "",
-			},
-
 			"sku_tier": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "Free",
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "Free",
+				ValidateFunc: validation.StringInSlice([]string{"Free"}, false),
 			},
 
 			"sku_size": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "Free",
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "Free",
+				ValidateFunc: validation.StringInSlice([]string{"Free"}, false),
 			},
 
-			"tags": tags.Schema(),
+			"default_host_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"api_key": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -120,37 +98,16 @@ func resourceArmStaticSiteCreateOrUpdate(d *schema.ResourceData, meta interface{
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	t := d.Get("tags").(map[string]interface{})
 
 	skuName := d.Get("sku_size").(string)
 	skuTier := d.Get("sku_tier").(string)
 
 	staticSiteSkuDescription := &web.SkuDescription{Name: &skuName, Tier: &skuTier}
 
-	githubRepoURL := d.Get("github_repo_url").(string)
-	branch := d.Get("branch").(string)
-	githubToken := d.Get("github_token").(string)
-
-	appDirectory := d.Get("app_directory").(string)
-	apiDirectory := d.Get("api_directory").(string)
-	artifactDirectory := d.Get("artifact_directory").(string)
-
-	staticSiteSourceControl := &web.StaticSite{
-		RepositoryURL:   &githubRepoURL,
-		Branch:          &branch,
-		RepositoryToken: &githubToken,
-		BuildProperties: &web.StaticSiteBuildProperties{
-			AppLocation:         &appDirectory,
-			APILocation:         &apiDirectory,
-			AppArtifactLocation: &artifactDirectory,
-		},
-	}
-
 	siteEnvelope := web.StaticSiteARMResource{
 		Sku:        staticSiteSkuDescription,
-		StaticSite: staticSiteSourceControl,
+		StaticSite: &web.StaticSite{},
 		Location:   &location,
-		Tags:       tags.Expand(t),
 	}
 
 	_, err := client.CreateOrUpdateStaticSite(ctx, resourceGroup, name, siteEnvelope)
@@ -197,54 +154,39 @@ func resourceArmStaticSiteRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	if resp.StaticSite != nil {
-		repoUrl := ""
-		if v := resp.StaticSite.RepositoryURL; v != nil {
-			repoUrl = *v
+	if prop := resp.StaticSite; prop != nil {
+		defaultHostname := ""
+		if prop.DefaultHostname != nil {
+			defaultHostname = *prop.DefaultHostname
 		}
-		d.Set("github_repo_url", repoUrl)
-
-		branch := ""
-		if v := resp.StaticSite.Branch; v != nil {
-			branch = *v
-		}
-		d.Set("branch", branch)
-
-		if resp.StaticSite.BuildProperties != nil {
-			appLocation := ""
-			if v := resp.StaticSite.BuildProperties.AppLocation; v != nil {
-				appLocation = *v
-			}
-			d.Set("app_directory", appLocation)
-
-			apiLocation := ""
-			if v := resp.StaticSite.BuildProperties.APILocation; v != nil {
-				apiLocation = *v
-			}
-			d.Set("api_directory", apiLocation)
-
-			appArtifactLocation := ""
-			if v := resp.StaticSite.BuildProperties.AppArtifactLocation; v != nil {
-				appArtifactLocation = *v
-			}
-			d.Set("artifact_directory", appArtifactLocation)
-		}
+		d.Set("default_host_name", defaultHostname)
 	}
-	if resp.Sku != nil {
-		skuName := "Free"
-		if v := resp.Sku.Name; v != nil {
+	if sku := resp.Sku; sku != nil {
+		skuName := ""
+		if v := sku.Name; v != nil {
 			skuName = *v
 		}
 		d.Set("sku_size", skuName)
 
-		skuTier := "Free"
-		if v := resp.Sku.Tier; v != nil {
+		skuTier := ""
+		if v := sku.Tier; v != nil {
 			skuTier = *v
 		}
 		d.Set("sku_tier", skuTier)
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	secretResp, err := client.ListStaticSiteSecrets(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return fmt.Errorf("listing secretes for %s: %v", id, err)
+	}
+
+	apiKey := ""
+	if pkey := secretResp.Properties["apiKey"]; pkey != nil {
+		apiKey = *pkey
+	}
+	d.Set("api_key", apiKey)
+
+	return nil
 }
 
 func resourceArmStaticSiteDelete(d *schema.ResourceData, meta interface{}) error {
