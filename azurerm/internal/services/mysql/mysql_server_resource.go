@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2020-01-01/mysql"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/response"
@@ -34,20 +36,17 @@ func resourceMySqlServer() *schema.Resource {
 		Update: resourceMySqlServerUpdate,
 		Delete: resourceMySqlServerDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-				if _, err := parse.ServerID(d.Id()); err != nil {
-					return []*schema.ResourceData{d}, err
-				}
+		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
+			_, err := parse.ServerID(id)
+			return err
+		}, func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+			d.Set("create_mode", "Default")
+			if v, ok := d.GetOk("create_mode"); ok && v.(string) != "" {
+				d.Set("create_mode", v)
+			}
 
-				d.Set("create_mode", "Default")
-				if v, ok := d.GetOk("create_mode"); ok && v.(string) != "" {
-					d.Set("create_mode", v)
-				}
-
-				return []*schema.ResourceData{d}, nil
-			},
-		},
+			return []*schema.ResourceData{d}, nil
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),
