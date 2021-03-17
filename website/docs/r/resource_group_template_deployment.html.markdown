@@ -55,12 +55,22 @@ resource "azurerm_resource_group_template_deployment" "example" {
                 }
             }
         }
-    ]
+    ],
+    "outputs": {
+      "exampleOutput": {
+        "type": "string",
+        "value": "someoutput"
+      }
+    }
 }
 TEMPLATE
 
   // NOTE: whilst we show an inline template here, we recommend
   // sourcing this from a file for readability/editor support
+}
+
+output arm_example_output {
+  value = jsondecode(azurerm_resource_group_template_deployment.example.output_content).exampleOutput.value
 }
 ```
 
@@ -95,6 +105,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `id` - The ID of the Resource Group Template Deployment.
 
 * `output_content` - The JSON Content of the Outputs of the ARM Template Deployment.
+
+-> An example of how to consume ARM Template outputs in Terraform can be seen in the example.
 
 ## Timeouts
 
