@@ -15,7 +15,7 @@ func MaintenanceConfigurationID(input interface{}, key string) (warnings []strin
 		return
 	}
 
-	if _, err := parse.MaintenanceConfigurationIDInsensitively(v); err != nil {
+	if _, err := parse.MaintenanceConfigurationID(v); err != nil {
 		errors = append(errors, err)
 	}
 
