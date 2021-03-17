@@ -35,7 +35,7 @@ func resourceArmMaintenanceConfiguration() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.MaintenanceConfigurationID(id)
+			_, err := parse.MaintenanceConfigurationIDInsensitively(id)
 			return err
 		}),
 
@@ -135,7 +135,7 @@ func resourceArmMaintenanceConfigurationRead(d *schema.ResourceData, meta interf
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MaintenanceConfigurationID(d.Id())
+	id, err := parse.MaintenanceConfigurationIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
@@ -164,7 +164,7 @@ func resourceArmMaintenanceConfigurationDelete(d *schema.ResourceData, meta inte
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MaintenanceConfigurationID(d.Id())
+	id, err := parse.MaintenanceConfigurationIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
