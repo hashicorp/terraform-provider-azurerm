@@ -72,7 +72,7 @@ func TestAccMariaDbConfiguration_logSlowAdminStatements(t *testing.T) {
 		{
 			Config: r.logSlowAdminStatements(data),
 			Check: resource.ComposeTestCheckFunc(
-				data.CheckWithClient(checkValueIs("On")),
+				data.CheckWithClient(checkValueIs("on")),
 			),
 		},
 		data.ImportStep(),
