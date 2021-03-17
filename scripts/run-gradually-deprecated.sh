@@ -14,7 +14,7 @@ function runGraduallyDeprecatedFunctions {
     echo ""
     echo "In the future this function will be marked as Deprecated - however it's not for"
     echo "the moment to not conflict with open Pull Requests."
-    echo 1
+    exit 1
   fi
 
   # using Resource ID Formatters/Parsers
@@ -54,7 +54,7 @@ function runGraduallyDeprecatedFunctions {
     echo "New Resources should be using Resource ID Formatters/Parsers by default"
     echo "however existing (unmodified) resources can continue to use the Azure ID"
     echo "for the moment - but over time these will be switched across."
-    echo 1
+    exit 1
   fi
 }
 
@@ -69,7 +69,7 @@ function runDeprecatedFunctions {
     echo "Please remove the references to 'd.SetId("") from the Data Sources listed below"
     echo "and raise an error instead:"
     echo ""
-    echo 1
+    exit 1
   fi
 }
 
