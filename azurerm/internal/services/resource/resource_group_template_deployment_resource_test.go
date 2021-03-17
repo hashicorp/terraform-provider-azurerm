@@ -78,7 +78,7 @@ func TestAccResourceGroupTemplateDeployment_singleItemIncorrectCasing(t *testing
 	})
 }
 
-func TestAccResourceGroupTemplateDeployment_singleItemSameParams(t *testing.T) {
+func TestAccResourceGroupTemplateDeployment_singleItemUpdateTemplateWithUnchangedParams(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
 	r := ResourceGroupTemplateDeploymentResource{}
 
@@ -91,8 +91,8 @@ func TestAccResourceGroupTemplateDeployment_singleItemSameParams(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-      // Update the ARM template to trigger update on resource BUT don't vary the parameter value
-      // Validates fix for bug #8840
+			// Update the ARM template to trigger update on resource BUT don't vary the parameter value
+			// Validates fix for bug #8840
 			Config: r.singleItemWithParameterConfigAndVariable(data, "forceupdatetemplate", "first"),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
