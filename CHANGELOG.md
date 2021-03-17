@@ -7,6 +7,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_cosmosdb_account_resource` - marking `connection_string` as sensitive [GH-10942]
+* `azurerm_local_network_gateway` - making the `address_space` property optional [GH-10983]
 * `azurerm_management_group` - validation for `subscription_id` list property entries [GH-10948]
 
 ## 2.51.0 (March 12, 2021)
