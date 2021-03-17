@@ -18,12 +18,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmStaticSite() *schema.Resource {
+func resourceStaticSite() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmStaticSiteCreateOrUpdate,
-		Read:   resourceArmStaticSiteRead,
-		Update: resourceArmStaticSiteCreateOrUpdate,
-		Delete: resourceArmStaticSiteDelete,
+		Create: resourceStaticSiteCreateOrUpdate,
+		Read:   resourceStaticSiteRead,
+		Update: resourceStaticSiteCreateOrUpdate,
+		Delete: resourceStaticSiteDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -74,7 +74,7 @@ func resourceArmStaticSite() *schema.Resource {
 	}
 }
 
-func resourceArmStaticSiteCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceStaticSiteCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.StaticSitesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -125,10 +125,10 @@ func resourceArmStaticSiteCreateOrUpdate(d *schema.ResourceData, meta interface{
 
 	d.SetId(*read.ID)
 
-	return resourceArmStaticSiteRead(d, meta)
+	return resourceStaticSiteRead(d, meta)
 }
 
-func resourceArmStaticSiteRead(d *schema.ResourceData, meta interface{}) error {
+func resourceStaticSiteRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.StaticSitesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -189,7 +189,7 @@ func resourceArmStaticSiteRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceArmStaticSiteDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceStaticSiteDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.StaticSitesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
