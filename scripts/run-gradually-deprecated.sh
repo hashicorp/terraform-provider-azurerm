@@ -2,9 +2,9 @@
 
 function runGraduallyDeprecatedFunctions {
   echo "==> Checking for use of gradually deprecated functions..."
-  
+
   # require resources to be imported is now hard-coded on - but only checking for additions
-  result=$(git diff master | grep + | grep -R "features\.ShouldResourcesBeImported")
+  result=$(git diff origin/master | grep + | grep -R "features\.ShouldResourcesBeImported")
   if [ "$result" != "" ];
   then
     echo "The Feature Flag for 'ShouldResourcesBeImported' will be deprecated in the future"
@@ -18,7 +18,7 @@ function runGraduallyDeprecatedFunctions {
   fi
 
   # using Resource ID Formatters/Parsers
-  result=$(git diff master | grep + | grep -R "d\.SetId(\*")
+  result=$(git diff origin/master | grep + | grep -R "d\.SetId(\*")
   if [ "$result" != "" ];
   then
     echo "Due to the Azure API returning the Resource ID's inconsistently - Terraform"
