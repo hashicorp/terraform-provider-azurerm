@@ -16,7 +16,7 @@ func TestAccDataSourceKeyVaultManagedHardwareSecurityModule_basic(t *testing.T) 
 	data := acceptance.BuildTestData(t, "data.azurerm_key_vault_managed_hardware_security_module", "test")
 	r := KeyVaultManagedHardwareSecurityModuleDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTestInSequence(t, []resource.TestStep{
 		{
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
