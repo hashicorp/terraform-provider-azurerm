@@ -78,6 +78,30 @@ func TestAccResourceGroupTemplateDeployment_singleItemIncorrectCasing(t *testing
 	})
 }
 
+func TestAccResourceGroupTemplateDeployment_singleItemSameParams(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
+	r := ResourceGroupTemplateDeploymentResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.singleItemWithParameterConfigAndVariable(data, "templateVariableValue1", "first"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+      // Update the ARM template to trigger update on resource BUT don't vary the parameter value
+      // Validates fix for bug #8840
+			Config: r.singleItemWithParameterConfigAndVariable(data, "forceupdatetemplate", "first"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccResourceGroupTemplateDeployment_singleItemUpdatingParams(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
 	r := ResourceGroupTemplateDeploymentResource{}
@@ -344,6 +368,54 @@ TEMPLATE
 PARAM
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, value)
+}
+
+func (ResourceGroupTemplateDeploymentResource) singleItemWithParameterConfigAndVariable(data acceptance.TestData, templateVar string, paramVal string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestrg-%d"
+  location = %q
+}
+
+resource "azurerm_resource_group_template_deployment" "test" {
+  name                = "acctest"
+  resource_group_name = azurerm_resource_group.test.name
+  deployment_mode     = "Complete"
+
+  template_content = <<TEMPLATE
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "someParam": {
+      "type": "String",
+      "allowedValues": [
+        "first",
+        "second",
+        "third"
+      ]
+    }
+  },
+  "variables": {
+    "forceChangeInTemplate": %q
+  },
+  "resources": []
+}
+TEMPLATE
+
+  parameters_content = <<PARAM
+{
+  "someParam": {
+   "value": %q
+  }
+}
+PARAM
+}
+`, data.RandomInteger, data.Locations.Primary, templateVar, paramVal)
 }
 
 func (ResourceGroupTemplateDeploymentResource) singleItemWithParameterConfig(data acceptance.TestData, value string) string {
