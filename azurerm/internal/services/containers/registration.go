@@ -31,10 +31,11 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_container_group":              resourceContainerGroup(),
-		"azurerm_container_registry_webhook":   resourceContainerRegistryWebhook(),
-		"azurerm_container_registry":           resourceContainerRegistry(),
-		"azurerm_kubernetes_cluster":           resourceKubernetesCluster(),
-		"azurerm_kubernetes_cluster_node_pool": resourceKubernetesClusterNodePool(),
+		"azurerm_container_group":                resourceContainerGroup(),
+		"azurerm_container_registry_replication": resourceContainerRegistryReplication(),
+		"azurerm_container_registry_webhook":     resourceContainerRegistryWebhook(),
+		"azurerm_container_registry":             resourceContainerRegistry(),
+		"azurerm_kubernetes_cluster":             resourceKubernetesCluster(),
+		"azurerm_kubernetes_cluster_node_pool":   resourceKubernetesClusterNodePool(),
 	}
 }

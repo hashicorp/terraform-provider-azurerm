@@ -14,6 +14,10 @@ Manages an Azure Container Registry.
 ~> **Note:** All arguments including the access key will be stored in the raw state as plain-text.
 [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 
+~> **NOTE on Container Registry and Container Registry Replication's:** Terraform currently
+provides both a standalone [Container Registry Replication](container_registry_replication.html), and allows for replications to be defined in-line within the [Container Registry](container_registry.html).
+At this time you cannot use a Container Registry with in-line Replication in conjunction with any Container Registry Replication resources. Doing so will cause a conflict of Replication configurations.
+
 ## Example Usage
 
 ```hcl

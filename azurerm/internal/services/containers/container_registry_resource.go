@@ -74,8 +74,9 @@ func resourceContainerRegistry() *schema.Resource {
 
 			"georeplication_locations": {
 				Type:     schema.TypeSet,
-				MinItems: 1,
 				Optional: true,
+				// Resource azurerm_container_registry_replication is provided to configure replications. Marking it as computed to avoid unnecessary diff.
+				Computed: true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
