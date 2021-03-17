@@ -866,8 +866,10 @@ func resourceKubernetesClusterCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if v, ok := d.GetOk("private_dns_zone_id"); ok {
-		if (parameters.Identity == nil && !servicePrincipalSet) || (v.(string) != "System" && (!servicePrincipalSet && parameters.Identity.Type != containerservice.ResourceIdentityTypeUserAssigned)) {
-			return fmt.Errorf("a user assigned identity or a service principal must be used when using a custom private dns zone")
+		if v.(string) != "None" {
+			if (parameters.Identity == nil && !servicePrincipalSet) || (v.(string) != "System" && (!servicePrincipalSet && parameters.Identity.Type != containerservice.ResourceIdentityTypeUserAssigned)) {
+				return fmt.Errorf("a user assigned identity or a service principal must be used when using a custom private dns zone hosted in Azure")
+			}
 		}
 		apiAccessProfile.PrivateDNSZone = utils.String(v.(string))
 	}
