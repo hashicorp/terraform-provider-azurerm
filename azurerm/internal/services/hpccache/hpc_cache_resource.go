@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2020-03-01/storagecache"
+	"github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2021-03-01/storagecache"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -85,6 +85,7 @@ func resourceHPCCache() *schema.Resource {
 				ValidateFunc: validation.IntBetween(576, 1500),
 			},
 
+			// TODO 3.0: remove this property
 			"root_squash_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -93,6 +94,22 @@ func resourceHPCCache() *schema.Resource {
 				// break users, we intentionally mark this property as Computed.
 				// https://docs.microsoft.com/en-us/azure/hpc-cache/configuration#configure-root-squash.
 				Computed: true,
+			},
+
+			"security_setting": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				// Making this O+C to suppress the diff caused by default access rule
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:         schema.TypeString,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						// TODO
+					},
+				},
 			},
 
 			"mount_addresses": {
@@ -130,7 +147,7 @@ func resourceHPCCacheCreateOrUpdate(d *schema.ResourceData, meta interface{}) er
 	cacheSize := d.Get("cache_size_in_gb").(int)
 	subnet := d.Get("subnet_id").(string)
 	skuName := d.Get("sku_name").(string)
-	rootSquash := d.Get("root_squash_enabled").(bool)
+	//rootSquash := d.Get("root_squash_enabled").(bool)
 	mtu := d.Get("mtu").(int)
 
 	cache := &storagecache.Cache{
@@ -143,7 +160,7 @@ func resourceHPCCacheCreateOrUpdate(d *schema.ResourceData, meta interface{}) er
 				Mtu: utils.Int32(int32(mtu)),
 			},
 			SecuritySettings: &storagecache.CacheSecuritySettings{
-				RootSquash: &rootSquash,
+				//RootSquash: &rootSquash,
 			},
 		},
 		Sku: &storagecache.CacheSku{
@@ -205,7 +222,7 @@ func resourceHPCCacheRead(d *schema.ResourceData, meta interface{}) error {
 			d.Set("mtu", props.NetworkSettings.Mtu)
 		}
 		if props.SecuritySettings != nil {
-			d.Set("root_squash_enabled", props.SecuritySettings.RootSquash)
+			//d.Set("root_squash_enabled", props.SecuritySettings.RootSquash)
 		}
 	}
 

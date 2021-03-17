@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2020-03-01/storagecache"
+	"github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2021-03-01/storagecache"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -105,9 +105,9 @@ func resourceHPCCacheBlobTargetCreateOrUpdate(d *schema.ResourceData, meta inter
 		},
 	}
 	param := &storagecache.StorageTarget{
-		BasicStorageTargetProperties: &storagecache.ClfsTargetProperties{
+		StorageTargetProperties: &storagecache.StorageTargetProperties{
 			Junctions:  &namespaceJunction,
-			TargetType: storagecache.TargetTypeClfs,
+			TargetType: storagecache.StorageTargetTypeClfs,
 			Clfs: &storagecache.ClfsTarget{
 				Target: utils.String(containerId),
 			},
@@ -162,15 +162,14 @@ func resourceHPCCacheBlobTargetRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("cache_name", id.CacheName)
 
-	if props := resp.BasicStorageTargetProperties; props != nil {
-		props, ok := props.AsClfsTargetProperties()
-		if !ok {
+	if props := resp.StorageTargetProperties; props != nil {
+		if props.TargetType != storagecache.StorageTargetTypeClfs {
 			return fmt.Errorf("The type of this HPC Cache Target %q (Resource Group %q, Cahe %q) is not a Blob Target", id.Name, id.ResourceGroup, id.CacheName)
 		}
 
 		storageContainerId := ""
-		if props.Clfs != nil && props.Clfs.Target != nil {
-			storageContainerId = *props.Clfs.Target
+		if clfs := props.Clfs; clfs != nil && clfs.Target != nil {
+			storageContainerId = *clfs.Target
 		}
 		d.Set("storage_container_id", storageContainerId)
 

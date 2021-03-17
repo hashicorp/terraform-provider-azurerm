@@ -80,7 +80,7 @@ func (HPCCacheBlobTargetResource) Exists(ctx context.Context, clients *clients.C
 		return nil, fmt.Errorf("retrieving HPC Cache Blob Target (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.BasicStorageTargetProperties != nil), nil
+	return utils.Bool(resp.ID != nil), nil
 }
 
 func (r HPCCacheBlobTargetResource) basic(data acceptance.TestData) string {

@@ -116,7 +116,7 @@ func (HPCCacheNFSTargetResource) Exists(ctx context.Context, clients *clients.Cl
 		return nil, fmt.Errorf("retrieving HPC Cache NFS Target (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.BasicStorageTargetProperties != nil), nil
+	return utils.Bool(resp.ID != nil), nil
 }
 
 func (r HPCCacheNFSTargetResource) basic(data acceptance.TestData) string {
