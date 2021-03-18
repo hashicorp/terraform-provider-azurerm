@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 * dependencies: updating to `v52.4.0` of `github.com/Azure/azure-sdk-for-go` [GH-10982]
+* `azurerm_api_management_subscription` - making `user_id` property optional [GH-10638}
 
 BUG FIXES:
 
