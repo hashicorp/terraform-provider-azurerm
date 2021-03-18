@@ -270,7 +270,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-%d"
+  name     = "acctestRG-lngw-%d"
   location = "%s"
 }
 
@@ -305,7 +305,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-%d"
+  name     = "acctestRG-lngw-%d"
   location = "%s"
 }
 
@@ -330,7 +330,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-%d"
+  name     = "acctestRG-lngw-%d"
   location = "%s"
 }
 
@@ -356,7 +356,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-%d"
+  name     = "acctestRG-lngw-%d"
   location = "%s"
 }
 
@@ -383,7 +383,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-%d"
+  name     = "acctestRG-lngw-%d"
   location = "%s"
 }
 
@@ -403,7 +403,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-%d"
+  name     = "acctestRG-lngw-%d"
   location = "%s"
 }
 
@@ -424,7 +424,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-%d"
+  name     = "acctestRG-lngw-%d"
   location = "%s"
 }
 
