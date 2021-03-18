@@ -3,6 +3,7 @@ package hpccache
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2021-03-01/storagecache"
@@ -93,21 +94,80 @@ func resourceHPCCache() *schema.Resource {
 				// The old resource has no consistent default for the rootSquash setting. In order not to
 				// break users, we intentionally mark this property as Computed.
 				// https://docs.microsoft.com/en-us/azure/hpc-cache/configuration#configure-root-squash.
-				Computed: true,
+				Computed:   true,
+				Deprecated: "This is deprecated in favor of `default_access_policy.0.access_rule.x.root_squash_enabled`, where the scope of access_rule is `default`. Will be removed in v3.0",
 			},
 
-			"security_setting": {
-				Type:     schema.TypeSet,
+			"default_access_policy": {
+				Type:     schema.TypeList,
+				MinItems: 1,
+				MaxItems: 1,
 				Optional: true,
-				// Making this O+C to suppress the diff caused by default access rule
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:         schema.TypeString,
-							ValidateFunc: validation.StringIsNotEmpty,
+						"access_rule": {
+							Type:     schema.TypeSet,
+							Required: true,
+							MinItems: 1,
+							MaxItems: 3,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"scope": {
+										Type:     schema.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(storagecache.Default),
+											string(storagecache.Network),
+											string(storagecache.Host),
+										}, false),
+									},
+
+									"access": {
+										Type:     schema.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(storagecache.NfsAccessRuleAccessRw),
+											string(storagecache.NfsAccessRuleAccessRo),
+											string(storagecache.NfsAccessRuleAccessNo),
+										}, false),
+									},
+
+									"filter": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
+									"suid_enabled": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+
+									"submount_access_enabled": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+
+									"root_squash_enabled": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+
+									"anonymous_uid": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(0, 4294967295),
+									},
+
+									"anonymous_gid": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(0, 4294967295),
+									},
+								},
+							},
 						},
-						// TODO
 					},
 				},
 			},
@@ -123,6 +183,7 @@ func resourceHPCCache() *schema.Resource {
 
 func resourceHPCCacheCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HPCCache.CachesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -130,16 +191,18 @@ func resourceHPCCacheCreateOrUpdate(d *schema.ResourceData, meta interface{}) er
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
+	id := parse.NewCacheID(subscriptionId, resourceGroup, name)
+
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing HPC Cache %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("Error checking for presence of existing HPC Cache %q: %s", id, err)
 			}
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_hpc_cache", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_hpc_cache", id.ID())
 		}
 	}
 
@@ -147,8 +210,25 @@ func resourceHPCCacheCreateOrUpdate(d *schema.ResourceData, meta interface{}) er
 	cacheSize := d.Get("cache_size_in_gb").(int)
 	subnet := d.Get("subnet_id").(string)
 	skuName := d.Get("sku_name").(string)
-	//rootSquash := d.Get("root_squash_enabled").(bool)
 	mtu := d.Get("mtu").(int)
+
+	defaultAccessPolicy, err := expandStorageCacheNfsAccessPolicy(d.Get("default_access_policy").([]interface{}), d.Get("root_squash_enabled").(bool))
+	if err != nil {
+		return err
+	}
+
+	accessPolicies := []storagecache.NfsAccessPolicy{}
+	if !d.IsNewResource() {
+		var err error
+		accessPolicies, err = cacheGetExistingAccessPolicies(ctx, client, id)
+		if err != nil {
+			return err
+		}
+		accessPolicies, err = cacheInsertOrUpdateAccessPolicy(accessPolicies, *defaultAccessPolicy)
+		if err != nil {
+			return err
+		}
+	}
 
 	cache := &storagecache.Cache{
 		Name:     utils.String(name),
@@ -160,7 +240,7 @@ func resourceHPCCacheCreateOrUpdate(d *schema.ResourceData, meta interface{}) er
 				Mtu: utils.Int32(int32(mtu)),
 			},
 			SecuritySettings: &storagecache.CacheSecuritySettings{
-				//RootSquash: &rootSquash,
+				AccessPolicies: &accessPolicies,
 			},
 		},
 		Sku: &storagecache.CacheSku{
@@ -207,7 +287,7 @@ func resourceHPCCacheRead(d *schema.ResourceData, meta interface{}) error {
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving HPC Cache %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Error retrieving HPC Cache %q: %+v", id, err)
 	}
 
 	d.Set("name", id.Name)
@@ -221,8 +301,30 @@ func resourceHPCCacheRead(d *schema.ResourceData, meta interface{}) error {
 		if props.NetworkSettings != nil {
 			d.Set("mtu", props.NetworkSettings.Mtu)
 		}
-		if props.SecuritySettings != nil {
-			//d.Set("root_squash_enabled", props.SecuritySettings.RootSquash)
+		if securitySettings := props.SecuritySettings; securitySettings != nil {
+			if securitySettings.AccessPolicies != nil {
+				defaultPolicy, ok := cacheGetAccessPolicyByName(*securitySettings.AccessPolicies, "default")
+				log.Printf("[WARN] Found default policy: %v", ok)
+				if ok {
+					defaultAccessPolicy, err := flattenStorageCacheNfsAccessPolicy(defaultPolicy)
+					if err != nil {
+						return err
+					}
+					if err := d.Set("default_access_policy", defaultAccessPolicy); err != nil {
+						return fmt.Errorf("setting `default_access_policy`: %v", err)
+					}
+
+					// Set the "root_squash_enabled" for backward compatibility.
+					deprecatedRootSquashEnabled := false
+					if defaultPolicy.AccessRules != nil {
+						accessRule, ok := cacheGetAccessPolicyRuleByScope(*defaultPolicy.AccessRules, storagecache.Default)
+						if ok && accessRule.RootSquash != nil {
+							deprecatedRootSquashEnabled = *accessRule.RootSquash
+						}
+					}
+					d.Set("root_squash_enabled", deprecatedRootSquashEnabled)
+				}
+			}
 		}
 	}
 
@@ -253,4 +355,114 @@ func resourceHPCCacheDelete(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	return nil
+}
+
+func expandStorageCacheNfsAccessPolicy(input []interface{}, deprecatedRootSquashed bool) (*storagecache.NfsAccessPolicy, error) {
+	// Use the deprecated "root_squashed_enabled" property to setup the default scoped access policy for backward compatibility.
+	if len(input) == 0 {
+		accessRules := []storagecache.NfsAccessRule{
+			{
+				Scope:          storagecache.Default,
+				Access:         storagecache.NfsAccessRuleAccessRw,
+				Suid:           utils.Bool(false),
+				SubmountAccess: utils.Bool(true),
+				RootSquash:     utils.Bool(false),
+			},
+		}
+
+		return &storagecache.NfsAccessPolicy{
+			Name:        utils.String("default"),
+			AccessRules: &accessRules,
+		}, nil
+	}
+
+	if deprecatedRootSquashed {
+		return nil, fmt.Errorf("`root_squashed_enabled` can't be used together with `default_access_policy`, prefer using the latter one exclusively")
+	}
+
+	accessRules := []storagecache.NfsAccessRule{}
+
+	for _, accessRuleRaw := range input[0].(map[string]interface{})["access_rule"].([]interface{}) {
+		b := accessRuleRaw.(map[string]interface{})
+		accessRules = append(accessRules, storagecache.NfsAccessRule{
+			Scope:          storagecache.NfsAccessRuleScope(b["scope"].(string)),
+			Access:         storagecache.NfsAccessRuleAccess(b["access"].(string)),
+			Filter:         utils.String(b["filter"].(string)),
+			Suid:           utils.Bool(b["suid_enabled"].(bool)),
+			SubmountAccess: utils.Bool(b["submount_access_enabled"].(bool)),
+			RootSquash:     utils.Bool(b["root_squash_enabled"].(bool)),
+			AnonymousUID:   utils.String(strconv.Itoa(b["anonymous_uid"].(int))),
+			AnonymousGID:   utils.String(strconv.Itoa(b["anonymous_gid"].(int))),
+		})
+	}
+
+	return &storagecache.NfsAccessPolicy{
+		Name:        utils.String("default"),
+		AccessRules: &accessRules,
+	}, nil
+}
+
+func flattenStorageCacheNfsAccessPolicy(input storagecache.NfsAccessPolicy) ([]interface{}, error) {
+	accessRules := input.AccessRules
+	if accessRules == nil || len(*accessRules) == 0 {
+		return nil, nil
+	}
+
+	var rules []interface{}
+	for _, accessRule := range *accessRules {
+		filter := ""
+		if accessRule.Filter != nil {
+			filter = *accessRule.Filter
+		}
+
+		suidEnabled := false
+		if accessRule.Suid != nil {
+			suidEnabled = *accessRule.Suid
+		}
+
+		submountAccessEnabled := false
+		if accessRule.SubmountAccess != nil {
+			submountAccessEnabled = *accessRule.SubmountAccess
+		}
+
+		rootSquashEnabled := false
+		if accessRule.RootSquash != nil {
+			rootSquashEnabled = *accessRule.RootSquash
+		}
+
+		anonymousUID := 0
+		if accessRule.AnonymousUID != nil {
+			var err error
+			anonymousUID, err = strconv.Atoi(*accessRule.AnonymousUID)
+			if err != nil {
+				return nil, fmt.Errorf("converting `anonymous_uid` from string to int")
+			}
+		}
+
+		anonymousGID := 0
+		if accessRule.AnonymousGID != nil {
+			var err error
+			anonymousGID, err = strconv.Atoi(*accessRule.AnonymousGID)
+			if err != nil {
+				return nil, fmt.Errorf("converting `anonymous_gid` from string to int")
+			}
+		}
+
+		rules = append(rules, map[string]interface{}{
+			"scope":                   accessRule.Scope,
+			"access":                  accessRule.Access,
+			"filter":                  filter,
+			"suid_enabled":            suidEnabled,
+			"submount_access_enabled": submountAccessEnabled,
+			"root_squash_enabled":     rootSquashEnabled,
+			"anonymous_uid":           anonymousUID,
+			"anonymous_gid":           anonymousGID,
+		})
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"access_rule": rules,
+		},
+	}, nil
 }
