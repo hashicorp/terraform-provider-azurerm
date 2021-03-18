@@ -8,6 +8,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_cosmosdb_account_resource` - marking `connection_string` as sensitive [GH-10942]
+*  `azurerm_eventhub_namespace_disaster_recovery_config` - deprecating the `alternate_name` property due to a service side API bug [GH-11013]
 * `azurerm_local_network_gateway` - making the `address_space` property optional [GH-10983]
 * `azurerm_management_group` - validation for `subscription_id` list property entries [GH-10948]
 
