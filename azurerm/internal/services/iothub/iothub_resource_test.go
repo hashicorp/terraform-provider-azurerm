@@ -797,12 +797,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-iothub-%d"
+  name     = "acctestRG-iothub-%d-1"
   location = "%s"
 }
 
 resource "azurerm_resource_group" "test2" {
-  name     = "acctestRG2-%d"
+  name     = "acctestRG-iothub-%d-2"
   location = "%s"
 }
 

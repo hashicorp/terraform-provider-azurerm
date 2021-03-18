@@ -951,7 +951,7 @@ func (r ApiManagementResource) virtualNetworkInternalAdditionalLocation(data acc
 %[1]s
 
 resource "azurerm_resource_group" "test2" {
-  name     = "acctestRG2-%[2]d"
+  name     = "acctestRG-%[2]d-2"
   location = "%[3]s"
 }
 
