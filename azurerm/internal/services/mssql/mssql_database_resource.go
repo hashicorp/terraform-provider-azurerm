@@ -598,6 +598,9 @@ func resourceMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("sku_name", props.CurrentServiceObjectiveName)
 		d.Set("storage_account_type", props.StorageAccountType)
 		d.Set("zone_redundant", props.ZoneRedundant)
+		if props.CreateMode != "" {
+			d.Set("create_mode", props.CreateMode)
+		}
 	}
 
 	threat, err := threatClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
