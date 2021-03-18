@@ -905,6 +905,7 @@ func resourceKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}) e
 	clusterClient := containersClient.KubernetesClustersClient
 	env := containersClient.Environment
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	ignoredTags := meta.(*clients.Client).Features.IgnoreTags
 	defer cancel()
 	tenantId := meta.(*clients.Client).Account.TenantId
 
@@ -1121,7 +1122,7 @@ func resourceKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}) e
 	if d.HasChange("tags") {
 		updateCluster = true
 		t := d.Get("tags").(map[string]interface{})
-		existing.Tags = tags.Expand(t)
+		existing.Tags = tags.IgnoreTags(tags.Expand(t), ignoredTags)
 	}
 
 	if d.HasChange("windows_profile") {
@@ -1233,6 +1234,7 @@ func resourceKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}) e
 func resourceKubernetesClusterRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.KubernetesClustersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	ignoredTags := meta.(*clients.Client).Features.IgnoreTags
 	defer cancel()
 
 	id, err := parse.ClusterID(d.Id())
@@ -1379,7 +1381,8 @@ func resourceKubernetesClusterRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("setting `kube_config`: %+v", err)
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	t := tags.IgnoreTags(resp.Tags, ignoredTags)
+	return tags.FlattenAndSet(d, t)
 }
 
 func resourceKubernetesClusterDelete(d *schema.ResourceData, meta interface{}) error {

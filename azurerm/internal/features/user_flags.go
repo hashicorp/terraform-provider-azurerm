@@ -7,6 +7,7 @@ type UserFeatures struct {
 	Network                NetworkFeatures
 	TemplateDeployment     TemplateDeploymentFeatures
 	LogAnalyticsWorkspace  LogAnalyticsWorkspaceFeatures
+	IgnoreTags             IgnoreTagsFeatures
 }
 
 type VirtualMachineFeatures struct {
@@ -33,4 +34,9 @@ type TemplateDeploymentFeatures struct {
 
 type LogAnalyticsWorkspaceFeatures struct {
 	PermanentlyDeleteOnDestroy bool
+}
+
+type IgnoreTagsFeatures struct {
+	Keys        []string
+	KeyPrefixes []string
 }

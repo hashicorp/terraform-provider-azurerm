@@ -99,6 +99,31 @@ func schemaFeatures(supportLegacyTestSuite bool) *schema.Schema {
 				},
 			},
 		},
+
+		"ignore_tags": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			MaxItems:    1,
+			Description: "Configuration block with settings to ignore resource tags across all resources.",
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"keys": {
+						Type:        schema.TypeSet,
+						Optional:    true,
+						Elem:        &schema.Schema{Type: schema.TypeString},
+						Set:         schema.HashString,
+						Description: "Resource tag keys to ignore across all resources.",
+					},
+					"key_prefixes": {
+						Type:        schema.TypeSet,
+						Optional:    true,
+						Elem:        &schema.Schema{Type: schema.TypeString},
+						Set:         schema.HashString,
+						Description: "Resource tag key prefixes to ignore across all resources.",
+					},
+				},
+			},
+		},
 	}
 
 	// this is a temporary hack to enable us to gradually add provider blocks to test configurations
@@ -196,6 +221,29 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			scaleSetRaw := items[0].(map[string]interface{})
 			if v, ok := scaleSetRaw["roll_instances_when_required"]; ok {
 				features.VirtualMachineScaleSet.RollInstancesWhenRequired = v.(bool)
+			}
+		}
+	}
+
+	if raw, ok := val["ignore_tags"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 {
+			keysRaw := items[0].(map[string]interface{})
+			if v, ok := keysRaw["keys"].(*schema.Set); ok {
+				t := make([]string, v.Len())
+				list := v.List()
+				for i, key := range list {
+					t[i] = key.(string)
+				}
+				features.IgnoreTags.Keys = t
+			}
+			if v, ok := keysRaw["key_prefixes"].(*schema.Set); ok {
+				t := make([]string, v.Len())
+				list := v.List()
+				for i, key := range list {
+					t[i] = key.(string)
+				}
+				features.IgnoreTags.KeyPrefixes = t
 			}
 		}
 	}
