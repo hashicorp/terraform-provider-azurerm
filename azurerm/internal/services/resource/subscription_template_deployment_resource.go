@@ -178,11 +178,15 @@ func subscriptionTemplateDeploymentResourceUpdate(d *schema.ResourceData, meta i
 		deployment.Properties.DebugSetting = expandTemplateDeploymentDebugSetting(d.Get("debug_level").(string))
 	}
 
-	parameters, err := expandTemplateDeploymentBody(d.Get("parameters_content").(string))
-	if err != nil {
-		return fmt.Errorf("expanding `parameters_content`: %+v", err)
+	if d.HasChange("parameters_content") {
+		parameters, err := expandTemplateDeploymentBody(d.Get("parameters_content").(string))
+		if err != nil {
+			return fmt.Errorf("expanding `parameters_content`: %+v", err)
+		}
+		deployment.Properties.Parameters = parameters
+	} else {
+		deployment.Properties.Parameters = template.Properties.Parameters
 	}
-	deployment.Properties.Parameters = parameters
 
 	if d.HasChange("template_content") {
 		templateContents, err := expandTemplateDeploymentBody(d.Get("template_content").(string))
