@@ -53,7 +53,7 @@ The following arguments are supported:
 
 * `product_id` - (Required) The ID of the Product which should be assigned to this Subscription. Changing this forces a new resource to be created.
 
-* `user_id` - (Required) The ID of the User which should be assigned to this Subscription. Changing this forces a new resource to be created.
+* `user_id` - (Optional) The ID of the User which should be assigned to this Subscription. Changing this forces a new resource to be created.
 
 ---
 
