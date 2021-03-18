@@ -1,5 +1,10 @@
 ## 2.52.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_mssql_firewall_rule` [GH-10954]
+* **New Resource:** `azurerm_mssql_virtual_network_rule` [GH-10954]
+
 ENHANCEMENTS:
 
 * dependencies: updating to `v52.4.0` of `github.com/Azure/azure-sdk-for-go` [GH-10982]
