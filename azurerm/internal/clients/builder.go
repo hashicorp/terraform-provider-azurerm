@@ -82,20 +82,20 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 	endpoint := env.ResourceManagerEndpoint
 	auth, err := builder.AuthConfig.GetAuthorizationToken(sender, oauthConfig, env.TokenAudience)
 	if err != nil {
-		return nil, fmt.Errorf("unabled to get authorization token for resource manager: %+v", err)
+		return nil, fmt.Errorf("unable to get authorization token for resource manager: %+v", err)
 	}
 
 	// Graph Endpoints
 	graphEndpoint := env.GraphEndpoint
 	graphAuth, err := builder.AuthConfig.GetAuthorizationToken(sender, oauthConfig, graphEndpoint)
 	if err != nil {
-		return nil, fmt.Errorf("unabled to get authorization token for graph endpoints: %+v", err)
+		return nil, fmt.Errorf("unable to get authorization token for graph endpoints: %+v", err)
 	}
 
 	// Storage Endpoints
 	storageAuth, err := builder.AuthConfig.GetAuthorizationToken(sender, oauthConfig, env.ResourceIdentifiers.Storage)
 	if err != nil {
-		return nil, fmt.Errorf("unabled to get authorization token for storage endpoints: %+v", err)
+		return nil, fmt.Errorf("unable to get authorization token for storage endpoints: %+v", err)
 	}
 
 	// Synapse Endpoints
@@ -103,7 +103,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 	if env.ResourceIdentifiers.Synapse != azure.NotAvailable {
 		synapseAuth, err = builder.AuthConfig.GetAuthorizationToken(sender, oauthConfig, env.ResourceIdentifiers.Synapse)
 		if err != nil {
-			return nil, fmt.Errorf("unabled to get authorization token for synapse endpoints: %+v", err)
+			return nil, fmt.Errorf("unable to get authorization token for synapse endpoints: %+v", err)
 		}
 	} else {
 		log.Printf("[DEBUG] Skipping building the Synapse Authorizer since this is not supported in the current Azure Environment")
