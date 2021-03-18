@@ -19,6 +19,72 @@ import (
 )
 
 func resourceHPCCache() *schema.Resource {
+	accessPolicySchema := &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"access_rule": {
+				Type:     schema.TypeSet,
+				Required: true,
+				MinItems: 1,
+				MaxItems: 3,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"scope": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(storagecache.Default),
+								string(storagecache.Network),
+								string(storagecache.Host),
+							}, false),
+						},
+
+						"access": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(storagecache.NfsAccessRuleAccessRw),
+								string(storagecache.NfsAccessRuleAccessRo),
+								string(storagecache.NfsAccessRuleAccessNo),
+							}, false),
+						},
+
+						"filter": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"suid_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+
+						"submount_access_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+
+						"root_squash_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+
+						"anonymous_uid": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(0, 4294967295),
+						},
+
+						"anonymous_gid": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(0, 4294967295),
+						},
+					},
+				},
+			},
+		},
+	}
 	return &schema.Resource{
 		Create: resourceHPCCacheCreateOrUpdate,
 		Update: resourceHPCCacheCreateOrUpdate,
@@ -103,73 +169,17 @@ func resourceHPCCache() *schema.Resource {
 				MinItems: 1,
 				MaxItems: 1,
 				Optional: true,
+				// This is computed because there is always a "default" policy in the cache. It is created together with the cache, and users can't remove it.
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"access_rule": {
-							Type:     schema.TypeSet,
-							Required: true,
-							MinItems: 1,
-							MaxItems: 3,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"scope": {
-										Type:     schema.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(storagecache.Default),
-											string(storagecache.Network),
-											string(storagecache.Host),
-										}, false),
-									},
+				Elem:     accessPolicySchema,
+			},
 
-									"access": {
-										Type:     schema.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(storagecache.NfsAccessRuleAccessRw),
-											string(storagecache.NfsAccessRuleAccessRo),
-											string(storagecache.NfsAccessRuleAccessNo),
-										}, false),
-									},
-
-									"filter": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-
-									"suid_enabled": {
-										Type:     schema.TypeBool,
-										Optional: true,
-									},
-
-									"submount_access_enabled": {
-										Type:     schema.TypeBool,
-										Optional: true,
-									},
-
-									"root_squash_enabled": {
-										Type:     schema.TypeBool,
-										Optional: true,
-									},
-
-									"anonymous_uid": {
-										Type:         schema.TypeInt,
-										Optional:     true,
-										ValidateFunc: validation.IntBetween(0, 4294967295),
-									},
-
-									"anonymous_gid": {
-										Type:         schema.TypeInt,
-										Optional:     true,
-										ValidateFunc: validation.IntBetween(0, 4294967295),
-									},
-								},
-							},
-						},
-					},
-				},
+			"custom_access_policy": {
+				// Order doesn't matter for the access policies, as each one will be selected by one namespace path.
+				Type:     schema.TypeSet,
+				MinItems: 1,
+				Optional: true,
+				Elem:     accessPolicySchema,
 			},
 
 			"mount_addresses": {
