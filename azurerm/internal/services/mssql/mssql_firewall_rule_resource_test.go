@@ -16,7 +16,7 @@ import (
 
 type SqlFirewallRuleResource struct{}
 
-func TestAccSqlFirewallRule_basic(t *testing.T) {
+func TestAccMsSqlFirewallRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_firewall_rule", "test")
 	r := SqlFirewallRuleResource{}
 
@@ -31,7 +31,7 @@ func TestAccSqlFirewallRule_basic(t *testing.T) {
 	})
 }
 
-func TestAccSqlFirewallRule_update(t *testing.T) {
+func TestAccMsSqlFirewallRule_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_firewall_rule", "test")
 	r := SqlFirewallRuleResource{}
 
@@ -53,7 +53,7 @@ func TestAccSqlFirewallRule_update(t *testing.T) {
 	})
 }
 
-func TestAccSqlFirewallRule_requiresImport(t *testing.T) {
+func TestAccMsSqlFirewallRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_firewall_rule", "test")
 	r := SqlFirewallRuleResource{}
 
