@@ -15,11 +15,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-type SqlVirtualNetworkRuleResource struct{}
+type MsSqlVirtualNetworkRuleResource struct{}
 
 func TestAccMsSqlVirtualNetworkRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_network_rule", "test")
-	r := SqlVirtualNetworkRuleResource{}
+	r := MsSqlVirtualNetworkRuleResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -34,7 +34,7 @@ func TestAccMsSqlVirtualNetworkRule_basic(t *testing.T) {
 
 func TestAccMsSqlVirtualNetworkRule_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_network_rule", "test")
-	r := SqlVirtualNetworkRuleResource{}
+	r := MsSqlVirtualNetworkRuleResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -56,7 +56,7 @@ func TestAccMsSqlVirtualNetworkRule_update(t *testing.T) {
 
 func TestAccMsSqlVirtualNetworkRule_ignoreMissingServiceEndpoint(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_network_rule", "test")
-	r := SqlVirtualNetworkRuleResource{}
+	r := MsSqlVirtualNetworkRuleResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -70,7 +70,7 @@ func TestAccMsSqlVirtualNetworkRule_ignoreMissingServiceEndpoint(t *testing.T) {
 
 func TestAccMsSqlVirtualNetworkRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_network_rule", "test")
-	r := SqlVirtualNetworkRuleResource{}
+	r := MsSqlVirtualNetworkRuleResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -83,7 +83,7 @@ func TestAccMsSqlVirtualNetworkRule_requiresImport(t *testing.T) {
 	})
 }
 
-func (r SqlVirtualNetworkRuleResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r MsSqlVirtualNetworkRuleResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.VirtualNetworkRuleID(state.ID)
 	if err != nil {
 		return nil, err
@@ -100,7 +100,7 @@ func (r SqlVirtualNetworkRuleResource) Exists(ctx context.Context, client *clien
 	return utils.Bool(true), nil
 }
 
-func (SqlVirtualNetworkRuleResource) template(data acceptance.TestData) string {
+func (MsSqlVirtualNetworkRuleResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -152,7 +152,7 @@ resource "azurerm_mssql_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r SqlVirtualNetworkRuleResource) basic(data acceptance.TestData) string {
+func (r MsSqlVirtualNetworkRuleResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -164,7 +164,7 @@ resource "azurerm_mssql_virtual_network_rule" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r SqlVirtualNetworkRuleResource) updated(data acceptance.TestData) string {
+func (r MsSqlVirtualNetworkRuleResource) updated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -176,7 +176,7 @@ resource "azurerm_mssql_virtual_network_rule" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r SqlVirtualNetworkRuleResource) ignoreMissingServiceEndpoint(data acceptance.TestData) string {
+func (r MsSqlVirtualNetworkRuleResource) ignoreMissingServiceEndpoint(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -190,7 +190,7 @@ resource "azurerm_mssql_virtual_network_rule" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r SqlVirtualNetworkRuleResource) requiresImport(data acceptance.TestData) string {
+func (r MsSqlVirtualNetworkRuleResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 

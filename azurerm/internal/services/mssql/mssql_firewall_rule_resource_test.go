@@ -14,11 +14,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-type SqlFirewallRuleResource struct{}
+type MsSqlFirewallRuleResource struct{}
 
 func TestAccMsSqlFirewallRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_firewall_rule", "test")
-	r := SqlFirewallRuleResource{}
+	r := MsSqlFirewallRuleResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -33,7 +33,7 @@ func TestAccMsSqlFirewallRule_basic(t *testing.T) {
 
 func TestAccMsSqlFirewallRule_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_firewall_rule", "test")
-	r := SqlFirewallRuleResource{}
+	r := MsSqlFirewallRuleResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -55,7 +55,7 @@ func TestAccMsSqlFirewallRule_update(t *testing.T) {
 
 func TestAccMsSqlFirewallRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_firewall_rule", "test")
-	r := SqlFirewallRuleResource{}
+	r := MsSqlFirewallRuleResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -68,7 +68,7 @@ func TestAccMsSqlFirewallRule_requiresImport(t *testing.T) {
 	})
 }
 
-func (r SqlFirewallRuleResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r MsSqlFirewallRuleResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.FirewallRuleID(state.ID)
 	if err != nil {
 		return nil, err
@@ -85,7 +85,7 @@ func (r SqlFirewallRuleResource) Exists(ctx context.Context, client *clients.Cli
 	return utils.Bool(true), nil
 }
 
-func (SqlFirewallRuleResource) template(data acceptance.TestData) string {
+func (MsSqlFirewallRuleResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -107,7 +107,7 @@ resource "azurerm_mssql_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r SqlFirewallRuleResource) basic(data acceptance.TestData) string {
+func (r MsSqlFirewallRuleResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -120,7 +120,7 @@ resource "azurerm_mssql_firewall_rule" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r SqlFirewallRuleResource) updated(data acceptance.TestData) string {
+func (r MsSqlFirewallRuleResource) updated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -133,7 +133,7 @@ resource "azurerm_mssql_firewall_rule" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r SqlFirewallRuleResource) requiresImport(data acceptance.TestData) string {
+func (r MsSqlFirewallRuleResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
