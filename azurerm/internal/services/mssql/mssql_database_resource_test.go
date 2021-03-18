@@ -225,7 +225,7 @@ func TestAccMsSqlDatabase_createCopyMode(t *testing.T) {
 				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
 			),
 		},
-		data.ImportStep("create_mode", "creation_source_database_id"),
+		data.ImportStep("creation_source_database_id"),
 	})
 }
 
@@ -250,7 +250,7 @@ func TestAccMsSqlDatabase_createPITRMode(t *testing.T) {
 			),
 		},
 
-		data.ImportStep("create_mode", "creation_source_database_id", "restore_point_in_time"),
+		data.ImportStep("creation_source_database_id", "restore_point_in_time"),
 	})
 }
 
@@ -268,7 +268,7 @@ func TestAccMsSqlDatabase_createSecondaryMode(t *testing.T) {
 				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
 			),
 		},
-		data.ImportStep("create_mode", "creation_source_database_id", "sample_name"),
+		data.ImportStep("creation_source_database_id", "sample_name"),
 	})
 }
 
@@ -318,7 +318,7 @@ func TestAccMsSqlDatabase_createRestoreMode(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("create_mode", "creation_source_database_id"),
+		data.ImportStep("creation_source_database_id"),
 
 		{
 			PreConfig: func() { time.Sleep(8 * time.Minute) },
@@ -339,7 +339,7 @@ func TestAccMsSqlDatabase_createRestoreMode(t *testing.T) {
 			),
 		},
 
-		data.ImportStep("create_mode", "restore_dropped_database_id"),
+		data.ImportStep("restore_dropped_database_id"),
 	})
 }
 
