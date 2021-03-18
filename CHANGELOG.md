@@ -1,21 +1,21 @@
-## 2.52.0 (Unreleased)
+## 2.52.0 (March 18, 2021)
 
 FEATURES:
 
-* **New Resource:** `azurerm_mssql_firewall_rule` [GH-10954]
-* **New Resource:** `azurerm_mssql_virtual_network_rule` [GH-10954]
+* **New Resource:** `azurerm_mssql_firewall_rule` ([#10954](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10954))
+* **New Resource:** `azurerm_mssql_virtual_network_rule` ([#10954](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10954))
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v52.4.0` of `github.com/Azure/azure-sdk-for-go` [GH-10982]
-* `azurerm_api_management_subscription` - making `user_id` property optional [GH-10638}
+* dependencies: updating to `v52.4.0` of `github.com/Azure/azure-sdk-for-go` ([#10982](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10982))
+* `azurerm_api_management_subscription` - making `user_id` property optional [[#10638](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10638)}
 
 BUG FIXES:
 
-* `azurerm_cosmosdb_account_resource` - marking `connection_string` as sensitive [GH-10942]
-*  `azurerm_eventhub_namespace_disaster_recovery_config` - deprecating the `alternate_name` property due to a service side API bug [GH-11013]
-* `azurerm_local_network_gateway` - making the `address_space` property optional [GH-10983]
-* `azurerm_management_group` - validation for `subscription_id` list property entries [GH-10948]
+* `azurerm_cosmosdb_account_resource` - marking `connection_string` as sensitive ([#10942](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10942))
+*  `azurerm_eventhub_namespace_disaster_recovery_config` - deprecating the `alternate_name` property due to a service side API bug ([#11013](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11013))
+* `azurerm_local_network_gateway` - making the `address_space` property optional ([#10983](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10983))
+* `azurerm_management_group` - validation for `subscription_id` list property entries ([#10948](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10948))
 
 ## 2.51.0 (March 12, 2021)
 
