@@ -1,0 +1,43 @@
+// For format details, see https://aka.ms/vscode-remote/devcontainer.json or this file's README at:
+// https://github.com/microsoft/vscode-dev-containers/tree/v0.106.0/containers/go
+{
+	"name": "azurerm",
+	"dockerFile": "Dockerfile",
+	"runArgs": [ "--cap-add=SYS_PTRACE", "--security-opt", "seccomp=unconfined" ],
+
+	// Set *default* container specific settings.json values on container create.
+	"settings": { 
+		"terminal.integrated.shell.linux": "/bin/bash",
+		"go.gopath": "/go",
+		"go.useLanguageServer": true,
+		"go.delveConfig": {
+			"dlvLoadConfig": {
+				"followPointers": true,
+				"maxVariableRecurse": 1,
+				"maxStringLen": 8192,
+				"maxArrayValues": 64,
+				"maxStructFields": -1
+			},
+			"apiVersion": 2,
+			"showGlobalVariables": true
+		},
+		"gopls": {
+			"ui.usePlaceholders": true, // add parameter placeholders when completing a function
+		},
+		"files.eol": "\n", // formatting only supports LF line endings	
+	},
+	
+	// Add the IDs of extensions you want installed when the container is created.
+	"extensions": [
+		"golang.go"
+	],
+
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	// "forwardPorts": [],
+
+	// Use 'postCreateCommand' to run commands after the container is created.
+	"postCreateCommand": "make tools",
+
+	// Uncomment to connect as a non-root user. See https://aka.ms/vscode-remote/containers/non-root.
+	// "remoteUser": "vscode"
+}
