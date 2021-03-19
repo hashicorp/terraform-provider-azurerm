@@ -77,7 +77,7 @@ func resourceMsSqlDatabase() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Computed: true,
+				Default:  string(sql.CreateModeDefault),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(sql.CreateModeCopy),
 					string(sql.CreateModeDefault),
