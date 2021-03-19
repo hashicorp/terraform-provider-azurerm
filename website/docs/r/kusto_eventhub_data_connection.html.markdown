@@ -96,7 +96,7 @@ The following arguments are supported:
 
 * `eventhub_id` - (Required) Specifies the resource id of the EventHub this data connection will use for ingestion. Changing this forces a new resource to be created.
 
-* `event_system_properties` - (Optional) Specifies a list of system properties of the Event Hub.
+* `event_system_properties` - (Optional) Specifies a list of system properties for the Event Hub.
 
 * `consumer_group` - (Required) Specifies the EventHub consumer group this data connection will use for ingestion. Changing this forces a new resource to be created.
 
