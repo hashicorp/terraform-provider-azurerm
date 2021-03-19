@@ -79,7 +79,7 @@ func resourceHealthbotServiceCreate(d *schema.ResourceData, meta interface{}) er
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	id := parse.NewHealthbotID(subscriptionId, resourceGroup, name).ID()
+	id := parse.NewHealthbotID(subscriptionId, resourceGroup, name)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
@@ -89,7 +89,7 @@ func resourceHealthbotServiceCreate(d *schema.ResourceData, meta interface{}) er
 			}
 		}
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_healthbot_service", id)
+			return tf.ImportAsExistsError("azurerm_healthbot_service", id.ID())
 		}
 	}
 
@@ -110,7 +110,7 @@ func resourceHealthbotServiceCreate(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
-	d.SetId(id)
+	d.SetId(id.ID())
 
 	return resourceHealthbotServiceRead(d, meta)
 }

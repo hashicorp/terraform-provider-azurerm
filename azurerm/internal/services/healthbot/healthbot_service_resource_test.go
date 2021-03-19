@@ -49,6 +49,20 @@ func TestAccHealthbot_complete(t *testing.T) {
 	r := HealthbotResource{}
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccHealthbot_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_healthbot_service", "test")
+	r := HealthbotResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
