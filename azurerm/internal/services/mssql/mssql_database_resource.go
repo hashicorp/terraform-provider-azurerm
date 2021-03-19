@@ -32,9 +32,16 @@ func resourceMsSqlDatabase() *schema.Resource {
 		Update: resourceMsSqlDatabaseCreateUpdate,
 		Delete: resourceMsSqlDatabaseDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.DatabaseID(id)
 			return err
+		}, func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+			d.Set("create_mode", "Default")
+			if v, ok := d.GetOk("create_mode"); ok && v.(string) != "" {
+				d.Set("create_mode", v)
+			}
+
+			return []*schema.ResourceData{d}, nil
 		}),
 
 		Timeouts: &schema.ResourceTimeout{
@@ -598,9 +605,6 @@ func resourceMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("sku_name", props.CurrentServiceObjectiveName)
 		d.Set("storage_account_type", props.StorageAccountType)
 		d.Set("zone_redundant", props.ZoneRedundant)
-		if props.CreateMode != "" {
-			d.Set("create_mode", props.CreateMode)
-		}
 	}
 
 	threat, err := threatClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
