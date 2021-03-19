@@ -4,6 +4,11 @@ ENHANCEMENTS:
 
 * dependencies: updating to `v52.5.0` of `github.com/Azure/azure-sdk-for-go` [GH-11015]
 
+BUG FIXES:
+
+* `azurerm_resource_group_template_deployment` - always sending `parameters_content` during an update [GH-11001]
+* `azurerm_subscription_template_deployment` - always sending `parameters_content` during an update [GH-11001]
+
 ## 2.52.0 (March 18, 2021)
 
 FEATURES:
