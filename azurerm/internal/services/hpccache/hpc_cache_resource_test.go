@@ -65,13 +65,13 @@ func TestAccHPCCache_mtu(t *testing.T) {
 	})
 }
 
-func TestAccHPCCache_rootSquash(t *testing.T) {
+func TestAccHPCCache_rootSquashDeprecated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache", "test")
 	r := HPCCacheResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.rootSquash(data, false),
+			Config: r.rootSquashDeprecated(data, false),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("mount_addresses.#").Exists(),
@@ -79,7 +79,7 @@ func TestAccHPCCache_rootSquash(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.rootSquash(data, true),
+			Config: r.rootSquashDeprecated(data, true),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("mount_addresses.#").Exists(),
@@ -87,7 +87,7 @@ func TestAccHPCCache_rootSquash(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.rootSquash(data, true),
+			Config: r.rootSquashDeprecated(data, true),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("mount_addresses.#").Exists(),
@@ -171,7 +171,7 @@ resource "azurerm_hpc_cache" "test" {
 `, r.template(data), data.RandomInteger, mtu)
 }
 
-func (r HPCCacheResource) rootSquash(data acceptance.TestData, enable bool) string {
+func (r HPCCacheResource) rootSquashDeprecated(data acceptance.TestData, enable bool) string {
 	return fmt.Sprintf(`
 %s
 

@@ -67,6 +67,13 @@ func resourceHPCCacheBlobTarget() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: storageValidate.StorageContainerResourceManagerID,
 			},
+
+			"access_policy_name": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "default",
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
 		},
 	}
 }
@@ -100,8 +107,9 @@ func resourceHPCCacheBlobTargetCreateOrUpdate(d *schema.ResourceData, meta inter
 	// Construct parameters
 	namespaceJunction := []storagecache.NamespaceJunction{
 		{
-			NamespacePath: &namespacePath,
-			TargetPath:    utils.String("/"),
+			NamespacePath:   &namespacePath,
+			TargetPath:      utils.String("/"),
+			NfsAccessPolicy: utils.String(d.Get("access_policy_name").(string)),
 		},
 	}
 	param := &storagecache.StorageTarget{
@@ -174,12 +182,15 @@ func resourceHPCCacheBlobTargetRead(d *schema.ResourceData, meta interface{}) er
 		d.Set("storage_container_id", storageContainerId)
 
 		namespacePath := ""
+		accessPolicy := ""
 		// There is only one namespace path allowed for blob container storage target,
 		// which maps to the root path of it.
 		if props.Junctions != nil && len(*props.Junctions) == 1 && (*props.Junctions)[0].NamespacePath != nil {
 			namespacePath = *(*props.Junctions)[0].NamespacePath
+			accessPolicy = *(*props.Junctions)[0].NfsAccessPolicy
 		}
 		d.Set("namespace_path", namespacePath)
+		d.Set("access_policy_name", accessPolicy)
 	}
 
 	return nil

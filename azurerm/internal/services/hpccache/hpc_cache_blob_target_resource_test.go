@@ -32,6 +32,35 @@ func TestAccHPCCacheBlobTarget_basic(t *testing.T) {
 	})
 }
 
+func TestAccHPCCacheBlobTarget_accessPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_blob_target", "test")
+	r := HPCCacheBlobTargetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.accessPolicy(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccHPCCacheBlobTarget_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_blob_target", "test")
 	r := HPCCacheBlobTargetResource{}
@@ -94,7 +123,7 @@ resource "azurerm_hpc_cache_blob_target" "test" {
   storage_container_id = azurerm_storage_container.test.resource_manager_id
   namespace_path       = "/blob_storage1"
 }
-`, r.template(data), data.RandomString)
+`, r.cacheTemplate(data), data.RandomString)
 }
 
 func (r HPCCacheBlobTargetResource) namespace(data acceptance.TestData) string {
@@ -108,7 +137,22 @@ resource "azurerm_hpc_cache_blob_target" "test" {
   storage_container_id = azurerm_storage_container.test.resource_manager_id
   namespace_path       = "/blob_storage2"
 }
-`, r.template(data), data.RandomString)
+`, r.cacheTemplate(data), data.RandomString)
+}
+
+func (r HPCCacheBlobTargetResource) accessPolicy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_hpc_cache_blob_target" "test" {
+  name                 = "acctest-HPCCTGT-%s"
+  resource_group_name  = azurerm_resource_group.test.name
+  cache_name           = azurerm_hpc_cache.test.name
+  storage_container_id = azurerm_storage_container.test.resource_manager_id
+  namespace_path       = "/blob_storage1"
+  access_policy_name   = "p1"
+}
+`, r.cacheTemplateWithCustomAccessPolicy(data), data.RandomString)
 }
 
 func (r HPCCacheBlobTargetResource) requiresImport(data acceptance.TestData) string {
@@ -123,6 +167,43 @@ resource "azurerm_hpc_cache_blob_target" "import" {
   namespace_path       = azurerm_hpc_cache_blob_target.test.namespace_path
 }
 `, r.basic(data))
+}
+
+func (r HPCCacheBlobTargetResource) cacheTemplateWithCustomAccessPolicy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_hpc_cache" "test" {
+  name                = "acctest-HPCC-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cache_size_in_gb    = 3072
+  subnet_id           = azurerm_subnet.test.id
+  sku_name            = "Standard_2G"
+  custom_access_policy {
+    name = "p1"
+    access_rule {
+      scope = "default"
+      access = "ro"
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r HPCCacheBlobTargetResource) cacheTemplate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_hpc_cache" "test" {
+  name                = "acctest-HPCC-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cache_size_in_gb    = 3072
+  subnet_id           = azurerm_subnet.test.id
+  sku_name            = "Standard_2G"
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (HPCCacheBlobTargetResource) template(data acceptance.TestData) string {
@@ -150,15 +231,6 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
-}
-
-resource "azurerm_hpc_cache" "test" {
-  name                = "acctest-HPCC-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  cache_size_in_gb    = 3072
-  subnet_id           = azurerm_subnet.test.id
-  sku_name            = "Standard_2G"
 }
 
 data "azuread_service_principal" "test" {
@@ -189,5 +261,5 @@ resource "azurerm_role_assignment" "test_storage_blob_data_contrib" {
   role_definition_name = "Storage Blob Data Contributor"
   principal_id         = data.azuread_service_principal.test.object_id
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString)
 }
