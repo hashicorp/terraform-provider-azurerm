@@ -10,6 +10,17 @@ type ManagementGroupId struct {
 	Name string
 }
 
+func NewManagementGroupId(input string) ManagementGroupId {
+	return ManagementGroupId{
+		Name: input,
+	}
+}
+
+func (r ManagementGroupId) ID() string {
+	managementGroupIdFmt := "/providers/Microsoft.Management/managementGroups/%s"
+	return fmt.Sprintf(managementGroupIdFmt, r.Name)
+}
+
 func ManagementGroupID(input string) (*ManagementGroupId, error) {
 	regex := regexp.MustCompile(`^/providers/[Mm]icrosoft\.[Mm]anagement/[Mm]anagement[Gg]roups/`)
 	if !regex.MatchString(input) {
