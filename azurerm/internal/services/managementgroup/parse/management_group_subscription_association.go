@@ -19,6 +19,11 @@ func NewManagementGroupSubscriptionAssociationID(managementGroupName string, sub
 	}
 }
 
+func (r ManagementGroupSubscriptionAssociationId) ID() string {
+	managementGroupSubscriptionAssociationFmt := "/managementGroup/%s/subscription/%s"
+	return fmt.Sprintf(managementGroupSubscriptionAssociationFmt, r.ManagementGroup, r.SubscriptionId)
+}
+
 func ManagementGroupSubscriptionAssociationID(input string) (*ManagementGroupSubscriptionAssociationId, error) {
 	id, err := azure.ParseAzureResourceIDWithoutSubscription(input)
 	if err != nil {

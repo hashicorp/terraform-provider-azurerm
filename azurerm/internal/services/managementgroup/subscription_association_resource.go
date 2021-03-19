@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-preview/managementgroups"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -56,6 +58,7 @@ func resourceManagementGroupSubscriptionAssociation() *schema.Resource {
 
 func resourceManagementGroupSubscriptionAssociationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ManagementGroups.SubscriptionClient
+	groupsClient := meta.(*clients.Client).ManagementGroups.GroupsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -69,14 +72,36 @@ func resourceManagementGroupSubscriptionAssociationCreate(d *schema.ResourceData
 		return err
 	}
 
-	_, err = client.Create(ctx, managementGroupId.Name, subscriptionId.SubscriptionID, "")
+	id := parse.NewManagementGroupSubscriptionAssociationID(managementGroupId.Name, subscriptionId.SubscriptionID)
+
+	existing, err := groupsClient.Get(ctx, id.ManagementGroup, "children", utils.Bool(false), "", "")
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("failed checking Management Group %q: %+v", id.ManagementGroup, err)
+		}
+	}
+
+	props := existing.Properties
+	if props == nil {
+		return fmt.Errorf("could not read properties for Management Group %q to check if Subscription Association for %q already exists", id.ManagementGroup, id.SubscriptionId)
+	}
+
+	if props.Children != nil {
+		for _, v := range *props.Children {
+			if v.Type == managementgroups.Type1Subscriptions && v.Name != nil && *v.Name == id.SubscriptionId {
+				return tf.ImportAsExistsError("azurerm_management_group_subscription_association", id.ID())
+			}
+		}
+	}
+
+	_, err = client.Create(ctx, id.ManagementGroup, id.SubscriptionId, "")
 	if err != nil {
 		return fmt.Errorf("creating Management Group Subscription Association between %q and %q: %+v", managementGroupId.Name, subscriptionId, err)
 	}
 
-	d.SetId(fmt.Sprintf("/managementGroup/%s/subscription/%s", managementGroupId.Name, subscriptionId))
+	d.SetId(id.ID())
 
-	return nil
+	return resourceManagementGroupSubscriptionAssociationRead(d, meta)
 }
 
 func resourceManagementGroupSubscriptionAssociationRead(d *schema.ResourceData, meta interface{}) error {
@@ -90,12 +115,13 @@ func resourceManagementGroupSubscriptionAssociationRead(d *schema.ResourceData, 
 		return err
 	}
 
-	managementGroup, err := client.Get(ctx, id.ManagementGroup, "", utils.Bool(false), "", "")
+	managementGroup, err := client.Get(ctx, id.ManagementGroup, "children", utils.Bool(false), "", "")
 	found := false
 	if props := managementGroup.Properties; props != nil {
 		if props.Children == nil {
 			return fmt.Errorf("could not read properties for Management Group %q", id.ManagementGroup)
 		}
+
 		for _, v := range *props.Children {
 			if v.Type == managementgroups.Type1Subscriptions {
 				if v.Name != nil && *v.Name == id.SubscriptionId {
@@ -114,7 +140,6 @@ func resourceManagementGroupSubscriptionAssociationRead(d *schema.ResourceData, 
 		d.Set("management_group_id", managementGroupId.ID())
 		subscriptionId := subscriptionParse.NewSubscriptionId(id.SubscriptionId)
 		d.Set("subscription_id", subscriptionId.ID())
-
 	}
 
 	return nil
