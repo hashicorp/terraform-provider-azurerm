@@ -211,31 +211,28 @@ func TestAccContainerRegistry_geoReplication(t *testing.T) {
 	skuPremium := "Premium"
 	skuBasic := "Basic"
 
-	primaryLocation := location.Normalize(data.Locations.Primary)
 	secondaryLocation := location.Normalize(data.Locations.Secondary)
 	ternaryLocation := location.Normalize(data.Locations.Ternary)
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		// first config creates an ACR with locations
 		{
-			Config: r.geoReplication(data, skuPremium, []string{primaryLocation, secondaryLocation}),
+			Config: r.geoReplication(data, skuPremium, []string{secondaryLocation}),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku").HasValue(skuPremium),
-				check.That(data.ResourceName).Key("georeplication_locations.#").HasValue("2"),
-				check.That(data.ResourceName).Key("georeplication_locations.0").HasValue(primaryLocation),
-				check.That(data.ResourceName).Key("georeplication_locations.1").HasValue(secondaryLocation),
+				check.That(data.ResourceName).Key("georeplication_locations.#").HasValue("1"),
+				check.That(data.ResourceName).Key("georeplication_locations.0").HasValue(secondaryLocation),
 			),
 		},
 		// second config updates the ACR with updated locations
 		{
-			Config: r.geoReplication(data, skuPremium, []string{ternaryLocation, primaryLocation}),
+			Config: r.geoReplication(data, skuPremium, []string{ternaryLocation}),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku").HasValue(skuPremium),
-				check.That(data.ResourceName).Key("georeplication_locations.#").HasValue("2"),
+				check.That(data.ResourceName).Key("georeplication_locations.#").HasValue("1"),
 				check.That(data.ResourceName).Key("georeplication_locations.0").HasValue(ternaryLocation),
-				check.That(data.ResourceName).Key("georeplication_locations.1").HasValue(primaryLocation),
 			),
 		},
 		// third config updates the ACR with no location
@@ -249,12 +246,11 @@ func TestAccContainerRegistry_geoReplication(t *testing.T) {
 		},
 		// fourth config updates an ACR with replicas
 		{
-			Config: r.geoReplication(data, skuPremium, []string{primaryLocation, secondaryLocation}),
+			Config: r.geoReplication(data, skuPremium, []string{secondaryLocation}),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("georeplication_locations.#").HasValue("2"),
-				check.That(data.ResourceName).Key("georeplication_locations.0").HasValue(primaryLocation),
-				check.That(data.ResourceName).Key("georeplication_locations.1").HasValue(secondaryLocation),
+				check.That(data.ResourceName).Key("georeplication_locations.#").HasValue("1"),
+				check.That(data.ResourceName).Key("georeplication_locations.0").HasValue(secondaryLocation),
 			),
 		},
 		// fifth config updates the SKU to basic and no replicas (should remove the existing replicas if any)
