@@ -82,7 +82,7 @@ func resourceHealthbotServiceCreate(d *schema.ResourceData, meta interface{}) er
 	id := parse.NewHealthbotID(subscriptionId, resourceGroup, name).ID()
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
