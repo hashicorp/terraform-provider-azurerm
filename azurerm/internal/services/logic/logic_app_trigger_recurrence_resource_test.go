@@ -354,9 +354,9 @@ resource "azurerm_logic_app_trigger_recurrence" "test" {
   interval     = %d
 
   schedule {
-    at_these_minutes = [10,21]
+    at_these_minutes = [10, 21]
     on_these_days    = ["Monday", "Friday"]
-    at_these_hours   = [12,15]
+    at_these_hours   = [12, 15]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, frequency, interval)
@@ -386,7 +386,7 @@ resource "azurerm_logic_app_trigger_recurrence" "test" {
   interval     = %d
 
   schedule {
-    at_these_hours   = [10]
+    at_these_hours = [10]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, frequency, interval)
