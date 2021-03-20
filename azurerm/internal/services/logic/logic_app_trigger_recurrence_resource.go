@@ -331,7 +331,7 @@ func validateLogicAppTriggerRecurrenceTimeZone() schema.SchemaValidateFunc {
 }
 
 func expandLogicAppTriggerRecurrenceSchedule(input []interface{}) map[string]interface{} {
-	output := make(map[string]interface{}, 0)
+	output := make(map[string]interface{})
 	if len(input) == 0 || input[0] == nil {
 		return output
 	}
