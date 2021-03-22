@@ -877,7 +877,7 @@ func flattenQuarantinePolicy(p *containerregistry.Policies) []interface{} {
 
 	t := *p.QuarantinePolicy
 	quarantinePolicy := make(map[string]interface{})
-	enabled := strings.EqualFold(string(t.Status), string(containerregistry.Enabled))
+	enabled := t.Status == containerregistry.Enabled
 	quarantinePolicy["enabled"] = utils.Bool(enabled)
 	return []interface{}{quarantinePolicy}
 }
