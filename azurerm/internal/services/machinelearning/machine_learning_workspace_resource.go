@@ -379,6 +379,11 @@ func validateContainerRegistry(ctx context.Context, client *containerregistry.Re
 		return nil
 	}
 
+	oldSubscriptionId := client.SubscriptionID
+	defer func() {
+		client.SubscriptionID = oldSubscriptionId
+	}()
+
 	// TODO: use container registry's custom ID parse function when implemented
 	id, err := azure.ParseAzureResourceID(*acrID)
 	if err != nil {
@@ -387,6 +392,7 @@ func validateContainerRegistry(ctx context.Context, client *containerregistry.Re
 
 	acrName := id.Path["registries"]
 	resourceGroup := id.ResourceGroup
+	client.SubscriptionID = id.SubscriptionID
 	acr, err := client.Get(ctx, resourceGroup, acrName)
 	if err != nil {
 		return fmt.Errorf("Error validating Container Registry %q (Resource Group %q): %+v", acrName, resourceGroup, err)
