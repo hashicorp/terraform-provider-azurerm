@@ -6,6 +6,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_frontdoor_custom_https_configuration` - fixing a crash during update [GH-11046]
 * `azurerm_resource_group_template_deployment` - always sending `parameters_content` during an update [GH-11001]
 * `azurerm_subscription_template_deployment` - always sending `parameters_content` during an update [GH-11001]
 
