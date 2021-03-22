@@ -169,16 +169,9 @@ func TestAccMonitorActivityLogAlert_basicServiceHealth(t *testing.T) {
 			Config: r.serviceHealth(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("description").HasValue(""),
-				check.That(data.ResourceName).Key("scopes.#").HasValue("1"),
-				check.That(data.ResourceName).Key("criteria.#").HasValue("1"),
-				check.That(data.ResourceName).Key("criteria.0.servicehealth.0.events.0").HasValue("Incident"),
-				check.That(data.ResourceName).Key("criteria.0.servicehealth.0.events.1").HasValue("Maintenance"),
-				check.That(data.ResourceName).Key("criteria.0.servicehealth.0.regions.0").HasValue("Global"),
-				check.That(data.ResourceName).Key("criteria.0.servicehealth.0.regions.1").HasValue("West Europe"),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
