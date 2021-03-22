@@ -23,6 +23,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+// TODO -- remove this type when issue https://github.com/Azure/azure-rest-api-specs/issues/13546 is resolved
 type WorkspaceSku string
 
 const (
