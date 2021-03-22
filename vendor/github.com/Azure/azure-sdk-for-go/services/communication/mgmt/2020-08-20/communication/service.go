@@ -61,7 +61,9 @@ func (client ServiceClient) CheckNameAvailability(ctx context.Context, nameAvail
 			Constraints: []validation.Constraint{{Target: "nameAvailabilityParameters", Name: validation.Null, Rule: false,
 				Chain: []validation.Constraint{{Target: "nameAvailabilityParameters.Type", Name: validation.Null, Rule: true, Chain: nil},
 					{Target: "nameAvailabilityParameters.Name", Name: validation.Null, Rule: true, Chain: nil},
-				}}}}}); err != nil {
+				}}}},
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("communication.ServiceClient", "CheckNameAvailability", err.Error())
 	}
 
@@ -93,7 +95,7 @@ func (client ServiceClient) CheckNameAvailabilityPreparer(ctx context.Context, n
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-08-20-preview"
+	const APIVersion = "2020-08-20"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -131,8 +133,7 @@ func (client ServiceClient) CheckNameAvailabilityResponder(resp *http.Response) 
 
 // CreateOrUpdate create a new CommunicationService or update an existing CommunicationService.
 // Parameters:
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // communicationServiceName - the name of the CommunicationService resource.
 // parameters - parameters for the create or update operation
 func (client ServiceClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, communicationServiceName string, parameters *ServiceResource) (result ServiceCreateOrUpdateFuture, err error) {
@@ -140,8 +141,8 @@ func (client ServiceClient) CreateOrUpdate(ctx context.Context, resourceGroupNam
 		ctx = tracing.StartSpan(ctx, fqdn+"/ServiceClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -151,7 +152,17 @@ func (client ServiceClient) CreateOrUpdate(ctx context.Context, resourceGroupNam
 			Constraints: []validation.Constraint{{Target: "parameters", Name: validation.Null, Rule: false,
 				Chain: []validation.Constraint{{Target: "parameters.ServiceProperties", Name: validation.Null, Rule: false,
 					Chain: []validation.Constraint{{Target: "parameters.ServiceProperties.DataLocation", Name: validation.Null, Rule: true, Chain: nil}}},
-				}}}}}); err != nil {
+				}}}},
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: communicationServiceName,
+			Constraints: []validation.Constraint{{Target: "communicationServiceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
+				{Target: "communicationServiceName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "communicationServiceName", Name: validation.Pattern, Rule: `^[-\w]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("communication.ServiceClient", "CreateOrUpdate", err.Error())
 	}
 
@@ -178,7 +189,7 @@ func (client ServiceClient) CreateOrUpdatePreparer(ctx context.Context, resource
 		"subscriptionId":           autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-08-20-preview"
+	const APIVersion = "2020-08-20"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -251,20 +262,33 @@ func (client ServiceClient) CreateOrUpdateResponder(resp *http.Response) (result
 
 // Delete operation to delete a CommunicationService.
 // Parameters:
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // communicationServiceName - the name of the CommunicationService resource.
 func (client ServiceClient) Delete(ctx context.Context, resourceGroupName string, communicationServiceName string) (result ServiceDeleteFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ServiceClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: communicationServiceName,
+			Constraints: []validation.Constraint{{Target: "communicationServiceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
+				{Target: "communicationServiceName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "communicationServiceName", Name: validation.Pattern, Rule: `^[-\w]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("communication.ServiceClient", "Delete", err.Error())
+	}
+
 	req, err := client.DeletePreparer(ctx, resourceGroupName, communicationServiceName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "communication.ServiceClient", "Delete", nil, "Failure preparing request")
@@ -288,7 +312,7 @@ func (client ServiceClient) DeletePreparer(ctx context.Context, resourceGroupNam
 		"subscriptionId":           autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-08-20-preview"
+	const APIVersion = "2020-08-20"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -342,8 +366,7 @@ func (client ServiceClient) DeleteResponder(resp *http.Response) (result autores
 
 // Get get the CommunicationService and its properties.
 // Parameters:
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // communicationServiceName - the name of the CommunicationService resource.
 func (client ServiceClient) Get(ctx context.Context, resourceGroupName string, communicationServiceName string) (result ServiceResource, err error) {
 	if tracing.IsEnabled() {
@@ -356,6 +379,20 @@ func (client ServiceClient) Get(ctx context.Context, resourceGroupName string, c
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: communicationServiceName,
+			Constraints: []validation.Constraint{{Target: "communicationServiceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
+				{Target: "communicationServiceName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "communicationServiceName", Name: validation.Pattern, Rule: `^[-\w]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("communication.ServiceClient", "Get", err.Error())
+	}
+
 	req, err := client.GetPreparer(ctx, resourceGroupName, communicationServiceName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "communication.ServiceClient", "Get", nil, "Failure preparing request")
@@ -386,7 +423,7 @@ func (client ServiceClient) GetPreparer(ctx context.Context, resourceGroupName s
 		"subscriptionId":           autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-08-20-preview"
+	const APIVersion = "2020-08-20"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -419,8 +456,7 @@ func (client ServiceClient) GetResponder(resp *http.Response) (result ServiceRes
 
 // LinkNotificationHub links an Azure Notification Hub to this communication service.
 // Parameters:
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // communicationServiceName - the name of the CommunicationService resource.
 // linkNotificationHubParameters - parameters supplied to the operation.
 func (client ServiceClient) LinkNotificationHub(ctx context.Context, resourceGroupName string, communicationServiceName string, linkNotificationHubParameters *LinkNotificationHubParameters) (result LinkedNotificationHub, err error) {
@@ -439,7 +475,17 @@ func (client ServiceClient) LinkNotificationHub(ctx context.Context, resourceGro
 			Constraints: []validation.Constraint{{Target: "linkNotificationHubParameters", Name: validation.Null, Rule: false,
 				Chain: []validation.Constraint{{Target: "linkNotificationHubParameters.ResourceID", Name: validation.Null, Rule: true, Chain: nil},
 					{Target: "linkNotificationHubParameters.ConnectionString", Name: validation.Null, Rule: true, Chain: nil},
-				}}}}}); err != nil {
+				}}}},
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: communicationServiceName,
+			Constraints: []validation.Constraint{{Target: "communicationServiceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
+				{Target: "communicationServiceName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "communicationServiceName", Name: validation.Pattern, Rule: `^[-\w]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("communication.ServiceClient", "LinkNotificationHub", err.Error())
 	}
 
@@ -473,7 +519,7 @@ func (client ServiceClient) LinkNotificationHubPreparer(ctx context.Context, res
 		"subscriptionId":           autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-08-20-preview"
+	const APIVersion = "2020-08-20"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -511,8 +557,7 @@ func (client ServiceClient) LinkNotificationHubResponder(resp *http.Response) (r
 
 // ListByResourceGroup handles requests to list all resources in a resource group.
 // Parameters:
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 func (client ServiceClient) ListByResourceGroup(ctx context.Context, resourceGroupName string) (result ServiceResourceListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ServiceClient.ListByResourceGroup")
@@ -524,6 +569,16 @@ func (client ServiceClient) ListByResourceGroup(ctx context.Context, resourceGro
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("communication.ServiceClient", "ListByResourceGroup", err.Error())
+	}
+
 	result.fn = client.listByResourceGroupNextResults
 	req, err := client.ListByResourceGroupPreparer(ctx, resourceGroupName)
 	if err != nil {
@@ -558,7 +613,7 @@ func (client ServiceClient) ListByResourceGroupPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-08-20-preview"
+	const APIVersion = "2020-08-20"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -638,6 +693,12 @@ func (client ServiceClient) ListBySubscription(ctx context.Context) (result Serv
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("communication.ServiceClient", "ListBySubscription", err.Error())
+	}
+
 	result.fn = client.listBySubscriptionNextResults
 	req, err := client.ListBySubscriptionPreparer(ctx)
 	if err != nil {
@@ -671,7 +732,7 @@ func (client ServiceClient) ListBySubscriptionPreparer(ctx context.Context) (*ht
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-08-20-preview"
+	const APIVersion = "2020-08-20"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -741,8 +802,7 @@ func (client ServiceClient) ListBySubscriptionComplete(ctx context.Context) (res
 
 // ListKeys get the access keys of the CommunicationService resource.
 // Parameters:
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // communicationServiceName - the name of the CommunicationService resource.
 func (client ServiceClient) ListKeys(ctx context.Context, resourceGroupName string, communicationServiceName string) (result ServiceKeys, err error) {
 	if tracing.IsEnabled() {
@@ -755,6 +815,20 @@ func (client ServiceClient) ListKeys(ctx context.Context, resourceGroupName stri
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: communicationServiceName,
+			Constraints: []validation.Constraint{{Target: "communicationServiceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
+				{Target: "communicationServiceName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "communicationServiceName", Name: validation.Pattern, Rule: `^[-\w]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("communication.ServiceClient", "ListKeys", err.Error())
+	}
+
 	req, err := client.ListKeysPreparer(ctx, resourceGroupName, communicationServiceName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "communication.ServiceClient", "ListKeys", nil, "Failure preparing request")
@@ -785,7 +859,7 @@ func (client ServiceClient) ListKeysPreparer(ctx context.Context, resourceGroupN
 		"subscriptionId":           autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-08-20-preview"
+	const APIVersion = "2020-08-20"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -819,11 +893,10 @@ func (client ServiceClient) ListKeysResponder(resp *http.Response) (result Servi
 // RegenerateKey regenerate CommunicationService access key. PrimaryKey and SecondaryKey cannot be regenerated at the
 // same time.
 // Parameters:
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
-// communicationServiceName - the name of the CommunicationService resource.
 // parameters - parameter that describes the Regenerate Key Operation.
-func (client ServiceClient) RegenerateKey(ctx context.Context, resourceGroupName string, communicationServiceName string, parameters *RegenerateKeyParameters) (result ServiceKeys, err error) {
+// resourceGroupName - the name of the resource group. The name is case insensitive.
+// communicationServiceName - the name of the CommunicationService resource.
+func (client ServiceClient) RegenerateKey(ctx context.Context, parameters RegenerateKeyParameters, resourceGroupName string, communicationServiceName string) (result ServiceKeys, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ServiceClient.RegenerateKey")
 		defer func() {
@@ -834,7 +907,21 @@ func (client ServiceClient) RegenerateKey(ctx context.Context, resourceGroupName
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.RegenerateKeyPreparer(ctx, resourceGroupName, communicationServiceName, parameters)
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: communicationServiceName,
+			Constraints: []validation.Constraint{{Target: "communicationServiceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
+				{Target: "communicationServiceName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "communicationServiceName", Name: validation.Pattern, Rule: `^[-\w]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("communication.ServiceClient", "RegenerateKey", err.Error())
+	}
+
+	req, err := client.RegenerateKeyPreparer(ctx, parameters, resourceGroupName, communicationServiceName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "communication.ServiceClient", "RegenerateKey", nil, "Failure preparing request")
 		return
@@ -857,14 +944,14 @@ func (client ServiceClient) RegenerateKey(ctx context.Context, resourceGroupName
 }
 
 // RegenerateKeyPreparer prepares the RegenerateKey request.
-func (client ServiceClient) RegenerateKeyPreparer(ctx context.Context, resourceGroupName string, communicationServiceName string, parameters *RegenerateKeyParameters) (*http.Request, error) {
+func (client ServiceClient) RegenerateKeyPreparer(ctx context.Context, parameters RegenerateKeyParameters, resourceGroupName string, communicationServiceName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"communicationServiceName": autorest.Encode("path", communicationServiceName),
 		"resourceGroupName":        autorest.Encode("path", resourceGroupName),
 		"subscriptionId":           autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-08-20-preview"
+	const APIVersion = "2020-08-20"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -874,11 +961,8 @@ func (client ServiceClient) RegenerateKeyPreparer(ctx context.Context, resourceG
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Communication/communicationServices/{communicationServiceName}/regenerateKey", pathParameters),
+		autorest.WithJSON(parameters),
 		autorest.WithQueryParameters(queryParameters))
-	if parameters != nil {
-		preparer = autorest.DecoratePreparer(preparer,
-			autorest.WithJSON(parameters))
-	}
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
@@ -893,7 +977,7 @@ func (client ServiceClient) RegenerateKeySender(req *http.Request) (*http.Respon
 func (client ServiceClient) RegenerateKeyResponder(resp *http.Response) (result ServiceKeys, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
@@ -902,11 +986,10 @@ func (client ServiceClient) RegenerateKeyResponder(resp *http.Response) (result 
 
 // Update operation to update an existing CommunicationService.
 // Parameters:
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // communicationServiceName - the name of the CommunicationService resource.
 // parameters - parameters for the update operation
-func (client ServiceClient) Update(ctx context.Context, resourceGroupName string, communicationServiceName string, parameters *TaggedResource) (result ServiceResource, err error) {
+func (client ServiceClient) Update(ctx context.Context, resourceGroupName string, communicationServiceName string, parameters *ServiceResource) (result ServiceResource, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ServiceClient.Update")
 		defer func() {
@@ -917,6 +1000,20 @@ func (client ServiceClient) Update(ctx context.Context, resourceGroupName string
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: communicationServiceName,
+			Constraints: []validation.Constraint{{Target: "communicationServiceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
+				{Target: "communicationServiceName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "communicationServiceName", Name: validation.Pattern, Rule: `^[-\w]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("communication.ServiceClient", "Update", err.Error())
+	}
+
 	req, err := client.UpdatePreparer(ctx, resourceGroupName, communicationServiceName, parameters)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "communication.ServiceClient", "Update", nil, "Failure preparing request")
@@ -940,18 +1037,21 @@ func (client ServiceClient) Update(ctx context.Context, resourceGroupName string
 }
 
 // UpdatePreparer prepares the Update request.
-func (client ServiceClient) UpdatePreparer(ctx context.Context, resourceGroupName string, communicationServiceName string, parameters *TaggedResource) (*http.Request, error) {
+func (client ServiceClient) UpdatePreparer(ctx context.Context, resourceGroupName string, communicationServiceName string, parameters *ServiceResource) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"communicationServiceName": autorest.Encode("path", communicationServiceName),
 		"resourceGroupName":        autorest.Encode("path", resourceGroupName),
 		"subscriptionId":           autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-08-20-preview"
+	const APIVersion = "2020-08-20"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 
+	parameters.ID = nil
+	parameters.Name = nil
+	parameters.Type = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),

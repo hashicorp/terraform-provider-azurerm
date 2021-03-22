@@ -1,4 +1,4 @@
-// Package communication implements the Azure ARM Communication service API version 2020-08-20-preview.
+// Package communication implements the Azure ARM Communication service API version 2020-08-20.
 //
 // REST API for Azure Communication Services
 package communication

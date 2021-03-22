@@ -29,32 +29,47 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/communication/mgmt/2020-08-20-preview/communication"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/communication/mgmt/2020-08-20/communication"
 
-// Dimension specifications of the Dimension of metrics.
-type Dimension struct {
-	// Name - The public facing name of the dimension.
+// AzureEntityResource the resource model definition for an Azure Resource Manager resource with an etag.
+type AzureEntityResource struct {
+	// Etag - READ-ONLY; Resource Etag.
+	Etag *string `json:"etag,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// DisplayName - Localized friendly display name of the dimension.
-	DisplayName *string `json:"displayName,omitempty"`
-	// InternalName - Name of the dimension as it appears in MDM.
-	InternalName *string `json:"internalName,omitempty"`
-	// ToBeExportedForShoebox - A Boolean flag indicating whether this dimension should be included for the shoebox export scenario.
-	ToBeExportedForShoebox *bool `json:"toBeExportedForShoebox,omitempty"`
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
+	Type *string `json:"type,omitempty"`
 }
 
-// ErrorResponse error response indicating why the requested operation could not be performed.
-type ErrorResponse struct {
-	// Error - The error
-	Error *ErrorResponseError `json:"error,omitempty"`
+// ErrorAdditionalInfo the resource management error additional info.
+type ErrorAdditionalInfo struct {
+	// Type - READ-ONLY; The additional info type.
+	Type *string `json:"type,omitempty"`
+	// Info - READ-ONLY; The additional info.
+	Info interface{} `json:"info,omitempty"`
 }
 
-// ErrorResponseError the error
-type ErrorResponseError struct {
-	// Code - Error code.
+// ErrorDetail the error detail.
+type ErrorDetail struct {
+	// Code - READ-ONLY; The error code.
 	Code *string `json:"code,omitempty"`
-	// Message - Error message indicating why the operation failed.
+	// Message - READ-ONLY; The error message.
 	Message *string `json:"message,omitempty"`
+	// Target - READ-ONLY; The error target.
+	Target *string `json:"target,omitempty"`
+	// Details - READ-ONLY; The error details.
+	Details *[]ErrorDetail `json:"details,omitempty"`
+	// AdditionalInfo - READ-ONLY; The error additional info.
+	AdditionalInfo *[]ErrorAdditionalInfo `json:"additionalInfo,omitempty"`
+}
+
+// ErrorResponse common error response for all Azure Resource Manager APIs to return error details for
+// failed operations. (This also follows the OData error response format.).
+type ErrorResponse struct {
+	// Error - The error object.
+	Error *ErrorDetail `json:"error,omitempty"`
 }
 
 // LinkedNotificationHub a notification hub that has been linked to the communication service
@@ -79,28 +94,6 @@ type LocationResource struct {
 	Location *string `json:"location,omitempty"`
 }
 
-// MetricSpecification specifications of the Metrics for Azure Monitoring.
-type MetricSpecification struct {
-	// Name - Name of the metric.
-	Name *string `json:"name,omitempty"`
-	// DisplayName - Localized friendly display name of the metric.
-	DisplayName *string `json:"displayName,omitempty"`
-	// DisplayDescription - Localized friendly description of the metric.
-	DisplayDescription *string `json:"displayDescription,omitempty"`
-	// Unit - The unit that makes sense for the metric.
-	Unit *string `json:"unit,omitempty"`
-	// AggregationType - The method for aggregating the metric. Possible values include: 'Average', 'Minimum', 'Maximum', 'Total', 'Count'
-	AggregationType AggregationType `json:"aggregationType,omitempty"`
-	// FillGapWithZero - Optional. If set to true, then zero will be returned for time duration where no metric is emitted/published.
-	// Ex. a metric that returns the number of times a particular error code was emitted. The error code may not appear
-	// often, instead of the RP publishing 0, Shoebox can auto fill in 0s for time periods where nothing was emitted.
-	FillGapWithZero *string `json:"fillGapWithZero,omitempty"`
-	// Category - The name of the metric category that the metric belongs to. A metric can only belong to a single category.
-	Category *string `json:"category,omitempty"`
-	// Dimensions - The dimensions of the metrics.
-	Dimensions *[]Dimension `json:"dimensions,omitempty"`
-}
-
 // NameAvailability result of the request to check name availability. It contains a flag and possible
 // reason of failure.
 type NameAvailability struct {
@@ -121,51 +114,62 @@ type NameAvailabilityParameters struct {
 	Name *string `json:"name,omitempty"`
 }
 
-// Operation REST API operation supported by CommunicationService resource provider.
+// Operation details of a REST API operation, returned from the Resource Provider Operations API
 type Operation struct {
-	// Name - Name of the operation with format: {provider}/{resource}/{operation}
+	// Name - READ-ONLY; The name of the operation, as per Resource-Based Access Control (RBAC). Examples: "Microsoft.Compute/virtualMachines/write", "Microsoft.Compute/virtualMachines/capture/action"
 	Name *string `json:"name,omitempty"`
-	// Display - The object that describes the operation.
+	// IsDataAction - READ-ONLY; Whether the operation applies to data-plane. This is "true" for data-plane operations and "false" for ARM/control-plane operations.
+	IsDataAction *bool `json:"isDataAction,omitempty"`
+	// Display - Localized display information for this particular operation.
 	Display *OperationDisplay `json:"display,omitempty"`
-	// Origin - Optional. The intended executor of the operation; governs the display of the operation in the RBAC UX and the audit logs UX.
-	Origin *string `json:"origin,omitempty"`
-	// Properties - Extra properties for the operation.
-	Properties *OperationProperties `json:"properties,omitempty"`
+	// Origin - READ-ONLY; The intended executor of the operation; as in Resource Based Access Control (RBAC) and audit logs UX. Default value is "user,system". Possible values include: 'OriginUser', 'OriginSystem', 'OriginUsersystem'
+	Origin Origin `json:"origin,omitempty"`
+	// ActionType - READ-ONLY; Enum. Indicates the action type. "Internal" refers to actions that are for internal only APIs. Possible values include: 'Internal'
+	ActionType ActionType `json:"actionType,omitempty"`
 }
 
-// OperationDisplay the object that describes a operation.
+// MarshalJSON is the custom marshaler for Operation.
+func (o Operation) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if o.Display != nil {
+		objectMap["display"] = o.Display
+	}
+	return json.Marshal(objectMap)
+}
+
+// OperationDisplay localized display information for this particular operation.
 type OperationDisplay struct {
-	// Provider - Friendly name of the resource provider
+	// Provider - READ-ONLY; The localized friendly form of the resource provider name, e.g. "Microsoft Monitoring Insights" or "Microsoft Compute".
 	Provider *string `json:"provider,omitempty"`
-	// Resource - Resource type on which the operation is performed.
+	// Resource - READ-ONLY; The localized friendly name of the resource type related to this operation. E.g. "Virtual Machines" or "Job Schedule Collections".
 	Resource *string `json:"resource,omitempty"`
-	// Operation - The localized friendly name for the operation.
+	// Operation - READ-ONLY; The concise, localized friendly name for the operation; suitable for dropdowns. E.g. "Create or Update Virtual Machine", "Restart Virtual Machine".
 	Operation *string `json:"operation,omitempty"`
-	// Description - The localized friendly description for the operation
+	// Description - READ-ONLY; The short, localized friendly description of the operation; suitable for tool tips and detailed views.
 	Description *string `json:"description,omitempty"`
 }
 
-// OperationList result of the request to list REST API operations. It contains a list of operations.
-type OperationList struct {
+// OperationListResult a list of REST API operations supported by an Azure Resource Provider. It contains
+// an URL link to get the next set of results.
+type OperationListResult struct {
 	autorest.Response `json:"-"`
-	// Value - List of operations supported by the resource provider.
+	// Value - READ-ONLY; List of operations supported by the resource provider
 	Value *[]Operation `json:"value,omitempty"`
-	// NextLink - The URL the client should use to fetch the next page (per server side paging).
-	// It's null for now, added for future use.
+	// NextLink - READ-ONLY; URL to get the next set of operation list results (if there are any).
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// OperationListIterator provides access to a complete listing of Operation values.
-type OperationListIterator struct {
+// OperationListResultIterator provides access to a complete listing of Operation values.
+type OperationListResultIterator struct {
 	i    int
-	page OperationListPage
+	page OperationListResultPage
 }
 
 // NextWithContext advances to the next value.  If there was an error making
 // the request the iterator does not advance and the error is returned.
-func (iter *OperationListIterator) NextWithContext(ctx context.Context) (err error) {
+func (iter *OperationListResultIterator) NextWithContext(ctx context.Context) (err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/OperationListIterator.NextWithContext")
+		ctx = tracing.StartSpan(ctx, fqdn+"/OperationListResultIterator.NextWithContext")
 		defer func() {
 			sc := -1
 			if iter.Response().Response.Response != nil {
@@ -190,67 +194,67 @@ func (iter *OperationListIterator) NextWithContext(ctx context.Context) (err err
 // Next advances to the next value.  If there was an error making
 // the request the iterator does not advance and the error is returned.
 // Deprecated: Use NextWithContext() instead.
-func (iter *OperationListIterator) Next() error {
+func (iter *OperationListResultIterator) Next() error {
 	return iter.NextWithContext(context.Background())
 }
 
 // NotDone returns true if the enumeration should be started or is not yet complete.
-func (iter OperationListIterator) NotDone() bool {
+func (iter OperationListResultIterator) NotDone() bool {
 	return iter.page.NotDone() && iter.i < len(iter.page.Values())
 }
 
 // Response returns the raw server response from the last page request.
-func (iter OperationListIterator) Response() OperationList {
+func (iter OperationListResultIterator) Response() OperationListResult {
 	return iter.page.Response()
 }
 
 // Value returns the current value or a zero-initialized value if the
 // iterator has advanced beyond the end of the collection.
-func (iter OperationListIterator) Value() Operation {
+func (iter OperationListResultIterator) Value() Operation {
 	if !iter.page.NotDone() {
 		return Operation{}
 	}
 	return iter.page.Values()[iter.i]
 }
 
-// Creates a new instance of the OperationListIterator type.
-func NewOperationListIterator(page OperationListPage) OperationListIterator {
-	return OperationListIterator{page: page}
+// Creates a new instance of the OperationListResultIterator type.
+func NewOperationListResultIterator(page OperationListResultPage) OperationListResultIterator {
+	return OperationListResultIterator{page: page}
 }
 
 // IsEmpty returns true if the ListResult contains no values.
-func (ol OperationList) IsEmpty() bool {
-	return ol.Value == nil || len(*ol.Value) == 0
+func (olr OperationListResult) IsEmpty() bool {
+	return olr.Value == nil || len(*olr.Value) == 0
 }
 
 // hasNextLink returns true if the NextLink is not empty.
-func (ol OperationList) hasNextLink() bool {
-	return ol.NextLink != nil && len(*ol.NextLink) != 0
+func (olr OperationListResult) hasNextLink() bool {
+	return olr.NextLink != nil && len(*olr.NextLink) != 0
 }
 
-// operationListPreparer prepares a request to retrieve the next set of results.
+// operationListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
-func (ol OperationList) operationListPreparer(ctx context.Context) (*http.Request, error) {
-	if !ol.hasNextLink() {
+func (olr OperationListResult) operationListResultPreparer(ctx context.Context) (*http.Request, error) {
+	if !olr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
 		autorest.AsJSON(),
 		autorest.AsGet(),
-		autorest.WithBaseURL(to.String(ol.NextLink)))
+		autorest.WithBaseURL(to.String(olr.NextLink)))
 }
 
-// OperationListPage contains a page of Operation values.
-type OperationListPage struct {
-	fn func(context.Context, OperationList) (OperationList, error)
-	ol OperationList
+// OperationListResultPage contains a page of Operation values.
+type OperationListResultPage struct {
+	fn  func(context.Context, OperationListResult) (OperationListResult, error)
+	olr OperationListResult
 }
 
 // NextWithContext advances to the next page of values.  If there was an error making
 // the request the page does not advance and the error is returned.
-func (page *OperationListPage) NextWithContext(ctx context.Context) (err error) {
+func (page *OperationListResultPage) NextWithContext(ctx context.Context) (err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/OperationListPage.NextWithContext")
+		ctx = tracing.StartSpan(ctx, fqdn+"/OperationListResultPage.NextWithContext")
 		defer func() {
 			sc := -1
 			if page.Response().Response.Response != nil {
@@ -260,11 +264,11 @@ func (page *OperationListPage) NextWithContext(ctx context.Context) (err error) 
 		}()
 	}
 	for {
-		next, err := page.fn(ctx, page.ol)
+		next, err := page.fn(ctx, page.olr)
 		if err != nil {
 			return err
 		}
-		page.ol = next
+		page.olr = next
 		if !next.hasNextLink() || !next.IsEmpty() {
 			break
 		}
@@ -275,40 +279,34 @@ func (page *OperationListPage) NextWithContext(ctx context.Context) (err error) 
 // Next advances to the next page of values.  If there was an error making
 // the request the page does not advance and the error is returned.
 // Deprecated: Use NextWithContext() instead.
-func (page *OperationListPage) Next() error {
+func (page *OperationListResultPage) Next() error {
 	return page.NextWithContext(context.Background())
 }
 
 // NotDone returns true if the page enumeration should be started or is not yet complete.
-func (page OperationListPage) NotDone() bool {
-	return !page.ol.IsEmpty()
+func (page OperationListResultPage) NotDone() bool {
+	return !page.olr.IsEmpty()
 }
 
 // Response returns the raw server response from the last page request.
-func (page OperationListPage) Response() OperationList {
-	return page.ol
+func (page OperationListResultPage) Response() OperationListResult {
+	return page.olr
 }
 
 // Values returns the slice of values for the current page or nil if there are no values.
-func (page OperationListPage) Values() []Operation {
-	if page.ol.IsEmpty() {
+func (page OperationListResultPage) Values() []Operation {
+	if page.olr.IsEmpty() {
 		return nil
 	}
-	return *page.ol.Value
+	return *page.olr.Value
 }
 
-// Creates a new instance of the OperationListPage type.
-func NewOperationListPage(cur OperationList, getNextPage func(context.Context, OperationList) (OperationList, error)) OperationListPage {
-	return OperationListPage{
-		fn: getNextPage,
-		ol: cur,
+// Creates a new instance of the OperationListResultPage type.
+func NewOperationListResultPage(cur OperationListResult, getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
+	return OperationListResultPage{
+		fn:  getNextPage,
+		olr: cur,
 	}
-}
-
-// OperationProperties extra Operation properties.
-type OperationProperties struct {
-	// ServiceSpecification - The service specifications.
-	ServiceSpecification *ServiceSpecification `json:"serviceSpecification,omitempty"`
 }
 
 // OperationStatus the current status of an async operation
@@ -406,19 +404,30 @@ func (osVar *OperationStatus) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
+// ProxyResource the resource model definition for a Azure Resource Manager proxy resource. It will not
+// have tags and a location
+type ProxyResource struct {
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
+	Type *string `json:"type,omitempty"`
+}
+
 // RegenerateKeyParameters parameters describes the request to regenerate access keys
 type RegenerateKeyParameters struct {
 	// KeyType - The keyType to regenerate. Must be either 'primary' or 'secondary'(case-insensitive). Possible values include: 'Primary', 'Secondary'
 	KeyType KeyType `json:"keyType,omitempty"`
 }
 
-// Resource the core properties of ARM resources.
+// Resource common fields that are returned in the response for all Azure Resource Manager resources
 type Resource struct {
-	// ID - READ-ONLY; Fully qualified resource ID for the resource.
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; The name of the resource.
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the service - e.g. "Microsoft.Communication/CommunicationServices"
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -481,11 +490,11 @@ func (sp ServiceProperties) MarshalJSON() ([]byte, error) {
 // ServiceResource a class representing a CommunicationService resource.
 type ServiceResource struct {
 	autorest.Response `json:"-"`
-	// ID - READ-ONLY; Fully qualified resource ID for the resource.
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; The name of the resource.
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the service - e.g. "Microsoft.Communication/CommunicationServices"
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 	// Location - The Azure location where the CommunicationService is running.
 	Location *string `json:"location,omitempty"`
@@ -493,6 +502,7 @@ type ServiceResource struct {
 	Tags map[string]*string `json:"tags"`
 	// ServiceProperties - The properties of the service.
 	*ServiceProperties `json:"properties,omitempty"`
+	SystemData         *SystemData `json:"systemData,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ServiceResource.
@@ -506,6 +516,9 @@ func (sr ServiceResource) MarshalJSON() ([]byte, error) {
 	}
 	if sr.ServiceProperties != nil {
 		objectMap["properties"] = sr.ServiceProperties
+	}
+	if sr.SystemData != nil {
+		objectMap["systemData"] = sr.SystemData
 	}
 	return json.Marshal(objectMap)
 }
@@ -572,6 +585,15 @@ func (sr *ServiceResource) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				sr.ServiceProperties = &serviceProperties
+			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				sr.SystemData = &systemData
 			}
 		}
 	}
@@ -740,10 +762,20 @@ func NewServiceResourceListPage(cur ServiceResourceList, getNextPage func(contex
 	}
 }
 
-// ServiceSpecification an object that describes a specification.
-type ServiceSpecification struct {
-	// MetricSpecifications - Specifications of the Metrics for Azure Monitoring.
-	MetricSpecifications *[]MetricSpecification `json:"metricSpecifications,omitempty"`
+// SystemData metadata pertaining to creation and last modification of the resource.
+type SystemData struct {
+	// CreatedBy - The identity that created the resource.
+	CreatedBy *string `json:"createdBy,omitempty"`
+	// CreatedByType - The type of identity that created the resource. Possible values include: 'User', 'Application', 'ManagedIdentity', 'Key'
+	CreatedByType CreatedByType `json:"createdByType,omitempty"`
+	// CreatedAt - The timestamp of resource creation (UTC).
+	CreatedAt *date.Time `json:"createdAt,omitempty"`
+	// LastModifiedBy - The identity that last modified the resource.
+	LastModifiedBy *string `json:"lastModifiedBy,omitempty"`
+	// LastModifiedByType - The type of identity that last modified the resource. Possible values include: 'User', 'Application', 'ManagedIdentity', 'Key'
+	LastModifiedByType CreatedByType `json:"lastModifiedByType,omitempty"`
+	// LastModifiedAt - The timestamp of resource last modification (UTC)
+	LastModifiedAt *date.Time `json:"lastModifiedAt,omitempty"`
 }
 
 // TaggedResource an ARM resource with that can accept tags
@@ -757,6 +789,33 @@ func (tr TaggedResource) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if tr.Tags != nil {
 		objectMap["tags"] = tr.Tags
+	}
+	return json.Marshal(objectMap)
+}
+
+// TrackedResource the resource model definition for an Azure Resource Manager tracked top level resource
+// which has 'tags' and a 'location'
+type TrackedResource struct {
+	// Tags - Resource tags.
+	Tags map[string]*string `json:"tags"`
+	// Location - The geo-location where the resource lives
+	Location *string `json:"location,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for TrackedResource.
+func (tr TrackedResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if tr.Tags != nil {
+		objectMap["tags"] = tr.Tags
+	}
+	if tr.Location != nil {
+		objectMap["location"] = tr.Location
 	}
 	return json.Marshal(objectMap)
 }

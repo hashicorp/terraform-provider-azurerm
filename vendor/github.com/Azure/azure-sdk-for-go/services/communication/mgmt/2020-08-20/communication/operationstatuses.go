@@ -86,7 +86,7 @@ func (client OperationStatusesClient) GetPreparer(ctx context.Context, location 
 		"operationId": autorest.Encode("path", operationID),
 	}
 
-	const APIVersion = "2020-08-20-preview"
+	const APIVersion = "2020-08-20"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

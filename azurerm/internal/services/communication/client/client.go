@@ -1,7 +1,7 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/preview/communication/mgmt/2020-08-20-preview/communication"
+	"github.com/Azure/azure-sdk-for-go/services/communication/mgmt/2020-08-20/communication"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 
