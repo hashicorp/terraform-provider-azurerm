@@ -279,6 +279,21 @@ func PossibleTestKeyTypeValues() []TestKeyType {
 	return []TestKeyType{Primary, Secondary}
 }
 
+// TrafficDirection enumerates the values for traffic direction.
+type TrafficDirection string
+
+const (
+	// Inbound ...
+	Inbound TrafficDirection = "Inbound"
+	// Outbound ...
+	Outbound TrafficDirection = "Outbound"
+)
+
+// PossibleTrafficDirectionValues returns an array of possible values for the TrafficDirection const type.
+func PossibleTrafficDirectionValues() []TrafficDirection {
+	return []TrafficDirection{Inbound, Outbound}
+}
+
 // UserSourceType enumerates the values for user source type.
 type UserSourceType string
 
