@@ -15,6 +15,31 @@ func TestManagementGroupSubscriptionAssociationID(t *testing.T) {
 			Error: true,
 		},
 		{
+			Name:  "Missing Subscription",
+			Input: "/managementGroup/MyManagementGroup",
+			Error: true,
+		},
+		{
+			Name:  "Missing Subscription Id",
+			Input: "/managementGroup/MyManagementGroup/subscription/",
+			Error: true,
+		},
+		{
+			Name:  "Missing Management Group",
+			Input: "/subscription/12345678-1234-1234-1234-123456789012",
+			Error: true,
+		},
+		{
+			Name:  "Missing Management Group Name",
+			Input: "/managementGroup/subscription/12345678-1234-1234-1234-123456789012",
+			Error: true,
+		},
+		{
+			Name:  "Wrong Case",
+			Input: "/MANAGEMENTGROUP/MyManagementGroup/SUBSCRIPTION/12345678-1234-1234-1234-123456789012",
+			Error: true,
+		},
+		{
 			Name:  "Valid",
 			Input: "/managementGroup/MyManagementGroup/subscription/12345678-1234-1234-1234-123456789012",
 			Expected: &ManagementGroupSubscriptionAssociationId{
