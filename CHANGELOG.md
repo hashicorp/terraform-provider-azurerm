@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 * dependencies: updating to `v52.5.0` of `github.com/Azure/azure-sdk-for-go` [GH-11015]
+* `azurerm_logic_app_trigger_recurrence` - Add support for `schedule`  [GH-11055]
 
 BUG FIXES:
 
