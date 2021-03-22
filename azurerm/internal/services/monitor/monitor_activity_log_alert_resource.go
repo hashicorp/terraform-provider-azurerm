@@ -151,7 +151,7 @@ func resourceMonitorActivityLogAlert() *schema.Resource {
 							Optional:      true,
 							ConflictsWith: []string{"criteria.0.recommendation_category", "criteria.0.recommendation_impact"},
 						},
-						"servicehealth": {
+						"service_health": {
 							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Resource{
@@ -440,54 +440,50 @@ func expandMonitorActivityLogAlertCriteria(input []interface{}) *insights.AlertR
 		})
 	}
 
-	if serviceHealth := v["servicehealth"].([]interface{}); len(serviceHealth) > 0 {
-		for _, serviceItem := range serviceHealth {
-			vs := serviceItem.(map[string]interface{})
-			if regions, ok := vs["regions"]; ok {
-				if rv, ok := regions.(*schema.Set); ok {
-					if len(rv.List()) > 0 {
-						conditions = append(conditions, insights.AlertRuleAnyOfOrLeafCondition{
-							Field:       utils.String("properties.impactedServices[*].ImpactedRegions[*].RegionName"),
-							ContainsAny: utils.ExpandStringSlice(rv.List()),
-						})
-					}
-				}
-			}
-
-			if events, ok := vs["events"]; ok {
-				if ev, ok := events.(*schema.Set); ok {
-					if len(ev.List()) > 0 {
-						ruleLeafCondition := make([]insights.AlertRuleLeafCondition, 0)
-						for _, e := range ev.List() {
-							event := e.(string)
-							ruleLeafCondition = append(ruleLeafCondition, insights.AlertRuleLeafCondition{
-								Field:  utils.String("properties.incidentType"),
-								Equals: utils.String(event),
-							})
-						}
-						conditions = append(conditions, insights.AlertRuleAnyOfOrLeafCondition{
-							AnyOf: &ruleLeafCondition,
-						})
-					}
-				}
-			}
-
-			if services, ok := vs["services"]; ok {
-				if sv, ok := services.(*schema.Set); ok {
-					if len(sv.List()) > 0 {
-						conditions = append(conditions, insights.AlertRuleAnyOfOrLeafCondition{
-							Field:       utils.String("properties.impactedServices[*].ServiceName"),
-							ContainsAny: utils.ExpandStringSlice(sv.List()),
-						})
-					}
-				}
-			}
-		}
+	if serviceHealth := v["service_health"].([]interface{}); len(serviceHealth) > 0 {
+		conditions = expandServiceHealth(serviceHealth, conditions)
 	}
 
 	return &insights.AlertRuleAllOfCondition{
 		AllOf: &conditions,
 	}
+}
+
+func expandServiceHealth(serviceHealth []interface{}, conditions []insights.AlertRuleAnyOfOrLeafCondition) []insights.AlertRuleAnyOfOrLeafCondition {
+	for _, serviceItem := range serviceHealth {
+		vs := serviceItem.(map[string]interface{})
+		rv := vs["regions"].(*schema.Set)
+		if len(rv.List()) > 0 {
+			conditions = append(conditions, insights.AlertRuleAnyOfOrLeafCondition{
+				Field:       utils.String("properties.impactedServices[*].ImpactedRegions[*].RegionName"),
+				ContainsAny: utils.ExpandStringSlice(rv.List()),
+			})
+		}
+
+		ev := vs["events"].(*schema.Set)
+		if len(ev.List()) > 0 {
+			ruleLeafCondition := make([]insights.AlertRuleLeafCondition, 0)
+			for _, e := range ev.List() {
+				event := e.(string)
+				ruleLeafCondition = append(ruleLeafCondition, insights.AlertRuleLeafCondition{
+					Field:  utils.String("properties.incidentType"),
+					Equals: utils.String(event),
+				})
+			}
+			conditions = append(conditions, insights.AlertRuleAnyOfOrLeafCondition{
+				AnyOf: &ruleLeafCondition,
+			})
+		}
+
+		sv := vs["services"].(*schema.Set)
+		if len(sv.List()) > 0 {
+			conditions = append(conditions, insights.AlertRuleAnyOfOrLeafCondition{
+				Field:       utils.String("properties.impactedServices[*].ServiceName"),
+				ContainsAny: utils.ExpandStringSlice(sv.List()),
+			})
+		}
+	}
+	return conditions
 }
 
 func expandMonitorActivityLogAlertAction(input []interface{}) *insights.ActionList {
