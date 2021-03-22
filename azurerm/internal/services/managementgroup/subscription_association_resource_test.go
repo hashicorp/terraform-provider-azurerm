@@ -33,7 +33,7 @@ func TestAccManagementGroupSubscriptionAssociation_basic(t *testing.T) {
 	})
 }
 
-func TestAddManagementGroupSubscriptionAssociation_requiresImport(t *testing.T) {
+func TestAccManagementGroupSubscriptionAssociation_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_group_subscription_association", "test")
 
 	r := ManagementGroupSubscriptionAssociation{}
@@ -82,7 +82,7 @@ resource "azurerm_management_group_subscription_association" "import" {
 `, r.basic())
 }
 
-func (m ManagementGroupSubscriptionAssociation) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r ManagementGroupSubscriptionAssociation) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.ManagementGroupSubscriptionAssociationID(state.ID)
 	if err != nil {
 		return nil, err
