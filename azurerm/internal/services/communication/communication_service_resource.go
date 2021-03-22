@@ -22,9 +22,9 @@ import (
 
 func resourceArmCommunicationService() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmCommunicationServiceCreateUpdate,
+		Create: resourceArmCommunicationServiceCreate,
 		Read:   resourceArmCommunicationServiceRead,
-		Update: resourceArmCommunicationServiceCreateUpdate,
+		Update: resourceArmCommunicationServiceUpdate,
 		Delete: resourceArmCommunicationServiceDelete,
 
 		Timeouts: &schema.ResourceTimeout{
@@ -63,10 +63,10 @@ func resourceArmCommunicationService() *schema.Resource {
 	}
 }
 
-func resourceArmCommunicationServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmCommunicationServiceCreate(d *schema.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Communication.ServiceClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
@@ -74,17 +74,15 @@ func resourceArmCommunicationServiceCreateUpdate(d *schema.ResourceData, meta in
 
 	id := parse.NewCommunicationServiceID(subscriptionId, resourceGroup, name)
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_communication_service", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
+	}
+
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_communication_service", id.ID())
 	}
 
 	parameter := communication.ServiceResource{
@@ -139,6 +137,38 @@ func resourceArmCommunicationServiceRead(d *schema.ResourceData, meta interface{
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
+}
+
+func resourceArmCommunicationServiceUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Communication.ServiceClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.CommunicationServiceID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+	if existing.ServiceProperties == nil {
+		return fmt.Errorf("retrieving %s: `serviceProperties` was nil", id)
+	}
+
+	// The `SystemData` property is read-only. API doesn't allow to set it while updating.
+	existing.SystemData = nil
+
+	if d.HasChange("tags") {
+		existing.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, &existing); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	return resourceArmCommunicationServiceRead(d, meta)
 }
 
 func resourceArmCommunicationServiceDelete(d *schema.ResourceData, meta interface{}) error {
