@@ -102,8 +102,6 @@ func TestAccHPCCacheNFSTarget_accessPolicy(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-	})
-	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.accessPolicy(data),
 			Check: resource.ComposeTestCheckFunc(
@@ -111,8 +109,13 @@ func TestAccHPCCacheNFSTarget_accessPolicy(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-	})
-	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.accessPolicyUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 		{
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
@@ -221,6 +224,15 @@ func (r HPCCacheNFSTargetResource) accessPolicy(data acceptance.TestData) string
 	return fmt.Sprintf(`
 %s
 
+resource "azurerm_hpc_cache_access_policy" "test" {
+  name         = "p1"
+  hpc_cache_id = azurerm_hpc_cache.test.id
+  access_rule {
+    scope  = "default"
+    access = "rw"
+  }
+}
+
 resource "azurerm_hpc_cache_nfs_target" "test" {
   name                = "acctest-HPCCTGT-%s"
   resource_group_name = azurerm_resource_group.test.name
@@ -231,15 +243,50 @@ resource "azurerm_hpc_cache_nfs_target" "test" {
     namespace_path = "/nfs/a1"
     nfs_export     = "/export/a"
     target_path    = "1"
-    access_policy_name = "default"
   }
   namespace_junction {
-    namespace_path = "/nfs/b"
-    nfs_export     = "/export/b"
-    access_policy_name = "p1"
+    namespace_path     = "/nfs/b"
+    nfs_export         = "/export/b"
+    access_policy_name = azurerm_hpc_cache_access_policy.test.name
   }
 }
-`, r.cacheTemplateWithCustomAccessPolicy(data), data.RandomString)
+`, r.cacheTemplate(data), data.RandomString)
+}
+
+func (r HPCCacheNFSTargetResource) accessPolicyUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_hpc_cache_access_policy" "test" {
+  name         = "p2"
+  hpc_cache_id = azurerm_hpc_cache.test.id
+  access_rule {
+    scope  = "default"
+    access = "rw"
+  }
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "azurerm_hpc_cache_nfs_target" "test" {
+  name                = "acctest-HPCCTGT-%s"
+  resource_group_name = azurerm_resource_group.test.name
+  cache_name          = azurerm_hpc_cache.test.name
+  target_host_name    = azurerm_linux_virtual_machine.test.private_ip_address
+  usage_model         = "READ_HEAVY_INFREQ"
+  namespace_junction {
+    namespace_path = "/nfs/a1"
+    nfs_export     = "/export/a"
+    target_path    = "1"
+  }
+  namespace_junction {
+    namespace_path     = "/nfs/b"
+    nfs_export         = "/export/b"
+    access_policy_name = azurerm_hpc_cache_access_policy.test.name
+  }
+}
+`, r.cacheTemplate(data), data.RandomString)
 }
 
 func (r HPCCacheNFSTargetResource) requiresImport(data acceptance.TestData) string {
@@ -263,28 +310,6 @@ resource "azurerm_hpc_cache_nfs_target" "import" {
   }
 }
 `, r.basic(data))
-}
-
-func (r HPCCacheNFSTargetResource) cacheTemplateWithCustomAccessPolicy(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_hpc_cache" "test" {
-  name                = "acctest-HPCC-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  cache_size_in_gb    = 3072
-  subnet_id           = azurerm_subnet.test.id
-  sku_name            = "Standard_2G"
-  custom_access_policy {
-    name = "p1"
-    access_rule {
-      scope = "default"
-      access = "ro"
-    }
-  }
-}
-`, r.template(data), data.RandomInteger)
 }
 
 func (r HPCCacheNFSTargetResource) cacheTemplate(data acceptance.TestData) string {

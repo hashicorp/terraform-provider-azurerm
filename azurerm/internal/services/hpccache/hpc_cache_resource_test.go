@@ -111,6 +111,42 @@ func TestAccHPCCache_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccHPCCache_accessPolicy_default(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hpc_cache", "test")
+	r := HPCCacheResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.defaultAccessPolicyBasic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.defaultAccessPolicyComplete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.defaultAccessPolicyBasic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (HPCCacheResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.CacheID(state.ID)
 	if err != nil {
@@ -185,6 +221,65 @@ resource "azurerm_hpc_cache" "test" {
   root_squash_enabled = %t
 }
 `, r.template(data), data.RandomInteger, enable)
+}
+
+func (r HPCCacheResource) defaultAccessPolicyBasic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_hpc_cache" "test" {
+  name                = "acctest-HPCC-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cache_size_in_gb    = 3072
+  subnet_id           = azurerm_subnet.test.id
+  sku_name            = "Standard_2G"
+  default_access_policy {
+    access_rule {
+      scope  = "default"
+      access = "rw"
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r HPCCacheResource) defaultAccessPolicyComplete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_hpc_cache" "test" {
+  name                = "acctest-HPCC-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cache_size_in_gb    = 3072
+  subnet_id           = azurerm_subnet.test.id
+  sku_name            = "Standard_2G"
+  default_access_policy {
+    access_rule {
+      scope  = "default"
+      access = "ro"
+    }
+
+    access_rule {
+      scope                   = "network"
+      access                  = "rw"
+      filter                  = "10.0.0.0/24"
+      suid_enabled            = true
+      submount_access_enabled = true
+      root_squash_enabled     = true
+      anonymous_uid           = 123
+      anonymous_gid           = 123
+    }
+
+    access_rule {
+      scope  = "host"
+      access = "no"
+      filter = "10.0.0.1"
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (HPCCacheResource) template(data acceptance.TestData) string {

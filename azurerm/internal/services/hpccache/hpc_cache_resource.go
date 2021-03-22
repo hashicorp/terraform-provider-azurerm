@@ -19,69 +19,6 @@ import (
 )
 
 func resourceHPCCache() *schema.Resource {
-	accessRuleSchema := &schema.Schema{
-		Type:     schema.TypeSet,
-		Required: true,
-		MinItems: 1,
-		MaxItems: 3,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
-				"scope": {
-					Type:     schema.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(storagecache.Default),
-						string(storagecache.Network),
-						string(storagecache.Host),
-					}, false),
-				},
-
-				"access": {
-					Type:     schema.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(storagecache.NfsAccessRuleAccessRw),
-						string(storagecache.NfsAccessRuleAccessRo),
-						string(storagecache.NfsAccessRuleAccessNo),
-					}, false),
-				},
-
-				"filter": {
-					Type:         schema.TypeString,
-					Optional:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-
-				"suid_enabled": {
-					Type:     schema.TypeBool,
-					Optional: true,
-				},
-
-				"submount_access_enabled": {
-					Type:     schema.TypeBool,
-					Optional: true,
-				},
-
-				"root_squash_enabled": {
-					Type:     schema.TypeBool,
-					Optional: true,
-				},
-
-				"anonymous_uid": {
-					Type:         schema.TypeInt,
-					Optional:     true,
-					ValidateFunc: validation.IntBetween(0, 4294967295),
-				},
-
-				"anonymous_gid": {
-					Type:         schema.TypeInt,
-					Optional:     true,
-					ValidateFunc: validation.IntBetween(0, 4294967295),
-				},
-			},
-		},
-	}
-
 	return &schema.Resource{
 		Create: resourceHPCCacheCreateOrUpdate,
 		Update: resourceHPCCacheCreateOrUpdate,
@@ -170,27 +107,68 @@ func resourceHPCCache() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"access_rule": accessRuleSchema,
-					},
-				},
-			},
+						"access_rule": {
+							Type:     schema.TypeSet,
+							Required: true,
+							MinItems: 1,
+							MaxItems: 3,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"scope": {
+										Type:     schema.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(storagecache.Default),
+											string(storagecache.Network),
+											string(storagecache.Host),
+										}, false),
+									},
 
-			"custom_access_policy": {
-				// Order doesn't matter for the access policies, as each one will be selected by one namespace path.
-				Type:     schema.TypeSet,
-				MinItems: 1,
-				Optional: true,
-				// This is computed because for the caches that are created by API version prior to 2021-03-01, there are two implicit access policies created.
-				// We shall keep those twos for backward compatibility.
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringNotInSlice([]string{"default"}, false),
+									"access": {
+										Type:     schema.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(storagecache.NfsAccessRuleAccessRw),
+											string(storagecache.NfsAccessRuleAccessRo),
+											string(storagecache.NfsAccessRuleAccessNo),
+										}, false),
+									},
+
+									"filter": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
+									"suid_enabled": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+
+									"submount_access_enabled": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+
+									"root_squash_enabled": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+
+									"anonymous_uid": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(0, 4294967295),
+									},
+
+									"anonymous_gid": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(0, 4294967295),
+									},
+								},
+							},
 						},
-						"access_rule": accessRuleSchema,
 					},
 				},
 			},
@@ -235,12 +213,28 @@ func resourceHPCCacheCreateOrUpdate(d *schema.ResourceData, meta interface{}) er
 	skuName := d.Get("sku_name").(string)
 	mtu := d.Get("mtu").(int)
 
-	accessPolicies := expandStorageCacheNfsAccessPolicies(d.Get("custom_access_policy").(*schema.Set).List())
+	var accessPolicies []storagecache.NfsAccessPolicy
+	if !d.IsNewResource() {
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		if err != nil {
+			return fmt.Errorf("retrieving existing HPC Cache %q: %v", id, err)
+		}
+		if prop := existing.CacheProperties; prop != nil {
+			if settings := existing.SecuritySettings; settings != nil {
+				if policies := settings.AccessPolicies; policies != nil {
+					accessPolicies = *policies
+				}
+			}
+		}
+	}
 	defaultAccessPolicy, err := expandStorageCacheDefaultAccessPolicy(d.Get("default_access_policy").([]interface{}), d.Get("root_squash_enabled").(bool))
 	if err != nil {
 		return err
 	}
-	accessPolicies = append(accessPolicies, defaultAccessPolicy)
+	accessPolicies, err = CacheInsertOrUpdateAccessPolicy(accessPolicies, defaultAccessPolicy)
+	if err != nil {
+		return err
+	}
 
 	cache := &storagecache.Cache{
 		Name:     utils.String(name),
@@ -315,7 +309,7 @@ func resourceHPCCacheRead(d *schema.ResourceData, meta interface{}) error {
 		}
 		if securitySettings := props.SecuritySettings; securitySettings != nil {
 			if securitySettings.AccessPolicies != nil {
-				defaultPolicy := cacheGetDefaultAccessPolicy(*securitySettings.AccessPolicies)
+				defaultPolicy := CacheGetAccessPolicyByName(*securitySettings.AccessPolicies, "default")
 				if defaultPolicy != nil {
 					defaultAccessPolicy, err := flattenStorageCacheNfsDefaultAccessPolicy(*defaultPolicy)
 					if err != nil {
@@ -329,21 +323,12 @@ func resourceHPCCacheRead(d *schema.ResourceData, meta interface{}) error {
 					// TODO 3.0 - remove this part.
 					deprecatedRootSquashEnabled := false
 					if defaultPolicy.AccessRules != nil {
-						accessRule, ok := cacheGetAccessPolicyRuleByScope(*defaultPolicy.AccessRules, storagecache.Default)
+						accessRule, ok := CacheGetAccessPolicyRuleByScope(*defaultPolicy.AccessRules, storagecache.Default)
 						if ok && accessRule.RootSquash != nil {
 							deprecatedRootSquashEnabled = *accessRule.RootSquash
 						}
 					}
 					d.Set("root_squash_enabled", deprecatedRootSquashEnabled)
-				}
-
-				customPolicies := cacheGetCustomAccessPolicies(*securitySettings.AccessPolicies)
-				customAccessPolicies, err := flattenStorageCacheNfsAccessPolicies(customPolicies)
-				if err != nil {
-					return err
-				}
-				if err := d.Set("custom_access_policy", customAccessPolicies); err != nil {
-					return fmt.Errorf("setting `custom_access_policy`: %v", err)
 				}
 			}
 		}
@@ -378,42 +363,6 @@ func resourceHPCCacheDelete(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func expandStorageCacheNfsAccessPolicies(input []interface{}) []storagecache.NfsAccessPolicy {
-	var out []storagecache.NfsAccessPolicy
-	for _, p := range input {
-		p := p.(map[string]interface{})
-		accessRules := expandStorageCacheNfsAccessRules(p["access_rule"].(*schema.Set).List())
-		out = append(out, storagecache.NfsAccessPolicy{
-			Name:        utils.String(p["name"].(string)),
-			AccessRules: &accessRules,
-		})
-	}
-	return out
-}
-
-func flattenStorageCacheNfsAccessPolicies(input []storagecache.NfsAccessPolicy) ([]interface{}, error) {
-	var out []interface{}
-
-	for _, p := range input {
-		name := ""
-		if p.Name != nil {
-			name = *p.Name
-		}
-
-		rules, err := flattenStorageCacheNfsAccessRules(p.AccessRules)
-		if err != nil {
-			return nil, err
-		}
-
-		out = append(out, map[string]interface{}{
-			"name":        name,
-			"access_rule": rules,
-		})
-	}
-
-	return out, nil
-}
-
 func expandStorageCacheDefaultAccessPolicy(input []interface{}, deprecatedRootSquashed bool) (storagecache.NfsAccessPolicy, error) {
 	// Use the deprecated "root_squashed_enabled" property to setup the default scoped access policy for backward compatibility.
 	if len(input) == 0 {
@@ -437,10 +386,9 @@ func expandStorageCacheDefaultAccessPolicy(input []interface{}, deprecatedRootSq
 		return storagecache.NfsAccessPolicy{}, fmt.Errorf("`root_squashed_enabled` can't be used together with `default_access_policy`, prefer using the latter one exclusively")
 	}
 
-	accessRules := expandStorageCacheNfsAccessRules(input[0].(map[string]interface{})["access_rule"].(*schema.Set).List())
 	return storagecache.NfsAccessPolicy{
 		Name:        utils.String("default"),
-		AccessRules: &accessRules,
+		AccessRules: expandStorageCacheNfsAccessRules(input[0].(map[string]interface{})["access_rule"].(*schema.Set).List()),
 	}, nil
 }
 
@@ -457,7 +405,7 @@ func flattenStorageCacheNfsDefaultAccessPolicy(input storagecache.NfsAccessPolic
 	}, nil
 }
 
-func expandStorageCacheNfsAccessRules(input []interface{}) []storagecache.NfsAccessRule {
+func expandStorageCacheNfsAccessRules(input []interface{}) *[]storagecache.NfsAccessRule {
 	var out []storagecache.NfsAccessRule
 	for _, accessRuleRaw := range input {
 		b := accessRuleRaw.(map[string]interface{})
@@ -472,7 +420,7 @@ func expandStorageCacheNfsAccessRules(input []interface{}) []storagecache.NfsAcc
 			AnonymousGID:   utils.String(strconv.Itoa(b["anonymous_gid"].(int))),
 		})
 	}
-	return out
+	return &out
 }
 
 func flattenStorageCacheNfsAccessRules(input *[]storagecache.NfsAccessRule) ([]interface{}, error) {
