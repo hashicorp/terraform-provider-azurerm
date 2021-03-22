@@ -220,7 +220,7 @@ resource "azurerm_machine_learning_workspace" "test" {
   key_vault_id            = azurerm_key_vault.test.id
   storage_account_id      = azurerm_storage_account.test.id
   container_registry_id   = azurerm_container_registry.test.id
-  sku_name                = "Enterprise"
+  sku_name                = "Basic"
   high_business_impact    = true
 
   identity {
