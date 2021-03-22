@@ -42,6 +42,12 @@ func resourceApiManagementLogger() *schema.Resource {
 
 			"api_management_name": schemaz.SchemaApiManagementName(),
 
+			"resource_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
+
 			"eventhub": {
 				Type:          schema.TypeList,
 				MaxItems:      1,
@@ -142,6 +148,10 @@ func resourceApiManagementLoggerCreate(d *schema.ResourceData, meta interface{})
 		parameters.Credentials = expandApiManagementLoggerApplicationInsights(appInsightsRaw)
 	}
 
+	if resourceId := d.Get("resource_id").(string); resourceId != "" {
+		parameters.ResourceID = utils.String(resourceId)
+	}
+
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, name, parameters, ""); err != nil {
 		return fmt.Errorf("creating Logger %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
 	}
@@ -184,6 +194,7 @@ func resourceApiManagementLoggerRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("api_management_name", serviceName)
+	d.Set("resource_id", resp.ResourceID)
 
 	if properties := resp.LoggerContractProperties; properties != nil {
 		d.Set("buffered", properties.IsBuffered)

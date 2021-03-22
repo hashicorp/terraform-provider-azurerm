@@ -121,7 +121,7 @@ resource "azurerm_data_share" "test" {
 }
 
 resource "azurerm_data_lake_store" "test" {
-  name                = "acctestdls%[3]d"
+  name                = "acctestdls%[3]s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   firewall_state      = "Disabled"
@@ -142,7 +142,7 @@ resource "azurerm_role_assignment" "test" {
   role_definition_name = "Owner"
   principal_id         = data.azuread_service_principal.test.object_id
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(12))
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r DataShareDataSetDataLakeGen1Resource) basicFile(data acceptance.TestData) string {

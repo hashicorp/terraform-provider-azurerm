@@ -99,6 +99,8 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure location where the Linux Virtual Machine should exist. Changing this forces a new resource to be created.
 
+* `license_type` - (Optional) Specifies the BYOL Type for this Virtual Machine. Possible values are `RHEL_BYOS` and `SLES_BYOS`.
+
 * `name` - (Required) The name of the Linux Virtual Machine. Changing this forces a new resource to be created.
 
 * `network_interface_ids` - (Required). A list of Network Interface ID's which should be attached to this Virtual Machine. The first Network Interface ID in this list will be the Primary Network Interface on the Virtual Machine.
@@ -155,6 +157,8 @@ The following arguments are supported:
 -> **NOTE:** This can only be configured when `priority` is set to `Spot`.
 
 * `plan` - (Optional) A `plan` block as defined below. Changing this forces a new resource to be created.
+
+* `platform_fault_domain` - (Optional) Specifies the Platform Fault Domain in which this Linux Virtual Machine should be created. Defaults to `-1`, which means this will be automatically assigned to a fault domain that best maintains balance across the available fault domains. Changing this forces a new Linux Virtual Machine to be created.
 
 * `priority`- (Optional) Specifies the priority of this Virtual Machine. Possible values are `Regular` and `Spot`. Defaults to `Regular`. Changing this forces a new resource to be created.
 

@@ -10,6 +10,8 @@ description: |-
 
 Manages a Node Pool within a Kubernetes Cluster
 
+-> **Note:** Due to the fast-moving nature of AKS, we recommend using the latest version of the Azure Provider when using AKS - you can find [the latest version of the Azure Provider here](https://registry.terraform.io/providers/hashicorp/azurerm/latest).
+
 ~> **NOTE:** Multiple Node Pools are only supported when the Kubernetes Cluster is using Virtual Machine Scale Sets.
 
 ## Example Usage

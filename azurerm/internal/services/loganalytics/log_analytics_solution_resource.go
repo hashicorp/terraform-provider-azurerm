@@ -16,6 +16,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	loganalyticsParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -206,7 +207,15 @@ func resourceLogAnalyticsSolutionRead(d *schema.ResourceData, meta interface{}) 
 	}
 
 	if props := resp.Properties; props != nil {
-		d.Set("workspace_resource_id", props.WorkspaceResourceID)
+		var workspaceId string
+		if props.WorkspaceResourceID != nil {
+			id, err := loganalyticsParse.LogAnalyticsWorkspaceID(*props.WorkspaceResourceID)
+			if err != nil {
+				return err
+			}
+			workspaceId = id.ID()
+		}
+		d.Set("workspace_resource_id", workspaceId)
 	}
 
 	if err := d.Set("plan", flattenAzureRmLogAnalyticsSolutionPlan(resp.Plan)); err != nil {

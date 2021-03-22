@@ -17,7 +17,7 @@ resources in the linked virtual network.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "peeredvnets-rg"
-  location = "West US"
+  location = "West Europe"
 }
 
 resource "azurerm_virtual_network" "example-1" {

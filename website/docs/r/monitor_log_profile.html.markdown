@@ -17,7 +17,7 @@ Manages a [Log Profile](https://docs.microsoft.com/en-us/azure/monitoring-and-di
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "logprofiletest-rg"
-  location = "eastus"
+  location = "West Europe"
 }
 
 resource "azurerm_storage_account" "example" {

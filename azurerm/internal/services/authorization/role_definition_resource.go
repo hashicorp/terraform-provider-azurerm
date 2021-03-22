@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-09-01-preview/authorization"
+	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2020-04-01-preview/authorization"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -192,7 +192,7 @@ func resourceArmRoleDefinitionCreateUpdate(d *schema.ResourceData, meta interfac
 			},
 			Refresh:                   roleDefinitionUpdateStateRefreshFunc(ctx, client, id.ResourceID),
 			MinTimeout:                10 * time.Second,
-			ContinuousTargetOccurence: 6,
+			ContinuousTargetOccurence: 10,
 			Timeout:                   d.Timeout(schema.TimeoutUpdate),
 		}
 

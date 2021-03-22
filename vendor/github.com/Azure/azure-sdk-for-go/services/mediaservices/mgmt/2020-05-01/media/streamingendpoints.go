@@ -55,8 +55,8 @@ func (client StreamingEndpointsClient) Create(ctx context.Context, resourceGroup
 		ctx = tracing.StartSpan(ctx, fqdn+"/StreamingEndpointsClient.Create")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -104,6 +104,7 @@ func (client StreamingEndpointsClient) CreatePreparer(ctx context.Context, resou
 		queryParameters["autoStart"] = autorest.Encode("query", *autoStart)
 	}
 
+	parameters.SystemData = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -174,8 +175,8 @@ func (client StreamingEndpointsClient) Delete(ctx context.Context, resourceGroup
 		ctx = tracing.StartSpan(ctx, fqdn+"/StreamingEndpointsClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -479,8 +480,8 @@ func (client StreamingEndpointsClient) Scale(ctx context.Context, resourceGroupN
 		ctx = tracing.StartSpan(ctx, fqdn+"/StreamingEndpointsClient.Scale")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -581,8 +582,8 @@ func (client StreamingEndpointsClient) Start(ctx context.Context, resourceGroupN
 		ctx = tracing.StartSpan(ctx, fqdn+"/StreamingEndpointsClient.Start")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -681,8 +682,8 @@ func (client StreamingEndpointsClient) Stop(ctx context.Context, resourceGroupNa
 		ctx = tracing.StartSpan(ctx, fqdn+"/StreamingEndpointsClient.Stop")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -782,8 +783,8 @@ func (client StreamingEndpointsClient) Update(ctx context.Context, resourceGroup
 		ctx = tracing.StartSpan(ctx, fqdn+"/StreamingEndpointsClient.Update")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -825,6 +826,7 @@ func (client StreamingEndpointsClient) UpdatePreparer(ctx context.Context, resou
 		"api-version": APIVersion,
 	}
 
+	parameters.SystemData = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),

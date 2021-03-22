@@ -61,7 +61,7 @@ The following arguments are supported:
 
 * `minimum_tls_version` - (Optional) The minimum TLS version.  Defaults to `1.0`.
 
-* `patch_schedule` - (Optional) A list of `patch_schedule` blocks as defined below - only available for Premium SKU's.
+* `patch_schedule` - (Optional) A list of `patch_schedule` blocks as defined below.
 
 * `private_static_ip_address` - (Optional) The Static IP Address to assign to the Redis Cache when hosted inside the Virtual Network. Changing this forces a new resource to be created.
 

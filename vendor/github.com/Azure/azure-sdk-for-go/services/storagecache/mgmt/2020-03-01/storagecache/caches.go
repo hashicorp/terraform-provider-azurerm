@@ -55,8 +55,8 @@ func (client CachesClient) CreateOrUpdate(ctx context.Context, resourceGroupName
 		ctx = tracing.StartSpan(ctx, fqdn+"/CachesClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -189,8 +189,8 @@ func (client CachesClient) Delete(ctx context.Context, resourceGroupName string,
 		ctx = tracing.StartSpan(ctx, fqdn+"/CachesClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -298,8 +298,8 @@ func (client CachesClient) Flush(ctx context.Context, resourceGroupName string, 
 		ctx = tracing.StartSpan(ctx, fqdn+"/CachesClient.Flush")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -718,8 +718,8 @@ func (client CachesClient) Start(ctx context.Context, resourceGroupName string, 
 		ctx = tracing.StartSpan(ctx, fqdn+"/CachesClient.Start")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -826,8 +826,8 @@ func (client CachesClient) Stop(ctx context.Context, resourceGroupName string, c
 		ctx = tracing.StartSpan(ctx, fqdn+"/CachesClient.Stop")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -1028,8 +1028,8 @@ func (client CachesClient) UpgradeFirmware(ctx context.Context, resourceGroupNam
 		ctx = tracing.StartSpan(ctx, fqdn+"/CachesClient.UpgradeFirmware")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

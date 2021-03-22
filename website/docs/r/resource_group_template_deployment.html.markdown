@@ -15,36 +15,62 @@ Manages a Resource Group Template Deployment.
 ## Example Usage
 
 ```hcl
+locals {
+  vnet_name = "example-vnet"
+}
+
 resource "azurerm_resource_group_template_deployment" "example" {
   name                = "example-deploy"
   resource_group_name = "example-group"
   deployment_mode     = "Complete"
-  template_content    = <<TEMPLATE
+  parameters_content = jsonencode({
+    "vnetName" = {
+      value = local.vnet_name
+    }
+  })
+  template_content = <<TEMPLATE
 {
-  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-  "contentVersion": "1.0.0.0",
-  "parameters": {},
-  "variables": {},
-  "resources": [
-    {
-      "type": "Microsoft.Network/virtualNetworks",
-      "apiVersion": "2020-05-01",
-      "name": "acctest-network",
-      "location": "[resourceGroup().location]",
-      "properties": {
-        "addressSpace": {
-          "addressPrefixes": [
-            "10.0.0.0/16"
-          ]
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "vnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the VNET"
+            }
         }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2020-05-01",
+            "name": "[variables("vnetName")]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "10.0.0.0/16"
+                    ]
+                }
+            }
+        }
+    ],
+    "outputs": {
+      "exampleOutput": {
+        "type": "string",
+        "value": "someoutput"
       }
     }
-  ]
 }
 TEMPLATE
 
   // NOTE: whilst we show an inline template here, we recommend
   // sourcing this from a file for readability/editor support
+}
+
+output arm_example_output {
+  value = jsondecode(azurerm_resource_group_template_deployment.example.output_content).exampleOutput.value
 }
 ```
 
@@ -68,6 +94,8 @@ The following arguments are supported:
 
 * `parameters_content` - (Optional) The contents of the ARM Template parameters file - containing a JSON list of parameters.
 
+-> An example of how to pass Terraform variables into an ARM Template can be seen in the example.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Resource Group Template Deployment.
 
 ## Attributes Reference
@@ -77,6 +105,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `id` - The ID of the Resource Group Template Deployment.
 
 * `output_content` - The JSON Content of the Outputs of the ARM Template Deployment.
+
+-> An example of how to consume ARM Template outputs in Terraform can be seen in the example.
 
 ## Timeouts
 

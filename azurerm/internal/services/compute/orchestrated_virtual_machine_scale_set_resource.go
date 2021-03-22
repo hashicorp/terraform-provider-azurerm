@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -201,7 +201,11 @@ func resourceOrchestratedVirtualMachineScaleSetDelete(d *schema.ResourceData, me
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	// @ArcturusZhang (mimicking from linux_virtual_machine_resource.go): sending `nil` here omits this value from being sent
+	// which matches the previous behaviour - we're only splitting this out so it's clear why
+	// TODO: support force deletion once it's out of Preview, if applicable
+	var forceDeletion *bool = nil
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name, forceDeletion)
 	if err != nil {
 		return fmt.Errorf("deleting Orchestrated Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}

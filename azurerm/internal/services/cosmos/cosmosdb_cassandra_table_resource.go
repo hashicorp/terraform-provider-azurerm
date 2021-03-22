@@ -220,7 +220,6 @@ func resourceCosmosDbCassandraTableRead(d *schema.ResourceData, meta interface{}
 
 	keyspaceId := parse.NewCassandraKeyspaceID(subscriptionId, id.ResourceGroup, id.DatabaseAccountName, id.CassandraKeyspaceName)
 
-	d.Set("account_name", id.DatabaseAccountName)
 	d.Set("cassandra_keyspace_id", keyspaceId.ID())
 	if props := resp.CassandraTableGetProperties; props != nil {
 		if res := props.Resource; res != nil {

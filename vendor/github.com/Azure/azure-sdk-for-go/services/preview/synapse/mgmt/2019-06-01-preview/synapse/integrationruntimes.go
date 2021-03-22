@@ -56,8 +56,8 @@ func (client IntegrationRuntimesClient) Create(ctx context.Context, resourceGrou
 		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationRuntimesClient.Create")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -175,8 +175,8 @@ func (client IntegrationRuntimesClient) Delete(ctx context.Context, resourceGrou
 		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationRuntimesClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -277,8 +277,8 @@ func (client IntegrationRuntimesClient) DisableInteractiveQuery(ctx context.Cont
 		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationRuntimesClient.DisableInteractiveQuery")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -379,8 +379,8 @@ func (client IntegrationRuntimesClient) EnableInteractiveQuery(ctx context.Conte
 		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationRuntimesClient.EnableInteractiveQuery")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -703,8 +703,8 @@ func (client IntegrationRuntimesClient) Start(ctx context.Context, resourceGroup
 		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationRuntimesClient.Start")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -816,8 +816,8 @@ func (client IntegrationRuntimesClient) Stop(ctx context.Context, resourceGroupN
 		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationRuntimesClient.Stop")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

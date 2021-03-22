@@ -15,7 +15,7 @@ Manages a Metric Alert within Azure Monitor.
 ```hcl
 resource "azurerm_resource_group" "main" {
   name     = "example-resources"
-  location = "West US"
+  location = "West Europe"
 }
 
 resource "azurerm_storage_account" "to_monitor" {
@@ -169,5 +169,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Metric Alerts can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_monitor_metric_alert.main /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-resources/providers/microsoft.insights/metricalerts/example-metricalert
+terraform import azurerm_monitor_metric_alert.main /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-resources/providers/microsoft.insights/metricAlerts/example-metricalert
 ```

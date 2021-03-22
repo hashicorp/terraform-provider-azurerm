@@ -57,8 +57,8 @@ func (client InstanceFailoverGroupsClient) CreateOrUpdate(ctx context.Context, r
 		ctx = tracing.StartSpan(ctx, fqdn+"/InstanceFailoverGroupsClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -173,8 +173,8 @@ func (client InstanceFailoverGroupsClient) Delete(ctx context.Context, resourceG
 		ctx = tracing.StartSpan(ctx, fqdn+"/InstanceFailoverGroupsClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -266,8 +266,8 @@ func (client InstanceFailoverGroupsClient) Failover(ctx context.Context, resourc
 		ctx = tracing.StartSpan(ctx, fqdn+"/InstanceFailoverGroupsClient.Failover")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -371,8 +371,8 @@ func (client InstanceFailoverGroupsClient) ForceFailoverAllowDataLoss(ctx contex
 		ctx = tracing.StartSpan(ctx, fqdn+"/InstanceFailoverGroupsClient.ForceFailoverAllowDataLoss")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

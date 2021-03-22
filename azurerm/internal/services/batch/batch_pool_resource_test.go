@@ -222,13 +222,10 @@ func TestAccBatchPool_certificates(t *testing.T) {
 				check.That(data.ResourceName).Key("certificate.0.store_location").HasValue("CurrentUser"),
 				check.That(data.ResourceName).Key("certificate.0.store_name").HasValue(""),
 				check.That(data.ResourceName).Key("certificate.0.visibility.#").HasValue("1"),
-				check.That(data.ResourceName).Key("certificate.0.visibility.3294600504").HasValue("StartTask"),
 				check.That(data.ResourceName).Key("certificate.1.id").HasValue(certificate1ID),
 				check.That(data.ResourceName).Key("certificate.1.store_location").HasValue("CurrentUser"),
 				check.That(data.ResourceName).Key("certificate.1.store_name").HasValue(""),
 				check.That(data.ResourceName).Key("certificate.1.visibility.#").HasValue("2"),
-				check.That(data.ResourceName).Key("certificate.1.visibility.3294600504").HasValue("StartTask"),
-				check.That(data.ResourceName).Key("certificate.1.visibility.4077195354").HasValue("RemoteUser"),
 			),
 		},
 		data.ImportStep("stop_pending_resize_operation"),
@@ -974,7 +971,7 @@ resource "azurerm_batch_certificate" "testcer" {
 resource "azurerm_batch_certificate" "testpfx" {
   resource_group_name  = azurerm_resource_group.test.name
   account_name         = azurerm_batch_account.test.name
-  certificate          = filebase64("testdata/batch_certificate.pfx")
+  certificate          = filebase64("testdata/batch_certificate_password.pfx")
   format               = "Pfx"
   password             = "terraform"
   thumbprint           = "42c107874fd0e4a9583292a2f1098e8fe4b2edda"

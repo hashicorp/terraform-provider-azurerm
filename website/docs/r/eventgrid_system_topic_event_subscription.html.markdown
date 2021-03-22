@@ -15,7 +15,7 @@ Manages an EventGrid System Topic Event Subscription.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-rg"
-  location = "West US 2"
+  location = "West Europe"
 }
 
 resource "azurerm_storage_account" "example" {
@@ -35,7 +35,7 @@ resource "azurerm_storage_queue" "example" {
   storage_account_name = azurerm_storage_account.example.name
 }
 
-resource "azurerm_system_topic" "example" {
+resource "azurerm_eventgrid_system_topic" "example" {
   name                   = "example-system-topic"
   location               = "Global"
   resource_group_name    = azurerm_resource_group.example.name

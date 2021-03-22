@@ -15,7 +15,7 @@ Manages private and isolated Logic App instances within an Azure virtual network
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "exampleRG1"
-  location = "westeurope"
+  location = "West Europe"
 }
 
 resource "azurerm_virtual_network" "example" {

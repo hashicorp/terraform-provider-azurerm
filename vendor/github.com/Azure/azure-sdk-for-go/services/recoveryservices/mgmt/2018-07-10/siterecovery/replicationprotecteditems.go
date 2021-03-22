@@ -54,8 +54,8 @@ func (client ReplicationProtectedItemsClient) AddDisks(ctx context.Context, fabr
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationProtectedItemsClient.AddDisks")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -162,8 +162,8 @@ func (client ReplicationProtectedItemsClient) ApplyRecoveryPoint(ctx context.Con
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationProtectedItemsClient.ApplyRecoveryPoint")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -270,8 +270,8 @@ func (client ReplicationProtectedItemsClient) Create(ctx context.Context, fabric
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationProtectedItemsClient.Create")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -378,8 +378,8 @@ func (client ReplicationProtectedItemsClient) Delete(ctx context.Context, fabric
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationProtectedItemsClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -474,8 +474,8 @@ func (client ReplicationProtectedItemsClient) FailoverCommit(ctx context.Context
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationProtectedItemsClient.FailoverCommit")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -904,8 +904,8 @@ func (client ReplicationProtectedItemsClient) PlannedFailover(ctx context.Contex
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationProtectedItemsClient.PlannedFailover")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -1013,8 +1013,8 @@ func (client ReplicationProtectedItemsClient) Purge(ctx context.Context, fabricN
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationProtectedItemsClient.Purge")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -1108,8 +1108,8 @@ func (client ReplicationProtectedItemsClient) RemoveDisks(ctx context.Context, f
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationProtectedItemsClient.RemoveDisks")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -1216,8 +1216,8 @@ func (client ReplicationProtectedItemsClient) RepairReplication(ctx context.Cont
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationProtectedItemsClient.RepairReplication")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -1322,8 +1322,8 @@ func (client ReplicationProtectedItemsClient) Reprotect(ctx context.Context, fab
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationProtectedItemsClient.Reprotect")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -1430,8 +1430,8 @@ func (client ReplicationProtectedItemsClient) ResolveHealthErrors(ctx context.Co
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationProtectedItemsClient.ResolveHealthErrors")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -1538,8 +1538,8 @@ func (client ReplicationProtectedItemsClient) TestFailover(ctx context.Context, 
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationProtectedItemsClient.TestFailover")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -1646,8 +1646,8 @@ func (client ReplicationProtectedItemsClient) TestFailoverCleanup(ctx context.Co
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationProtectedItemsClient.TestFailoverCleanup")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -1760,8 +1760,8 @@ func (client ReplicationProtectedItemsClient) UnplannedFailover(ctx context.Cont
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationProtectedItemsClient.UnplannedFailover")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -1868,8 +1868,8 @@ func (client ReplicationProtectedItemsClient) Update(ctx context.Context, fabric
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationProtectedItemsClient.Update")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -1977,8 +1977,8 @@ func (client ReplicationProtectedItemsClient) UpdateMobilityService(ctx context.
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationProtectedItemsClient.UpdateMobilityService")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

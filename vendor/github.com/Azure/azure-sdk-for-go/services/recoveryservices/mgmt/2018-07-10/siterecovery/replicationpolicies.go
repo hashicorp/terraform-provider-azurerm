@@ -51,8 +51,8 @@ func (client ReplicationPoliciesClient) Create(ctx context.Context, policyName s
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationPoliciesClient.Create")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -154,8 +154,8 @@ func (client ReplicationPoliciesClient) Delete(ctx context.Context, policyName s
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationPoliciesClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -436,8 +436,8 @@ func (client ReplicationPoliciesClient) Update(ctx context.Context, policyName s
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationPoliciesClient.Update")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

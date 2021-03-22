@@ -53,8 +53,8 @@ func (client AssociationsClient) CreateOrUpdate(ctx context.Context, scope strin
 		ctx = tracing.StartSpan(ctx, fqdn+"/AssociationsClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -158,8 +158,8 @@ func (client AssociationsClient) Delete(ctx context.Context, scope string, assoc
 		ctx = tracing.StartSpan(ctx, fqdn+"/AssociationsClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
