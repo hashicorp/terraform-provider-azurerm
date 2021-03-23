@@ -54,6 +54,11 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 	}
 }
 
+// PackagePath is the relative path to this package
+func (r Registration) PackagePath() string {
+	return "TODO: do we need this?"
+}
+
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{}
 }
