@@ -382,10 +382,6 @@ func resourcePostgresqlFlexibleServerCreate(d *schema.ResourceData, meta interfa
 		}
 	}
 
-	if _, err := client.Get(ctx, resourceGroup, name); err != nil {
-		return fmt.Errorf("retrieving Postgresql Flexible Server %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
 	d.SetId(id)
 
 	return resourcePostgresqlFlexibleServerRead(d, meta)
@@ -404,7 +400,7 @@ func resourcePostgresqlFlexibleServerRead(d *schema.ResourceData, meta interface
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] postgresqlflexibleservers %q does not exist - removing from state", d.Id())
+			log.Printf("[INFO] Postgresql Flexibleserver %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
