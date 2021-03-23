@@ -3,7 +3,7 @@ package automation
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"time"
 
@@ -200,7 +200,7 @@ func resourceAutomationRunbookCreateUpdate(d *schema.ResourceData, meta interfac
 
 	if v, ok := d.GetOk("content"); ok {
 		content := v.(string)
-		reader := ioutil.NopCloser(bytes.NewBufferString(content))
+		reader := io.NopCloser(bytes.NewBufferString(content))
 		draftClient := meta.(*clients.Client).Automation.RunbookDraftClient
 
 		if _, err := draftClient.ReplaceContent(ctx, resGroup, accName, name, reader); err != nil {

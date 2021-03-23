@@ -78,7 +78,7 @@ func resourceArmMaintenanceAssignmentDedicatedHostCreate(d *schema.ResourceData,
 	}
 
 	maintenanceConfigurationID := d.Get("maintenance_configuration_id").(string)
-	configurationId, _ := parse.MaintenanceConfigurationID(maintenanceConfigurationID)
+	configurationId, _ := parse.MaintenanceConfigurationIDInsensitively(maintenanceConfigurationID)
 
 	// set assignment name to configuration name
 	assignmentName := configurationId.Name
@@ -136,8 +136,12 @@ func resourceArmMaintenanceAssignmentDedicatedHostRead(d *schema.ResourceData, m
 		return fmt.Errorf("empty or nil ID of Maintenance Assignment (Dedicated Host ID: %q", id.DedicatedHostIdRaw)
 	}
 
-	// in list api, `ResourceID` returned is always nil
-	d.Set("dedicated_host_id", id.DedicatedHostIdRaw)
+	dedicatedHostId := ""
+	if id.DedicatedHostId != nil {
+		dedicatedHostId = id.DedicatedHostId.ID()
+	}
+	d.Set("dedicated_host_id", dedicatedHostId)
+
 	if props := assignment.ConfigurationAssignmentProperties; props != nil {
 		d.Set("maintenance_configuration_id", props.MaintenanceConfigurationID)
 	}

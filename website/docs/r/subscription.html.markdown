@@ -89,7 +89,7 @@ The following arguments are supported:
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
-* `id` - The ID of the Subscription.
+* `id` - The Resource ID of the Alias.
 
 * `tenant_id` - The ID of the Tenant to which the subscription belongs.
 

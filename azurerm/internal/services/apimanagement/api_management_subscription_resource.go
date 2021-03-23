@@ -46,7 +46,12 @@ func resourceApiManagementSubscription() *schema.Resource {
 			},
 
 			// 3.0 this seems to have been renamed to owner id?
-			"user_id": schemaz.SchemaApiManagementChildID(),
+			"user_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
@@ -136,7 +141,6 @@ func resourceApiManagementSubscriptionCreateUpdate(d *schema.ResourceData, meta 
 	displayName := d.Get("display_name").(string)
 	productId := d.Get("product_id").(string)
 	state := d.Get("state").(string)
-	userId := d.Get("user_id").(string)
 	allowTracing := d.Get("allow_tracing").(bool)
 
 	params := apimanagement.SubscriptionCreateParameters{
@@ -144,9 +148,11 @@ func resourceApiManagementSubscriptionCreateUpdate(d *schema.ResourceData, meta 
 			DisplayName:  utils.String(displayName),
 			Scope:        utils.String(productId),
 			State:        apimanagement.SubscriptionState(state),
-			OwnerID:      utils.String(userId),
 			AllowTracing: utils.Bool(allowTracing),
 		},
+	}
+	if v, ok := d.GetOk("user_id"); ok {
+		params.SubscriptionCreateParameterProperties.OwnerID = utils.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("primary_key"); ok {

@@ -315,6 +315,10 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			DisableTerraformPartnerID:   d.Get("disable_terraform_partner_id").(bool),
 			Features:                    expandFeatures(d.Get("features").([]interface{})),
 			StorageUseAzureAD:           d.Get("storage_use_azuread").(bool),
+
+			// this field is intentionally not exposed in the provider block, since it's only used for
+			// platform level tracing
+			CustomCorrelationRequestID: os.Getenv("ARM_CORRELATION_REQUEST_ID"),
 		}
 		client, err := clients.Build(p.StopContext(), clientBuilder)
 		if err != nil {

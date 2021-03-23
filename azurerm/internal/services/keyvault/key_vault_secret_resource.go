@@ -170,6 +170,11 @@ func resourceKeyVaultSecretCreate(d *schema.ResourceData, meta interface{}) erro
 					return fmt.Errorf("Error waiting for Key Vault Secret %q to become available: %s", name, err)
 				}
 				log.Printf("[DEBUG] Secret %q recovered with ID: %q", name, *recoveredSecret.ID)
+
+				_, err := client.SetSecret(ctx, *keyVaultBaseUrl, name, parameters)
+				if err != nil {
+					return err
+				}
 			}
 		} else {
 			// If the error response was anything else, or `recover_soft_deleted_key_vaults` is `false` just return the error
