@@ -106,13 +106,13 @@ func resourceHPCCacheAccessPolicy() *schema.Resource {
 						"anonymous_uid": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validation.IntBetween(0, 4294967295),
+							ValidateFunc: validation.IntAtLeast(0),
 						},
 
 						"anonymous_gid": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validation.IntBetween(0, 4294967295),
+							ValidateFunc: validation.IntAtLeast(0),
 						},
 					},
 				},

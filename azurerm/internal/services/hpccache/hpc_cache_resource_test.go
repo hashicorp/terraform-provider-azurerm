@@ -89,7 +89,7 @@ func TestAccHPCCache_rootSquashDeprecated(t *testing.T) {
 		// "cfg" during import verification, the state of the "root_squash_enabled" is always false.
 		// The clarification is that since this is a deprecated property, users shouldn't import an existing resource to a new .tf file whilst using that
 		// deprecated property.
-		//data.ImportStep(),
+		// data.ImportStep(),
 		{
 			Config: r.rootSquashDeprecated(data, false),
 			Check: resource.ComposeTestCheckFunc(
