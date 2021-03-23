@@ -42,12 +42,12 @@ resource "azurerm_hpc_cache" "example" {
 }
 
 resource "azurerm_hpc_cache_access_policy" "example" {
-  name = "example"
+  name         = "example"
   hpc_cache_id = azurerm_hpc_cache.example.id
 
   access_rule {
-    scope = "default"
-    access = "rw"    
+    scope  = "default"
+    access = "rw"
   }
 }
 ```
