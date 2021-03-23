@@ -110,6 +110,7 @@ resource "azurerm_storage_management_policy" "test" {
 
 data "azurerm_storage_management_policy" "test" {
   storage_account_id = azurerm_storage_management_policy.test.storage_account_id
+depends_on = [azurerm_storage_management_policy.test]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
@@ -158,6 +159,7 @@ resource "azurerm_storage_management_policy" "test" {
 
 data "azurerm_storage_management_policy" "test" {
   storage_account_id = azurerm_storage_management_policy.test.storage_account_id
+depends_on = [azurerm_storage_management_policy.test]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

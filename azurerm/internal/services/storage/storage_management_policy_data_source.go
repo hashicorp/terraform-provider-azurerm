@@ -53,6 +53,29 @@ func dataSourceStorageManagementPolicy() *schema.Resource {
 										Elem:     &schema.Schema{Type: schema.TypeString},
 										Set:      schema.HashString,
 									},
+
+									"blob_index_match_tag": {
+										Type:     schema.TypeSet,
+										Computed: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"name": {
+													Type:     schema.TypeString,
+													Computed: true,
+												},
+
+												"operation": {
+													Type:     schema.TypeString,
+													Computed: true,
+												},
+
+												"value": {
+													Type:     schema.TypeString,
+													Computed: true,
+												},
+											},
+										},
+									},
 								},
 							},
 						},

@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"bytes"
 	"fmt"
 	"regexp"
 	"time"
@@ -86,7 +85,6 @@ func resourceStorageManagementPolicy() *schema.Resource {
 									"blob_index_match_tag": {
 										Type:     schema.TypeSet,
 										Optional: true,
-										Set:      resourceStorageManagementPolicyBlobIndexMatchHash,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"name": {
@@ -471,10 +469,8 @@ func expandAzureRmStorageBlobIndexMatch(blobIndexMatches []interface{}) *[]stora
 	return &results
 }
 
-func flattenAzureRmStorageBlobIndexMatch(blobIndexMatches *[]storage.TagFilter) *schema.Set {
-	result := &schema.Set{
-		F: resourceStorageManagementPolicyBlobIndexMatchHash,
-	}
+func flattenAzureRmStorageBlobIndexMatch(blobIndexMatches *[]storage.TagFilter) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0)
 
 	if blobIndexMatches == nil || len(*blobIndexMatches) == 0 {
 		return result
@@ -491,34 +487,11 @@ func flattenAzureRmStorageBlobIndexMatch(blobIndexMatches *[]storage.TagFilter) 
 		if blobIndexMatch.Value != nil {
 			value = *blobIndexMatch.Value
 		}
-		result.Add(map[string]interface{}{
+		result = append(result, map[string]interface{}{
 			"name":      name,
 			"operation": op,
 			"value":     value,
 		})
 	}
 	return result
-}
-
-func resourceStorageManagementPolicyBlobIndexMatchHash(v interface{}) int {
-	var buf bytes.Buffer
-
-	if m, ok := v.(storage.TagFilter); ok {
-		var name, op, value string
-		if m.Name != nil {
-			name = *m.Name
-		}
-
-		if m.Op != nil {
-			op = *m.Op
-		}
-
-		if m.Value != nil {
-			value = *m.Value
-		}
-
-		buf.WriteString(fmt.Sprintf("%s-%s-%s", name, op, value))
-	}
-
-	return schema.HashString(buf.String())
 }
