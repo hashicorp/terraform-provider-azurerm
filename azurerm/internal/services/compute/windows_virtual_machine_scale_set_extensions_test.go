@@ -172,7 +172,7 @@ func TestAccWindowsVirtualMachineScaleSet_extensionsRollingUpgradeWithHealthExte
 	})
 }
 
-func TestAccWindowsVirtualMachineScaleSet_otherVmExtensionsAutomaticUpgradeWithHealthExtension(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_extensionsAutomaticUpgradeWithHealthExtension(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
