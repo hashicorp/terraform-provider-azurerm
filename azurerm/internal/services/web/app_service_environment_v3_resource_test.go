@@ -109,7 +109,7 @@ func (r AppServiceEnvironmentV3Resource) basic(data acceptance.TestData) string 
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
-resource "azurerm_app_service_environment" "test" {
+resource "azurerm_app_service_environment_v3" "test" {
   name                = "acctest-ase-%d"
   resource_group_name = azurerm_resource_group.test.name
   subnet_id           = azurerm_subnet.ase.id
@@ -121,7 +121,7 @@ func (r AppServiceEnvironmentV3Resource) complete(data acceptance.TestData) stri
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
-resource "azurerm_app_service_environment" "test" {
+resource "azurerm_app_service_environment_v3" "test" {
   name                = "acctest-ase-%d"
   resource_group_name = azurerm_resource_group.test2.name
   subnet_id           = azurerm_subnet.ase.id
@@ -151,7 +151,7 @@ func (r AppServiceEnvironmentV3Resource) completeUpdate(data acceptance.TestData
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
-resource "azurerm_app_service_environment" "test" {
+resource "azurerm_app_service_environment_v3" "test" {
   name                = "acctest-ase-%d"
   resource_group_name = azurerm_resource_group.test2.name
   subnet_id           = azurerm_subnet.ase.id
@@ -186,7 +186,7 @@ func (r AppServiceEnvironmentV3Resource) requiresImport(data acceptance.TestData
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_app_service_environment" "import" {
+resource "azurerm_app_service_environment_v3" "import" {
   name      = azurerm_app_service_environment.test.name
   subnet_id = azurerm_app_service_environment.test.subnet_id
 }
