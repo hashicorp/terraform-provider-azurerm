@@ -632,22 +632,26 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
   upgrade_mode        = "Rolling"
+
   rolling_upgrade_policy {
     max_batch_instance_percent              = 21
     max_unhealthy_instance_percent          = 22
     max_unhealthy_upgraded_instance_percent = 23
     pause_time_between_batches              = "PT30S"
   }
+
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
     offer     = "WindowsServer"
     sku       = "2019-Datacenter"
     version   = "latest"
   }
+
   os_disk {
     storage_account_type = "Standard_LRS"
     caching              = "ReadWrite"
   }
+
   network_interface {
     name    = "example"
     primary = true
@@ -657,6 +661,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
       subnet_id = azurerm_subnet.test.id
     }
   }
+
   extension {
     name                       = "HealthExtension"
     publisher                  = "Microsoft.ManagedServices"
@@ -694,16 +699,26 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     disable_automatic_rollback  = true
     enable_automatic_os_upgrade = true
   }
+
+  rolling_upgrade_policy {
+    max_batch_instance_percent              = 100
+    max_unhealthy_instance_percent          = 100
+    max_unhealthy_upgraded_instance_percent = 100
+    pause_time_between_batches              = "PT30S"
+  }
+
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
     offer     = "WindowsServer"
     sku       = "2019-Datacenter"
     version   = "latest"
   }
+
   os_disk {
     storage_account_type = "Standard_LRS"
     caching              = "ReadWrite"
   }
+
   network_interface {
     name    = "example"
     primary = true
@@ -713,6 +728,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
       subnet_id = azurerm_subnet.test.id
     }
   }
+
   extension {
     name                       = "HealthExtension"
     publisher                  = "Microsoft.ManagedServices"
