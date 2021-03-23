@@ -58,7 +58,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{}
 }
 
-func (r Registration) Reources() []sdk.Resource {
+func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		AppServiceEnvironmentV3Resource{},
 	}
