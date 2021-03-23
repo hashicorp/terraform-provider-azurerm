@@ -85,9 +85,13 @@ func TestAccHPCCache_rootSquashDeprecated(t *testing.T) {
 				check.That(data.ResourceName).Key("mount_addresses.#").Exists(),
 			),
 		},
-		data.ImportStep(),
+		// Following import verification will cause diff given we simply set whatever is in cfg to state for "root_squash_enabled", since there is no
+		// "cfg" during import verification, the state of the "root_squash_enabled" is always false.
+		// The clarification is that since this is a deprecated property, users shouldn't import an existing resource to a new .tf file whilst using that
+		// deprecated property.
+		//data.ImportStep(),
 		{
-			Config: r.rootSquashDeprecated(data, true),
+			Config: r.rootSquashDeprecated(data, false),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("mount_addresses.#").Exists(),
@@ -111,7 +115,7 @@ func TestAccHPCCache_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccHPCCache_accessPolicy_default(t *testing.T) {
+func TestAccHPCCache_defaultAccessPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache", "test")
 	r := HPCCacheResource{}
 

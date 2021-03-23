@@ -69,9 +69,11 @@ func resourceHPCCacheBlobTarget() *schema.Resource {
 			},
 
 			"access_policy_name": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Default:      "default",
+				Type:     schema.TypeString,
+				Optional: true,
+				// TODO 3.0: Remove `Computed` and add `Default: "default"`.
+				// O+C here is for backward compatibility to make the existing tf state no need to change to make the resource created prior to API 2021-03-01 work.
+				Computed:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},

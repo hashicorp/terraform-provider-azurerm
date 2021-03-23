@@ -26,10 +26,10 @@ func resourceHPCCache() *schema.Resource {
 		Delete: resourceHPCCacheDelete,
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
+			Create: schema.DefaultTimeout(60 * time.Minute),
+			Update: schema.DefaultTimeout(60 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(60 * time.Minute),
 		},
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.CacheID(id)
@@ -88,14 +88,10 @@ func resourceHPCCache() *schema.Resource {
 
 			// TODO 3.0: remove this property
 			"root_squash_enabled": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				// TODO 3.0: remove "Computed: true" and add "Default: true"
-				// The old resource has no consistent default for the rootSquash setting. In order not to
-				// break users, we intentionally mark this property as Computed.
-				// https://docs.microsoft.com/en-us/azure/hpc-cache/configuration#configure-root-squash.
+				Type:       schema.TypeBool,
+				Optional:   true,
 				Computed:   true,
-				Deprecated: "This is deprecated in favor of `default_access_policy.0.access_rule.x.root_squash_enabled`, where the scope of access_rule is `default`. Will be removed in v3.0",
+				Deprecated: "This property is not functional and will be deprecated in favor of `default_access_policy.0.access_rule.x.root_squash_enabled`, where the scope of access_rule is `default`.",
 			},
 
 			"default_access_policy": {
@@ -227,13 +223,13 @@ func resourceHPCCacheCreateOrUpdate(d *schema.ResourceData, meta interface{}) er
 			}
 		}
 	}
-	defaultAccessPolicy, err := expandStorageCacheDefaultAccessPolicy(d.Get("default_access_policy").([]interface{}), d.Get("root_squash_enabled").(bool))
-	if err != nil {
-		return err
-	}
-	accessPolicies, err = CacheInsertOrUpdateAccessPolicy(accessPolicies, defaultAccessPolicy)
-	if err != nil {
-		return err
+	defaultAccessPolicy := expandStorageCacheDefaultAccessPolicy(d.Get("default_access_policy").([]interface{}))
+	if defaultAccessPolicy != nil {
+		var err error
+		accessPolicies, err = CacheInsertOrUpdateAccessPolicy(accessPolicies, *defaultAccessPolicy)
+		if err != nil {
+			return err
+		}
 	}
 
 	cache := &storagecache.Cache{
@@ -319,16 +315,10 @@ func resourceHPCCacheRead(d *schema.ResourceData, meta interface{}) error {
 						return fmt.Errorf("setting `default_access_policy`: %v", err)
 					}
 
-					// Set the "root_squash_enabled" for backward compatibility.
+					// Set the "root_squash_enabled" for whatever is set in the config, to make any existing .tf that has specified this property
+					// not encounter plan diff.
 					// TODO 3.0 - remove this part.
-					deprecatedRootSquashEnabled := false
-					if defaultPolicy.AccessRules != nil {
-						accessRule, ok := CacheGetAccessPolicyRuleByScope(*defaultPolicy.AccessRules, storagecache.Default)
-						if ok && accessRule.RootSquash != nil {
-							deprecatedRootSquashEnabled = *accessRule.RootSquash
-						}
-					}
-					d.Set("root_squash_enabled", deprecatedRootSquashEnabled)
+					d.Set("root_squash_enabled", d.Get("root_squash_enabled"))
 				}
 			}
 		}
@@ -363,33 +353,15 @@ func resourceHPCCacheDelete(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func expandStorageCacheDefaultAccessPolicy(input []interface{}, deprecatedRootSquashed bool) (storagecache.NfsAccessPolicy, error) {
-	// Use the deprecated "root_squashed_enabled" property to setup the default scoped access policy for backward compatibility.
+func expandStorageCacheDefaultAccessPolicy(input []interface{}) *storagecache.NfsAccessPolicy {
 	if len(input) == 0 {
-		accessRules := []storagecache.NfsAccessRule{
-			{
-				Scope:          storagecache.Default,
-				Access:         storagecache.NfsAccessRuleAccessRw,
-				Suid:           utils.Bool(false),
-				SubmountAccess: utils.Bool(true),
-				RootSquash:     utils.Bool(false),
-			},
-		}
-
-		return storagecache.NfsAccessPolicy{
-			Name:        utils.String("default"),
-			AccessRules: &accessRules,
-		}, nil
+		return nil
 	}
 
-	if deprecatedRootSquashed {
-		return storagecache.NfsAccessPolicy{}, fmt.Errorf("`root_squashed_enabled` can't be used together with `default_access_policy`, prefer using the latter one exclusively")
-	}
-
-	return storagecache.NfsAccessPolicy{
+	return &storagecache.NfsAccessPolicy{
 		Name:        utils.String("default"),
 		AccessRules: expandStorageCacheNfsAccessRules(input[0].(map[string]interface{})["access_rule"].(*schema.Set).List()),
-	}, nil
+	}
 }
 
 func flattenStorageCacheNfsDefaultAccessPolicy(input storagecache.NfsAccessPolicy) ([]interface{}, error) {

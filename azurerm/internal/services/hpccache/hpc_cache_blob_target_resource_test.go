@@ -129,6 +129,7 @@ resource "azurerm_hpc_cache_blob_target" "test" {
   cache_name           = azurerm_hpc_cache.test.name
   storage_container_id = azurerm_storage_container.test.resource_manager_id
   namespace_path       = "/blob_storage1"
+  access_policy_name   = "default"
 }
 `, r.cacheTemplate(data), data.RandomString)
 }
@@ -182,6 +183,9 @@ resource "azurerm_hpc_cache_access_policy" "test" {
     scope  = "default"
     access = "rw"
   }
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "azurerm_hpc_cache_blob_target" "test" {
@@ -191,9 +195,6 @@ resource "azurerm_hpc_cache_blob_target" "test" {
   storage_container_id = azurerm_storage_container.test.resource_manager_id
   namespace_path       = "/blob_storage1"
   access_policy_name   = azurerm_hpc_cache_access_policy.test.name
-  lifecycle {
-    create_before_destroy = true
-  }
 }
 `, r.cacheTemplate(data), data.RandomString)
 }

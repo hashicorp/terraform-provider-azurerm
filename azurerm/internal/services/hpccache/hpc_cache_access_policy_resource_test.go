@@ -18,7 +18,7 @@ import (
 
 type HPCCacheAccessPolicyResource struct{}
 
-func TestAccAzureRMHPCCacheAccessPolicy_basic(t *testing.T) {
+func TestAccHPCCacheAccessPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_access_policy", "test")
 	r := HPCCacheAccessPolicyResource{}
 
@@ -33,7 +33,7 @@ func TestAccAzureRMHPCCacheAccessPolicy_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMHPCCacheAccessPolicy_complete(t *testing.T) {
+func TestAccHPCCacheAccessPolicy_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_access_policy", "test")
 	r := HPCCacheAccessPolicyResource{}
 
@@ -48,7 +48,7 @@ func TestAccAzureRMHPCCacheAccessPolicy_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMHPCCacheAccessPolicy_update(t *testing.T) {
+func TestAccHPCCacheAccessPolicy_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_access_policy", "test")
 	r := HPCCacheAccessPolicyResource{}
 
@@ -77,7 +77,7 @@ func TestAccAzureRMHPCCacheAccessPolicy_update(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMHPCCacheAccessPolicy_requiresImport(t *testing.T) {
+func TestAccHPCCacheAccessPolicy_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_access_policy", "test")
 	r := HPCCacheAccessPolicyResource{}
 
