@@ -374,8 +374,20 @@ func roleDefinitionEventualConsistencyUpdate(ctx context.Context, client azuresd
 		}
 
 		updateRequestTime, err := time.Parse(time.RFC3339, updateRequestDate)
-		respCreatedOn, _ := time.Parse(time.RFC3339, *resp.RoleDefinitionProperties.CreatedOn)
-		respUpdatedOn, _ := time.Parse(time.RFC3339, *resp.RoleDefinitionProperties.UpdatedOn)
+		if err != nil {
+			return nil, "", fmt.Errorf("error parsing time from update request: %+v", err)
+		}
+
+		respCreatedOn, err := time.Parse(time.RFC3339, *resp.RoleDefinitionProperties.CreatedOn)
+		if err != nil {
+			return nil, "", fmt.Errorf("error parsing time for createdOn from update request: %+v", err)
+		}
+
+		respUpdatedOn, err := time.Parse(time.RFC3339, *resp.RoleDefinitionProperties.UpdatedOn)
+		if err != nil {
+			return nil, "", fmt.Errorf("error parsing time for updatedOn from update request: %+v", err)
+		}
+
 		if respCreatedOn.Equal(updateRequestTime) {
 			// a new role definition is created and eventually (~5s) reconciled
 			return resp, "Pending", nil
