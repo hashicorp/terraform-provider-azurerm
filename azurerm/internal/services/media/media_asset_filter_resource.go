@@ -108,7 +108,7 @@ func resourceMediaAssetFilter() *schema.Resource {
 							ValidateFunc: validation.IntAtLeast(0),
 						},
 
-						"time_scale": {
+						"timescale": {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(0),
@@ -293,14 +293,14 @@ func expandPresentationTimeRange(input []interface{}) *media.PresentationTimeRan
 	}
 
 	if v := timeRange["presentation_window_duration"]; v != nil {
-		presentationTimeRange.LiveBackoffDuration = utils.Int64(int64(v.(int)))
+		presentationTimeRange.PresentationWindowDuration = utils.Int64(int64(v.(int)))
 	}
 
 	if v := timeRange["start_timestamp"]; v != nil {
 		presentationTimeRange.StartTimestamp = utils.Int64(int64(v.(int)))
 	}
 
-	if v := timeRange["time_scale"]; v != nil {
+	if v := timeRange["timescale"]; v != nil {
 		presentationTimeRange.Timescale = utils.Int64(int64(v.(int)))
 	}
 
@@ -334,7 +334,7 @@ func flattenPresentationTimeRange(input *media.PresentationTimeRange) []interfac
 
 	var startTimestamp int64
 	if input.StartTimestamp != nil {
-		endTimestamp = *input.StartTimestamp
+		startTimestamp = *input.StartTimestamp
 	}
 
 	var timeScale int64
@@ -349,7 +349,7 @@ func flattenPresentationTimeRange(input *media.PresentationTimeRange) []interfac
 			"live_backoff_duration":        liveBackoffDuration,
 			"presentation_window_duration": presentationWindowDuration,
 			"start_timestamp":              startTimestamp,
-			"time_scale":                   timeScale,
+			"timescale":                    timeScale,
 		},
 	}
 }
@@ -360,7 +360,7 @@ func expandTracks(input []interface{}) *[]media.FilterTrackSelection {
 	for _, trackRaw := range input {
 		track := trackRaw.(map[string]interface{})
 
-		if rawSelection, ok := track["selection"]; ok {
+		if rawSelection := track["selection"]; rawSelection != nil {
 			trackSelectionList := rawSelection.([]interface{})
 			filterTrackSelections := make([]media.FilterTrackPropertyCondition, 0)
 			for _, trackSelection := range trackSelectionList {
@@ -412,6 +412,9 @@ func flattenTracks(input *[]media.FilterTrackSelection) []interface{} {
 
 			}
 		}
+		tracks = append(tracks, map[string]interface{}{
+			"selection": selections,
+		})
 	}
 
 	return tracks
