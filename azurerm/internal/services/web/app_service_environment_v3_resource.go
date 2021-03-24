@@ -183,7 +183,7 @@ func (r AppServiceEnvironmentV3Resource) Create() sdk.ResourceFunc {
 						Subnet: utils.String(subnet.Name),
 					},
 					WorkerPools:     &[]web.WorkerPool{{}},
-					ClusterSettings: expandAppServiceEnvironmentClusterSettings(model.ClusterSetting),
+					ClusterSettings: expandClusterSettingsModel(model.ClusterSetting),
 				},
 			}
 
@@ -349,4 +349,19 @@ func flattenClusterSettingsModel(input *[]web.NameValuePair) []ClusterSettingMod
 		})
 	}
 	return output
+}
+
+func expandClusterSettingsModel(input []ClusterSettingModel) *[]web.NameValuePair {
+	var clusterSettings []web.NameValuePair
+	if input == nil {
+		return &clusterSettings
+	}
+
+	for _, v := range input {
+		clusterSettings = append(clusterSettings, web.NameValuePair{
+			Name:  &v.Name,
+			Value: &v.Value,
+		})
+	}
+	return &clusterSettings
 }
