@@ -18,14 +18,14 @@ import (
 type StorageAccountCustomerManagedKeyResource struct{}
 
 func TestAccStorageAccountCustomerManagedKey_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_storage_account_customer_managed_key", "test")
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountCustomerManagedKeyResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That("azurerm_storage_account_customer_managed_key.test").ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),

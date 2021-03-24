@@ -337,7 +337,7 @@ func TestAccStorageBlob_pageFromExistingBlob(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("parallelism", "size", "type"),
+		data.ImportStep("parallelism", "size", "type", "source_uri"),
 	})
 }
 
@@ -361,7 +361,7 @@ func TestAccStorageBlob_pageFromLocalFile(t *testing.T) {
 				data.CheckWithClient(r.blobMatchesFile(blobs.PageBlob, sourceBlob.Name())),
 			),
 		},
-		data.ImportStep("parallelism", "size", "type"),
+		data.ImportStep("parallelism", "size", "type", "source"),
 	})
 }
 
