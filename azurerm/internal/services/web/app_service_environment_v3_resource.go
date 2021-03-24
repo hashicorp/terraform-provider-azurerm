@@ -172,7 +172,8 @@ func (r AppServiceEnvironmentV3Resource) Create() sdk.ResourceFunc {
 			}
 
 			envelope := web.AppServiceEnvironmentResource{
-				Kind: utils.String(KindASEV3),
+				Kind:     utils.String(KindASEV3),
+				Location: utils.String(vnetLoc),
 				AppServiceEnvironment: &web.AppServiceEnvironment{
 					Name:                      utils.String(id.HostingEnvironmentName),
 					Location:                  utils.String(vnetLoc),
