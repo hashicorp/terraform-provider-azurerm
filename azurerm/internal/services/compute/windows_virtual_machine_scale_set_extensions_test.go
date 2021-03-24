@@ -183,7 +183,11 @@ func TestAccWindowsVirtualMachineScaleSet_extensionsAutomaticUpgradeWithHealthEx
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("admin_password", "extension.0.protected_settings"),
+		data.ImportStep(
+			"admin_password",
+			"extension.0.protected_settings",
+			"enable_automatic_updates",
+		),
 	})
 }
 
@@ -695,15 +699,16 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
   upgrade_mode        = "Automatic"
+
   automatic_os_upgrade_policy {
     disable_automatic_rollback  = true
     enable_automatic_os_upgrade = true
   }
 
   rolling_upgrade_policy {
-    max_batch_instance_percent              = 100
-    max_unhealthy_instance_percent          = 100
-    max_unhealthy_upgraded_instance_percent = 100
+    max_batch_instance_percent              = 21
+    max_unhealthy_instance_percent          = 22
+    max_unhealthy_upgraded_instance_percent = 23
     pause_time_between_batches              = "PT30S"
   }
 
