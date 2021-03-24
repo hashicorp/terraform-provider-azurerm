@@ -101,7 +101,7 @@ func TestAccStorageAccountCustomerManagedKey_testKeyVersion(t *testing.T) {
 }
 
 func (r StorageAccountCustomerManagedKeyResource) accountHasDefaultSettings(ctx context.Context, client *clients.Client, state *terraform.InstanceState) error {
-	accountId, err := storageParse.StorageAccountID(state.Attributes["storage_account_id"])
+	accountId, err := storageParse.StorageAccountID(state.Attributes["id"])
 	if err != nil {
 		return err
 	}
