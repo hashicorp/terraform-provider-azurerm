@@ -292,7 +292,7 @@ resource "azurerm_role_definition" "test" {
   role_definition_id = "%s"
   name               = "acctestrd-%d"
   scope              = data.azurerm_subscription.primary.id
-  description        = "Acceptance Test Role Definition"
+  description        = "Acceptance Test Role Definition Updated"
 
   permissions {
     actions     = ["*"]

@@ -356,7 +356,7 @@ func resourceArmRoleDefinitionDelete(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func roleDefinitionEventualConsistencyUpdate(ctx context.Context, client azuresdkhacks.RoleDefinitionsWorkaroundClient, id parse.RoleDefinitionID, expectedUpdateDate string) resource.StateRefreshFunc {
+func roleDefinitionEventualConsistencyUpdate(ctx context.Context, client azuresdkhacks.RoleDefinitionsWorkaroundClient, id parse.RoleDefinitionID, updateRequestDate string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		resp, err := client.Get(ctx, id.Scope, id.RoleID)
 		if err != nil {
@@ -369,14 +369,19 @@ func roleDefinitionEventualConsistencyUpdate(ctx context.Context, client azuresd
 			return resp, "Failed", fmt.Errorf("`properties.CreatedOn` was nil")
 		}
 
-		respCreatedOn := *resp.RoleDefinitionProperties.CreatedOn
-		respUpdatedOn := *resp.RoleDefinitionProperties.UpdatedOn
-		if respCreatedOn == expectedUpdateDate {
+		if resp.RoleDefinitionProperties.UpdatedOn == nil {
+			return resp, "Failed", fmt.Errorf("`properties.UpdatedOn` was nil")
+		}
+
+		updateRequestTime, err := time.Parse(time.RFC3339, updateRequestDate)
+		respCreatedOn, _ := time.Parse(time.RFC3339, *resp.RoleDefinitionProperties.CreatedOn)
+		respUpdatedOn, _ := time.Parse(time.RFC3339, *resp.RoleDefinitionProperties.UpdatedOn)
+		if respCreatedOn.Equal(updateRequestTime) {
 			// a new role definition is created and eventually (~5s) reconciled
 			return resp, "Pending", nil
 		}
-		if respUpdatedOn != expectedUpdateDate {
-			// however the updatedOn should match the new date, to show this has been reconciled
+		if respUpdatedOn.Before(updateRequestTime) {
+			// The real updated on will the same as or after the time we requested it due to the swapout.
 			return resp, "Pending", nil
 		}
 
