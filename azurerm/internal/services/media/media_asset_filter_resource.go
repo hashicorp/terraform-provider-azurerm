@@ -236,7 +236,6 @@ func resourceMediaAssetFilterRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("asset_name", id.AssetName)
 
 	if props := resp.FilterProperties; props != nil {
-
 		var firstQualityBitrate int32
 		if props.FirstQuality != nil && props.FirstQuality.Bitrate != nil {
 			firstQualityBitrate = *props.FirstQuality.Bitrate
@@ -386,7 +385,6 @@ func expandTracks(input []interface{}) *[]media.FilterTrackSelection {
 				TrackSelections: &filterTrackSelections,
 			})
 		}
-
 	}
 
 	return &results
@@ -409,7 +407,6 @@ func flattenTracks(input *[]media.FilterTrackSelection) []interface{} {
 					"property":  string(selection.Property),
 					"value":     value,
 				})
-
 			}
 		}
 		tracks = append(tracks, map[string]interface{}{

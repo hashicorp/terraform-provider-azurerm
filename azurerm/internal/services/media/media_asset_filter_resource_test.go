@@ -83,7 +83,7 @@ resource "azurerm_media_asset_filter" "test" {
   name                        = "Filter-1"
   resource_group_name         = azurerm_resource_group.test.name
   media_services_account_name = azurerm_media_services_account.test.name
-  asset_name                  = azurerm_media_asset.test.name        
+  asset_name                  = azurerm_media_asset.test.name
 }
 
 `, r.template(data))
@@ -97,7 +97,7 @@ resource "azurerm_media_asset_filter" "import" {
   name                        = azurerm_media_asset_filter.test.name
   resource_group_name         = azurerm_media_asset_filter.test.resource_group_name
   media_services_account_name = azurerm_media_asset_filter.test.media_services_account_name
-  asset_name                  = azurerm_media_asset.test.name 
+  asset_name                  = azurerm_media_asset.test.name
 }
 
 `, r.basic(data))
@@ -111,12 +111,12 @@ resource "azurerm_media_asset_filter" "test" {
   name                        = "Filter-1"
   resource_group_name         = azurerm_resource_group.test.name
   media_services_account_name = azurerm_media_services_account.test.name
-  asset_name                  = azurerm_media_asset.test.name 
+  asset_name                  = azurerm_media_asset.test.name
   first_quality_bitrate       = 128000
 
   presentation_time_range {
-	start_timestamp              = 0
-	end_timestamp                = 170000000
+    start_timestamp              = 0
+    end_timestamp                = 170000000
     presentation_window_duration = 9223372036854775000
     live_backoff_duration        = 0
     timescale                    = 10000000
@@ -124,39 +124,39 @@ resource "azurerm_media_asset_filter" "test" {
   }
 
   track {
-	  selection {
-		  property  = "Type"
-		  operation = "Equal"
-          value     = "Audio"
-	    }
-
-	   selection {
-		property  = "Language"
-		operation = "NotEqual"
-		value     = "en"
-	   }
-
-	   selection {
-		property  = "FourCC"
-		operation = "NotEqual"
-		value     = "EC-3"
-	   }
+    selection {
+      property  = "Type"
+      operation = "Equal"
+      value     = "Audio"
     }
 
+    selection {
+      property  = "Language"
+      operation = "NotEqual"
+      value     = "en"
+    }
 
-	track {
-		selection {
-			property  = "Type"
-			operation = "Equal"
-			value     = "Video"
-		}
-  
-		selection {
-		  property  = "Bitrate"
-		  operation = "Equal"
-		  value     = "3000000-5000000"
-		}
-	}
+    selection {
+      property  = "FourCC"
+      operation = "NotEqual"
+      value     = "EC-3"
+    }
+  }
+
+
+  track {
+    selection {
+      property  = "Type"
+      operation = "Equal"
+      value     = "Video"
+    }
+
+    selection {
+      property  = "Bitrate"
+      operation = "Equal"
+      value     = "3000000-5000000"
+    }
+  }
 }
 
 `, r.template(data))
