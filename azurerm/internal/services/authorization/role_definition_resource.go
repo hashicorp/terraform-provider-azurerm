@@ -34,7 +34,7 @@ func resourceArmRoleDefinition() *schema.Resource {
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
+			Update: schema.DefaultTimeout(60 * time.Minute),
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
@@ -263,8 +263,8 @@ func resourceArmRoleDefinitionUpdate(d *schema.ResourceData, meta interface{}) e
 	// ergo we can can for the old create date and the new updated date
 	log.Printf("[DEBUG] Waiting for Role Definition %q (Scope %q) to settle down..", roleDefinitionId.RoleID, roleDefinitionId.Scope)
 	stateConf := &resource.StateChangeConf{
-		ContinuousTargetOccurence: 5,
-		Delay:                     10 * time.Second,
+		ContinuousTargetOccurence: 12,
+		Delay:                     60 * time.Second,
 		MinTimeout:                10 * time.Second,
 		Pending:                   []string{"Pending"},
 		Target:                    []string{"Updated"},
@@ -392,8 +392,9 @@ func roleDefinitionEventualConsistencyUpdate(ctx context.Context, client azuresd
 			// a new role definition is created and eventually (~5s) reconciled
 			return resp, "Pending", nil
 		}
-		if respUpdatedOn.Before(updateRequestTime) {
-			// The real updated on will the same as or after the time we requested it due to the swapout.
+
+		if !respUpdatedOn.After(updateRequestTime) {
+			// The real updated on will be after the time we requested it due to the swap out.
 			return resp, "Pending", nil
 		}
 
