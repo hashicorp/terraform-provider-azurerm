@@ -766,11 +766,11 @@ func expandNetworkRuleSet(profiles []interface{}) *containerregistry.NetworkRule
 
 func expandQuarantinePolicy(enabled bool) *containerregistry.QuarantinePolicy {
 	quarantinePolicy := containerregistry.QuarantinePolicy{
-		Status: containerregistry.Disabled,
+		Status: containerregistry.PolicyStatusDisabled,
 	}
 
 	if enabled {
-		quarantinePolicy.Status = containerregistry.Enabled
+		quarantinePolicy.Status = containerregistry.PolicyStatusEnabled
 	}
 
 	return &quarantinePolicy
@@ -858,7 +858,7 @@ func flattenQuarantinePolicy(p *containerregistry.Policies) bool {
 		return false
 	}
 
-	return p.QuarantinePolicy.Status == containerregistry.Enabled
+	return p.QuarantinePolicy.Status == containerregistry.PolicyStatusEnabled
 }
 
 func flattenRetentionPolicy(p *containerregistry.Policies) []interface{} {
