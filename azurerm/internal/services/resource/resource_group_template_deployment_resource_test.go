@@ -155,7 +155,7 @@ func TestAccResourceGroupTemplateDeployment_withOutputs(t *testing.T) {
 			Config: r.withOutputsConfig(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("output_content").HasValue("{\"testOutput\":{\"type\":\"String\")"),
+				check.That(data.ResourceName).Key("output_content").HasValue("{\"testOutput\":{\"type\":\"String\",\"value\":\"some-value\"}}"),
 			),
 		},
 		data.ImportStep(),
@@ -228,6 +228,36 @@ func TestAccResourceGroupTemplateDeployment_childItems(t *testing.T) {
 	})
 }
 
+func TestAccResourceGroupTemplateDeployment_templateSpecEmpty(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
+	r := ResourceGroupTemplateDeploymentResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.templateSpecVersionConfigEmpty(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccResourceGroupTemplateDeployment_templateSpecResources(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
+	r := ResourceGroupTemplateDeploymentResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.templateSpecVersionConfigResources(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t ResourceGroupTemplateDeploymentResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.ResourceGroupTemplateDeploymentID(state.ID)
 	if err != nil {
@@ -269,6 +299,60 @@ resource "azurerm_resource_group_template_deployment" "test" {
 TEMPLATE
 }
 `, data.RandomInteger, data.Locations.Primary, deploymentMode)
+}
+
+func (ResourceGroupTemplateDeploymentResource) templateSpecVersionConfigEmpty(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestrg-%d"
+  location = %q
+}
+
+data "azurerm_template_spec_version" "test" {
+  name                = "acctest-standing-data-empty"
+  resource_group_name = "standing-data-for-acctest"
+  version             = "v1.0.0"
+}
+
+resource "azurerm_resource_group_template_deployment" "test" {
+  name                = "acctest"
+  resource_group_name = azurerm_resource_group.test.name
+  deployment_mode     = "Incremental"
+
+  template_spec_version_id = data.azurerm_template_spec_version.test.id
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (ResourceGroupTemplateDeploymentResource) templateSpecVersionConfigResources(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestrg-%d"
+  location = %q
+}
+
+data "azurerm_template_spec_version" "test" {
+  name                = "acctest-standing-data-for-rg"
+  resource_group_name = "standing-data-for-acctest"
+  version             = "v1.0.0"
+}
+
+resource "azurerm_resource_group_template_deployment" "test" {
+  name                = "acctest"
+  resource_group_name = azurerm_resource_group.test.name
+  deployment_mode     = "Incremental"
+
+  template_spec_version_id = data.azurerm_template_spec_version.test.id
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (ResourceGroupTemplateDeploymentResource) emptyWithTagsConfig(data acceptance.TestData, deploymentMode string) string {

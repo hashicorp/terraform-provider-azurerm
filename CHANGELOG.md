@@ -1,14 +1,27 @@
 ## 2.53.0 (Unreleased)
 
+FEATURES:
+* **New Resource:** `azurerm_management_group_template_deployment` [GH-10603]
+* **New Resource:** `azurerm_tenant_template_deployment` [GH-10603]
+* **New Data Source:** `azurerm_template_spec_version` [GH-10603]
+
 ENHANCEMENTS:
 
 * dependencies: updating to `v52.5.0` of `github.com/Azure/azure-sdk-for-go` [GH-11015]
+* Data Source: `azurerm_key_vault_secret` - support for the `versionless_id` attribute [GH-11091]
+* `azurerm_container_registry` - support for the `public_network_access_enabled` property [GH-10969]
+* `azurerm_kusto_eventhub_data_connection` - support for the `event_system_properties` block [GH-11006]
+* `azurerm_logic_app_trigger_recurrence` - Add support for `schedule`  [GH-11055]
+* `azurerm_resource_group_template_deployment` - add support for `template_spec_version_id` property [GH-10603]
+* `azurerm_subscription_template_deployment` - add support for `template_spec_version_id` property [GH-10603]
+
 
 BUG FIXES:
 
 * `azurerm_frontdoor_custom_https_configuration` - fixing a crash during update [GH-11046]
 * `azurerm_resource_group_template_deployment` - always sending `parameters_content` during an update [GH-11001]
 * `azurerm_subscription_template_deployment` - always sending `parameters_content` during an update [GH-11001]
+* `azurerm_spring_cloud_app` - supports for the `tls_enabled` property [GH-11064]
 
 ## 2.52.0 (March 18, 2021)
 

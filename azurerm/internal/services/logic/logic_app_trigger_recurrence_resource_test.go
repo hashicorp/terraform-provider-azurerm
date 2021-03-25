@@ -203,6 +203,35 @@ func TestAccLogicAppTriggerRecurrence_startTimeWithTimeZone(t *testing.T) {
 	})
 }
 
+func TestAccLogicAppTriggerRecurrence_schedule(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_recurrence", "test")
+	r := LogicAppTriggerRecurrenceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.schedule(data, "Week", 1),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.scheduleUpdated(data, "Week", 1),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data, "Week", 1),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (LogicAppTriggerRecurrenceResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	return triggerExists(ctx, clients, state)
 }
@@ -299,4 +328,66 @@ resource "azurerm_logic_app_trigger_recurrence" "import" {
   interval     = azurerm_logic_app_trigger_recurrence.test.interval
 }
 `, r.basic(data, frequency, interval))
+}
+
+func (LogicAppTriggerRecurrenceResource) schedule(data acceptance.TestData, frequency string, interval int) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_logic_app_workflow" "test" {
+  name                = "acctestlaw-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_logic_app_trigger_recurrence" "test" {
+  name         = "frequency-trigger"
+  logic_app_id = azurerm_logic_app_workflow.test.id
+  frequency    = "%s"
+  interval     = %d
+
+  schedule {
+    at_these_minutes = [10, 21]
+    on_these_days    = ["Monday", "Friday"]
+    at_these_hours   = [12, 15]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, frequency, interval)
+}
+
+func (LogicAppTriggerRecurrenceResource) scheduleUpdated(data acceptance.TestData, frequency string, interval int) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_logic_app_workflow" "test" {
+  name                = "acctestlaw-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_logic_app_trigger_recurrence" "test" {
+  name         = "frequency-trigger"
+  logic_app_id = azurerm_logic_app_workflow.test.id
+  frequency    = "%s"
+  interval     = %d
+
+  schedule {
+    at_these_hours = [10]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, frequency, interval)
 }
