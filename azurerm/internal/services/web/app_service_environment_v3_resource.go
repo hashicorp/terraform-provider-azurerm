@@ -258,7 +258,7 @@ func (r AppServiceEnvironmentV3Resource) Read() sdk.ResourceFunc {
 
 			model.Tags = tags.Flatten(existing.Tags)
 
-			return metadata.Encode(model)
+			return metadata.Encode(&model)
 		},
 	}
 }
