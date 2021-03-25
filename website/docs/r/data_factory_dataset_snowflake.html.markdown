@@ -3,7 +3,7 @@ subcategory: "Data Factory"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_factory_dataset_snowflake"
 description: |-
-Manages a Snowflake Dataset inside a Azure Data Factory.
+  Manages a Snowflake Dataset inside a Azure Data Factory.
 ---
 
 # azurerm_data_factory_dataset_snowflake

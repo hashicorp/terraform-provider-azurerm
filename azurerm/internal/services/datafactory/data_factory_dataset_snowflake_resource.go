@@ -186,9 +186,9 @@ func resourceDataFactoryDatasetSnowflakeCreateUpdate(d *schema.ResourceData, met
 
 	description := d.Get("description").(string)
 	snowflakeTableset := datafactory.SnowflakeDataset{
-		SnowflakeDatasetTypeProperties: &snowflakelDatasetProperties,
-		LinkedServiceName:              linkedService,
-		Description:                    &description,
+		SnowflakelTableDatasetTypeProperties: &snowflakelDatasetProperties,
+		LinkedServiceName:                    linkedService,
+		Description:                          &description,
 	}
 
 	if v, ok := d.GetOk("folder"); ok {
