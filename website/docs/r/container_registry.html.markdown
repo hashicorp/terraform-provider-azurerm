@@ -62,7 +62,7 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - (Optional) Whether public network access is allowed for the container registry. Defaults to `true`.
 
-* `quarantine_policy_enabled` - (Optional) Boolean value that indicates whether the policy is enabled. Defaults to `false`.
+* `quarantine_policy_enabled` - (Optional) Boolean value that indicates whether quarantine policy is enabled. Defaults to `false`.
 
 * `retention_policy` - (Optional) A `retention_policy` block as documented below.
 
