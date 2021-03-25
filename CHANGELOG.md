@@ -3,7 +3,8 @@
 ENHANCEMENTS:
 
 * dependencies: updating to `v52.5.0` of `github.com/Azure/azure-sdk-for-go` [GH-11015]
-* Data Source: `azurerm_key_vault_secret` Support for `versionless_id` attribute [GH-11091]
+* Data Source: `azurerm_key_vault_secret` - support for the `versionless_id` attribute [GH-11091]
+* `azurerm_kusto_eventhub_data_connection` - support for the `event_system_properties` block [GH-11006]
 * `azurerm_logic_app_trigger_recurrence` - Add support for `schedule`  [GH-11055]
 
 BUG FIXES:
