@@ -192,7 +192,7 @@ func resourceArmRoleDefinitionCreateUpdate(d *schema.ResourceData, meta interfac
 			},
 			Refresh:                   roleDefinitionUpdateStateRefreshFunc(ctx, client, id.ResourceID),
 			MinTimeout:                10 * time.Second,
-			ContinuousTargetOccurence: 10,
+			ContinuousTargetOccurence: 12,
 			Timeout:                   d.Timeout(schema.TimeoutUpdate),
 		}
 
