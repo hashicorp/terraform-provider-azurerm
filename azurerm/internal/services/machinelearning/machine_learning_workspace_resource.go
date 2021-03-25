@@ -361,7 +361,6 @@ func validateStorageAccount(ctx context.Context, client storage.AccountsClient, 
 		return fmt.Errorf("Error validating Storage Account: %+v", err)
 	}
 
-	client.SubscriptionID = id.SubscriptionId
 	account, err := client.GetProperties(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		return fmt.Errorf("Error validating Storage Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
