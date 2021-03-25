@@ -29,7 +29,13 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/appplatform/mgmt/2020-07-01/appplatform"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2020-11-01-preview/appplatform"
+
+// ApplicationInsightsAgentVersions application Insights agent versions properties payload
+type ApplicationInsightsAgentVersions struct {
+	// Java - READ-ONLY; Indicates the version of application insight java agent
+	Java *string `json:"java,omitempty"`
+}
 
 // AppResource app resource payload
 type AppResource struct {
@@ -237,6 +243,8 @@ type AppResourceProperties struct {
 	Fqdn *string `json:"fqdn,omitempty"`
 	// HTTPSOnly - Indicate if only https is allowed.
 	HTTPSOnly *bool `json:"httpsOnly,omitempty"`
+	// EnableEndToEndTLS - Indicate if end to end TLS is enabled.
+	EnableEndToEndTLS *bool `json:"enableEndToEndTLS,omitempty"`
 	// CreatedTime - READ-ONLY; Date time when the resource is created
 	CreatedTime *date.Time `json:"createdTime,omitempty"`
 	// TemporaryDisk - Temporary disk settings
@@ -259,6 +267,9 @@ func (arp AppResourceProperties) MarshalJSON() ([]byte, error) {
 	}
 	if arp.HTTPSOnly != nil {
 		objectMap["httpsOnly"] = arp.HTTPSOnly
+	}
+	if arp.EnableEndToEndTLS != nil {
+		objectMap["enableEndToEndTLS"] = arp.EnableEndToEndTLS
 	}
 	if arp.TemporaryDisk != nil {
 		objectMap["temporaryDisk"] = arp.TemporaryDisk
@@ -1779,10 +1790,14 @@ type MonitoringSettingProperties struct {
 	ProvisioningState MonitoringSettingState `json:"provisioningState,omitempty"`
 	// Error - Error when apply Monitoring Setting changes.
 	Error *Error `json:"error,omitempty"`
-	// TraceEnabled - Indicates whether enable the trace functionality
+	// TraceEnabled - Indicates whether enable the trace functionality, which will be deprecated since api version 2020-11-01-preview. Please leverage appInsightsInstrumentationKey to indicate if monitoringSettings enabled or not
 	TraceEnabled *bool `json:"traceEnabled,omitempty"`
-	// AppInsightsInstrumentationKey - Target application insight instrumentation key
+	// AppInsightsInstrumentationKey - Target application insight instrumentation key, null or whitespace include empty will disable monitoringSettings
 	AppInsightsInstrumentationKey *string `json:"appInsightsInstrumentationKey,omitempty"`
+	// AppInsightsSamplingRate - Indicates the sampling rate of application insight agent, should be in range [0.0, 100.0]
+	AppInsightsSamplingRate *float64 `json:"appInsightsSamplingRate,omitempty"`
+	// AppInsightsAgentVersions - Indicates the versions of application insight agent
+	AppInsightsAgentVersions *ApplicationInsightsAgentVersions `json:"appInsightsAgentVersions,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for MonitoringSettingProperties.
@@ -1796,6 +1811,12 @@ func (msp MonitoringSettingProperties) MarshalJSON() ([]byte, error) {
 	}
 	if msp.AppInsightsInstrumentationKey != nil {
 		objectMap["appInsightsInstrumentationKey"] = msp.AppInsightsInstrumentationKey
+	}
+	if msp.AppInsightsSamplingRate != nil {
+		objectMap["appInsightsSamplingRate"] = msp.AppInsightsSamplingRate
+	}
+	if msp.AppInsightsAgentVersions != nil {
+		objectMap["appInsightsAgentVersions"] = msp.AppInsightsAgentVersions
 	}
 	return json.Marshal(objectMap)
 }
@@ -1873,6 +1894,8 @@ type NetworkProfile struct {
 	AppNetworkResourceGroup *string `json:"appNetworkResourceGroup,omitempty"`
 	// OutboundIPs - READ-ONLY; Desired outbound IP resources for Azure Spring Cloud instance.
 	OutboundIPs *NetworkProfileOutboundIPs `json:"outboundIPs,omitempty"`
+	// RequiredTraffics - READ-ONLY; Required inbound or outbound traffics for Azure Spring Cloud instance.
+	RequiredTraffics *[]RequiredTraffic `json:"requiredTraffics,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for NetworkProfile.
@@ -1971,6 +1994,20 @@ type ProxyResource struct {
 type RegenerateTestKeyRequestPayload struct {
 	// KeyType - Type of the test key. Possible values include: 'Primary', 'Secondary'
 	KeyType TestKeyType `json:"keyType,omitempty"`
+}
+
+// RequiredTraffic required inbound or outbound traffic for Azure Spring Cloud instance.
+type RequiredTraffic struct {
+	// Protocol - READ-ONLY; The protocol of required traffic
+	Protocol *string `json:"protocol,omitempty"`
+	// Port - READ-ONLY; The port of required traffic
+	Port *int32 `json:"port,omitempty"`
+	// Ips - READ-ONLY; The ip list of required traffic
+	Ips *[]string `json:"ips,omitempty"`
+	// Fqdns - READ-ONLY; The FQDN list of required traffic
+	Fqdns *[]string `json:"fqdns,omitempty"`
+	// Direction - READ-ONLY; The direction of required traffic. Possible values include: 'Inbound', 'Outbound'
+	Direction TrafficDirection `json:"direction,omitempty"`
 }
 
 // Resource the core properties of ARM resources.

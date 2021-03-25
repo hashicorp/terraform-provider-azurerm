@@ -86,7 +86,7 @@ func (client SkusClient) ListPreparer(ctx context.Context) (*http.Request, error
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-07-01"
+	const APIVersion = "2020-11-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

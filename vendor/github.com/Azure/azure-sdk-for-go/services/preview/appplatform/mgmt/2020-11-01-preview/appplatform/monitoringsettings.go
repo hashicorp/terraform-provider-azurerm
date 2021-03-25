@@ -21,6 +21,7 @@ import (
 	"context"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
@@ -88,7 +89,7 @@ func (client MonitoringSettingsClient) GetPreparer(ctx context.Context, resource
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-07-01"
+	const APIVersion = "2020-11-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -159,7 +160,7 @@ func (client MonitoringSettingsClient) UpdatePatchPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-07-01"
+	const APIVersion = "2020-11-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -241,6 +242,17 @@ func (client MonitoringSettingsClient) UpdatePut(ctx context.Context, resourceGr
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: monitoringSettingResource,
+			Constraints: []validation.Constraint{{Target: "monitoringSettingResource.Properties", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "monitoringSettingResource.Properties.AppInsightsSamplingRate", Name: validation.Null, Rule: false,
+					Chain: []validation.Constraint{{Target: "monitoringSettingResource.Properties.AppInsightsSamplingRate", Name: validation.InclusiveMaximum, Rule: float64(100), Chain: nil},
+						{Target: "monitoringSettingResource.Properties.AppInsightsSamplingRate", Name: validation.InclusiveMinimum, Rule: float64(0), Chain: nil},
+					}},
+				}}}}}); err != nil {
+		return result, validation.NewError("appplatform.MonitoringSettingsClient", "UpdatePut", err.Error())
+	}
+
 	req, err := client.UpdatePutPreparer(ctx, resourceGroupName, serviceName, monitoringSettingResource)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.MonitoringSettingsClient", "UpdatePut", nil, "Failure preparing request")
@@ -264,7 +276,7 @@ func (client MonitoringSettingsClient) UpdatePutPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-07-01"
+	const APIVersion = "2020-11-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
