@@ -428,7 +428,7 @@ A `oms_agent` block supports the following:
 
 * `log_analytics_workspace_id` - (Optional) The ID of the Log Analytics Workspace which the OMS Agent should send data to. Must be present if `enabled` is `true`.
 
-* `oms_agent_identity` - An `oms_agent_identity` block as defined below.  
+* `oms_agent_identity` - An `oms_agent_identity` block is exported. The exported attributes are defined below.  
 
 ---
 
