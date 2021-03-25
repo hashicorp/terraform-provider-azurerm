@@ -69,6 +69,7 @@ func resourceSubnet() *schema.Resource {
 				Type:     schema.TypeList,
 				Optional: true,
 				Computed: true,
+				MinItems: 1,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
@@ -281,10 +282,18 @@ func resourceSubnetUpdate(d *schema.ResourceData, meta interface{}) error {
 
 	if d.HasChange("address_prefixes") {
 		addressPrefixesRaw := d.Get("address_prefixes").([]interface{})
-		props.AddressPrefixes = utils.ExpandStringSlice(addressPrefixesRaw)
-		if props.AddressPrefixes != nil && len(*props.AddressPrefixes) == 1 {
-			props.AddressPrefix = &(*props.AddressPrefixes)[0]
+		switch len(addressPrefixesRaw) {
+		case 0:
+			// Will never happen as the "MinItem: 1" constraint is set on "address_prefixes"
+		case 1:
+			// N->1: we shall insist on using the `AddressPrefix` and clear the `AddressPrefixes`.
+			props.AddressPrefix = utils.String(addressPrefixesRaw[0].(string))
 			props.AddressPrefixes = nil
+		default:
+			// 1->N: we shall insist on using the `AddressPrefixes` and clear the `AddressPrefix`. If both are set, service be confused and (currently) will only
+			// return the `AddressPrefix` in response.
+			props.AddressPrefixes = utils.ExpandStringSlice(addressPrefixesRaw)
+			props.AddressPrefix = nil
 		}
 	}
 
