@@ -13,6 +13,7 @@ ENHANCEMENTS:
 * `azurerm_kusto_eventhub_data_connection` - support for the `event_system_properties` block [GH-11006]
 * `azurerm_logic_app_trigger_recurrence` - Add support for `schedule`  [GH-11055]
 * `azurerm_resource_group_template_deployment` - add support for `template_spec_version_id` property [GH-10603]
+* `azurerm_role_definition` - the `permissions` block is now optional [GH-9850]
 * `azurerm_subscription_template_deployment` - add support for `template_spec_version_id` property [GH-10603]
 
 
@@ -20,6 +21,7 @@ BUG FIXES:
 
 * `azurerm_frontdoor_custom_https_configuration` - fixing a crash during update [GH-11046]
 * `azurerm_resource_group_template_deployment` - always sending `parameters_content` during an update [GH-11001]
+* `azurerm_role_definition` - fixing crash when permissions are empty [GH-9850]
 * `azurerm_subscription_template_deployment` - always sending `parameters_content` during an update [GH-11001]
 * `azurerm_spring_cloud_app` - supports for the `tls_enabled` property [GH-11064]
 
