@@ -150,7 +150,7 @@ The following arguments are supported:
 
 ---
 
-* `action` supports the following:
+`action` supports the following:
 
 * `action_group` - (Required) List of action group reference resource IDs.
 * `custom_webhook_payload` - (Optional) Custom payload to be sent for all webhook payloads in alerting action.
