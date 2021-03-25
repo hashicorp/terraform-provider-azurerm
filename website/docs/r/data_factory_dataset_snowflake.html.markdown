@@ -83,16 +83,16 @@ A `schema_column` block supports the following:
 
 The following attributes are exported:
 
-* `id` - The ID of the Data Factory PostgreSQL Dataset.
+* `id` - The ID of the Data Factory Snowflake Dataset.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Data Factory PostgreSQL Dataset.
-* `update` - (Defaults to 30 minutes) Used when updating the Data Factory PostgreSQL Dataset.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Data Factory PostgreSQL Dataset.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Data Factory PostgreSQL Dataset.
+* `create` - (Defaults to 30 minutes) Used when creating the Data Factory Snowflake Dataset.
+* `update` - (Defaults to 30 minutes) Used when updating the Data Factory Snowflake Dataset.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Data Factory Snowflake Dataset.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Data Factory Snowflake Dataset.
 
 ## Import
 
