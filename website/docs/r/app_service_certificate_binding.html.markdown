@@ -15,7 +15,7 @@ Manages an App Service Certificate Binding.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "webapp"
-  location = "australiaeast"
+  location = "West Europe"
 }
 
 resource "azurerm_app_service_plan" "example" {

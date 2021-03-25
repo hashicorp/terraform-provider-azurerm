@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-09-01-preview/authorization"
+	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2020-04-01-preview/authorization"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -192,7 +192,7 @@ func resourceArmRoleDefinitionCreateUpdate(d *schema.ResourceData, meta interfac
 			},
 			Refresh:                   roleDefinitionUpdateStateRefreshFunc(ctx, client, id.ResourceID),
 			MinTimeout:                10 * time.Second,
-			ContinuousTargetOccurence: 6,
+			ContinuousTargetOccurence: 10,
 			Timeout:                   d.Timeout(schema.TimeoutUpdate),
 		}
 
@@ -336,13 +336,12 @@ func expandRoleDefinitionPermissions(d *schema.ResourceData) []authorization.Per
 func expandRoleDefinitionAssignableScopes(d *schema.ResourceData) []string {
 	scopes := make([]string, 0)
 
-	// The first scope in the list must be the target scope as it it not returned in any API call
-	assignedScope := d.Get("scope").(string)
-	scopes = append(scopes, assignedScope)
 	assignableScopes := d.Get("assignable_scopes").([]interface{})
-	for _, scope := range assignableScopes {
-		// Ensure the assigned scope is not duplicated in the list if also specified in `assignable_scopes`
-		if scope != assignedScope {
+	if len(assignableScopes) == 0 {
+		assignedScope := d.Get("scope").(string)
+		scopes = append(scopes, assignedScope)
+	} else {
+		for _, scope := range assignableScopes {
 			scopes = append(scopes, scope.(string))
 		}
 	}

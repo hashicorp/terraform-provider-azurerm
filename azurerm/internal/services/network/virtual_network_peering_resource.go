@@ -21,12 +21,12 @@ import (
 // or deleted at the same time
 var peerMutex = &sync.Mutex{}
 
-func resourceArmVirtualNetworkPeering() *schema.Resource {
+func resourceVirtualNetworkPeering() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmVirtualNetworkPeeringCreateUpdate,
-		Read:   resourceArmVirtualNetworkPeeringRead,
-		Update: resourceArmVirtualNetworkPeeringCreateUpdate,
-		Delete: resourceArmVirtualNetworkPeeringDelete,
+		Create: resourceVirtualNetworkPeeringCreateUpdate,
+		Read:   resourceVirtualNetworkPeeringRead,
+		Update: resourceVirtualNetworkPeeringCreateUpdate,
+		Delete: resourceVirtualNetworkPeeringDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -86,7 +86,7 @@ func resourceArmVirtualNetworkPeering() *schema.Resource {
 	}
 }
 
-func resourceArmVirtualNetworkPeeringCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualNetworkPeeringCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VnetPeeringsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -132,10 +132,10 @@ func resourceArmVirtualNetworkPeeringCreateUpdate(d *schema.ResourceData, meta i
 
 	d.SetId(*read.ID)
 
-	return resourceArmVirtualNetworkPeeringRead(d, meta)
+	return resourceVirtualNetworkPeeringRead(d, meta)
 }
 
-func resourceArmVirtualNetworkPeeringRead(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualNetworkPeeringRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VnetPeeringsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -175,7 +175,7 @@ func resourceArmVirtualNetworkPeeringRead(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func resourceArmVirtualNetworkPeeringDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualNetworkPeeringDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VnetPeeringsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

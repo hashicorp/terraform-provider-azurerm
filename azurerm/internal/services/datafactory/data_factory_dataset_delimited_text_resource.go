@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -240,6 +240,21 @@ func resourceDataFactoryDatasetDelimitedText() *schema.Resource {
 				},
 			},
 
+			"compression_codec": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"bzip2",
+					"gzip",
+					"deflate",
+					"ZipDeflate",
+					"TarGzip",
+					"Tar",
+					"snappy",
+					"lz4",
+				}, false),
+			},
+
 			"compression_level": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -289,6 +304,7 @@ func resourceDataFactoryDatasetDelimitedTextCreateUpdate(d *schema.ResourceData,
 		FirstRowAsHeader: d.Get("first_row_as_header").(bool),
 		NullValue:        d.Get("null_value").(string),
 		CompressionLevel: d.Get("compression_level").(string),
+		CompressionCodec: d.Get("compression_codec").(string),
 	}
 
 	linkedServiceName := d.Get("linked_service_name").(string)
@@ -469,6 +485,12 @@ func resourceDataFactoryDatasetDelimitedTextRead(d *schema.ResourceData, meta in
 		} else {
 			d.Set("compression_level", compressionLevel)
 		}
+		compressionCodec, ok := properties.CompressionCodec.(string)
+		if !ok {
+			log.Printf("[DEBUG] skipping `compression_codec` since it's not a string")
+		} else {
+			d.Set("compression_codec", compressionCodec)
+		}
 	}
 
 	if folder := delimited_textTable.Folder; folder != nil {
@@ -503,82 +525,4 @@ func resourceDataFactoryDatasetDelimitedTextDelete(d *schema.ResourceData, meta 
 	}
 
 	return nil
-}
-
-func expandDataFactoryDatasetLocation(d *schema.ResourceData) datafactory.BasicDatasetLocation {
-	if _, ok := d.GetOk("http_server_location"); ok {
-		return expandDataFactoryDatasetHttpServerLocation(d)
-	}
-
-	if _, ok := d.GetOk("azure_blob_storage_location"); ok {
-		return expandDataFactoryDatasetAzureBlobStorageLocation(d)
-	}
-
-	return nil
-}
-
-func expandDataFactoryDatasetHttpServerLocation(d *schema.ResourceData) datafactory.BasicDatasetLocation {
-	props := d.Get("http_server_location").([]interface{})[0].(map[string]interface{})
-	relativeUrl := props["relative_url"].(string)
-	path := props["path"].(string)
-	filename := props["filename"].(string)
-
-	httpServerLocation := datafactory.HTTPServerLocation{
-		RelativeURL: relativeUrl,
-		FolderPath:  path,
-		FileName:    filename,
-	}
-	return httpServerLocation
-}
-
-func expandDataFactoryDatasetAzureBlobStorageLocation(d *schema.ResourceData) datafactory.BasicDatasetLocation {
-	props := d.Get("azure_blob_storage_location").([]interface{})[0].(map[string]interface{})
-	container := props["container"].(string)
-	path := props["path"].(string)
-	filename := props["filename"].(string)
-
-	blobStorageLocation := datafactory.AzureBlobStorageLocation{
-		Container:  container,
-		FolderPath: path,
-		FileName:   filename,
-	}
-	return blobStorageLocation
-}
-
-func flattenDataFactoryDatasetHTTPServerLocation(input *datafactory.HTTPServerLocation) []interface{} {
-	if input == nil {
-		return nil
-	}
-	result := make(map[string]interface{})
-
-	if input.RelativeURL != nil {
-		result["relative_url"] = input.RelativeURL
-	}
-	if input.FolderPath != nil {
-		result["path"] = input.FolderPath
-	}
-	if input.FileName != nil {
-		result["filename"] = input.FileName
-	}
-
-	return []interface{}{result}
-}
-
-func flattenDataFactoryDatasetAzureBlobStorageLocation(input *datafactory.AzureBlobStorageLocation) []interface{} {
-	if input == nil {
-		return nil
-	}
-	result := make(map[string]interface{})
-
-	if input.Container != nil {
-		result["container"] = input.Container
-	}
-	if input.FolderPath != nil {
-		result["path"] = input.FolderPath
-	}
-	if input.FileName != nil {
-		result["filename"] = input.FileName
-	}
-
-	return []interface{}{result}
 }

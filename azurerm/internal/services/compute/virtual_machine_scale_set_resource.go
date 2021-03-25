@@ -7,21 +7,20 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	msiparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
 	msivalidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -138,9 +137,9 @@ func resourceVirtualMachineScaleSet() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.UpgradeModeAutomatic),
-					string(compute.UpgradeModeManual),
-					string(compute.UpgradeModeRolling),
+					string(compute.Automatic),
+					string(compute.Manual),
+					string(compute.Rolling),
 				}, true),
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
@@ -1109,7 +1108,10 @@ func resourceVirtualMachineScaleSetDelete(d *schema.ResourceData, meta interface
 	resGroup := id.ResourceGroup
 	name := id.Path["virtualMachineScaleSets"]
 
-	future, err := client.Delete(ctx, resGroup, name)
+	// @ArcturusZhang (mimicking from virtual_machine_resource.go): sending `nil` here omits this value from being sent
+	// which matches the previous behaviour - we're only splitting this out so it's clear why
+	var forceDeletion *bool = nil
+	future, err := client.Delete(ctx, resGroup, name, forceDeletion)
 	if err != nil {
 		return err
 	}
@@ -1135,7 +1137,7 @@ func flattenAzureRmVirtualMachineScaleSetIdentity(identity *compute.VirtualMachi
 	identityIds := make([]string, 0)
 	if identity.UserAssignedIdentities != nil {
 		for key := range identity.UserAssignedIdentities {
-			parsedId, err := msiparse.UserAssignedIdentityID(key)
+			parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(key)
 			if err != nil {
 				return nil, err
 			}
@@ -1570,7 +1572,7 @@ func resourceVirtualMachineScaleSetStorageProfileImageReferenceHash(v interface{
 		}
 	}
 
-	return hashcode.String(buf.String())
+	return schema.HashString(buf.String())
 }
 
 func resourceVirtualMachineScaleSetStorageProfileOsDiskHash(v interface{}) int {
@@ -1584,7 +1586,7 @@ func resourceVirtualMachineScaleSetStorageProfileOsDiskHash(v interface{}) int {
 		}
 	}
 
-	return hashcode.String(buf.String())
+	return schema.HashString(buf.String())
 }
 
 func resourceVirtualMachineScaleSetNetworkConfigurationHash(v interface{}) int {
@@ -1650,7 +1652,7 @@ func resourceVirtualMachineScaleSetNetworkConfigurationHash(v interface{}) int {
 		}
 	}
 
-	return hashcode.String(buf.String())
+	return schema.HashString(buf.String())
 }
 
 func resourceVirtualMachineScaleSetOsProfileLinuxConfigHash(v interface{}) int {
@@ -1672,7 +1674,7 @@ func resourceVirtualMachineScaleSetOsProfileLinuxConfigHash(v interface{}) int {
 		}
 	}
 
-	return hashcode.String(buf.String())
+	return schema.HashString(buf.String())
 }
 
 func resourceVirtualMachineScaleSetOsProfileWindowsConfigHash(v interface{}) int {
@@ -1687,7 +1689,7 @@ func resourceVirtualMachineScaleSetOsProfileWindowsConfigHash(v interface{}) int
 		}
 	}
 
-	return hashcode.String(buf.String())
+	return schema.HashString(buf.String())
 }
 
 func resourceVirtualMachineScaleSetExtensionHash(v interface{}) int {
@@ -1720,7 +1722,7 @@ func resourceVirtualMachineScaleSetExtensionHash(v interface{}) int {
 		}
 	}
 
-	return hashcode.String(buf.String())
+	return schema.HashString(buf.String())
 }
 
 func expandVirtualMachineScaleSetSku(d *schema.ResourceData) *compute.Sku {

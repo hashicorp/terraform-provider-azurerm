@@ -43,7 +43,7 @@ func NewWatchlistsClientWithBaseURI(baseURI string, subscriptionID string) Watch
 }
 
 // Create creates a watchlist and its watchlist items (bulk creation, e.g. through text/csv content type). To create a
-// Watchlist and its Items, we should call this endpoint twice : the first call will create am empty Watchlist, and the
+// Watchlist and its Items, we should call this endpoint twice : the first call will create an empty Watchlist, and the
 // second one will create its Items.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
@@ -388,6 +388,7 @@ func (client WatchlistsClient) List(ctx context.Context, resourceGroupName strin
 	}
 	if result.wl.hasNextLink() && result.wl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -450,7 +451,6 @@ func (client WatchlistsClient) listNextResults(ctx context.Context, lastResults 
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.WatchlistsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

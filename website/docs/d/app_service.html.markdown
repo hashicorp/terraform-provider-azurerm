@@ -136,6 +136,8 @@ A `site_config` block exports the following:
 
 * `health_check_path` - The health check path to be pinged by App Service.
 
+* `number_of_workers` - The scaled number of workers (for per site scaling) of this App Service.
+
 * `ip_restriction` - One or more `ip_restriction` blocks as defined above.
 
 * `scm_use_main_ip_restriction` - IP security restrictions for scm to use main.  

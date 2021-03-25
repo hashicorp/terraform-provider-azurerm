@@ -16,7 +16,7 @@ Manages a Logger within an API Management Service.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "West US"
+  location = "West Europe"
 }
 
 resource "azurerm_application_insights" "example" {
@@ -40,6 +40,7 @@ resource "azurerm_api_management_logger" "example" {
   name                = "example-logger"
   api_management_name = azurerm_api_management.example.name
   resource_group_name = azurerm_resource_group.example.name
+  resource_id         = azurerm_application_insights.example.id
 
   application_insights {
     instrumentation_key = azurerm_application_insights.example.instrumentation_key
@@ -65,6 +66,8 @@ The following arguments are supported:
 * `description` - (Optional) A description of this Logger.
 
 * `eventhub` - (Optional) An `eventhub` block as documented below.
+
+* `resource_id` - (Optional) The target resource id which will be linked in the API-Management portal page.
 
 ---
 

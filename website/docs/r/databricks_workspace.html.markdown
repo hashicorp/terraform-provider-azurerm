@@ -15,7 +15,7 @@ Manages a Databricks Workspace
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "West US"
+  location = "West Europe"
 }
 
 resource "azurerm_databricks_workspace" "example" {
@@ -64,7 +64,7 @@ The following arguments are supported:
 
 * `virtual_network_id` - (Optional) The ID of a Virtual Network where this Databricks Cluster should be created.
 
-~> **NOTE** Databricks requires that a network security group is associated with public and private subnets when `virtual_network_id` is set.
+~> **NOTE** Databricks requires that a network security group is associated with public and private subnets when `virtual_network_id` is set. Also, both public and private subnets must be delegated to `Microsoft.Databricks/workspaces`.
 
 ## Attributes Reference
 

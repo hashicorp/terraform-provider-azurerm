@@ -10,6 +10,7 @@ Automation
 Azure Stack HCI
 Base
 Batch
+Billing
 Blueprints
 Bot
 CDN
@@ -26,6 +27,7 @@ Data Lake
 Data Share
 Database
 Database Migration
+Databox Edge
 Databricks
 Desktop Virtualization
 Dev Test
@@ -56,8 +58,10 @@ Policy
 Portal
 PowerBI
 Private DNS
+Purview
 Recovery Services
 Redis
+Redis Enterprise
 Search
 Security Center
 Sentinel
@@ -69,3 +73,4 @@ Stream Analytics
 Synapse
 Template
 Time Series Insights
+VMware (AVS)

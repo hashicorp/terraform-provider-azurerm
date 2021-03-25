@@ -152,7 +152,7 @@ resource "azurerm_hpc_cache" "import" {
   subnet_id           = azurerm_hpc_cache.test.subnet_id
   sku_name            = azurerm_hpc_cache.test.sku_name
 }
-`, r.template(data))
+`, r.basic(data))
 }
 
 func (r HPCCacheResource) mtu(data acceptance.TestData, mtu int) string {

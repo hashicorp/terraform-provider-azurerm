@@ -398,6 +398,7 @@ func (client IncidentCommentsClient) ListByIncident(ctx context.Context, resourc
 	}
 	if result.icl.hasNextLink() && result.icl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -473,7 +474,6 @@ func (client IncidentCommentsClient) listByIncidentNextResults(ctx context.Conte
 	result, err = client.ListByIncidentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.IncidentCommentsClient", "listByIncidentNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

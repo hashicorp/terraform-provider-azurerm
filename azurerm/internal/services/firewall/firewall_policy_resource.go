@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -52,6 +52,17 @@ func resourceFirewallPolicy() *schema.Resource {
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
+
+			"sku": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(network.FirewallPolicySkuTierPremium),
+					string(network.FirewallPolicySkuTierStandard),
+				}, false),
+			},
 
 			"location": location.Schema(),
 
@@ -195,6 +206,12 @@ func resourceFirewallPolicyCreateUpdate(d *schema.ResourceData, meta interface{}
 		props.FirewallPolicyPropertiesFormat.BasePolicy = &network.SubResource{ID: utils.String(id.(string))}
 	}
 
+	if v, ok := d.GetOk("sku"); ok {
+		props.FirewallPolicyPropertiesFormat.Sku = &network.FirewallPolicySku{
+			Tier: network.FirewallPolicySkuTier(v.(string)),
+		}
+	}
+
 	locks.ByName(name, azureFirewallPolicyResourceName)
 	defer locks.UnlockByName(name, azureFirewallPolicyResourceName)
 
@@ -248,11 +265,15 @@ func resourceFirewallPolicyRead(d *schema.ResourceData, meta interface{}) error 
 
 		d.Set("threat_intelligence_mode", string(prop.ThreatIntelMode))
 
+		if sku := prop.Sku; sku != nil {
+			d.Set("sku", string(sku.Tier))
+		}
+
 		if err := d.Set("threat_intelligence_allowlist", flattenFirewallPolicyThreatIntelWhitelist(resp.ThreatIntelWhitelist)); err != nil {
 			return fmt.Errorf(`setting "threat_intelligence_allowlist": %+v`, err)
 		}
 
-		if err := d.Set("dns", flattenFirewallPolicyDNSSetting(resp.DNSSettings)); err != nil {
+		if err := d.Set("dns", flattenFirewallPolicyDNSSetting(prop.DNSSettings)); err != nil {
 			return fmt.Errorf(`setting "dns": %+v`, err)
 		}
 

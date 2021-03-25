@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
@@ -19,6 +18,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maintenance/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maintenance/validate"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -78,7 +78,7 @@ func resourceArmMaintenanceAssignmentVirtualMachineCreate(d *schema.ResourceData
 	}
 
 	maintenanceConfigurationID := d.Get("maintenance_configuration_id").(string)
-	configurationId, _ := parse.MaintenanceConfigurationID(maintenanceConfigurationID)
+	configurationId, _ := parse.MaintenanceConfigurationIDInsensitively(maintenanceConfigurationID)
 
 	// set assignment name to configuration name
 	assignmentName := configurationId.Name
@@ -137,7 +137,11 @@ func resourceArmMaintenanceAssignmentVirtualMachineRead(d *schema.ResourceData, 
 	}
 
 	// in list api, `ResourceID` returned is always nil
-	d.Set("virtual_machine_id", id.VirtualMachineIdRaw)
+	virtualMachineId := ""
+	if id.VirtualMachineId != nil {
+		virtualMachineId = id.VirtualMachineId.ID()
+	}
+	d.Set("virtual_machine_id", virtualMachineId)
 	if props := assignment.ConfigurationAssignmentProperties; props != nil {
 		d.Set("maintenance_configuration_id", props.MaintenanceConfigurationID)
 	}

@@ -20,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmVirtualHubSecurityPartnerProvider() *schema.Resource {
+func resourceVirtualHubSecurityPartnerProvider() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmVirtualHubSecurityPartnerProviderCreate,
-		Read:   resourceArmVirtualHubSecurityPartnerProviderRead,
-		Update: resourceArmVirtualHubSecurityPartnerProviderUpdate,
-		Delete: resourceArmVirtualHubSecurityPartnerProviderDelete,
+		Create: resourceVirtualHubSecurityPartnerProviderCreate,
+		Read:   resourceVirtualHubSecurityPartnerProviderRead,
+		Update: resourceVirtualHubSecurityPartnerProviderUpdate,
+		Delete: resourceVirtualHubSecurityPartnerProviderDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -73,7 +73,7 @@ func resourceArmVirtualHubSecurityPartnerProvider() *schema.Resource {
 	}
 }
 
-func resourceArmVirtualHubSecurityPartnerProviderCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualHubSecurityPartnerProviderCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SecurityPartnerProviderClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -126,10 +126,10 @@ func resourceArmVirtualHubSecurityPartnerProviderCreate(d *schema.ResourceData, 
 
 	d.SetId(*resp.ID)
 
-	return resourceArmVirtualHubSecurityPartnerProviderRead(d, meta)
+	return resourceVirtualHubSecurityPartnerProviderRead(d, meta)
 }
 
-func resourceArmVirtualHubSecurityPartnerProviderRead(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualHubSecurityPartnerProviderRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SecurityPartnerProviderClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -164,7 +164,7 @@ func resourceArmVirtualHubSecurityPartnerProviderRead(d *schema.ResourceData, me
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmVirtualHubSecurityPartnerProviderUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualHubSecurityPartnerProviderUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SecurityPartnerProviderClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -184,10 +184,10 @@ func resourceArmVirtualHubSecurityPartnerProviderUpdate(d *schema.ResourceData, 
 		return fmt.Errorf("updating Security Partner Provider %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	return resourceArmVirtualHubSecurityPartnerProviderRead(d, meta)
+	return resourceVirtualHubSecurityPartnerProviderRead(d, meta)
 }
 
-func resourceArmVirtualHubSecurityPartnerProviderDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualHubSecurityPartnerProviderDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SecurityPartnerProviderClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

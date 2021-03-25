@@ -1,15 +1,5 @@
-Generated from https://github.com/Azure/azure-rest-api-specs/tree/3a3a9452f965a227ce43e6b545035b99dd175f23
+Generated from https://github.com/Azure/azure-rest-api-specs/tree/a1eee0489c374782a934ec1f093abd16fa7718ca/specification/datafactory/resource-manager/readme.md tag: `package-2018-06`
 
-Code generator @microsoft.azure/autorest.go@~2.1.165
+Code generator @microsoft.azure/autorest.go@2.1.175
 
-## Struct Changes
 
-### New Structs
-
-1. CMKIdentityDefinition
-1. EncryptionConfiguration
-
-### New Struct Fields
-
-1. FactoryIdentity.UserAssignedIdentities
-1. FactoryProperties.Encryption

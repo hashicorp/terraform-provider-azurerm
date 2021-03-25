@@ -83,6 +83,7 @@ func (client QuotasClient) List(ctx context.Context, location string) (result Li
 	}
 	if result.lwq.hasNextLink() && result.lwq.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -143,7 +144,6 @@ func (client QuotasClient) listNextResults(ctx context.Context, lastResults List
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "machinelearningservices.QuotasClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

@@ -185,6 +185,7 @@ func (client WaitStatisticsClient) ListByServer(ctx context.Context, resourceGro
 	}
 	if result.wsrl.hasNextLink() && result.wsrl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -248,7 +249,6 @@ func (client WaitStatisticsClient) listByServerNextResults(ctx context.Context, 
 	result, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mysql.WaitStatisticsClient", "listByServerNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

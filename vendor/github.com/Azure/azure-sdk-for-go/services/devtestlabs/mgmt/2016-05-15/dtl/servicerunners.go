@@ -316,6 +316,7 @@ func (client ServiceRunnersClient) List(ctx context.Context, resourceGroupName s
 	}
 	if result.rwcsr.hasNextLink() && result.rwcsr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -386,7 +387,6 @@ func (client ServiceRunnersClient) listNextResults(ctx context.Context, lastResu
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.ServiceRunnersClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

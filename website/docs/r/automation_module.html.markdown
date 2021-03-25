@@ -14,7 +14,7 @@ Manages a Automation Module.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "resourceGroup1"
+  name     = "example-resources"
   location = "West Europe"
 }
 

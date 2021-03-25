@@ -577,6 +577,7 @@ func (client ThreatIntelligenceIndicatorClient) QueryIndicators(ctx context.Cont
 	}
 	if result.tiil.hasNextLink() && result.tiil.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -641,7 +642,6 @@ func (client ThreatIntelligenceIndicatorClient) queryIndicatorsNextResults(ctx c
 	result, err = client.QueryIndicatorsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.ThreatIntelligenceIndicatorClient", "queryIndicatorsNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

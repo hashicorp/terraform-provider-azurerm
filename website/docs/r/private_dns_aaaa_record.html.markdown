@@ -14,8 +14,8 @@ Enables you to manage DNS AAAA Records within Azure Private DNS.
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name     = "acceptanceTestResourceGroup1"
-  location = "West US"
+  name     = "example-resources"
+  location = "West Europe"
 }
 
 resource "azurerm_private_dns_zone" "test" {

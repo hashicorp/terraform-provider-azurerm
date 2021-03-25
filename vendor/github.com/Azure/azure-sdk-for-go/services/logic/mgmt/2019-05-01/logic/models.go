@@ -3687,53 +3687,19 @@ func NewIntegrationServiceEnvironmentListResultPage(cur IntegrationServiceEnviro
 // IntegrationServiceEnvironmentManagedApisDeleteFuture an abstraction for monitoring and retrieving the
 // results of a long-running operation.
 type IntegrationServiceEnvironmentManagedApisDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *IntegrationServiceEnvironmentManagedApisDeleteFuture) Result(client IntegrationServiceEnvironmentManagedApisClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentManagedApisDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("logic.IntegrationServiceEnvironmentManagedApisDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(IntegrationServiceEnvironmentManagedApisClient) (autorest.Response, error)
 }
 
 // IntegrationServiceEnvironmentManagedApisPutFuture an abstraction for monitoring and retrieving the
 // results of a long-running operation.
 type IntegrationServiceEnvironmentManagedApisPutFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *IntegrationServiceEnvironmentManagedApisPutFuture) Result(client IntegrationServiceEnvironmentManagedApisClient) (ma ManagedAPI, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentManagedApisPutFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("logic.IntegrationServiceEnvironmentManagedApisPutFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if ma.Response.Response, err = future.GetResult(sender); err == nil && ma.Response.Response.StatusCode != http.StatusNoContent {
-		ma, err = client.PutResponder(ma.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentManagedApisPutFuture", "Result", ma.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(IntegrationServiceEnvironmentManagedApisClient) (ManagedAPI, error)
 }
 
 // IntegrationServiceEnvironmentNetworkDependency the azure async operation resource.
@@ -3784,30 +3750,10 @@ type IntegrationServiceEnvironmentProperties struct {
 // IntegrationServiceEnvironmentsCreateOrUpdateFuture an abstraction for monitoring and retrieving the
 // results of a long-running operation.
 type IntegrationServiceEnvironmentsCreateOrUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *IntegrationServiceEnvironmentsCreateOrUpdateFuture) Result(client IntegrationServiceEnvironmentsClient) (ise IntegrationServiceEnvironment, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("logic.IntegrationServiceEnvironmentsCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if ise.Response.Response, err = future.GetResult(sender); err == nil && ise.Response.Response.StatusCode != http.StatusNoContent {
-		ise, err = client.CreateOrUpdateResponder(ise.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentsCreateOrUpdateFuture", "Result", ise.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(IntegrationServiceEnvironmentsClient) (IntegrationServiceEnvironment, error)
 }
 
 // IntegrationServiceEnvironmentSku the integration service environment sku.
@@ -4023,30 +3969,10 @@ type IntegrationServiceEnvironmentSubnetNetworkHealth struct {
 // IntegrationServiceEnvironmentsUpdateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type IntegrationServiceEnvironmentsUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *IntegrationServiceEnvironmentsUpdateFuture) Result(client IntegrationServiceEnvironmentsClient) (ise IntegrationServiceEnvironment, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentsUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("logic.IntegrationServiceEnvironmentsUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if ise.Response.Response, err = future.GetResult(sender); err == nil && ise.Response.Response.StatusCode != http.StatusNoContent {
-		ise, err = client.UpdateResponder(ise.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentsUpdateFuture", "Result", ise.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(IntegrationServiceEnvironmentsClient) (IntegrationServiceEnvironment, error)
 }
 
 // IPAddress the ip address.
@@ -6569,24 +6495,10 @@ func (wrt WorkflowRunTrigger) MarshalJSON() ([]byte, error) {
 // WorkflowsMoveFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type WorkflowsMoveFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *WorkflowsMoveFuture) Result(client WorkflowsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "logic.WorkflowsMoveFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("logic.WorkflowsMoveFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(WorkflowsClient) (autorest.Response, error)
 }
 
 // WorkflowTrigger the workflow trigger.

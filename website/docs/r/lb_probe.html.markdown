@@ -17,7 +17,7 @@ Manages a LoadBalancer Probe Resource.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "LoadBalancerRG"
-  location = "West US"
+  location = "West Europe"
 }
 
 resource "azurerm_public_ip" "example" {

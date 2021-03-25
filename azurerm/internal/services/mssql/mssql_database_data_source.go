@@ -6,8 +6,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/validate"
@@ -28,7 +26,7 @@ func dataSourceMsSqlDatabase() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: azure.ValidateMsSqlDatabaseName,
+				ValidateFunc: validate.ValidateMsSqlDatabaseName,
 			},
 
 			"server_id": {
@@ -68,6 +66,11 @@ func dataSourceMsSqlDatabase() *schema.Resource {
 			},
 
 			"sku_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"storage_account_type": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -123,6 +126,7 @@ func dataSourceMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error
 			d.Set("read_scale", false)
 		}
 		d.Set("sku_name", props.CurrentServiceObjectiveName)
+		d.Set("storage_account_type", props.StorageAccountType)
 		d.Set("zone_redundant", props.ZoneRedundant)
 	}
 

@@ -27,6 +27,7 @@ func TestAccSpringCloudCertificate_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("thumbprint").Exists(),
 			),
 		},
 		data.ImportStep("key_vault_certificate_id"),
@@ -93,6 +94,8 @@ func (r SpringCloudCertificateResource) template(data acceptance.TestData) strin
 provider "azurerm" {
   features {}
 }
+
+provider "azuread" {}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-spring-%d"

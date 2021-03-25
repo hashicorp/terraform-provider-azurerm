@@ -361,6 +361,7 @@ func (client ApplicationGroupsClient) ListByResourceGroup(ctx context.Context, r
 	}
 	if result.agl.hasNextLink() && result.agl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -424,7 +425,6 @@ func (client ApplicationGroupsClient) listByResourceGroupNextResults(ctx context
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "desktopvirtualization.ApplicationGroupsClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -486,6 +486,7 @@ func (client ApplicationGroupsClient) ListBySubscription(ctx context.Context, fi
 	}
 	if result.agl.hasNextLink() && result.agl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -548,7 +549,6 @@ func (client ApplicationGroupsClient) listBySubscriptionNextResults(ctx context.
 	result, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "desktopvirtualization.ApplicationGroupsClient", "listBySubscriptionNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

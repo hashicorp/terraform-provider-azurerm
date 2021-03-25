@@ -8,7 +8,7 @@ towards devops tools, servers, etc.
 > **NOTE:** This is major version 2 of HCL, whose Go API is incompatible with
 > major version 1. Both versions are available for selection in Go Modules
 > projects. HCL 2 _cannot_ be imported from Go projects that are not using Go Modules. For more information, see
-> [our version selection guide](https://github.com/golang/go/wiki/Version-Selection).
+> [our version selection guide](https://github.com/hashicorp/hcl/wiki/Version-Selection).
 
 HCL has both a _native syntax_, intended to be pleasant to read and write for
 humans, and a JSON-based variant that is easier for machines to generate
@@ -33,11 +33,25 @@ package main
 
 import (
 	"log"
+
 	"github.com/hashicorp/hcl/v2/hclsimple"
 )
 
 type Config struct {
-	LogLevel string `hcl:"log_level"`
+	IOMode  string        `hcl:"io_mode"`
+	Service ServiceConfig `hcl:"service,block"`
+}
+
+type ServiceConfig struct {
+	Protocol   string          `hcl:"protocol,label"`
+	Type       string          `hcl:"type,label"`
+	ListenAddr string          `hcl:"listen_addr"`
+	Processes  []ProcessConfig `hcl:"process,block"`
+}
+
+type ProcessConfig struct {
+	Type    string   `hcl:"type,label"`
+	Command []string `hcl:"command"`
 }
 
 func main() {
@@ -51,7 +65,8 @@ func main() {
 ```
 
 A lower-level API is available for applications that need more control over
-the parsing, decoding, and evaluation of configuration.
+the parsing, decoding, and evaluation of configuration. For more information,
+see [the package documentation](https://pkg.go.dev/github.com/hashicorp/hcl/v2).
 
 ## Why?
 
@@ -156,9 +171,9 @@ syntax allows use of arbitrary expressions within JSON strings:
 
 For more information, see the detailed specifications:
 
-* [Syntax-agnostic Information Model](hcl/spec.md)
-* [HCL Native Syntax](hcl/hclsyntax/spec.md)
-* [JSON Representation](hcl/json/spec.md)
+* [Syntax-agnostic Information Model](spec.md)
+* [HCL Native Syntax](hclsyntax/spec.md)
+* [JSON Representation](json/spec.md)
 
 ## Changes in 2.0
 

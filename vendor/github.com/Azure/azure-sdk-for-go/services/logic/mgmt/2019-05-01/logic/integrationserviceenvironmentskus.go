@@ -79,6 +79,7 @@ func (client IntegrationServiceEnvironmentSkusClient) List(ctx context.Context, 
 	}
 	if result.isesl.hasNextLink() && result.isesl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -140,7 +141,6 @@ func (client IntegrationServiceEnvironmentSkusClient) listNextResults(ctx contex
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentSkusClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

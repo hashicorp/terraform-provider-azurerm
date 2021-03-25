@@ -18,12 +18,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmContainerRegistryWebhook() *schema.Resource {
+func resourceContainerRegistryWebhook() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmContainerRegistryWebhookCreate,
-		Read:   resourceArmContainerRegistryWebhookRead,
-		Update: resourceArmContainerRegistryWebhookUpdate,
-		Delete: resourceArmContainerRegistryWebhookDelete,
+		Create: resourceContainerRegistryWebhookCreate,
+		Read:   resourceContainerRegistryWebhookRead,
+		Update: resourceContainerRegistryWebhookUpdate,
+		Delete: resourceContainerRegistryWebhookDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -41,7 +41,7 @@ func resourceArmContainerRegistryWebhook() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMContainerRegistryWebhookName,
+				ValidateFunc: validateContainerRegistryWebhookName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -50,13 +50,13 @@ func resourceArmContainerRegistryWebhook() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateAzureRMContainerRegistryName,
+				ValidateFunc: ValidateContainerRegistryName,
 			},
 
 			"service_uri": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validateAzureRMContainerRegistryWebhookServiceUri,
+				ValidateFunc: validateContainerRegistryWebhookServiceUri,
 			},
 
 			"custom_headers": {
@@ -106,11 +106,11 @@ func resourceArmContainerRegistryWebhook() *schema.Resource {
 	}
 }
 
-func resourceArmContainerRegistryWebhookCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceContainerRegistryWebhookCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.WebhooksClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing arguments for AzureRM Container Registry Webhook creation.")
+	log.Printf("[INFO] preparing arguments for  Container Registry Webhook creation.")
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	registryName := d.Get("registry_name").(string)
@@ -158,15 +158,15 @@ func resourceArmContainerRegistryWebhookCreate(d *schema.ResourceData, meta inte
 
 	d.SetId(*read.ID)
 
-	return resourceArmContainerRegistryWebhookRead(d, meta)
+	return resourceContainerRegistryWebhookRead(d, meta)
 }
 
-func resourceArmContainerRegistryWebhookUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceContainerRegistryWebhookUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.WebhooksClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM Container Registry Webhook update.")
+	log.Printf("[INFO] preparing arguments for  Container Registry Webhook update.")
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -193,10 +193,10 @@ func resourceArmContainerRegistryWebhookUpdate(d *schema.ResourceData, meta inte
 		return fmt.Errorf("Error waiting for completion of Container Registry Webhook %q (Resource Group %q, Registry %q): %+v", name, resourceGroup, registryName, err)
 	}
 
-	return resourceArmContainerRegistryWebhookRead(d, meta)
+	return resourceContainerRegistryWebhookRead(d, meta)
 }
 
-func resourceArmContainerRegistryWebhookRead(d *schema.ResourceData, meta interface{}) error {
+func resourceContainerRegistryWebhookRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.WebhooksClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -262,7 +262,7 @@ func resourceArmContainerRegistryWebhookRead(d *schema.ResourceData, meta interf
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmContainerRegistryWebhookDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceContainerRegistryWebhookDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.WebhooksClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -293,7 +293,7 @@ func resourceArmContainerRegistryWebhookDelete(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func validateAzureRMContainerRegistryWebhookName(v interface{}, k string) (warnings []string, errors []error) {
+func validateContainerRegistryWebhookName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 	if !regexp.MustCompile(`^[a-zA-Z0-9]{5,50}$`).MatchString(value) {
 		errors = append(errors, fmt.Errorf(
@@ -303,7 +303,7 @@ func validateAzureRMContainerRegistryWebhookName(v interface{}, k string) (warni
 	return warnings, errors
 }
 
-func validateAzureRMContainerRegistryWebhookServiceUri(v interface{}, k string) (warnings []string, errors []error) {
+func validateContainerRegistryWebhookServiceUri(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 	if !regexp.MustCompile(`^https?://[^\s]+$`).MatchString(value) {
 		errors = append(errors, fmt.Errorf(

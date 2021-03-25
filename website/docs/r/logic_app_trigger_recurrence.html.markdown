@@ -15,7 +15,7 @@ Manages a Recurrence Trigger within a Logic App Workflow
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "workflow-resources"
-  location = "East US"
+  location = "West Europe"
 }
 
 resource "azurerm_logic_app_workflow" "example" {
@@ -49,6 +49,18 @@ The following arguments are supported:
 * `start_time` - (Optional) Specifies the start date and time for this trigger in RFC3339 format: `2000-01-02T03:04:05Z`.
 
 * `time_zone` - (Optional) Specifies the time zone for this trigger.  Supported time zone options are listed [here](https://support.microsoft.com/en-us/help/973627/microsoft-time-zone-index-values)
+
+* `schedule` - (Optional) A `schedule` block as specified below.
+
+---
+
+A `schedule` block supports the following: 
+
+* `at_these_minutes` - Specifies a list of minutes when the trigger should run. Valid values are between 0 and 59.
+
+* `at_these_hours` - Specifies a list of hours when the trigger should run. Valid values are between 0 and 23.
+
+* `on_these_days` - Specifies a list of days when the trigger should run. Valid values include `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday`, and `Sunday`.
 
 ## Attributes Reference
 

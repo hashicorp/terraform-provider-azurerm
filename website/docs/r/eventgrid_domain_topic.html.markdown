@@ -14,8 +14,8 @@ Manages an EventGrid Domain Topic
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "resourceGroup1"
-  location = "West US 2"
+  name     = "example-resources"
+  location = "West Europe"
 }
 resource "azurerm_eventgrid_domain" "example" {
   name                = "my-eventgrid-domain"

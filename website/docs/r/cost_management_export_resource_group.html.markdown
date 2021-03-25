@@ -15,7 +15,7 @@ Manages an Azure Cost Management Export for a Resource Group.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "northeurope"
+  location = "West Europe"
 }
 
 resource "azurerm_storage_account" "example" {

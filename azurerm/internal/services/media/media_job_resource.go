@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -128,16 +127,18 @@ func resourceMediaJob() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
+				Default:  string(media.PriorityNormal),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(media.High), string(media.Normal), string(media.Low),
+					string(media.PriorityHigh),
+					string(media.PriorityNormal),
+					string(media.PriorityLow),
 				}, false),
-				Default: string(media.Normal),
 			},
 
 			"description": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
 	}
@@ -294,8 +295,7 @@ func resourceMediaJobDelete(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	// Cancel the job before we attempt to delete it.
-	_, err = client.CancelJob(ctx, id.ResourceGroup, id.MediaserviceName, id.TransformName, id.Name)
-	if err != nil {
+	if _, err = client.CancelJob(ctx, id.ResourceGroup, id.MediaserviceName, id.TransformName, id.Name); err != nil {
 		return fmt.Errorf("could not cancel Media Job %q (reource group %q) for delete: %+v", id.Name, id.ResourceGroup, err)
 	}
 

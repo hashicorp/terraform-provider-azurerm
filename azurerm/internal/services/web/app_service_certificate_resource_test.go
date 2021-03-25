@@ -125,6 +125,8 @@ provider "azurerm" {
   features {}
 }
 
+provider "azuread" {}
+
 data "azurerm_client_config" "test" {}
 
 data "azuread_service_principal" "test" {

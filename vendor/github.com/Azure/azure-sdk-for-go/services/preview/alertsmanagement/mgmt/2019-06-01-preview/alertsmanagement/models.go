@@ -591,7 +591,7 @@ type AlertRule struct {
 	// Location - The resource location.
 	Location *string `json:"location,omitempty"`
 	// Tags - The resource tags.
-	Tags interface{} `json:"tags,omitempty"`
+	Tags map[string]*string `json:"tags"`
 }
 
 // MarshalJSON is the custom marshaler for AlertRule.
@@ -665,7 +665,7 @@ func (ar *AlertRule) UnmarshalJSON(body []byte) error {
 			}
 		case "tags":
 			if v != nil {
-				var tags interface{}
+				var tags map[string]*string
 				err = json.Unmarshal(*v, &tags)
 				if err != nil {
 					return err
@@ -687,7 +687,7 @@ type AlertRulePatchObject struct {
 	// Name - READ-ONLY; The resource name.
 	Name *string `json:"name,omitempty"`
 	// Tags - The resource tags.
-	Tags interface{} `json:"tags,omitempty"`
+	Tags map[string]*string `json:"tags"`
 	// AlertRulePatchProperties - The properties of the alert rule.
 	*AlertRulePatchProperties `json:"properties,omitempty"`
 }
@@ -742,7 +742,7 @@ func (arpo *AlertRulePatchObject) UnmarshalJSON(body []byte) error {
 			}
 		case "tags":
 			if v != nil {
-				var tags interface{}
+				var tags map[string]*string
 				err = json.Unmarshal(*v, &tags)
 				if err != nil {
 					return err
@@ -1277,7 +1277,7 @@ type AzureResource struct {
 	// Location - The resource location.
 	Location *string `json:"location,omitempty"`
 	// Tags - The resource tags.
-	Tags interface{} `json:"tags,omitempty"`
+	Tags map[string]*string `json:"tags"`
 }
 
 // MarshalJSON is the custom marshaler for AzureResource.

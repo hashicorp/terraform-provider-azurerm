@@ -104,7 +104,7 @@ func (b Builder) Build() (*Config, error) {
 					if err != nil {
 						return "", err
 					}
-					log.Printf("authenticated object ID cache miss, populting with: %q", authenticatedObjectCache)
+					log.Printf("authenticated object ID cache miss, populating with: %q", authenticatedObjectCache)
 				}
 
 				return authenticatedObjectCache, nil

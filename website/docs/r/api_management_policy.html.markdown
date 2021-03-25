@@ -17,7 +17,7 @@ Manages a API Management service Policy.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "West US"
+  location = "West Europe"
 }
 
 resource "azurerm_api_management" "example" {
@@ -39,8 +39,8 @@ resource "azurerm_api_management_named_value" "example" {
 }
 
 resource "azurerm_api_management_policy" "example" {
-  apim_management_id = azurerm_api_management.example.id
-  xml_content        = file("example.xml")
+  api_management_id = azurerm_api_management.example.id
+  xml_content       = file("example.xml")
 }
 ```
 

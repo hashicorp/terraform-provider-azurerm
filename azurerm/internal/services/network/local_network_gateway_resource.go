@@ -57,7 +57,7 @@ func resourceLocalNetworkGateway() *schema.Resource {
 
 			"address_space": {
 				Type:     schema.TypeList,
-				Required: true,
+				Optional: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},

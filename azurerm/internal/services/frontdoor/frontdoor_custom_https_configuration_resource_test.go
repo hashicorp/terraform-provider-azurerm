@@ -58,7 +58,7 @@ func (r FrontDoorCustomHttpsConfigurationResource) CustomHttpsEnabled(data accep
 %s
 
 resource "azurerm_frontdoor_custom_https_configuration" "test" {
-  frontend_endpoint_id              = azurerm_frontdoor.test.frontend_endpoint[0].id
+  frontend_endpoint_id              = azurerm_frontdoor.test.frontend_endpoints[local.endpoint_name]
   resource_group_name               = azurerm_resource_group.test.name
   custom_https_provisioning_enabled = true
 
@@ -74,7 +74,7 @@ func (r FrontDoorCustomHttpsConfigurationResource) CustomHttpsDisabled(data acce
 %s
 
 resource "azurerm_frontdoor_custom_https_configuration" "test" {
-  frontend_endpoint_id              = azurerm_frontdoor.test.frontend_endpoint[0].id
+  frontend_endpoint_id              = azurerm_frontdoor.test.frontend_endpoints[local.endpoint_name]
   resource_group_name               = azurerm_resource_group.test.name
   custom_https_provisioning_enabled = false
 }

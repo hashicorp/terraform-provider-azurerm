@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-06-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-01-01/storage"
 	azautorest "github.com/Azure/go-autorest/autorest"
 	autorestAzure "github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/response"
@@ -16,13 +16,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/accounts"
@@ -292,7 +292,7 @@ func resourceStorageAccount() *schema.Resource {
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
-								"SystemAssigned",
+								string(storage.IdentityTypeSystemAssigned),
 							}, true),
 						},
 						"principal_id": {
@@ -314,7 +314,7 @@ func resourceStorageAccount() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"cors_rule": azure.SchemaStorageAccountCorsRule(true),
+						"cors_rule": schemaStorageAccountCorsRule(true),
 						"delete_retention_policy": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -341,7 +341,7 @@ func resourceStorageAccount() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"cors_rule": azure.SchemaStorageAccountCorsRule(false),
+						"cors_rule": schemaStorageAccountCorsRule(false),
 						"logging": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -2256,7 +2256,7 @@ func expandAzureRmStorageAccountIdentity(d *schema.ResourceData) *storage.Identi
 	identity := identities[0].(map[string]interface{})
 	identityType := identity["type"].(string)
 	return &storage.Identity{
-		Type: &identityType,
+		Type: storage.IdentityType(identityType),
 	}
 }
 
@@ -2266,8 +2266,8 @@ func flattenAzureRmStorageAccountIdentity(identity *storage.Identity) []interfac
 	}
 
 	result := make(map[string]interface{})
-	if identity.Type != nil {
-		result["type"] = *identity.Type
+	if identity.Type != "" {
+		result["type"] = string(identity.Type)
 	}
 	if identity.PrincipalID != nil {
 		result["principal_id"] = *identity.PrincipalID

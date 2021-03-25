@@ -128,7 +128,7 @@ resource "azurerm_data_lake_analytics_account" "import" {
   location                   = azurerm_data_lake_analytics_account.test.location
   default_store_account_name = azurerm_data_lake_analytics_account.test.default_store_account_name
 }
-`, DataLakeStoreResource{}.basic(data))
+`, DataLakeAnalyticsAccountResource{}.basic(data))
 }
 
 func (r DataLakeAnalyticsAccountResource) tier(data acceptance.TestData) string {

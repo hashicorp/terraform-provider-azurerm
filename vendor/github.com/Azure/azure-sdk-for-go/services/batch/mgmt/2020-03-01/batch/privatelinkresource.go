@@ -178,6 +178,7 @@ func (client PrivateLinkResourceClient) ListByBatchAccount(ctx context.Context, 
 	}
 	if result.lplrr.hasNextLink() && result.lplrr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -242,7 +243,6 @@ func (client PrivateLinkResourceClient) listByBatchAccountNextResults(ctx contex
 	result, err = client.ListByBatchAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "batch.PrivateLinkResourceClient", "listByBatchAccountNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
