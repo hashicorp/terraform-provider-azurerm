@@ -92,7 +92,7 @@ func (client RunsClient) CancelPreparer(ctx context.Context, resourceGroupName s
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-04-01"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -201,7 +201,7 @@ func (client RunsClient) GetPreparer(ctx context.Context, resourceGroupName stri
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-04-01"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -289,7 +289,7 @@ func (client RunsClient) GetLogSasURLPreparer(ctx context.Context, resourceGroup
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-04-01"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -383,7 +383,7 @@ func (client RunsClient) ListPreparer(ctx context.Context, resourceGroupName str
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-04-01"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -508,7 +508,7 @@ func (client RunsClient) UpdatePreparer(ctx context.Context, resourceGroupName s
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-04-01"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
