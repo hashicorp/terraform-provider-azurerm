@@ -12,6 +12,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+	mgParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup/parse"
+	mgValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -20,14 +22,14 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func subscriptionTemplateDeploymentResource() *schema.Resource {
+func managementGroupTemplateDeploymentResource() *schema.Resource {
 	return &schema.Resource{
-		Create: subscriptionTemplateDeploymentResourceCreate,
-		Read:   subscriptionTemplateDeploymentResourceRead,
-		Update: subscriptionTemplateDeploymentResourceUpdate,
-		Delete: subscriptionTemplateDeploymentResourceDelete,
+		Create: managementGroupTemplateDeploymentResourceCreate,
+		Read:   managementGroupTemplateDeploymentResourceRead,
+		Update: managementGroupTemplateDeploymentResourceUpdate,
+		Delete: managementGroupTemplateDeploymentResourceDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.SubscriptionTemplateDeploymentID(id)
+			_, err := parse.ManagementGroupTemplateDeploymentID(id)
 			return err
 		}),
 
@@ -47,6 +49,13 @@ func subscriptionTemplateDeploymentResource() *schema.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.TemplateDeploymentName,
+			},
+
+			"management_group_id": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: mgValidate.ManagementGroupID,
 			},
 
 			"location": location.Schema(),
@@ -100,25 +109,29 @@ func subscriptionTemplateDeploymentResource() *schema.Resource {
 	}
 }
 
-func subscriptionTemplateDeploymentResourceCreate(d *schema.ResourceData, meta interface{}) error {
+func managementGroupTemplateDeploymentResourceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Resource.DeploymentsClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewSubscriptionTemplateDeploymentID(subscriptionId, d.Get("name").(string))
+	managementGroupId, err := mgParse.ManagementGroupID(d.Get("management_group_id").(string))
+	if err != nil {
+		return err
+	}
 
-	existing, err := client.GetAtSubscriptionScope(ctx, id.DeploymentName)
+	id := parse.NewManagementGroupTemplateDeploymentID(managementGroupId.Name, d.Get("name").(string))
+
+	existing, err := client.GetAtManagementGroupScope(ctx, id.ManagementGroupName, id.DeploymentName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing Subscription Template Deployment %q: %+v", id.DeploymentName, err)
+			return fmt.Errorf("checking for presence of existing Management Group Template Deployment %q: %+v", id.DeploymentName, err)
 		}
 	}
 	if existing.Properties != nil {
-		return tf.ImportAsExistsError("azurerm_subscription_template_deployment", id.ID())
+		return tf.ImportAsExistsError("azurerm_management_group_template_deployment", id.ID())
 	}
 
-	deployment := resources.Deployment{
+	deployment := resources.ScopedDeployment{
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Properties: &resources.DeploymentProperties{
 			DebugSetting: expandTemplateDeploymentDebugSetting(d.Get("debug_level").(string)),
@@ -149,48 +162,48 @@ func subscriptionTemplateDeploymentResourceCreate(d *schema.ResourceData, meta i
 		deployment.Properties.Parameters = parameters
 	}
 
-	log.Printf("[DEBUG] Running validation of Subscription Template Deployment %q..", id.DeploymentName)
-	if err := validateSubscriptionTemplateDeployment(ctx, id, deployment, client); err != nil {
-		return fmt.Errorf("validating Subscription Template Deployment %q: %+v", id.DeploymentName, err)
+	log.Printf("[DEBUG] Running validation of Management Group Template Deployment %q..", id.DeploymentName)
+	if err := validateManagementGroupTemplateDeployment(ctx, id, deployment, client); err != nil {
+		return fmt.Errorf("validating Management Group Template Deployment %q: %+v", id.DeploymentName, err)
 	}
-	log.Printf("[DEBUG] Validated Subscription Template Deployment %q..", id.DeploymentName)
+	log.Printf("[DEBUG] Validated Management Group Template Deployment %q..", id.DeploymentName)
 
-	log.Printf("[DEBUG] Provisioning Subscription Template Deployment %q..", id.DeploymentName)
-	future, err := client.CreateOrUpdateAtSubscriptionScope(ctx, id.DeploymentName, deployment)
+	log.Printf("[DEBUG] Provisioning Management Group Template Deployment %q..", id.DeploymentName)
+	future, err := client.CreateOrUpdateAtManagementGroupScope(ctx, id.ManagementGroupName, id.DeploymentName, deployment)
 	if err != nil {
-		return fmt.Errorf("creating Subscription Template Deployment %q: %+v", id.DeploymentName, err)
+		return fmt.Errorf("creating Management Group Template Deployment %q: %+v", id.DeploymentName, err)
 	}
 
-	log.Printf("[DEBUG] Waiting for deployment of Subscription Template Deployment %q..", id.DeploymentName)
+	log.Printf("[DEBUG] Waiting for deployment of Management Group Template Deployment %q..", id.DeploymentName)
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Subscription Template Deployment %q: %+v", id.DeploymentName, err)
+		return fmt.Errorf("waiting for creation of Management Group Template Deployment %q: %+v", id.DeploymentName, err)
 	}
 
 	d.SetId(id.ID())
-	return subscriptionTemplateDeploymentResourceRead(d, meta)
+	return managementGroupTemplateDeploymentResourceRead(d, meta)
 }
 
-func subscriptionTemplateDeploymentResourceUpdate(d *schema.ResourceData, meta interface{}) error {
+func managementGroupTemplateDeploymentResourceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Resource.DeploymentsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SubscriptionTemplateDeploymentID(d.Id())
+	id, err := parse.ManagementGroupTemplateDeploymentID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	log.Printf("[DEBUG] Retrieving Subscription Template Deployment %q..", id.DeploymentName)
-	template, err := client.GetAtSubscriptionScope(ctx, id.DeploymentName)
+	log.Printf("[DEBUG] Retrieving Management Group Template Deployment %q..", id.DeploymentName)
+	template, err := client.GetAtManagementGroupScope(ctx, id.ManagementGroupName, id.DeploymentName)
 	if err != nil {
-		return fmt.Errorf("retrieving Subscription Template Deployment %q: %+v", id.DeploymentName, err)
+		return fmt.Errorf("retrieving Management Group Template Deployment %q: %+v", id.DeploymentName, err)
 	}
 	if template.Properties == nil {
-		return fmt.Errorf("retrieving Subscription Template Deployment %q: `properties` was nil", id.DeploymentName)
+		return fmt.Errorf("retrieving Management Group Template Deployment %q: `properties` was nil", id.DeploymentName)
 	}
 
 	// the API doesn't have a Patch operation, so we'll need to build one
-	deployment := resources.Deployment{
+	deployment := resources.ScopedDeployment{
 		Location: template.Location,
 		Properties: &resources.DeploymentProperties{
 			DebugSetting: template.Properties.DebugSetting,
@@ -203,11 +216,13 @@ func subscriptionTemplateDeploymentResourceUpdate(d *schema.ResourceData, meta i
 		deployment.Properties.DebugSetting = expandTemplateDeploymentDebugSetting(d.Get("debug_level").(string))
 	}
 
-	parameters, err := expandTemplateDeploymentBody(d.Get("parameters_content").(string))
-	if err != nil {
-		return fmt.Errorf("expanding `parameters_content`: %+v", err)
+	if d.HasChange("parameters_content") {
+		parameters, err := expandTemplateDeploymentBody(d.Get("parameters_content").(string))
+		if err != nil {
+			return fmt.Errorf("expanding `parameters_content`: %+v", err)
+		}
+		deployment.Properties.Parameters = parameters
 	}
-	deployment.Properties.Parameters = parameters
 
 	if d.HasChange("template_content") {
 		templateContents, err := expandTemplateDeploymentBody(d.Get("template_content").(string))
@@ -218,9 +233,9 @@ func subscriptionTemplateDeploymentResourceUpdate(d *schema.ResourceData, meta i
 		deployment.Properties.Template = templateContents
 	} else {
 		// retrieve the existing content and reuse that
-		exportedTemplate, err := client.ExportTemplateAtSubscriptionScope(ctx, id.DeploymentName)
+		exportedTemplate, err := client.ExportTemplateAtManagementGroupScope(ctx, id.ManagementGroupName, id.DeploymentName)
 		if err != nil {
-			return fmt.Errorf("retrieving Contents for Subscription Template Deployment %q: %+v", id.DeploymentName, err)
+			return fmt.Errorf("retrieving Contents for Management Group Template Deployment %q: %+v", id.DeploymentName, err)
 		}
 
 		deployment.Properties.Template = exportedTemplate.Template
@@ -236,53 +251,55 @@ func subscriptionTemplateDeploymentResourceUpdate(d *schema.ResourceData, meta i
 		deployment.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	log.Printf("[DEBUG] Running validation of Subscription Template Deployment %q..", id.DeploymentName)
-	if err := validateSubscriptionTemplateDeployment(ctx, *id, deployment, client); err != nil {
-		return fmt.Errorf("validating Subscription Template Deployment %q: %+v", id.DeploymentName, err)
+	log.Printf("[DEBUG] Running validation of Management Group Template Deployment %q..", id.DeploymentName)
+	if err := validateManagementGroupTemplateDeployment(ctx, *id, deployment, client); err != nil {
+		return fmt.Errorf("validating Management Group Template Deployment %q: %+v", id.DeploymentName, err)
 	}
-	log.Printf("[DEBUG] Validated Subscription Template Deployment %q..", id.DeploymentName)
+	log.Printf("[DEBUG] Validated Management Group Template Deployment %q..", id.DeploymentName)
 
-	log.Printf("[DEBUG] Provisioning Subscription Template Deployment %q)..", id.DeploymentName)
-	future, err := client.CreateOrUpdateAtSubscriptionScope(ctx, id.DeploymentName, deployment)
+	log.Printf("[DEBUG] Provisioning Management Group Template Deployment %q)..", id.DeploymentName)
+	future, err := client.CreateOrUpdateAtManagementGroupScope(ctx, id.ManagementGroupName, id.DeploymentName, deployment)
 	if err != nil {
-		return fmt.Errorf("creating Subscription Template Deployment %q: %+v", id.DeploymentName, err)
+		return fmt.Errorf("creating Management Group Template Deployment %q: %+v", id.DeploymentName, err)
 	}
 
-	log.Printf("[DEBUG] Waiting for deployment of Subscription Template Deployment %q..", id.DeploymentName)
+	log.Printf("[DEBUG] Waiting for deployment of Management Group Template Deployment %q..", id.DeploymentName)
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Subscription Template Deployment %q: %+v", id.DeploymentName, err)
+		return fmt.Errorf("waiting for creation of Management Group Template Deployment %q: %+v", id.DeploymentName, err)
 	}
 
-	return subscriptionTemplateDeploymentResourceRead(d, meta)
+	return managementGroupTemplateDeploymentResourceRead(d, meta)
 }
 
-func subscriptionTemplateDeploymentResourceRead(d *schema.ResourceData, meta interface{}) error {
+func managementGroupTemplateDeploymentResourceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Resource.DeploymentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SubscriptionTemplateDeploymentID(d.Id())
+	id, err := parse.ManagementGroupTemplateDeploymentID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.GetAtSubscriptionScope(ctx, id.DeploymentName)
+	resp, err := client.GetAtManagementGroupScope(ctx, id.ManagementGroupName, id.DeploymentName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Subscription Template Deployment %q was not found - removing from state", id.DeploymentName)
+			log.Printf("[DEBUG] Management Group Template Deployment %q was not found - removing from state", id.DeploymentName)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Subscription Template Deployment %q: %+v", id.DeploymentName, err)
+		return fmt.Errorf("retrieving Management Group Template Deployment %q: %+v", id.DeploymentName, err)
 	}
 
-	templateContents, err := client.ExportTemplateAtSubscriptionScope(ctx, id.DeploymentName)
+	templateContents, err := client.ExportTemplateAtManagementGroupScope(ctx, id.ManagementGroupName, id.DeploymentName)
 	if err != nil {
-		return fmt.Errorf("retrieving Template Content for Subscription Template Deployment %q: %+v", id.DeploymentName, err)
+		return fmt.Errorf("retrieving Template Content for Management Group Template Deployment %q: %+v", id.DeploymentName, err)
 	}
 
 	d.Set("name", id.DeploymentName)
+	managementGroupId := mgParse.NewManagementGroupId(id.ManagementGroupName)
+	d.Set("management_group_id", managementGroupId.ID())
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.Properties; props != nil {
@@ -319,12 +336,12 @@ func subscriptionTemplateDeploymentResourceRead(d *schema.ResourceData, meta int
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func subscriptionTemplateDeploymentResourceDelete(d *schema.ResourceData, meta interface{}) error {
+func managementGroupTemplateDeploymentResourceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Resource.DeploymentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SubscriptionTemplateDeploymentID(d.Id())
+	id, err := parse.ManagementGroupTemplateDeploymentID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -332,23 +349,23 @@ func subscriptionTemplateDeploymentResourceDelete(d *schema.ResourceData, meta i
 	// at this time unfortunately the Resources RP doesn't expose a means of deleting top-level objects
 	// so we're unable to delete these during deletion - this'll need to be detailed in the docs
 
-	log.Printf("[DEBUG] Deleting Subscription Template Deployment %q..", id.DeploymentName)
-	future, err := client.DeleteAtSubscriptionScope(ctx, id.DeploymentName)
+	log.Printf("[DEBUG] Deleting Management Group Template Deployment %q..", id.DeploymentName)
+	future, err := client.DeleteAtManagementGroupScope(ctx, id.ManagementGroupName, id.DeploymentName)
 	if err != nil {
-		return fmt.Errorf("deleting Subscription Template Deployment %q: %+v", id.DeploymentName, err)
+		return fmt.Errorf("deleting Management Group Template Deployment %q: %+v", id.DeploymentName, err)
 	}
 
-	log.Printf("[DEBUG] Waiting for deletion of Subscription Template Deployment %q..", id.DeploymentName)
+	log.Printf("[DEBUG] Waiting for deletion of Management Group Template Deployment %q..", id.DeploymentName)
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of Subscription Template Deployment %q: %+v", id.DeploymentName, err)
+		return fmt.Errorf("waiting for deletion of Management Group Template Deployment %q: %+v", id.DeploymentName, err)
 	}
-	log.Printf("[DEBUG] Deleted Subscription Template Deployment %q.", id.DeploymentName)
+	log.Printf("[DEBUG] Deleted Management Group Template Deployment %q.", id.DeploymentName)
 
 	return nil
 }
 
-func validateSubscriptionTemplateDeployment(ctx context.Context, id parse.SubscriptionTemplateDeploymentId, deployment resources.Deployment, client *resources.DeploymentsClient) error {
-	validationFuture, err := client.ValidateAtSubscriptionScope(ctx, id.DeploymentName, deployment)
+func validateManagementGroupTemplateDeployment(ctx context.Context, id parse.ManagementGroupTemplateDeploymentId, deployment resources.ScopedDeployment, client *resources.DeploymentsClient) error {
+	validationFuture, err := client.ValidateAtManagementGroupScope(ctx, id.ManagementGroupName, id.DeploymentName, deployment)
 	if err != nil {
 		return fmt.Errorf("requesting validating: %+v", err)
 	}
