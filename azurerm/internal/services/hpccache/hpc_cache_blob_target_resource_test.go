@@ -159,6 +159,9 @@ resource "azurerm_hpc_cache_access_policy" "test" {
     scope  = "default"
     access = "rw"
   }
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "azurerm_hpc_cache_blob_target" "test" {
