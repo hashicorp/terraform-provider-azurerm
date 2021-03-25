@@ -62,13 +62,13 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - (Optional) Whether public network access is allowed for the container registry. Defaults to `true`.
 
-* `quarantine_policy` - (Optional) A `quarantine_policy` block as documented below.
+* `quarantine_policy_enabled` - (Optional) Boolean value that indicates whether the policy is enabled. Defaults to `false`.
 
 * `retention_policy` - (Optional) A `retention_policy` block as documented below.
 
 * `trust_policy` - (Optional) A `trust_policy` block as documented below.
 
-~> **NOTE:** `quarantine_policy`, `retention_policy` and `trust_policy` are only supported on resources with the `Premium` SKU.
+~> **NOTE:** `quarantine_policy_enabled`, `retention_policy` and `trust_policy` are only supported on resources with the `Premium` SKU.
 
 `network_rule_set` supports the following:
 
@@ -93,10 +93,6 @@ The following arguments are supported:
 * `action` - (Required) The behaviour for requests matching this rule. At this time the only supported value is `Allow`
 
 * `subnet_id` - (Required) The subnet id from which requests will match the rule.
-
-`quarantine_policy` supports the following:
-
-* `enabled` - (Optional) Boolean value that indicates whether the policy is enabled.
 
 `trust_policy` supports the following:
 
