@@ -310,14 +310,14 @@ type ConfigurationParameter struct {
 type ConfigurationSetting struct {
 	// ConfigurationMode - Specifies how the LCM(Local Configuration Manager) actually applies the configuration to the target nodes. Possible values are ApplyOnly, ApplyAndMonitor, and ApplyAndAutoCorrect. Possible values include: 'ApplyOnly', 'ApplyAndMonitor', 'ApplyAndAutoCorrect'
 	ConfigurationMode ConfigurationMode `json:"configurationMode,omitempty"`
-	// AllowModuleOverwrite - If true - new configurations downloaded from the pull service are allowed to overwrite the old ones on the target node. Otherwise, false. Possible values include: 'True', 'False'
-	AllowModuleOverwrite AllowModuleOverwrite `json:"allowModuleOverwrite,omitempty"`
+	// AllowModuleOverwrite - If true - new configurations downloaded from the pull service are allowed to overwrite the old ones on the target node. Otherwise, false
+	AllowModuleOverwrite *bool `json:"allowModuleOverwrite,omitempty"`
 	// ActionAfterReboot - Specifies what happens after a reboot during the application of a configuration. The possible values are ContinueConfiguration and StopConfiguration. Possible values include: 'ContinueConfiguration', 'StopConfiguration'
 	ActionAfterReboot ActionAfterReboot `json:"actionAfterReboot,omitempty"`
 	// RefreshFrequencyMins - The time interval, in minutes, at which the LCM checks a pull service to get updated configurations. This value is ignored if the LCM is not configured in pull mode. The default value is 30.
 	RefreshFrequencyMins *float64 `json:"refreshFrequencyMins,omitempty"`
-	// RebootIfNeeded - Set this to true to automatically reboot the node after a configuration that requires reboot is applied. Otherwise, you will have to manually reboot the node for any configuration that requires it. The default value is false. To use this setting when a reboot condition is enacted by something other than DSC (such as Windows Installer), combine this setting with the xPendingReboot module. Possible values include: 'RebootIfNeededTrue', 'RebootIfNeededFalse'
-	RebootIfNeeded RebootIfNeeded `json:"rebootIfNeeded,omitempty"`
+	// RebootIfNeeded - Set this to true to automatically reboot the node after a configuration that requires reboot is applied. Otherwise, you will have to manually reboot the node for any configuration that requires it. The default value is false. To use this setting when a reboot condition is enacted by something other than DSC (such as Windows Installer), combine this setting with the xPendingReboot module.
+	RebootIfNeeded *bool `json:"rebootIfNeeded,omitempty"`
 	// ConfigurationModeFrequencyMins - How often, in minutes, the current configuration is checked and applied. This property is ignored if the ConfigurationMode property is set to ApplyOnly. The default value is 15.
 	ConfigurationModeFrequencyMins *float64 `json:"configurationModeFrequencyMins,omitempty"`
 }
