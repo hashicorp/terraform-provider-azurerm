@@ -1009,7 +1009,7 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 
   tags = {
-            %s
+                %s
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, tags)
@@ -1717,8 +1717,6 @@ provider "azurerm" {
   features {}
 }
 
-data "azurerm_subscription" "current" {}
-
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%[1]d"
   location = "%[2]s"
@@ -1738,9 +1736,15 @@ resource "azurerm_subnet" "test" {
   address_prefix       = "10.0.2.0/24"
   service_endpoints    = ["Microsoft.Storage"]
 }
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r StorageAccountResource) networkRulesPrivateEndpointTemplate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
 
 resource "azurerm_subnet" "endpoint" {
-  name                 = "acctestsnetendpoint-%[1]d"
+  name                 = "acctestsnetendpoint-%[2]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.5.0/24"]
@@ -1762,19 +1766,19 @@ resource "azurerm_private_dns_zone" "finance" {
 }
 
 resource "azurerm_private_endpoint" "test" {
-  name                = "acctest-privatelink-%[1]d"
+  name                = "acctest-privatelink-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   subnet_id           = azurerm_subnet.endpoint.id
 
   private_service_connection {
-    name                           = "acctest-privatelink-mssc-%[1]d"
+    name                           = "acctest-privatelink-mssc-%[2]d"
     private_connection_resource_id = azurerm_storage_account.connection.id
     subresource_names              = ["blob"]
     is_manual_connection           = false
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, r.networkRulesTemplate(data), data.RandomInteger, data.RandomString)
 }
 
 func (r StorageAccountResource) networkRules(data acceptance.TestData) string {
@@ -1876,39 +1880,8 @@ resource "azurerm_storage_account" "test" {
     environment = "production"
   }
 }
-`, r.networkRulesTemplate(data), data.RandomString)
+`, r.networkRulesPrivateEndpointTemplate(data), data.RandomString)
 }
-
-//func (r StorageAccountResource) networkRulesResourceAccessRuleUpdate(data acceptance.TestData) string {
-//	return fmt.Sprintf(`
-//%s
-//
-//resource "azurerm_storage_account" "test" {
-//  name                     = "unlikely23exst2acct%s"
-//  resource_group_name      = azurerm_resource_group.test.name
-//  location                 = azurerm_resource_group.test.location
-//  account_tier             = "Standard"
-//  account_replication_type = "LRS"
-//
-//  network_rules {
-//    default_action             = "Deny"
-//    ip_rules                   = ["127.0.0.1"]
-//    virtual_network_subnet_ids = [azurerm_subnet.test.id]
-//resource_access_rules {
-//resource_id = azurerm_mssql_server.test.id
-//}
-//
-//resource_access_rules {
-//resource_id = azurerm_cosmosdb_account.test.id
-//}
-//  }
-//
-//  tags = {
-//    environment = "production"
-//  }
-//}
-//`, r.networkRulesTemplate(data), data.RandomString)
-//}
 
 func (r StorageAccountResource) blobProperties(data acceptance.TestData) string {
 	return fmt.Sprintf(`
