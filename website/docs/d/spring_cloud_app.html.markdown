@@ -52,6 +52,8 @@ The following attributes are exported:
 
 * `url` - The public endpoint of the Spring Cloud Application.
 
+* `tls_enabled` - Is End to End TLS Enabled?
+
 ---
 
 The `identity` block exports the following:

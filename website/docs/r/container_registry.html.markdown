@@ -60,6 +60,8 @@ The following arguments are supported:
 
 * `network_rule_set` - (Optional) A `network_rule_set` block as documented below.
 
+* `public_network_access_enabled` - (Optional) Whether public network access is allowed for the container registry. Defaults to `true`.
+
 * `retention_policy` - (Optional) A `retention_policy` block as documented below.
 
 * `trust_policy` - (Optional) A `trust_policy` block as documented below.

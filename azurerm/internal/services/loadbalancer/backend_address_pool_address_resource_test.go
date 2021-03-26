@@ -237,7 +237,7 @@ resource "azurerm_lb_backend_address_pool_address" "test" {
 func (BackendAddressPoolAddressResourceTests) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 

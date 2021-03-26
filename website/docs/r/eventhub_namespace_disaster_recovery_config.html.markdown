@@ -52,8 +52,6 @@ The following arguments are supported:
 
 * `partner_namespace_id` - (Optional) The ID of the EventHub Namespace to replicate to.
 
-* `alternate_name` - (Optional) An alternate name to use when the Disaster Recovery Config's name is the same as the replicated namespace's name.
-
 * `wait_for_replication` - (Optional) Should the resource wait for replication upon creation? Defaults to `false`.
 
 ## Attributes Reference

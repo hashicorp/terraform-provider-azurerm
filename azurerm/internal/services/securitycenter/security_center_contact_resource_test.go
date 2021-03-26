@@ -32,7 +32,7 @@ func testAccSecurityCenterContact_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_contact", "test")
 	r := SecurityCenterContactResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []resource.TestStep{
 		{
 			Config: r.template("basic@example.com", "+1-555-555-5555", true, true),
 			Check: resource.ComposeTestCheckFunc(
@@ -50,7 +50,7 @@ func testAccSecurityCenterContact_basic(t *testing.T) {
 func testAccSecurityCenterContact_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_contact", "test")
 	r := SecurityCenterContactResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []resource.TestStep{
 		{
 			Config: r.template("require@example.com", "+1-555-555-5555", true, true),
 			Check: resource.ComposeTestCheckFunc(
@@ -71,7 +71,7 @@ func testAccSecurityCenterContact_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_contact", "test")
 	r := SecurityCenterContactResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []resource.TestStep{
 		{
 			Config: r.template("update@example.com", "+1-555-555-5555", true, true),
 			Check: resource.ComposeTestCheckFunc(
@@ -100,7 +100,7 @@ func testAccSecurityCenterContact_phoneOptional(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_contact", "test")
 	r := SecurityCenterContactResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []resource.TestStep{
 		{
 			Config: r.templateWithoutPhone("basic@example.com", true, true),
 			Check: resource.ComposeTestCheckFunc(

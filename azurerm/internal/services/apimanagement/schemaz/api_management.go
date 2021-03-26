@@ -6,7 +6,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -27,17 +26,6 @@ func SchemaApiManagementDataSourceName() *schema.Schema {
 		Type:         schema.TypeString,
 		Required:     true,
 		ValidateFunc: validate.ApiManagementServiceName,
-	}
-}
-
-// SchemaApiManagementChildID returns the Schema for the identifier
-// used by resources within nested under the API Management Service resource
-func SchemaApiManagementChildID() *schema.Schema {
-	return &schema.Schema{
-		Type:         schema.TypeString,
-		Required:     true,
-		ForceNew:     true,
-		ValidateFunc: azure.ValidateResourceID,
 	}
 }
 

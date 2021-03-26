@@ -98,7 +98,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-Purview-%d"
+  name     = "acctestRG-purview-%d"
   location = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary)
