@@ -201,7 +201,7 @@ resource "azurerm_data_factory_dataset_snowflake" "test" {
   }
 
   additional_properties = {
-    foo = "test1"
+    foo  = "test1"
 	bar  = "test2"
   }
 
