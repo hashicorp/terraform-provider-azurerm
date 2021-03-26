@@ -196,13 +196,13 @@ resource "azurerm_data_factory_dataset_snowflake" "test" {
   folder      = "testFolder"
 
   parameters = {
-    foo  = "test1"
-    bar  = "test2"
+    foo = "test1"
+    bar = "test2"
   }
 
   additional_properties = {
-    foo  = "test1"
-	bar  = "test2"
+    foo = "test1"
+    bar = "test2"
   }
 
   schema_column {
