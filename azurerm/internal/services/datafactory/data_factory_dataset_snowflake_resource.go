@@ -172,9 +172,9 @@ func resourceDataFactoryDatasetSnowflakeCreateUpdate(d *schema.ResourceData, met
 		}
 	}
 
-	snowflakeDatasetProperties := datafactory.SnowflakelTableDatasetTypeProperties{
-		TableName:  d.Get("table_name").(string),
-		SchemaName: d.Get("schema_name").(string),
+	snowflakeDatasetProperties := datafactory.SnowflakeDatasetTypeProperties{
+		Table:  d.Get("table_name").(string),
+		Schema: d.Get("schema_name").(string),
 	}
 
 	linkedServiceName := d.Get("linked_service_name").(string)
@@ -186,9 +186,9 @@ func resourceDataFactoryDatasetSnowflakeCreateUpdate(d *schema.ResourceData, met
 
 	description := d.Get("description").(string)
 	snowflakeTableset := datafactory.SnowflakeDataset{
-		SnowflakelTableDatasetTypeProperties: &snowflakelDatasetProperties,
-		LinkedServiceName:                    linkedService,
-		Description:                          &description,
+		SnowflakeDatasetTypeProperties: &snowflakeDatasetProperties,
+		LinkedServiceName:              linkedService,
+		Description:                    &description,
 	}
 
 	if v, ok := d.GetOk("folder"); ok {
@@ -215,7 +215,7 @@ func resourceDataFactoryDatasetSnowflakeCreateUpdate(d *schema.ResourceData, met
 		snowflakeTableset.Structure = expandDataFactoryDatasetStructure(v.([]interface{}))
 	}
 
-	datasetType := string(datafactory.TypeSnowflakeTable)
+	datasetType := string(datafactory.TypeRelationalTable)
 	dataset := datafactory.DatasetResource{
 		Properties: &snowflakeTableset,
 		Type:       &datasetType,
@@ -293,14 +293,14 @@ func resourceDataFactoryDatasetSnowflakeRead(d *schema.ResourceData, meta interf
 		}
 	}
 
-	if properties := snowflakeTable.SnowflakelTableDatasetTypeProperties; properties != nil {
-		TableName, ok := properties.TableName.(string)
+	if properties := snowflakeTable.SnowflakeDatasetTypeProperties; properties != nil {
+		TableName, ok := properties.Table.(string)
 		if !ok {
 			log.Printf("[DEBUG] Skipping `table_name` since it's not a string")
 		} else {
 			d.Set("table", TableName)
 		}
-		SchemaName, ok := properties.SchemaName.(string)
+		SchemaName, ok := properties.Schema.(string)
 		if !ok {
 			log.Printf("[DEBUG] Skipping `schema_name` since it's not a string")
 		} else {

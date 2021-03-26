@@ -36,8 +36,8 @@ resource "azurerm_data_factory_dataset_snowflake" "test" {
   data_factory_name   = azurerm_data_factory.test.name
   linked_service_name = azurerm_data_factory_linked_service_snowflake.test.name
   
-  schema_name = "foo_schema"
-  table_name  = "foo_table"
+  schema_name         = "foo_schema"
+  table_name          = "foo_table"
 }
 ```
 
