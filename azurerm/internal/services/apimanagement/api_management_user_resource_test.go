@@ -178,7 +178,7 @@ func TestAccApiManagementUser_complete(t *testing.T) {
 	})
 }
 
-func (t ApiManagementUserResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (ApiManagementUserResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err

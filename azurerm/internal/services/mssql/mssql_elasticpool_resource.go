@@ -9,6 +9,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/helper"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/validate"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -45,7 +47,7 @@ func resourceMsSqlElasticPool() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateMsSqlElasticPoolName,
+				ValidateFunc: validate.ValidateMsSqlElasticPoolName,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -56,7 +58,7 @@ func resourceMsSqlElasticPool() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateMsSqlServerName,
+				ValidateFunc: validate.ValidateMsSqlServerName,
 			},
 
 			"sku": {
@@ -168,7 +170,7 @@ func resourceMsSqlElasticPool() *schema.Resource {
 		},
 
 		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
-			if err := azure.MSSQLElasticPoolValidateSKU(diff); err != nil {
+			if err := helper.MSSQLElasticPoolValidateSKU(diff); err != nil {
 				return err
 			}
 

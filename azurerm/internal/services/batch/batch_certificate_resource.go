@@ -73,7 +73,7 @@ func resourceBatchCertificate() *schema.Resource {
 
 			"password": {
 				Type:      schema.TypeString,
-				Optional:  true, // Required if `format` is "Pfx"
+				Optional:  true, // Cannot be used when `format` is "Cer"
 				Sensitive: true,
 			},
 
@@ -271,9 +271,6 @@ func resourceBatchCertificateDelete(d *schema.ResourceData, meta interface{}) er
 }
 
 func validateBatchCertificateFormatAndPassword(format string, password string) error {
-	if format == "Pfx" && password == "" {
-		return fmt.Errorf("Batch Certificate Password is required when Format is `Pfx`")
-	}
 	if format == "Cer" && password != "" {
 		return fmt.Errorf(" Batch Certificate Password must not be specified when Format is `Cer`")
 	}

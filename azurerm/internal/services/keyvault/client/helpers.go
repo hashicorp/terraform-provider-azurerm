@@ -13,6 +13,7 @@ import (
 )
 
 var keyVaultsCache = map[string]keyVaultDetails{}
+var keysmith = &sync.RWMutex{}
 var lock = map[string]*sync.RWMutex{}
 
 type keyVaultDetails struct {
@@ -22,19 +23,25 @@ type keyVaultDetails struct {
 }
 
 func (c *Client) AddToCache(keyVaultId parse.VaultId, dataPlaneUri string) {
-	keyVaultsCache[keyVaultId.Name] = keyVaultDetails{
+	cacheKey := c.cacheKeyForKeyVault(keyVaultId.Name)
+	keysmith.Lock()
+	keyVaultsCache[cacheKey] = keyVaultDetails{
 		keyVaultId:       keyVaultId.ID(),
 		dataPlaneBaseUri: dataPlaneUri,
 		resourceGroup:    keyVaultId.ResourceGroup,
 	}
+	keysmith.Unlock()
 }
 
 func (c *Client) BaseUriForKeyVault(ctx context.Context, keyVaultId parse.VaultId) (*string, error) {
-	if lock[keyVaultId.Name] == nil {
-		lock[keyVaultId.Name] = &sync.RWMutex{}
+	cacheKey := c.cacheKeyForKeyVault(keyVaultId.Name)
+	keysmith.Lock()
+	if lock[cacheKey] == nil {
+		lock[cacheKey] = &sync.RWMutex{}
 	}
-	lock[keyVaultId.Name].Lock()
-	defer lock[keyVaultId.Name].Unlock()
+	keysmith.Unlock()
+	lock[cacheKey].Lock()
+	defer lock[cacheKey].Unlock()
 
 	resp, err := c.VaultsClient.Get(ctx, keyVaultId.ResourceGroup, keyVaultId.Name)
 	if err != nil {
@@ -52,13 +59,16 @@ func (c *Client) BaseUriForKeyVault(ctx context.Context, keyVaultId parse.VaultI
 }
 
 func (c *Client) Exists(ctx context.Context, keyVaultId parse.VaultId) (bool, error) {
-	if lock[keyVaultId.Name] == nil {
-		lock[keyVaultId.Name] = &sync.RWMutex{}
+	cacheKey := c.cacheKeyForKeyVault(keyVaultId.Name)
+	keysmith.Lock()
+	if lock[cacheKey] == nil {
+		lock[cacheKey] = &sync.RWMutex{}
 	}
-	lock[keyVaultId.Name].Lock()
-	defer lock[keyVaultId.Name].Unlock()
+	keysmith.Unlock()
+	lock[cacheKey].Lock()
+	defer lock[cacheKey].Unlock()
 
-	if _, ok := keyVaultsCache[keyVaultId.Name]; ok {
+	if _, ok := keyVaultsCache[cacheKey]; ok {
 		return true, nil
 	}
 
@@ -85,11 +95,18 @@ func (c *Client) KeyVaultIDFromBaseUrl(ctx context.Context, resourcesClient *res
 		return nil, err
 	}
 
-	if lock[*keyVaultName] == nil {
-		lock[*keyVaultName] = &sync.RWMutex{}
+	cacheKey := c.cacheKeyForKeyVault(*keyVaultName)
+	keysmith.Lock()
+	if lock[cacheKey] == nil {
+		lock[cacheKey] = &sync.RWMutex{}
 	}
-	lock[*keyVaultName].Lock()
-	defer lock[*keyVaultName].Unlock()
+	keysmith.Unlock()
+	lock[cacheKey].Lock()
+	defer lock[cacheKey].Unlock()
+
+	if v, ok := keyVaultsCache[cacheKey]; ok {
+		return &v.keyVaultId, nil
+	}
 
 	filter := fmt.Sprintf("resourceType eq 'Microsoft.KeyVault/vaults' and name eq '%s'", *keyVaultName)
 	result, err := resourcesClient.ResourcesClient.List(ctx, filter, "", utils.Int32(5))
@@ -107,7 +124,7 @@ func (c *Client) KeyVaultIDFromBaseUrl(ctx context.Context, resourcesClient *res
 			if err != nil {
 				return nil, fmt.Errorf("parsing %q: %+v", *v.ID, err)
 			}
-			if id.Name != *keyVaultName {
+			if !strings.EqualFold(id.Name, *keyVaultName) {
 				continue
 			}
 
@@ -133,12 +150,19 @@ func (c *Client) KeyVaultIDFromBaseUrl(ctx context.Context, resourcesClient *res
 }
 
 func (c *Client) Purge(keyVaultId parse.VaultId) {
-	if lock[keyVaultId.Name] == nil {
-		lock[keyVaultId.Name] = &sync.RWMutex{}
+	cacheKey := c.cacheKeyForKeyVault(keyVaultId.Name)
+	keysmith.Lock()
+	if lock[cacheKey] == nil {
+		lock[cacheKey] = &sync.RWMutex{}
 	}
-	lock[keyVaultId.Name].Lock()
-	defer lock[keyVaultId.Name].Unlock()
-	delete(keyVaultsCache, keyVaultId.Name)
+	keysmith.Unlock()
+	lock[cacheKey].Lock()
+	delete(keyVaultsCache, cacheKey)
+	lock[cacheKey].Unlock()
+}
+
+func (c *Client) cacheKeyForKeyVault(name string) string {
+	return strings.ToLower(name)
 }
 
 func (c *Client) parseNameFromBaseUrl(input string) (*string, error) {

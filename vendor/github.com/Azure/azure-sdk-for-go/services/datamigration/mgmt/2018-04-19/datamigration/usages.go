@@ -76,6 +76,7 @@ func (client UsagesClient) List(ctx context.Context, location string) (result Qu
 	}
 	if result.ql.hasNextLink() && result.ql.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -136,7 +137,6 @@ func (client UsagesClient) listNextResults(ctx context.Context, lastResults Quot
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datamigration.UsagesClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

@@ -162,6 +162,7 @@ func (client PublishedArtifactsClient) List(ctx context.Context, resourceScope s
 	}
 	if result.al.hasNextLink() && result.al.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -223,7 +224,6 @@ func (client PublishedArtifactsClient) listNextResults(ctx context.Context, last
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "blueprint.PublishedArtifactsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

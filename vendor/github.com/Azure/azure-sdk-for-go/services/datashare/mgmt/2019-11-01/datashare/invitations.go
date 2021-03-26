@@ -323,6 +323,7 @@ func (client InvitationsClient) ListByShare(ctx context.Context, resourceGroupNa
 	}
 	if result.il.hasNextLink() && result.il.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -394,7 +395,6 @@ func (client InvitationsClient) listByShareNextResults(ctx context.Context, last
 	result, err = client.ListByShareResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.InvitationsClient", "listByShareNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

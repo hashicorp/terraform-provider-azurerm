@@ -54,8 +54,8 @@ func (client CloudEndpointsClient) Create(ctx context.Context, resourceGroupName
 		ctx = tracing.StartSpan(ctx, fqdn+"/CloudEndpointsClient.Create")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -78,7 +78,7 @@ func (client CloudEndpointsClient) Create(ctx context.Context, resourceGroupName
 
 	result, err = client.CreateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storagesync.CloudEndpointsClient", "Create", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storagesync.CloudEndpointsClient", "Create", nil, "Failure sending request")
 		return
 	}
 
@@ -118,7 +118,33 @@ func (client CloudEndpointsClient) CreateSender(req *http.Request) (future Cloud
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client CloudEndpointsClient) (ce CloudEndpoint, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "storagesync.CloudEndpointsCreateFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("storagesync.CloudEndpointsCreateFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		ce.Response.Response, err = future.GetResult(sender)
+		if ce.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "storagesync.CloudEndpointsCreateFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && ce.Response.Response.StatusCode != http.StatusNoContent {
+			ce, err = client.CreateResponder(ce.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "storagesync.CloudEndpointsCreateFuture", "Result", ce.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -145,8 +171,8 @@ func (client CloudEndpointsClient) Delete(ctx context.Context, resourceGroupName
 		ctx = tracing.StartSpan(ctx, fqdn+"/CloudEndpointsClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -169,7 +195,7 @@ func (client CloudEndpointsClient) Delete(ctx context.Context, resourceGroupName
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storagesync.CloudEndpointsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storagesync.CloudEndpointsClient", "Delete", nil, "Failure sending request")
 		return
 	}
 
@@ -207,7 +233,23 @@ func (client CloudEndpointsClient) DeleteSender(req *http.Request) (future Cloud
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client CloudEndpointsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "storagesync.CloudEndpointsDeleteFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("storagesync.CloudEndpointsDeleteFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -412,8 +454,8 @@ func (client CloudEndpointsClient) PostBackup(ctx context.Context, resourceGroup
 		ctx = tracing.StartSpan(ctx, fqdn+"/CloudEndpointsClient.PostBackup")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -436,7 +478,7 @@ func (client CloudEndpointsClient) PostBackup(ctx context.Context, resourceGroup
 
 	result, err = client.PostBackupSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storagesync.CloudEndpointsClient", "PostBackup", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storagesync.CloudEndpointsClient", "PostBackup", nil, "Failure sending request")
 		return
 	}
 
@@ -476,7 +518,33 @@ func (client CloudEndpointsClient) PostBackupSender(req *http.Request) (future C
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client CloudEndpointsClient) (pbr PostBackupResponse, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "storagesync.CloudEndpointsPostBackupFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("storagesync.CloudEndpointsPostBackupFuture")
+			return
+		}
+		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		pbr.Response.Response, err = future.GetResult(sender)
+		if pbr.Response.Response == nil && err == nil {
+			err = autorest.NewErrorWithError(err, "storagesync.CloudEndpointsPostBackupFuture", "Result", nil, "received nil response and error")
+		}
+		if err == nil && pbr.Response.Response.StatusCode != http.StatusNoContent {
+			pbr, err = client.PostBackupResponder(pbr.Response.Response)
+			if err != nil {
+				err = autorest.NewErrorWithError(err, "storagesync.CloudEndpointsPostBackupFuture", "Result", pbr.Response.Response, "Failure responding to request")
+			}
+		}
+		return
+	}
 	return
 }
 
@@ -504,8 +572,8 @@ func (client CloudEndpointsClient) PostRestore(ctx context.Context, resourceGrou
 		ctx = tracing.StartSpan(ctx, fqdn+"/CloudEndpointsClient.PostRestore")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -528,7 +596,7 @@ func (client CloudEndpointsClient) PostRestore(ctx context.Context, resourceGrou
 
 	result, err = client.PostRestoreSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storagesync.CloudEndpointsClient", "PostRestore", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storagesync.CloudEndpointsClient", "PostRestore", nil, "Failure sending request")
 		return
 	}
 
@@ -568,7 +636,23 @@ func (client CloudEndpointsClient) PostRestoreSender(req *http.Request) (future 
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client CloudEndpointsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "storagesync.CloudEndpointsPostRestoreFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("storagesync.CloudEndpointsPostRestoreFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -595,8 +679,8 @@ func (client CloudEndpointsClient) PreBackup(ctx context.Context, resourceGroupN
 		ctx = tracing.StartSpan(ctx, fqdn+"/CloudEndpointsClient.PreBackup")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -619,7 +703,7 @@ func (client CloudEndpointsClient) PreBackup(ctx context.Context, resourceGroupN
 
 	result, err = client.PreBackupSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storagesync.CloudEndpointsClient", "PreBackup", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storagesync.CloudEndpointsClient", "PreBackup", nil, "Failure sending request")
 		return
 	}
 
@@ -659,7 +743,23 @@ func (client CloudEndpointsClient) PreBackupSender(req *http.Request) (future Cl
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client CloudEndpointsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "storagesync.CloudEndpointsPreBackupFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("storagesync.CloudEndpointsPreBackupFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -686,8 +786,8 @@ func (client CloudEndpointsClient) PreRestore(ctx context.Context, resourceGroup
 		ctx = tracing.StartSpan(ctx, fqdn+"/CloudEndpointsClient.PreRestore")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -710,7 +810,7 @@ func (client CloudEndpointsClient) PreRestore(ctx context.Context, resourceGroup
 
 	result, err = client.PreRestoreSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storagesync.CloudEndpointsClient", "PreRestore", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storagesync.CloudEndpointsClient", "PreRestore", nil, "Failure sending request")
 		return
 	}
 
@@ -750,7 +850,23 @@ func (client CloudEndpointsClient) PreRestoreSender(req *http.Request) (future C
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client CloudEndpointsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "storagesync.CloudEndpointsPreRestoreFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("storagesync.CloudEndpointsPreRestoreFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 
@@ -867,8 +983,8 @@ func (client CloudEndpointsClient) TriggerChangeDetection(ctx context.Context, r
 		ctx = tracing.StartSpan(ctx, fqdn+"/CloudEndpointsClient.TriggerChangeDetection")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -891,7 +1007,7 @@ func (client CloudEndpointsClient) TriggerChangeDetection(ctx context.Context, r
 
 	result, err = client.TriggerChangeDetectionSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storagesync.CloudEndpointsClient", "TriggerChangeDetection", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storagesync.CloudEndpointsClient", "TriggerChangeDetection", nil, "Failure sending request")
 		return
 	}
 
@@ -931,7 +1047,23 @@ func (client CloudEndpointsClient) TriggerChangeDetectionSender(req *http.Reques
 	if err != nil {
 		return
 	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client CloudEndpointsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "storagesync.CloudEndpointsTriggerChangeDetectionFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("storagesync.CloudEndpointsTriggerChangeDetectionFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
 	return
 }
 

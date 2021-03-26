@@ -316,6 +316,7 @@ func (client SecretClient) ListByResourceGroup(ctx context.Context, resourceGrou
 	}
 	if result.srdl.hasNextLink() && result.srdl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -376,7 +377,6 @@ func (client SecretClient) listByResourceGroupNextResults(ctx context.Context, l
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabricmesh.SecretClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -431,6 +431,7 @@ func (client SecretClient) ListBySubscription(ctx context.Context) (result Secre
 	}
 	if result.srdl.hasNextLink() && result.srdl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -490,7 +491,6 @@ func (client SecretClient) listBySubscriptionNextResults(ctx context.Context, la
 	result, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabricmesh.SecretClient", "listBySubscriptionNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

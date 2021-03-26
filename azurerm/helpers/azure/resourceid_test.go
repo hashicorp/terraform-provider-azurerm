@@ -175,3 +175,79 @@ func TestParseAzureResourceID(t *testing.T) {
 		}
 	}
 }
+
+func TestParseAzureResourceIDWithoutSubscription(t *testing.T) {
+	testCases := []struct {
+		id                 string
+		expectedResourceID *ResourceID
+		expectError        bool
+	}{
+		{
+			id:          "",
+			expectError: true,
+		},
+		{
+			id:          "/providers/Microsoft.Billing/billingAccounts//enrollmentAccounts/123456",
+			expectError: true,
+		},
+		{
+			id:          "/providers/Microsoft.Billing/billingAccounts/12345678/enrollmentAccounts",
+			expectError: true,
+		},
+		{
+			id: "/providers/Microsoft.Billing/billingAccounts/12345678/enrollmentAccounts/123456",
+			expectedResourceID: &ResourceID{
+				Provider: "Microsoft.Billing",
+				Path: map[string]string{
+					"billingAccounts":    "12345678",
+					"enrollmentAccounts": "123456",
+				},
+			},
+		},
+		{
+			id:          "/providers/Microsoft.Management/managementGroups/",
+			expectError: true,
+		},
+		{
+			id:          "providers/Microsoft.Management/managementGroups/testManagementGroup",
+			expectError: true,
+		},
+		{
+			id:          "/Microsoft.Management/managementGroups/testManagementGroup",
+			expectError: true,
+		},
+		{
+			id: "/providers/Microsoft.Management/managementGroups/testManagementGroup",
+			expectedResourceID: &ResourceID{
+				Provider: "Microsoft.Management",
+				Path: map[string]string{
+					"managementGroups": "testManagementGroup",
+				},
+			},
+		},
+		{
+			id: "/providers/microsoft.management/managementGroups/testManagementGroup",
+			expectedResourceID: &ResourceID{
+				Provider: "microsoft.management",
+				Path: map[string]string{
+					"managementGroups": "testManagementGroup",
+				},
+			},
+		},
+	}
+
+	for _, test := range testCases {
+		t.Logf("[DEBUG] Testing %q", test.id)
+		parsed, err := ParseAzureResourceIDWithoutSubscription(test.id)
+		if test.expectError && err != nil {
+			continue
+		}
+		if err != nil {
+			t.Fatalf("Unexpected error: %s", err)
+		}
+
+		if !reflect.DeepEqual(test.expectedResourceID, parsed) {
+			t.Fatalf("Unexpected resource ID:\nExpected: %+v\nGot:      %+v\n", test.expectedResourceID, parsed)
+		}
+	}
+}

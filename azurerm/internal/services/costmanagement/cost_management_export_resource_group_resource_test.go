@@ -77,8 +77,8 @@ func (t CostManagementExportResourceGroupResource) Exists(ctx context.Context, c
 }
 
 func (CostManagementExportResourceGroupResource) basic(data acceptance.TestData) string {
-	start := time.Now().AddDate(0, 1, 0).Format("2006-02")
-	end := time.Now().AddDate(0, 2, 0).Format("2006-02")
+	start := time.Now().AddDate(0, 0, 1).Format("2006-01-02")
+	end := time.Now().AddDate(0, 0, 2).Format("2006-01-02")
 
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -103,8 +103,8 @@ resource "azurerm_cost_management_export_resource_group" "test" {
   name                    = "accrg%d"
   resource_group_id       = azurerm_resource_group.test.id
   recurrence_type         = "Monthly"
-  recurrence_period_start = "%s-18T00:00:00Z"
-  recurrence_period_end   = "%s-18T00:00:00Z"
+  recurrence_period_start = "%sT00:00:00Z"
+  recurrence_period_end   = "%sT00:00:00Z"
 
   delivery_info {
     storage_account_id = azurerm_storage_account.test.id
@@ -121,8 +121,8 @@ resource "azurerm_cost_management_export_resource_group" "test" {
 }
 
 func (CostManagementExportResourceGroupResource) update(data acceptance.TestData) string {
-	start := time.Now().AddDate(0, 3, 0).Format("2006-02")
-	end := time.Now().AddDate(0, 4, 0).Format("2006-02")
+	start := time.Now().AddDate(0, 3, 0).Format("2006-01-02")
+	end := time.Now().AddDate(0, 4, 0).Format("2006-01-02")
 
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -147,8 +147,8 @@ resource "azurerm_cost_management_export_resource_group" "test" {
   name                    = "accrg%d"
   resource_group_id       = azurerm_resource_group.test.id
   recurrence_type         = "Monthly"
-  recurrence_period_start = "%s-18T00:00:00Z"
-  recurrence_period_end   = "%s-18T00:00:00Z"
+  recurrence_period_start = "%sT00:00:00Z"
+  recurrence_period_end   = "%sT00:00:00Z"
 
   delivery_info {
     storage_account_id = azurerm_storage_account.test.id

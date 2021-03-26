@@ -3,12 +3,10 @@ package compute_test
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"regexp"
 	"testing"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -16,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -32,7 +31,7 @@ func TestAccVirtualMachineScaleSet_basic(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				// testing default scaleset values
-				testCheckVirtualMachineScaleSetSinglePlacementGroup(data.ResourceName, true),
+				check.That(data.ResourceName).Key("single_placement_group").HasValue("true"),
 				check.That(data.ResourceName).Key("eviction_policy").HasValue(""),
 			),
 		},
@@ -112,8 +111,6 @@ func TestAccVirtualMachineScaleSet_basicPublicIP(t *testing.T) {
 			Config: r.basicPublicIP(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckVirtualMachineScaleSetIsPrimary(data.ResourceName, true),
-				testCheckVirtualMachineScaleSetPublicIPName(data.ResourceName, "TestPublicIPConfiguration"),
 			),
 		},
 		data.ImportStep("os_profile.0.admin_password"),
@@ -129,15 +126,13 @@ func TestAccVirtualMachineScaleSet_basicPublicIP_simpleUpdate(t *testing.T) {
 			Config: r.basicEmptyPublicIP(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckVirtualMachineScaleSetIsPrimary(data.ResourceName, true),
-				testCheckVirtualMachineScaleSetPublicIPName(data.ResourceName, "TestPublicIPConfiguration"),
 			),
 		},
 		data.ImportStep("os_profile.0.admin_password"),
 		{
 			Config: r.basicEmptyPublicIP_updated_tags(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckVirtualMachineScaleSetPublicIPName(data.ResourceName, "TestPublicIPConfiguration"),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("os_profile.0.admin_password"),
@@ -153,14 +148,12 @@ func TestAccVirtualMachineScaleSet_updateNetworkProfile(t *testing.T) {
 			Config: r.basicEmptyPublicIP(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckVirtualMachineScaleSetIPForwarding(data.ResourceName, false),
 			),
 		},
+		data.ImportStep("os_profile.0.admin_password"),
 		{
 			Config: r.basicEmptyNetworkProfile_true_ipforwarding(data),
-			Check: resource.ComposeTestCheckFunc(
-				testCheckVirtualMachineScaleSetIPForwarding(data.ResourceName, true),
-			),
+			Check:  resource.ComposeTestCheckFunc(),
 		},
 		data.ImportStep("os_profile.0.admin_password"),
 	})
@@ -170,23 +163,22 @@ func TestAccVirtualMachineScaleSet_updateNetworkProfile_ipconfiguration_dns_name
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
 	r := VirtualMachineScaleSetResource{}
 
-	expectedDNS := fmt.Sprintf("test-domain-label-%[1]d", data.RandomInteger)
-	updatedDNS := fmt.Sprintf("test-updated-domain-label-%[1]d", data.RandomInteger)
-
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basicEmptyPublicIP(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckVirtualMachineScaleSetDomainNameLabel(data.ResourceName, expectedDNS),
 			),
 		},
+		data.ImportStep("os_profile.0.admin_password"),
 		{
 			Config: r.basicEmptyPublicIP_updatedDNS_label(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckVirtualMachineScaleSetDomainNameLabel(data.ResourceName, updatedDNS),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+
+		data.ImportStep("os_profile.0.admin_password"),
 	})
 }
 
@@ -194,23 +186,21 @@ func TestAccVirtualMachineScaleSet_verify_key_data_changed(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
 	r := VirtualMachineScaleSetResource{}
 
-	initialKeyData := "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDCsTcryUl51Q2VSEHqDRNmceUFo55ZtcIwxl2QITbN1RREti5ml/VTytC0yeBOvnZA4x4CFpdw/lCDPk0yrH9Ei5vVkXmOrExdTlT3qI7YaAzj1tUVlBd4S6LX1F7y6VLActvdHuDDuXZXzCDd/97420jrDfWZqJMlUK/EmCE5ParCeHIRIvmBxcEnGfFIsw8xQZl0HphxWOtJil8qsUWSdMyCiJYYQpMoMliO99X40AUc4/AlsyPyT5ddbKk08YrZ+rKDVHF7o29rh4vi5MmHkVgVQHKiKybWlHq+b71gIAUQk9wrJxD+dqt4igrmDSpIjfjwnd+l5UIn5fJSO5DYV4YT/4hwK7OKmuo7OFHD0WyY5YnkYEMtFgzemnRBdE8ulcT60DQpVgRMXFWHvhyCWy0L6sgj1QWDZlLpvsIvNfHsyhKFMG1frLnMt/nP0+YCcfg+v1JYeCKjeoJxB8DWcRBsjzItY0CGmzP8UYZiYKl/2u+2TgFS5r7NWH11bxoUzjKdaa1NLw+ieA8GlBFfCbfWe6YVB9ggUte4VtYFMZGxOjS2bAiYtfgTKFJv+XqORAwExG6+G2eDxIDyo80/OA9IG7Xv/jwQr7D6KDjDuULFcN/iTxuttoKrHeYz1hf5ZQlBdllwJHYx6fK2g8kha6r2JIQKocvsAXiiONqSfw== hello@world.com"
-	expectedKeyData := "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDvXYZAjVUt2aojUV3XIA+PY6gXrgbvktXwf2NoIHGlQFhogpMEyOfqgogCtTBM7MNCS3ELul6SV+mlpH08Ki45ADIQuDXdommCvsMFW096JrsHOJpGfjCsJ1gbbv7brB3Ag+BSGb4qO3pRsEVTtZCeJDwfH5D7vmqP5xXcELKR4UAtKQKUhLvt6mhW90sFLTJeOTiYGbavIKqfCUFSeSMQkUPr8o3uzOfeWyCw7tc7szLuvfwJ5poGHuve73KKAlUnDTPUrhyj7iITZSDl+/i+bpDzPyCyJWDMsC0ON7q2fDr2mEz0L9ACrsI5Nx3lt5fe+IaHSrjivqnL8SqUWSN45o9Qp99sGWFiuTfos8f1jp+AXzC4ArVtKyRg/CnzKRiK0CGSxBJ5s9zAoa7yBBmjCszq89vFa0eMgpEIZFwa6kKJKt9AfRBXgO9YGPV4uaN7topy92/p2pE+vF8IafarbvnTDOQt62mS07tXYqYg1DhecrmBVWKlq9oafBweoeTjoq52SoGsuDc/YAOzIgWVIuvV8yKoh9KbXPWowjLtxDhRIS/d1nMMNdNI8X0TQivgi5+umMgAXhsVAKSNDUauLt4jimYkWAuE+R6KoCqVFdaB9bQDySBjAziruDSe3reToydjzzluvHMjWK8QiDynxs41pi4zZz6gAlca3QPkEQ== hello@world.com"
-
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.linux(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckVirtualMachineScaleSetSshKey(data.ResourceName, initialKeyData),
 			),
 		},
+		data.ImportStep("os_profile.0.admin_password"),
 		{
 			Config: r.linuxKeyDataUpdated(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckVirtualMachineScaleSetSshKey(data.ResourceName, expectedKeyData),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep("os_profile.0.admin_password"),
 	})
 }
 
@@ -238,7 +228,6 @@ func TestAccVirtualMachineScaleSet_basicAcceleratedNetworking(t *testing.T) {
 			Config: r.basicAcceleratedNetworking(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckVirtualMachineScaleSetAcceleratedNetworking(data.ResourceName, true),
 			),
 		},
 		data.ImportStep("os_profile.0.admin_password"),
@@ -315,7 +304,7 @@ func TestAccVirtualMachineScaleSet_basicWindows(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 
 				// single placement group should default to true
-				testCheckVirtualMachineScaleSetSinglePlacementGroup(data.ResourceName, true),
+				check.That(data.ResourceName).Key("single_placement_group").HasValue("true"),
 			),
 		},
 	})
@@ -330,7 +319,7 @@ func TestAccVirtualMachineScaleSet_singlePlacementGroupFalse(t *testing.T) {
 			Config: r.singlePlacementGroupFalse(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckVirtualMachineScaleSetSinglePlacementGroup(data.ResourceName, false),
+				check.That(data.ResourceName).Key("single_placement_group").HasValue("false"),
 			),
 		},
 	})
@@ -444,14 +433,10 @@ func TestAccVirtualMachineScaleSet_basicLinux_disappears(t *testing.T) {
 	r := VirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckVirtualMachineScaleSetDisappears(data.ResourceName),
-			),
-			ExpectNonEmptyPlan: true,
-		},
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.basic,
+			TestResource: r,
+		}),
 	})
 }
 
@@ -469,34 +454,6 @@ func TestAccVirtualMachineScaleSet_planManagedDisk(t *testing.T) {
 	})
 }
 
-func TestAccVirtualMachineScaleSet_customImage(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
-	r := VirtualMachineScaleSetResource{}
-	resourceGroup := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
-	userName := fmt.Sprintf("testadmin%d", data.RandomInteger)
-	password := fmt.Sprintf("Password1234!%d", data.RandomInteger)
-	hostName := fmt.Sprintf("tftestcustomimagesrc%d", data.RandomInteger)
-	sshPort := "22"
-
-	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			// need to create a vm and then reference it in the image creation
-			Config:  ImageResource{}.standaloneImage_setup(data, userName, password, hostName, "LRS"),
-			Destroy: false,
-			Check: resource.ComposeTestCheckFunc(
-				testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
-				testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, data.Locations.Primary),
-			),
-		},
-		{
-			Config: r.customImage(data, userName, password, hostName),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-	})
-}
-
 func TestAccVirtualMachineScaleSet_applicationGateway(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
 	r := VirtualMachineScaleSetResource{}
@@ -506,7 +463,7 @@ func TestAccVirtualMachineScaleSet_applicationGateway(t *testing.T) {
 			Config: r.applicationGatewayTemplate(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckVirtualMachineScaleSetHasApplicationGateway(data.ResourceName),
+				data.CheckWithClient(r.hasApplicationGateway),
 			),
 		},
 	})
@@ -521,7 +478,7 @@ func TestAccVirtualMachineScaleSet_loadBalancer(t *testing.T) {
 			Config: r.loadBalancerTemplate(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckVirtualMachineScaleSetHasLoadbalancer(data.ResourceName),
+				data.CheckWithClient(r.hasLoadBalancer),
 			),
 		},
 		data.ImportStep("os_profile.0.admin_password"),
@@ -537,7 +494,7 @@ func TestAccVirtualMachineScaleSet_loadBalancerManagedDataDisks(t *testing.T) {
 			Config: r.loadBalancerTemplateManagedDataDisks(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckVirtualMachineScaleSetHasDataDisks(data.ResourceName),
+				check.That(data.ResourceName).Key("storage_profile_data_disk.#").HasValue("1"),
 			),
 		},
 	})
@@ -552,7 +509,7 @@ func TestAccVirtualMachineScaleSet_overprovision(t *testing.T) {
 			Config: r.overProvisionTemplate(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckVirtualMachineScaleSetOverprovision(data.ResourceName),
+				check.That(data.ResourceName).Key("overprovision").HasValue("false"),
 			),
 		},
 		data.ImportStep("os_profile.0.admin_password"),
@@ -635,7 +592,6 @@ func TestAccVirtualMachineScaleSet_extension(t *testing.T) {
 			Config: r.extensionTemplate(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckVirtualMachineScaleSetExtension(data.ResourceName),
 			),
 		},
 		data.ImportStep("os_profile.0.admin_password"),
@@ -651,14 +607,12 @@ func TestAccVirtualMachineScaleSet_extensionUpdate(t *testing.T) {
 			Config: r.extensionTemplate(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckVirtualMachineScaleSetExtension(data.ResourceName),
 			),
 		},
 		{
 			Config: r.extensionTemplateUpdated(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckVirtualMachineScaleSetExtension(data.ResourceName),
 			),
 		},
 	})
@@ -673,7 +627,6 @@ func TestAccVirtualMachineScaleSet_multipleExtensions(t *testing.T) {
 			Config: r.multipleExtensionsTemplate(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckVirtualMachineScaleSetExtension(data.ResourceName),
 			),
 		},
 		data.ImportStep("os_profile.0.admin_password"),
@@ -689,7 +642,6 @@ func TestAccVirtualMachineScaleSet_multipleExtensions_provision_after_extension(
 			Config: r.multipleExtensionsTemplate_provision_after_extension(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckVirtualMachineScaleSetExtension(data.ResourceName),
 			),
 		},
 		data.ImportStep("os_profile.0.admin_password"),
@@ -846,335 +798,100 @@ func TestAccVirtualMachineScaleSet_importBasic_managedDisk_withZones(t *testing.
 	})
 }
 
-func testGetVirtualMachineScaleSet(s *terraform.State, resourceName string) (result *compute.VirtualMachineScaleSet, err error) {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMScaleSetClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	// Ensure we have enough information in state to look up in API
-	rs, ok := s.RootModule().Resources[resourceName]
-	if !ok {
-		return nil, fmt.Errorf("Not found: %s", resourceName)
-	}
-
-	// Name of the actual scale set
-	name := rs.Primary.Attributes["name"]
-
-	resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-	if !hasResourceGroup {
-		return nil, fmt.Errorf("Bad: no resource group found in state for virtual machine: scale set %s", name)
-	}
-
-	vmss, err := client.Get(ctx, resourceGroup, name)
+func (VirtualMachineScaleSetResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.VirtualMachineScaleSetID(state.ID)
 	if err != nil {
-		return nil, fmt.Errorf("Bad: Get on vmScaleSetClient: %+v", err)
+		return nil, err
 	}
 
-	if vmss.StatusCode == http.StatusNotFound {
-		return nil, fmt.Errorf("Bad: VirtualMachineScaleSet %q (resource group: %q) does not exist", name, resourceGroup)
+	// this is a preview feature we don't want to use right now
+	var forceDelete *bool = nil
+	future, err := client.Compute.VMScaleSetClient.Delete(ctx, id.ResourceGroup, id.Name, forceDelete)
+	if err != nil {
+		return nil, fmt.Errorf("Bad: deleting %s: %+v", *id, err)
 	}
 
-	return &vmss, err
+	if err = future.WaitForCompletionRef(ctx, client.Compute.VMScaleSetClient.Client); err != nil {
+		return nil, fmt.Errorf("Bad: waiting for deletion of %s: %+v", *id, err)
+	}
+
+	return utils.Bool(true), nil
 }
 
-func testCheckVirtualMachineScaleSetDisappears(name string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMScaleSetClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
-		if !ok {
-			return fmt.Errorf("Not found: %s", name)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for virtual machine: scale set %s", name)
-		}
-
-		future, err := client.Delete(ctx, resourceGroup, name)
-		if err != nil {
-			return fmt.Errorf("Bad: Delete on vmScaleSetClient: %+v", err)
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Bad: Delete on vmScaleSetClient: %+v", err)
-		}
-
-		return nil
+func (VirtualMachineScaleSetResource) hasLoadBalancer(ctx context.Context, client *clients.Client, state *terraform.InstanceState) error {
+	id, err := parse.VirtualMachineScaleSetID(state.ID)
+	if err != nil {
+		return err
 	}
+
+	read, err := client.Compute.VMScaleSetClient.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return err
+	}
+
+	if props := read.VirtualMachineScaleSetProperties; props != nil {
+		if vmProfile := props.VirtualMachineProfile; vmProfile != nil {
+			if nwProfile := vmProfile.NetworkProfile; nwProfile != nil {
+				if nics := nwProfile.NetworkInterfaceConfigurations; nics != nil {
+					for _, nic := range *nics {
+						if nic.IPConfigurations == nil {
+							continue
+						}
+
+						for _, config := range *nic.IPConfigurations {
+							if config.LoadBalancerBackendAddressPools == nil {
+								continue
+							}
+
+							if len(*config.LoadBalancerBackendAddressPools) > 0 {
+								return nil
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return fmt.Errorf("load balancer configuration was missing")
 }
 
-func testCheckVirtualMachineScaleSetHasLoadbalancer(name string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		resp, err := testGetVirtualMachineScaleSet(s, name)
-		if err != nil {
-			return err
-		}
-
-		n := resp.VirtualMachineProfile.NetworkProfile.NetworkInterfaceConfigurations
-		if n == nil || len(*n) == 0 {
-			return fmt.Errorf("Bad: Could not get network interface configurations for scale set %v", name)
-		}
-
-		ip := (*n)[0].IPConfigurations
-		if ip == nil || len(*ip) == 0 {
-			return fmt.Errorf("Bad: Could not get ip configurations for scale set %v", name)
-		}
-
-		pools := (*ip)[0].LoadBalancerBackendAddressPools
-		if pools == nil || len(*pools) == 0 {
-			return fmt.Errorf("Bad: Load balancer backend pools is empty for scale set %v", name)
-		}
-
-		return nil
+func (VirtualMachineScaleSetResource) hasApplicationGateway(ctx context.Context, client *clients.Client, state *terraform.InstanceState) error {
+	id, err := parse.VirtualMachineScaleSetID(state.ID)
+	if err != nil {
+		return err
 	}
-}
 
-func testCheckVirtualMachineScaleSetHasApplicationGateway(name string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		resp, err := testGetVirtualMachineScaleSet(s, name)
-		if err != nil {
-			return err
-		}
-
-		n := resp.VirtualMachineProfile.NetworkProfile.NetworkInterfaceConfigurations
-		if n == nil || len(*n) == 0 {
-			return fmt.Errorf("Bad: Could not get network interface configurations for scale set %v", name)
-		}
-
-		ip := (*n)[0].IPConfigurations
-		if ip == nil || len(*ip) == 0 {
-			return fmt.Errorf("Bad: Could not get ip configurations for scale set %v", name)
-		}
-
-		pools := (*ip)[0].ApplicationGatewayBackendAddressPools
-		if pools == nil || len(*pools) == 0 {
-			return fmt.Errorf("Bad: Application gateway backend pools is empty for scale set %v", name)
-		}
-
-		return nil
+	read, err := client.Compute.VMScaleSetClient.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return err
 	}
-}
 
-func testCheckVirtualMachineScaleSetIsPrimary(name string, boolean bool) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		resp, err := testGetVirtualMachineScaleSet(s, name)
-		if err != nil {
-			return err
+	if props := read.VirtualMachineScaleSetProperties; props != nil {
+		if vmProfile := props.VirtualMachineProfile; vmProfile != nil {
+			if nwProfile := vmProfile.NetworkProfile; nwProfile != nil {
+				if nics := nwProfile.NetworkInterfaceConfigurations; nics != nil {
+					for _, nic := range *nics {
+						if nic.IPConfigurations == nil {
+							continue
+						}
+
+						for _, config := range *nic.IPConfigurations {
+							if config.ApplicationGatewayBackendAddressPools == nil {
+								continue
+							}
+
+							if len(*config.ApplicationGatewayBackendAddressPools) > 0 {
+								return nil
+							}
+						}
+					}
+				}
+			}
 		}
-
-		n := resp.VirtualMachineProfile.NetworkProfile.NetworkInterfaceConfigurations
-		if n == nil || len(*n) == 0 {
-			return fmt.Errorf("Bad: Could not get network interface configurations for scale set %v", name)
-		}
-
-		ip := (*n)[0].IPConfigurations
-		if ip == nil || len(*ip) == 0 {
-			return fmt.Errorf("Bad: Could not get ip configurations for scale set %v", name)
-		}
-
-		primary := *(*ip)[0].Primary
-		if primary != boolean {
-			return fmt.Errorf("Bad: Primary set incorrectly for scale set %v\n Wanted: %+v Received: %+v", name, boolean, primary)
-		}
-
-		return nil
 	}
-}
 
-func testCheckVirtualMachineScaleSetPublicIPName(name, publicIPName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		resp, err := testGetVirtualMachineScaleSet(s, name)
-		if err != nil {
-			return err
-		}
-
-		n := resp.VirtualMachineProfile.NetworkProfile.NetworkInterfaceConfigurations
-		if n == nil || len(*n) == 0 {
-			return fmt.Errorf("Bad: Could not get network interface configurations for scale set %v", name)
-		}
-
-		ip := (*n)[0].IPConfigurations
-		if ip == nil || len(*ip) == 0 {
-			return fmt.Errorf("Bad: Could not get ip configurations for scale set %v", name)
-		}
-
-		publicIPConfigName := *(*ip)[0].PublicIPAddressConfiguration.Name
-		if publicIPConfigName != publicIPName {
-			return fmt.Errorf("Bad: Public IP Config Name set incorrectly for scale set %v\n Wanted: %+v Received: %+v", name, publicIPName, publicIPConfigName)
-		}
-
-		return nil
-	}
-}
-
-func testCheckVirtualMachineScaleSetAcceleratedNetworking(name string, boolean bool) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		resp, err := testGetVirtualMachineScaleSet(s, name)
-		if err != nil {
-			return err
-		}
-
-		n := resp.VirtualMachineProfile.NetworkProfile.NetworkInterfaceConfigurations
-		if n == nil || len(*n) == 0 {
-			return fmt.Errorf("Bad: Could not get network interface configurations for scale set %v", name)
-		}
-
-		acceleratedNetworking := *(*n)[0].EnableAcceleratedNetworking
-		if acceleratedNetworking != boolean {
-			return fmt.Errorf("Bad: Primary set incorrectly for scale set %v\n Wanted: %+v Received: %+v", name, boolean, acceleratedNetworking)
-		}
-
-		return nil
-	}
-}
-
-func testCheckVirtualMachineScaleSetIPForwarding(name string, boolean bool) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		resp, err := testGetVirtualMachineScaleSet(s, name)
-		if err != nil {
-			return err
-		}
-
-		n := resp.VirtualMachineProfile.NetworkProfile.NetworkInterfaceConfigurations
-		if n == nil || len(*n) == 0 {
-			return fmt.Errorf("Bad: Could not get network interface configurations for scale set %v", name)
-		}
-
-		ipForwarding := *(*n)[0].EnableIPForwarding
-		if ipForwarding != boolean {
-			return fmt.Errorf("Bad: Primary set incorrectly for scale set %v\n Wanted: %+v Received: %+v", name, boolean, ipForwarding)
-		}
-
-		return nil
-	}
-}
-
-func testCheckVirtualMachineScaleSetDomainNameLabel(name string, expected string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		resp, err := testGetVirtualMachineScaleSet(s, name)
-		if err != nil {
-			return err
-		}
-
-		n := resp.VirtualMachineProfile.NetworkProfile.NetworkInterfaceConfigurations
-		if n == nil || len(*n) == 0 {
-			return fmt.Errorf("Bad: Could not get network interface configurations for scale set %v", name)
-		}
-
-		ipconfig := *(*n)[0].IPConfigurations
-		dnsLabel := *ipconfig[0].PublicIPAddressConfiguration.DNSSettings.DomainNameLabel
-		if dnsLabel != expected {
-			return fmt.Errorf("Bad: Primary set incorrectly for scale set %v\n Wanted: %+v Received: %+v", name, expected, dnsLabel)
-		}
-
-		return nil
-	}
-}
-
-func testCheckVirtualMachineScaleSetSshKey(name string, expected string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		resp, err := testGetVirtualMachineScaleSet(s, name)
-		if err != nil {
-			return err
-		}
-
-		n := resp.VirtualMachineProfile.OsProfile.LinuxConfiguration
-		if n == nil {
-			return fmt.Errorf("Bad: Could not get linux configuration for scale set %v", name)
-		}
-
-		publicKey := *n.SSH.PublicKeys
-		keyData := *(publicKey[0]).KeyData
-		if keyData != expected {
-			return fmt.Errorf("Bad: ssh_keys.key_data set incorrectly for scale set %v\n Wanted: %+v Received: %+v", name, expected, keyData)
-		}
-
-		return nil
-	}
-}
-
-func testCheckVirtualMachineScaleSetOverprovision(name string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		resp, err := testGetVirtualMachineScaleSet(s, name)
-		if err != nil {
-			return err
-		}
-
-		if *resp.Overprovision {
-			return fmt.Errorf("Bad: Overprovision should have been false for scale set %v", name)
-		}
-
-		return nil
-	}
-}
-
-func testCheckVirtualMachineScaleSetSinglePlacementGroup(name string, expectedSinglePlacementGroup bool) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		resp, err := testGetVirtualMachineScaleSet(s, name)
-		if err != nil {
-			return err
-		}
-
-		if *resp.SinglePlacementGroup != expectedSinglePlacementGroup {
-			return fmt.Errorf("Bad: SinglePlacementGroup should have been %t for scale set %v", expectedSinglePlacementGroup, name)
-		}
-
-		return nil
-	}
-}
-
-func testCheckVirtualMachineScaleSetExtension(name string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		resp, err := testGetVirtualMachineScaleSet(s, name)
-		if err != nil {
-			return err
-		}
-
-		n := resp.VirtualMachineProfile.ExtensionProfile.Extensions
-		if n == nil || len(*n) == 0 {
-			return fmt.Errorf("Bad: Could not get extensions for scale set %v", name)
-		}
-
-		return nil
-	}
-}
-
-func testCheckVirtualMachineScaleSetHasDataDisks(name string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMScaleSetClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
-		if !ok {
-			return fmt.Errorf("Not found: %s", name)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for virtual machine: scale set %s", name)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on vmScaleSetClient: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: VirtualMachineScaleSet %q (resource group: %q) does not exist", name, resourceGroup)
-		}
-
-		storageProfile := resp.VirtualMachineProfile.StorageProfile.DataDisks
-		if storageProfile == nil || len(*storageProfile) == 0 {
-			return fmt.Errorf("Bad: Could not get data disks configurations for scale set %v", name)
-		}
-
-		return nil
-	}
+	return fmt.Errorf("application gateway configuration was missing")
 }
 
 func (t VirtualMachineScaleSetResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
@@ -5138,169 +4855,6 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
-}
-
-func (VirtualMachineScaleSetResource) customImage(data acceptance.TestData, userName string, password string, hostName string) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%[1]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctsub-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
-}
-
-resource "azurerm_public_ip" "test" {
-  name                = "acctpip-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
-  domain_name_label   = "%[3]s"
-}
-
-resource "azurerm_network_interface" "testsource" {
-  name                = "acctnicsource-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  ip_configuration {
-    name                          = "testconfigurationsource"
-    subnet_id                     = azurerm_subnet.test.id
-    private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = azurerm_public_ip.test.id
-  }
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "Dev"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "blob"
-}
-
-resource "azurerm_virtual_machine" "testsource" {
-  name                  = "testsource"
-  location              = azurerm_resource_group.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  network_interface_ids = [azurerm_network_interface.testsource.id]
-  vm_size               = "Standard_D1_v2"
-
-  storage_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
-    version   = "latest"
-  }
-
-  storage_os_disk {
-    name          = "myosdisk1"
-    vhd_uri       = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-    caching       = "ReadWrite"
-    create_option = "FromImage"
-    disk_size_gb  = "30"
-  }
-
-  os_profile {
-    computer_name  = "mdimagetestsource"
-    admin_username = "%[4]s"
-    admin_password = "%[5]s"
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = false
-  }
-
-  tags = {
-    environment = "Dev"
-    cost-center = "Ops"
-  }
-}
-
-resource "azurerm_image" "test" {
-  name                = "accteste-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  os_disk {
-    os_type  = "Linux"
-    os_state = "Generalized"
-    blob_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-    size_gb  = 30
-    caching  = "None"
-  }
-
-  tags = {
-    environment = "Dev"
-    cost-center = "Ops"
-  }
-}
-
-resource "azurerm_virtual_machine_scale_set" "test" {
-  name                = "acctvmss-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  upgrade_policy_mode = "Manual"
-
-  storage_profile_image_reference {
-    id = azurerm_image.test.id
-  }
-
-  sku {
-    name     = "Standard_D1_v2"
-    tier     = "Standard"
-    capacity = 2
-  }
-
-  os_profile {
-    computer_name_prefix = "testvm-%[1]d"
-    admin_username       = "myadmin"
-    admin_password       = "Passwword1234"
-  }
-
-  network_profile {
-    name    = "TestNetworkProfile-%[1]d"
-    primary = true
-
-    ip_configuration {
-      name      = "TestIPConfiguration"
-      primary   = true
-      subnet_id = azurerm_subnet.test.id
-    }
-  }
-
-  storage_profile_os_disk {
-    caching           = "ReadWrite"
-    create_option     = "FromImage"
-    managed_disk_type = "Standard_LRS"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, hostName, userName, password)
 }
 
 func (VirtualMachineScaleSetResource) multipleNetworkProfiles(data acceptance.TestData) string {

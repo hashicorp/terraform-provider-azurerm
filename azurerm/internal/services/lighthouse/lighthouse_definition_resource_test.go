@@ -36,6 +36,7 @@ func TestAccLighthouseDefinition_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("scope").Exists(),
 				resource.TestMatchResourceAttr(data.ResourceName, "lighthouse_definition_id", validate.UUIDRegExp),
+				check.That(data.ResourceName).Key("authorization.0.principal_display_name").HasValue("Tier 1 Support"),
 			),
 		},
 	})
@@ -160,8 +161,9 @@ resource "azurerm_lighthouse_definition" "test" {
   managing_tenant_id       = "%s"
 
   authorization {
-    principal_id       = "%s"
-    role_definition_id = data.azurerm_role_definition.contributor.role_definition_id
+    principal_id           = "%s"
+    role_definition_id     = data.azurerm_role_definition.contributor.role_definition_id
+    principal_display_name = "Tier 1 Support"
   }
 }
 `, id, data.RandomInteger, secondTenantID, principalID)

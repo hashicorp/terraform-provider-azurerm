@@ -65,6 +65,19 @@ func decodeBodyToStruct(body hcl.Body, ctx *hcl.EvalContext, val reflect.Value) 
 
 	tags := getFieldTags(val.Type())
 
+	if tags.Body != nil {
+		fieldIdx := *tags.Body
+		field := val.Type().Field(fieldIdx)
+		fieldV := val.Field(fieldIdx)
+		switch {
+		case bodyType.AssignableTo(field.Type):
+			fieldV.Set(reflect.ValueOf(body))
+
+		default:
+			diags = append(diags, decodeBodyToValue(body, ctx, fieldV)...)
+		}
+	}
+
 	if tags.Remain != nil {
 		fieldIdx := *tags.Remain
 		field := val.Type().Field(fieldIdx)
@@ -147,7 +160,9 @@ func decodeBodyToStruct(body hcl.Body, ctx *hcl.EvalContext, val reflect.Value) 
 
 		if len(blocks) == 0 {
 			if isSlice || isPtr {
-				val.Field(fieldIdx).Set(reflect.Zero(field.Type))
+				if val.Field(fieldIdx).IsNil() {
+					val.Field(fieldIdx).Set(reflect.Zero(field.Type))
+				}
 			} else {
 				diags = append(diags, &hcl.Diagnostic{
 					Severity: hcl.DiagError,
@@ -166,16 +181,32 @@ func decodeBodyToStruct(body hcl.Body, ctx *hcl.EvalContext, val reflect.Value) 
 			if isPtr {
 				elemType = reflect.PtrTo(ty)
 			}
-			sli := reflect.MakeSlice(reflect.SliceOf(elemType), len(blocks), len(blocks))
+			sli := val.Field(fieldIdx)
+			if sli.IsNil() {
+				sli = reflect.MakeSlice(reflect.SliceOf(elemType), len(blocks), len(blocks))
+			}
 
 			for i, block := range blocks {
 				if isPtr {
-					v := reflect.New(ty)
+					if i >= sli.Len() {
+						sli = reflect.Append(sli, reflect.New(ty))
+					}
+					v := sli.Index(i)
+					if v.IsNil() {
+						v = reflect.New(ty)
+					}
 					diags = append(diags, decodeBlockToValue(block, ctx, v.Elem())...)
 					sli.Index(i).Set(v)
 				} else {
+					if i >= sli.Len() {
+						sli = reflect.Append(sli, reflect.Indirect(reflect.New(ty)))
+					}
 					diags = append(diags, decodeBlockToValue(block, ctx, sli.Index(i))...)
 				}
+			}
+
+			if sli.Len() > len(blocks) {
+				sli.SetLen(len(blocks))
 			}
 
 			val.Field(fieldIdx).Set(sli)
@@ -183,7 +214,10 @@ func decodeBodyToStruct(body hcl.Body, ctx *hcl.EvalContext, val reflect.Value) 
 		default:
 			block := blocks[0]
 			if isPtr {
-				v := reflect.New(ty)
+				v := val.Field(fieldIdx)
+				if v.IsNil() {
+					v = reflect.New(ty)
+				}
 				diags = append(diags, decodeBlockToValue(block, ctx, v.Elem())...)
 				val.Field(fieldIdx).Set(v)
 			} else {

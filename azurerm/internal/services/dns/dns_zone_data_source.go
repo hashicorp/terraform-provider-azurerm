@@ -59,10 +59,14 @@ func dataSourceDnsZone() *schema.Resource {
 func dataSourceDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Dns.ZonesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+
 	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+
+	resourceId := parse.NewDnsZoneID(subscriptionId, resourceGroup, name)
 
 	var (
 		resp dns.Zone
@@ -93,7 +97,8 @@ func dataSourceDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 	if resp.ID == nil || *resp.ID == "" {
 		return fmt.Errorf("failed reading ID for DNS Zone %q (Resource Group %q)", name, resourceGroup)
 	}
-	d.SetId(*resp.ID)
+
+	d.SetId(resourceId.ID())
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)

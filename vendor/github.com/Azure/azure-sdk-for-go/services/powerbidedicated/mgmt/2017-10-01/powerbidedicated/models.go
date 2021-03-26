@@ -33,128 +33,46 @@ const fqdn = "github.com/Azure/azure-sdk-for-go/services/powerbidedicated/mgmt/2
 // CapacitiesCreateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type CapacitiesCreateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *CapacitiesCreateFuture) Result(client CapacitiesClient) (dc DedicatedCapacity, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "powerbidedicated.CapacitiesCreateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("powerbidedicated.CapacitiesCreateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if dc.Response.Response, err = future.GetResult(sender); err == nil && dc.Response.Response.StatusCode != http.StatusNoContent {
-		dc, err = client.CreateResponder(dc.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "powerbidedicated.CapacitiesCreateFuture", "Result", dc.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(CapacitiesClient) (DedicatedCapacity, error)
 }
 
 // CapacitiesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type CapacitiesDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *CapacitiesDeleteFuture) Result(client CapacitiesClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "powerbidedicated.CapacitiesDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("powerbidedicated.CapacitiesDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(CapacitiesClient) (autorest.Response, error)
 }
 
 // CapacitiesResumeFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type CapacitiesResumeFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *CapacitiesResumeFuture) Result(client CapacitiesClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "powerbidedicated.CapacitiesResumeFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("powerbidedicated.CapacitiesResumeFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(CapacitiesClient) (autorest.Response, error)
 }
 
 // CapacitiesSuspendFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type CapacitiesSuspendFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *CapacitiesSuspendFuture) Result(client CapacitiesClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "powerbidedicated.CapacitiesSuspendFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("powerbidedicated.CapacitiesSuspendFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(CapacitiesClient) (autorest.Response, error)
 }
 
 // CapacitiesUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type CapacitiesUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *CapacitiesUpdateFuture) Result(client CapacitiesClient) (dc DedicatedCapacity, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "powerbidedicated.CapacitiesUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("powerbidedicated.CapacitiesUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if dc.Response.Response, err = future.GetResult(sender); err == nil && dc.Response.Response.StatusCode != http.StatusNoContent {
-		dc, err = client.UpdateResponder(dc.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "powerbidedicated.CapacitiesUpdateFuture", "Result", dc.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(CapacitiesClient) (DedicatedCapacity, error)
 }
 
 // CheckCapacityNameAvailabilityParameters details of capacity name request body.

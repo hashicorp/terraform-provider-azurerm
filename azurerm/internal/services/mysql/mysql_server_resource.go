@@ -7,6 +7,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2020-01-01/mysql"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/response"
@@ -34,20 +38,17 @@ func resourceMySqlServer() *schema.Resource {
 		Update: resourceMySqlServerUpdate,
 		Delete: resourceMySqlServerDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-				if _, err := parse.ServerID(d.Id()); err != nil {
-					return []*schema.ResourceData{d}, err
-				}
+		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
+			_, err := parse.ServerID(id)
+			return err
+		}, func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+			d.Set("create_mode", "Default")
+			if v, ok := d.GetOk("create_mode"); ok && v.(string) != "" {
+				d.Set("create_mode", v)
+			}
 
-				d.Set("create_mode", "Default")
-				if v, ok := d.GetOk("create_mode"); ok && v.(string) != "" {
-					d.Set("create_mode", v)
-				}
-
-				return []*schema.ResourceData{d}, nil
-			},
-		},
+			return []*schema.ResourceData{d}, nil
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),
@@ -394,26 +395,26 @@ func resourceMySqlServer() *schema.Resource {
 
 func resourceMySqlServerCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MySQL.ServersClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	securityClient := meta.(*clients.Client).MySQL.ServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM MySQL Server creation.")
 
-	name := d.Get("name").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	resourceGroup := d.Get("resource_group_name").(string)
 
+	id := parse.NewServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing MySQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_mysql_server", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_mysql_server", id.ID())
 		}
 	}
 
@@ -424,7 +425,7 @@ func resourceMySqlServerCreate(d *schema.ResourceData, meta interface{}) error {
 
 	sku, err := expandServerSkuName(d.Get("sku_name").(string))
 	if err != nil {
-		return fmt.Errorf("expanding sku_name for MySQL Server %q (Resource Group %q): %v", name, resourceGroup, err)
+		return fmt.Errorf("expanding sku_name for %s: %v", id, err)
 	}
 
 	infraEncrypt := mysql.InfrastructureEncryptionEnabled
@@ -433,7 +434,7 @@ func resourceMySqlServerCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if sku.Tier == mysql.Basic && infraEncrypt == mysql.InfrastructureEncryptionEnabled {
-		return fmt.Errorf("`infrastructure_encryption_enabled` is not supported for sku Tier `Basic` in MySQL Server %q (Resource Group %q)", name, resourceGroup)
+		return fmt.Errorf("`infrastructure_encryption_enabled` is not supported for sku Tier `Basic` for %s", id)
 	}
 
 	publicAccess := mysql.PublicNetworkAccessEnumEnabled
@@ -528,36 +529,27 @@ func resourceMySqlServerCreate(d *schema.ResourceData, meta interface{}) error {
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.Create(ctx, resourceGroup, name, server)
+	future, err := client.Create(ctx, id.ResourceGroup, id.Name, server)
 	if err != nil {
-		return fmt.Errorf("creating MySQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of MySQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving MySQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("cannot read MySQL Server %q (Resource Group %q) ID", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	if v, ok := d.GetOk("threat_detection_policy"); ok {
 		alert := expandSecurityAlertPolicy(v)
 		if alert != nil {
-			future, err := securityClient.CreateOrUpdate(ctx, resourceGroup, name, *alert)
+			future, err := securityClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *alert)
 			if err != nil {
-				return fmt.Errorf("error updataing mysql server security alert policy: %v", err)
+				return fmt.Errorf("updating of Security Alert Policy for %s: %+v", id, err)
 			}
 
 			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("error waiting for creation/update of mysql server security alert policy (server %q, resource group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("waiting for update of Security Alert Policy for %s: %+v", id, err)
 			}
 		}
 	}
@@ -613,23 +605,11 @@ func resourceMySqlServerUpdate(d *schema.ResourceData, meta interface{}) error {
 
 	future, err := client.Update(ctx, id.ResourceGroup, id.Name, properties)
 	if err != nil {
-		return fmt.Errorf("updating MySQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
-
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for MySQL Server %q (Resource Group %q) to finish updating: %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for update of %s: %+v", *id, err)
 	}
-
-	read, err := client.Get(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		return fmt.Errorf("retrieving MySQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("cannot read MySQL Server %q (Resource Group %q) ID", id.Name, id.ResourceGroup)
-	}
-
-	d.SetId(*read.ID)
 
 	if v, ok := d.GetOk("threat_detection_policy"); ok {
 		alert := expandSecurityAlertPolicy(v)
@@ -656,26 +636,23 @@ func resourceMySqlServerRead(d *schema.ResourceData, meta interface{}) error {
 
 	id, err := parse.ServerID(d.Id())
 	if err != nil {
-		return fmt.Errorf("parsing MySQL Server ID : %v", err)
+		return err
 	}
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] MySQL Server %q was not found (Resource Group %q)", id.Name, id.ResourceGroup)
+			log.Printf("[WARN] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on Azure MySQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", resp.Name)
+	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	tier := mysql.Basic
 	if sku := resp.Sku; sku != nil {
@@ -715,7 +692,7 @@ func resourceMySqlServerRead(d *schema.ResourceData, meta interface{}) error {
 	if tier == mysql.GeneralPurpose || tier == mysql.MemoryOptimized {
 		secResp, err := securityClient.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil && !utils.ResponseWasNotFound(secResp.Response) {
-			return fmt.Errorf("error making read request to mysql server security alert policy: %+v", err)
+			return fmt.Errorf("retrieving Security Alert Policy for %s: %+v", *id, err)
 		}
 
 		if !utils.ResponseWasNotFound(secResp.Response) {

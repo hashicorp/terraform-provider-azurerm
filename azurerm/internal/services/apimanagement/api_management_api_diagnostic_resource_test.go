@@ -84,7 +84,7 @@ func TestAccApiManagementApiDiagnostic_complete(t *testing.T) {
 	})
 }
 
-func (t ApiManagementApiDiagnosticResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (ApiManagementApiDiagnosticResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.ApiDiagnosticID(state.ID)
 	if err != nil {
 		return nil, err

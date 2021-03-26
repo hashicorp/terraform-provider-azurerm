@@ -151,6 +151,7 @@ func (client SignedInUserClient) ListOwnedObjects(ctx context.Context) (result D
 	}
 	if result.dolr.hasNextLink() && result.dolr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

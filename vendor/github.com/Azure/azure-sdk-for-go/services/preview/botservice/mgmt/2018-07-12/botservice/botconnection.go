@@ -374,6 +374,7 @@ func (client BotConnectionClient) ListByBotService(ctx context.Context, resource
 	}
 	if result.csrl.hasNextLink() && result.csrl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -435,7 +436,6 @@ func (client BotConnectionClient) listByBotServiceNextResults(ctx context.Contex
 	result, err = client.ListByBotServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "botservice.BotConnectionClient", "listByBotServiceNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

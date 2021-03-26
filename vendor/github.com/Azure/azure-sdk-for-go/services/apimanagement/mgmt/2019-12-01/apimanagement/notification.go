@@ -271,6 +271,7 @@ func (client NotificationClient) ListByService(ctx context.Context, resourceGrou
 	}
 	if result.nc.hasNextLink() && result.nc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -338,7 +339,6 @@ func (client NotificationClient) listByServiceNextResults(ctx context.Context, l
 	result, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.NotificationClient", "listByServiceNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

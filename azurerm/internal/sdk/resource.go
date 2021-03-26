@@ -131,7 +131,8 @@ type ResourceMetaData struct {
 }
 
 // MarkAsGone marks this resource as removed in the Remote API, so this is no longer available
-func (rmd ResourceMetaData) MarkAsGone() error {
+func (rmd ResourceMetaData) MarkAsGone(idFormatter resourceid.Formatter) error {
+	rmd.Logger.Infof("[DEBUG] %s was not found - removing from state", idFormatter)
 	rmd.ResourceData.SetId("")
 	return nil
 }

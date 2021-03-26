@@ -29,8 +29,26 @@ func TestAccKeyVaultAccessPolicy_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("key_permissions.0").HasValue("get"),
-				check.That(data.ResourceName).Key("secret_permissions.0").HasValue("get"),
+				check.That(data.ResourceName).Key("key_permissions.0").HasValue("Get"),
+				check.That(data.ResourceName).Key("secret_permissions.0").HasValue("Get"),
+				check.That(data.ResourceName).Key("secret_permissions.1").HasValue("Set"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKeyVaultAccessPolicy_mixedCasePermissions(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_access_policy", "test")
+	r := KeyVaultAccessPolicyResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicMixedCase(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("key_permissions.0").HasValue("Get"),
+				check.That(data.ResourceName).Key("secret_permissions.0").HasValue("Get"),
 				check.That(data.ResourceName).Key("secret_permissions.1").HasValue("set"),
 			),
 		},
@@ -47,9 +65,9 @@ func TestAccKeyVaultAccessPolicy_requiresImport(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("key_permissions.0").HasValue("get"),
-				check.That(data.ResourceName).Key("secret_permissions.0").HasValue("get"),
-				check.That(data.ResourceName).Key("secret_permissions.1").HasValue("set"),
+				check.That(data.ResourceName).Key("key_permissions.0").HasValue("Get"),
+				check.That(data.ResourceName).Key("secret_permissions.0").HasValue("Get"),
+				check.That(data.ResourceName).Key("secret_permissions.1").HasValue("Set"),
 			),
 		},
 		{
@@ -69,18 +87,18 @@ func TestAccKeyVaultAccessPolicy_multiple(t *testing.T) {
 			Config: r.multiple(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("key_permissions.0").HasValue("create"),
-				check.That(data.ResourceName).Key("key_permissions.1").HasValue("get"),
-				check.That(data.ResourceName).Key("secret_permissions.0").HasValue("get"),
-				check.That(data.ResourceName).Key("secret_permissions.1").HasValue("delete"),
-				check.That(data.ResourceName).Key("certificate_permissions.0").HasValue("create"),
-				check.That(data.ResourceName).Key("certificate_permissions.1").HasValue("delete"),
-				resource.TestCheckResourceAttr(resourceName2, "key_permissions.0", "list"),
-				resource.TestCheckResourceAttr(resourceName2, "key_permissions.1", "encrypt"),
-				resource.TestCheckResourceAttr(resourceName2, "secret_permissions.0", "list"),
-				resource.TestCheckResourceAttr(resourceName2, "secret_permissions.1", "delete"),
-				resource.TestCheckResourceAttr(resourceName2, "certificate_permissions.0", "list"),
-				resource.TestCheckResourceAttr(resourceName2, "certificate_permissions.1", "delete"),
+				check.That(data.ResourceName).Key("key_permissions.0").HasValue("Create"),
+				check.That(data.ResourceName).Key("key_permissions.1").HasValue("Get"),
+				check.That(data.ResourceName).Key("secret_permissions.0").HasValue("Get"),
+				check.That(data.ResourceName).Key("secret_permissions.1").HasValue("Delete"),
+				check.That(data.ResourceName).Key("certificate_permissions.0").HasValue("Create"),
+				check.That(data.ResourceName).Key("certificate_permissions.1").HasValue("Delete"),
+				resource.TestCheckResourceAttr(resourceName2, "key_permissions.0", "List"),
+				resource.TestCheckResourceAttr(resourceName2, "key_permissions.1", "Encrypt"),
+				resource.TestCheckResourceAttr(resourceName2, "secret_permissions.0", "List"),
+				resource.TestCheckResourceAttr(resourceName2, "secret_permissions.1", "Delete"),
+				resource.TestCheckResourceAttr(resourceName2, "certificate_permissions.0", "List"),
+				resource.TestCheckResourceAttr(resourceName2, "certificate_permissions.1", "Delete"),
 			),
 		},
 		data.ImportStep(),
@@ -101,17 +119,17 @@ func TestAccKeyVaultAccessPolicy_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("key_permissions.0").HasValue("get"),
-				check.That(data.ResourceName).Key("secret_permissions.0").HasValue("get"),
-				check.That(data.ResourceName).Key("secret_permissions.1").HasValue("set"),
+				check.That(data.ResourceName).Key("key_permissions.0").HasValue("Get"),
+				check.That(data.ResourceName).Key("secret_permissions.0").HasValue("Get"),
+				check.That(data.ResourceName).Key("secret_permissions.1").HasValue("Set"),
 			),
 		},
 		{
 			Config: r.update(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("key_permissions.0").HasValue("list"),
-				check.That(data.ResourceName).Key("key_permissions.1").HasValue("encrypt"),
+				check.That(data.ResourceName).Key("key_permissions.0").HasValue("List"),
+				check.That(data.ResourceName).Key("key_permissions.1").HasValue("Encrypt"),
 			),
 		},
 	})
@@ -125,7 +143,7 @@ func TestAccKeyVaultAccessPolicy_nonExistentVault(t *testing.T) {
 		{
 			Config:             r.nonExistentVault(data),
 			ExpectNonEmptyPlan: true,
-			ExpectError:        regexp.MustCompile(`Error retrieving Key Vault`),
+			ExpectError:        regexp.MustCompile(`retrieving Key Vault`),
 		},
 	})
 }
@@ -149,28 +167,61 @@ func (t KeyVaultAccessPolicyResource) Exists(ctx context.Context, clients *clien
 }
 
 func (r KeyVaultAccessPolicyResource) basic(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_key_vault_access_policy" "test" {
   key_vault_id = azurerm_key_vault.test.id
 
   key_permissions = [
-    "get",
+    "Get",
   ]
 
   secret_permissions = [
-    "get",
+    "Get",
+    "Set",
+  ]
+
+  tenant_id = data.azurerm_client_config.current.tenant_id
+  object_id = data.azurerm_client_config.current.object_id
+}
+`, template)
+}
+
+func (r KeyVaultAccessPolicyResource) basicMixedCase(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_key_vault_access_policy" "test" {
+  key_vault_id = azurerm_key_vault.test.id
+
+  key_permissions = [
+    "Get",
+  ]
+
+  secret_permissions = [
+    "Get",
     "set",
   ]
 
   tenant_id = data.azurerm_client_config.current.tenant_id
   object_id = data.azurerm_client_config.current.object_id
 }
-`, r.template(data))
+`, template)
 }
 
 func (r KeyVaultAccessPolicyResource) requiresImport(data acceptance.TestData) string {
+	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -180,37 +231,42 @@ resource "azurerm_key_vault_access_policy" "import" {
   object_id    = azurerm_key_vault_access_policy.test.object_id
 
   key_permissions = [
-    "get",
+    "Get",
   ]
 
   secret_permissions = [
-    "get",
-    "set",
+    "Get",
+    "Set",
   ]
 }
-`, r.basic(data))
+`, template)
 }
 
 func (r KeyVaultAccessPolicyResource) multiple(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_key_vault_access_policy" "test_with_application_id" {
   key_vault_id = azurerm_key_vault.test.id
 
   key_permissions = [
-    "create",
-    "get",
+    "Create",
+    "Get",
   ]
 
   secret_permissions = [
-    "get",
-    "delete",
+    "Get",
+    "Delete",
   ]
 
   certificate_permissions = [
-    "create",
-    "delete",
+    "Create",
+    "Delete",
   ]
 
   application_id = data.azurerm_client_config.current.client_id
@@ -222,118 +278,51 @@ resource "azurerm_key_vault_access_policy" "test_no_application_id" {
   key_vault_id = azurerm_key_vault.test.id
 
   key_permissions = [
-    "list",
-    "encrypt",
+    "List",
+    "Encrypt",
   ]
 
   secret_permissions = [
-    "list",
-    "delete",
+    "List",
+    "Delete",
   ]
 
   certificate_permissions = [
-    "list",
-    "delete",
+    "List",
+    "Delete",
   ]
 
   storage_permissions = [
-    "backup",
-    "delete",
-    "deletesas",
-    "get",
-    "getsas",
-    "list",
-    "listsas",
-    "purge",
-    "recover",
-    "regeneratekey",
-    "restore",
-    "set",
-    "setsas",
-    "update",
+    "Backup",
+    "Delete",
+    "DeleteSAS",
+    "Get",
+    "GetSAS",
+    "List",
+    "ListSAS",
+    "Purge",
+    "Recover",
+    "RegenerateKey",
+    "Restore",
+    "Set",
+    "SetSAS",
+    "Update",
   ]
 
   tenant_id = data.azurerm_client_config.current.tenant_id
   object_id = data.azurerm_client_config.current.object_id
 }
-`, r.template(data))
+`, template)
 }
 
-func (r KeyVaultAccessPolicyResource) update(data acceptance.TestData) string {
+func (r KeyVaultAccessPolicyResource) nonExistentVault(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
-
-resource "azurerm_key_vault_access_policy" "test" {
-  key_vault_id = azurerm_key_vault.test.id
-
-  key_permissions = [
-    "list",
-    "encrypt",
-  ]
-
-  secret_permissions = []
-
-  tenant_id = data.azurerm_client_config.current.tenant_id
-  object_id = data.azurerm_client_config.current.object_id
-}
-`, r.template(data))
-}
-
-func (KeyVaultAccessPolicyResource) template(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-data "azurerm_client_config" "current" {
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_key_vault" "test" {
-  name                = "acctestkv-%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-
-  sku_name = "standard"
-
-  tags = {
-    environment = "Production"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
-}
-
-func (KeyVaultAccessPolicyResource) nonExistentVault(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-data "azurerm_client_config" "current" {
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_key_vault" "test" {
-  name                = "acctestkv-%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-
-  sku_name = "standard"
-
-  tags = {
-    environment = "Production"
-  }
-}
 
 resource "azurerm_key_vault_access_policy" "test" {
   # Must appear to be URL, but not actually exist - appending a string works
@@ -343,12 +332,57 @@ resource "azurerm_key_vault_access_policy" "test" {
   object_id = data.azurerm_client_config.current.object_id
 
   key_permissions = [
-    "get",
+    "Get",
   ]
 
   secret_permissions = [
-    "get",
+    "Get",
   ]
+}
+`, template)
+}
+
+func (r KeyVaultAccessPolicyResource) update(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_key_vault_access_policy" "test" {
+  key_vault_id = azurerm_key_vault.test.id
+
+  key_permissions = [
+    "List",
+    "Encrypt",
+  ]
+
+  secret_permissions = []
+
+  tenant_id = data.azurerm_client_config.current.tenant_id
+  object_id = data.azurerm_client_config.current.object_id
+}
+`, template)
+}
+
+func (KeyVaultAccessPolicyResource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "acctestkv-%s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "standard"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

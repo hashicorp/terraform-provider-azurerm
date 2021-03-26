@@ -22,7 +22,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/tracing"
-	"github.com/satori/go.uuid"
+	"github.com/gofrs/uuid"
 	"net/http"
 )
 
@@ -254,6 +254,7 @@ func (client QueryKeysClient) ListBySearchService(ctx context.Context, resourceG
 	}
 	if result.lqkr.hasNextLink() && result.lqkr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -319,7 +320,6 @@ func (client QueryKeysClient) listBySearchServiceNextResults(ctx context.Context
 	result, err = client.ListBySearchServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "search.QueryKeysClient", "listBySearchServiceNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

@@ -27,6 +27,7 @@ import (
 	costmanagement "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/costmanagement/client"
 	customproviders "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/customproviders/client"
 	datamigration "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databasemigration/client"
+	databoxedge "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databoxedge/client"
 	databricks "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks/client"
 	datafactory "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/client"
 	datalake "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake/client"
@@ -73,8 +74,10 @@ import (
 	postgres "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/client"
 	powerBI "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/powerbi/client"
 	privatedns "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns/client"
+	purview "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/purview/client"
 	recoveryServices "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/recoveryservices/client"
 	redis "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis/client"
+	redisenterprise "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redisenterprise/client"
 	relay "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay/client"
 	resource "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/client"
 	search "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/search/client"
@@ -91,6 +94,7 @@ import (
 	subscription "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/subscription/client"
 	synapse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/synapse/client"
 	trafficManager "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/trafficmanager/client"
+	vmware "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/vmware/client"
 	web "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/client"
 )
 
@@ -123,6 +127,7 @@ type Client struct {
 	CustomProviders       *customproviders.Client
 	DatabaseMigration     *datamigration.Client
 	DataBricks            *databricks.Client
+	DataboxEdge           *databoxedge.Client
 	DataFactory           *datafactory.Client
 	Datalake              *datalake.Client
 	DataShare             *datashare.Client
@@ -168,8 +173,10 @@ type Client struct {
 	Postgres              *postgres.Client
 	PowerBI               *powerBI.Client
 	PrivateDns            *privatedns.Client
+	Purview               *purview.Client
 	RecoveryServices      *recoveryServices.Client
 	Redis                 *redis.Client
+	RedisEnterprise       *redisenterprise.Client
 	Relay                 *relay.Client
 	Resource              *resource.Client
 	Search                *search.Client
@@ -185,6 +192,7 @@ type Client struct {
 	Sql                   *sql.Client
 	Synapse               *synapse.Client
 	TrafficManager        *trafficManager.Client
+	Vmware                *vmware.Client
 	Web                   *web.Client
 }
 
@@ -220,6 +228,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.CustomProviders = customproviders.NewClient(o)
 	client.DatabaseMigration = datamigration.NewClient(o)
 	client.DataBricks = databricks.NewClient(o)
+	client.DataboxEdge = databoxedge.NewClient(o)
 	client.DataFactory = datafactory.NewClient(o)
 	client.Datalake = datalake.NewClient(o)
 	client.DataShare = datashare.NewClient(o)
@@ -265,8 +274,10 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Postgres = postgres.NewClient(o)
 	client.PowerBI = powerBI.NewClient(o)
 	client.PrivateDns = privatedns.NewClient(o)
+	client.Purview = purview.NewClient(o)
 	client.RecoveryServices = recoveryServices.NewClient(o)
 	client.Redis = redis.NewClient(o)
+	client.RedisEnterprise = redisenterprise.NewClient(o)
 	client.Relay = relay.NewClient(o)
 	client.Resource = resource.NewClient(o)
 	client.Search = search.NewClient(o)
@@ -282,6 +293,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Subscription = subscription.NewClient(o)
 	client.Synapse = synapse.NewClient(o)
 	client.TrafficManager = trafficManager.NewClient(o)
+	client.Vmware = vmware.NewClient(o)
 	client.Web = web.NewClient(o)
 
 	return nil

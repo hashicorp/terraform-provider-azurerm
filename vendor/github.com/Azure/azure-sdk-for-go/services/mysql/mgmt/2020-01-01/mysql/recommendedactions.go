@@ -183,6 +183,7 @@ func (client RecommendedActionsClient) ListByServer(ctx context.Context, resourc
 	}
 	if result.rarl.hasNextLink() && result.rarl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -248,7 +249,6 @@ func (client RecommendedActionsClient) listByServerNextResults(ctx context.Conte
 	result, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mysql.RecommendedActionsClient", "listByServerNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

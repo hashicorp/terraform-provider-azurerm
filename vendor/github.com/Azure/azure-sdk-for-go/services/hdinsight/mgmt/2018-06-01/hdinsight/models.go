@@ -70,6 +70,8 @@ type ApplicationGetEndpoint struct {
 	DestinationPort *int32 `json:"destinationPort,omitempty"`
 	// PublicPort - The public port to connect to.
 	PublicPort *int32 `json:"publicPort,omitempty"`
+	// PrivateIPAddress - The private ip address of the endpoint.
+	PrivateIPAddress *string `json:"privateIPAddress,omitempty"`
 }
 
 // ApplicationGetHTTPSEndpoint gets the application HTTP endpoints.
@@ -313,53 +315,19 @@ func (ap ApplicationProperties) MarshalJSON() ([]byte, error) {
 // ApplicationsCreateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type ApplicationsCreateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ApplicationsCreateFuture) Result(client ApplicationsClient) (a Application, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.ApplicationsCreateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("hdinsight.ApplicationsCreateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if a.Response.Response, err = future.GetResult(sender); err == nil && a.Response.Response.StatusCode != http.StatusNoContent {
-		a, err = client.CreateResponder(a.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "hdinsight.ApplicationsCreateFuture", "Result", a.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ApplicationsClient) (Application, error)
 }
 
 // ApplicationsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type ApplicationsDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ApplicationsDeleteFuture) Result(client ApplicationsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.ApplicationsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("hdinsight.ApplicationsDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ApplicationsClient) (autorest.Response, error)
 }
 
 // Autoscale the autoscale request parameters
@@ -437,10 +405,32 @@ type BillingResponseListResult struct {
 	autorest.Response `json:"-"`
 	// VMSizes - The virtual machine sizes to include or exclude.
 	VMSizes *[]string `json:"vmSizes,omitempty"`
+	// VMSizesWithEncryptionAtHost - The vm sizes which enable encryption at host.
+	VMSizesWithEncryptionAtHost *[]string `json:"vmSizesWithEncryptionAtHost,omitempty"`
 	// VMSizeFilters - The virtual machine filtering mode. Effectively this can enabling or disabling the virtual machine sizes in a particular set.
 	VMSizeFilters *[]VMSizeCompatibilityFilterV2 `json:"vmSizeFilters,omitempty"`
+	// VMSizeProperties - READ-ONLY; The vm size properties.
+	VMSizeProperties *[]VMSizeProperty `json:"vmSizeProperties,omitempty"`
 	// BillingResources - The billing and managed disk billing resources for a region.
 	BillingResources *[]BillingResources `json:"billingResources,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for BillingResponseListResult.
+func (brlr BillingResponseListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if brlr.VMSizes != nil {
+		objectMap["vmSizes"] = brlr.VMSizes
+	}
+	if brlr.VMSizesWithEncryptionAtHost != nil {
+		objectMap["vmSizesWithEncryptionAtHost"] = brlr.VMSizesWithEncryptionAtHost
+	}
+	if brlr.VMSizeFilters != nil {
+		objectMap["vmSizeFilters"] = brlr.VMSizeFilters
+	}
+	if brlr.BillingResources != nil {
+		objectMap["billingResources"] = brlr.BillingResources
+	}
+	return json.Marshal(objectMap)
 }
 
 // CapabilitiesResult the Get Capabilities operation response.
@@ -654,6 +644,8 @@ type ClusterDiskEncryptionParameters struct {
 type ClusterGetProperties struct {
 	// ClusterVersion - The version of the cluster.
 	ClusterVersion *string `json:"clusterVersion,omitempty"`
+	// ClusterHdpVersion - The hdp version of the cluster.
+	ClusterHdpVersion *string `json:"clusterHdpVersion,omitempty"`
 	// OsType - The type of operating system. Possible values include: 'Windows', 'Linux'
 	OsType OSType `json:"osType,omitempty"`
 	// Tier - The cluster tier. Possible values include: 'Standard', 'Premium'
@@ -684,8 +676,12 @@ type ClusterGetProperties struct {
 	DiskEncryptionProperties *DiskEncryptionProperties `json:"diskEncryptionProperties,omitempty"`
 	// EncryptionInTransitProperties - The encryption-in-transit properties.
 	EncryptionInTransitProperties *EncryptionInTransitProperties `json:"encryptionInTransitProperties,omitempty"`
+	// StorageProfile - The storage profile.
+	StorageProfile *StorageProfile `json:"storageProfile,omitempty"`
 	// MinSupportedTLSVersion - The minimal supported tls version.
 	MinSupportedTLSVersion *string `json:"minSupportedTlsVersion,omitempty"`
+	// ExcludedServicesConfig - The excluded services config.
+	ExcludedServicesConfig *ExcludedServicesConfig `json:"excludedServicesConfig,omitempty"`
 	// NetworkProperties - The network properties.
 	NetworkProperties *NetworkProperties `json:"networkProperties,omitempty"`
 	// ComputeIsolationProperties - The compute isolation properties.
@@ -722,6 +718,17 @@ type ClusterIdentityUserAssignedIdentitiesValue struct {
 	PrincipalID *string `json:"principalId,omitempty"`
 	// ClientID - READ-ONLY; The client id of user assigned identity.
 	ClientID *string `json:"clientId,omitempty"`
+	// TenantID - The tenant id of user assigned identity.
+	TenantID *string `json:"tenantId,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ClusterIdentityUserAssignedIdentitiesValue.
+func (ciAiv ClusterIdentityUserAssignedIdentitiesValue) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ciAiv.TenantID != nil {
+		objectMap["tenantId"] = ciAiv.TenantID
+	}
+	return json.Marshal(objectMap)
 }
 
 // ClusterListPersistedScriptActionsResult the ListPersistedScriptActions operation response.
@@ -958,168 +965,64 @@ type ClusterResizeParameters struct {
 // ClustersCreateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type ClustersCreateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ClustersCreateFuture) Result(client ClustersClient) (c Cluster, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.ClustersCreateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("hdinsight.ClustersCreateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if c.Response.Response, err = future.GetResult(sender); err == nil && c.Response.Response.StatusCode != http.StatusNoContent {
-		c, err = client.CreateResponder(c.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "hdinsight.ClustersCreateFuture", "Result", c.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ClustersClient) (Cluster, error)
 }
 
 // ClustersDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type ClustersDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ClustersDeleteFuture) Result(client ClustersClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.ClustersDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("hdinsight.ClustersDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ClustersClient) (autorest.Response, error)
 }
 
 // ClustersExecuteScriptActionsFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ClustersExecuteScriptActionsFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ClustersExecuteScriptActionsFuture) Result(client ClustersClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.ClustersExecuteScriptActionsFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("hdinsight.ClustersExecuteScriptActionsFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ClustersClient) (autorest.Response, error)
 }
 
 // ClustersResizeFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type ClustersResizeFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ClustersResizeFuture) Result(client ClustersClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.ClustersResizeFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("hdinsight.ClustersResizeFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ClustersClient) (autorest.Response, error)
 }
 
 // ClustersRotateDiskEncryptionKeyFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ClustersRotateDiskEncryptionKeyFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ClustersRotateDiskEncryptionKeyFuture) Result(client ClustersClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.ClustersRotateDiskEncryptionKeyFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("hdinsight.ClustersRotateDiskEncryptionKeyFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ClustersClient) (autorest.Response, error)
 }
 
 // ClustersUpdateAutoScaleConfigurationFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ClustersUpdateAutoScaleConfigurationFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ClustersUpdateAutoScaleConfigurationFuture) Result(client ClustersClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.ClustersUpdateAutoScaleConfigurationFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("hdinsight.ClustersUpdateAutoScaleConfigurationFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ClustersClient) (autorest.Response, error)
 }
 
 // ClustersUpdateGatewaySettingsFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ClustersUpdateGatewaySettingsFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ClustersUpdateGatewaySettingsFuture) Result(client ClustersClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.ClustersUpdateGatewaySettingsFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("hdinsight.ClustersUpdateGatewaySettingsFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ClustersClient) (autorest.Response, error)
 }
 
 // ComputeIsolationProperties the compute isolation properties.
@@ -1139,24 +1042,10 @@ type ComputeProfile struct {
 // ConfigurationsUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type ConfigurationsUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ConfigurationsUpdateFuture) Result(client ConfigurationsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.ConfigurationsUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("hdinsight.ConfigurationsUpdateFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ConfigurationsClient) (autorest.Response, error)
 }
 
 // ConnectivityEndpoint the connectivity properties
@@ -1169,6 +1058,8 @@ type ConnectivityEndpoint struct {
 	Location *string `json:"location,omitempty"`
 	// Port - The port to connect to.
 	Port *int32 `json:"port,omitempty"`
+	// PrivateIPAddress - The private ip address of the endpoint.
+	PrivateIPAddress *string `json:"privateIPAddress,omitempty"`
 }
 
 // DataDisksGroups the data disks groups for the role.
@@ -1188,6 +1079,18 @@ func (ddg DataDisksGroups) MarshalJSON() ([]byte, error) {
 		objectMap["disksPerNode"] = ddg.DisksPerNode
 	}
 	return json.Marshal(objectMap)
+}
+
+// Dimension the definition of Dimension.
+type Dimension struct {
+	// Name - The name of the dimension.
+	Name *string `json:"name,omitempty"`
+	// DisplayName - The display name of the dimension.
+	DisplayName *string `json:"displayName,omitempty"`
+	// InternalName - The display name of the dimension.
+	InternalName *string `json:"internalName,omitempty"`
+	// ToBeExportedForShoebox - The flag indicates whether the metric will be exported for shoebox or not.
+	ToBeExportedForShoebox *bool `json:"toBeExportedForShoebox,omitempty"`
 }
 
 // DiskBillingMeters the disk billing meters.
@@ -1238,6 +1141,14 @@ type Errors struct {
 	Message *string `json:"message,omitempty"`
 }
 
+// ExcludedServicesConfig the configuration that services will be excluded when creating cluster.
+type ExcludedServicesConfig struct {
+	// ExcludedServicesConfigID - The config id of excluded services.
+	ExcludedServicesConfigID *string `json:"excludedServicesConfigId,omitempty"`
+	// ExcludedServicesList - The list of excluded services.
+	ExcludedServicesList *string `json:"excludedServicesList,omitempty"`
+}
+
 // ExecuteScriptActionParameters the parameters for the script actions to execute on a running cluster.
 type ExecuteScriptActionParameters struct {
 	// ScriptActions - The list of run time script actions.
@@ -1258,93 +1169,37 @@ type Extension struct {
 // ExtensionsCreateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type ExtensionsCreateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ExtensionsCreateFuture) Result(client ExtensionsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.ExtensionsCreateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("hdinsight.ExtensionsCreateFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ExtensionsClient) (autorest.Response, error)
 }
 
 // ExtensionsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type ExtensionsDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ExtensionsDeleteFuture) Result(client ExtensionsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.ExtensionsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("hdinsight.ExtensionsDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ExtensionsClient) (autorest.Response, error)
 }
 
 // ExtensionsDisableMonitoringFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ExtensionsDisableMonitoringFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ExtensionsDisableMonitoringFuture) Result(client ExtensionsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.ExtensionsDisableMonitoringFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("hdinsight.ExtensionsDisableMonitoringFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ExtensionsClient) (autorest.Response, error)
 }
 
 // ExtensionsEnableMonitoringFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ExtensionsEnableMonitoringFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ExtensionsEnableMonitoringFuture) Result(client ExtensionsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.ExtensionsEnableMonitoringFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("hdinsight.ExtensionsEnableMonitoringFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ExtensionsClient) (autorest.Response, error)
 }
 
 // GatewaySettings gateway settings.
@@ -1404,6 +1259,44 @@ type LocalizedName struct {
 	LocalizedValue *string `json:"localizedValue,omitempty"`
 }
 
+// MetricSpecifications the details of metric specifications.
+type MetricSpecifications struct {
+	// Name - The name of the metric specification.
+	Name *string `json:"name,omitempty"`
+	// DisplayName - The display name of the metric specification.
+	DisplayName *string `json:"displayName,omitempty"`
+	// DisplayDescription - The display description of the metric specification.
+	DisplayDescription *string `json:"displayDescription,omitempty"`
+	// Unit - The unit of the metric specification.
+	Unit *string `json:"unit,omitempty"`
+	// AggregationType - The aggregation type of the metric specification.
+	AggregationType *string `json:"aggregationType,omitempty"`
+	// SupportedAggregationTypes - The supported aggregation types of the metric specification.
+	SupportedAggregationTypes *[]string `json:"supportedAggregationTypes,omitempty"`
+	// SupportedTimeGrainTypes - The supported time grain types of the metric specification.
+	SupportedTimeGrainTypes *[]string `json:"supportedTimeGrainTypes,omitempty"`
+	// EnableRegionalMdmAccount - The flag indicates whether enable regional mdm account or not.
+	EnableRegionalMdmAccount *bool `json:"enableRegionalMdmAccount,omitempty"`
+	// SourceMdmAccount - The source mdm account.
+	SourceMdmAccount *string `json:"sourceMdmAccount,omitempty"`
+	// SourceMdmNamespace - The source mdm namespace.
+	SourceMdmNamespace *string `json:"sourceMdmNamespace,omitempty"`
+	// MetricFilterPattern - The metric filter pattern.
+	MetricFilterPattern *string `json:"metricFilterPattern,omitempty"`
+	// FillGapWithZero - The flag indicates whether filling gap with zero.
+	FillGapWithZero *bool `json:"fillGapWithZero,omitempty"`
+	// Category - The category of the metric.
+	Category *string `json:"category,omitempty"`
+	// ResourceIDDimensionNameOverride - The override name of resource id dimension name.
+	ResourceIDDimensionNameOverride *string `json:"resourceIdDimensionNameOverride,omitempty"`
+	// IsInternal - The flag indicates whether the metric is internal or not.
+	IsInternal *bool `json:"isInternal,omitempty"`
+	// DelegateMetricNameOverride - The override name of delegate metric.
+	DelegateMetricNameOverride *string `json:"delegateMetricNameOverride,omitempty"`
+	// Dimensions - The dimensions of the metric specification.
+	Dimensions *[]Dimension `json:"dimensions,omitempty"`
+}
+
 // NetworkProperties the network properties.
 type NetworkProperties struct {
 	// ResourceProviderConnection - The direction for the resource provider connection. Possible values include: 'Inbound', 'Outbound'
@@ -1418,6 +1311,8 @@ type Operation struct {
 	Name *string `json:"name,omitempty"`
 	// Display - The object that represents the operation.
 	Display *OperationDisplay `json:"display,omitempty"`
+	// Properties - The operation properties.
+	Properties *OperationProperties `json:"properties,omitempty"`
 }
 
 // OperationDisplay the object that represents the operation.
@@ -1428,6 +1323,8 @@ type OperationDisplay struct {
 	Resource *string `json:"resource,omitempty"`
 	// Operation - The operation type: read, write, delete, etc.
 	Operation *string `json:"operation,omitempty"`
+	// Description - Localized friendly description for the operation
+	Description *string `json:"description,omitempty"`
 }
 
 // OperationListResult result of the request to list HDInsight operations. It contains a list of operations
@@ -1590,6 +1487,12 @@ func NewOperationListResultPage(cur OperationListResult, getNextPage func(contex
 	}
 }
 
+// OperationProperties the details of operation.
+type OperationProperties struct {
+	// ServiceSpecification - The specification of the service.
+	ServiceSpecification *ServiceSpecification `json:"serviceSpecification,omitempty"`
+}
+
 // OperationResource the azure async operation response.
 type OperationResource struct {
 	// Status - The async operation state. Possible values include: 'InProgress', 'Succeeded', 'Failed'
@@ -1677,6 +1580,8 @@ type Role struct {
 	DataDisksGroups *[]DataDisksGroups `json:"dataDisksGroups,omitempty"`
 	// ScriptActions - The list of script actions on the role.
 	ScriptActions *[]ScriptAction `json:"scriptActions,omitempty"`
+	// EncryptDataDisks - Indicates whether encrypt the data disks.
+	EncryptDataDisks *bool `json:"encryptDataDisks,omitempty"`
 }
 
 // RuntimeScriptAction describes a script action on a running cluster.
@@ -2140,6 +2045,12 @@ type SecurityProfile struct {
 	MsiResourceID *string `json:"msiResourceId,omitempty"`
 }
 
+// ServiceSpecification the specification of the service.
+type ServiceSpecification struct {
+	// MetricSpecifications - The metric specifications.
+	MetricSpecifications *[]MetricSpecifications `json:"metricSpecifications,omitempty"`
+}
+
 // SetString ...
 type SetString struct {
 	autorest.Response `json:"-"`
@@ -2285,24 +2196,10 @@ func (vs VersionSpec) MarshalJSON() ([]byte, error) {
 // VirtualMachinesRestartHostsFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type VirtualMachinesRestartHostsFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *VirtualMachinesRestartHostsFuture) Result(client VirtualMachinesClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.VirtualMachinesRestartHostsFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("hdinsight.VirtualMachinesRestartHostsFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(VirtualMachinesClient) (autorest.Response, error)
 }
 
 // VirtualNetworkProfile the virtual network properties.
@@ -2335,7 +2232,7 @@ type VMSizeCompatibilityFilter struct {
 // sizes in affect of exclusion/inclusion) and the ordering of the Filters. Later filters override previous
 // settings if conflicted.
 type VMSizeCompatibilityFilterV2 struct {
-	// FilterMode - The filtering mode. Effectively this can enabling or disabling the VM sizes in a particular set. Possible values include: 'Exclude', 'Include'
+	// FilterMode - The filtering mode. Effectively this can enabling or disabling the VM sizes in a particular set. Possible values include: 'Exclude', 'Include', 'Recommend', 'Default'
 	FilterMode FilterMode `json:"filterMode,omitempty"`
 	// Regions - The list of regions under the effect of the filter.
 	Regions *[]string `json:"regions,omitempty"`
@@ -2349,6 +2246,30 @@ type VMSizeCompatibilityFilterV2 struct {
 	OsType *[]OSType `json:"osType,omitempty"`
 	// VMSizes - The list of virtual machine sizes to include or exclude.
 	VMSizes *[]string `json:"vmSizes,omitempty"`
+}
+
+// VMSizeProperty the vm size property
+type VMSizeProperty struct {
+	// Name - The vm size name.
+	Name *string `json:"name,omitempty"`
+	// Cores - The number of cores that the vm size has.
+	Cores *int32 `json:"cores,omitempty"`
+	// DataDiskStorageTier - The data disk storage tier of the vm size.
+	DataDiskStorageTier *string `json:"dataDiskStorageTier,omitempty"`
+	// Label - The label of the vm size.
+	Label *string `json:"label,omitempty"`
+	// MaxDataDiskCount - The max data disk count of the vm size.
+	MaxDataDiskCount *int64 `json:"maxDataDiskCount,omitempty"`
+	// MemoryInMb - The memory whose unit is MB of the vm size.
+	MemoryInMb *int64 `json:"memoryInMb,omitempty"`
+	// SupportedByVirtualMachines - This indicates this vm size is supported by virtual machines or not
+	SupportedByVirtualMachines *bool `json:"supportedByVirtualMachines,omitempty"`
+	// SupportedByWebWorkerRoles - The indicates this vm size is supported by web worker roles or not
+	SupportedByWebWorkerRoles *bool `json:"supportedByWebWorkerRoles,omitempty"`
+	// VirtualMachineResourceDiskSizeInMb - The virtual machine resource disk size whose unit is MB of the vm size.
+	VirtualMachineResourceDiskSizeInMb *int64 `json:"virtualMachineResourceDiskSizeInMb,omitempty"`
+	// WebWorkerResourceDiskSizeInMb - The web worker resource disk size whose unit is MB of the vm size.
+	WebWorkerResourceDiskSizeInMb *int64 `json:"webWorkerResourceDiskSizeInMb,omitempty"`
 }
 
 // VMSizesCapability the virtual machine sizes capability.

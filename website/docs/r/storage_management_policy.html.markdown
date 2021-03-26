@@ -15,7 +15,7 @@ Manages an Azure Storage Account Management Policy.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "resourceGroupName"
-  location = "westus"
+  location = "West Europe"
 }
 
 resource "azurerm_storage_account" "example" {

@@ -530,8 +530,7 @@ func resourceIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	if !*res.NameAvailable {
-		_, err = client.Get(ctx, resourceGroup, name)
-		if err != nil {
+		if _, err = client.Get(ctx, resourceGroup, name); err != nil {
 			return fmt.Errorf("An IoTHub already exists with the name %q - please choose an alternate name: %s", name, string(res.Reason))
 		}
 	}
@@ -602,8 +601,7 @@ func resourceIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) error 
 		props.Properties.MinTLSVersion = utils.String(v.(string))
 	}
 
-	_, err = client.CreateOrUpdate(ctx, resourceGroup, name, props, "")
-	if err != nil {
+	if _, err = client.CreateOrUpdate(ctx, resourceGroup, name, props, ""); err != nil {
 		return fmt.Errorf("Error creating/updating IotHub %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
