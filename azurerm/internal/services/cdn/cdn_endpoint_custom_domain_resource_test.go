@@ -1,9 +1,12 @@
 package cdn_test
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 
@@ -29,187 +32,105 @@ func preCheck(t *testing.T) {
 	}
 }
 
-func preCheckUserManagedCertificate(t *testing.T) {
+type CdnEndpointCustomDomainResource struct {
+	DNSZoneRG     string
+	DNSZoneName   string
+	SubDomainName string
+}
+
+func NewCdnEndpointCustomDomainResource(dnsZoneRg, dnsZoneName string) CdnEndpointCustomDomainResource {
+	return CdnEndpointCustomDomainResource{
+		DNSZoneRG:     dnsZoneRg,
+		DNSZoneName:   dnsZoneName,
+		SubDomainName: acctest.RandStringFromCharSet(3, acctest.CharSetAlpha),
+	}
+}
+
+func TestAccCdnEndpointCustomDomain_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
+
 	preCheck(t)
-	variables := []string{
-		"ARM_TEST_DNS_CERTIFICATE",
-	}
 
-	for _, variable := range variables {
-		value := os.Getenv(variable)
-		if value == "" {
-			t.Skipf("`%s` must be set for acceptance tests!", variable)
+	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_DNS_ZONE_NAME"))
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnEndpointCustomDomain_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
+
+	preCheck(t)
+
+	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_DNS_ZONE_NAME"))
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func (r CdnEndpointCustomDomainResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.CustomDomainID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := client.Cdn.CustomDomainsClient.Get(ctx, id.ResourceGroup, id.ProfileName, id.EndpointName, id.Name)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return utils.Bool(false), nil
 		}
+		return nil, fmt.Errorf("retrieving %q: %+v", id, err)
 	}
+	return utils.Bool(true), nil
 }
 
-func TestAccAzureRMCdnEndpointCustomDomain_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
-	dnsZoneRg, dnsZoneName, subdomain := os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_DNS_ZONE_NAME"), acctest.RandStringFromCharSet(3, acctest.CharSetAlpha)
+func (r CdnEndpointCustomDomainResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.CustomDomainID(state.ID)
+	if err != nil {
+		return nil, err
+	}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t); preCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCdnEndpointCustomDomainDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMCdnEndpointCustomDomain_basic(
-					data, dnsZoneRg, dnsZoneName, subdomain,
-				),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCdnEndpointCustomDomainExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
+	c := client.Cdn.CustomDomainsClient
+	future, err := c.Delete(ctx, id.ResourceGroup, id.ProfileName, id.EndpointName, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("deleting %q: %+v", id, err)
+	}
+	if err := future.WaitForCompletionRef(ctx, c.Client); err != nil {
+		return nil, fmt.Errorf("waiting for deletion of %q: %+v", id, err)
+	}
+
+	return utils.Bool(true), nil
 }
 
-func TestAccAzureRMCdnEndpointCustomDomain_httpsCdn(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
-	dnsZoneRg, dnsZoneName, subdomain := os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_DNS_ZONE_NAME"), acctest.RandStringFromCharSet(3, acctest.CharSetAlpha)
+func (r CdnEndpointCustomDomainResource) basic(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t); preCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCdnEndpointCustomDomainDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMCdnEndpointCustomDomain_httpsCdn(
-					data, dnsZoneRg, dnsZoneName, subdomain,
-				),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCdnEndpointCustomDomainExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
+resource "azurerm_cdn_endpoint_custom_domain" "test" {
+  name            = "acctest-customdomain"
+  cdn_endpoint_id = azurerm_cdn_endpoint.test.id
+  host_name       = "${azurerm_dns_cname_record.test.name}.${data.azurerm_dns_zone.test.name}"
+}
+`, template)
 }
 
-func TestAccAzureRMCdnEndpointCustomDomain_httpsCdnUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
-	dnsZoneRg, dnsZoneName, subdomain := os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_DNS_ZONE_NAME"), acctest.RandStringFromCharSet(3, acctest.CharSetAlpha)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t); preCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCdnEndpointCustomDomainDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMCdnEndpointCustomDomain_basic(
-					data, dnsZoneRg, dnsZoneName, subdomain,
-				),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCdnEndpointCustomDomainExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMCdnEndpointCustomDomain_httpsCdn(
-					data, dnsZoneRg, dnsZoneName, subdomain,
-				),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCdnEndpointCustomDomainExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMCdnEndpointCustomDomain_basic(
-					data, dnsZoneRg, dnsZoneName, subdomain,
-				),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCdnEndpointCustomDomainExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMCdnEndpointCustomDomain_httpsUserManaged(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
-	dnsZoneRg, dnsZoneName, subdomain, certificate := os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_DNS_ZONE_NAME"), acctest.RandStringFromCharSet(3, acctest.CharSetAlpha), os.Getenv("ARM_TEST_DNS_CERTIFICATE")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t); preCheckUserManagedCertificate(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCdnEndpointCustomDomainDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMCdnEndpointCustomDomain_httpsUserManaged(
-					data, dnsZoneRg, dnsZoneName, subdomain, certificate,
-				),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCdnEndpointCustomDomainExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMCdnEndpointCustomDomain_httpsUserManagedUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
-	dnsZoneRg, dnsZoneName, subdomain, certificate := os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_DNS_ZONE_NAME"), acctest.RandStringFromCharSet(3, acctest.CharSetAlpha), os.Getenv("ARM_TEST_DNS_CERTIFICATE")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t); preCheckUserManagedCertificate(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCdnEndpointCustomDomainDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMCdnEndpointCustomDomain_basic(
-					data, dnsZoneRg, dnsZoneName, subdomain,
-				),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCdnEndpointCustomDomainExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMCdnEndpointCustomDomain_httpsUserManaged(
-					data, dnsZoneRg, dnsZoneName, subdomain, certificate,
-				),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCdnEndpointCustomDomainExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMCdnEndpointCustomDomain_basic(
-					data, dnsZoneRg, dnsZoneName, subdomain,
-				),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCdnEndpointCustomDomainExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMCdnEndpointCustomDomain_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
-	dnsZoneRg, dnsZoneName, subdomain := os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_DNS_ZONE_NAME"), acctest.RandStringFromCharSet(3, acctest.CharSetAlpha)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCdnEndpointCustomDomainDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMCdnEndpointCustomDomain_basic(
-					data, dnsZoneRg, dnsZoneName, subdomain,
-				),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCdnEndpointCustomDomainExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(
-				func(data acceptance.TestData) string {
-					template := testAccAzureRMCdnEndpointCustomDomain_basic(data, dnsZoneRg, dnsZoneName, subdomain)
-					return fmt.Sprintf(`
+func (r CdnEndpointCustomDomainResource) requiresImport(data acceptance.TestData) string {
+	template := r.basic(data)
+	return fmt.Sprintf(`
 %s
 
 resource "azurerm_cdn_endpoint_custom_domain" "import" {
@@ -218,190 +139,9 @@ resource "azurerm_cdn_endpoint_custom_domain" "import" {
   host_name       = azurerm_cdn_endpoint_custom_domain.test.host_name
 }
 `, template)
-				}),
-		},
-	})
 }
 
-func testCheckAzureRMCdnEndpointCustomDomainExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Cdn.CustomDomainsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Cdn Endpoint Custom Domain not found: %s", resourceName)
-		}
-
-		id, err := parse.CustomDomainID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.EndpointName, id.Name); err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Cdn Endpoint Custom Domain %q does not exist", id)
-			}
-			return fmt.Errorf("Getting on CDN.CustomDomains: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMCdnEndpointCustomDomainDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Cdn.CustomDomainsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_cdn_endpoint_custom_domain" {
-			continue
-		}
-
-		id, err := parse.CustomDomainID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.EndpointName, id.Name)
-		if err == nil {
-			return fmt.Errorf("CDN.CustomDomains still exists")
-		}
-		if !utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Getting on CDN.CustomDomains: %+v", err)
-		}
-		return nil
-	}
-
-	return nil
-}
-
-func testAccAzureRMCdnEndpointCustomDomain_basic(data acceptance.TestData, dnsZoneRg, dnsZoneName, subdomain string) string {
-	template := testAccAzureRMCdnEndpointCustomDomain_template(data, dnsZoneRg, dnsZoneName, subdomain)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_cdn_endpoint_custom_domain" "test" {
-  name            = "acctest-customdomain"
-  cdn_endpoint_id = azurerm_cdn_endpoint.test.id
-  host_name       = "${azurerm_dns_cname_record.test.name}.${data.azurerm_dns_zone.test.name}"
-}
-`, template)
-}
-
-func testAccAzureRMCdnEndpointCustomDomain_httpsCdn(data acceptance.TestData, dnsZoneRg, dnsZoneName, subdomain string) string {
-	template := testAccAzureRMCdnEndpointCustomDomain_template(data, dnsZoneRg, dnsZoneName, subdomain)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_cdn_endpoint_custom_domain" "test" {
-  name            = "acctest-customdomain"
-  cdn_endpoint_id = azurerm_cdn_endpoint.test.id
-  host_name       = "${azurerm_dns_cname_record.test.name}.${data.azurerm_dns_zone.test.name}"
-  cdn_managed_https_settings {
-    certificate_type = "Shared"
-  }
-}
-`, template)
-}
-
-func testAccAzureRMCdnEndpointCustomDomain_httpsUserManaged(data acceptance.TestData, dnsZoneRg, dnsZoneName, subdomain, certificate string) string {
-	template := testAccAzureRMCdnEndpointCustomDomain_template(data, dnsZoneRg, dnsZoneName, subdomain)
-	return fmt.Sprintf(`
-%[1]s
-
-data "azurerm_client_config" "test" {
-}
-
-resource "azurerm_key_vault" "test" {
-  name                = "testkeyvault-%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.test.tenant_id
-
-  sku_name = "standard"
-
-  access_policy {
-    tenant_id = data.azurerm_client_config.test.tenant_id
-    object_id = data.azurerm_client_config.test.object_id
-
-    certificate_permissions = [
-      "get",
-      "delete",
-      "import",
-      "purge",
-    ]
-
-    key_permissions = [
-      "get",
-      "create",
-    ]
-
-    secret_permissions = [
-      "get",
-      "set",
-    ]
-  }
-
-  access_policy {
-    tenant_id = data.azurerm_client_config.test.tenant_id
-    object_id = "4dbab725-22a4-44d5-ad44-c267ca38a954" # The Microsoft Azure.Cdn application object ID
-
-    certificate_permissions = [
-      "list",
-      "get",
-    ]
-
-    secret_permissions = [
-      "list",
-      "get",
-    ]
-  }
-}
-
-resource "azurerm_key_vault_certificate" "test" {
-  name         = "testkeyvaultcert-%[2]d"
-  key_vault_id = azurerm_key_vault.test.id
-
-  certificate {
-    contents = filebase64("%[3]s")
-    password = ""
-  }
-
-  certificate_policy {
-    issuer_parameters {
-      name = "Self"
-    }
-
-    key_properties {
-      exportable = true
-      key_size   = 2048
-      key_type   = "RSA"
-      reuse_key  = false
-    }
-
-    secret_properties {
-      content_type = "application/x-pkcs12"
-    }
-  }
-}
-
-resource "azurerm_cdn_endpoint_custom_domain" "test" {
-  name            = "testcustomdomain-%[2]d"
-  cdn_endpoint_id = azurerm_cdn_endpoint.test.id
-  host_name       = "${azurerm_dns_cname_record.test.name}.${data.azurerm_dns_zone.test.name}"
-  user_managed_https_settings {
-    subscription_id     = data.azurerm_client_config.test.subscription_id
-    resource_group_name = azurerm_key_vault.test.resource_group_name
-    vault_name          = azurerm_key_vault.test.name
-    secret_name         = azurerm_key_vault_certificate.test.name
-    secret_version      = azurerm_key_vault_certificate.test.version
-  }
-}
-`, template, data.RandomIntOfLength(8), certificate)
-}
-
-func testAccAzureRMCdnEndpointCustomDomain_template(data acceptance.TestData, dnsZoneRg, dnsZoneName, subdomain string) string {
+func (r CdnEndpointCustomDomainResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -451,5 +191,5 @@ resource "azurerm_dns_cname_record" "test" {
   ttl                 = 3600
   target_resource_id  = azurerm_cdn_endpoint.test.id
 }
-`, data.RandomIntOfLength(8), data.Locations.Primary, dnsZoneName, dnsZoneRg, subdomain)
+`, data.RandomIntOfLength(8), data.Locations.Primary, r.DNSZoneName, r.DNSZoneRG, r.SubDomainName)
 }
