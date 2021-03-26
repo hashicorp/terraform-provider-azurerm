@@ -25,19 +25,20 @@ resource "azurerm_data_factory" "example" {
 }
 
 resource "azurerm_data_factory_linked_service_snowflake" "example" {
-  name                = "example"
+  name = "example"
   resource_group_name = azurerm_resource_group.example.name
-  data_factory_name   = azurerm_data_factory.example.name
-  connection_string   = "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;Password=test"
+  data_factory_name = azurerm_data_factory.example.name
+  connection_string = "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;Password=test"
+}
 
-resource "azurerm_data_factory_dataset_snowflake" "test" {
+resource "azurerm_data_factory_dataset_snowflake" "example" {
   name                = "example"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
   linked_service_name = azurerm_data_factory_linked_service_snowflake.test.name
-  
-  schema_name         = "foo_schema"
-  table_name          = "foo_table"
+
+  schema_name = "foo_schema"
+  table_name  = "foo_table"
 }
 ```
 
