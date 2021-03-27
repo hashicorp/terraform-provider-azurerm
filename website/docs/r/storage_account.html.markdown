@@ -137,6 +137,8 @@ A `blob_properties` block supports the following:
 
 * `delete_retention_policy` - (Optional) A `delete_retention_policy` block as defined below.
 
+* `container_delete_retention_policy` - (Optional) A `container_delete_retention_policy` block as defined below.
+
 ---
 
 A `cors_rule` block supports the following:
@@ -164,6 +166,12 @@ A `custom_domain` block supports the following:
 A `delete_retention_policy` block supports the following:
 
 * `days` - (Optional) Specifies the number of days that the blob should be retained, between `1` and `365` days. Defaults to `7`.
+
+---
+
+A `container_delete_retention_policy` block supports the following:
+
+* `days` - (Optional) Specifies the number of days that the container should be retained, between `1` and `365` days. Defaults to `7`.
 
 ---
 
