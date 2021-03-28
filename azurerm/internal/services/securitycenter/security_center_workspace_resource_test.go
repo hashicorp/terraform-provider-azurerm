@@ -17,7 +17,7 @@ import (
 type SecurityCenterWorkspaceResource struct {
 }
 
-func testAccSecurityCenterWorkspace_basic(t *testing.T) {
+func TestAccSecurityCenterWorkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_workspace", "test")
 	r := SecurityCenterWorkspaceResource{}
 
@@ -32,14 +32,10 @@ func testAccSecurityCenterWorkspace_basic(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		{
-			// reset pricing to free
-			Config: SecurityCenterSubscriptionPricingResource{}.tier("Free", "VirtualMachines"),
-		},
 	})
 }
 
-func testAccSecurityCenterWorkspace_requiresImport(t *testing.T) {
+func TestAccSecurityCenterWorkspace_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_workspace", "test")
 	r := SecurityCenterWorkspaceResource{}
 	scope := fmt.Sprintf("/subscriptions/%s", os.Getenv("ARM_SUBSCRIPTION_ID"))
@@ -56,14 +52,10 @@ func testAccSecurityCenterWorkspace_requiresImport(t *testing.T) {
 			Config:      r.requiresImportCfg(data, scope),
 			ExpectError: acceptance.RequiresImportError("azurerm_security_center_workspace"),
 		},
-		{
-			// reset pricing to free
-			Config: SecurityCenterSubscriptionPricingResource{}.tier("Free", "VirtualMachines"),
-		},
 	})
 }
 
-func testAccSecurityCenterWorkspace_update(t *testing.T) {
+func TestAccSecurityCenterWorkspace_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_workspace", "test")
 	r := SecurityCenterWorkspaceResource{}
 	scope := fmt.Sprintf("/subscriptions/%s", os.Getenv("ARM_SUBSCRIPTION_ID"))
@@ -84,10 +76,6 @@ func testAccSecurityCenterWorkspace_update(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		{
-			// reset pricing to free
-			Config: SecurityCenterSubscriptionPricingResource{}.tier("Free", "VirtualMachines"),
-		},
 	})
 }
 
@@ -106,11 +94,6 @@ func (SecurityCenterWorkspaceResource) basicCfg(data acceptance.TestData, scope 
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
-}
-
-resource "azurerm_security_center_subscription_pricing" "test" {
-  tier          = "Standard"
-  resource_type = "VirtualMachines"
 }
 
 resource "azurerm_resource_group" "test" {
@@ -147,10 +130,6 @@ func (SecurityCenterWorkspaceResource) differentWorkspaceCfg(data acceptance.Tes
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
-}
-
-resource "azurerm_security_center_subscription_pricing" "test" {
-  tier = "Standard"
 }
 
 resource "azurerm_resource_group" "test" {
