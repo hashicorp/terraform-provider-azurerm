@@ -811,13 +811,13 @@ resource "azurerm_api_management" "test" {
   }
 
   certificate {
-    encoded_certificate  = filebase64("testdata/api_management_api_test.cer")
-    store_name           = "Root"
+    encoded_certificate = filebase64("testdata/api_management_api_test.cer")
+    store_name          = "Root"
   }
 
   certificate {
-    encoded_certificate  = filebase64("testdata/api_management_api_test.cer")
-    store_name           = "CertificateAuthority"
+    encoded_certificate = filebase64("testdata/api_management_api_test.cer")
+    store_name          = "CertificateAuthority"
   }
 
   protocols {
