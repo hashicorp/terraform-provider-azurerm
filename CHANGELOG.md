@@ -1,4 +1,4 @@
-## 2.54.0
+## 2.54.0 (Unreleased)
 
 BUG FIXES:
 * `azurerm_subscription` - fixes broken timeout on destroy [GH-11124]
