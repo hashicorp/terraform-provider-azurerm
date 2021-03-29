@@ -57,6 +57,8 @@ The following arguments are supported:
 
 * `persistent_disk` - (Optional) An `persistent_disk` block as defined below.
 
+* `tls_enabled` - (Optional) Is End to End TLS Enabled? Defaults to `false`.
+
 ---
 
 An `identity` block supports the following:

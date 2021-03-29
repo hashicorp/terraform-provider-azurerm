@@ -57,7 +57,7 @@ The following arguments are supported:
 
 * `table_names` - (Required) A list of table names to export to the destination resource, for example: `["Heartbeat", "SecurityEvent"]`.
 
-* `enabled` - (Optional) Is this Log Analytics Data Export Rule when enabled? Possible values include `true` or `false`. Defaults to `false`.
+* `enabled` - (Optional) Is this Log Analytics Data Export Rule enabled? Possible values include `true` or `false`. Defaults to `false`.
 
 ## Attributes Reference
 

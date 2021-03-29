@@ -92,6 +92,11 @@ func dataSourceSpringCloudApp() *schema.Resource {
 				},
 			},
 
+			"tls_enabled": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+
 			"url": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -130,6 +135,7 @@ func dataSourceSpringCloudAppRead(d *schema.ResourceData, meta interface{}) erro
 		d.Set("https_only", prop.HTTPSOnly)
 		d.Set("is_public", prop.Public)
 		d.Set("url", prop.URL)
+		d.Set("tls_enabled", prop.EnableEndToEndTLS)
 
 		if err := d.Set("persistent_disk", flattenSpringCloudAppPersistentDisk(prop.PersistentDisk)); err != nil {
 			return fmt.Errorf("setting `persistent_disk`: %s", err)
