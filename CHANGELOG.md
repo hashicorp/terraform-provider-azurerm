@@ -1,6 +1,7 @@
 ## 2.54.0 (Unreleased)
 
 BUG FIXES:
+* `azurerm_site_recovery_fabric` - Fixes error in checking for existing resource [GH-11130]
 * `azurerm_subscription` - fixes broken timeout on destroy [GH-11124]
 
 ## 2.53.0 (March 26, 2021)
