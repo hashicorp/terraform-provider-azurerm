@@ -149,7 +149,7 @@ func (r CommunicationServiceResource) update(data acceptance.TestData) string {
 resource "azurerm_communication_service" "test" {
   name                = "acctest-CommunicationService-%d"
   resource_group_name = azurerm_resource_group.test.name
-  data_location       = "United States"
+  data_location       = "Australia"
 
   tags = {
     env = "Test2"
