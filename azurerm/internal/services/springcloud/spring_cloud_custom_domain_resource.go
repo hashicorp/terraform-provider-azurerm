@@ -62,6 +62,7 @@ func resourceSpringCloudCustomDomain() *schema.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
+				RequiredWith: []string{"certificate_name"},
 			},
 		},
 	}

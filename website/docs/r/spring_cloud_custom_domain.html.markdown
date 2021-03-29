@@ -62,7 +62,7 @@ The following arguments are supported:
 
 * `certificate_name` - (Optional) Specifies the name of the Spring Cloud Certificate that binds to the Spring Cloud Custom Domain.
 
-* `thumbprint` - (Optional) Specifies the thumbprint of the Spring Cloud Certificate that binds to the Spring Cloud Custom Domain. Changing this forces a new resource to be created.
+* `thumbprint` - (Optional) Specifies the thumbprint of the Spring Cloud Certificate that binds to the Spring Cloud Custom Domain. Required when `certificate_name` is specified. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
