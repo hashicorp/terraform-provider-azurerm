@@ -55,7 +55,7 @@ func dataSourceStorageManagementPolicy() *schema.Resource {
 									},
 
 									"blob_index_match_tag": {
-										Type:     schema.TypeSet,
+										Type:     schema.TypeList,
 										Computed: true,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
@@ -90,15 +90,15 @@ func dataSourceStorageManagementPolicy() *schema.Resource {
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"tier_to_cool_after_days_since_modification_greater_than": {
-													Type:     schema.TypeInt,
+													Type:     schema.TypeFloat,
 													Computed: true,
 												},
 												"tier_to_archive_after_days_since_modification_greater_than": {
-													Type:     schema.TypeInt,
+													Type:     schema.TypeFloat,
 													Computed: true,
 												},
 												"delete_after_days_since_modification_greater_than": {
-													Type:     schema.TypeInt,
+													Type:     schema.TypeFloat,
 													Computed: true,
 												},
 											},
@@ -110,7 +110,36 @@ func dataSourceStorageManagementPolicy() *schema.Resource {
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"delete_after_days_since_creation_greater_than": {
-													Type:     schema.TypeInt,
+													Type:     schema.TypeFloat,
+													Computed: true,
+												},
+												"tier_to_archive_after_days_since_creation_greater_than": {
+													Type:     schema.TypeFloat,
+													Computed: true,
+												},
+												"tier_to_cool_after_days_since_creation_greater_than": {
+													Type:     schema.TypeFloat,
+													Optional: true,
+													Computed: true,
+												},
+											},
+										},
+									},
+									"version": {
+										Type:     schema.TypeList,
+										Computed: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"delete_after_days_since_creation_greater_than": {
+													Type:     schema.TypeFloat,
+													Computed: true,
+												},
+												"tier_to_archive_after_days_since_creation_greater_than": {
+													Type:     schema.TypeFloat,
+													Computed: true,
+												},
+												"tier_to_cool_after_days_since_creation_greater_than": {
+													Type:     schema.TypeFloat,
 													Computed: true,
 												},
 											},
@@ -146,11 +175,10 @@ func dataSourceStorageManagementPolicyRead(d *schema.ResourceData, meta interfac
 	}
 	d.SetId(*result.ID)
 
-	if result.Policy != nil {
-		policy := result.Policy
-		if policy.Rules != nil {
+	if props := result.ManagementPolicyProperties; props != nil {
+		if policy := props.Policy; policy != nil {
 			if err := d.Set("rule", flattenStorageManagementPolicyRules(policy.Rules)); err != nil {
-				return fmt.Errorf("Error flattening `rule`: %+v", err)
+				return fmt.Errorf("flattening `rule`: %+v", err)
 			}
 		}
 	}

@@ -63,12 +63,19 @@ resource "azurerm_storage_management_policy" "example" {
     }
     actions {
       base_blob {
-        tier_to_cool_after_days_since_modification_greater_than    = 11
-        tier_to_archive_after_days_since_modification_greater_than = 51
-        delete_after_days_since_modification_greater_than          = 101
+        tier_to_cool_after_days_since_modification_greater_than    = 10.4
+        tier_to_archive_after_days_since_modification_greater_than = 50.89
+        delete_after_days_since_modification_greater_than          = 100.13
       }
       snapshot {
-        delete_after_days_since_creation_greater_than = 31
+        delete_after_days_since_creation_greater_than          = 30.3
+        tier_to_archive_after_days_since_creation_greater_than = 90.8
+        tier_to_cool_after_days_since_creation_greater_than    = 23.8
+      }
+      version {
+        delete_after_days_since_creation_greater_than          = 3.4
+        tier_to_archive_after_days_since_creation_greater_than = 9.8
+        tier_to_cool_after_days_since_creation_greater_than    = 90.3
       }
     }
   }
@@ -106,20 +113,31 @@ The following arguments are supported:
 
 * `base_blob` - A `base_blob` block as documented below.
 * `snapshot` - A `snapshot` block as documented below.
+* `version` - A `version` block as documented below.
 
 ---
 
 `base_blob` supports the following:
 
-* `tier_to_cool_after_days_since_modification_greater_than` - The age in days after last modification to tier blobs to cool storage. Supports blob currently at Hot tier. Must be at least 0.
-* `tier_to_archive_after_days_since_modification_greater_than` - The age in days after last modification to tier blobs to archive storage. Supports blob currently at Hot or Cool tier. Must be at least 0.
-* `delete_after_days_since_modification_greater_than` - The age in days after last modification to delete the blob. Must be at least 0.
+* `tier_to_cool_after_days_since_modification_greater_than` - The age in days after last modification to tier blobs to cool storage. Supports blob currently at Hot tier. Must be between 0 and 99999.
+* `tier_to_archive_after_days_since_modification_greater_than` - The age in days after last modification to tier blobs to archive storage. Supports blob currently at Hot or Cool tier. Must be between 0 and 99999.
+* `delete_after_days_since_modification_greater_than` - The age in days after last modification to delete the blob. Must be between 0 and 99999.
 
 ---
 
 `snapshot` supports the following:
 
-* `delete_after_days_since_creation_greater_than` - The age in days after create to delete the snaphot. Must be at least 0.
+* `delete_after_days_since_creation_greater_than` - The age in days after creation to delete the blob snapshot. Must be between 0 and 99999.
+* `tier_to_archive_after_days_since_creation_greater_than` - The age in days after creation to tier blob snapshot to archive storage. Must be between 0 and 99999.
+* `tier_to_cool_after_days_since_creation_greater_than` - The age in days after creation to tier blob snapshot to cool storage. Must be between 0 and 99999.
+
+---
+
+`version` supports the following:
+
+* `delete_after_days_since_creation_greater_than` - The age in days after creation to delete the blob version. Must be between 0 and 99999.
+* `tier_to_archive_after_days_since_creation_greater_than` - The age in days after creation to tier blob version to archive storage. Must be between 0 and 99999.
+* `tier_to_cool_after_days_since_creation_greater_than` - The age in days creation create to  tier blob version to cool storage. Must be between 0 and 99999.
 
 ---
 

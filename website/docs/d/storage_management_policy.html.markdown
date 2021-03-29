@@ -49,13 +49,14 @@ The following arguments are supported:
 
 * `prefix_match` - An array of strings for prefixes to be matched.
 * `blob_types` - An array of predefined values. Valid options are `blockBlob` and `appendBlob`.
-
+* `blob_index_match_tag` - A `blob_index_match_tag` block as defined below. The block defines the blob index tag based filtering for blob objects.
 ---
 
 `actions` supports the following:
 
 * `base_blob` - A `base_blob` block as documented below.
 * `snapshot` - A `snapshot` block as documented below.
+* `version` - A `version` block as documented below.
 
 ---
 
@@ -69,7 +70,27 @@ The following arguments are supported:
 
 `snapshot` supports the following:
 
-* `delete_after_days_since_creation_greater_than` - The age in days after create to delete the snapshot.
+* `delete_after_days_since_creation_greater_than` - The age in days after creation to delete the blob snapshot.
+* `tier_to_archive_after_days_since_creation_greater_than` - The age in days after creation to tier blob snapshot to archive storage.
+* `tier_to_cool_after_days_since_creation_greater_than` - The age in days after creation to tier blob snapshot to cool storage.
+
+---
+
+`version` supports the following:
+
+* `delete_after_days_since_creation_greater_than` - The age in days after creation to delete the blob version.
+* `tier_to_archive_after_days_since_creation_greater_than` - The age in days after creation to tier blob version to archive storage.
+* `tier_to_cool_after_days_since_creation_greater_than` - The age in days creation create to  tier blob version to cool storage.
+
+
+---
+
+`blob_index_match_tag` supports the following:
+
+* `name` - The filter tag name used for tag based filtering for blob objects.
+* `operation` - The comparison operator which is used for object comparison and filtering. Possible value is `==`. Defaults to `==`.
+* `value` -  The filter tag value used for tag based filtering for blob objects.
+
 
 ## Timeouts
 

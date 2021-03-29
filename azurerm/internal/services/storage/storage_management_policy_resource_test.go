@@ -649,20 +649,12 @@ resource "azurerm_storage_management_policy" "test" {
     filters {
       prefix_match = ["container1/prefix1"]
       blob_types   = ["blockBlob"]
-      blob_index_match_tag {
-        name  = "tag1"
-        value = "val1"
-      }
     }
     actions {
       base_blob {
-        tier_to_cool_after_days_since_modification_greater_than        = 10.4
-        tier_to_cool_after_days_since_last_access_time_greater_than    = 2.45
-        tier_to_archive_after_days_since_modification_greater_than     = 50.89
-        tier_to_archive_after_days_since_last_access_time_greater_than = 78.33
-        delete_after_days_since_modification_greater_than              = 100.13
-        delete_after_days_since_last_access_time_greater_than          = 50.78
-        enable_auto_tier_to_hot_from_cool                              = true
+        tier_to_cool_after_days_since_modification_greater_than    = 10.4
+        tier_to_archive_after_days_since_modification_greater_than = 50.89
+        delete_after_days_since_modification_greater_than          = 100.13
       }
       snapshot {
         delete_after_days_since_creation_greater_than          = 30.3
@@ -709,20 +701,13 @@ resource "azurerm_storage_management_policy" "test" {
     enabled = true
     filters {
       prefix_match = ["container2/prefix2"]
-      blob_types   = ["blockBlob", "appendBlob"]
-      blob_index_match_tag {
-        name  = "tag2"
-        value = "val2"
-      }
+      blob_types   = ["blockBlob"]
     }
     actions {
       base_blob {
-        tier_to_cool_after_days_since_modification_greater_than        = 11.4
-        tier_to_cool_after_days_since_last_access_time_greater_than    = 3.45
-        tier_to_archive_after_days_since_modification_greater_than     = 51.89
-        tier_to_archive_after_days_since_last_access_time_greater_than = 79.33
-        delete_after_days_since_modification_greater_than              = 101.13
-        delete_after_days_since_last_access_time_greater_than          = 51.78
+        tier_to_cool_after_days_since_modification_greater_than    = 11.4
+        tier_to_archive_after_days_since_modification_greater_than = 51.89
+        delete_after_days_since_modification_greater_than          = 101.13
       }
       snapshot {
         delete_after_days_since_creation_greater_than          = 31.3
