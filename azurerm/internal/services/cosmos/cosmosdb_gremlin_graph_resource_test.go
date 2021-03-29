@@ -138,6 +138,21 @@ func TestAccCosmosDbGremlinGraph_autoscale(t *testing.T) {
 	})
 }
 
+func TestAccCosmosDbGremlinGraph_partitionKey(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_gremlin_graph", "test")
+	r := CosmosGremlinGraphResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.indexPolicy(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t CosmosGremlinGraphResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.GremlinGraphID(state.ID)
 	if err != nil {
@@ -162,7 +177,6 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_gremlin_database.test.name
   throughput          = 400
-  partition_key_path  = "/test"
 
   index_policy {
     automatic      = true
@@ -189,8 +203,6 @@ resource "azurerm_cosmosdb_gremlin_graph" "import" {
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_gremlin_database.test.name
 
-  partition_key_path = azurerm_cosmosdb_gremlin_graph.test.partition_key_path
-
   index_policy {
     automatic      = true
     indexing_mode  = "Consistent"
@@ -216,7 +228,6 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_gremlin_database.test.name
   throughput          = 400
-  partition_key_path  = "/test"
 
   index_policy {
     automatic      = true
@@ -243,7 +254,6 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_gremlin_database.test.name
   throughput          = 400
-  partition_key_path  = "/test"
 
   index_policy {
     automatic     = false
