@@ -77,7 +77,7 @@ func UserAssignedIdentityID(input string) (*UserAssignedIdentityId, error) {
 func UserAssignedIdentityIDInsensitively(input string) (*UserAssignedIdentityId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("cannot parse User Assigned Identity ID: %q", input)
 	}
 
 	resourceId := UserAssignedIdentityId{
