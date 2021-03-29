@@ -41,7 +41,7 @@ func (id UserAssignedIdentityId) ID() string {
 func UserAssignedIdentityID(input string) (*UserAssignedIdentityId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to parse User Assigned Identity ID: %q", input)
 	}
 
 	resourceId := UserAssignedIdentityId{
