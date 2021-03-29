@@ -375,22 +375,29 @@ func expandStorageManagementPolicyActionsBaseBlob(inputs []interface{}) *storage
 		return nil
 	}
 	input := inputs[0].(map[string]interface{})
-
-	return &storage.ManagementPolicyBaseBlob{
+	result := storage.ManagementPolicyBaseBlob{
 		EnableAutoTierToHotFromCool: utils.Bool(input["enable_auto_tier_to_hot_from_cool"].(bool)),
 		Delete: &storage.DateAfterModification{
 			DaysAfterModificationGreaterThan:   utils.Float(input["delete_after_days_since_modification_greater_than"].(float64)),
-			DaysAfterLastAccessTimeGreaterThan: utils.Float(input["delete_after_days_since_last_access_time_greater_than"].(float64)),
 		},
 		TierToArchive: &storage.DateAfterModification{
 			DaysAfterModificationGreaterThan:   utils.Float(input["tier_to_archive_after_days_since_modification_greater_than"].(float64)),
-			DaysAfterLastAccessTimeGreaterThan: utils.Float(input["tier_to_archive_after_days_since_last_access_time_greater_than"].(float64)),
 		},
 		TierToCool: &storage.DateAfterModification{
 			DaysAfterModificationGreaterThan:   utils.Float(input["tier_to_cool_after_days_since_modification_greater_than"].(float64)),
-			DaysAfterLastAccessTimeGreaterThan: utils.Float(input["tier_to_cool_after_days_since_last_access_time_greater_than"].(float64)),
 		},
 	}
+
+	if v,ok:= input["delete_after_days_since_last_access_time_greater_than"];ok&&v!=""{
+		result.Delete.DaysAfterLastAccessTimeGreaterThan = utils.Float(v.(float64))
+	}
+	if v,ok:= input["tier_to_archive_after_days_since_last_access_time_greater_than"];ok&&v!=""{
+		result.TierToArchive.DaysAfterLastAccessTimeGreaterThan = utils.Float(v.(float64))
+	}
+	if v,ok:= input["tier_to_cool_after_days_since_last_access_time_greater_than"];ok&&v!=""{
+		result.TierToCool.DaysAfterLastAccessTimeGreaterThan = utils.Float(v.(float64))
+	}
+	return &result
 }
 
 func expandStorageManagementPolicyActionsSnapshot(inputs []interface{}) *storage.ManagementPolicySnapShot {
@@ -499,7 +506,7 @@ func flattenStorageManagementPolicyActionsBaseBlob(baseBlob *storage.ManagementP
 	var deleteModification, deleteAccess, archiveModification, archiveAccess, coolModification, coolAccess float64
 	var enableAutoCool bool
 	if v := baseBlob.Delete; v != nil {
-		if v.DaysAfterLastAccessTimeGreaterThan != nil {
+		if v.DaysAfterModificationGreaterThan != nil {
 			deleteModification = *v.DaysAfterModificationGreaterThan
 		}
 		if v.DaysAfterLastAccessTimeGreaterThan != nil {
@@ -507,7 +514,7 @@ func flattenStorageManagementPolicyActionsBaseBlob(baseBlob *storage.ManagementP
 		}
 	}
 	if v := baseBlob.TierToArchive; v != nil {
-		if v.DaysAfterLastAccessTimeGreaterThan != nil {
+		if v.DaysAfterModificationGreaterThan != nil {
 			archiveModification = *v.DaysAfterModificationGreaterThan
 		}
 		if v.DaysAfterLastAccessTimeGreaterThan != nil {
@@ -515,7 +522,7 @@ func flattenStorageManagementPolicyActionsBaseBlob(baseBlob *storage.ManagementP
 		}
 	}
 	if v := baseBlob.TierToCool; v != nil {
-		if v.DaysAfterLastAccessTimeGreaterThan != nil {
+		if v.DaysAfterModificationGreaterThan != nil {
 			coolModification = *v.DaysAfterModificationGreaterThan
 		}
 		if v.DaysAfterLastAccessTimeGreaterThan != nil {
