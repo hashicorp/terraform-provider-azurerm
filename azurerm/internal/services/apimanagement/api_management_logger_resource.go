@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -255,7 +255,7 @@ func resourceApiManagementLoggerDelete(d *schema.ResourceData, meta interface{})
 	serviceName := id.Path["service"]
 	name := id.Path["loggers"]
 
-	if resp, err := client.Delete(ctx, resourceGroup, serviceName, name, "", utils.Bool(false)); err != nil {
+	if resp, err := client.Delete(ctx, resourceGroup, serviceName, name, ""); err != nil {
 		if !utils.ResponseWasNotFound(resp) {
 			return fmt.Errorf("deleting Logger %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
 		}
