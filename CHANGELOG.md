@@ -1,3 +1,8 @@
+## 2.54.0
+
+BUG FIXES:
+* `azurerm_subscription` - fixes broken timeout on destroy [GH-11124]
+
 ## 2.53.0 (March 26, 2021)
 
 FEATURES:
