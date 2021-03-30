@@ -2947,7 +2947,7 @@ resource "azurerm_app_service" "test" {
 
   site_config {
     ip_restriction {
-      subnet_id = azurerm_subnet.test.id
+      virtual_network_subnet_id = azurerm_subnet.test.id
     }
   }
 }
@@ -3005,10 +3005,10 @@ resource "azurerm_app_service" "test" {
 
   site_config {
     ip_restriction {
-      subnet_id = azurerm_subnet.test.id
+      virtual_network_subnet_id = azurerm_subnet.test.id
     }
     ip_restriction {
-      subnet_id = azurerm_subnet.test2.id
+      virtual_network_subnet_id = azurerm_subnet.test2.id
     }
   }
 }
