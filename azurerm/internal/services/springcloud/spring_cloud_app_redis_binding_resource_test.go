@@ -118,7 +118,7 @@ resource "azurerm_spring_cloud_app_redis_binding" "import" {
   name                = azurerm_spring_cloud_app_redis_binding.test.name
   spring_cloud_app_id = azurerm_spring_cloud_app_redis_binding.test.spring_cloud_app_id
   redis_cache_id      = azurerm_spring_cloud_app_redis_binding.test.redis_cache_id
-  redis_access_key    = azurerm_spring_cloud_app_redis_binding.test.key
+  redis_access_key    = azurerm_spring_cloud_app_redis_binding.test.redis_access_key
 }
 `, r.basic(data))
 }
