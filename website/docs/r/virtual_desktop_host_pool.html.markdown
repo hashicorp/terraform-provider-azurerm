@@ -58,7 +58,7 @@ The following arguments are supported:
 
 * `description` - (Optional) A description for the Virtual Desktop Host Pool.
 
-* `validation_environment` -  (Optional) Allows you to test service changes before they are deployed to production. Defaults to `false`.
+* `validate_environment` -  (Optional) Allows you to test service changes before they are deployed to production. Defaults to `false`.
 
 * `custom_rdp_property` - (Optional) A valid custom RDP properties string for the Virtual Desktop Host Pool, available properties can be [found in this article](https://docs.microsoft.com/en-us/windows-server/remote/remote-desktop-services/clients/rdp-files).
 
