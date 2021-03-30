@@ -4,6 +4,7 @@ ENHANCEMENTS:
 
 * dependencies: updating `storage` to API version `2021-01-01` [GH-11094]
 * `azurerm_container_registry` - support for the `quarantine_policy_enabled` property [GH-11011]
+* `azurerm_spring_cloud_service` - supports for the `sample_rate` property [GH-11106]
 
 BUG FIXES:
 
