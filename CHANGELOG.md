@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 * dependencies: updating `storage` to API version `2021-01-01` [GH-11094]
+* `azurerm_container_registry` - support for the `quarantine_policy_enabled` property [GH-11011]
 
 BUG FIXES:
 
