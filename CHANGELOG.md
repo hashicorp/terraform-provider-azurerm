@@ -9,6 +9,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_api_management` - the `certificate_password` property is now optional [GH-11139]
 * `azurerm_data_factory_linked_service_azure_blob_storage` - correct managed identity implementation by implementing the `service_endpoint` property [GH-10830]
 * `azurerm_machine_learning_workspace` - deprecate the `Enterprise` sku as it has been deprecated by Azure [GH-11063]
 * `azurerm_machine_learning_workspace` - support container registries in other subscriptions [GH-11065]
