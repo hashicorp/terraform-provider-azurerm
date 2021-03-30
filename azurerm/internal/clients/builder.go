@@ -133,6 +133,9 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		StorageUseAzureAD:           builder.StorageUseAzureAD,
 	}
 
+	// TODO -- need a parameter to pass the credential in
+	o.BuildResourceManagerConnection(nil)
+
 	if err := client.Build(ctx, o); err != nil {
 		return nil, fmt.Errorf("error building Client: %+v", err)
 	}
