@@ -22,7 +22,7 @@ import (
 
 func resourceVirtualDesktopHostPool() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceVirtualDesktopHostPoolCreateUpdate,
+		Create: resourceVirtualDesktopHostPoolCreateUpdate,	
 		Read:   resourceVirtualDesktopHostPoolRead,
 		Update: resourceVirtualDesktopHostPoolCreateUpdate,
 		Delete: resourceVirtualDesktopHostPoolDelete,
@@ -98,6 +98,11 @@ func resourceVirtualDesktopHostPool() *schema.Resource {
 				Optional: true,
 				Default:  false,
 			},
+
+			"custom_rdp_property": {
+				Type: schema.TypeString,
+				Optional: true,
+			}
 
 			"personal_desktop_assignment_type": {
 				Type:     schema.TypeString,
@@ -196,6 +201,7 @@ func resourceVirtualDesktopHostPoolCreateUpdate(d *schema.ResourceData, meta int
 			FriendlyName:                  utils.String(d.Get("friendly_name").(string)),
 			Description:                   utils.String(d.Get("description").(string)),
 			ValidationEnvironment:         utils.Bool(d.Get("validate_environment").(bool)),
+			CustomRdpProperty:				utils.String(d.Get(custom_rdp_property).(string))
 			MaxSessionLimit:               utils.Int32(int32(d.Get("maximum_sessions_allowed").(int))),
 			LoadBalancerType:              desktopvirtualization.LoadBalancerType(d.Get("load_balancer_type").(string)),
 			PersonalDesktopAssignmentType: desktopvirtualization.PersonalDesktopAssignmentType(d.Get("personal_desktop_assignment_type").(string)),
