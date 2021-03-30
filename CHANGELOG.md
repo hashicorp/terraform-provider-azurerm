@@ -8,6 +8,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_machine_learning_workspace` - deprecate the `Enterprise` sku as it has been deprecated by Azure [GH-11063]
+* `azurerm_machine_learning_workspace` - support container registries in other subscriptions [GH-11065]
 * `azurerm_site_recovery_fabric` - Fixes error in checking for existing resource [GH-11130]
 * `azurerm_spring_cloud_custom_domain` - `thumbprint` is required when specifying `certificate_name` [GH-11145]
 * `azurerm_subscription` - fixes broken timeout on destroy [GH-11124]
