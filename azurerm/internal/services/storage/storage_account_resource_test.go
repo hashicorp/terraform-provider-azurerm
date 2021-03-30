@@ -1537,6 +1537,11 @@ resource "azurerm_storage_account" "test" {
     delete_retention_policy {
       days = 300
     }
+
+    container_delete_retention_policy {
+      days = 7
+    }
+
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
@@ -1579,6 +1584,9 @@ resource "azurerm_storage_account" "test" {
     }
 
     delete_retention_policy {
+    }
+
+    container_delete_retention_policy {
     }
   }
 }
