@@ -845,18 +845,8 @@ func schemaAppServiceIpRestriction() *schema.Schema {
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
-				"subnet_id": {
-					// TODO - Remove in 3.0
-					Type:         schema.TypeString,
-					Optional:     true,
-					Computed:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-					Deprecated:   "This field has been deprecated in favour of `virtual_network_subnet_id` and will be removed in a future version of the provider",
-				},
-
 				"virtual_network_subnet_id": {
 					Type:         schema.TypeString,
-					Computed:     true, // TODO Remove `Computed` in 3.0
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
@@ -899,27 +889,27 @@ func schemaAppServiceDataSourceIpRestriction() *schema.Schema {
 					Type:     schema.TypeString,
 					Computed: true,
 				},
+
 				"service_tag": {
 					Type:     schema.TypeString,
 					Computed: true,
 				},
-				"subnet_id": {
-					// TODO - Remove in 3.0
-					Type:     schema.TypeString,
-					Computed: true,
-				},
+
 				"virtual_network_subnet_id": {
 					Type:     schema.TypeString,
 					Computed: true,
 				},
+
 				"name": {
 					Type:     schema.TypeString,
 					Computed: true,
 				},
+
 				"priority": {
 					Type:     schema.TypeInt,
 					Computed: true,
 				},
+
 				"action": {
 					Type:     schema.TypeString,
 					Computed: true,
@@ -1814,7 +1804,6 @@ func flattenAppServiceIpRestriction(input *[]web.IPSecurityRestriction) []interf
 			subnetId = *subnetIdRaw
 		}
 		restriction["virtual_network_subnet_id"] = subnetId
-		restriction["subnet_id"] = subnetId
 
 		name := ""
 		if nameRaw := v.Name; nameRaw != nil {
@@ -1902,10 +1891,6 @@ func expandAppServiceIpRestriction(input interface{}) ([]web.IPSecurityRestricti
 
 		ipAddress := restriction["ip_address"].(string)
 		vNetSubnetID := ""
-
-		if subnetID, ok := restriction["subnet_id"]; ok && subnetID != "" {
-			vNetSubnetID = subnetID.(string)
-		}
 
 		if subnetID, ok := restriction["virtual_network_subnet_id"]; ok && subnetID != "" {
 			vNetSubnetID = subnetID.(string)
