@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
@@ -170,6 +169,11 @@ func resourceKeyVaultSecretCreate(d *schema.ResourceData, meta interface{}) erro
 					return fmt.Errorf("Error waiting for Key Vault Secret %q to become available: %s", name, err)
 				}
 				log.Printf("[DEBUG] Secret %q recovered with ID: %q", name, *recoveredSecret.ID)
+
+				_, err := client.SetSecret(ctx, *keyVaultBaseUrl, name, parameters)
+				if err != nil {
+					return err
+				}
 			}
 		} else {
 			// If the error response was anything else, or `recover_soft_deleted_key_vaults` is `false` just return the error
@@ -342,7 +346,7 @@ func resourceKeyVaultSecretRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("value", resp.Value)
 	d.Set("version", respID.Version)
 	d.Set("content_type", resp.ContentType)
-	d.Set("versionless_id", fmt.Sprintf("%s/%s/%s", strings.TrimSuffix(id.KeyVaultBaseUrl, "/"), id.NestedItemType, id.Name))
+	d.Set("versionless_id", id.VersionlessID())
 
 	if attributes := resp.Attributes; attributes != nil {
 		if v := attributes.NotBefore; v != nil {

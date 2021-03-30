@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2019-05-01/containerregistry"
+	"github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2020-11-01-preview/containerregistry"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -81,6 +81,12 @@ func resourceContainerRegistry() *schema.Resource {
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				Set: location.HashCode,
+			},
+
+			"public_network_access_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
 			},
 
 			"storage_account_id": {
@@ -288,6 +294,10 @@ func resourceContainerRegistryCreate(d *schema.ResourceData, meta interface{}) e
 	trustPolicyRaw := d.Get("trust_policy").([]interface{})
 	trustPolicy := expandTrustPolicy(trustPolicyRaw)
 
+	publicNetworkAccess := containerregistry.PublicNetworkAccessEnabled
+	if !d.Get("public_network_access_enabled").(bool) {
+		publicNetworkAccess = containerregistry.PublicNetworkAccessDisabled
+	}
 	parameters := containerregistry.Registry{
 		Location: &location,
 		Sku: &containerregistry.Sku{
@@ -301,6 +311,7 @@ func resourceContainerRegistryCreate(d *schema.ResourceData, meta interface{}) e
 				RetentionPolicy: retentionPolicy,
 				TrustPolicy:     trustPolicy,
 			},
+			PublicNetworkAccess: publicNetworkAccess,
 		},
 
 		Tags: tags.Expand(t),
@@ -388,6 +399,12 @@ func resourceContainerRegistryUpdate(d *schema.ResourceData, meta interface{}) e
 
 	retentionPolicy := expandRetentionPolicy(d.Get("retention_policy").([]interface{}))
 	trustPolicy := expandTrustPolicy(d.Get("trust_policy").([]interface{}))
+
+	publicNetworkAccess := containerregistry.PublicNetworkAccessEnabled
+	if !d.Get("public_network_access_enabled").(bool) {
+		publicNetworkAccess = containerregistry.PublicNetworkAccessDisabled
+	}
+
 	parameters := containerregistry.RegistryUpdateParameters{
 		RegistryPropertiesUpdateParameters: &containerregistry.RegistryPropertiesUpdateParameters{
 			AdminUserEnabled: utils.Bool(adminUserEnabled),
@@ -396,6 +413,7 @@ func resourceContainerRegistryUpdate(d *schema.ResourceData, meta interface{}) e
 				RetentionPolicy: retentionPolicy,
 				TrustPolicy:     trustPolicy,
 			},
+			PublicNetworkAccess: publicNetworkAccess,
 		},
 		Tags: tags.Expand(t),
 	}
@@ -577,6 +595,7 @@ func resourceContainerRegistryRead(d *schema.ResourceData, meta interface{}) err
 	}
 	d.Set("admin_enabled", resp.AdminUserEnabled)
 	d.Set("login_server", resp.LoginServer)
+	d.Set("public_network_access_enabled", resp.PublicNetworkAccess == containerregistry.PublicNetworkAccessEnabled)
 
 	networkRuleSet := flattenNetworkRuleSet(resp.NetworkRuleSet)
 	if err := d.Set("network_rule_set", networkRuleSet); err != nil {
@@ -729,7 +748,7 @@ func expandNetworkRuleSet(profiles []interface{}) *containerregistry.NetworkRule
 
 func expandRetentionPolicy(p []interface{}) *containerregistry.RetentionPolicy {
 	retentionPolicy := containerregistry.RetentionPolicy{
-		Status: containerregistry.Disabled,
+		Status: containerregistry.PolicyStatusDisabled,
 	}
 
 	if len(p) > 0 {
@@ -737,7 +756,7 @@ func expandRetentionPolicy(p []interface{}) *containerregistry.RetentionPolicy {
 		days := int32(v["days"].(int))
 		enabled := v["enabled"].(bool)
 		if enabled {
-			retentionPolicy.Status = containerregistry.Enabled
+			retentionPolicy.Status = containerregistry.PolicyStatusEnabled
 		}
 		retentionPolicy.Days = utils.Int32(days)
 	}
@@ -747,14 +766,14 @@ func expandRetentionPolicy(p []interface{}) *containerregistry.RetentionPolicy {
 
 func expandTrustPolicy(p []interface{}) *containerregistry.TrustPolicy {
 	trustPolicy := containerregistry.TrustPolicy{
-		Status: containerregistry.Disabled,
+		Status: containerregistry.PolicyStatusDisabled,
 	}
 
 	if len(p) > 0 {
 		v := p[0].(map[string]interface{})
 		enabled := v["enabled"].(bool)
 		if enabled {
-			trustPolicy.Status = containerregistry.Enabled
+			trustPolicy.Status = containerregistry.PolicyStatusEnabled
 		}
 		trustPolicy.Type = containerregistry.Notary
 	}

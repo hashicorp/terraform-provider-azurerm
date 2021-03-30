@@ -1,35 +1,94 @@
-## 2.51.0 (Unreleased)
+## 2.54.0 (Unreleased)
+
+BUG FIXES:
+* `azurerm_site_recovery_fabric` - Fixes error in checking for existing resource [GH-11130]
+* `azurerm_subscription` - fixes broken timeout on destroy [GH-11124]
+
+## 2.53.0 (March 26, 2021)
 
 FEATURES:
-
-* **New Resource:** `azurerm_security_center_server_vulnerability_assessment` [GH-10030]
-* **New Resource:** `azurerm_security_center_assessment` [GH-10694]
-* **New Resource:** `azurerm_security_center_assessment_policy` [GH-10694]
-* **New Resource:** `azurerm_sentinel_data_connector_azure_advanced_threat_protection` [GH-10666]
-* **New Resource:** `azurerm_sentinel_data_connector_azure_security_center` [GH-10667]
+* **New Resource:** `azurerm_management_group_template_deployment` ([#10603](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10603))
+* **New Resource:** `azurerm_tenant_template_deployment` ([#10603](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10603))
+* **New Data Source:** `azurerm_template_spec_version` ([#10603](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10603))
 
 ENHANCEMENTS:
 
-* dependencies: updating to v52.3.0 of `github.com/Azure/azure-sdk-for-go` [GH-10829]
-* `azurerm_role_assignment` - support enrollment ids in `scope` argument [GH-10890]
-* `azurerm_kubernetes_cluster` - support `None` for the `private_dns_zone_id` property [GH-10774]
-* `azurerm_kubernetes_cluster` - support for `expander` in the `auto_scaler_profile` block [GH-10777]
-* `azurerm_linux_virtual_machine_scale_set` - will no longer recreate the resource when `rolling_upgrade_policy` or `health_probe_id` is updated [GH-10856]
-* `azurerm_windows_virtual_machine_scale_set` - will no longer recreate the resource when `rolling_upgrade_policy` or `health_probe_id` is updated [GH-10856]
+* dependencies: updating to `v52.5.0` of `github.com/Azure/azure-sdk-for-go` ([#11015](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11015))
+* Data Source: `azurerm_key_vault_secret` - support for the `versionless_id` attribute ([#11091](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11091))
+* `azurerm_container_registry` - support for the `public_network_access_enabled` property ([#10969](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10969))
+* `azurerm_kusto_eventhub_data_connection` - support for the `event_system_properties` block ([#11006](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11006))
+* `azurerm_logic_app_trigger_recurrence` - Add support for `schedule`  ([#11055](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11055))
+* `azurerm_resource_group_template_deployment` - add support for `template_spec_version_id` property ([#10603](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10603))
+* `azurerm_role_definition` - the `permissions` block is now optional ([#9850](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9850))
+* `azurerm_subscription_template_deployment` - add support for `template_spec_version_id` property ([#10603](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10603))
+
 
 BUG FIXES:
 
-* Data Source: `azurerm_function_app_host_keys` - retrying reading the keys to work around a broken API [GH-10894]
-* Data Source: `azurerm_log_analytics_workspace` - ensure the `id` is returned with the correct casing [GH-10892]
-* Data Source: `azurerm_monitor_action_group` - add support for `aad_auth` attribute [GH-10876]
-* `azurerm_api_management_custom_domain` - prevent a perpetual diff [GH-10636]
-* `azurerm_eventhub_consumer_group` - detecting as removed when deleted in Azure [GH-10900]
-* `azurerm_kusto_eventhub_data_connection` - make `table_name` and `data_format` optional [GH-10913]
-* `azurerm_mssql_virtual_machine` - workaround for inconsistent API value for `log_backup_frequency_in_minutes` in the `manual_schedule` block [GH-10899]
-* `azurerm_postgres_server` - support for replicaset scaling [GH-10754]
-* `azurerm_postgresql_aad_administrator` - prevent invalid usernames for the `login` property [GH-10757]
+* `azurerm_frontdoor_custom_https_configuration` - fixing a crash during update ([#11046](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11046))
+* `azurerm_resource_group_template_deployment` - always sending `parameters_content` during an update ([#11001](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11001))
+* `azurerm_role_definition` - fixing crash when permissions are empty ([#9850](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9850))
+* `azurerm_subscription_template_deployment` - always sending `parameters_content` during an update ([#11001](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11001))
+* `azurerm_spring_cloud_app` - supports for the `tls_enabled` property ([#11064](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11064))
 
----
+## 2.52.0 (March 18, 2021)
+
+FEATURES:
+
+* **New Resource:** `azurerm_mssql_firewall_rule` ([#10954](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10954))
+* **New Resource:** `azurerm_mssql_virtual_network_rule` ([#10954](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10954))
+
+ENHANCEMENTS:
+
+* dependencies: updating to `v52.4.0` of `github.com/Azure/azure-sdk-for-go` ([#10982](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10982))
+* `azurerm_api_management_subscription` - making `user_id` property optional [[#10638](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10638)}
+
+BUG FIXES:
+
+* `azurerm_cosmosdb_account_resource` - marking `connection_string` as sensitive ([#10942](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10942))
+*  `azurerm_eventhub_namespace_disaster_recovery_config` - deprecating the `alternate_name` property due to a service side API bug ([#11013](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11013))
+* `azurerm_local_network_gateway` - making the `address_space` property optional ([#10983](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10983))
+* `azurerm_management_group` - validation for `subscription_id` list property entries ([#10948](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10948))
+
+## 2.51.0 (March 12, 2021)
+
+FEATURES:
+
+* **New Resource:** `azurerm_purview_account` ([#10395](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10395))
+* **New Resource:** `azurerm_data_factory_dataset_parquet` ([#10852](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10852))
+* **New Resource:** `azurerm_security_center_server_vulnerability_assessment` ([#10030](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10030))
+* **New Resource:** `azurerm_security_center_assessment` ([#10694](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10694))
+* **New Resource:** `azurerm_security_center_assessment_policy` ([#10694](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10694))
+* **New Resource:** `azurerm_sentinel_data_connector_azure_advanced_threat_protection` ([#10666](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10666))
+* **New Resource:** `azurerm_sentinel_data_connector_azure_security_center` ([#10667](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10667))
+* **New Resource:** `azurerm_sentinel_data_connector_microsoft_cloud_app_security` ([#10668](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10668))
+
+ENHANCEMENTS:
+
+* dependencies: updating to v52.3.0 of `github.com/Azure/azure-sdk-for-go` ([#10829](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10829))
+* `azurerm_role_assignment` - support enrollment ids in `scope` argument ([#10890](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10890))
+* `azurerm_kubernetes_cluster` - support `None` for the `private_dns_zone_id` property ([#10774](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10774))
+* `azurerm_kubernetes_cluster` - support for `expander` in the `auto_scaler_profile` block ([#10777](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10777))
+* `azurerm_linux_virtual_machine` - support for configuring `platform_fault_domain` ([#10803](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10803))
+* `azurerm_linux_virtual_machine_scale_set` - will no longer recreate the resource when `rolling_upgrade_policy` or `health_probe_id` is updated ([#10856](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10856))
+* `azurerm_netapp_volume` - support creating from a snapshot via the `create_from_snapshot_resource_id` property ([#10906](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10906))
+* `azurerm_role_assignment` - support for the `description`, `condition`, and `condition_version` ([#10804](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10804))
+* `azurerm_windows_virtual_machine` - support for configuring `platform_fault_domain` ([#10803](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10803))
+* `azurerm_windows_virtual_machine_scale_set` - will no longer recreate the resource when `rolling_upgrade_policy` or `health_probe_id` is updated ([#10856](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10856))
+
+BUG FIXES:
+
+* Data Source: `azurerm_function_app_host_keys` - retrying reading the keys to work around a broken API ([#10894](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10894))
+* Data Source: `azurerm_log_analytics_workspace` - ensure the `id` is returned with the correct casing ([#10892](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10892))
+* Data Source: `azurerm_monitor_action_group` - add support for `aad_auth` attribute ([#10876](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10876))
+* `azurerm_api_management_custom_domain` - prevent a perpetual diff ([#10636](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10636))
+* `azurerm_eventhub_consumer_group` - detecting as removed when deleted in Azure ([#10900](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10900))
+* `azurerm_key_vault_access_policy` - Fix destroy where permissions casing on service does not match config / state ([#10931](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10931))
+* `azurerm_key_vault_secret` - setting the value of the secret after recovering it ([#10920](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10920))
+* `azurerm_kusto_eventhub_data_connection` - make `table_name` and `data_format` optional ([#10913](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10913))
+* `azurerm_mssql_virtual_machine` - workaround for inconsistent API value for `log_backup_frequency_in_minutes` in the `manual_schedule` block ([#10899](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10899))
+* `azurerm_postgres_server` - support for replicaset scaling ([#10754](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10754))
+* `azurerm_postgresql_aad_administrator` - prevent invalid usernames for the `login` property ([#10757](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10757))
 
 ## 2.50.0 (March 05, 2021)
 
