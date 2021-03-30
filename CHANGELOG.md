@@ -2,6 +2,7 @@
 
 ENHANCEMENTS:
 
+* dependencies: updating to `v52.6.0` of `github.com/Azure/azure-sdk-for-go` [GH-11108]
 * dependencies: updating `storage` to API version `2021-01-01` [GH-11094]
 * `azurerm_container_registry` - support for the `quarantine_policy_enabled` property [GH-11011]
 * `azurerm_spring_cloud_service` - supports for the `sample_rate` property [GH-11106]
