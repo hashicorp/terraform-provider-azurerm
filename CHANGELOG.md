@@ -1,5 +1,9 @@
 ## 2.54.0 (Unreleased)
 
+ENHANCEMENTS:
+
+* dependencies: updating `storage` to API version `2021-01-01` [GH-11094]
+
 BUG FIXES:
 * `azurerm_site_recovery_fabric` - Fixes error in checking for existing resource [GH-11130]
 * `azurerm_spring_cloud_custom_domain` - `thumbprint` is required when specifying `certificate_name` [GH-11145]
