@@ -88,8 +88,8 @@ func dataSourceFunctionApp() *schema.Resource {
 				Computed: true,
 			},
 
-			"client_cert_enabled": {
-				Type:     schema.TypeBool,
+			"client_cert_mode": {
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 
