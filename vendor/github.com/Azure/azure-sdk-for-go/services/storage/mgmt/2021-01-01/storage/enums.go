@@ -132,6 +132,25 @@ func PossibleBypassValues() []Bypass {
 	return []Bypass{AzureServices, Logging, Metrics, None}
 }
 
+// CreatedByType enumerates the values for created by type.
+type CreatedByType string
+
+const (
+	// Application ...
+	Application CreatedByType = "Application"
+	// Key ...
+	Key CreatedByType = "Key"
+	// ManagedIdentity ...
+	ManagedIdentity CreatedByType = "ManagedIdentity"
+	// User ...
+	User CreatedByType = "User"
+)
+
+// PossibleCreatedByTypeValues returns an array of possible values for the CreatedByType const type.
+func PossibleCreatedByTypeValues() []CreatedByType {
+	return []CreatedByType{Application, Key, ManagedIdentity, User}
+}
+
 // DefaultAction enumerates the values for default action.
 type DefaultAction string
 
@@ -209,6 +228,19 @@ func PossibleEncryptionScopeStateValues() []EncryptionScopeState {
 	return []EncryptionScopeState{Disabled, Enabled}
 }
 
+// ExtendedLocationTypes enumerates the values for extended location types.
+type ExtendedLocationTypes string
+
+const (
+	// EdgeZone ...
+	EdgeZone ExtendedLocationTypes = "EdgeZone"
+)
+
+// PossibleExtendedLocationTypesValues returns an array of possible values for the ExtendedLocationTypes const type.
+func PossibleExtendedLocationTypesValues() []ExtendedLocationTypes {
+	return []ExtendedLocationTypes{EdgeZone}
+}
+
 // GeoReplicationStatus enumerates the values for geo replication status.
 type GeoReplicationStatus string
 
@@ -252,6 +284,25 @@ const (
 // PossibleHTTPProtocolValues returns an array of possible values for the HTTPProtocol const type.
 func PossibleHTTPProtocolValues() []HTTPProtocol {
 	return []HTTPProtocol{HTTPS, Httpshttp}
+}
+
+// IdentityType enumerates the values for identity type.
+type IdentityType string
+
+const (
+	// IdentityTypeNone ...
+	IdentityTypeNone IdentityType = "None"
+	// IdentityTypeSystemAssigned ...
+	IdentityTypeSystemAssigned IdentityType = "SystemAssigned"
+	// IdentityTypeSystemAssignedUserAssigned ...
+	IdentityTypeSystemAssignedUserAssigned IdentityType = "SystemAssigned,UserAssigned"
+	// IdentityTypeUserAssigned ...
+	IdentityTypeUserAssigned IdentityType = "UserAssigned"
+)
+
+// PossibleIdentityTypeValues returns an array of possible values for the IdentityType const type.
+func PossibleIdentityTypeValues() []IdentityType {
+	return []IdentityType{IdentityTypeNone, IdentityTypeSystemAssigned, IdentityTypeSystemAssignedUserAssigned, IdentityTypeUserAssigned}
 }
 
 // ImmutabilityPolicyState enumerates the values for immutability policy state.
@@ -450,11 +501,13 @@ type ListSharesExpand string
 const (
 	// ListSharesExpandDeleted ...
 	ListSharesExpandDeleted ListSharesExpand = "deleted"
+	// ListSharesExpandSnapshots ...
+	ListSharesExpandSnapshots ListSharesExpand = "snapshots"
 )
 
 // PossibleListSharesExpandValues returns an array of possible values for the ListSharesExpand const type.
 func PossibleListSharesExpandValues() []ListSharesExpand {
-	return []ListSharesExpand{ListSharesExpandDeleted}
+	return []ListSharesExpand{ListSharesExpandDeleted, ListSharesExpandSnapshots}
 }
 
 // MinimumTLSVersion enumerates the values for minimum tls version.
@@ -472,6 +525,19 @@ const (
 // PossibleMinimumTLSVersionValues returns an array of possible values for the MinimumTLSVersion const type.
 func PossibleMinimumTLSVersionValues() []MinimumTLSVersion {
 	return []MinimumTLSVersion{TLS10, TLS11, TLS12}
+}
+
+// Name enumerates the values for name.
+type Name string
+
+const (
+	// AccessTimeTracking ...
+	AccessTimeTracking Name = "AccessTimeTracking"
+)
+
+// PossibleNameValues returns an array of possible values for the Name const type.
+func PossibleNameValues() []Name {
+	return []Name{AccessTimeTracking}
 }
 
 // Permissions enumerates the values for permissions.
@@ -570,6 +636,19 @@ const (
 // PossiblePublicAccessValues returns an array of possible values for the PublicAccess const type.
 func PossiblePublicAccessValues() []PublicAccess {
 	return []PublicAccess{PublicAccessBlob, PublicAccessContainer, PublicAccessNone}
+}
+
+// PutSharesExpand enumerates the values for put shares expand.
+type PutSharesExpand string
+
+const (
+	// Snapshots ...
+	Snapshots PutSharesExpand = "snapshots"
+)
+
+// PossiblePutSharesExpandValues returns an array of possible values for the PutSharesExpand const type.
+func PossiblePutSharesExpandValues() []PutSharesExpand {
+	return []PutSharesExpand{Snapshots}
 }
 
 // Reason enumerates the values for reason.
