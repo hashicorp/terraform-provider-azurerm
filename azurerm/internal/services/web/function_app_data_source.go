@@ -88,6 +88,11 @@ func dataSourceFunctionApp() *schema.Resource {
 				Computed: true,
 			},
 
+			"client_cert_enabled": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+
 			"outbound_ip_addresses": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -212,6 +217,7 @@ func dataSourceFunctionAppRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("app_service_plan_id", props.ServerFarmID)
 		d.Set("enabled", props.Enabled)
 		d.Set("default_hostname", props.DefaultHostName)
+		d.Set("client_cert_enabled", props.ClientCertEnabled)
 		d.Set("outbound_ip_addresses", props.OutboundIPAddresses)
 		d.Set("possible_outbound_ip_addresses", props.PossibleOutboundIPAddresses)
 		d.Set("custom_domain_verification_id", props.CustomDomainVerificationID)
