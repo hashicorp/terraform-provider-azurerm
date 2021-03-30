@@ -190,7 +190,7 @@ func resourceNetAppVolume() *schema.Resource {
 							Optional: true,
 						},
 
-						"has_root_access": {
+						"root_access_enabled": {
 							Type:     schema.TypeBool,
 							Optional: true,
 						},
