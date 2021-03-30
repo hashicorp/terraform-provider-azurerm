@@ -279,6 +279,12 @@ type ClassicAdministratorProperties struct {
 	Role *string `json:"role,omitempty"`
 }
 
+// CustomErrorResponse descriptive error response.
+type CustomErrorResponse struct {
+	// Message - Description of the error.
+	Message *string `json:"message,omitempty"`
+}
+
 // DenyAssignment deny Assignment
 type DenyAssignment struct {
 	autorest.Response `json:"-"`
@@ -1243,6 +1249,19 @@ func NewRoleAssignmentListResultPage(cur RoleAssignmentListResult, getNextPage f
 	}
 }
 
+// RoleAssignmentMetricsResult role Assignment Metrics
+type RoleAssignmentMetricsResult struct {
+	autorest.Response `json:"-"`
+	// SubscriptionID - READ-ONLY; The subscription ID.
+	SubscriptionID *string `json:"subscriptionId,omitempty"`
+	// RoleAssignmentsLimit - READ-ONLY; The role assignment limit.
+	RoleAssignmentsLimit *int64 `json:"roleAssignmentsLimit,omitempty"`
+	// RoleAssignmentsCurrentCount - READ-ONLY; The number of current role assignments.
+	RoleAssignmentsCurrentCount *int64 `json:"roleAssignmentsCurrentCount,omitempty"`
+	// RoleAssignmentsRemainingCount - READ-ONLY; The number of remaining role assignments available.
+	RoleAssignmentsRemainingCount *int64 `json:"roleAssignmentsRemainingCount,omitempty"`
+}
+
 // RoleAssignmentProperties role assignment properties.
 type RoleAssignmentProperties struct {
 	// RoleDefinitionID - The role definition ID used in the role assignment.
@@ -1259,6 +1278,8 @@ type RoleAssignmentProperties struct {
 	Condition *string `json:"condition,omitempty"`
 	// ConditionVersion - Version of the condition. Currently accepted value is '2.0'
 	ConditionVersion *string `json:"conditionVersion,omitempty"`
+	// DelegatedManagedIdentityResourceID - Id of the delegated managed identity resource
+	DelegatedManagedIdentityResourceID *string `json:"delegatedManagedIdentityResourceId,omitempty"`
 }
 
 // RoleAssignmentPropertiesWithScope role assignment properties with scope.
