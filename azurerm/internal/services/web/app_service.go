@@ -1809,22 +1809,30 @@ func flattenAppServiceIpRestriction(input *[]web.IPSecurityRestriction) []interf
 			}
 		}
 
-		if subnetId := v.VnetSubnetResourceID; subnetId != nil {
-			restriction["virtual_network_subnet_id"] = subnetId
-			restriction["subnet_id"] = subnetId
+		subnetId := ""
+		if subnetIdRaw := v.VnetSubnetResourceID; subnetIdRaw != nil {
+			subnetId = *subnetIdRaw
 		}
+		restriction["virtual_network_subnet_id"] = subnetId
+		restriction["subnet_id"] = subnetId
 
-		if name := v.Name; name != nil {
-			restriction["name"] = *name
+		name := ""
+		if nameRaw := v.Name; nameRaw != nil {
+			name = *nameRaw
 		}
+		restriction["name"] = name
 
-		if priority := v.Priority; priority != nil {
-			restriction["priority"] = *priority
+		priority := 0
+		if priorityRaw := v.Priority; priorityRaw != nil {
+			priority = int(*priorityRaw)
 		}
+		restriction["priority"] = priority
 
-		if action := v.Action; action != nil {
-			restriction["action"] = *action
+		action := ""
+		if actionRaw := v.Action; actionRaw != nil {
+			action = *actionRaw
 		}
+		restriction["action"] = action
 
 		restrictions = append(restrictions, restriction)
 	}
@@ -1895,11 +1903,11 @@ func expandAppServiceIpRestriction(input interface{}) ([]web.IPSecurityRestricti
 		ipAddress := restriction["ip_address"].(string)
 		vNetSubnetID := ""
 
-		if subnetID, ok := restriction["subnet_id"]; ok {
+		if subnetID, ok := restriction["subnet_id"]; ok && subnetID != "" {
 			vNetSubnetID = subnetID.(string)
 		}
 
-		if subnetID, ok := restriction["virtual_network_subnet_id"]; ok {
+		if subnetID, ok := restriction["virtual_network_subnet_id"]; ok && subnetID != "" {
 			vNetSubnetID = subnetID.(string)
 		}
 
