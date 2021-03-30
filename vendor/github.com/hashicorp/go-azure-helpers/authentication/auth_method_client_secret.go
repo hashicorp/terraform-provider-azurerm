@@ -3,6 +3,8 @@ package authentication
 import (
 	"fmt"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
+	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/hashicorp/go-multierror"
@@ -17,6 +19,17 @@ type servicePrincipalClientSecretAuth struct {
 }
 
 func (a servicePrincipalClientSecretAuth) build(b Builder) (authMethod, error) {
+	method := servicePrincipalClientSecretAuth{
+		clientId:       b.ClientID,
+		clientSecret:   b.ClientSecret,
+		subscriptionId: b.SubscriptionID,
+		tenantId:       b.TenantID,
+		tenantOnly:     b.TenantOnly,
+	}
+	return method, nil
+}
+
+func (a servicePrincipalClientSecretAuth) buildAuthMethodTrack2(b Builder) (authMethodTrack2, error) {
 	method := servicePrincipalClientSecretAuth{
 		clientId:       b.ClientID,
 		clientSecret:   b.ClientSecret,
@@ -74,4 +87,10 @@ func (a servicePrincipalClientSecretAuth) validate() error {
 	}
 
 	return err.ErrorOrNil()
+}
+
+func (a servicePrincipalClientSecretAuth) getTokenCredential(endpoint string) (azcore.TokenCredential, error) {
+	return azidentity.NewClientSecretCredential(a.tenantId, a.clientId, a.clientSecret, &azidentity.ClientSecretCredentialOptions{
+		AuthorityHost: endpoint,
+	})
 }

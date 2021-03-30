@@ -71,6 +71,8 @@ func (b Builder) Build() (*Config, error) {
 		azureCliTokenAuth{},
 	}
 
+	// TODO -- add a similar sequence for track 2 credential
+
 	for _, method := range supportedAuthenticationMethods {
 		name := method.name()
 		log.Printf("Testing if %s is applicable for Authentication..", name)
@@ -115,4 +117,116 @@ func (b Builder) Build() (*Config, error) {
 	}
 
 	return nil, fmt.Errorf("No supported authentication methods were found!")
+}
+
+func (b Builder) buildTrack1Authorizor(config *Config) error {
+	// NOTE: the ordering here is important
+	// since the Azure CLI Parsing should always be the last thing checked
+	supportedAuthenticationMethods := []authMethod{
+		servicePrincipalClientCertificateAuth{},
+		servicePrincipalClientSecretMultiTenantAuth{},
+		servicePrincipalClientSecretAuth{},
+		managedServiceIdentityAuth{},
+		azureCliTokenMultiTenantAuth{},
+		azureCliTokenAuth{},
+	}
+
+	for _, method := range supportedAuthenticationMethods {
+		name := method.name()
+		log.Printf("Testing if %s is applicable for Authentication..", name)
+
+		// does not support it via validate?
+		if !method.isApplicable(b) {
+			continue
+		}
+
+		log.Printf("Using %s for Authentication", name)
+		auth, err := method.build(b)
+		if err != nil {
+			return err
+		}
+
+		// populate authentication specific fields on the Config
+		// (e.g. is service principal, fields parsed from the azure cli)
+		err = auth.populateConfig(config)
+		if err != nil {
+			return err
+		}
+
+		config.authMethod = auth
+
+		// Authenticated Object ID Cache
+		if config.GetAuthenticatedObjectID != nil {
+			uncachedFunction := config.GetAuthenticatedObjectID
+			config.GetAuthenticatedObjectID = func(ctx context.Context) (string, error) {
+				if authenticatedObjectCache == "" {
+					authenticatedObjectCache, err = uncachedFunction(ctx)
+					if err != nil {
+						return "", err
+					}
+					log.Printf("authenticated object ID cache miss, populating with: %q", authenticatedObjectCache)
+				}
+
+				return authenticatedObjectCache, nil
+			}
+		}
+
+		return config.authMethod.validate()
+	}
+
+	return fmt.Errorf("No supported authentication methods were found!")
+}
+
+func (b Builder) buildTrack2Credential(config *Config) error {
+	// NOTE: the ordering here is important
+	// since the Azure CLI Parsing should always be the last thing checked
+	supportedAuthenticationMethods := []authMethodTrack2{
+		servicePrincipalClientSecretAuth{},
+		azureCliTokenAuth{},
+	}
+
+	for _, method := range supportedAuthenticationMethods {
+		name := method.name()
+		log.Printf("Testing if %s is applicable for Authentication..", name)
+
+		// does not support it via validate?
+		if !method.isApplicable(b) {
+			continue
+		}
+
+		log.Printf("Using %s for Authentication", name)
+		auth, err := method.buildAuthMethodTrack2(b)
+		if err != nil {
+			return err
+		}
+
+		// populate authentication specific fields on the Config
+		// (e.g. is service principal, fields parsed from the azure cli)
+		err = auth.populateConfig(config)
+		if err != nil {
+			return err
+		}
+
+		config.authMethodTrack2 = auth
+
+		// Authenticated Object ID Cache
+		if config.GetAuthenticatedObjectID != nil {
+			uncachedFunction := config.GetAuthenticatedObjectID
+			config.GetAuthenticatedObjectID = func(ctx context.Context) (string, error) {
+				if authenticatedObjectCache == "" {
+					authenticatedObjectCache, err = uncachedFunction(ctx)
+					if err != nil {
+						return "", err
+					}
+					log.Printf("authenticated object ID cache miss, populating with: %q", authenticatedObjectCache)
+				}
+
+				return authenticatedObjectCache, nil
+			}
+		}
+
+		return config.authMethod.validate()
+	}
+
+	return fmt.Errorf("No supported authentication methods were found!")
 }

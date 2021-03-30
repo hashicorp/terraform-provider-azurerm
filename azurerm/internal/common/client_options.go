@@ -9,7 +9,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/hashicorp/go-azure-helpers/policy"
 	"github.com/hashicorp/go-azure-helpers/sender"
 	"github.com/hashicorp/terraform-plugin-sdk/meta"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -58,17 +57,12 @@ func (o ClientOptions) ConfigureClient(c *autorest.Client, authorizer autorest.A
 }
 
 func (o ClientOptions) BuildResourceManagerConnection(cred azcore.TokenCredential) {
-	// get the policies
-	p := azcore.NewPipeline(nil,
-		azcore.NewTelemetryPolicy(&azcore.TelemetryOptions{
+	// TODO -- needs a way to put policy.NewRequestLoggingPolicy("AzureRM") in
+	o.ResourceManagerConnection = armcore.NewConnection(o.ResourceManagerEndpoint, cred, &armcore.ConnectionOptions{
+		Telemetry: azcore.TelemetryOptions{
 			Value:         TelemetryValue(o.TerraformVersion, o.PartnerId, o.DisableTerraformPartnerID),
-			ApplicationID: "",
-			Disabled:      false,
-		}),
-		policy.NewRequestLoggingPolicy(),
-	)
-
-	o.ResourceManagerConnection = armcore.NewConnectionWithPipeline(o.ResourceManagerEndpoint, p)
+		},
+	})
 }
 
 func setUserAgent(client *autorest.Client, tfVersion, partnerID string, disableTerraformPartnerID bool) {

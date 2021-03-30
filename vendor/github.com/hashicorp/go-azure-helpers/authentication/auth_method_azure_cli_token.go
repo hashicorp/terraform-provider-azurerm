@@ -8,6 +8,8 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
+	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/Azure/go-autorest/autorest/azure/cli"
@@ -86,6 +88,19 @@ Alternatively you can authenticate using the Azure CLI by using a User Account.`
 	auth.profile.environment = normalizeEnvironmentName(acc.EnvironmentName)
 
 	return auth, nil
+}
+
+func (a azureCliTokenAuth) buildAuthMethodTrack2(b Builder) (authMethodTrack2, error) {
+	return azureCliTokenAuth{
+
+		profile: &azureCLIProfile{
+			subscriptionId: b.SubscriptionID,
+			tenantId:       b.TenantID,
+			tenantOnly:     b.TenantOnly,
+			clientId:       "04b07795-8ddb-461a-bbee-02f9e1bf7b46", // fixed first party client id for Az CLI
+		},
+		servicePrincipalAuthDocsLink: b.ClientSecretDocsLink,
+	}, nil
 }
 
 func (a azureCliTokenAuth) isApplicable(b Builder) bool {
@@ -188,6 +203,10 @@ func (a azureCliTokenAuth) validate() error {
 	}
 
 	return err.ErrorOrNil()
+}
+
+func (a azureCliTokenAuth) getTokenCredential(endpoint string) (azcore.TokenCredential, error) {
+	return azidentity.NewAzureCLICredential(nil)
 }
 
 func (a azureCliTokenAuth) checkAzVersion() error {

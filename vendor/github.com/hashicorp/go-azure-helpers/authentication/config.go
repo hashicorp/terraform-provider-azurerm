@@ -6,6 +6,7 @@ import (
 	"log"
 	"strings"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/adal"
 )
@@ -28,6 +29,8 @@ type Config struct {
 	CustomResourceManagerEndpoint string
 
 	authMethod authMethod
+
+	authMethodTrack2 authMethodTrack2
 }
 
 type OAuthConfig struct {
@@ -122,4 +125,8 @@ func (c Config) BearerAuthorizerCallback(sender autorest.Sender, oauthConfig *OA
 // GetAuthorizationToken returns an authorization token for the authentication method defined in the Config
 func (c Config) GetAuthorizationToken(sender autorest.Sender, oauth *OAuthConfig, endpoint string) (autorest.Authorizer, error) {
 	return c.authMethod.getAuthorizationToken(sender, oauth, endpoint)
+}
+
+func (c Config) GetCredential(endpoint string) (azcore.TokenCredential, error) {
+	return c.authMethodTrack2.getTokenCredential(endpoint)
 }
