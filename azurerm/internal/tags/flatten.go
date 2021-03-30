@@ -29,3 +29,10 @@ func FlattenAndSet(d *schema.ResourceData, tagMap map[string]*string) error {
 
 	return nil
 }
+
+func Track2FlattenAndSet(d *schema.ResourceData, tagMap *map[string]*string) error {
+	if tagMap == nil {
+		return nil
+	}
+	return FlattenAndSet(d, *tagMap)
+}

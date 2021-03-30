@@ -11,3 +11,8 @@ func Expand(tagsMap map[string]interface{}) map[string]*string {
 
 	return output
 }
+
+func Track2Expand(tagsMap map[string]interface{}) *map[string]*string {
+	output := Expand(tagsMap)
+	return &output
+}
