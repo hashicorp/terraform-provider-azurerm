@@ -267,6 +267,21 @@ func resourceStorageAccount() *schema.Resource {
 								},
 							},
 						},
+						"container_delete_retention_policy": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"days": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										Default:      7,
+										ValidateFunc: validation.IntBetween(1, 365),
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -1484,7 +1499,8 @@ func expandBlobProperties(input []interface{}) storage.BlobServiceProperties {
 
 	deletePolicyRaw := v["delete_retention_policy"].([]interface{})
 	props.BlobServicePropertiesProperties.DeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(deletePolicyRaw)
-
+	containerDeletePolicyRaw := v["container_delete_retention_policy"].([]interface{})
+	props.BlobServicePropertiesProperties.ContainerDeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(containerDeletePolicyRaw)
 	corsRaw := v["cors_rule"].([]interface{})
 	props.BlobServicePropertiesProperties.Cors = expandBlobPropertiesCors(corsRaw)
 
@@ -1751,14 +1767,20 @@ func flattenBlobProperties(input storage.BlobServiceProperties) []interface{} {
 		flattenedDeletePolicy = flattenBlobPropertiesDeleteRetentionPolicy(deletePolicy)
 	}
 
-	if len(flattenedCorsRules) == 0 && len(flattenedDeletePolicy) == 0 {
+	flattenedContainerDeletePolicy := make([]interface{}, 0)
+	if containerDeletePolicy := input.BlobServicePropertiesProperties.ContainerDeleteRetentionPolicy; containerDeletePolicy != nil {
+		flattenedContainerDeletePolicy = flattenBlobPropertiesDeleteRetentionPolicy(containerDeletePolicy)
+	}
+
+	if len(flattenedCorsRules) == 0 && len(flattenedDeletePolicy) == 0 && len(flattenedContainerDeletePolicy) == 0 {
 		return []interface{}{}
 	}
 
 	return []interface{}{
 		map[string]interface{}{
-			"cors_rule":               flattenedCorsRules,
-			"delete_retention_policy": flattenedDeletePolicy,
+			"cors_rule":                         flattenedCorsRules,
+			"delete_retention_policy":           flattenedDeletePolicy,
+			"container_delete_retention_policy": flattenedContainerDeletePolicy,
 		},
 	}
 }
