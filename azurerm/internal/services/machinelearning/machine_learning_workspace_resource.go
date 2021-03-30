@@ -217,12 +217,12 @@ func resourceMachineLearningWorkspaceCreate(d *schema.ResourceData, meta interfa
 	}
 
 	accountsClient := meta.(*clients.Client).Storage.AccountsClient
-	if err := validateStorageAccount(ctx, accountsClient, storageAccountId); err != nil {
+	if err := validateStorageAccount(ctx, *accountsClient, storageAccountId); err != nil {
 		return fmt.Errorf("Error creating Machine Learning Workspace %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	registriesClient := meta.(*clients.Client).Containers.RegistriesClient
-	if err := validateContainerRegistry(ctx, registriesClient, workspace.ContainerRegistry); err != nil {
+	if err := validateContainerRegistry(ctx, *registriesClient, workspace.ContainerRegistry); err != nil {
 		return fmt.Errorf("Error creating Machine Learning Workspace %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
@@ -359,7 +359,7 @@ func resourceMachineLearningWorkspaceDelete(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func validateStorageAccount(ctx context.Context, client *storage.AccountsClient, accountID string) error {
+func validateStorageAccount(ctx context.Context, client storage.AccountsClient, accountID string) error {
 	if accountID == "" {
 		return fmt.Errorf("Error validating Storage Account: Empty ID")
 	}
@@ -384,7 +384,7 @@ func validateStorageAccount(ctx context.Context, client *storage.AccountsClient,
 	return nil
 }
 
-func validateContainerRegistry(ctx context.Context, client *containerregistry.RegistriesClient, acrID *string) error {
+func validateContainerRegistry(ctx context.Context, client containerregistry.RegistriesClient, acrID *string) error {
 	if acrID == nil {
 		return nil
 	}
@@ -397,6 +397,8 @@ func validateContainerRegistry(ctx context.Context, client *containerregistry.Re
 
 	acrName := id.Path["registries"]
 	resourceGroup := id.ResourceGroup
+	client.SubscriptionID = id.SubscriptionID
+
 	acr, err := client.Get(ctx, resourceGroup, acrName)
 	if err != nil {
 		return fmt.Errorf("Error validating Container Registry %q (Resource Group %q): %+v", acrName, resourceGroup, err)
