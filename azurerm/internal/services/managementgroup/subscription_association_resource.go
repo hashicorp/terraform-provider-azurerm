@@ -112,6 +112,9 @@ func resourceManagementGroupSubscriptionAssociationRead(d *schema.ResourceData, 
 	}
 
 	managementGroup, err := client.Get(ctx, id.ManagementGroup, "children", utils.Bool(false), "", "")
+	if err != nil {
+		return fmt.Errorf("reading Management Group %q for Subscription Associations: %+v", id.ManagementGroup, err)
+	}
 	found := false
 	if props := managementGroup.Properties; props != nil {
 		if props.Children == nil {
