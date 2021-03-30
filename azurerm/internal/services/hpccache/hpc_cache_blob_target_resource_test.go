@@ -159,6 +159,9 @@ resource "azurerm_hpc_cache_access_policy" "test" {
     scope  = "default"
     access = "rw"
   }
+
+  # This is not needed in Terraform v0.13, whilst needed in v0.14.
+  # Once https://github.com/hashicorp/terraform/issues/28193 is fixed, we can remove this lifecycle block.
   lifecycle {
     create_before_destroy = true
   }
@@ -186,6 +189,10 @@ resource "azurerm_hpc_cache_access_policy" "test" {
     scope  = "default"
     access = "rw"
   }
+  # This is necessary to make the Terraform apply order works correctly.
+  # Without CBD: azurerm_hpc_cache_access_policy-p1 (destroy) -> azurerm_hpc_cache_blob_target (update) -> azurerm_hpc_cache_access_policy-p2 (create)
+  # 			 (the 1st step wil fail as the access policy is under used by the blob target)
+  # With CBD   : azurerm_hpc_cache_access_policy-p2 (create) -> azurerm_hpc_cache_blob_target (update) -> azurerm_hpc_cache_access_policy-p1 (delete)
   lifecycle {
     create_before_destroy = true
   }
