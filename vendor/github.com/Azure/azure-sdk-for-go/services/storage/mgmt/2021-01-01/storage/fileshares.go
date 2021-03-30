@@ -53,7 +53,8 @@ func NewFileSharesClientWithBaseURI(baseURI string, subscriptionID string) FileS
 // between 3 and 63 characters in length and use numbers, lower-case letters and dash (-) only. Every dash (-)
 // character must be immediately preceded and followed by a letter or number.
 // fileShare - properties of the file share to create.
-func (client FileSharesClient) Create(ctx context.Context, resourceGroupName string, accountName string, shareName string, fileShare FileShare) (result FileShare, err error) {
+// expand - optional, used to create a snapshot.
+func (client FileSharesClient) Create(ctx context.Context, resourceGroupName string, accountName string, shareName string, fileShare FileShare, expand PutSharesExpand) (result FileShare, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/FileSharesClient.Create")
 		defer func() {
@@ -87,7 +88,7 @@ func (client FileSharesClient) Create(ctx context.Context, resourceGroupName str
 		return result, validation.NewError("storage.FileSharesClient", "Create", err.Error())
 	}
 
-	req, err := client.CreatePreparer(ctx, resourceGroupName, accountName, shareName, fileShare)
+	req, err := client.CreatePreparer(ctx, resourceGroupName, accountName, shareName, fileShare, expand)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.FileSharesClient", "Create", nil, "Failure preparing request")
 		return
@@ -110,7 +111,7 @@ func (client FileSharesClient) Create(ctx context.Context, resourceGroupName str
 }
 
 // CreatePreparer prepares the Create request.
-func (client FileSharesClient) CreatePreparer(ctx context.Context, resourceGroupName string, accountName string, shareName string, fileShare FileShare) (*http.Request, error) {
+func (client FileSharesClient) CreatePreparer(ctx context.Context, resourceGroupName string, accountName string, shareName string, fileShare FileShare, expand PutSharesExpand) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"accountName":       autorest.Encode("path", accountName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -118,9 +119,12 @@ func (client FileSharesClient) CreatePreparer(ctx context.Context, resourceGroup
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-06-01"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
+	}
+	if len(string(expand)) > 0 {
+		queryParameters["$expand"] = autorest.Encode("query", expand)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -160,7 +164,8 @@ func (client FileSharesClient) CreateResponder(resp *http.Response) (result File
 // shareName - the name of the file share within the specified storage account. File share names must be
 // between 3 and 63 characters in length and use numbers, lower-case letters and dash (-) only. Every dash (-)
 // character must be immediately preceded and followed by a letter or number.
-func (client FileSharesClient) Delete(ctx context.Context, resourceGroupName string, accountName string, shareName string) (result autorest.Response, err error) {
+// xMsSnapshot - optional, used to delete a snapshot.
+func (client FileSharesClient) Delete(ctx context.Context, resourceGroupName string, accountName string, shareName string, xMsSnapshot string) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/FileSharesClient.Delete")
 		defer func() {
@@ -187,7 +192,7 @@ func (client FileSharesClient) Delete(ctx context.Context, resourceGroupName str
 		return result, validation.NewError("storage.FileSharesClient", "Delete", err.Error())
 	}
 
-	req, err := client.DeletePreparer(ctx, resourceGroupName, accountName, shareName)
+	req, err := client.DeletePreparer(ctx, resourceGroupName, accountName, shareName, xMsSnapshot)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.FileSharesClient", "Delete", nil, "Failure preparing request")
 		return
@@ -210,7 +215,7 @@ func (client FileSharesClient) Delete(ctx context.Context, resourceGroupName str
 }
 
 // DeletePreparer prepares the Delete request.
-func (client FileSharesClient) DeletePreparer(ctx context.Context, resourceGroupName string, accountName string, shareName string) (*http.Request, error) {
+func (client FileSharesClient) DeletePreparer(ctx context.Context, resourceGroupName string, accountName string, shareName string, xMsSnapshot string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"accountName":       autorest.Encode("path", accountName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -218,7 +223,7 @@ func (client FileSharesClient) DeletePreparer(ctx context.Context, resourceGroup
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-06-01"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -228,6 +233,10 @@ func (client FileSharesClient) DeletePreparer(ctx context.Context, resourceGroup
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{accountName}/fileServices/default/shares/{shareName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
+	if len(xMsSnapshot) > 0 {
+		preparer = autorest.DecoratePreparer(preparer,
+			autorest.WithHeader("x-ms-snapshot", autorest.String(xMsSnapshot)))
+	}
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
@@ -258,7 +267,8 @@ func (client FileSharesClient) DeleteResponder(resp *http.Response) (result auto
 // between 3 and 63 characters in length and use numbers, lower-case letters and dash (-) only. Every dash (-)
 // character must be immediately preceded and followed by a letter or number.
 // expand - optional, used to expand the properties within share's properties.
-func (client FileSharesClient) Get(ctx context.Context, resourceGroupName string, accountName string, shareName string, expand GetShareExpand) (result FileShare, err error) {
+// xMsSnapshot - optional, used to retrieve properties of a snapshot.
+func (client FileSharesClient) Get(ctx context.Context, resourceGroupName string, accountName string, shareName string, expand GetShareExpand, xMsSnapshot string) (result FileShare, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/FileSharesClient.Get")
 		defer func() {
@@ -285,7 +295,7 @@ func (client FileSharesClient) Get(ctx context.Context, resourceGroupName string
 		return result, validation.NewError("storage.FileSharesClient", "Get", err.Error())
 	}
 
-	req, err := client.GetPreparer(ctx, resourceGroupName, accountName, shareName, expand)
+	req, err := client.GetPreparer(ctx, resourceGroupName, accountName, shareName, expand, xMsSnapshot)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.FileSharesClient", "Get", nil, "Failure preparing request")
 		return
@@ -308,7 +318,7 @@ func (client FileSharesClient) Get(ctx context.Context, resourceGroupName string
 }
 
 // GetPreparer prepares the Get request.
-func (client FileSharesClient) GetPreparer(ctx context.Context, resourceGroupName string, accountName string, shareName string, expand GetShareExpand) (*http.Request, error) {
+func (client FileSharesClient) GetPreparer(ctx context.Context, resourceGroupName string, accountName string, shareName string, expand GetShareExpand, xMsSnapshot string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"accountName":       autorest.Encode("path", accountName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -316,7 +326,7 @@ func (client FileSharesClient) GetPreparer(ctx context.Context, resourceGroupNam
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-06-01"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -329,6 +339,10 @@ func (client FileSharesClient) GetPreparer(ctx context.Context, resourceGroupNam
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{accountName}/fileServices/default/shares/{shareName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
+	if len(xMsSnapshot) > 0 {
+		preparer = autorest.DecoratePreparer(preparer,
+			autorest.WithHeader("x-ms-snapshot", autorest.String(xMsSnapshot)))
+	}
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
@@ -418,7 +432,7 @@ func (client FileSharesClient) ListPreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-06-01"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -565,7 +579,7 @@ func (client FileSharesClient) RestorePreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-06-01"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -666,7 +680,7 @@ func (client FileSharesClient) UpdatePreparer(ctx context.Context, resourceGroup
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-06-01"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
