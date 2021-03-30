@@ -115,6 +115,12 @@ func resourceFunctionApp() *schema.Resource {
 				Computed: true,
 			},
 
+			"client_cert_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"daily_memory_time_quota": {
 				Type:     schema.TypeInt,
 				Optional: true,
@@ -287,6 +293,7 @@ func resourceFunctionAppCreate(d *schema.ResourceData, meta interface{}) error {
 	appServicePlanID := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
 	clientAffinityEnabled := d.Get("client_affinity_enabled").(bool)
+	clientCertEnabled := d.Get("client_cert_enabled").(bool)
 	httpsOnly := d.Get("https_only").(bool)
 	dailyMemoryTimeQuota := d.Get("daily_memory_time_quota").(int)
 	t := d.Get("tags").(map[string]interface{})
@@ -315,6 +322,7 @@ func resourceFunctionAppCreate(d *schema.ResourceData, meta interface{}) error {
 			ServerFarmID:          utils.String(appServicePlanID),
 			Enabled:               utils.Bool(enabled),
 			ClientAffinityEnabled: utils.Bool(clientAffinityEnabled),
+			ClientCertEnabled:     utils.Bool(clientCertEnabled),
 			HTTPSOnly:             utils.Bool(httpsOnly),
 			DailyMemoryTimeQuota:  utils.Int32(int32(dailyMemoryTimeQuota)),
 			SiteConfig:            &siteConfig,
@@ -399,6 +407,7 @@ func resourceFunctionAppUpdate(d *schema.ResourceData, meta interface{}) error {
 	appServicePlanID := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
 	clientAffinityEnabled := d.Get("client_affinity_enabled").(bool)
+	clientCertEnabled := d.Get("client_cert_enabled").(bool)
 	httpsOnly := d.Get("https_only").(bool)
 	dailyMemoryTimeQuota := d.Get("daily_memory_time_quota").(int)
 	t := d.Get("tags").(map[string]interface{})
@@ -428,6 +437,7 @@ func resourceFunctionAppUpdate(d *schema.ResourceData, meta interface{}) error {
 			ServerFarmID:          utils.String(appServicePlanID),
 			Enabled:               utils.Bool(enabled),
 			ClientAffinityEnabled: utils.Bool(clientAffinityEnabled),
+			ClientCertEnabled:     utils.Bool(clientCertEnabled),
 			HTTPSOnly:             utils.Bool(httpsOnly),
 			DailyMemoryTimeQuota:  utils.Int32(int32(dailyMemoryTimeQuota)),
 			SiteConfig:            &siteConfig,
@@ -610,6 +620,7 @@ func resourceFunctionAppRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("outbound_ip_addresses", props.OutboundIPAddresses)
 		d.Set("possible_outbound_ip_addresses", props.PossibleOutboundIPAddresses)
 		d.Set("client_affinity_enabled", props.ClientAffinityEnabled)
+		d.Set("client_cert_enabled", props.ClientCertEnabled)
 		d.Set("custom_domain_verification_id", props.CustomDomainVerificationID)
 	}
 
