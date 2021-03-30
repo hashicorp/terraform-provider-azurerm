@@ -2,6 +2,7 @@
 
 BUG FIXES:
 * `azurerm_site_recovery_fabric` - Fixes error in checking for existing resource [GH-11130]
+* `azurerm_spring_cloud_custom_domain` - `thumbprint` is required when specifying `certificate_name` [GH-11145]
 * `azurerm_subscription` - fixes broken timeout on destroy [GH-11124]
 
 ## 2.53.0 (March 26, 2021)
