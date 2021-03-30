@@ -91,8 +91,7 @@ func resourceManagementGroupSubscriptionAssociationCreate(d *schema.ResourceData
 		}
 	}
 
-	_, err = client.Create(ctx, id.ManagementGroup, id.SubscriptionId, "")
-	if err != nil {
+	if _, err := client.Create(ctx, id.ManagementGroup, id.SubscriptionId, ""); err != nil {
 		return fmt.Errorf("creating Management Group Subscription Association between %q and %q: %+v", managementGroupId.Name, subscriptionId, err)
 	}
 
