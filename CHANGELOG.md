@@ -1,5 +1,9 @@
 ## 2.54.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_media_live_event` [GH-10724]
+
 ENHANCEMENTS:
 
 * dependencies: updating to `v52.6.0` of `github.com/Azure/azure-sdk-for-go` [GH-11108]
@@ -21,6 +25,7 @@ BUG FIXES:
 ## 2.53.0 (March 26, 2021)
 
 FEATURES:
+
 * **New Resource:** `azurerm_management_group_template_deployment` ([#10603](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10603))
 * **New Resource:** `azurerm_tenant_template_deployment` ([#10603](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10603))
 * **New Data Source:** `azurerm_template_spec_version` ([#10603](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10603))
