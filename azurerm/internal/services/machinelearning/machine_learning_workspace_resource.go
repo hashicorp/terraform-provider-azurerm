@@ -7,7 +7,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/machinelearningservices/mgmt/2020-04-01/machinelearningservices"
 	"github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2020-11-01-preview/containerregistry"
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-06-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-01-01/storage"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -21,6 +21,15 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+)
+
+// TODO -- remove this type when issue https://github.com/Azure/azure-rest-api-specs/issues/13546 is resolved
+type WorkspaceSku string
+
+const (
+	Basic WorkspaceSku = "Basic"
+	// TODO -- remove Enterprise in 3.0 which has been deprecated here: https://docs.microsoft.com/en-us/azure/machine-learning/concept-workspace#what-happened-to-enterprise-edition
+	Enterprise WorkspaceSku = "Enterprise"
 )
 
 func resourceMachineLearningWorkspace() *schema.Resource {
@@ -138,8 +147,9 @@ func resourceMachineLearningWorkspace() *schema.Resource {
 				Optional: true,
 				Default:  "Basic",
 				ValidateFunc: validation.StringInSlice([]string{
-					"Basic",
-					"Enterprise",
+					string(Basic),
+					// TODO -- remove Enterprise in 3.0 which has been deprecated here: https://docs.microsoft.com/en-us/azure/machine-learning/concept-workspace#what-happened-to-enterprise-edition
+					string(Enterprise),
 				}, true),
 			},
 
