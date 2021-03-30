@@ -115,10 +115,15 @@ func resourceFunctionApp() *schema.Resource {
 				Computed: true,
 			},
 
-			"client_cert_enabled": {
-				Type:     schema.TypeBool,
+			"client_cert_mode": {
+				Type:     schema.TypeString,
 				Optional: true,
-				Default:  false,
+				ValidateFunc: validation.StringInSlice([]string{
+					"Required",
+					"Optional",
+					"Ignore",
+				}, false),
+				Default: "Ignore",
 			},
 
 			"daily_memory_time_quota": {
@@ -293,7 +298,8 @@ func resourceFunctionAppCreate(d *schema.ResourceData, meta interface{}) error {
 	appServicePlanID := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
 	clientAffinityEnabled := d.Get("client_affinity_enabled").(bool)
-	clientCertEnabled := d.Get("client_cert_enabled").(bool)
+	clientCertMode := d.Get("client_cert_mode").(string)
+	clientCertEnabled := clientCertMode != "Ignore"
 	httpsOnly := d.Get("https_only").(bool)
 	dailyMemoryTimeQuota := d.Get("daily_memory_time_quota").(int)
 	t := d.Get("tags").(map[string]interface{})
@@ -327,6 +333,10 @@ func resourceFunctionAppCreate(d *schema.ResourceData, meta interface{}) error {
 			DailyMemoryTimeQuota:  utils.Int32(int32(dailyMemoryTimeQuota)),
 			SiteConfig:            &siteConfig,
 		},
+	}
+
+	if clientCertEnabled {
+		siteEnvelope.SiteProperties.ClientCertMode = web.ClientCertMode(clientCertMode)
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
@@ -407,7 +417,8 @@ func resourceFunctionAppUpdate(d *schema.ResourceData, meta interface{}) error {
 	appServicePlanID := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
 	clientAffinityEnabled := d.Get("client_affinity_enabled").(bool)
-	clientCertEnabled := d.Get("client_cert_enabled").(bool)
+	clientCertMode := d.Get("client_cert_mode").(string)
+	clientCertEnabled := clientCertMode != "Ignore"
 	httpsOnly := d.Get("https_only").(bool)
 	dailyMemoryTimeQuota := d.Get("daily_memory_time_quota").(int)
 	t := d.Get("tags").(map[string]interface{})
@@ -442,6 +453,10 @@ func resourceFunctionAppUpdate(d *schema.ResourceData, meta interface{}) error {
 			DailyMemoryTimeQuota:  utils.Int32(int32(dailyMemoryTimeQuota)),
 			SiteConfig:            &siteConfig,
 		},
+	}
+
+	if clientCertEnabled {
+		siteEnvelope.SiteProperties.ClientCertMode = web.ClientCertMode(clientCertMode)
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
@@ -620,8 +635,15 @@ func resourceFunctionAppRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("outbound_ip_addresses", props.OutboundIPAddresses)
 		d.Set("possible_outbound_ip_addresses", props.PossibleOutboundIPAddresses)
 		d.Set("client_affinity_enabled", props.ClientAffinityEnabled)
-		d.Set("client_cert_enabled", props.ClientCertEnabled)
 		d.Set("custom_domain_verification_id", props.CustomDomainVerificationID)
+
+		if clientCertEnabled := props.ClientCertEnabled; clientCertEnabled != nil {
+			if *clientCertEnabled {
+				d.Set("client_cert_mode", props.ClientCertMode)
+			} else {
+				d.Set("client_cert_mode", "Ignore")
+			}
+		}
 	}
 
 	appSettings := flattenAppServiceAppSettings(appSettingsResp.Properties)

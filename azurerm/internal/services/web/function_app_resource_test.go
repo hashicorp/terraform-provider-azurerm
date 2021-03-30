@@ -901,23 +901,37 @@ func TestAccFunctionApp_scm(t *testing.T) {
 	})
 }
 
-func TestAccFunctionAppDataSource_clientCertEnabled(t *testing.T) {
+func TestAccFunctionApp_clientCertMode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.clientCertEnabled(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("client_cert_enabled").HasValue("true"),
-			),
-		},
-		{
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("client_cert_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("client_cert_mode").HasValue("Ignore"),
+			),
+		},
+		{
+			Config: r.clientCertMode(data, "Required"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("client_cert_mode").HasValue("Required"),
+			),
+		},
+		{
+			Config: r.clientCertMode(data, "Optional"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("client_cert_mode").HasValue("Optional"),
+			),
+		},
+		{
+			Config: r.clientCertMode(data, "Ignore"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("client_cert_mode").HasValue("Ignore"),
 			),
 		},
 		data.ImportStep(),
@@ -2968,7 +2982,7 @@ resource "azurerm_function_app" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r FunctionAppResource) clientCertEnabled(data acceptance.TestData) string {
+func (r FunctionAppResource) clientCertMode(data acceptance.TestData, modeValue string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3005,7 +3019,7 @@ resource "azurerm_function_app" "test" {
   app_service_plan_id        = azurerm_app_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
-  client_cert_enabled = true
+  client_cert_mode           = "%[4]s"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, modeValue)
 }
