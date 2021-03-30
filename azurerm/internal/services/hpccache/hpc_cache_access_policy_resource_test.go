@@ -199,7 +199,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-storage-%d"
+  name     = "acctestRG-hpcc-%d"
   location = "%s"
 }
 
