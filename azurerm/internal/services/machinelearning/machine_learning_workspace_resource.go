@@ -23,6 +23,15 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+// TODO -- remove this type when issue https://github.com/Azure/azure-rest-api-specs/issues/13546 is resolved
+type WorkspaceSku string
+
+const (
+	Basic WorkspaceSku = "Basic"
+	// TODO -- remove Enterprise in 3.0 which has been deprecated here: https://docs.microsoft.com/en-us/azure/machine-learning/concept-workspace#what-happened-to-enterprise-edition
+	Enterprise WorkspaceSku = "Enterprise"
+)
+
 func resourceMachineLearningWorkspace() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceMachineLearningWorkspaceCreate,
@@ -138,8 +147,9 @@ func resourceMachineLearningWorkspace() *schema.Resource {
 				Optional: true,
 				Default:  "Basic",
 				ValidateFunc: validation.StringInSlice([]string{
-					"Basic",
-					"Enterprise",
+					string(Basic),
+					// TODO -- remove Enterprise in 3.0 which has been deprecated here: https://docs.microsoft.com/en-us/azure/machine-learning/concept-workspace#what-happened-to-enterprise-edition
+					string(Enterprise),
 				}, true),
 			},
 
