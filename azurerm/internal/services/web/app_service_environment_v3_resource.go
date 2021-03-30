@@ -29,14 +29,13 @@ type ClusterSettingModel struct {
 }
 
 type AppServiceEnvironmentV3Model struct {
-	Name                      string                 `tfschema:"name"`
-	ResourceGroup             string                 `tfschema:"resource_group_name"`
-	SubnetId                  string                 `tfschema:"subnet_id"`
-	ClusterSetting            []ClusterSettingModel  `tfschema:"cluster_setting"`
-	InternalLoadBalancingMode string                 `tfschema:"internal_load_balancing_mode"`
-	PricingTier               string                 `tfschema:"pricing_tier"`
-	Location                  string                 `tfschema:"location"`
-	Tags                      map[string]interface{} `tfschema:"tags"`
+	Name           string                 `tfschema:"name"`
+	ResourceGroup  string                 `tfschema:"resource_group_name"`
+	SubnetId       string                 `tfschema:"subnet_id"`
+	ClusterSetting []ClusterSettingModel  `tfschema:"cluster_setting"`
+	PricingTier    string                 `tfschema:"pricing_tier"`
+	Location       string                 `tfschema:"location"`
+	Tags           map[string]interface{} `tfschema:"tags"`
 }
 
 type AppServiceEnvironmentV3Resource struct{}
@@ -80,22 +79,6 @@ func (r AppServiceEnvironmentV3Resource) Arguments() map[string]*schema.Schema {
 					},
 				},
 			},
-		},
-
-		"internal_load_balancing_mode": {
-			Type:     schema.TypeString,
-			Optional: true,
-			ForceNew: true,
-			Default:  string(web.LoadBalancingModeNone),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(web.LoadBalancingModeNone),
-				string(web.LoadBalancingModePublishing),
-				string(web.LoadBalancingModeWeb),
-				string(web.LoadBalancingModeWebPublishing),
-				// (@jackofallops) breaking change in SDK - Enum for internal_load_balancing_mode changed from Web, Publishing to Web,Publishing
-				string(LoadBalancingModeWebPublishing),
-			}, false),
-			DiffSuppressFunc: loadBalancingModeDiffSuppress,
 		},
 
 		"tags": tags.ForceNewSchema(),
@@ -167,9 +150,8 @@ func (r AppServiceEnvironmentV3Resource) Create() sdk.ResourceFunc {
 				Kind:     utils.String(KindASEV3),
 				Location: utils.String(vnetLoc),
 				AppServiceEnvironment: &web.AppServiceEnvironment{
-					Name:                      utils.String(id.HostingEnvironmentName),
-					Location:                  utils.String(vnetLoc),
-					InternalLoadBalancingMode: web.LoadBalancingMode(model.InternalLoadBalancingMode),
+					Name:     utils.String(id.HostingEnvironmentName),
+					Location: utils.String(vnetLoc),
 					VirtualNetwork: &web.VirtualNetworkProfile{
 						ID:     utils.String(model.SubnetId),
 						Subnet: utils.String(subnet.Name),
@@ -234,8 +216,6 @@ func (r AppServiceEnvironmentV3Resource) Read() sdk.ResourceFunc {
 			}
 
 			if props := existing.AppServiceEnvironment; props != nil {
-				model.InternalLoadBalancingMode = string(props.InternalLoadBalancingMode)
-
 				if props.VirtualNetwork != nil {
 					model.SubnetId = utils.NormalizeNilableString(props.VirtualNetwork.ID)
 				}
