@@ -88,49 +88,11 @@ func resourceCosmosDbGremlinGraph() *schema.Resource {
 			"autoscale_settings": common.ContainerAutoscaleSettingsSchema(),
 
 			"partition_key_path": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				ForceNew:      true,
-				Deprecated:    "This field is deprecated and will be removed in version 3.0 of the Azure Provider in favour of `partition_key`",
-				ValidateFunc:  validation.StringIsNotEmpty,
-				Default:       "/_partitionKey",
-				ConflictsWith: []string{"partition_key"},
-			},
-
-			"partition_key": {
-				Type:          schema.TypeList,
-				Optional:      true,
-				MaxItems:      1,
-				ConflictsWith: []string{"partition_key_path"},
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"paths": {
-							Type:     schema.TypeSet,
-							Required: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-							Set: schema.HashString,
-						},
-
-						"kind": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(documentdb.PartitionKindHash),
-								string(documentdb.PartitionKindMultiHash),
-								string(documentdb.PartitionKindRange),
-							}, false),
-							Default: string(documentdb.PartitionKindHash),
-						},
-
-						"system_key": {
-							Type:     schema.TypeBool,
-							Computed: true,
-						},
-					},
-				},
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+				Default:      "/_partitionKey",
 			},
 
 			"index_policy": {
@@ -228,14 +190,6 @@ func resourceCosmosDbGremlinGraph() *schema.Resource {
 				},
 			},
 		},
-
-		//CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
-		//	if err := helper.MSSQLElasticPoolValidateSKU(diff); err != nil {
-		//		return err
-		//	}
-		//
-		//	return nil
-		//},
 	}
 }
 
@@ -269,10 +223,15 @@ func resourceCosmosDbGremlinGraphCreate(d *schema.ResourceData, meta interface{}
 				ID:                       &name,
 				IndexingPolicy:           expandAzureRmCosmosDbGrelinGraphIndexingPolicy(d),
 				ConflictResolutionPolicy: expandAzureRmCosmosDbGremlinGraphConflicResolutionPolicy(d),
-				PartitionKey:             expandAzureRmCosmosDbGrelinGraphPartitionKey(d.Get("partition_key").([]interface{}), partitionkeypaths),
 			},
 			Options: &documentdb.CreateUpdateOptions{},
 		},
+	}
+
+	if partitionkeypaths != "" {
+		db.GremlinGraphCreateUpdateProperties.Resource.PartitionKey = &documentdb.ContainerPartitionKey{
+			Paths: &[]string{partitionkeypaths},
+		}
 	}
 
 	if keys := expandAzureRmCosmosDbGremlinGraphUniqueKeys(d.Get("unique_key").(*schema.Set)); keys != nil {
@@ -343,10 +302,15 @@ func resourceCosmosDbGremlinGraphUpdate(d *schema.ResourceData, meta interface{}
 				ID:                       &id.GraphName,
 				IndexingPolicy:           expandAzureRmCosmosDbGrelinGraphIndexingPolicy(d),
 				ConflictResolutionPolicy: expandAzureRmCosmosDbGremlinGraphConflicResolutionPolicy(d),
-				PartitionKey:             expandAzureRmCosmosDbGrelinGraphPartitionKey(d.Get("partition_key").([]interface{}), partitionkeypaths),
 			},
 			Options: &documentdb.CreateUpdateOptions{},
 		},
+	}
+
+	if partitionkeypaths != "" {
+		db.GremlinGraphCreateUpdateProperties.Resource.PartitionKey = &documentdb.ContainerPartitionKey{
+			Paths: &[]string{partitionkeypaths},
+		}
 	}
 
 	if keys := expandAzureRmCosmosDbGremlinGraphUniqueKeys(d.Get("unique_key").(*schema.Set)); keys != nil {
@@ -414,8 +378,14 @@ func resourceCosmosDbGremlinGraphRead(d *schema.ResourceData, meta interface{}) 
 
 	if graphProperties := resp.GremlinGraphGetProperties; graphProperties != nil {
 		if props := graphProperties.Resource; props != nil {
-			if err := d.Set("partition_key", flattenAzureRmCosmosDBGremlinGraphPartitionKey(props.PartitionKey, d.Get("partition_key_path").(string))); err != nil {
-				return fmt.Errorf("setting `partition_key`: %+v", err)
+			if pk := props.PartitionKey; pk != nil {
+				if paths := pk.Paths; paths != nil {
+					if len(*paths) > 1 {
+						return fmt.Errorf("Error reading PartitionKey Paths, more than 1 returned")
+					} else if len(*paths) == 1 {
+						d.Set("partition_key_path", (*paths)[0])
+					}
+				}
 			}
 
 			if ip := props.IndexingPolicy; ip != nil {
@@ -657,82 +627,3 @@ func flattenCosmosGremlinGraphUniqueKeys(keys *[]documentdb.UniqueKey) *[]map[st
 
 	return &slice
 }
-
-// `Paths` in `PartitionKey` becomes `Required` instead `Optional` in version upgrade
-// to solve the breaking change, if not set, we set a default path "/_partitionKey".
-func expandAzureRmCosmosDbGrelinGraphPartitionKey(inputs []interface{}, extraPath string) *documentdb.ContainerPartitionKey {
-	if len(inputs) == 0 {
-		return &documentdb.ContainerPartitionKey{
-			Paths: &[]string{extraPath},
-		}
-	}
-
-	input := inputs[0].(map[string]interface{})
-	paths := make([]string, 0)
-	for _, item := range input["paths"].([]interface{}) {
-		if item != nil {
-			paths = append(paths, item.(string))
-		}
-	}
-	if extraPath != "" {
-		paths = append(paths, extraPath)
-	}
-	return &documentdb.ContainerPartitionKey{
-		Paths: &paths,
-		Kind:  documentdb.PartitionKind(input["kind"].(string)),
-	}
-}
-
-func flattenAzureRmCosmosDBGremlinGraphPartitionKey(key *documentdb.ContainerPartitionKey, extraPath string) []interface{} {
-	if key == nil {
-		return []interface{}{}
-	}
-
-	var paths []string
-	for _, p := range *key.Paths {
-		if p == extraPath {
-			continue
-		}
-		paths = append(paths, p)
-	}
-
-	if len(paths) == 0 {
-		return []interface{}{}
-	}
-
-	var systemKey bool
-	if key.SystemKey != nil {
-		systemKey = *key.SystemKey
-	}
-
-	return []interface{}{map[string]interface{}{
-		"paths":      paths,
-		"kind":       string(key.Kind),
-		"system_key": systemKey,
-	}}
-}
-
-//func resourceCosmosdbGremlinGraphCustomDiff(d *schema.ResourceDiff, _ interface{}) error {
-//	old, new := d.GetChange("partition_key")
-//	oldExtra, newExtra := d.GetChange("partition_key_path")
-//	oldPaths, newPaths:= []string{oldExtra.(string)},[]string{newExtra.(string)}
-//	if oldRaw:= old.([]interface{});len(oldRaw)>0{
-//		oldInput := oldRaw[0].(map[string]interface{})
-//		for _,p:= range(oldInput["paths"].(*schema.Set).List()){
-//			oldPaths = append( oldPaths,p.(string))
-//		}
-//	}
-//
-//	if newRaw:= new.([]interface{});len(newRaw)>0{
-//		newInput := newRaw[0].(map[string]interface{})
-//		for _,p:= range(newInput["paths"].(*schema.Set).List()){
-//			newPaths = append(newPaths,p.(string))
-//		}
-//		if len(newPaths)>3{
-//			return fmt.Errorf("`partition_key` should be less than 3")
-//		}
-//	}
-//
-//
-//	return nil
-//}

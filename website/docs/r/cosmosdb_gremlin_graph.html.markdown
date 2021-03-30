@@ -1,4 +1,4 @@
----
+`---
 subcategory: "CosmosDB (DocumentDB)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cosmosdb_gremlin_graph"
@@ -65,6 +65,8 @@ The following arguments are supported:
 * `database_name` - (Required) The name of the Cosmos DB Graph Database in which the Cosmos DB Gremlin Graph is created. Changing this forces a new resource to be created.
 
 * `partition_key_path` - (Optional) Define a partition key. Changing this forces a new resource to be created.
+
+~> **NOTE:** There'll be a default value `/_partitionKey` for `partition_key_path` to solve `partition_key_path` becomes `Required` in the new service version.
 
 * `throughput` - (Optional) The throughput of the Gremlin graph (RU/s). Must be set in increments of `100`. The minimum value is `400`. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply.
 

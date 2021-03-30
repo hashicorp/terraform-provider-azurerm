@@ -138,21 +138,6 @@ func TestAccCosmosDbGremlinGraph_autoscale(t *testing.T) {
 	})
 }
 
-func TestAccCosmosDbGremlinGraph_partitionKey(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_gremlin_graph", "test")
-	r := CosmosGremlinGraphResource{}
-
-	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.indexPolicy(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func (t CosmosGremlinGraphResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.GremlinGraphID(state.ID)
 	if err != nil {

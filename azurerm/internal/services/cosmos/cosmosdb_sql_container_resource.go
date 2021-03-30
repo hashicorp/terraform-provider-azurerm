@@ -76,6 +76,7 @@ func resourceCosmosDbSQLContainer() *schema.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
+				Default:      "/_partitionKey",
 			},
 
 			"partition_key_version": {
