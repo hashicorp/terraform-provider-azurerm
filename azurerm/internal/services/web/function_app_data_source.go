@@ -217,10 +217,17 @@ func dataSourceFunctionAppRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("app_service_plan_id", props.ServerFarmID)
 		d.Set("enabled", props.Enabled)
 		d.Set("default_hostname", props.DefaultHostName)
-		d.Set("client_cert_enabled", props.ClientCertEnabled)
 		d.Set("outbound_ip_addresses", props.OutboundIPAddresses)
 		d.Set("possible_outbound_ip_addresses", props.PossibleOutboundIPAddresses)
 		d.Set("custom_domain_verification_id", props.CustomDomainVerificationID)
+
+		if clientCertEnabled := props.ClientCertEnabled; clientCertEnabled != nil {
+			if *clientCertEnabled {
+				d.Set("client_cert_mode", props.ClientCertMode)
+			} else {
+				d.Set("client_cert_mode", "Ignore")
+			}
+		}
 	}
 
 	osType := ""
