@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -48,9 +49,10 @@ func resourceSecurityCenterWorkspace() *schema.Resource {
 			},
 
 			"workspace_id": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				Type:             schema.TypeString,
+				Required:         true,
+				ValidateFunc:     azure.ValidateResourceID,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 		},
 	}
