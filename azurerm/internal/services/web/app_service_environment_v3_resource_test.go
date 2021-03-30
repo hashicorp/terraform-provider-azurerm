@@ -127,7 +127,6 @@ resource "azurerm_app_service_environment_v3" "test" {
   subnet_id           = azurerm_subnet.ase.id
 
   internal_load_balancing_mode = "Web, Publishing"
-  front_end_scale_factor       = 10
 
   cluster_setting {
     name  = "InternalEncryption"
@@ -157,7 +156,6 @@ resource "azurerm_app_service_environment_v3" "test" {
   subnet_id           = azurerm_subnet.ase.id
 
   internal_load_balancing_mode = "Web, Publishing"
-  front_end_scale_factor       = 15
 
   cluster_setting {
     name  = "InternalEncryption"

@@ -34,7 +34,6 @@ type AppServiceEnvironmentV3Model struct {
 	SubnetId                  string                 `tfschema:"subnet_id"`
 	ClusterSetting            []ClusterSettingModel  `tfschema:"cluster_setting"`
 	InternalLoadBalancingMode string                 `tfschema:"internal_load_balancing_mode"`
-	FrontEndScaleFactor       int                    `tfschema:"front_end_scale_factor"`
 	PricingTier               string                 `tfschema:"pricing_tier"`
 	Location                  string                 `tfschema:"location"`
 	Tags                      map[string]interface{} `tfschema:"tags"`
@@ -97,13 +96,6 @@ func (r AppServiceEnvironmentV3Resource) Arguments() map[string]*schema.Schema {
 				string(LoadBalancingModeWebPublishing),
 			}, false),
 			DiffSuppressFunc: loadBalancingModeDiffSuppress,
-		},
-
-		"front_end_scale_factor": {
-			Type:         schema.TypeInt,
-			Optional:     true,
-			Default:      15,
-			ValidateFunc: validation.IntBetween(5, 15),
 		},
 
 		"tags": tags.ForceNewSchema(),
@@ -178,7 +170,6 @@ func (r AppServiceEnvironmentV3Resource) Create() sdk.ResourceFunc {
 					Name:                      utils.String(id.HostingEnvironmentName),
 					Location:                  utils.String(vnetLoc),
 					InternalLoadBalancingMode: web.LoadBalancingMode(model.InternalLoadBalancingMode),
-					FrontEndScaleFactor:       utils.Int32(int32(model.FrontEndScaleFactor)),
 					VirtualNetwork: &web.VirtualNetworkProfile{
 						ID:     utils.String(model.SubnetId),
 						Subnet: utils.String(subnet.Name),
@@ -249,8 +240,6 @@ func (r AppServiceEnvironmentV3Resource) Read() sdk.ResourceFunc {
 					model.SubnetId = utils.NormalizeNilableString(props.VirtualNetwork.ID)
 				}
 
-				model.FrontEndScaleFactor = int(utils.NormaliseNilableInt32(props.FrontEndScaleFactor))
-
 				model.PricingTier = utils.NormalizeNilableString(props.MultiSize)
 
 				model.ClusterSetting = flattenClusterSettingsModel(props.ClusterSettings)
@@ -314,10 +303,6 @@ func (r AppServiceEnvironmentV3Resource) Update() sdk.ResourceFunc {
 
 			patch := web.AppServiceEnvironmentPatchResource{
 				AppServiceEnvironment: &web.AppServiceEnvironment{},
-			}
-
-			if metadata.ResourceData.HasChange("front_end_scale_factor") {
-				patch.AppServiceEnvironment.FrontEndScaleFactor = utils.Int32(int32(state.FrontEndScaleFactor))
 			}
 
 			if metadata.ResourceData.HasChange("cluster_setting") {
