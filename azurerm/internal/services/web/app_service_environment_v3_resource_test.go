@@ -126,8 +126,6 @@ resource "azurerm_app_service_environment_v3" "test" {
   resource_group_name = azurerm_resource_group.test2.name
   subnet_id           = azurerm_subnet.ase.id
 
-  internal_load_balancing_mode = "Web, Publishing"
-
   cluster_setting {
     name  = "InternalEncryption"
     value = "true"
@@ -154,8 +152,6 @@ resource "azurerm_app_service_environment_v3" "test" {
   name                = "acctest-ase-%d"
   resource_group_name = azurerm_resource_group.test2.name
   subnet_id           = azurerm_subnet.ase.id
-
-  internal_load_balancing_mode = "Web, Publishing"
 
   cluster_setting {
     name  = "InternalEncryption"
