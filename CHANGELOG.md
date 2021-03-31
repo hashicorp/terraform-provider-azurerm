@@ -16,6 +16,7 @@ ENHANCEMENTS:
 * `azurerm_firewall` - support for the `private_ip_ranges` property [pGH-10627]
 * `azurerm_spring_cloud_service` - supports for the `sample_rate` property [GH-11106]
 * `azurerm_storage_account` - support for the `container_delete_retention_policy` property [GH-11131]
+* `azurerm_web_application_firewall_policy` - support for the `http_listener_ids` and `path_based_rule_ids` properties [GH-10860]
 
 BUG FIXES:
 
