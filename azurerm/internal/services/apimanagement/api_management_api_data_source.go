@@ -132,7 +132,7 @@ func dataSourceApiManagementApiRead(d *schema.ResourceData, meta interface{}) er
 	resp, err := client.Get(ctx, resourceGroup, serviceName, apiId)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("API %q Revision %q (API Management Service %q / Resource Group %q) does not exist!", name, revision, serviceName, resourceGroup)
+			return fmt.Errorf("API %q Revision %q (API Management Service %q / Resource Group %q) does not exist", name, revision, serviceName, resourceGroup)
 		}
 
 		return fmt.Errorf("retrieving API %q / Revision %q (API Management Service %q / Resource Group %q): %+v", name, revision, serviceName, resourceGroup, err)
