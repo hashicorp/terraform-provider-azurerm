@@ -3,11 +3,13 @@
 FEATURES:
 
 * **New Resource:** `azurerm_media_live_event` [GH-10724]
+* **New Resource:** `azurerm_hpc_cache_access_policy` [GH-11083]
 
 ENHANCEMENTS:
 
 * dependencies: updating to `v52.6.0` of `github.com/Azure/azure-sdk-for-go` [GH-11108]
 * dependencies: updating `storage` to API version `2021-01-01` [GH-11094]
+* dependencies: updating `storagecache` (a.k.a `hpc`) to API version `2021-03-01` [GH-11083]
 * `azurerm_container_registry` - support for the `quarantine_policy_enabled` property [GH-11011]
 * `azurerm_spring_cloud_service` - supports for the `sample_rate` property [GH-11106]
 * `azurerm_storage_account` - support for the `container_delete_retention_policy` property [GH-11131]
