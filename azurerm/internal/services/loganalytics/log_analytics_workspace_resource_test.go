@@ -482,24 +482,3 @@ resource "azurerm_log_analytics_workspace" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, capacityReservation)
 }
-
-func (LogAnalyticsWorkspaceResource) negativeOne(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_log_analytics_workspace" "test" {
-  name                = "acctestLAW-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "PerGB2018"
-  retention_in_days   = 30
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
