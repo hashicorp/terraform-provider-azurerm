@@ -2,8 +2,9 @@
 
 FEATURES:
 
-* **New Resource:** `azurerm_media_live_event` [GH-10724]
 * **New Resource:** `azurerm_hpc_cache_access_policy` [GH-11083]
+* **New Resource:** `azurerm_management_group_subscription_association` [GH-11069]
+* **New Resource:** `azurerm_media_live_event` [GH-10724]
 
 ENHANCEMENTS:
 
