@@ -10,11 +10,11 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	keyVaultParser "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/parse"
+	serverValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/validate"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -41,14 +41,13 @@ func resourceMsSqlTransparentDataEncryption() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"server_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+			"server_id": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: serverValidate.ServerID,
 			},
-
-			"resource_group_name": azure.SchemaResourceGroupName(),
-			"key_vault_uri": {
+			"key_vault_key_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: keyVaultValidate.NestedItemId,
@@ -65,9 +64,13 @@ func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *schema.ResourceData, 
 
 	log.Printf("[INFO] preparing arguments for MSSQL Encrypted Protector creation.")
 
-	// encryptedProtectorName := d.Get("name").(string)
-	serverName := d.Get("server_name").(string)
-	resGroup := d.Get("resource_group_name").(string)
+	serverId, err := parse.ServerID(d.Get("server_id").(string))
+
+	if err != nil {
+		return err
+	}
+	serverName := serverId.Name
+	resGroup := serverId.ResourceGroup
 
 	// Normally we would check if this is a new resource, but the way encryption protector works, it always overwrites
 	// whatever is there anyways. Compounding the issue is that SQL Server creates an instance of encryption protector
@@ -80,7 +83,7 @@ func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *schema.ResourceData, 
 	var serverKeyName string
 	var encryptionProtectorProperties sql.EncryptionProtectorProperties
 
-	if v, ok := d.GetOk("key_vault_uri"); ok {
+	if v, ok := d.GetOk("key_vault_key_id"); ok {
 		keyUri := v.(string)
 
 		// Set the SQL Server Key properties
@@ -94,7 +97,7 @@ func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *schema.ResourceData, 
 		keyDetails, err := keyVaultParser.ParseNestedItemID(keyUri)
 
 		if err != nil {
-			return fmt.Errorf("Unable to parse key uri: %q: %+v", keyUri, err)
+			return fmt.Errorf("Unable to parse key: %q: %+v", keyUri, err)
 		}
 
 		// Make sure it's a key, if not, throw an error
@@ -121,7 +124,7 @@ func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *schema.ResourceData, 
 				ServerKeyName: &serverKeyName,
 			}
 		} else {
-			return fmt.Errorf("Key vault uri must be a reference to a key, but got: %s", keyDetails.NestedItemType)
+			return fmt.Errorf("Key vault key id must be a reference to a key, but got: %s", keyDetails.NestedItemType)
 		}
 	} else {
 		serverKeyName = ""
@@ -159,12 +162,9 @@ func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *schema.ResourceData, 
 		return fmt.Errorf("waiting on create/update future for Encryption Protector on server %q (Resource Group %q): %+v", serverName, resGroup, err)
 	}
 
-	resp, err := encryptionProtectorClient.Get(ctx, resGroup, serverName)
-	if err != nil {
-		return fmt.Errorf("issuing get request for Encryption protector on server %q (Resource Group %q): %+v", serverName, resGroup, err)
-	}
-
-	d.SetId(*resp.ID)
+	// Encryption protector always uses "current" for the name
+	id := parse.NewEncryptionProtectorID(serverId.SubscriptionId, serverId.ResourceGroup, serverId.Name, "current")
+	d.SetId(id.ID())
 
 	return resourceMsSqlTransparentDataEncryptionRead(d, meta)
 }
@@ -189,17 +189,17 @@ func resourceMsSqlTransparentDataEncryptionRead(d *schema.ResourceData, meta int
 		return fmt.Errorf("Error making Read request for Encryption Protector on server %s: %v", id.ServerName, err)
 	}
 
-	d.Set("server_name", id.ServerName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	serverId := parse.NewServerID(id.SubscriptionId, id.ResourceGroup, id.ServerName)
+	d.Set("server_id", serverId.ID())
 
 	log.Printf("[INFO] Encryption protector key type is %s", resp.EncryptionProtectorProperties.ServerKeyType)
 
-	// Only set the key type if it's an AKV key. For service managed, we can omit the setting the key_vault_uri
+	// Only set the key type if it's an AKV key. For service managed, we can omit the setting the key_vault_key_id
 	if resp.EncryptionProtectorProperties.ServerKeyType == sql.AzureKeyVault {
 		log.Printf("[INFO] Setting Key Vault URI to %s", *resp.EncryptionProtectorProperties.URI)
 
-		if err := d.Set("key_vault_uri", resp.EncryptionProtectorProperties.URI); err != nil {
-			return fmt.Errorf("setting key_vault_uri`: %+v", err)
+		if err := d.Set("key_vault_key_id", resp.EncryptionProtectorProperties.URI); err != nil {
+			return fmt.Errorf("setting key_vault_key_id`: %+v", err)
 		}
 	}
 

@@ -26,10 +26,10 @@ func TestAccMsSqlServerTransparentDataEncryption_byok(t *testing.T) {
 			Config: r.byok(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("key_vault_uri").Exists(),
+				check.That(data.ResourceName).Key("key_vault_key_id").Exists(),
 			),
 		},
-		data.ImportStep(""),
+		data.ImportStep(),
 	})
 }
 
@@ -42,10 +42,10 @@ func TestAccMsSqlServerTransparentDataEncryption_systemManaged(t *testing.T) {
 			Config: r.systemManaged(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("key_vault_uri").DoesNotExist(),
+				check.That(data.ResourceName).Key("key_vault_key_id").DoesNotExist(),
 			),
 		},
-		data.ImportStep(""),
+		data.ImportStep(),
 	})
 }
 
@@ -59,19 +59,17 @@ func TestAccMsSqlServerTransparentDataEncryption_update(t *testing.T) {
 			Config: r.byok(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("key_vault_uri").Exists(),
+				check.That(data.ResourceName).Key("key_vault_key_id").Exists(),
 			),
 		},
-		data.ImportStep(""),
+		data.ImportStep(),
 		{
 			Config: r.systemManaged(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("key_vault_uri").IsEmpty(),
 			),
 		},
-
-		data.ImportStep(""),
+		data.ImportStep("key_vault_key_id"),
 	})
 }
 
@@ -155,9 +153,8 @@ resource "azurerm_key_vault" "test" {
 
   
   resource "azurerm_mssql_server_transparent_data_encryption" "test" {
-	server_name = azurerm_mssql_server.test.name
-	resource_group_name = azurerm_resource_group.test.name
-	key_vault_uri = azurerm_key_vault_key.generated.id
+	server_id = azurerm_mssql_server.test.id
+	key_vault_key_id = azurerm_key_vault_key.generated.id
   
   }
 `, r.server(data), data.RandomStringOfLength(5))
@@ -169,8 +166,7 @@ func (r MsSqlServerTransparentDataEncryptionResource) systemManaged(data accepta
 %s
 
   resource "azurerm_mssql_server_transparent_data_encryption" "test" {
-	server_name = azurerm_mssql_server.test.name
-	resource_group_name = azurerm_resource_group.test.name
+	server_id = azurerm_mssql_server.test.id
   }
 `, r.server(data))
 }
