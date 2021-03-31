@@ -171,7 +171,7 @@ func resourceKubernetesCluster() *schema.Resource {
 							Optional: true,
 							Computed: true,
 						},
-						"max_empty_bulk_delete": {
+						"empty_bulk_delete_max": {
 							Type:     schema.TypeString,
 							Optional: true,
 							Computed: true,
@@ -2095,9 +2095,9 @@ func flattenKubernetesClusterAutoScalerProfile(profile *containerservice.Managed
 		scaleDownUtilizationThreshold = *profile.ScaleDownUtilizationThreshold
 	}
 
-	maxEmptyBulkDelete := ""
+	emptyBulkDeleteMax := ""
 	if profile.MaxEmptyBulkDelete != nil {
-		maxEmptyBulkDelete = *profile.MaxEmptyBulkDelete
+		emptyBulkDeleteMax = *profile.MaxEmptyBulkDelete
 	}
 
 	scanInterval := ""
@@ -2127,7 +2127,7 @@ func flattenKubernetesClusterAutoScalerProfile(profile *containerservice.Managed
 			"scale_down_unneeded":              scaleDownUnneededTime,
 			"scale_down_unready":               scaleDownUnreadyTime,
 			"scale_down_utilization_threshold": scaleDownUtilizationThreshold,
-			"max_empty_bulk_delete":            maxEmptyBulkDelete,
+			"empty_bulk_delete_max":            emptyBulkDeleteMax,
 			"scan_interval":                    scanInterval,
 			"skip_nodes_with_local_storage":    skipNodesWithLocalStorage,
 			"skip_nodes_with_system_pods":      skipNodesWithSystemPods,
@@ -2152,7 +2152,7 @@ func expandKubernetesClusterAutoScalerProfile(input []interface{}) *containerser
 	scaleDownUnneededTime := config["scale_down_unneeded"].(string)
 	scaleDownUnreadyTime := config["scale_down_unready"].(string)
 	scaleDownUtilizationThreshold := config["scale_down_utilization_threshold"].(string)
-	maxEmptyBulkDelete := config["max_empty_bulk_delete"].(string)
+	emptyBulkDeleteMax := config["empty_bulk_delete_max"].(string)
 	scanInterval := config["scan_interval"].(string)
 	skipNodesWithLocalStorage := config["skip_nodes_with_local_storage"].(bool)
 	skipNodesWithSystemPods := config["skip_nodes_with_system_pods"].(bool)
@@ -2168,7 +2168,7 @@ func expandKubernetesClusterAutoScalerProfile(input []interface{}) *containerser
 		ScaleDownUnneededTime:         utils.String(scaleDownUnneededTime),
 		ScaleDownUnreadyTime:          utils.String(scaleDownUnreadyTime),
 		ScaleDownUtilizationThreshold: utils.String(scaleDownUtilizationThreshold),
-		MaxEmptyBulkDelete:            utils.String(maxEmptyBulkDelete),
+		MaxEmptyBulkDelete:            utils.String(emptyBulkDeleteMax),
 		ScanInterval:                  utils.String(scanInterval),
 		SkipNodesWithLocalStorage:     utils.String(strconv.FormatBool(skipNodesWithLocalStorage)),
 		SkipNodesWithSystemPods:       utils.String(strconv.FormatBool(skipNodesWithSystemPods)),
