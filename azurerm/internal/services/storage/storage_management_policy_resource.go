@@ -481,9 +481,9 @@ func flattenStorageManagementPolicyFilters(filters *storage.ManagementPolicyFilt
 
 	return []interface{}{
 		map[string]interface{}{
-			"prefix_match":         utils.FlattenStringSlice((*filters).PrefixMatch),
-			"blob_types":           utils.FlattenStringSlice((*filters).BlobTypes),
-			"blob_index_match_tag": flattenAzureRmStorageBlobIndexMatch((*filters).BlobIndexMatch),
+			"prefix_match":         utils.FlattenStringSlice(filters.PrefixMatch),
+			"blob_types":           utils.FlattenStringSlice(filters.BlobTypes),
+			"blob_index_match_tag": flattenAzureRmStorageBlobIndexMatch(filters.BlobIndexMatch),
 		},
 	}
 }
@@ -495,9 +495,9 @@ func flattenStorageManagementPolicyActions(actions *storage.ManagementPolicyActi
 
 	return []interface{}{
 		map[string]interface{}{
-			"base_blob": flattenStorageManagementPolicyActionsBaseBlob((*actions).BaseBlob),
-			"snapshot":  flattenStorageManagementPolicyActionsSnapshot((*actions).Snapshot),
-			"version":   flattenStorageManagementPolicyActionsVersion((*actions).Version),
+			"base_blob": flattenStorageManagementPolicyActionsBaseBlob(actions.BaseBlob),
+			"snapshot":  flattenStorageManagementPolicyActionsSnapshot(actions.Snapshot),
+			"version":   flattenStorageManagementPolicyActionsVersion(actions.Version),
 		},
 	}
 }
