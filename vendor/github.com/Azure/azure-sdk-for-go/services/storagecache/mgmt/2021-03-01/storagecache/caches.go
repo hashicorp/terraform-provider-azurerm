@@ -46,7 +46,7 @@ func NewCachesClientWithBaseURI(baseURI string, subscriptionID string) CachesCli
 // CreateOrUpdate create or update a Cache.
 // Parameters:
 // resourceGroupName - target resource group.
-// cacheName - name of Cache. Length of name must be not greater than 80 and chars must be in list of
+// cacheName - name of Cache. Length of name must not be greater than 80 and chars must be from the
 // [-0-9a-zA-Z_] char class.
 // cache - object containing the user-selectable properties of the new Cache. If read-only properties are
 // included, they must match the existing values of those properties.
@@ -79,6 +79,19 @@ func (client CachesClient) CreateOrUpdate(ctx context.Context, resourceGroupName
 									{Target: "cache.CacheProperties.EncryptionSettings.KeyEncryptionKey.SourceVault", Name: validation.Null, Rule: true, Chain: nil},
 								}},
 							}},
+						{Target: "cache.CacheProperties.DirectoryServicesSettings", Name: validation.Null, Rule: false,
+							Chain: []validation.Constraint{{Target: "cache.CacheProperties.DirectoryServicesSettings.ActiveDirectory", Name: validation.Null, Rule: false,
+								Chain: []validation.Constraint{{Target: "cache.CacheProperties.DirectoryServicesSettings.ActiveDirectory.PrimaryDNSIPAddress", Name: validation.Null, Rule: true, Chain: nil},
+									{Target: "cache.CacheProperties.DirectoryServicesSettings.ActiveDirectory.DomainName", Name: validation.Null, Rule: true, Chain: nil},
+									{Target: "cache.CacheProperties.DirectoryServicesSettings.ActiveDirectory.DomainNetBiosName", Name: validation.Null, Rule: true, Chain: nil},
+									{Target: "cache.CacheProperties.DirectoryServicesSettings.ActiveDirectory.CacheNetBiosName", Name: validation.Null, Rule: true,
+										Chain: []validation.Constraint{{Target: "cache.CacheProperties.DirectoryServicesSettings.ActiveDirectory.CacheNetBiosName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z]{1,15}$`, Chain: nil}}},
+									{Target: "cache.CacheProperties.DirectoryServicesSettings.ActiveDirectory.Credentials", Name: validation.Null, Rule: false,
+										Chain: []validation.Constraint{{Target: "cache.CacheProperties.DirectoryServicesSettings.ActiveDirectory.Credentials.Username", Name: validation.Null, Rule: true, Chain: nil},
+											{Target: "cache.CacheProperties.DirectoryServicesSettings.ActiveDirectory.Credentials.Password", Name: validation.Null, Rule: true, Chain: nil},
+										}},
+								}},
+							}},
 					}},
 				}}}}}); err != nil {
 		return result, validation.NewError("storagecache.CachesClient", "CreateOrUpdate", err.Error())
@@ -107,7 +120,7 @@ func (client CachesClient) CreateOrUpdatePreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-03-01"
+	const APIVersion = "2021-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -179,10 +192,107 @@ func (client CachesClient) CreateOrUpdateResponder(resp *http.Response) (result 
 	return
 }
 
+// DebugInfo tells a Cache to write generate debug info for support to process.
+// Parameters:
+// resourceGroupName - target resource group.
+// cacheName - name of Cache. Length of name must not be greater than 80 and chars must be from the
+// [-0-9a-zA-Z_] char class.
+func (client CachesClient) DebugInfo(ctx context.Context, resourceGroupName string, cacheName string) (result CachesDebugInfoFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/CachesClient.DebugInfo")
+		defer func() {
+			sc := -1
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: cacheName,
+			Constraints: []validation.Constraint{{Target: "cacheName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,80}$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("storagecache.CachesClient", "DebugInfo", err.Error())
+	}
+
+	req, err := client.DebugInfoPreparer(ctx, resourceGroupName, cacheName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "storagecache.CachesClient", "DebugInfo", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.DebugInfoSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "storagecache.CachesClient", "DebugInfo", nil, "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// DebugInfoPreparer prepares the DebugInfo request.
+func (client CachesClient) DebugInfoPreparer(ctx context.Context, resourceGroupName string, cacheName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"cacheName":         autorest.Encode("path", cacheName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2021-03-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/Microsoft.StorageCache/caches/{cacheName}/debugInfo", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// DebugInfoSender sends the DebugInfo request. The method will close the
+// http.Response Body if it receives an error.
+func (client CachesClient) DebugInfoSender(req *http.Request) (future CachesDebugInfoFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client CachesClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "storagecache.CachesDebugInfoFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("storagecache.CachesDebugInfoFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
+	return
+}
+
+// DebugInfoResponder handles the response to the DebugInfo request. The method always
+// closes the http.Response Body.
+func (client CachesClient) DebugInfoResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
+		autorest.ByClosing())
+	result.Response = resp
+	return
+}
+
 // Delete schedules a Cache for deletion.
 // Parameters:
 // resourceGroupName - target resource group.
-// cacheName - name of Cache. Length of name must be not greater than 80 and chars must be in list of
+// cacheName - name of Cache. Length of name must not be greater than 80 and chars must be from the
 // [-0-9a-zA-Z_] char class.
 func (client CachesClient) Delete(ctx context.Context, resourceGroupName string, cacheName string) (result CachesDeleteFuture, err error) {
 	if tracing.IsEnabled() {
@@ -224,7 +334,7 @@ func (client CachesClient) DeletePreparer(ctx context.Context, resourceGroupName
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-03-01"
+	const APIVersion = "2021-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -248,7 +358,7 @@ func (client CachesClient) DeleteSender(req *http.Request) (future CachesDeleteF
 	var azf azure.Future
 	azf, err = azure.NewFutureFromResponse(resp)
 	future.FutureAPI = &azf
-	future.Result = func(client CachesClient) (so SetObject, err error) {
+	future.Result = func(client CachesClient) (ar autorest.Response, err error) {
 		var done bool
 		done, err = future.DoneWithContext(context.Background(), client)
 		if err != nil {
@@ -259,17 +369,7 @@ func (client CachesClient) DeleteSender(req *http.Request) (future CachesDeleteF
 			err = azure.NewAsyncOpIncompleteError("storagecache.CachesDeleteFuture")
 			return
 		}
-		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-		so.Response.Response, err = future.GetResult(sender)
-		if so.Response.Response == nil && err == nil {
-			err = autorest.NewErrorWithError(err, "storagecache.CachesDeleteFuture", "Result", nil, "received nil response and error")
-		}
-		if err == nil && so.Response.Response.StatusCode != http.StatusNoContent {
-			so, err = client.DeleteResponder(so.Response.Response)
-			if err != nil {
-				err = autorest.NewErrorWithError(err, "storagecache.CachesDeleteFuture", "Result", so.Response.Response, "Failure responding to request")
-			}
-		}
+		ar.Response = future.Response()
 		return
 	}
 	return
@@ -277,13 +377,12 @@ func (client CachesClient) DeleteSender(req *http.Request) (future CachesDeleteF
 
 // DeleteResponder handles the response to the Delete request. The method always
 // closes the http.Response Body.
-func (client CachesClient) DeleteResponder(resp *http.Response) (result SetObject, err error) {
+func (client CachesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
-		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
+	result.Response = resp
 	return
 }
 
@@ -291,7 +390,7 @@ func (client CachesClient) DeleteResponder(resp *http.Response) (result SetObjec
 // returned until the flush is complete.
 // Parameters:
 // resourceGroupName - target resource group.
-// cacheName - name of Cache. Length of name must be not greater than 80 and chars must be in list of
+// cacheName - name of Cache. Length of name must not be greater than 80 and chars must be from the
 // [-0-9a-zA-Z_] char class.
 func (client CachesClient) Flush(ctx context.Context, resourceGroupName string, cacheName string) (result CachesFlushFuture, err error) {
 	if tracing.IsEnabled() {
@@ -333,7 +432,7 @@ func (client CachesClient) FlushPreparer(ctx context.Context, resourceGroupName 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-03-01"
+	const APIVersion = "2021-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -357,7 +456,7 @@ func (client CachesClient) FlushSender(req *http.Request) (future CachesFlushFut
 	var azf azure.Future
 	azf, err = azure.NewFutureFromResponse(resp)
 	future.FutureAPI = &azf
-	future.Result = func(client CachesClient) (so SetObject, err error) {
+	future.Result = func(client CachesClient) (ar autorest.Response, err error) {
 		var done bool
 		done, err = future.DoneWithContext(context.Background(), client)
 		if err != nil {
@@ -368,17 +467,7 @@ func (client CachesClient) FlushSender(req *http.Request) (future CachesFlushFut
 			err = azure.NewAsyncOpIncompleteError("storagecache.CachesFlushFuture")
 			return
 		}
-		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-		so.Response.Response, err = future.GetResult(sender)
-		if so.Response.Response == nil && err == nil {
-			err = autorest.NewErrorWithError(err, "storagecache.CachesFlushFuture", "Result", nil, "received nil response and error")
-		}
-		if err == nil && so.Response.Response.StatusCode != http.StatusNoContent {
-			so, err = client.FlushResponder(so.Response.Response)
-			if err != nil {
-				err = autorest.NewErrorWithError(err, "storagecache.CachesFlushFuture", "Result", so.Response.Response, "Failure responding to request")
-			}
-		}
+		ar.Response = future.Response()
 		return
 	}
 	return
@@ -386,20 +475,19 @@ func (client CachesClient) FlushSender(req *http.Request) (future CachesFlushFut
 
 // FlushResponder handles the response to the Flush request. The method always
 // closes the http.Response Body.
-func (client CachesClient) FlushResponder(resp *http.Response) (result SetObject, err error) {
+func (client CachesClient) FlushResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
-		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
+	result.Response = resp
 	return
 }
 
 // Get returns a Cache.
 // Parameters:
 // resourceGroupName - target resource group.
-// cacheName - name of Cache. Length of name must be not greater than 80 and chars must be in list of
+// cacheName - name of Cache. Length of name must not be greater than 80 and chars must be from the
 // [-0-9a-zA-Z_] char class.
 func (client CachesClient) Get(ctx context.Context, resourceGroupName string, cacheName string) (result Cache, err error) {
 	if tracing.IsEnabled() {
@@ -448,7 +536,7 @@ func (client CachesClient) GetPreparer(ctx context.Context, resourceGroupName st
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-03-01"
+	const APIVersion = "2021-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -524,7 +612,7 @@ func (client CachesClient) ListPreparer(ctx context.Context) (*http.Request, err
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-03-01"
+	const APIVersion = "2021-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -640,7 +728,7 @@ func (client CachesClient) ListByResourceGroupPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-03-01"
+	const APIVersion = "2021-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -711,7 +799,7 @@ func (client CachesClient) ListByResourceGroupComplete(ctx context.Context, reso
 // Start tells a Stopped state Cache to transition to Active state.
 // Parameters:
 // resourceGroupName - target resource group.
-// cacheName - name of Cache. Length of name must be not greater than 80 and chars must be in list of
+// cacheName - name of Cache. Length of name must not be greater than 80 and chars must be from the
 // [-0-9a-zA-Z_] char class.
 func (client CachesClient) Start(ctx context.Context, resourceGroupName string, cacheName string) (result CachesStartFuture, err error) {
 	if tracing.IsEnabled() {
@@ -753,7 +841,7 @@ func (client CachesClient) StartPreparer(ctx context.Context, resourceGroupName 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-03-01"
+	const APIVersion = "2021-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -777,7 +865,7 @@ func (client CachesClient) StartSender(req *http.Request) (future CachesStartFut
 	var azf azure.Future
 	azf, err = azure.NewFutureFromResponse(resp)
 	future.FutureAPI = &azf
-	future.Result = func(client CachesClient) (so SetObject, err error) {
+	future.Result = func(client CachesClient) (ar autorest.Response, err error) {
 		var done bool
 		done, err = future.DoneWithContext(context.Background(), client)
 		if err != nil {
@@ -788,17 +876,7 @@ func (client CachesClient) StartSender(req *http.Request) (future CachesStartFut
 			err = azure.NewAsyncOpIncompleteError("storagecache.CachesStartFuture")
 			return
 		}
-		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-		so.Response.Response, err = future.GetResult(sender)
-		if so.Response.Response == nil && err == nil {
-			err = autorest.NewErrorWithError(err, "storagecache.CachesStartFuture", "Result", nil, "received nil response and error")
-		}
-		if err == nil && so.Response.Response.StatusCode != http.StatusNoContent {
-			so, err = client.StartResponder(so.Response.Response)
-			if err != nil {
-				err = autorest.NewErrorWithError(err, "storagecache.CachesStartFuture", "Result", so.Response.Response, "Failure responding to request")
-			}
-		}
+		ar.Response = future.Response()
 		return
 	}
 	return
@@ -806,20 +884,19 @@ func (client CachesClient) StartSender(req *http.Request) (future CachesStartFut
 
 // StartResponder handles the response to the Start request. The method always
 // closes the http.Response Body.
-func (client CachesClient) StartResponder(resp *http.Response) (result SetObject, err error) {
+func (client CachesClient) StartResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
-		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
+	result.Response = resp
 	return
 }
 
 // Stop tells an Active Cache to transition to Stopped state.
 // Parameters:
 // resourceGroupName - target resource group.
-// cacheName - name of Cache. Length of name must be not greater than 80 and chars must be in list of
+// cacheName - name of Cache. Length of name must not be greater than 80 and chars must be from the
 // [-0-9a-zA-Z_] char class.
 func (client CachesClient) Stop(ctx context.Context, resourceGroupName string, cacheName string) (result CachesStopFuture, err error) {
 	if tracing.IsEnabled() {
@@ -861,7 +938,7 @@ func (client CachesClient) StopPreparer(ctx context.Context, resourceGroupName s
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-03-01"
+	const APIVersion = "2021-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -885,7 +962,7 @@ func (client CachesClient) StopSender(req *http.Request) (future CachesStopFutur
 	var azf azure.Future
 	azf, err = azure.NewFutureFromResponse(resp)
 	future.FutureAPI = &azf
-	future.Result = func(client CachesClient) (so SetObject, err error) {
+	future.Result = func(client CachesClient) (ar autorest.Response, err error) {
 		var done bool
 		done, err = future.DoneWithContext(context.Background(), client)
 		if err != nil {
@@ -896,17 +973,7 @@ func (client CachesClient) StopSender(req *http.Request) (future CachesStopFutur
 			err = azure.NewAsyncOpIncompleteError("storagecache.CachesStopFuture")
 			return
 		}
-		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-		so.Response.Response, err = future.GetResult(sender)
-		if so.Response.Response == nil && err == nil {
-			err = autorest.NewErrorWithError(err, "storagecache.CachesStopFuture", "Result", nil, "received nil response and error")
-		}
-		if err == nil && so.Response.Response.StatusCode != http.StatusNoContent {
-			so, err = client.StopResponder(so.Response.Response)
-			if err != nil {
-				err = autorest.NewErrorWithError(err, "storagecache.CachesStopFuture", "Result", so.Response.Response, "Failure responding to request")
-			}
-		}
+		ar.Response = future.Response()
 		return
 	}
 	return
@@ -914,20 +981,19 @@ func (client CachesClient) StopSender(req *http.Request) (future CachesStopFutur
 
 // StopResponder handles the response to the Stop request. The method always
 // closes the http.Response Body.
-func (client CachesClient) StopResponder(resp *http.Response) (result SetObject, err error) {
+func (client CachesClient) StopResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
-		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
+	result.Response = resp
 	return
 }
 
 // Update update a Cache instance.
 // Parameters:
 // resourceGroupName - target resource group.
-// cacheName - name of Cache. Length of name must be not greater than 80 and chars must be in list of
+// cacheName - name of Cache. Length of name must not be greater than 80 and chars must be from the
 // [-0-9a-zA-Z_] char class.
 // cache - object containing the user-selectable properties of the Cache. If read-only properties are included,
 // they must match the existing values of those properties.
@@ -978,7 +1044,7 @@ func (client CachesClient) UpdatePreparer(ctx context.Context, resourceGroupName
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-03-01"
+	const APIVersion = "2021-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1021,7 +1087,7 @@ func (client CachesClient) UpdateResponder(resp *http.Response) (result Cache, e
 // UpgradeFirmware upgrade a Cache's firmware if a new version is available. Otherwise, this operation has no effect.
 // Parameters:
 // resourceGroupName - target resource group.
-// cacheName - name of Cache. Length of name must be not greater than 80 and chars must be in list of
+// cacheName - name of Cache. Length of name must not be greater than 80 and chars must be from the
 // [-0-9a-zA-Z_] char class.
 func (client CachesClient) UpgradeFirmware(ctx context.Context, resourceGroupName string, cacheName string) (result CachesUpgradeFirmwareFuture, err error) {
 	if tracing.IsEnabled() {
@@ -1063,7 +1129,7 @@ func (client CachesClient) UpgradeFirmwarePreparer(ctx context.Context, resource
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-03-01"
+	const APIVersion = "2021-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1087,7 +1153,7 @@ func (client CachesClient) UpgradeFirmwareSender(req *http.Request) (future Cach
 	var azf azure.Future
 	azf, err = azure.NewFutureFromResponse(resp)
 	future.FutureAPI = &azf
-	future.Result = func(client CachesClient) (so SetObject, err error) {
+	future.Result = func(client CachesClient) (ar autorest.Response, err error) {
 		var done bool
 		done, err = future.DoneWithContext(context.Background(), client)
 		if err != nil {
@@ -1098,17 +1164,7 @@ func (client CachesClient) UpgradeFirmwareSender(req *http.Request) (future Cach
 			err = azure.NewAsyncOpIncompleteError("storagecache.CachesUpgradeFirmwareFuture")
 			return
 		}
-		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-		so.Response.Response, err = future.GetResult(sender)
-		if so.Response.Response == nil && err == nil {
-			err = autorest.NewErrorWithError(err, "storagecache.CachesUpgradeFirmwareFuture", "Result", nil, "received nil response and error")
-		}
-		if err == nil && so.Response.Response.StatusCode != http.StatusNoContent {
-			so, err = client.UpgradeFirmwareResponder(so.Response.Response)
-			if err != nil {
-				err = autorest.NewErrorWithError(err, "storagecache.CachesUpgradeFirmwareFuture", "Result", so.Response.Response, "Failure responding to request")
-			}
-		}
+		ar.Response = future.Response()
 		return
 	}
 	return
@@ -1116,12 +1172,11 @@ func (client CachesClient) UpgradeFirmwareSender(req *http.Request) (future Cach
 
 // UpgradeFirmwareResponder handles the response to the UpgradeFirmware request. The method always
 // closes the http.Response Body.
-func (client CachesClient) UpgradeFirmwareResponder(resp *http.Response) (result SetObject, err error) {
+func (client CachesClient) UpgradeFirmwareResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted, http.StatusNoContent),
-		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
+	result.Response = resp
 	return
 }

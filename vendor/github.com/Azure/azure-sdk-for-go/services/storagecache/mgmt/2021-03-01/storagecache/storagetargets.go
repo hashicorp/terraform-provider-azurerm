@@ -48,10 +48,9 @@ func NewStorageTargetsClientWithBaseURI(baseURI string, subscriptionID string) S
 // unhealthy, the actual creation/modification of the Storage Target may be delayed until the Cache is healthy again.
 // Parameters:
 // resourceGroupName - target resource group.
-// cacheName - name of Cache. Length of name must be not greater than 80 and chars must be in list of
+// cacheName - name of Cache. Length of name must not be greater than 80 and chars must be from the
 // [-0-9a-zA-Z_] char class.
-// storageTargetName - name of the Storage Target. Length of name must be not greater than 80 and chars must be
-// in list of [-0-9a-zA-Z_] char class.
+// storageTargetName - name of Storage Target.
 // storagetarget - object containing the definition of a Storage Target.
 func (client StorageTargetsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, cacheName string, storageTargetName string, storagetarget *StorageTarget) (result StorageTargetsCreateOrUpdateFuture, err error) {
 	if tracing.IsEnabled() {
@@ -68,7 +67,16 @@ func (client StorageTargetsClient) CreateOrUpdate(ctx context.Context, resourceG
 		{TargetValue: cacheName,
 			Constraints: []validation.Constraint{{Target: "cacheName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,80}$`, Chain: nil}}},
 		{TargetValue: storageTargetName,
-			Constraints: []validation.Constraint{{Target: "storageTargetName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,80}$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "storageTargetName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,80}$`, Chain: nil}}},
+		{TargetValue: storagetarget,
+			Constraints: []validation.Constraint{{Target: "storagetarget", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "storagetarget.StorageTargetProperties", Name: validation.Null, Rule: false,
+					Chain: []validation.Constraint{{Target: "storagetarget.StorageTargetProperties.Nfs3", Name: validation.Null, Rule: false,
+						Chain: []validation.Constraint{{Target: "storagetarget.StorageTargetProperties.Nfs3.Target", Name: validation.Null, Rule: false,
+							Chain: []validation.Constraint{{Target: "storagetarget.StorageTargetProperties.Nfs3.Target", Name: validation.Pattern, Rule: `^[-.0-9a-zA-Z]+$`, Chain: nil}}},
+						}},
+					}},
+				}}}}}); err != nil {
 		return result, validation.NewError("storagecache.StorageTargetsClient", "CreateOrUpdate", err.Error())
 	}
 
@@ -96,7 +104,7 @@ func (client StorageTargetsClient) CreateOrUpdatePreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-03-01"
+	const APIVersion = "2021-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -170,7 +178,7 @@ func (client StorageTargetsClient) CreateOrUpdateResponder(resp *http.Response) 
 // deleted.
 // Parameters:
 // resourceGroupName - target resource group.
-// cacheName - name of Cache. Length of name must be not greater than 80 and chars must be in list of
+// cacheName - name of Cache. Length of name must not be greater than 80 and chars must be from the
 // [-0-9a-zA-Z_] char class.
 // storageTargetName - name of Storage Target.
 func (client StorageTargetsClient) Delete(ctx context.Context, resourceGroupName string, cacheName string, storageTargetName string) (result StorageTargetsDeleteFuture, err error) {
@@ -216,7 +224,7 @@ func (client StorageTargetsClient) DeletePreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-03-01"
+	const APIVersion = "2021-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -240,7 +248,7 @@ func (client StorageTargetsClient) DeleteSender(req *http.Request) (future Stora
 	var azf azure.Future
 	azf, err = azure.NewFutureFromResponse(resp)
 	future.FutureAPI = &azf
-	future.Result = func(client StorageTargetsClient) (so SetObject, err error) {
+	future.Result = func(client StorageTargetsClient) (ar autorest.Response, err error) {
 		var done bool
 		done, err = future.DoneWithContext(context.Background(), client)
 		if err != nil {
@@ -251,17 +259,7 @@ func (client StorageTargetsClient) DeleteSender(req *http.Request) (future Stora
 			err = azure.NewAsyncOpIncompleteError("storagecache.StorageTargetsDeleteFuture")
 			return
 		}
-		sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-		so.Response.Response, err = future.GetResult(sender)
-		if so.Response.Response == nil && err == nil {
-			err = autorest.NewErrorWithError(err, "storagecache.StorageTargetsDeleteFuture", "Result", nil, "received nil response and error")
-		}
-		if err == nil && so.Response.Response.StatusCode != http.StatusNoContent {
-			so, err = client.DeleteResponder(so.Response.Response)
-			if err != nil {
-				err = autorest.NewErrorWithError(err, "storagecache.StorageTargetsDeleteFuture", "Result", so.Response.Response, "Failure responding to request")
-			}
-		}
+		ar.Response = future.Response()
 		return
 	}
 	return
@@ -269,23 +267,122 @@ func (client StorageTargetsClient) DeleteSender(req *http.Request) (future Stora
 
 // DeleteResponder handles the response to the Delete request. The method always
 // closes the http.Response Body.
-func (client StorageTargetsClient) DeleteResponder(resp *http.Response) (result SetObject, err error) {
+func (client StorageTargetsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
-		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
+	result.Response = resp
+	return
+}
+
+// DNSRefresh tells a storage target to refresh its DNS information.
+// Parameters:
+// resourceGroupName - target resource group.
+// cacheName - name of Cache. Length of name must not be greater than 80 and chars must be from the
+// [-0-9a-zA-Z_] char class.
+// storageTargetName - name of Storage Target.
+func (client StorageTargetsClient) DNSRefresh(ctx context.Context, resourceGroupName string, cacheName string, storageTargetName string) (result StorageTargetsDNSRefreshFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/StorageTargetsClient.DNSRefresh")
+		defer func() {
+			sc := -1
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: cacheName,
+			Constraints: []validation.Constraint{{Target: "cacheName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,80}$`, Chain: nil}}},
+		{TargetValue: storageTargetName,
+			Constraints: []validation.Constraint{{Target: "storageTargetName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,80}$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("storagecache.StorageTargetsClient", "DNSRefresh", err.Error())
+	}
+
+	req, err := client.DNSRefreshPreparer(ctx, resourceGroupName, cacheName, storageTargetName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "storagecache.StorageTargetsClient", "DNSRefresh", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.DNSRefreshSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "storagecache.StorageTargetsClient", "DNSRefresh", nil, "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// DNSRefreshPreparer prepares the DNSRefresh request.
+func (client StorageTargetsClient) DNSRefreshPreparer(ctx context.Context, resourceGroupName string, cacheName string, storageTargetName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"cacheName":         autorest.Encode("path", cacheName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"storageTargetName": autorest.Encode("path", storageTargetName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2021-03-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/Microsoft.StorageCache/caches/{cacheName}/storageTargets/{storageTargetName}/dnsRefresh", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// DNSRefreshSender sends the DNSRefresh request. The method will close the
+// http.Response Body if it receives an error.
+func (client StorageTargetsClient) DNSRefreshSender(req *http.Request) (future StorageTargetsDNSRefreshFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = func(client StorageTargetsClient) (ar autorest.Response, err error) {
+		var done bool
+		done, err = future.DoneWithContext(context.Background(), client)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "storagecache.StorageTargetsDNSRefreshFuture", "Result", future.Response(), "Polling failure")
+			return
+		}
+		if !done {
+			err = azure.NewAsyncOpIncompleteError("storagecache.StorageTargetsDNSRefreshFuture")
+			return
+		}
+		ar.Response = future.Response()
+		return
+	}
+	return
+}
+
+// DNSRefreshResponder handles the response to the DNSRefresh request. The method always
+// closes the http.Response Body.
+func (client StorageTargetsClient) DNSRefreshResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByClosing())
+	result.Response = resp
 	return
 }
 
 // Get returns a Storage Target from a Cache.
 // Parameters:
 // resourceGroupName - target resource group.
-// cacheName - name of Cache. Length of name must be not greater than 80 and chars must be in list of
+// cacheName - name of Cache. Length of name must not be greater than 80 and chars must be from the
 // [-0-9a-zA-Z_] char class.
-// storageTargetName - name of the Storage Target. Length of name must be not greater than 80 and chars must be
-// in list of [-0-9a-zA-Z_] char class.
+// storageTargetName - name of Storage Target.
 func (client StorageTargetsClient) Get(ctx context.Context, resourceGroupName string, cacheName string, storageTargetName string) (result StorageTarget, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/StorageTargetsClient.Get")
@@ -336,7 +433,7 @@ func (client StorageTargetsClient) GetPreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-03-01"
+	const APIVersion = "2021-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -370,7 +467,7 @@ func (client StorageTargetsClient) GetResponder(resp *http.Response) (result Sto
 // ListByCache returns a list of Storage Targets for the specified Cache.
 // Parameters:
 // resourceGroupName - target resource group.
-// cacheName - name of Cache. Length of name must be not greater than 80 and chars must be in list of
+// cacheName - name of Cache. Length of name must not be greater than 80 and chars must be from the
 // [-0-9a-zA-Z_] char class.
 func (client StorageTargetsClient) ListByCache(ctx context.Context, resourceGroupName string, cacheName string) (result StorageTargetsResultPage, err error) {
 	if tracing.IsEnabled() {
@@ -424,7 +521,7 @@ func (client StorageTargetsClient) ListByCachePreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-03-01"
+	const APIVersion = "2021-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
