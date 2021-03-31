@@ -1400,6 +1400,11 @@ func resourceApplicationGatewayCreateUpdate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("fail to expand `http_listener`: %+v", err)
 	}
 
+	rewriteRuleSets, err := expandApplicationGatewayRewriteRuleSets(d)
+	if err != nil {
+		return fmt.Errorf("error expanding `rewrite_rule_set`: %v", err)
+	}
+
 	gateway := network.ApplicationGateway{
 		Location: utils.String(location),
 		Zones:    azure.ExpandZones(d.Get("zones").([]interface{})),
@@ -1424,7 +1429,7 @@ func resourceApplicationGatewayCreateUpdate(d *schema.ResourceData, meta interfa
 			SslCertificates:               sslCertificates,
 			SslPolicy:                     expandApplicationGatewaySslPolicy(d),
 
-			RewriteRuleSets: expandApplicationGatewayRewriteRuleSets(d),
+			RewriteRuleSets: rewriteRuleSets,
 			URLPathMaps:     urlPathMaps,
 		},
 	}
@@ -2911,7 +2916,7 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGa
 	return results, nil
 }
 
-func expandApplicationGatewayRewriteRuleSets(d *schema.ResourceData) *[]network.ApplicationGatewayRewriteRuleSet {
+func expandApplicationGatewayRewriteRuleSets(d *schema.ResourceData) (*[]network.ApplicationGatewayRewriteRuleSet, error) {
 	vs := d.Get("rewrite_rule_set").([]interface{})
 	ruleSets := make([]network.ApplicationGatewayRewriteRuleSet, 0)
 
@@ -2965,6 +2970,9 @@ func expandApplicationGatewayRewriteRuleSets(d *schema.ResourceData) *[]network.
 
 			for _, rawConfig := range r["url"].([]interface{}) {
 				c := rawConfig.(map[string]interface{})
+				if c["path"] == nil && c["query_string"] == nil {
+					return nil, fmt.Errorf("At least one of `path` or `query_string` must be set")
+				}
 				if c["path"] != nil {
 					urlConfiguration.ModifiedPath = utils.String(c["path"].(string))
 				}
@@ -2998,7 +3006,7 @@ func expandApplicationGatewayRewriteRuleSets(d *schema.ResourceData) *[]network.
 		ruleSets = append(ruleSets, ruleSet)
 	}
 
-	return &ruleSets
+	return &ruleSets, nil
 }
 
 func flattenApplicationGatewayRewriteRuleSets(input *[]network.ApplicationGatewayRewriteRuleSet) []interface{} {
