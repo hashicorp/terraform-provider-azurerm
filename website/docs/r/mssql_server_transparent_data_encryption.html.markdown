@@ -50,8 +50,7 @@ resource "azurerm_mssql_server" "example" {
 }
 
 resource "azurerm_mssql_server_transparent_data_encryption" "example" {
-  resource_group_name = azurerm_resource_group.example.name
-  server_name         = azurerm_mssql_server.example.name
+  server_id         = azurerm_mssql_server.example.id
 }
 ```
 
@@ -143,9 +142,8 @@ resource "azurerm_key_vault_key" "example" {
 }
 
 resource "azurerm_mssql_server_transparent_data_encryption" "example" {
-  resource_group_name = azurerm_resource_group.example.name
-  server_name         = azurerm_mssql_server.example.name
-  key_vault_uri       = azurerm_key_vault_key.example.id
+  server_id           = azurerm_mssql_server.example.id
+  key_vault_key_id       = azurerm_key_vault_key.example.id
 }
 
 
@@ -155,13 +153,11 @@ resource "azurerm_mssql_server_transparent_data_encryption" "example" {
 
 The following arguments are supported:
 
-* `resource_group_name` - (Required) The name of the Resource Group where the MSSQL should exist. Changing this forces a new MSSQL to be created.
-
-* `server_name` - (Required) Specifies the name of the MS SQL Server. Changing this forces a new resource to be created.
+* `server_id` - (Required) Specifies the name of the MS SQL Server.
 
 ---
 
-* `key_vault_uri` - (Optional) To use customer managed keys from Azure Key Vault, provide the Key ID. Omitting or removing this field will update the configuration to use service managed keys.
+* `key_vault_key_id` - (Optional) To use customer managed keys from Azure Key Vault, provide the Key ID. Omitting or removing this field will update the configuration to use service managed keys.
 
 ~> **NOTE:** In order to use customer managed keys, the identity of the MSSQL server must have the following permissions on the key vault: 'get', 'wrapKey' and 'unwrapKey' 
 
