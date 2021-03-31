@@ -51,6 +51,23 @@ func PossibleCreatedByTypeValues() []CreatedByType {
 	return []CreatedByType{Application, Key, ManagedIdentity, User}
 }
 
+// DomainJoinedType enumerates the values for domain joined type.
+type DomainJoinedType string
+
+const (
+	// Error ...
+	Error DomainJoinedType = "Error"
+	// No ...
+	No DomainJoinedType = "No"
+	// Yes ...
+	Yes DomainJoinedType = "Yes"
+)
+
+// PossibleDomainJoinedTypeValues returns an array of possible values for the DomainJoinedType const type.
+func PossibleDomainJoinedTypeValues() []DomainJoinedType {
+	return []DomainJoinedType{Error, No, Yes}
+}
+
 // FirmwareStatusType enumerates the values for firmware status type.
 type FirmwareStatusType string
 
@@ -120,6 +137,40 @@ func PossibleMetricAggregationTypeValues() []MetricAggregationType {
 	return []MetricAggregationType{MetricAggregationTypeAverage, MetricAggregationTypeCount, MetricAggregationTypeMaximum, MetricAggregationTypeMinimum, MetricAggregationTypeNone, MetricAggregationTypeNotSpecified, MetricAggregationTypeTotal}
 }
 
+// NfsAccessRuleAccess enumerates the values for nfs access rule access.
+type NfsAccessRuleAccess string
+
+const (
+	// NfsAccessRuleAccessNo ...
+	NfsAccessRuleAccessNo NfsAccessRuleAccess = "no"
+	// NfsAccessRuleAccessRo ...
+	NfsAccessRuleAccessRo NfsAccessRuleAccess = "ro"
+	// NfsAccessRuleAccessRw ...
+	NfsAccessRuleAccessRw NfsAccessRuleAccess = "rw"
+)
+
+// PossibleNfsAccessRuleAccessValues returns an array of possible values for the NfsAccessRuleAccess const type.
+func PossibleNfsAccessRuleAccessValues() []NfsAccessRuleAccess {
+	return []NfsAccessRuleAccess{NfsAccessRuleAccessNo, NfsAccessRuleAccessRo, NfsAccessRuleAccessRw}
+}
+
+// NfsAccessRuleScope enumerates the values for nfs access rule scope.
+type NfsAccessRuleScope string
+
+const (
+	// Default ...
+	Default NfsAccessRuleScope = "default"
+	// Host ...
+	Host NfsAccessRuleScope = "host"
+	// Network ...
+	Network NfsAccessRuleScope = "network"
+)
+
+// PossibleNfsAccessRuleScopeValues returns an array of possible values for the NfsAccessRuleScope const type.
+func PossibleNfsAccessRuleScopeValues() []NfsAccessRuleScope {
+	return []NfsAccessRuleScope{Default, Host, Network}
+}
+
 // ProvisioningStateType enumerates the values for provisioning state type.
 type ProvisioningStateType string
 
@@ -158,21 +209,57 @@ func PossibleReasonCodeValues() []ReasonCode {
 	return []ReasonCode{NotAvailableForSubscription, QuotaID}
 }
 
-// TargetType enumerates the values for target type.
-type TargetType string
+// StorageTargetType enumerates the values for storage target type.
+type StorageTargetType string
 
 const (
-	// TargetTypeClfs ...
-	TargetTypeClfs TargetType = "clfs"
-	// TargetTypeNfs3 ...
-	TargetTypeNfs3 TargetType = "nfs3"
-	// TargetTypeStorageTargetProperties ...
-	TargetTypeStorageTargetProperties TargetType = "StorageTargetProperties"
-	// TargetTypeUnknown ...
-	TargetTypeUnknown TargetType = "unknown"
+	// StorageTargetTypeBlobNfs ...
+	StorageTargetTypeBlobNfs StorageTargetType = "blobNfs"
+	// StorageTargetTypeClfs ...
+	StorageTargetTypeClfs StorageTargetType = "clfs"
+	// StorageTargetTypeNfs3 ...
+	StorageTargetTypeNfs3 StorageTargetType = "nfs3"
+	// StorageTargetTypeUnknown ...
+	StorageTargetTypeUnknown StorageTargetType = "unknown"
 )
 
-// PossibleTargetTypeValues returns an array of possible values for the TargetType const type.
-func PossibleTargetTypeValues() []TargetType {
-	return []TargetType{TargetTypeClfs, TargetTypeNfs3, TargetTypeStorageTargetProperties, TargetTypeUnknown}
+// PossibleStorageTargetTypeValues returns an array of possible values for the StorageTargetType const type.
+func PossibleStorageTargetTypeValues() []StorageTargetType {
+	return []StorageTargetType{StorageTargetTypeBlobNfs, StorageTargetTypeClfs, StorageTargetTypeNfs3, StorageTargetTypeUnknown}
+}
+
+// UsernameDownloadedType enumerates the values for username downloaded type.
+type UsernameDownloadedType string
+
+const (
+	// UsernameDownloadedTypeError ...
+	UsernameDownloadedTypeError UsernameDownloadedType = "Error"
+	// UsernameDownloadedTypeNo ...
+	UsernameDownloadedTypeNo UsernameDownloadedType = "No"
+	// UsernameDownloadedTypeYes ...
+	UsernameDownloadedTypeYes UsernameDownloadedType = "Yes"
+)
+
+// PossibleUsernameDownloadedTypeValues returns an array of possible values for the UsernameDownloadedType const type.
+func PossibleUsernameDownloadedTypeValues() []UsernameDownloadedType {
+	return []UsernameDownloadedType{UsernameDownloadedTypeError, UsernameDownloadedTypeNo, UsernameDownloadedTypeYes}
+}
+
+// UsernameSource enumerates the values for username source.
+type UsernameSource string
+
+const (
+	// UsernameSourceAD ...
+	UsernameSourceAD UsernameSource = "AD"
+	// UsernameSourceFile ...
+	UsernameSourceFile UsernameSource = "File"
+	// UsernameSourceLDAP ...
+	UsernameSourceLDAP UsernameSource = "LDAP"
+	// UsernameSourceNone ...
+	UsernameSourceNone UsernameSource = "None"
+)
+
+// PossibleUsernameSourceValues returns an array of possible values for the UsernameSource const type.
+func PossibleUsernameSourceValues() []UsernameSource {
+	return []UsernameSource{UsernameSourceAD, UsernameSourceFile, UsernameSourceLDAP, UsernameSourceNone}
 }

@@ -43,9 +43,9 @@ func NewAscOperationsClientWithBaseURI(baseURI string, subscriptionID string) As
 	return AscOperationsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// Get gets the status of an asynchronous operation for the Azure HPC cache
+// Get gets the status of an asynchronous operation for the Azure HPC Cache
 // Parameters:
-// location - the region name which the operation will lookup into.
+// location - the name of the region used to look up the operation.
 // operationID - the operation id which uniquely identifies the asynchronous operation.
 func (client AscOperationsClient) Get(ctx context.Context, location string, operationID string) (result AscOperation, err error) {
 	if tracing.IsEnabled() {
@@ -88,7 +88,7 @@ func (client AscOperationsClient) GetPreparer(ctx context.Context, location stri
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-03-01"
+	const APIVersion = "2021-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
