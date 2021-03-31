@@ -21,7 +21,7 @@ and *not* a [Service SAS](https://docs.microsoft.com/en-us/rest/api/storageservi
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "resourceGroupName"
-  location = "westus"
+  location = "West Europe"
 }
 
 resource "azurerm_storage_account" "example" {
@@ -54,8 +54,8 @@ data "azurerm_storage_account_sas" "example" {
     file  = false
   }
 
-  start  = "2018-03-21"
-  expiry = "2020-03-21"
+  start  = "2018-03-21T00:00:00Z"
+  expiry = "2020-03-21T00:00:00Z"
 
   permissions {
     read    = true

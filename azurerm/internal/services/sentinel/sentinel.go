@@ -1,3 +1,3 @@
 package sentinel
 
-const operationalInsightsResourceProvider = "Microsoft.OperationalInsights"
+const OperationalInsightsResourceProvider = "Microsoft.OperationalInsights"

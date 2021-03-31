@@ -51,8 +51,8 @@ func (client P2sVpnGatewaysClient) CreateOrUpdate(ctx context.Context, resourceG
 		ctx = tracing.StartSpan(ctx, fqdn+"/P2sVpnGatewaysClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -155,8 +155,8 @@ func (client P2sVpnGatewaysClient) Delete(ctx context.Context, resourceGroupName
 		ctx = tracing.StartSpan(ctx, fqdn+"/P2sVpnGatewaysClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -247,8 +247,8 @@ func (client P2sVpnGatewaysClient) DisconnectP2sVpnConnections(ctx context.Conte
 		ctx = tracing.StartSpan(ctx, fqdn+"/P2sVpnGatewaysClient.DisconnectP2sVpnConnections")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -340,8 +340,8 @@ func (client P2sVpnGatewaysClient) GenerateVpnProfile(ctx context.Context, resou
 		ctx = tracing.StartSpan(ctx, fqdn+"/P2sVpnGatewaysClient.GenerateVpnProfile")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -520,8 +520,8 @@ func (client P2sVpnGatewaysClient) GetP2sVpnConnectionHealth(ctx context.Context
 		ctx = tracing.StartSpan(ctx, fqdn+"/P2sVpnGatewaysClient.GetP2sVpnConnectionHealth")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -623,8 +623,8 @@ func (client P2sVpnGatewaysClient) GetP2sVpnConnectionHealthDetailed(ctx context
 		ctx = tracing.StartSpan(ctx, fqdn+"/P2sVpnGatewaysClient.GetP2sVpnConnectionHealthDetailed")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

@@ -53,8 +53,8 @@ func (client AppServiceEnvironmentsClient) ChangeVnet(ctx context.Context, resou
 		ctx = tracing.StartSpan(ctx, fqdn+"/AppServiceEnvironmentsClient.ChangeVnet")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -208,8 +208,8 @@ func (client AppServiceEnvironmentsClient) CreateOrUpdate(ctx context.Context, r
 		ctx = tracing.StartSpan(ctx, fqdn+"/AppServiceEnvironmentsClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -327,8 +327,8 @@ func (client AppServiceEnvironmentsClient) CreateOrUpdateMultiRolePool(ctx conte
 		ctx = tracing.StartSpan(ctx, fqdn+"/AppServiceEnvironmentsClient.CreateOrUpdateMultiRolePool")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -440,8 +440,8 @@ func (client AppServiceEnvironmentsClient) CreateOrUpdateWorkerPool(ctx context.
 		ctx = tracing.StartSpan(ctx, fqdn+"/AppServiceEnvironmentsClient.CreateOrUpdateWorkerPool")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -554,8 +554,8 @@ func (client AppServiceEnvironmentsClient) Delete(ctx context.Context, resourceG
 		ctx = tracing.StartSpan(ctx, fqdn+"/AppServiceEnvironmentsClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -3611,8 +3611,8 @@ func (client AppServiceEnvironmentsClient) Resume(ctx context.Context, resourceG
 		ctx = tracing.StartSpan(ctx, fqdn+"/AppServiceEnvironmentsClient.Resume")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -3761,8 +3761,8 @@ func (client AppServiceEnvironmentsClient) Suspend(ctx context.Context, resource
 		ctx = tracing.StartSpan(ctx, fqdn+"/AppServiceEnvironmentsClient.Suspend")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

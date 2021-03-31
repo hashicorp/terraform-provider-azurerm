@@ -54,8 +54,8 @@ func (client CloudEndpointsClient) Create(ctx context.Context, resourceGroupName
 		ctx = tracing.StartSpan(ctx, fqdn+"/CloudEndpointsClient.Create")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -171,8 +171,8 @@ func (client CloudEndpointsClient) Delete(ctx context.Context, resourceGroupName
 		ctx = tracing.StartSpan(ctx, fqdn+"/CloudEndpointsClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -454,8 +454,8 @@ func (client CloudEndpointsClient) PostBackup(ctx context.Context, resourceGroup
 		ctx = tracing.StartSpan(ctx, fqdn+"/CloudEndpointsClient.PostBackup")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -572,8 +572,8 @@ func (client CloudEndpointsClient) PostRestore(ctx context.Context, resourceGrou
 		ctx = tracing.StartSpan(ctx, fqdn+"/CloudEndpointsClient.PostRestore")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -679,8 +679,8 @@ func (client CloudEndpointsClient) PreBackup(ctx context.Context, resourceGroupN
 		ctx = tracing.StartSpan(ctx, fqdn+"/CloudEndpointsClient.PreBackup")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -786,8 +786,8 @@ func (client CloudEndpointsClient) PreRestore(ctx context.Context, resourceGroup
 		ctx = tracing.StartSpan(ctx, fqdn+"/CloudEndpointsClient.PreRestore")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -983,8 +983,8 @@ func (client CloudEndpointsClient) TriggerChangeDetection(ctx context.Context, r
 		ctx = tracing.StartSpan(ctx, fqdn+"/CloudEndpointsClient.TriggerChangeDetection")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

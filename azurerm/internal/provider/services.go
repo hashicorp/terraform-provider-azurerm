@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/azurestackhci"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/billing"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/blueprints"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn"
@@ -69,6 +70,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/powerbi"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/purview"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/recoveryservices"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redisenterprise"
@@ -115,6 +117,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 		automation.Registration{},
 		azurestackhci.Registration{},
 		batch.Registration{},
+		billing.Registration{},
 		blueprints.Registration{},
 		bot.Registration{},
 		cdn.Registration{},
@@ -171,6 +174,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 		postgres.Registration{},
 		powerbi.Registration{},
 		privatedns.Registration{},
+		purview.Registration{},
 		recoveryservices.Registration{},
 		redis.Registration{},
 		redisenterprise.Registration{},

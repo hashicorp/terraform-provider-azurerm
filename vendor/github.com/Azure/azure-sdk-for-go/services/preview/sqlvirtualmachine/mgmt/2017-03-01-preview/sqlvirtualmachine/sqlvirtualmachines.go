@@ -56,8 +56,8 @@ func (client SQLVirtualMachinesClient) CreateOrUpdate(ctx context.Context, resou
 		ctx = tracing.StartSpan(ctx, fqdn+"/SQLVirtualMachinesClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -160,8 +160,8 @@ func (client SQLVirtualMachinesClient) Delete(ctx context.Context, resourceGroup
 		ctx = tracing.StartSpan(ctx, fqdn+"/SQLVirtualMachinesClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -682,8 +682,8 @@ func (client SQLVirtualMachinesClient) Update(ctx context.Context, resourceGroup
 		ctx = tracing.StartSpan(ctx, fqdn+"/SQLVirtualMachinesClient.Update")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

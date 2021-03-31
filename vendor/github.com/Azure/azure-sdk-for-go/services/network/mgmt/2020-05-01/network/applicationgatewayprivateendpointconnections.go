@@ -53,8 +53,8 @@ func (client ApplicationGatewayPrivateEndpointConnectionsClient) Delete(ctx cont
 		ctx = tracing.StartSpan(ctx, fqdn+"/ApplicationGatewayPrivateEndpointConnectionsClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -342,8 +342,8 @@ func (client ApplicationGatewayPrivateEndpointConnectionsClient) Update(ctx cont
 		ctx = tracing.StartSpan(ctx, fqdn+"/ApplicationGatewayPrivateEndpointConnectionsClient.Update")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

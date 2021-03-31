@@ -222,6 +222,7 @@ resource "azurerm_spring_cloud_service" "test" {
 
   trace {
     instrumentation_key = azurerm_application_insights.test.instrumentation_key
+    sample_rate         = 20
   }
 
   tags = {

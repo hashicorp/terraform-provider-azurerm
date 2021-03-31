@@ -53,8 +53,8 @@ func (client PrivateDNSZoneGroupsClient) CreateOrUpdate(ctx context.Context, res
 		ctx = tracing.StartSpan(ctx, fqdn+"/PrivateDNSZoneGroupsClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -159,8 +159,8 @@ func (client PrivateDNSZoneGroupsClient) Delete(ctx context.Context, resourceGro
 		ctx = tracing.StartSpan(ctx, fqdn+"/PrivateDNSZoneGroupsClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

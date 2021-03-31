@@ -57,8 +57,8 @@ func (client ManagedBackupShortTermRetentionPoliciesClient) CreateOrUpdate(ctx c
 		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedBackupShortTermRetentionPoliciesClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -366,8 +366,8 @@ func (client ManagedBackupShortTermRetentionPoliciesClient) Update(ctx context.C
 		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedBackupShortTermRetentionPoliciesClient.Update")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

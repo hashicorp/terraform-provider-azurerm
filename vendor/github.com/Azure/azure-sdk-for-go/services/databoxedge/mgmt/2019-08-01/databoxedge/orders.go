@@ -52,8 +52,8 @@ func (client OrdersClient) CreateOrUpdate(ctx context.Context, deviceName string
 		ctx = tracing.StartSpan(ctx, fqdn+"/OrdersClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -175,8 +175,8 @@ func (client OrdersClient) Delete(ctx context.Context, deviceName string, resour
 		ctx = tracing.StartSpan(ctx, fqdn+"/OrdersClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

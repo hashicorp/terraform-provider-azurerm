@@ -15,7 +15,7 @@ Manages an Azure IoT Time Series Insights Reference Data Set.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "northeurope"
+  location = "West Europe"
 }
 resource "azurerm_iot_time_series_insights_standard_environment" "example" {
   name                = "example"

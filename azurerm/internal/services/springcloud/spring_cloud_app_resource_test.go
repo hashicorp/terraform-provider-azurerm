@@ -144,6 +144,7 @@ resource "azurerm_spring_cloud_app" "test" {
   service_name        = azurerm_spring_cloud_service.test.name
   is_public           = true
   https_only          = true
+  tls_enabled         = true
 
   identity {
     type = "SystemAssigned"

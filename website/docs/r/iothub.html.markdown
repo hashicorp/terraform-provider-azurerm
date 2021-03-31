@@ -23,7 +23,7 @@ Manages an IotHub
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "Canada Central"
+  location = "West Europe"
 }
 
 resource "azurerm_storage_account" "example" {

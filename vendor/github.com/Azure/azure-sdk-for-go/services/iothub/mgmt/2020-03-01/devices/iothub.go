@@ -54,8 +54,8 @@ func (client IotHubClient) ManualFailover(ctx context.Context, iotHubName string
 		ctx = tracing.StartSpan(ctx, fqdn+"/IotHubClient.ManualFailover")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

@@ -52,8 +52,8 @@ func (client IntegrationServiceEnvironmentsClient) CreateOrUpdate(ctx context.Co
 		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationServiceEnvironmentsClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -620,8 +620,8 @@ func (client IntegrationServiceEnvironmentsClient) Update(ctx context.Context, r
 		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationServiceEnvironmentsClient.Update")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

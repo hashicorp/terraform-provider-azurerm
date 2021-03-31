@@ -54,8 +54,8 @@ func (client CassandraResourcesClient) CreateUpdateCassandraKeyspace(ctx context
 		ctx = tracing.StartSpan(ctx, fqdn+"/CassandraResourcesClient.CreateUpdateCassandraKeyspace")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -181,8 +181,8 @@ func (client CassandraResourcesClient) CreateUpdateCassandraTable(ctx context.Co
 		ctx = tracing.StartSpan(ctx, fqdn+"/CassandraResourcesClient.CreateUpdateCassandraTable")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -307,8 +307,8 @@ func (client CassandraResourcesClient) DeleteCassandraKeyspace(ctx context.Conte
 		ctx = tracing.StartSpan(ctx, fqdn+"/CassandraResourcesClient.DeleteCassandraKeyspace")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -414,8 +414,8 @@ func (client CassandraResourcesClient) DeleteCassandraTable(ctx context.Context,
 		ctx = tracing.StartSpan(ctx, fqdn+"/CassandraResourcesClient.DeleteCassandraTable")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -1079,8 +1079,8 @@ func (client CassandraResourcesClient) MigrateCassandraKeyspaceToAutoscale(ctx c
 		ctx = tracing.StartSpan(ctx, fqdn+"/CassandraResourcesClient.MigrateCassandraKeyspaceToAutoscale")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -1197,8 +1197,8 @@ func (client CassandraResourcesClient) MigrateCassandraKeyspaceToManualThroughpu
 		ctx = tracing.StartSpan(ctx, fqdn+"/CassandraResourcesClient.MigrateCassandraKeyspaceToManualThroughput")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -1315,8 +1315,8 @@ func (client CassandraResourcesClient) MigrateCassandraTableToAutoscale(ctx cont
 		ctx = tracing.StartSpan(ctx, fqdn+"/CassandraResourcesClient.MigrateCassandraTableToAutoscale")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -1435,8 +1435,8 @@ func (client CassandraResourcesClient) MigrateCassandraTableToManualThroughput(c
 		ctx = tracing.StartSpan(ctx, fqdn+"/CassandraResourcesClient.MigrateCassandraTableToManualThroughput")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -1555,8 +1555,8 @@ func (client CassandraResourcesClient) UpdateCassandraKeyspaceThroughput(ctx con
 		ctx = tracing.StartSpan(ctx, fqdn+"/CassandraResourcesClient.UpdateCassandraKeyspaceThroughput")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -1684,8 +1684,8 @@ func (client CassandraResourcesClient) UpdateCassandraTableThroughput(ctx contex
 		ctx = tracing.StartSpan(ctx, fqdn+"/CassandraResourcesClient.UpdateCassandraTableThroughput")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

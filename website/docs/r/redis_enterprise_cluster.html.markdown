@@ -53,6 +53,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `version` - Version of redis the cluster supports, e.g. '6'.
 
+-> **NOTE:** The `hostname` and `version` fields currently are not yet being returned from the service API, please see https://github.com/Azure/azure-sdk-for-go/issues/14420 for more information.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:

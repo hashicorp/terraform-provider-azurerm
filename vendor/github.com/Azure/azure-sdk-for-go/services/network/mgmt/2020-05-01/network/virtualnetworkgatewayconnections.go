@@ -53,8 +53,8 @@ func (client VirtualNetworkGatewayConnectionsClient) CreateOrUpdate(ctx context.
 		ctx = tracing.StartSpan(ctx, fqdn+"/VirtualNetworkGatewayConnectionsClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -194,8 +194,8 @@ func (client VirtualNetworkGatewayConnectionsClient) Delete(ctx context.Context,
 		ctx = tracing.StartSpan(ctx, fqdn+"/VirtualNetworkGatewayConnectionsClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -558,8 +558,8 @@ func (client VirtualNetworkGatewayConnectionsClient) ResetSharedKey(ctx context.
 		ctx = tracing.StartSpan(ctx, fqdn+"/VirtualNetworkGatewayConnectionsClient.ResetSharedKey")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -674,8 +674,8 @@ func (client VirtualNetworkGatewayConnectionsClient) SetSharedKey(ctx context.Co
 		ctx = tracing.StartSpan(ctx, fqdn+"/VirtualNetworkGatewayConnectionsClient.SetSharedKey")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -785,8 +785,8 @@ func (client VirtualNetworkGatewayConnectionsClient) StartPacketCapture(ctx cont
 		ctx = tracing.StartSpan(ctx, fqdn+"/VirtualNetworkGatewayConnectionsClient.StartPacketCapture")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -893,8 +893,8 @@ func (client VirtualNetworkGatewayConnectionsClient) StopPacketCapture(ctx conte
 		ctx = tracing.StartSpan(ctx, fqdn+"/VirtualNetworkGatewayConnectionsClient.StopPacketCapture")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -997,8 +997,8 @@ func (client VirtualNetworkGatewayConnectionsClient) UpdateTags(ctx context.Cont
 		ctx = tracing.StartSpan(ctx, fqdn+"/VirtualNetworkGatewayConnectionsClient.UpdateTags")
 		defer func() {
 			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

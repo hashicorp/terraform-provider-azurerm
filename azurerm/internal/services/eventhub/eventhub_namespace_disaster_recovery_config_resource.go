@@ -61,10 +61,12 @@ func resourceEventHubNamespaceDisasterRecoveryConfig() *schema.Resource {
 				ValidateFunc: azure.ValidateResourceIDOrEmpty,
 			},
 
+			// this property is broken and should not be reimplemented after 3.0 until this is addressed: https://github.com/Azure/azure-sdk-for-go/issues/5893
 			"alternate_name": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validate.ValidateEventHubNamespaceName(),
+				Deprecated:   "This property has been deprecated and will be removed in v3.0 of the provider as any DRC created with an alternate name cannot be deleted and the service is not going to change this. Please see: https://github.com/Azure/azure-sdk-for-go/issues/5893",
 			},
 		},
 	}

@@ -108,6 +108,17 @@ func resourceKubernetesCluster() *schema.Resource {
 							Optional: true,
 							Default:  false,
 						},
+						"expander": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(containerservice.LeastWaste),
+								string(containerservice.MostPods),
+								string(containerservice.Priority),
+								string(containerservice.Random),
+							}, false),
+						},
 						"max_graceful_termination_sec": {
 							Type:     schema.TypeString,
 							Optional: true,
@@ -474,6 +485,7 @@ func resourceKubernetesCluster() *schema.Resource {
 					privateDnsValidate.PrivateDnsZoneID,
 					validation.StringInSlice([]string{
 						"System",
+						"None",
 					}, false),
 				),
 			},
@@ -599,7 +611,7 @@ func resourceKubernetesCluster() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Sensitive:    true,
-							ValidateFunc: validation.StringLenBetween(14, 123),
+							ValidateFunc: validation.StringLenBetween(8, 123),
 						},
 					},
 				},
@@ -843,17 +855,19 @@ func resourceKubernetesClusterCreate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
+	servicePrincipalSet := false
 	if len(servicePrincipalProfileRaw) > 0 {
 		servicePrincipalProfileVal := servicePrincipalProfileRaw[0].(map[string]interface{})
 		parameters.ManagedClusterProperties.ServicePrincipalProfile = &containerservice.ManagedClusterServicePrincipalProfile{
 			ClientID: utils.String(servicePrincipalProfileVal["client_id"].(string)),
 			Secret:   utils.String(servicePrincipalProfileVal["client_secret"].(string)),
 		}
+		servicePrincipalSet = true
 	}
 
 	if v, ok := d.GetOk("private_dns_zone_id"); ok {
-		if parameters.Identity == nil || (v.(string) != "System" && parameters.Identity.Type != containerservice.ResourceIdentityTypeUserAssigned) {
-			return fmt.Errorf("a user assigned identity must be used when using a custom private dns zone")
+		if (parameters.Identity == nil && !servicePrincipalSet) || (v.(string) != "System" && (!servicePrincipalSet && parameters.Identity.Type != containerservice.ResourceIdentityTypeUserAssigned)) {
+			return fmt.Errorf("a user assigned identity or a service principal must be used when using a custom private dns zone")
 		}
 		apiAccessProfile.PrivateDNSZone = utils.String(v.(string))
 	}
@@ -2094,6 +2108,7 @@ func flattenKubernetesClusterAutoScalerProfile(profile *containerservice.Managed
 	return []interface{}{
 		map[string]interface{}{
 			"balance_similar_node_groups":      balanceSimilarNodeGroups,
+			"expander":                         string(profile.Expander),
 			"max_graceful_termination_sec":     maxGracefulTerminationSec,
 			"new_pod_scale_up_delay":           newPodScaleUpDelay,
 			"scale_down_delay_after_add":       scaleDownDelayAfterAdd,
@@ -2117,6 +2132,7 @@ func expandKubernetesClusterAutoScalerProfile(input []interface{}) *containerser
 	config := input[0].(map[string]interface{})
 
 	balanceSimilarNodeGroups := config["balance_similar_node_groups"].(bool)
+	expander := config["expander"].(string)
 	maxGracefulTerminationSec := config["max_graceful_termination_sec"].(string)
 	newPodScaleUpDelay := config["new_pod_scale_up_delay"].(string)
 	scaleDownDelayAfterAdd := config["scale_down_delay_after_add"].(string)
@@ -2131,6 +2147,7 @@ func expandKubernetesClusterAutoScalerProfile(input []interface{}) *containerser
 
 	return &containerservice.ManagedClusterPropertiesAutoScalerProfile{
 		BalanceSimilarNodeGroups:      utils.String(strconv.FormatBool(balanceSimilarNodeGroups)),
+		Expander:                      containerservice.Expander(expander),
 		MaxGracefulTerminationSec:     utils.String(maxGracefulTerminationSec),
 		NewPodScaleUpDelay:            utils.String(newPodScaleUpDelay),
 		ScaleDownDelayAfterAdd:        utils.String(scaleDownDelayAfterAdd),

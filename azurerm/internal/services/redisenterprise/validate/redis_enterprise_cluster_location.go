@@ -29,20 +29,13 @@ func RedisEnterpriseClusterLocation(input interface{}, key string) (warnings []s
 }
 
 func validRedisEnterpriseClusterLocations() []string {
-	return []string{
-		location.Normalize("Australia East"),
-		location.Normalize("Australia Southeast"),
-		location.Normalize("Brazil South"),
-		location.Normalize("Central US"),
-		location.Normalize("Central US EUAP"),
-		location.Normalize("East Asia"),
-		location.Normalize("East US"),
-		location.Normalize("North Europe"),
-		location.Normalize("South Central US"),
-		location.Normalize("Southeast Asia"),
-		location.Normalize("UK South"),
-		location.Normalize("UK West"),
+	var validLoc []string
+
+	for _, v := range friendlyValidRedisEnterpriseClusterLocations() {
+		validLoc = append(validLoc, location.Normalize(v))
 	}
+
+	return validLoc
 }
 
 func friendlyValidRedisEnterpriseClusterLocations() []string {
@@ -59,5 +52,10 @@ func friendlyValidRedisEnterpriseClusterLocations() []string {
 		"Southeast Asia",
 		"UK South",
 		"UK West",
+		"East US 2",
+		"East US 2 EUAP",
+		"West Europe",
+		"West US",
+		"West US 2",
 	}
 }
