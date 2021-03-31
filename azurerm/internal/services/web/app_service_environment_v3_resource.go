@@ -325,8 +325,8 @@ func expandClusterSettingsModel(input []ClusterSettingModel) *[]web.NameValuePai
 
 	for _, v := range input {
 		clusterSettings = append(clusterSettings, web.NameValuePair{
-			Name:  &v.Name,
-			Value: &v.Value,
+			Name:  utils.String(v.Name),
+			Value: utils.String(v.Value),
 		})
 	}
 	return &clusterSettings

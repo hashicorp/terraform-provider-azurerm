@@ -194,12 +194,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-ase-%d"
   location = "%s"
 }
 
 resource "azurerm_resource_group" "test2" {
-  name     = "acctestRG2-%d"
+  name     = "acctestRG2-ase-%d"
   location = "%s"
 }
 
