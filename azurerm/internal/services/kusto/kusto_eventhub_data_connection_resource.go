@@ -80,7 +80,17 @@ func resourceKustoEventHubDataConnection() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: eventhubValidate.EventHubID,
+			},
+
+			"event_system_properties": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
 			},
 
 			"consumer_group": {
@@ -119,17 +129,6 @@ func resourceKustoEventHubDataConnection() *schema.Resource {
 					string(kusto.TXT),
 				}, false),
 			},
-		},
-		CustomizeDiff: func(d *schema.ResourceDiff, _ interface{}) error {
-			_, hasTableName := d.GetOk("table_name")
-			_, hasMappingRuleName := d.GetOk("mapping_rule_name")
-			_, hasDataFormat := d.GetOk("data_format")
-
-			if !(utils.AllEquals(hasTableName, hasMappingRuleName, hasDataFormat)) {
-				return fmt.Errorf("if one of the target table properties `table_name`, `mapping_rule_name` or `data_format` are set, the other values must also be defined")
-			}
-
-			return nil
 		},
 	}
 }
@@ -233,6 +232,7 @@ func resourceKustoEventHubDataConnectionRead(d *schema.ResourceData, meta interf
 			d.Set("mapping_rule_name", props.MappingRuleName)
 			d.Set("data_format", props.DataFormat)
 			d.Set("compression", props.Compression)
+			d.Set("event_system_properties", props.EventSystemProperties)
 		}
 	}
 
@@ -286,6 +286,14 @@ func expandKustoEventHubDataConnectionProperties(d *schema.ResourceData) *kusto.
 
 	if compression, ok := d.GetOk("compression"); ok {
 		eventHubConnectionProperties.Compression = kusto.Compression(compression.(string))
+	}
+
+	if eventSystemProperties, ok := d.GetOk("event_system_properties"); ok {
+		props := make([]string, 0)
+		for _, prop := range eventSystemProperties.([]interface{}) {
+			props = append(props, prop.(string))
+		}
+		eventHubConnectionProperties.EventSystemProperties = &props
 	}
 
 	return eventHubConnectionProperties

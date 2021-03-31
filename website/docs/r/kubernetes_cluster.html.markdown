@@ -74,7 +74,7 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 ---
 
-* `automatic_channel_upgrade` - (Optional) The upgrade channel for this Kubernetes Cluster. Possible values are `none`, `patch`, `rapid`, and `stable`. The default value is `none`.
+* `automatic_channel_upgrade` - (Optional) The upgrade channel for this Kubernetes Cluster. Possible values are `patch`, `rapid`, and `stable`.
 
 !> **Note:** Cluster Auto-Upgrade will update the Kubernetes Cluster (and it's Node Pools) to the latest GA version of Kubernetes automatically - please [see the Azure documentation for more information](https://docs.microsoft.com/en-us/azure/aks/upgrade-cluster#set-auto-upgrade-channel-preview).
 
@@ -220,6 +220,8 @@ A `addon_profile` block supports the following:
 A `auto_scaler_profile` block supports the following:
 
 * `balance_similar_node_groups` - Detect similar node groups and balance the number of nodes between them. Defaults to `false`.
+
+* `expander` - Expander to use. Possible values are `least-waste`, `priority`, `most-pods` and `random`. Defaults to `random`.
 
 * `max_graceful_termination_sec` - Maximum number of seconds the cluster autoscaler waits for pod termination when trying to scale down a node. Defaults to `600`.
 
@@ -426,8 +428,6 @@ A `oms_agent` block supports the following:
 
 * `log_analytics_workspace_id` - (Optional) The ID of the Log Analytics Workspace which the OMS Agent should send data to. Must be present if `enabled` is `true`.
 
-* `oms_agent_identity` - An `oms_agent_identity` block as defined below.  
-
 ---
 
 A `role_based_access_control` block supports the following:
@@ -519,6 +519,12 @@ The `kubelet_identity` block exports the following:
 * `object_id` - The Object ID of the user-defined Managed Identity assigned to the Kubelets.
 
 * `user_assigned_identity_id` - The ID of the User Assigned Identity assigned to the Kubelets.
+
+---
+
+The `oms_agent` block exports the following: 
+
+* `oms_agent_identity` - An `oms_agent_identity` block is exported. The exported attributes are defined below.  
 
 ---
 

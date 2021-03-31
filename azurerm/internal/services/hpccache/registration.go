@@ -26,8 +26,9 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_hpc_cache":             resourceHPCCache(),
-		"azurerm_hpc_cache_blob_target": resourceHPCCacheBlobTarget(),
-		"azurerm_hpc_cache_nfs_target":  resourceHPCCacheNFSTarget(),
+		"azurerm_hpc_cache":               resourceHPCCache(),
+		"azurerm_hpc_cache_access_policy": resourceHPCCacheAccessPolicy(),
+		"azurerm_hpc_cache_blob_target":   resourceHPCCacheBlobTarget(),
+		"azurerm_hpc_cache_nfs_target":    resourceHPCCacheNFSTarget(),
 	}
 }

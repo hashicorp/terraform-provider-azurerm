@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/validate"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -46,8 +47,9 @@ func resourcePostgreSQLAdministrator() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"login": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validate.AdminUsernames,
 			},
 
 			"object_id": {

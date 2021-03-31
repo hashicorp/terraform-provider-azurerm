@@ -116,7 +116,7 @@ func (HPCCacheNFSTargetResource) Exists(ctx context.Context, clients *clients.Cl
 		return nil, fmt.Errorf("retrieving HPC Cache NFS Target (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.BasicStorageTargetProperties != nil), nil
+	return utils.Bool(resp.ID != nil), nil
 }
 
 func (r HPCCacheNFSTargetResource) basic(data acceptance.TestData) string {
@@ -139,7 +139,7 @@ resource "azurerm_hpc_cache_nfs_target" "test" {
     nfs_export     = "/export/b"
   }
 }
-`, r.template(data), data.RandomString)
+`, r.cacheTemplate(data), data.RandomString)
 }
 
 func (r HPCCacheNFSTargetResource) usageModel(data acceptance.TestData) string {
@@ -162,7 +162,7 @@ resource "azurerm_hpc_cache_nfs_target" "test" {
     nfs_export     = "/export/b"
   }
 }
-`, r.template(data), data.RandomString)
+`, r.cacheTemplate(data), data.RandomString)
 }
 
 func (r HPCCacheNFSTargetResource) namespaceJunction(data acceptance.TestData) string {
@@ -181,7 +181,7 @@ resource "azurerm_hpc_cache_nfs_target" "test" {
     target_path    = ""
   }
 }
-`, r.template(data), data.RandomString)
+`, r.cacheTemplate(data), data.RandomString)
 }
 
 func (r HPCCacheNFSTargetResource) requiresImport(data acceptance.TestData) string {
@@ -207,9 +207,45 @@ resource "azurerm_hpc_cache_nfs_target" "import" {
 `, r.basic(data))
 }
 
-func (HPCCacheNFSTargetResource) template(data acceptance.TestData) string {
+func (r HPCCacheNFSTargetResource) cacheTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
+
+resource "azurerm_hpc_cache" "test" {
+  name                = "acctest-HPCC-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cache_size_in_gb    = 3072
+  subnet_id           = azurerm_subnet.test.id
+  sku_name            = "Standard_2G"
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (HPCCacheNFSTargetResource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-hpcc-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctest-VN-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsub-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.0.2.0/24"
+}
 
 resource "azurerm_subnet" "testvm" {
   name                 = "acctest-sub-vm-%[2]s"
@@ -275,5 +311,5 @@ resource "azurerm_linux_virtual_machine" "test" {
   custom_data = base64encode(local.custom_data)
 }
 
-`, HPCCacheResource{}.basic(data), data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString)
 }

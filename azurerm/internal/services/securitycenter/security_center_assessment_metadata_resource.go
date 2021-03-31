@@ -19,10 +19,11 @@ import (
 
 func resourceArmSecurityCenterAssessmentMetadata() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSecurityCenterAssessmentMetadataCreate,
-		Read:   resourceArmSecurityCenterAssessmentMetadataRead,
-		Update: resourceArmSecurityCenterAssessmentMetadataUpdate,
-		Delete: resourceArmSecurityCenterAssessmentMetadataDelete,
+		Create:             resourceArmSecurityCenterAssessmentMetadataCreate,
+		Read:               resourceArmSecurityCenterAssessmentMetadataRead,
+		Update:             resourceArmSecurityCenterAssessmentMetadataUpdate,
+		Delete:             resourceArmSecurityCenterAssessmentMetadataDelete,
+		DeprecationMessage: "This resource has been renamed to `azurerm_security_center_assessment_policy` and will be removed in version 3.0 of the provider.",
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),

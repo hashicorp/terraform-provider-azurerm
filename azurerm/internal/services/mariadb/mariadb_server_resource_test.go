@@ -237,7 +237,7 @@ func TestAccMariaDbServer_createReplica(t *testing.T) {
 			Config: r.createReplica(data, version),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That("azurerm_mariadb_server").ExistsInAzure(r),
+				check.That("azurerm_mariadb_server.replica").ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("administrator_login_password"), // not returned as sensitive

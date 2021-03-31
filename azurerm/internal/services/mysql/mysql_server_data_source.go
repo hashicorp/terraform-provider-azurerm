@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql/parse"
+
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2020-01-01/mysql"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -180,30 +183,26 @@ func dataSourceMySqlServer() *schema.Resource {
 
 func dataSourceMySqlServerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MySQL.ServersClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	securityClient := meta.(*clients.Client).MySQL.ServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
-	resp, err := client.Get(ctx, resourceGroup, name)
+	id := parse.NewServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("MySQL server %q in Resource Group %q was not found", name, resourceGroup)
+			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("making Read request on MySQL server %q (resource group: %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.SetId(*resp.ID)
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.SetId(id.ID())
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	tier := mysql.Basic
-
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku_name", sku.Name)
 		tier = sku.Tier
@@ -232,14 +231,13 @@ func dataSourceMySqlServerRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if tier == mysql.GeneralPurpose || tier == mysql.MemoryOptimized {
-		secResp, err := securityClient.Get(ctx, resourceGroup, name)
+		secResp, err := securityClient.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil && !utils.ResponseWasNotFound(secResp.Response) {
-			return fmt.Errorf("making read request to MySQL server security alert policy (server: %q, resource group: %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("retrieving Security Alert Policy for %s: %+v", id, err)
 		}
 
 		accountKey := ""
-
-		if secResp.SecurityAlertPolicyProperties.StorageAccountAccessKey != nil {
+		if secResp.SecurityAlertPolicyProperties != nil && secResp.SecurityAlertPolicyProperties.StorageAccountAccessKey != nil {
 			accountKey = *secResp.SecurityAlertPolicyProperties.StorageAccountAccessKey
 		}
 
