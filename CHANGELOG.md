@@ -11,6 +11,7 @@ ENHANCEMENTS:
 * dependencies: updating to `v52.6.0` of `github.com/Azure/azure-sdk-for-go` [GH-11108]
 * dependencies: updating `storage` to API version `2021-01-01` [GH-11094]
 * dependencies: updating `storagecache` (a.k.a `hpc`) to API version `2021-03-01` [GH-11083]
+* `azurerm_cognitive_account` - Add support for `network_acls` [GH-11164]
 * `azurerm_container_registry` - support for the `quarantine_policy_enabled` property [GH-11011]
 * `azurerm_firewall` - support for the `private_ip_ranges` property [pGH-10627]
 * `azurerm_spring_cloud_service` - supports for the `sample_rate` property [GH-11106]
