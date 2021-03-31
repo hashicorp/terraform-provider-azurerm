@@ -989,7 +989,7 @@ func resourceApplicationGateway() *schema.Resource {
 										},
 									},
 
-									"url_configuration": {
+									"url": {
 										Type:     schema.TypeList,
 										Optional: true,
 										MaxItems: 1,
@@ -2963,7 +2963,7 @@ func expandApplicationGatewayRewriteRuleSets(d *schema.ResourceData) *[]network.
 				responseConfigurations = append(responseConfigurations, config)
 			}
 
-			for _, rawConfig := range r["url_configuration"].([]interface{}) {
+			for _, rawConfig := range r["url"].([]interface{}) {
 				c := rawConfig.(map[string]interface{})
 				if c["path"] != nil {
 					urlConfiguration.ModifiedPath = utils.String(c["path"].(string))
@@ -2981,7 +2981,7 @@ func expandApplicationGatewayRewriteRuleSets(d *schema.ResourceData) *[]network.
 				ResponseHeaderConfigurations: &responseConfigurations,
 			}
 
-			if len(r["url_configuration"].([]interface{})) > 0 {
+			if len(r["url"].([]interface{})) > 0 {
 				rule.ActionSet.URLConfiguration = &urlConfiguration
 			}
 
@@ -3117,7 +3117,7 @@ func flattenApplicationGatewayRewriteRuleSets(input *[]network.ApplicationGatewa
 					}
 					ruleOutput["request_header_configuration"] = requestConfigs
 					ruleOutput["response_header_configuration"] = responseConfigs
-					ruleOutput["url_configuration"] = urlConfigs
+					ruleOutput["url"] = urlConfigs
 
 					rules = append(rules, ruleOutput)
 				}

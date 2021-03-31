@@ -5281,7 +5281,7 @@ resource "azurerm_application_gateway" "test" {
         pattern  = ".*article/(.*)/(.*)"
       }
 
-      url_configuration {
+      url {
         path         = "/article.aspx"
         query_string = "id={var_uri_path_1}&title={var_uri_path_2}"
       }
