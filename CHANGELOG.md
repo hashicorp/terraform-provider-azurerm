@@ -1,15 +1,54 @@
-## 2.53.0 (Unreleased)
+## 2.54.0 (Unreleased)
+
+FEATURES:
+
+* **New Resource:** `azurerm_media_live_event` [GH-10724]
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v52.5.0` of `github.com/Azure/azure-sdk-for-go` [GH-11015]
-* `azurerm_logic_app_trigger_recurrence` - Add support for `schedule`  [GH-11055]
+* dependencies: updating to `v52.6.0` of `github.com/Azure/azure-sdk-for-go` [GH-11108]
+* dependencies: updating `storage` to API version `2021-01-01` [GH-11094]
+* `azurerm_container_registry` - support for the `quarantine_policy_enabled` property [GH-11011]
+* `azurerm_spring_cloud_service` - supports for the `sample_rate` property [GH-11106]
+* `azurerm_storage_account` - support for the `container_delete_retention_policy` property [GH-11131]
 
 BUG FIXES:
 
-* `azurerm_frontdoor_custom_https_configuration` - fixing a crash during update [GH-11046]
-* `azurerm_resource_group_template_deployment` - always sending `parameters_content` during an update [GH-11001]
-* `azurerm_subscription_template_deployment` - always sending `parameters_content` during an update [GH-11001]
+* `azurerm_api_management` - the `certificate_password` property is now optional [GH-11139]
+* `azurerm_data_factory_linked_service_azure_blob_storage` - correct managed identity implementation by implementing the `service_endpoint` property [GH-10830]
+* `azurerm_machine_learning_workspace` - deprecate the `Enterprise` sku as it has been deprecated by Azure [GH-11063]
+* `azurerm_machine_learning_workspace` - support container registries in other subscriptions [GH-11065]
+* `azurerm_site_recovery_fabric` - Fixes error in checking for existing resource [GH-11130]
+* `azurerm_spring_cloud_custom_domain` - `thumbprint` is required when specifying `certificate_name` [GH-11145]
+* `azurerm_subscription` - fixes broken timeout on destroy [GH-11124]
+
+## 2.53.0 (March 26, 2021)
+
+FEATURES:
+
+* **New Resource:** `azurerm_management_group_template_deployment` ([#10603](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10603))
+* **New Resource:** `azurerm_tenant_template_deployment` ([#10603](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10603))
+* **New Data Source:** `azurerm_template_spec_version` ([#10603](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10603))
+
+ENHANCEMENTS:
+
+* dependencies: updating to `v52.5.0` of `github.com/Azure/azure-sdk-for-go` ([#11015](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11015))
+* Data Source: `azurerm_key_vault_secret` - support for the `versionless_id` attribute ([#11091](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11091))
+* `azurerm_container_registry` - support for the `public_network_access_enabled` property ([#10969](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10969))
+* `azurerm_kusto_eventhub_data_connection` - support for the `event_system_properties` block ([#11006](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11006))
+* `azurerm_logic_app_trigger_recurrence` - Add support for `schedule`  ([#11055](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11055))
+* `azurerm_resource_group_template_deployment` - add support for `template_spec_version_id` property ([#10603](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10603))
+* `azurerm_role_definition` - the `permissions` block is now optional ([#9850](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9850))
+* `azurerm_subscription_template_deployment` - add support for `template_spec_version_id` property ([#10603](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10603))
+
+
+BUG FIXES:
+
+* `azurerm_frontdoor_custom_https_configuration` - fixing a crash during update ([#11046](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11046))
+* `azurerm_resource_group_template_deployment` - always sending `parameters_content` during an update ([#11001](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11001))
+* `azurerm_role_definition` - fixing crash when permissions are empty ([#9850](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9850))
+* `azurerm_subscription_template_deployment` - always sending `parameters_content` during an update ([#11001](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11001))
+* `azurerm_spring_cloud_app` - supports for the `tls_enabled` property ([#11064](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11064))
 
 ## 2.52.0 (March 18, 2021)
 

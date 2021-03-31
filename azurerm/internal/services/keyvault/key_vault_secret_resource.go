@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
@@ -347,7 +346,7 @@ func resourceKeyVaultSecretRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("value", resp.Value)
 	d.Set("version", respID.Version)
 	d.Set("content_type", resp.ContentType)
-	d.Set("versionless_id", fmt.Sprintf("%s/%s/%s", strings.TrimSuffix(id.KeyVaultBaseUrl, "/"), id.NestedItemType, id.Name))
+	d.Set("versionless_id", id.VersionlessID())
 
 	if attributes := resp.Attributes; attributes != nil {
 		if v := attributes.NotBefore; v != nil {

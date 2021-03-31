@@ -348,7 +348,7 @@ func resourceSubscriptionDelete(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	locks.ByName(id.Name, SubscriptionResourceName)
-	defer locks.ByName(id.Name, SubscriptionResourceName)
+	defer locks.UnlockByName(id.Name, SubscriptionResourceName)
 
 	// Get subscription details for later
 	alias, err := aliasClient.Get(ctx, id.Name)
