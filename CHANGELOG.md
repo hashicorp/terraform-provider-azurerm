@@ -1,6 +1,31 @@
+## 2.54.0 (Unreleased)
+
+FEATURES:
+
+* **New Resource:** `azurerm_media_live_event` [GH-10724]
+
+ENHANCEMENTS:
+
+* dependencies: updating to `v52.6.0` of `github.com/Azure/azure-sdk-for-go` [GH-11108]
+* dependencies: updating `storage` to API version `2021-01-01` [GH-11094]
+* `azurerm_container_registry` - support for the `quarantine_policy_enabled` property [GH-11011]
+* `azurerm_spring_cloud_service` - supports for the `sample_rate` property [GH-11106]
+* `azurerm_storage_account` - support for the `container_delete_retention_policy` property [GH-11131]
+
+BUG FIXES:
+
+* `azurerm_api_management` - the `certificate_password` property is now optional [GH-11139]
+* `azurerm_data_factory_linked_service_azure_blob_storage` - correct managed identity implementation by implementing the `service_endpoint` property [GH-10830]
+* `azurerm_machine_learning_workspace` - deprecate the `Enterprise` sku as it has been deprecated by Azure [GH-11063]
+* `azurerm_machine_learning_workspace` - support container registries in other subscriptions [GH-11065]
+* `azurerm_site_recovery_fabric` - Fixes error in checking for existing resource [GH-11130]
+* `azurerm_spring_cloud_custom_domain` - `thumbprint` is required when specifying `certificate_name` [GH-11145]
+* `azurerm_subscription` - fixes broken timeout on destroy [GH-11124]
+
 ## 2.53.0 (March 26, 2021)
 
 FEATURES:
+
 * **New Resource:** `azurerm_management_group_template_deployment` ([#10603](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10603))
 * **New Resource:** `azurerm_tenant_template_deployment` ([#10603](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10603))
 * **New Data Source:** `azurerm_template_spec_version` ([#10603](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10603))
