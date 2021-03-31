@@ -139,6 +139,8 @@ A `blob_properties` block supports the following:
 
 * `container_delete_retention_policy` - (Optional) A `container_delete_retention_policy` block as defined below.
 
+* `versioning_enabled` - (Optional) Is Blob Versioning Enabled?
+
 ---
 
 A `cors_rule` block supports the following:
