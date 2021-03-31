@@ -56,10 +56,9 @@ func resourceContainerRegistry() *schema.Resource {
 			"sku": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				Default:          string(containerregistry.Classic),
+				Default:          string(containerregistry.Basic),
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(containerregistry.Classic),
 					string(containerregistry.Basic),
 					string(containerregistry.Standard),
 					string(containerregistry.Premium),
@@ -87,12 +86,6 @@ func resourceContainerRegistry() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  true,
-			},
-
-			"storage_account_id": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
 			},
 
 			"login_server": {
@@ -328,18 +321,6 @@ func resourceContainerRegistryCreate(d *schema.ResourceData, meta interface{}) e
 		},
 
 		Tags: tags.Expand(t),
-	}
-
-	if v, ok := d.GetOk("storage_account_id"); ok {
-		if !strings.EqualFold(sku, string(containerregistry.Classic)) {
-			return fmt.Errorf("`storage_account_id` can only be specified for a Classic (unmanaged) Sku.")
-		}
-
-		parameters.StorageAccount = &containerregistry.StorageAccountProperties{
-			ID: utils.String(v.(string)),
-		}
-	} else if strings.EqualFold(sku, string(containerregistry.Classic)) {
-		return fmt.Errorf("`storage_account_id` must be specified for a Classic (unmanaged) Sku.")
 	}
 
 	future, err := client.Create(ctx, resourceGroup, name, parameters)
@@ -631,10 +612,6 @@ func resourceContainerRegistryRead(d *schema.ResourceData, meta interface{}) err
 
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku", string(sku.Tier))
-	}
-
-	if account := resp.StorageAccount; account != nil {
-		d.Set("storage_account_id", account.ID)
 	}
 
 	if *resp.AdminUserEnabled {

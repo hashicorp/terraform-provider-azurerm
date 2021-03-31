@@ -56,11 +56,6 @@ func dataSourceContainerRegistry() *schema.Resource {
 				Computed: true,
 			},
 
-			"storage_account_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
 			"tags": tags.SchemaDataSource(),
 		},
 	}
@@ -94,10 +89,6 @@ func dataSourceContainerRegistryRead(d *schema.ResourceData, meta interface{}) e
 
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku", string(sku.Tier))
-	}
-
-	if account := resp.StorageAccount; account != nil {
-		d.Set("storage_account_id", account.ID)
 	}
 
 	if *resp.AdminUserEnabled {
