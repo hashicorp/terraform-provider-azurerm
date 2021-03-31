@@ -38,6 +38,10 @@ type AppServiceEnvironmentV3Model struct {
 	Tags           map[string]interface{} `tfschema:"tags"`
 }
 
+// (@jackofallops) - Two important properties are missing from the SDK / Swagger that will need to be added later
+// these are `dedicated_host_count` https://docs.microsoft.com/en-gb/azure/app-service/environment/creation#dedicated-hosts
+// and `upgrade_preference` https://docs.microsoft.com/en-us/azure/app-service/environment/using#upgrade-preference
+
 type AppServiceEnvironmentV3Resource struct{}
 
 var _ sdk.Resource = AppServiceEnvironmentV3Resource{}
@@ -150,19 +154,17 @@ func (r AppServiceEnvironmentV3Resource) Create() sdk.ResourceFunc {
 				Kind:     utils.String(KindASEV3),
 				Location: utils.String(vnetLoc),
 				AppServiceEnvironment: &web.AppServiceEnvironment{
-					Name:     utils.String(id.HostingEnvironmentName),
-					Location: utils.String(vnetLoc),
+					Name: utils.String(id.HostingEnvironmentName),
 					VirtualNetwork: &web.VirtualNetworkProfile{
 						ID:     utils.String(model.SubnetId),
 						Subnet: utils.String(subnet.Name),
 					},
-					WorkerPools:     &[]web.WorkerPool{{}},
 					ClusterSettings: expandClusterSettingsModel(model.ClusterSetting),
 				},
+				Tags: tags.Expand(model.Tags),
 			}
 
-			_, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.HostingEnvironmentName, envelope)
-			if err != nil {
+			if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.HostingEnvironmentName, envelope); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

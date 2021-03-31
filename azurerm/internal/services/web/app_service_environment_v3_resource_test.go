@@ -170,6 +170,7 @@ resource "azurerm_app_service_environment_v3" "test" {
 
   tags = {
     accTest = "1"
+    env     = "Test"
   }
 }
 `, template, data.RandomInteger)

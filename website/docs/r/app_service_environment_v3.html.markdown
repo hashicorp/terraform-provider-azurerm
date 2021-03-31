@@ -40,16 +40,30 @@ resource "azurerm_subnet" "gateway" {
   address_prefixes     = ["10.0.2.0/24"]
 }
 
-resource "azurerm_app_service_environment" "example" {
-  name                         = "example-ase"
-  subnet_id                    = azurerm_subnet.ase.id
-  front_end_scale_factor       = 10
-  internal_load_balancing_mode = "Web, Publishing"
+resource "azurerm_app_service_environment_v3" "example" {
+  name      = "example-ase"
+  subnet_id = azurerm_subnet.ase.id
 
   cluster_setting {
     name  = "DisableTls1.0"
     value = "1"
   }
+
+  cluster_setting {
+    name  = "InternalEncryption"
+    value = "true"
+  }
+
+  cluster_setting {
+    name  = "FrontEndSSLCipherSuiteOrder"
+    value = "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384_P256,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256_P256,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384_P256,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA_P256,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA_P256"
+  }
+
+  tags = {
+    env         = "production"
+    terraformed = "true"
+  }
+
 }
 
 ```
@@ -65,10 +79,6 @@ resource "azurerm_app_service_environment" "example" {
 ~> **NOTE** a /24 or larger CIDR is required. Once associated with an ASE, this size cannot be changed.
 
 * `cluster_setting` - (Optional) Zero or more `cluster_setting` blocks as defined below. 
-
-* `internal_load_balancing_mode` - (Optional) Specifies which endpoints to serve internally in the Virtual Network for the App Service Environment. Possible values are `None`, `Web`, `Publishing` and combined value `"Web, Publishing"`. Defaults to `None`.
-
-* `front_end_scale_factor` - (Optional) Scale factor for front end instances. Possible values are between `5` and `15`. Defaults to `15`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource. 
 
