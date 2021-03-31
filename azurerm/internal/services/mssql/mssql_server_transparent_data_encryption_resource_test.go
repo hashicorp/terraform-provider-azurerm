@@ -64,6 +64,7 @@ func TestAccMsSqlServerTransparentDataEncryption_update(t *testing.T) {
 		{
 			Config: r.systemManaged(data),
 			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("key_vault_key_id").HasValue(""),
 			),
 		},
