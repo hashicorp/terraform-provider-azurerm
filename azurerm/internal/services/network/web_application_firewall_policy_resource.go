@@ -282,6 +282,26 @@ func resourceWebApplicationFirewallPolicy() *schema.Resource {
 				},
 			},
 
+			"http_listener_ids": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MinItems: 1,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validate.ApplicationGatewayHTTPListenerID,
+				},
+			},
+
+			"path_based_rule_ids": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MinItems: 1,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validate.ApplicationGatewayURLPathMapPathRuleID,
+				},
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -310,6 +330,8 @@ func resourceWebApplicationFirewallPolicyCreateUpdate(d *schema.ResourceData, me
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	customRules := d.Get("custom_rules").([]interface{})
 	policySettings := d.Get("policy_settings").([]interface{})
+	httpListenerIDs := d.Get("http_listener_ids").([]interface{})
+	pathBasedRuleIDs := d.Get("path_based_rule_ids").([]interface{})
 	managedRules := d.Get("managed_rules").([]interface{})
 	t := d.Get("tags").(map[string]interface{})
 
@@ -319,6 +341,8 @@ func resourceWebApplicationFirewallPolicyCreateUpdate(d *schema.ResourceData, me
 			CustomRules:    expandWebApplicationFirewallPolicyWebApplicationFirewallCustomRule(customRules),
 			PolicySettings: expandWebApplicationFirewallPolicyPolicySettings(policySettings),
 			ManagedRules:   expandWebApplicationFirewallPolicyManagedRulesDefinition(managedRules),
+			HTTPListeners:  expandIDsToSubResources(httpListenerIDs),
+			PathBasedRules: expandIDsToSubResources(pathBasedRuleIDs),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -376,8 +400,11 @@ func resourceWebApplicationFirewallPolicyRead(d *schema.ResourceData, meta inter
 		if err := d.Set("managed_rules", flattenWebApplicationFirewallPolicyManagedRulesDefinition(webApplicationFirewallPolicyPropertiesFormat.ManagedRules)); err != nil {
 			return fmt.Errorf("Error setting `managed_rules`: %+v", err)
 		}
-		if err := d.Set("managed_rules", flattenWebApplicationFirewallPolicyManagedRulesDefinition(webApplicationFirewallPolicyPropertiesFormat.ManagedRules)); err != nil {
-			return fmt.Errorf("Error setting `managed_rules`: %+v", err)
+		if err := d.Set("http_listener_ids", flattenSubResourcesToIDs(webApplicationFirewallPolicyPropertiesFormat.HTTPListeners)); err != nil {
+			return fmt.Errorf("Error setting `http_listeners`: %+v", err)
+		}
+		if err := d.Set("path_based_rule_ids", flattenSubResourcesToIDs(webApplicationFirewallPolicyPropertiesFormat.PathBasedRules)); err != nil {
+			return fmt.Errorf("Error setting `path_based_rules`: %+v", err)
 		}
 	}
 
