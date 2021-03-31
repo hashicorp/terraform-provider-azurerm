@@ -26,7 +26,6 @@ func TestAccMsSqlServerTransparentDataEncryption_byok(t *testing.T) {
 			Config: r.byok(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("key_vault_key_id").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -42,7 +41,7 @@ func TestAccMsSqlServerTransparentDataEncryption_systemManaged(t *testing.T) {
 			Config: r.systemManaged(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("key_vault_key_id").DoesNotExist(),
+				check.That(data.ResourceName).Key("key_vault_key_id").HasValue(""),
 			),
 		},
 		data.ImportStep(),
@@ -59,17 +58,16 @@ func TestAccMsSqlServerTransparentDataEncryption_update(t *testing.T) {
 			Config: r.byok(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("key_vault_key_id").Exists(),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.systemManaged(data),
 			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("key_vault_key_id").HasValue(""),
 			),
 		},
-		data.ImportStep("key_vault_key_id"),
+		data.ImportStep(),
 	})
 }
 
@@ -155,7 +153,6 @@ resource "azurerm_key_vault" "test" {
   resource "azurerm_mssql_server_transparent_data_encryption" "test" {
 	server_id = azurerm_mssql_server.test.id
 	key_vault_key_id = azurerm_key_vault_key.generated.id
-  
   }
 `, r.server(data), data.RandomStringOfLength(5))
 }

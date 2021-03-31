@@ -10,7 +10,7 @@ description: |-
 
 Manages the transparent data encryption configuration for a MSSQL Server
 
-~> **NOTE:** Once transparent data encryption is enabled on a MS SQL instance, it is not possible to remove TDE. You will be able to switch between 'ServiceManaged' and 'CustomerManaged' keys, but will not be able to remove encryption. See `key_vault_uri` for more information on how to specify the key types.
+~> **NOTE:** Once transparent data encryption is enabled on a MS SQL instance, it is not possible to remove TDE. You will be able to switch between 'ServiceManaged' and 'CustomerManaged' keys, but will not be able to remove encryption. For safety when this resource is deleted, the TDE mode will automatically be set to 'ServiceManaged'. See `key_vault_uri` for more information on how to specify the key types.
 
 ~> **Note:** See [documentation](https://docs.microsoft.com/en-us/azure/azure-sql/database/transparent-data-encryption-byok-overview) for important information on how handle lifecycle management of the keys to prevent data lockout.
 
@@ -157,7 +157,7 @@ The following arguments are supported:
 
 ---
 
-* `key_vault_key_id` - (Optional) To use customer managed keys from Azure Key Vault, provide the Key ID. Omitting or removing this field will update the configuration to use service managed keys.
+* `key_vault_key_id` - (Optional) To use customer managed keys from Azure Key Vault, provide the AKV Key ID. To use service managed keys, omit this field.
 
 ~> **NOTE:** In order to use customer managed keys, the identity of the MSSQL server must have the following permissions on the key vault: 'get', 'wrapKey' and 'unwrapKey' 
 

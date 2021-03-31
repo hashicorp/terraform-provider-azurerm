@@ -69,8 +69,6 @@ func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *schema.ResourceData, 
 	if err != nil {
 		return err
 	}
-	serverName := serverId.Name
-	resGroup := serverId.ResourceGroup
 
 	// Normally we would check if this is a new resource, but the way encryption protector works, it always overwrites
 	// whatever is there anyways. Compounding the issue is that SQL Server creates an instance of encryption protector
@@ -80,66 +78,64 @@ func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *schema.ResourceData, 
 	// keys are part of setting up TDE
 
 	var serverKey sql.ServerKey
-	var serverKeyName string
-	var encryptionProtectorProperties sql.EncryptionProtectorProperties
 
-	if v, ok := d.GetOk("key_vault_key_id"); ok {
-		keyUri := v.(string)
+	// Default values for Service Managed keys. Will update to AKV values if key_vault_key_id references a key.
+	serverKeyName := ""
+	serverKeyType := sql.ServiceManaged
+
+	keyVaultKeyId := strings.TrimSpace(d.Get("key_vault_key_id").(string))
+
+	// If it has content, then we assume it's a key vault key id
+	if keyVaultKeyId != "" {
+		// Update the server key type to AKV
+		serverKeyType = sql.AzureKeyVault
 
 		// Set the SQL Server Key properties
 		serverKeyProperties := sql.ServerKeyProperties{
-			ServerKeyType: sql.AzureKeyVault,
-			URI:           &keyUri,
+			ServerKeyType: serverKeyType,
+			URI:           &keyVaultKeyId,
 		}
 		serverKey.ServerKeyProperties = &serverKeyProperties
 
 		// Set the encryption protector properties
-		keyDetails, err := keyVaultParser.ParseNestedItemID(keyUri)
+		keyId, err := keyVaultParser.ParseNestedItemID(keyVaultKeyId)
 
 		if err != nil {
-			return fmt.Errorf("Unable to parse key: %q: %+v", keyUri, err)
+			return fmt.Errorf("Unable to parse key: %q: %+v", keyVaultKeyId, err)
 		}
 
 		// Make sure it's a key, if not, throw an error
-		if keyDetails.NestedItemType == "keys" {
-			keyName := keyDetails.Name
-			keyVersion := keyDetails.Version
+		if keyId.NestedItemType == "keys" {
+			keyName := keyId.Name
+			keyVersion := keyId.Version
 
 			// Extract the vault name from the keyvault base url
-			idURL, err := url.ParseRequestURI(keyDetails.KeyVaultBaseUrl)
+			idURL, err := url.ParseRequestURI(keyId.KeyVaultBaseUrl)
 
 			if err != nil {
-				return fmt.Errorf("Unable to parse key vault hostname: %s", keyDetails.KeyVaultBaseUrl)
+				return fmt.Errorf("Unable to parse key vault hostname: %s", keyId.KeyVaultBaseUrl)
 			}
 
 			hostParts := strings.Split(idURL.Host, ".")
 			vaultName := hostParts[0]
 
-			// Create the key path as for the Encryption Protector. Format is: {vaultname}_{key}_{key_version}
+			// Create the key path for the Encryption Protector. Format is: {vaultname}_{key}_{key_version}
 			serverKeyName = fmt.Sprintf("%s_%s_%s", vaultName, keyName, keyVersion)
-
-			// Set the encryption protector properties
-			encryptionProtectorProperties = sql.EncryptionProtectorProperties{
-				ServerKeyType: sql.AzureKeyVault,
-				ServerKeyName: &serverKeyName,
-			}
 		} else {
-			return fmt.Errorf("Key vault key id must be a reference to a key, but got: %s", keyDetails.NestedItemType)
-		}
-	} else {
-		serverKeyName = ""
-
-		// Service managed doesn't require a key name
-		encryptionProtectorProperties = sql.EncryptionProtectorProperties{
-			ServerKeyType: sql.ServiceManaged,
-			ServerKeyName: &serverKeyName,
+			return fmt.Errorf("Key vault key id must be a reference to a key, but got: %s", keyId.NestedItemType)
 		}
 	}
 
-	// Only create  aserver key
+	// Service managed doesn't require a key name
+	encryptionProtectorProperties := sql.EncryptionProtectorProperties{
+		ServerKeyType: serverKeyType,
+		ServerKeyName: &serverKeyName,
+	}
+
+	// Only create a server key if the properties have been set
 	if serverKey.ServerKeyProperties != nil {
 		// Create a key on the server
-		futureServers, err := serverKeysClient.CreateOrUpdate(ctx, resGroup, serverName, serverKeyName, serverKey)
+		futureServers, err := serverKeysClient.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, serverKeyName, serverKey)
 		if err != nil {
 			return err
 		}
@@ -153,13 +149,13 @@ func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *schema.ResourceData, 
 		EncryptionProtectorProperties: &encryptionProtectorProperties,
 	}
 
-	futureEncryptionProtector, err := encryptionProtectorClient.CreateOrUpdate(ctx, resGroup, serverName, encryptionProtectorObject)
+	futureEncryptionProtector, err := encryptionProtectorClient.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, encryptionProtectorObject)
 	if err != nil {
 		return err
 	}
 
 	if err = futureEncryptionProtector.WaitForCompletionRef(ctx, encryptionProtectorClient.Client); err != nil {
-		return fmt.Errorf("waiting on create/update future for Encryption Protector on server %q (Resource Group %q): %+v", serverName, resGroup, err)
+		return fmt.Errorf("waiting on create/update future for Encryption Protector on server %q (Resource Group %q): %+v", serverId.Name, serverId.ResourceGroup, err)
 	}
 
 	// Encryption protector always uses "current" for the name
@@ -194,13 +190,17 @@ func resourceMsSqlTransparentDataEncryptionRead(d *schema.ResourceData, meta int
 
 	log.Printf("[INFO] Encryption protector key type is %s", resp.EncryptionProtectorProperties.ServerKeyType)
 
+	keyVaultKeyId := ""
+
 	// Only set the key type if it's an AKV key. For service managed, we can omit the setting the key_vault_key_id
-	if resp.EncryptionProtectorProperties.ServerKeyType == sql.AzureKeyVault {
+	if resp.EncryptionProtectorProperties != nil && resp.EncryptionProtectorProperties.ServerKeyType == sql.AzureKeyVault {
 		log.Printf("[INFO] Setting Key Vault URI to %s", *resp.EncryptionProtectorProperties.URI)
 
-		if err := d.Set("key_vault_key_id", resp.EncryptionProtectorProperties.URI); err != nil {
-			return fmt.Errorf("setting key_vault_key_id`: %+v", err)
-		}
+		keyVaultKeyId = *resp.EncryptionProtectorProperties.URI
+	}
+
+	if err := d.Set("key_vault_key_id", keyVaultKeyId); err != nil {
+		return fmt.Errorf("setting key_vault_key_id`: %+v", err)
 	}
 
 	return nil
@@ -208,6 +208,37 @@ func resourceMsSqlTransparentDataEncryptionRead(d *schema.ResourceData, meta int
 
 func resourceMsSqlTransparentDataEncryptionDelete(d *schema.ResourceData, meta interface{}) error {
 	// Note that encryption protector cannot be deleted. It can only be updated between AzureKeyVault
-	// and SystemManaged.
+	// and SystemManaged. For safety, when this resource is deleted, we're resetting the key type
+	// to service managed to prevent accidental lockout if someone were to delete the keys from key vault
+
+	encryptionProtectorClient := meta.(*clients.Client).MSSQL.EncryptionProtectorClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	serverId, err := parse.ServerID(d.Get("server_id").(string))
+
+	if err != nil {
+		return err
+	}
+
+	serverKeyName := ""
+
+	// Service managed doesn't require a key name
+	encryptionProtector := sql.EncryptionProtector{
+		EncryptionProtectorProperties: &sql.EncryptionProtectorProperties{
+			ServerKeyType: sql.ServiceManaged,
+			ServerKeyName: &serverKeyName,
+		},
+	}
+
+	futureEncryptionProtector, err := encryptionProtectorClient.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, encryptionProtector)
+	if err != nil {
+		return err
+	}
+
+	if err = futureEncryptionProtector.WaitForCompletionRef(ctx, encryptionProtectorClient.Client); err != nil {
+		return fmt.Errorf("waiting on create/update future for Encryption Protector on server %q (Resource Group %q): %+v", serverId.Name, serverId.ResourceGroup, err)
+	}
+
 	return nil
 }
