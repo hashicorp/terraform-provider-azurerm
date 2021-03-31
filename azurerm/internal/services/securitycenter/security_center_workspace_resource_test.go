@@ -17,7 +17,24 @@ import (
 type SecurityCenterWorkspaceResource struct {
 }
 
-func TestAccSecurityCenterWorkspace_basic(t *testing.T) {
+func TestAccSecurityCenter_Workspace(t *testing.T) {
+	// NOTE: this is a combined test rather than separate split out tests due to requirement of sequential run
+	testCases := map[string]func(t *testing.T){
+		"testAccSecurityCenterWorkspace_basic":          testAccSecurityCenterWorkspace_basic,
+		"testAccSecurityCenterWorkspace_update":         testAccSecurityCenterWorkspace_update,
+		"testAccSecurityCenterWorkspace_requiresImport": testAccSecurityCenterWorkspace_requiresImport,
+	}
+
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			t.Run("", func(t *testing.T) {
+				tc(t)
+			})
+		})
+	}
+}
+
+func testAccSecurityCenterWorkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_workspace", "test")
 	r := SecurityCenterWorkspaceResource{}
 
@@ -35,7 +52,7 @@ func TestAccSecurityCenterWorkspace_basic(t *testing.T) {
 	})
 }
 
-func TestAccSecurityCenterWorkspace_requiresImport(t *testing.T) {
+func testAccSecurityCenterWorkspace_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_workspace", "test")
 	r := SecurityCenterWorkspaceResource{}
 	scope := fmt.Sprintf("/subscriptions/%s", os.Getenv("ARM_SUBSCRIPTION_ID"))
@@ -55,7 +72,7 @@ func TestAccSecurityCenterWorkspace_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccSecurityCenterWorkspace_update(t *testing.T) {
+func testAccSecurityCenterWorkspace_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_workspace", "test")
 	r := SecurityCenterWorkspaceResource{}
 	scope := fmt.Sprintf("/subscriptions/%s", os.Getenv("ARM_SUBSCRIPTION_ID"))
