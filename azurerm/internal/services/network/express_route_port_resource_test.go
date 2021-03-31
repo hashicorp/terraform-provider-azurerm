@@ -275,14 +275,14 @@ resource "azurerm_express_route_port" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
   link1 {
-    macsec_cipher                  = "GcmAes256"
-    macsec_ckn_keyvault_identifier = azurerm_key_vault_secret.ckn.id
-    macsec_cak_keyvault_identifier = azurerm_key_vault_secret.cak.id
+    macsec_cipher                 = "GcmAes256"
+    macsec_ckn_keyvault_secret_id = azurerm_key_vault_secret.ckn.id
+    macsec_cak_keyvault_secret_id = azurerm_key_vault_secret.cak.id
   }
   link2 {
-    macsec_cipher                  = "GcmAes128"
-    macsec_ckn_keyvault_identifier = azurerm_key_vault_secret.ckn.id
-    macsec_cak_keyvault_identifier = azurerm_key_vault_secret.cak.id
+    macsec_cipher                 = "GcmAes128"
+    macsec_ckn_keyvault_secret_id = azurerm_key_vault_secret.ckn.id
+    macsec_cak_keyvault_secret_id = azurerm_key_vault_secret.cak.id
   }
 }
 `, template, data.RandomIntOfLength(8))

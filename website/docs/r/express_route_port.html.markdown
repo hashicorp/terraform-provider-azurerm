@@ -14,7 +14,7 @@ Manages a Express Route Port.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "group1"
+  name     = "example-resources"
   location = "West US"
 }
 
@@ -70,11 +70,11 @@ A `link` block supports the following:
   
 * `macsec_cipher` - (Optional) The MACSec cipher used for this Express Route Port Link. Possible values are `GcmAes128` and `GcmAes256`. Defaults to `GcmAes128`.
 
-* `macsec_ckn_keyvault_identifier` - (Optional) The Keyvault Secret Identifier URL containing the MACSec CKN key for this Express Route Port Link.
+* `macsec_ckn_keyvault_secret_id` - (Optional) The ID of the Key Vault Secret that contains the MACSec CKN key for this Express Route Port Link.
 
-* `macsec_cak_keyvault_identifier` - (Optional) The Keyvault Secret Identifier URL containing the Mac security CAK key for this Express Route Port Link.
+* `macsec_cak_keyvault_secret_id` - (Optional) The ID of the Key Vault Secret that contains the Mac security CAK key for this Express Route Port Link.
 
-~> **NOTE** `macsec_ckn_keyvault_identifier` and `macsec_cak_keyvault_identifier` should be used together with `identity`, so that the Express Route Port instance have the right permission to access the Keyvault.
+~> **NOTE** `macsec_ckn_keyvault_secret_id` and `macsec_cak_keyvault_secret_id` should be used together with `identity`, so that the Express Route Port instance have the right permission to access the Key Vault.
 
 ## Attributes Reference
 

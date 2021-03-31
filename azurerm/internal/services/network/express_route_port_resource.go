@@ -60,12 +60,12 @@ var expressRoutePortSchema = &schema.Schema{
 					// string(network.GcmAes256),
 				}, false),
 			},
-			"macsec_ckn_keyvault_identifier": {
+			"macsec_ckn_keyvault_secret_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
-			"macsec_cak_keyvault_identifier": {
+			"macsec_cak_keyvault_secret_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -432,10 +432,10 @@ func expandExpressRoutePortLink(idx int, input []interface{}) *network.ExpressRo
 		},
 	}
 
-	if cknSecretId := b["macsec_ckn_keyvault_identifier"].(string); cknSecretId != "" {
+	if cknSecretId := b["macsec_ckn_keyvault_secret_id"].(string); cknSecretId != "" {
 		link.ExpressRouteLinkPropertiesFormat.MacSecConfig.CknSecretIdentifier = &cknSecretId
 	}
-	if cakSecretId := b["macsec_cak_keyvault_identifier"].(string); cakSecretId != "" {
+	if cakSecretId := b["macsec_cak_keyvault_secret_id"].(string); cakSecretId != "" {
 		link.ExpressRouteLinkPropertiesFormat.MacSecConfig.CakSecretIdentifier = &cakSecretId
 	}
 	return &link
@@ -499,16 +499,16 @@ func flattenExpressRoutePortLink(link network.ExpressRouteLink) []interface{} {
 
 	return []interface{}{
 		map[string]interface{}{
-			"id":                             id,
-			"router_name":                    routerName,
-			"interface_name":                 interfaceName,
-			"patch_panel_id":                 patchPanelId,
-			"rack_id":                        rackId,
-			"connector_type":                 connectorType,
-			"admin_enabled":                  adminState,
-			"macsec_ckn_keyvault_identifier": cknSecretId,
-			"macsec_cak_keyvault_identifier": cakSecretId,
-			"macsec_cipher":                  cipher,
+			"id":                            id,
+			"router_name":                   routerName,
+			"interface_name":                interfaceName,
+			"patch_panel_id":                patchPanelId,
+			"rack_id":                       rackId,
+			"connector_type":                connectorType,
+			"admin_enabled":                 adminState,
+			"macsec_ckn_keyvault_secret_id": cknSecretId,
+			"macsec_cak_keyvault_secret_id": cakSecretId,
+			"macsec_cipher":                 cipher,
 		},
 	}
 }
