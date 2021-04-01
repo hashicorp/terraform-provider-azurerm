@@ -139,6 +139,10 @@ A `blob_properties` block supports the following:
 
 * `container_delete_retention_policy` - (Optional) A `container_delete_retention_policy` block as defined below.
 
+* `change_feed` - (Optional) A `change_feed` block as defined below.
+
+* `versioning_enabled` - (Optional) Is Blob Versioning Enabled?
+
 ---
 
 A `cors_rule` block supports the following:
@@ -172,6 +176,16 @@ A `delete_retention_policy` block supports the following:
 A `container_delete_retention_policy` block supports the following:
 
 * `days` - (Optional) Specifies the number of days that the container should be retained, between `1` and `365` days. Defaults to `7`.
+
+---
+
+A `change_feed` block supports the following:
+
+~> **NOTE:** `change_feed` can only be enabled when the `account_kind` is set to `StorageV2` or `BlobStorage`.
+
+* `enabled` - (Required) Is Change Feed Enabled?
+
+~> **NOTE:** At this time, [setting retention policy for change feed is not possible](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-blob-change-feed?tabs=azure-portal#conditions-and-known-issues).
 
 ---
 
