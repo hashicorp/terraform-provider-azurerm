@@ -1762,6 +1762,8 @@ func flattenBlobProperties(input storage.BlobServiceProperties) []interface{} {
 		return []interface{}{}
 	}
 
+	serviceProps := []interface{}{}
+
 	flattenedCorsRules := make([]interface{}, 0)
 	if corsRules := input.BlobServicePropertiesProperties.Cors; corsRules != nil {
 		flattenedCorsRules = flattenBlobPropertiesCorsRule(corsRules)
@@ -1789,6 +1791,17 @@ func flattenBlobProperties(input storage.BlobServiceProperties) []interface{} {
 			"versioning_enabled":                input.BlobServicePropertiesProperties.IsVersioningEnabled,
 		},
 	}
+
+	serviceProps = append(serviceProps, servicePropsMap)
+
+	return serviceProps
+	// return []interface{}{
+	// 	map[string]interface{}{
+	// 		"cors_rule":                         flattenedCorsRules,
+	// 		"delete_retention_policy":           flattenedDeletePolicy,
+	// 		"container_delete_retention_policy": flattenedContainerDeletePolicy,
+	// 	},
+	// }
 }
 
 func flattenBlobPropertiesCorsRule(input *storage.CorsRules) []interface{} {
