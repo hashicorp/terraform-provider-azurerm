@@ -105,6 +105,42 @@ func TestAccHPCCacheNFSTarget_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccHPCCacheNFSTarget_accessPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_nfs_target", "test")
+	r := HPCCacheNFSTargetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.accessPolicy(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.accessPolicyUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (HPCCacheNFSTargetResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.StorageTargetID(state.ID)
 	if err != nil {
@@ -179,6 +215,76 @@ resource "azurerm_hpc_cache_nfs_target" "test" {
     namespace_path = "/nfs/a"
     nfs_export     = "/export/a"
     target_path    = ""
+  }
+}
+`, r.cacheTemplate(data), data.RandomString)
+}
+
+func (r HPCCacheNFSTargetResource) accessPolicy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_hpc_cache_access_policy" "test" {
+  name         = "p1"
+  hpc_cache_id = azurerm_hpc_cache.test.id
+  access_rule {
+    scope  = "default"
+    access = "rw"
+  }
+
+  # This is not needed in Terraform v0.13, whilst needed in v0.14.
+  # Once https://github.com/hashicorp/terraform/issues/28193 is fixed, we can remove this lifecycle block.
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "azurerm_hpc_cache_nfs_target" "test" {
+  name                = "acctest-HPCCTGT-%s"
+  resource_group_name = azurerm_resource_group.test.name
+  cache_name          = azurerm_hpc_cache.test.name
+  target_host_name    = azurerm_linux_virtual_machine.test.private_ip_address
+  usage_model         = "READ_HEAVY_INFREQ"
+  namespace_junction {
+    namespace_path     = "/nfs/a1"
+    nfs_export         = "/export/a"
+    target_path        = "1"
+    access_policy_name = azurerm_hpc_cache_access_policy.test.name
+  }
+}
+`, r.cacheTemplate(data), data.RandomString)
+}
+
+func (r HPCCacheNFSTargetResource) accessPolicyUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_hpc_cache_access_policy" "test" {
+  name         = "p2"
+  hpc_cache_id = azurerm_hpc_cache.test.id
+  access_rule {
+    scope  = "default"
+    access = "rw"
+  }
+
+  # This is not needed in Terraform v0.13, whilst needed in v0.14.
+  # Once https://github.com/hashicorp/terraform/issues/28193 is fixed, we can remove this lifecycle block.
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "azurerm_hpc_cache_nfs_target" "test" {
+  name                = "acctest-HPCCTGT-%s"
+  resource_group_name = azurerm_resource_group.test.name
+  cache_name          = azurerm_hpc_cache.test.name
+  target_host_name    = azurerm_linux_virtual_machine.test.private_ip_address
+  usage_model         = "READ_HEAVY_INFREQ"
+  namespace_junction {
+    namespace_path     = "/nfs/a1"
+    nfs_export         = "/export/a"
+    target_path        = "1"
+    access_policy_name = azurerm_hpc_cache_access_policy.test.name
   }
 }
 `, r.cacheTemplate(data), data.RandomString)
