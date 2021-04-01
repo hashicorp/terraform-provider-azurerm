@@ -533,6 +533,7 @@ func TestAccStorageAccount_blobProperties(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("blob_properties.0.cors_rule.#").HasValue("1"),
 				check.That(data.ResourceName).Key("blob_properties.0.delete_retention_policy.0.days").HasValue("300"),
+				check.That(data.ResourceName).Key("blob_properties.0.versioning_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -542,6 +543,7 @@ func TestAccStorageAccount_blobProperties(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("blob_properties.0.cors_rule.#").HasValue("2"),
 				check.That(data.ResourceName).Key("blob_properties.0.delete_retention_policy.0.days").HasValue("7"),
+				check.That(data.ResourceName).Key("blob_properties.0.versioning_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -1542,6 +1544,7 @@ resource "azurerm_storage_account" "test" {
       days = 7
     }
 
+    versioning_enabled = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
@@ -1588,6 +1591,8 @@ resource "azurerm_storage_account" "test" {
 
     container_delete_retention_policy {
     }
+
+    versioning_enabled = false
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)

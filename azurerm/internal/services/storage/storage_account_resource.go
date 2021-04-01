@@ -282,6 +282,10 @@ func resourceStorageAccount() *schema.Resource {
 								},
 							},
 						},
+						"versioning_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
 					},
 				},
 			},
@@ -1497,6 +1501,7 @@ func expandBlobProperties(input []interface{}) storage.BlobServiceProperties {
 
 	v := input[0].(map[string]interface{})
 
+	props.IsVersioningEnabled = utils.Bool(v["versioning_enabled"].(bool))
 	deletePolicyRaw := v["delete_retention_policy"].([]interface{})
 	props.BlobServicePropertiesProperties.DeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(deletePolicyRaw)
 	containerDeletePolicyRaw := v["container_delete_retention_policy"].([]interface{})
@@ -1781,6 +1786,7 @@ func flattenBlobProperties(input storage.BlobServiceProperties) []interface{} {
 			"cors_rule":                         flattenedCorsRules,
 			"delete_retention_policy":           flattenedDeletePolicy,
 			"container_delete_retention_policy": flattenedContainerDeletePolicy,
+			"versioning_enabled":                input.BlobServicePropertiesProperties.IsVersioningEnabled,
 		},
 	}
 }
