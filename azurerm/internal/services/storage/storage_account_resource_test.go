@@ -534,6 +534,7 @@ func TestAccStorageAccount_blobProperties(t *testing.T) {
 				check.That(data.ResourceName).Key("blob_properties.0.cors_rule.#").HasValue("1"),
 				check.That(data.ResourceName).Key("blob_properties.0.delete_retention_policy.0.days").HasValue("300"),
 				check.That(data.ResourceName).Key("blob_properties.0.versioning_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("blob_properties.0.change_feed_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -544,6 +545,7 @@ func TestAccStorageAccount_blobProperties(t *testing.T) {
 				check.That(data.ResourceName).Key("blob_properties.0.cors_rule.#").HasValue("2"),
 				check.That(data.ResourceName).Key("blob_properties.0.delete_retention_policy.0.days").HasValue("7"),
 				check.That(data.ResourceName).Key("blob_properties.0.versioning_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("blob_properties.0.change_feed_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -1545,6 +1547,8 @@ resource "azurerm_storage_account" "test" {
     }
 
     versioning_enabled = true
+
+    change_feed_enabled = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
@@ -1593,6 +1597,8 @@ resource "azurerm_storage_account" "test" {
     }
 
     versioning_enabled = false
+
+    change_feed_enabled = false
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)

@@ -286,6 +286,10 @@ func resourceStorageAccount() *schema.Resource {
 							Type:     schema.TypeBool,
 							Optional: true,
 						},
+						"change_feed_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
 					},
 				},
 			},
@@ -1502,6 +1506,9 @@ func expandBlobProperties(input []interface{}) storage.BlobServiceProperties {
 	v := input[0].(map[string]interface{})
 
 	props.IsVersioningEnabled = utils.Bool(v["versioning_enabled"].(bool))
+	props.ChangeFeed = &storage.ChangeFeed{
+		Enabled: utils.Bool(v["change_feed_enabled"].(bool)),
+	}
 	deletePolicyRaw := v["delete_retention_policy"].([]interface{})
 	props.BlobServicePropertiesProperties.DeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(deletePolicyRaw)
 	containerDeletePolicyRaw := v["container_delete_retention_policy"].([]interface{})
@@ -1762,6 +1769,8 @@ func flattenBlobProperties(input storage.BlobServiceProperties) []interface{} {
 		return []interface{}{}
 	}
 
+	serviceProps := []interface{}{}
+
 	flattenedCorsRules := make([]interface{}, 0)
 	if corsRules := input.BlobServicePropertiesProperties.Cors; corsRules != nil {
 		flattenedCorsRules = flattenBlobPropertiesCorsRule(corsRules)
@@ -1780,15 +1789,29 @@ func flattenBlobProperties(input storage.BlobServiceProperties) []interface{} {
 	if len(flattenedCorsRules) == 0 && len(flattenedDeletePolicy) == 0 && len(flattenedContainerDeletePolicy) == 0 {
 		return []interface{}{}
 	}
+	servicePropsMap := make(map[string]interface{})
+	servicePropsMap["cors_rule"] = flattenedCorsRules
+	servicePropsMap["delete_retention_policy"] = flattenedDeletePolicy
+	servicePropsMap["container_delete_retention_policy"] = flattenedContainerDeletePolicy
 
-	return []interface{}{
-		map[string]interface{}{
-			"cors_rule":                         flattenedCorsRules,
-			"delete_retention_policy":           flattenedDeletePolicy,
-			"container_delete_retention_policy": flattenedContainerDeletePolicy,
-			"versioning_enabled":                input.BlobServicePropertiesProperties.IsVersioningEnabled,
-		},
+	if versioningEnabled := input.BlobServicePropertiesProperties.IsVersioningEnabled; versioningEnabled != nil {
+		servicePropsMap["versioning_enabled"] = versioningEnabled
 	}
+
+	if changeFeed := input.BlobServicePropertiesProperties.ChangeFeed; changeFeed != nil {
+		servicePropsMap["change_feed_enabled"] = changeFeed.Enabled
+	}
+
+	serviceProps = append(serviceProps, servicePropsMap)
+
+	return serviceProps
+	// return []interface{}{
+	// 	map[string]interface{}{
+	// 		"cors_rule":                         flattenedCorsRules,
+	// 		"delete_retention_policy":           flattenedDeletePolicy,
+	// 		"container_delete_retention_policy": flattenedContainerDeletePolicy,
+	// 	},
+	// }
 }
 
 func flattenBlobPropertiesCorsRule(input *storage.CorsRules) []interface{} {
