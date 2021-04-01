@@ -743,7 +743,7 @@ data "azurerm_kubernetes_cluster" "test" {
   name                = azurerm_kubernetes_cluster.test.name
   resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
-`, KubernetesClusterResource{}.addOnProfileOpenServiceMeshConfig(data))
+`, KubernetesClusterResource{}.addonProfileOpenServiceMeshConfig(data))
 }
 
 func (KubernetesClusterDataSource) autoScalingNoAvailabilityZonesConfig(data acceptance.TestData) string {
