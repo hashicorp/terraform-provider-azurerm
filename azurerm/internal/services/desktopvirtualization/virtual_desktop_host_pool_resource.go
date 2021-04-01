@@ -260,7 +260,7 @@ func resourceVirtualDesktopHostPoolRead(d *schema.ResourceData, meta interface{}
 		d.Set("preferred_app_group_type", string(props.PreferredAppGroupType))
 		d.Set("type", string(props.HostPoolType))
 		d.Set("validate_environment", props.ValidationEnvironment)
-		d.Set("custom_rdp_property", props.CustomRdpProperty)
+		d.Set("custom_rdp_properties", props.CustomRdpProperty)
 
 		if err := d.Set("registration_info", flattenVirtualDesktopHostPoolRegistrationInfo(props.RegistrationInfo)); err != nil {
 			return fmt.Errorf("setting `registration_info`: %+v", err)
