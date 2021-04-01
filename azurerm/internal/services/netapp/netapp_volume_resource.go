@@ -835,7 +835,7 @@ func flattenNetAppVolumeExportPolicyRule(input *netapp.VolumePropertiesExportPol
 			unixReadWrite = *v
 		}
 		rootAccessEnabled := false
-		if v := item.RootAccessEnabled; v != nil {
+		if v := item.HasRootAccess; v != nil {
 			rootAccessEnabled = *v
 		}
 
