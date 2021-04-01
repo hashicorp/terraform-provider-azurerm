@@ -2112,6 +2112,8 @@ locals {
   http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
   listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
   request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
+  url_path_map_name              = "${azurerm_virtual_network.test.name}-urlpath1"
+  path_rule_name                 = "${azurerm_virtual_network.test.name}-pathrule1"
 }
 
 resource "azurerm_public_ip" "teststd" {
