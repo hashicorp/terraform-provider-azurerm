@@ -524,7 +524,7 @@ resource "azurerm_netapp_volume" "test" {
     protocols_enabled = ["NFSv3"]
     unix_read_only    = false
     unix_read_write   = true
-    has_root_access   = true
+    root_access_enabled   = true
   }
 
   tags = {
