@@ -2167,7 +2167,7 @@ resource "azurerm_application_gateway" "test" {
     frontend_ip_configuration_name = local.frontend_ip_configuration_name
     frontend_port_name             = local.frontend_port_name
     protocol                       = "Http"
-    firewall_policy_id             = azurerm_web_application_firewall_policy.testfwp_listener.id
+    firewall_policy_id             = azurerm_web_application_firewall_policy.testfwp.id
   }
 
   request_routing_rule {
