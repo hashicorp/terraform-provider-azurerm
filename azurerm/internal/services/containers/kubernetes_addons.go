@@ -21,6 +21,7 @@ const (
 	kubernetesDashboardKey    = "kubeDashboard"
 	httpApplicationRoutingKey = "httpApplicationRouting"
 	omsAgentKey               = "omsagent"
+	openServiceMeshKey        = "openServiceMesh"
 )
 
 // The AKS API hard-codes which add-ons are supported in which environment
@@ -34,11 +35,13 @@ var unsupportedAddonsForEnvironment = map[string][]string{
 		azurePolicyKey,            // https://github.com/terraform-providers/terraform-provider-azurerm/issues/6462
 		httpApplicationRoutingKey, // https://github.com/terraform-providers/terraform-provider-azurerm/issues/5960
 		kubernetesDashboardKey,    // https://github.com/terraform-providers/terraform-provider-azurerm/issues/7487
+		openServiceMeshKey,        // Preview features are not supported in Azure China
 	},
 	azure.USGovernmentCloud.Name: {
 		azurePolicyKey,            // https://github.com/terraform-providers/terraform-provider-azurerm/issues/6702
 		httpApplicationRoutingKey, // https://github.com/terraform-providers/terraform-provider-azurerm/issues/5960
 		kubernetesDashboardKey,    // https://github.com/terraform-providers/terraform-provider-azurerm/issues/7136
+		openServiceMeshKey,        // Preview features are not supported in Azure Government
 	},
 }
 
@@ -154,6 +157,20 @@ func schemaKubernetesAddOnProfiles() *schema.Schema {
 						},
 					},
 				},
+
+				"open_service_mesh": {
+					Type:     schema.TypeList,
+					MaxItems: 1,
+					Optional: true,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"enabled": {
+								Type:     schema.TypeBool,
+								Required: true,
+							},
+						},
+					},
+				},
 			},
 		},
 	}
@@ -170,6 +187,7 @@ func expandKubernetesAddOnProfiles(input []interface{}, env azure.Environment) (
 		kubernetesDashboardKey:    &disabled,
 		httpApplicationRoutingKey: &disabled,
 		omsAgentKey:               &disabled,
+		openServiceMeshKey:        &disabled,
 	}
 
 	if len(input) == 0 {
@@ -245,6 +263,17 @@ func expandKubernetesAddOnProfiles(input []interface{}, env azure.Environment) (
 			Config: map[string]*string{
 				"version": utils.String("v2"),
 			},
+		}
+	}
+
+	openServiceMesh := profile[""].([]interface{})
+	if len(openServiceMesh) > 0 && openServiceMesh[0] != nil {
+		value := openServiceMesh[0].(map[string]interface{})
+		enabled := value["enabled"].(bool)
+
+		addonProfiles[openServiceMeshKey] = &containerservice.ManagedClusterAddonProfile{
+			Enabled: utils.Bool(enabled),
+			Config:  nil,
 		}
 	}
 

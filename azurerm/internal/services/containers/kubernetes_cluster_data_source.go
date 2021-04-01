@@ -118,6 +118,19 @@ func dataSourceKubernetesCluster() *schema.Resource {
 								},
 							},
 						},
+
+						"open_service_mesh": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"enabled": {
+										Type:     schema.TypeBool,
+										Computed: true,
+									},
+								},
+							},
+						},
 					},
 				},
 			},
