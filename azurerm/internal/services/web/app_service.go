@@ -896,33 +896,35 @@ func schemaAppServiceIpRestriction() *schema.Schema {
 							"x_forwarded_host": {
 								Type:     schema.TypeSet,
 								Optional: true,
+								MaxItems: 8,
 								Elem: &schema.Schema{
-									Type:     schema.TypeString,
-									MaxItems: 8,
+									Type: schema.TypeString,
 								},
 							},
 							"x_forwarded_for": {
 								Type:     schema.TypeSet,
 								Optional: true,
+								MaxItems: 8,
 								Elem: &schema.Schema{
-									Type:     schema.TypeString,
-									MaxItems: 8,
+									Type:         schema.TypeString,
+									ValidateFunc: validation.IsCIDR,
 								},
 							},
 							"x_azure_fdid": {
 								Type:     schema.TypeSet,
 								Optional: true,
+								MaxItems: 8,
 								Elem: &schema.Schema{
-									Type:     schema.TypeString,
-									MaxItems: 8,
+									Type:         schema.TypeString,
+									ValidateFunc: validation.IsUUID,
 								},
 							},
 							"x_fd_health_probe": {
 								Type:     schema.TypeSet,
 								Optional: true,
+								MaxItems: 8,
 								Elem: &schema.Schema{
-									Type:     schema.TypeString,
-									MaxItems: 8,
+									Type: schema.TypeString,
 								},
 							},
 						},
@@ -2029,7 +2031,7 @@ func flattenHeaders(input map[string][]string) []interface{} {
 
 func expandHeaders(input []interface{}) map[string][]string {
 	output := make(map[string][]string)
-	if input == nil || len(input) == 0 || input[0] == nil {
+	if input == nil || input[0] == nil {
 		return output
 	}
 
