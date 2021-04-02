@@ -1,3 +1,9 @@
+## 2.55.0 (Unreleased)
+
+FEATURES:
+
+* **New Resource:** `azurerm_express_route_port` [GH-10074]
+
 ## 2.54.0 (April 02, 2021)
 
 FEATURES:
