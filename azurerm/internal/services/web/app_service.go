@@ -884,6 +884,50 @@ func schemaAppServiceIpRestriction() *schema.Schema {
 						"Deny",
 					}, false),
 				},
+
+				"headers": {
+					Type:       schema.TypeList,
+					Optional:   true,
+					Computed:   true,
+					MaxItems:   1,
+					ConfigMode: schema.SchemaConfigModeAttr,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"x_forwarded_host": {
+								Type:     schema.TypeSet,
+								Optional: true,
+								Elem: &schema.Schema{
+									Type:     schema.TypeString,
+									MaxItems: 8,
+								},
+							},
+							"x_forwarded_for": {
+								Type:     schema.TypeSet,
+								Optional: true,
+								Elem: &schema.Schema{
+									Type:     schema.TypeString,
+									MaxItems: 8,
+								},
+							},
+							"x_azure_fdid": {
+								Type:     schema.TypeSet,
+								Optional: true,
+								Elem: &schema.Schema{
+									Type:     schema.TypeString,
+									MaxItems: 8,
+								},
+							},
+							"x_fd_health_probe": {
+								Type:     schema.TypeSet,
+								Optional: true,
+								Elem: &schema.Schema{
+									Type:     schema.TypeString,
+									MaxItems: 8,
+								},
+							},
+						},
+					},
+				},
 			},
 		},
 	}
@@ -1826,6 +1870,10 @@ func flattenAppServiceIpRestriction(input *[]web.IPSecurityRestriction) []interf
 			restriction["action"] = *action
 		}
 
+		if headers := v.Headers; headers != nil {
+			restriction["headers"] = flattenHeaders(headers)
+		}
+
 		restrictions = append(restrictions, restriction)
 	}
 
@@ -1946,9 +1994,58 @@ func expandAppServiceIpRestriction(input interface{}) ([]web.IPSecurityRestricti
 		if action != "" {
 			ipSecurityRestriction.Action = &action
 		}
+		if headers, ok := restriction["headers"]; ok {
+			ipSecurityRestriction.Headers = expandHeaders(headers.([]interface{}))
+		}
 
 		restrictions = append(restrictions, ipSecurityRestriction)
 	}
 
 	return restrictions, nil
+}
+
+func flattenHeaders(input map[string][]string) []interface{} {
+	output := make([]interface{}, 0)
+	headers := make(map[string]interface{})
+	if input == nil {
+		return output
+	}
+
+	if forwardedHost, ok := input["x-forwarded-host"]; ok && len(forwardedHost) > 0 {
+		headers["x_forwarded_host"] = forwardedHost
+	}
+	if forwardedFor, ok := input["x-forwarded-for"]; ok && len(forwardedFor) > 0 {
+		headers["x_forwarded_for"] = forwardedFor
+	}
+	if fdids, ok := input["x-azure-fdid"]; ok && len(fdids) > 0 {
+		headers["x_azure_fdid"] = fdids
+	}
+	if healthProbe, ok := input["x-fd-healthprobe"]; ok && len(healthProbe) > 0 {
+		headers["x_fd_health_probe"] = healthProbe
+	}
+
+	return append(output, headers)
+}
+
+func expandHeaders(input []interface{}) map[string][]string {
+	output := make(map[string][]string)
+	if input == nil || len(input) == 0 || input[0] == nil {
+		return output
+	}
+
+	val := input[0].(map[string]interface{})
+	if raw := val["x_forwarded_host"].(*schema.Set).List(); len(raw) > 0 {
+		output["x-forwarded-host"] = *utils.ExpandStringSlice(raw)
+	}
+	if raw := val["x_forwarded_for"].(*schema.Set).List(); len(raw) > 0 {
+		output["x-forwarded-for"] = *utils.ExpandStringSlice(raw)
+	}
+	if raw := val["x_azure_fdid"].(*schema.Set).List(); len(raw) > 0 {
+		output["x-azure-fdid"] = *utils.ExpandStringSlice(raw)
+	}
+	if raw := val["x_fd_health_probe"].(*schema.Set).List(); len(raw) > 0 {
+		output["x-fd-healthprobe"] = *utils.ExpandStringSlice(raw)
+	}
+
+	return output
 }
