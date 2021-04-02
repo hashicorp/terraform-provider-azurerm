@@ -83,6 +83,7 @@ func resourceRedisEnterpriseCluster() *schema.Resource {
 			"minimum_tls_version": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ForceNew: true,
 				Default:  string(redisenterprise.OneFullStopTwo),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(redisenterprise.OneFullStopZero),
