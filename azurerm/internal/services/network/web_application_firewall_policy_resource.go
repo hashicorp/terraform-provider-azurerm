@@ -284,22 +284,14 @@ func resourceWebApplicationFirewallPolicy() *schema.Resource {
 
 			"http_listener_ids": {
 				Type:     schema.TypeList,
-				Optional: true,
-				MinItems: 1,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
-					ValidateFunc: validate.ApplicationGatewayHTTPListenerID,
-				},
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 
 			"path_based_rule_ids": {
 				Type:     schema.TypeList,
-				Optional: true,
-				MinItems: 1,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
-					ValidateFunc: validate.ApplicationGatewayURLPathMapPathRuleID,
-				},
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 
 			"tags": tags.Schema(),
@@ -330,8 +322,6 @@ func resourceWebApplicationFirewallPolicyCreateUpdate(d *schema.ResourceData, me
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	customRules := d.Get("custom_rules").([]interface{})
 	policySettings := d.Get("policy_settings").([]interface{})
-	httpListenerIDs := d.Get("http_listener_ids").([]interface{})
-	pathBasedRuleIDs := d.Get("path_based_rule_ids").([]interface{})
 	managedRules := d.Get("managed_rules").([]interface{})
 	t := d.Get("tags").(map[string]interface{})
 
@@ -341,8 +331,6 @@ func resourceWebApplicationFirewallPolicyCreateUpdate(d *schema.ResourceData, me
 			CustomRules:    expandWebApplicationFirewallPolicyWebApplicationFirewallCustomRule(customRules),
 			PolicySettings: expandWebApplicationFirewallPolicyPolicySettings(policySettings),
 			ManagedRules:   expandWebApplicationFirewallPolicyManagedRulesDefinition(managedRules),
-			HTTPListeners:  expandIDsToSubResources(httpListenerIDs),
-			PathBasedRules: expandIDsToSubResources(pathBasedRuleIDs),
 		},
 		Tags: tags.Expand(t),
 	}
