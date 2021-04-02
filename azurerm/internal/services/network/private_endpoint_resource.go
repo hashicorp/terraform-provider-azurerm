@@ -7,8 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
-
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -18,6 +16,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	privateDnsParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns/parse"
 	privateDnsValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -587,7 +586,6 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]network.P
 			}
 
 			results = append(results, attrs)
-
 		}
 	}
 
