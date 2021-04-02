@@ -4,9 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"log"
 	"time"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	keyvaultParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
@@ -80,6 +81,14 @@ func resourceArmCdnEndpointCustomDomain() *schema.Resource {
 								string(cdn.Dedicated),
 							}, false),
 						},
+						"protocol_type": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(cdn.ServerNameIndication),
+								string(cdn.IPBased),
+							}, false),
+						},
 					},
 				},
 				ConflictsWith: []string{"user_managed_https_settings"},
@@ -111,6 +120,20 @@ func resourceArmCdnEndpointCustomDomain() *schema.Resource {
 				},
 				ConflictsWith: []string{"cdn_managed_https_settings"},
 			},
+		},
+
+		CustomizeDiff: func(diff *schema.ResourceDiff, _ interface{}) error {
+			if settings, ok := diff.GetOk("cdn_managed_https_settings"); ok {
+				settings := settings.([]interface{})[0].(map[string]interface{})
+				cert, protocol := settings["certificate_type"].(string), settings["protocol_type"].(string)
+				if cert == string(cdn.Shared) && protocol != string(cdn.ServerNameIndication) {
+					return fmt.Errorf("`certificate_type = Shared` has to be used together with `protocol_type = ServerNameIndication`")
+				}
+				if cert == string(cdn.Dedicated) && protocol != string(cdn.IPBased) {
+					return fmt.Errorf("`certificate_type = Dedicated` has to be used together with `protocol_type = IPBased`")
+				}
+			}
+			return nil
 		},
 	}
 }
@@ -346,7 +369,7 @@ func expandArmCdnEndpointCustomDomainCdnManagedHttpsSettings(input []interface{}
 			CertificateType: cdn.CertificateType(raw["certificate_type"].(string)),
 		},
 		CertificateSource: cdn.CertificateSourceCdn,
-		ProtocolType:      cdn.IPBased,
+		ProtocolType:      cdn.ProtocolType(raw["protocol_type"].(string)),
 		MinimumTLSVersion: cdn.None,
 	}
 
@@ -393,6 +416,7 @@ func flattenArmCdnEndpointCustomDomainCdnManagedHttpsSettings(input cdn.ManagedH
 	return []interface{}{
 		map[string]interface{}{
 			"certificate_type": certificateType,
+			"protocol_type":    string(input.ProtocolType),
 		},
 	}
 }

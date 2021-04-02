@@ -280,7 +280,8 @@ resource "azurerm_cdn_endpoint_custom_domain" "test" {
   cdn_endpoint_id = azurerm_cdn_endpoint.test.id
   host_name       = "${azurerm_dns_cname_record.test.name}.${data.azurerm_dns_zone.test.name}"
   cdn_managed_https_settings {
-    certificate_type = "Shared"
+    certificate_type = "Dedicated"
+    protocol_type    = "IPBased"
   }
 }
 `, template)
@@ -442,7 +443,7 @@ resource "azurerm_dns_cname_record" "test" {
   name                = "%[5]s"
   zone_name           = data.azurerm_dns_zone.test.name
   resource_group_name = data.azurerm_dns_zone.test.resource_group_name
-  ttl                 = 3600
+  ttl                 = 5 # This is to make the repeated test with the same CDN sub-domain main expire cache as soon as possible.
   target_resource_id  = azurerm_cdn_endpoint.test.id
 }
 `, data.RandomIntOfLength(8), data.Locations.Primary, r.DNSZoneName, r.DNSZoneRG, r.SubDomainName)
