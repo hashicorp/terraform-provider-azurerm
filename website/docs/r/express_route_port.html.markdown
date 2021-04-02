@@ -88,7 +88,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `guid` - The resource GUID of the Express Route Port.
   
-* `ethertype` - The ether type of the Express Route Port.
+* `ethertype` - The EtherType of the Express Route Port.
   
 * `mtu` - The maximum transmission unit of the Express Route Port.
 
