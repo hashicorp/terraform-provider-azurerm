@@ -58,6 +58,14 @@ The following arguments are supported:
 
 ~> **NOTE:** The `georeplication_locations` list cannot contain the location where the Container Registry exists.
 
+~> **NOTE:** The `georeplication_locations` is deprecated, use `georeplications` instead.
+
+* `georeplications` - (Optional) A `georeplications` block as documented below.
+
+~> **NOTE:** The `georeplications` is only supported on new resources with the `Premium` SKU.
+
+~> **NOTE:** The `georeplications` list cannot contain the location where the Container Registry exists.
+
 * `network_rule_set` - (Optional) A `network_rule_set` block as documented below.
 
 * `public_network_access_enabled` - (Optional) Whether public network access is allowed for the container registry. Defaults to `true`.
@@ -69,6 +77,12 @@ The following arguments are supported:
 * `trust_policy` - (Optional) A `trust_policy` block as documented below.
 
 ~> **NOTE:** `quarantine_policy_enabled`, `retention_policy` and `trust_policy` are only supported on resources with the `Premium` SKU.
+
+`georeplications` supports the following:
+
+* `location` - (Required) A location where the container registry should be geo-replicated.
+
+* `tags` - (Optional) A mapping of tags to assign to the container registry replication resource.
 
 `network_rule_set` supports the following:
 
