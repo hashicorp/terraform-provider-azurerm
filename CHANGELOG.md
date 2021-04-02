@@ -4,6 +4,11 @@ FEATURES:
 
 * **New Resource:** `azurerm_express_route_port` [GH-10074]
 
+ENHANCEMENTS:
+
+* `azurerm_hpc_cache_nfs_target` - support for the `access_policy_name` property [GH-11186]
+
+
 ## 2.54.0 (April 02, 2021)
 
 FEATURES:
