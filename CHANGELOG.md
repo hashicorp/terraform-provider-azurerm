@@ -18,6 +18,7 @@ ENHANCEMENTS:
 * `azurerm_log_analytics_workspace` - Fix issue where -1 couldn't be specified for `daily_quota_gb` [GH-11182]
 * `azurerm_spring_cloud_service` - supports for the `sample_rate` property [GH-11106]
 * `azurerm_storage_account` - support for the `container_delete_retention_policy` property [GH-11131]
+* `azurerm_virtual_desktop_host_pool` - support for the `custom_rdp_properties` property [GH-11160]
 * `azurerm_web_application_firewall_policy` - support for the `http_listener_ids` and `path_based_rule_ids` properties [GH-10860]
 
 BUG FIXES:
