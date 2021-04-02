@@ -78,6 +78,13 @@ func resourceHPCCacheNFSTarget() *schema.Resource {
 							Default:      "",
 							ValidateFunc: validate.CacheNFSTargetPath,
 						},
+
+						"access_policy_name": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      "default",
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
 					},
 				},
 			},
@@ -228,9 +235,10 @@ func expandNamespaceJunctions(input []interface{}) *[]storagecache.NamespaceJunc
 	for _, v := range input {
 		b := v.(map[string]interface{})
 		result = append(result, storagecache.NamespaceJunction{
-			NamespacePath: utils.String(b["namespace_path"].(string)),
-			NfsExport:     utils.String(b["nfs_export"].(string)),
-			TargetPath:    utils.String(b["target_path"].(string)),
+			NamespacePath:   utils.String(b["namespace_path"].(string)),
+			NfsExport:       utils.String(b["nfs_export"].(string)),
+			TargetPath:      utils.String(b["target_path"].(string)),
+			NfsAccessPolicy: utils.String(b["access_policy_name"].(string)),
 		})
 	}
 
@@ -260,10 +268,16 @@ func flattenNamespaceJunctions(input *[]storagecache.NamespaceJunction) []interf
 			targetPath = *v
 		}
 
+		accessPolicy := ""
+		if v := e.NfsAccessPolicy; v != nil {
+			accessPolicy = *e.NfsAccessPolicy
+		}
+
 		output = append(output, map[string]interface{}{
-			"namespace_path": namespacePath,
-			"nfs_export":     nfsExport,
-			"target_path":    targetPath,
+			"namespace_path":     namespacePath,
+			"nfs_export":         nfsExport,
+			"target_path":        targetPath,
+			"access_policy_name": accessPolicy,
 		})
 	}
 
