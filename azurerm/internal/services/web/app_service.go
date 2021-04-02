@@ -2029,24 +2029,27 @@ func flattenHeaders(input map[string][]string) []interface{} {
 	return append(output, headers)
 }
 
-func expandHeaders(input []interface{}) map[string][]string {
+func expandHeaders(input interface{}) map[string][]string {
 	output := make(map[string][]string)
-	if input == nil || input[0] == nil {
-		return output
-	}
 
-	val := input[0].(map[string]interface{})
-	if raw := val["x_forwarded_host"].(*schema.Set).List(); len(raw) > 0 {
-		output["x-forwarded-host"] = *utils.ExpandStringSlice(raw)
-	}
-	if raw := val["x_forwarded_for"].(*schema.Set).List(); len(raw) > 0 {
-		output["x-forwarded-for"] = *utils.ExpandStringSlice(raw)
-	}
-	if raw := val["x_azure_fdid"].(*schema.Set).List(); len(raw) > 0 {
-		output["x-azure-fdid"] = *utils.ExpandStringSlice(raw)
-	}
-	if raw := val["x_fd_health_probe"].(*schema.Set).List(); len(raw) > 0 {
-		output["x-fd-healthprobe"] = *utils.ExpandStringSlice(raw)
+	for _, r := range input.([]interface{}) {
+		if r == nil {
+			continue
+		}
+
+		val := r.(map[string]interface{})
+		if raw := val["x_forwarded_host"].(*schema.Set).List(); len(raw) > 0 {
+			output["x-forwarded-host"] = *utils.ExpandStringSlice(raw)
+		}
+		if raw := val["x_forwarded_for"].(*schema.Set).List(); len(raw) > 0 {
+			output["x-forwarded-for"] = *utils.ExpandStringSlice(raw)
+		}
+		if raw := val["x_azure_fdid"].(*schema.Set).List(); len(raw) > 0 {
+			output["x-azure-fdid"] = *utils.ExpandStringSlice(raw)
+		}
+		if raw := val["x_fd_health_probe"].(*schema.Set).List(); len(raw) > 0 {
+			output["x-fd-healthprobe"] = *utils.ExpandStringSlice(raw)
+		}
 	}
 
 	return output
