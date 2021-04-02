@@ -25,7 +25,7 @@ resource "azurerm_virtual_desktop_host_pool" "example" {
   name                     = "pooleddepthfirst"
   friendly_name            = "pooleddepthfirst"
   validate_environment     = true
-  custom_rdp_properties      = "audiocapturemode:i:1;audiomode:i:0;"
+  custom_rdp_properties    = "audiocapturemode:i:1;audiomode:i:0;"
   description              = "Acceptance Test: A pooled host pool - pooleddepthfirst"
   type                     = "Pooled"
   maximum_sessions_allowed = 50
