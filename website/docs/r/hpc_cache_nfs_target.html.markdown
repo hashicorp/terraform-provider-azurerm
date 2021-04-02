@@ -153,6 +153,8 @@ A `namespace_junction` block supports the following:
 
 * `target_path` - (Optional) The relative subdirectory path from the `nfs_export` to map to the `namespace_path`. Defaults to `""`, in which case the whole `nfs_export` is exported.
 
+* `access_policy_name` - (Optional) The name of the access policy applied to this target. Defaults to `default`.
+
 ## Attributes Reference
 
 The following attributes are exported:
