@@ -36,8 +36,9 @@ func friendlyInvalidRedisEnterpriseClusterZoneLocations() []string {
 		"Central US EUAP",
 		"West US",
 		"Australia Southeast",
-		"Brazil South",
 		"East Asia",
 		"UK West",
+		"Central India",
+		"South India",
 	}
 }
