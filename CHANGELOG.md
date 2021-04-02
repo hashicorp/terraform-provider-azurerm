@@ -9,6 +9,10 @@ ENHANCEMENTS:
 * `azurerm_hpc_cache_nfs_target` - support for the `access_policy_name` property [GH-11186]
 
 
+BUG FIXES:
+
+* `azurerm_web_application_firewall_policy` - `http_listener_ids` and `path_based_rule_ids` are now Computed only [GH-11196]
+
 ## 2.54.0 (April 02, 2021)
 
 FEATURES:
