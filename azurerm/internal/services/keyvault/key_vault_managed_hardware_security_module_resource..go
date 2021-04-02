@@ -213,6 +213,7 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleDelete(d *schema.ResourceDa
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
+	// there is an API bug being tracked here: https://github.com/Azure/azure-rest-api-specs/issues/13365
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
