@@ -189,7 +189,7 @@ func resourceArmExpressRoutePort() *schema.Resource {
 
 			"link2": expressRoutePortSchema,
 
-			"ether_type": {
+			"ethertype": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -316,7 +316,7 @@ func resourceArmExpressRoutePortRead(d *schema.ResourceData, meta interface{}) e
 		if err := d.Set("link2", link2); err != nil {
 			return fmt.Errorf("error setting `link2`: %v", err)
 		}
-		d.Set("ether_type", prop.EtherType)
+		d.Set("ethertype", prop.EtherType)
 		d.Set("guid", prop.ResourceGUID)
 		d.Set("mtu", prop.Mtu)
 	}

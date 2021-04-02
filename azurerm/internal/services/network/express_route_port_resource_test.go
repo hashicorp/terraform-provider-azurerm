@@ -40,7 +40,7 @@ func TestAccAzureRMExpressRoutePort_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("link2.0.patch_panel_id").Exists(),
 				check.That(data.ResourceName).Key("link2.0.rack_id").Exists(),
 				check.That(data.ResourceName).Key("link2.0.connector_type").Exists(),
-				check.That(data.ResourceName).Key("ether_type").Exists(),
+				check.That(data.ResourceName).Key("ethertype").Exists(),
 				check.That(data.ResourceName).Key("guid").Exists(),
 				check.That(data.ResourceName).Key("mtu").Exists(),
 			),
