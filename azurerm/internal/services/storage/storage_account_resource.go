@@ -1577,7 +1577,9 @@ func expandBlobPropertiesCors(input []interface{}) *storage.CorsRules {
 }
 
 func expandBlobPropertiesChangeFeed(input []interface{}) *storage.ChangeFeed {
-	changeFeed := storage.ChangeFeed{}
+	changeFeed := storage.ChangeFeed{
+		Enabled: utils.Bool(false),
+	}
 
 	if len(input) == 0 {
 		return &changeFeed
@@ -1819,7 +1821,6 @@ func flattenBlobProperties(input storage.BlobServiceProperties) []interface{} {
 	serviceProps["delete_retention_policy"] = flattenedDeletePolicy
 	serviceProps["container_delete_retention_policy"] = flattenedContainerDeletePolicy
 	serviceProps["change_feed"] = flattenedChangeFeed
-
 	if versioningEnabled := input.BlobServicePropertiesProperties.IsVersioningEnabled; versioningEnabled != nil {
 		serviceProps["versioning_enabled"] = versioningEnabled
 	}
