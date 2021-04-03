@@ -7,6 +7,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * `azurerm_hpc_cache_nfs_target` - support for the `access_policy_name` property [GH-11186]
+* `azurerm_private_endpoint` - allows for an alias to specified [GH-10779]
 
 
 BUG FIXES:
