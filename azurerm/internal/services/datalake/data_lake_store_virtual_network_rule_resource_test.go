@@ -323,8 +323,7 @@ func (r DataLakeStoreVirtualNetworkRuleResource) Destroy(ctx context.Context, cl
 	}
 	rulesClient := client.Datalake.VirtualNetworkRulesClient
 
-	_, err = rulesClient.Delete(ctx, id.ResourceGroup, id.AccountName, id.Name)
-	if err != nil {
+	if _, err = rulesClient.Delete(ctx, id.ResourceGroup, id.AccountName, id.Name); err != nil {
 		return nil, fmt.Errorf("deleting Data Lake Store Virtual Network Rule %q (Account %q / Resource Group %q): %+v", id.Name, id.AccountName, id.ResourceGroup, err)
 	}
 

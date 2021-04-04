@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake/validate"
+	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -53,8 +54,9 @@ func resourceDataLakeStoreVirtualNetworkRule() *schema.Resource {
 			},
 
 			"subnet_id": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: networkValidate.SubnetID,
 			},
 		},
 	}
@@ -73,10 +75,10 @@ func resourceDataLakeStoreVirtualNetworkRuleCreateUpdate(d *schema.ResourceData,
 	id := parse.NewVirtualNetworkRuleID(subscriptionId, resourceGroup, accountName, name)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, accountName, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.AccountName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Data Lake Store Virtual Network Rule %q (Account: %q, Resource Group: %q): %+v", name, accountName, resourceGroup, err)
+				return fmt.Errorf("Error checking for presence of existing Data Lake Store Virtual Network Rule %q (Account: %q, Resource Group: %q): %+v", id.Name, id.AccountName, id.ResourceGroup, err)
 			}
 		}
 
@@ -91,8 +93,8 @@ func resourceDataLakeStoreVirtualNetworkRuleCreateUpdate(d *schema.ResourceData,
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, accountName, name, parameters); err != nil {
-		return fmt.Errorf("Error creating Data Lake Store Virtual Network Rule %q (Account: %q, Resource Group: %q): %+v", name, accountName, resourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.AccountName, id.Name, parameters); err != nil {
+		return fmt.Errorf("Error creating Data Lake Store Virtual Network Rule %q (Account: %q, Resource Group: %q): %+v", id.Name, id.AccountName, id.ResourceGroup, err)
 	}
 
 	d.SetId(id.ID())

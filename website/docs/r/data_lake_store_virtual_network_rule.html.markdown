@@ -53,12 +53,6 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Data Lake Store virtual network rule. Changing this forces a new resource to be created. Cannot be empty and must only contain alphanumeric characters, underscores, periods and hyphens. Cannot start with a period, underscore or hyphen, and cannot end with a period and a hyphen.
 
-~> **NOTE:** `name` must be between 2-64 characters long and must satisfy all of the requirements below:
-
-1. Contains only alphanumeric characters, periods, underscores or hyphens
-2. Cannot start with a period, underscore or hyphen
-3. Cannot end with a period and a hyphen
-
 * `resource_group_name` - (Required) The name of the resource group where the Data Lake Store resides. Changing this forces a new resource to be created.
 
 * `account_name` - (Required) The name of the Data Lake Store to which this Data Lake Store virtual network rule will be applied to. Changing this forces a new resource to be created.
