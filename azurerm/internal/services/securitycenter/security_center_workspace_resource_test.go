@@ -18,20 +18,14 @@ type SecurityCenterWorkspaceResource struct {
 }
 
 func TestAccSecurityCenter_Workspace(t *testing.T) {
-	// NOTE: this is a combined test rather than separate split out tests due to requirement of sequential run
-	testCases := map[string]func(t *testing.T){
-		"testAccSecurityCenterWorkspace_basic":          testAccSecurityCenterWorkspace_basic,
-		"testAccSecurityCenterWorkspace_update":         testAccSecurityCenterWorkspace_update,
-		"testAccSecurityCenterWorkspace_requiresImport": testAccSecurityCenterWorkspace_requiresImport,
-	}
-
-	for name, tc := range testCases {
-		t.Run(name, func(t *testing.T) {
-			t.Run("", func(t *testing.T) {
-				tc(t)
-			})
-		})
-	}
+	// there is only *one* default workspace setting, if tests will conflict if run at the same time
+	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
+		"workspace": {
+			"basic":          testAccSecurityCenterWorkspace_basic,
+			"update":         testAccSecurityCenterWorkspace_update,
+			"requiresImport": testAccSecurityCenterWorkspace_requiresImport,
+		},
+	})
 }
 
 func testAccSecurityCenterWorkspace_basic(t *testing.T) {
