@@ -17,7 +17,7 @@ import (
 type SecurityCenterWorkspaceResource struct {
 }
 
-func TestAccSecurityCenter_Workspace(t *testing.T) {
+func TestAccSecurityCenterWorkspace(t *testing.T) {
 	// there is only *one* default workspace setting, if tests will conflict if run at the same time
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"workspace": {
