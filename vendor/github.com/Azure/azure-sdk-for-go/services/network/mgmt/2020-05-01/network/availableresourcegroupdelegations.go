@@ -79,6 +79,7 @@ func (client AvailableResourceGroupDelegationsClient) List(ctx context.Context, 
 	}
 	if result.adr.hasNextLink() && result.adr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -140,7 +141,6 @@ func (client AvailableResourceGroupDelegationsClient) listNextResults(ctx contex
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.AvailableResourceGroupDelegationsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

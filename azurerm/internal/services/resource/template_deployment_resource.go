@@ -287,8 +287,7 @@ func resourceTemplateDeploymentDelete(d *schema.ResourceData, meta interface{}) 
 		name = id.Path["Deployments"]
 	}
 
-	_, err = client.Delete(ctx, resourceGroup, name)
-	if err != nil {
+	if _, err = client.Delete(ctx, resourceGroup, name); err != nil {
 		return err
 	}
 

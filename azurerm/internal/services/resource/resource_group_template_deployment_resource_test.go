@@ -63,6 +63,45 @@ func TestAccResourceGroupTemplateDeployment_incremental(t *testing.T) {
 	})
 }
 
+func TestAccResourceGroupTemplateDeployment_singleItemIncorrectCasing(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
+	r := ResourceGroupTemplateDeploymentResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.singleItemWithIncorrectCasingConfig(data, "first"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccResourceGroupTemplateDeployment_singleItemUpdateTemplateWithUnchangedParams(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
+	r := ResourceGroupTemplateDeploymentResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.singleItemWithParameterConfigAndVariable(data, "templateVariableValue1", "first"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			// Update the ARM template to trigger update on resource BUT don't vary the parameter value
+			// Validates fix for bug #8840
+			Config: r.singleItemWithParameterConfigAndVariable(data, "forceupdatetemplate", "first"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccResourceGroupTemplateDeployment_singleItemUpdatingParams(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
 	r := ResourceGroupTemplateDeploymentResource{}
@@ -116,7 +155,7 @@ func TestAccResourceGroupTemplateDeployment_withOutputs(t *testing.T) {
 			Config: r.withOutputsConfig(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("output_content").HasValue("{\"testOutput\":{\"type\":\"String\")"),
+				check.That(data.ResourceName).Key("output_content").HasValue("{\"testOutput\":{\"type\":\"String\",\"value\":\"some-value\"}}"),
 			),
 		},
 		data.ImportStep(),
@@ -189,6 +228,36 @@ func TestAccResourceGroupTemplateDeployment_childItems(t *testing.T) {
 	})
 }
 
+func TestAccResourceGroupTemplateDeployment_templateSpecEmpty(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
+	r := ResourceGroupTemplateDeploymentResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.templateSpecVersionConfigEmpty(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccResourceGroupTemplateDeployment_templateSpecResources(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
+	r := ResourceGroupTemplateDeploymentResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.templateSpecVersionConfigResources(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t ResourceGroupTemplateDeploymentResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.ResourceGroupTemplateDeploymentID(state.ID)
 	if err != nil {
@@ -210,7 +279,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = %q
 }
 
@@ -232,7 +301,7 @@ TEMPLATE
 `, data.RandomInteger, data.Locations.Primary, deploymentMode)
 }
 
-func (ResourceGroupTemplateDeploymentResource) emptyWithTagsConfig(data acceptance.TestData, deploymentMode string) string {
+func (ResourceGroupTemplateDeploymentResource) templateSpecVersionConfigEmpty(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -240,6 +309,60 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-%d"
+  location = %q
+}
+
+data "azurerm_template_spec_version" "test" {
+  name                = "acctest-standing-data-empty"
+  resource_group_name = "standing-data-for-acctest"
+  version             = "v1.0.0"
+}
+
+resource "azurerm_resource_group_template_deployment" "test" {
+  name                = "acctest"
+  resource_group_name = azurerm_resource_group.test.name
+  deployment_mode     = "Incremental"
+
+  template_spec_version_id = data.azurerm_template_spec_version.test.id
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (ResourceGroupTemplateDeploymentResource) templateSpecVersionConfigResources(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestrg-%d"
+  location = %q
+}
+
+data "azurerm_template_spec_version" "test" {
+  name                = "acctest-standing-data-for-rg"
+  resource_group_name = "standing-data-for-acctest"
+  version             = "v1.0.0"
+}
+
+resource "azurerm_resource_group_template_deployment" "test" {
+  name                = "acctest"
+  resource_group_name = azurerm_resource_group.test.name
+  deployment_mode     = "Incremental"
+
+  template_spec_version_id = data.azurerm_template_spec_version.test.id
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (ResourceGroupTemplateDeploymentResource) emptyWithTagsConfig(data acceptance.TestData, deploymentMode string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
   location = %q
 }
 
@@ -264,7 +387,74 @@ TEMPLATE
 `, data.RandomInteger, data.Locations.Primary, deploymentMode)
 }
 
-func (ResourceGroupTemplateDeploymentResource) singleItemWithParameterConfig(data acceptance.TestData, value string) string {
+func (ResourceGroupTemplateDeploymentResource) singleItemWithIncorrectCasingConfig(data acceptance.TestData, value string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = %q
+}
+
+resource "azurerm_resource_group_template_deployment" "test" {
+  name                = "acctest"
+  resource_group_name = azurerm_resource_group.test.name
+  deployment_mode     = "Complete"
+
+  template_content = <<TEMPLATE
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "someParam": {
+      "type": "String",
+      "allowedValues": [
+        "first",
+        "second",
+        "third"
+      ]
+    }
+  },
+  "variables": {},
+  "resources": [
+    {
+      "type": "microsoft.insights/actionGroups",
+      "apiVersion": "2019-06-01",
+      "name": "acctestTemplateDeployAG-%d",
+      "location": "Global",
+      "dependsOn": [],
+      "tags": {},
+      "properties": {
+        "groupShortName": "rick-c137",
+        "enabled": true,
+        "emailReceivers": [
+          {
+            "name": "Rick Sanchez",
+            "emailAddress": "rick@example.com"
+          }
+        ],
+        "smsReceivers": [],
+        "webhookReceivers": []
+      }
+    }
+  ]
+}
+TEMPLATE
+
+  parameters_content = <<PARAM
+{
+  "someParam": {
+   "value": %q
+  }
+}
+PARAM
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, value)
+}
+
+func (ResourceGroupTemplateDeploymentResource) singleItemWithParameterConfigAndVariable(data acceptance.TestData, templateVar string, paramVal string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -272,6 +462,54 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-%d"
+  location = %q
+}
+
+resource "azurerm_resource_group_template_deployment" "test" {
+  name                = "acctest"
+  resource_group_name = azurerm_resource_group.test.name
+  deployment_mode     = "Complete"
+
+  template_content = <<TEMPLATE
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "someParam": {
+      "type": "String",
+      "allowedValues": [
+        "first",
+        "second",
+        "third"
+      ]
+    }
+  },
+  "variables": {
+    "forceChangeInTemplate": %q
+  },
+  "resources": []
+}
+TEMPLATE
+
+  parameters_content = <<PARAM
+{
+  "someParam": {
+   "value": %q
+  }
+}
+PARAM
+}
+`, data.RandomInteger, data.Locations.Primary, templateVar, paramVal)
+}
+
+func (ResourceGroupTemplateDeploymentResource) singleItemWithParameterConfig(data acceptance.TestData, value string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
   location = %q
 }
 
@@ -317,7 +555,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = %q
 }
 
@@ -359,7 +597,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = %q
 }
 
@@ -394,7 +632,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = %q
 }
 
@@ -448,7 +686,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = %q
 }
 
@@ -521,7 +759,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = %q
 }
 

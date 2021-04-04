@@ -264,6 +264,7 @@ func (client NodeReportsClient) ListByNode(ctx context.Context, resourceGroupNam
 	}
 	if result.dnrlr.hasNextLink() && result.dnrlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -329,7 +330,6 @@ func (client NodeReportsClient) listByNodeNextResults(ctx context.Context, lastR
 	result, err = client.ListByNodeResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.NodeReportsClient", "listByNodeNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

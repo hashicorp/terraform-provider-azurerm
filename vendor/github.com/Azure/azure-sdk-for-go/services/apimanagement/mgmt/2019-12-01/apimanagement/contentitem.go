@@ -464,6 +464,7 @@ func (client ContentItemClient) ListByService(ctx context.Context, resourceGroup
 	}
 	if result.cic.hasNextLink() && result.cic.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -526,7 +527,6 @@ func (client ContentItemClient) listByServiceNextResults(ctx context.Context, la
 	result, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.ContentItemClient", "listByServiceNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

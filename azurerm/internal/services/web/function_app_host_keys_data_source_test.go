@@ -20,6 +20,7 @@ func TestAccFunctionAppHostKeysDataSource_basic(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("primary_key").Exists(),
 				check.That(data.ResourceName).Key("default_function_key").Exists(),
+				check.That(data.ResourceName).Key("event_grid_extension_config_key").Exists(),
 			),
 		},
 	})

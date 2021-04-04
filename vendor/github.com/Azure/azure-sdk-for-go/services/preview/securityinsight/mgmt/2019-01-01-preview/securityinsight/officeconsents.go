@@ -283,6 +283,7 @@ func (client OfficeConsentsClient) List(ctx context.Context, resourceGroupName s
 	}
 	if result.ocl.hasNextLink() && result.ocl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -345,7 +346,6 @@ func (client OfficeConsentsClient) listNextResults(ctx context.Context, lastResu
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.OfficeConsentsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

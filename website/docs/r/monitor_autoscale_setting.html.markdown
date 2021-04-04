@@ -15,7 +15,7 @@ Manages a AutoScale Setting which can be applied to Virtual Machine Scale Sets, 
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "autoscalingTest"
-  location = "West US"
+  location = "West Europe"
 }
 
 resource "azurerm_virtual_machine_scale_set" "example" {
@@ -99,7 +99,7 @@ resource "azurerm_monitor_autoscale_setting" "example" {
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "autoscalingTest"
-  location = "West US"
+  location = "West Europe"
 }
 
 resource "azurerm_virtual_machine_scale_set" "example" {
@@ -185,7 +185,7 @@ resource "azurerm_monitor_autoscale_setting" "example" {
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "autoscalingTest"
-  location = "West US"
+  location = "West Europe"
 }
 
 resource "azurerm_virtual_machine_scale_set" "example" {

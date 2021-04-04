@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -73,7 +73,7 @@ func resourceDiskEncryptionSet() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(compute.SystemAssigned),
+								string(compute.DiskEncryptionSetIdentityTypeSystemAssigned),
 							}, false),
 						},
 						"principal_id": {
@@ -132,7 +132,7 @@ func resourceDiskEncryptionSetCreate(d *schema.ResourceData, meta interface{}) e
 	params := compute.DiskEncryptionSet{
 		Location: utils.String(location),
 		EncryptionSetProperties: &compute.EncryptionSetProperties{
-			ActiveKey: &compute.KeyVaultAndKeyReference{
+			ActiveKey: &compute.KeyForDiskEncryptionSet{
 				KeyURL: utils.String(keyVaultKeyId),
 				SourceVault: &compute.SourceVault{
 					ID: utils.String(keyVaultDetails.keyVaultId),
@@ -234,7 +234,7 @@ func resourceDiskEncryptionSetUpdate(d *schema.ResourceData, meta interface{}) e
 			return fmt.Errorf("Error validating Key Vault %q (Resource Group %q) for Disk Encryption Set: Purge Protection must be enabled but it isn't!", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
 		}
 		update.DiskEncryptionSetUpdateProperties = &compute.DiskEncryptionSetUpdateProperties{
-			ActiveKey: &compute.KeyVaultAndKeyReference{
+			ActiveKey: &compute.KeyForDiskEncryptionSet{
 				KeyURL: utils.String(keyVaultKeyId),
 				SourceVault: &compute.SourceVault{
 					ID: utils.String(keyVaultDetails.keyVaultId),

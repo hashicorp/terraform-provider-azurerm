@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/appplatform/mgmt/2020-07-01/appplatform"
+	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2020-11-01-preview/appplatform"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -59,6 +59,11 @@ func resourceSpringCloudCertificate() *schema.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: keyVaultValidate.NestedItemId,
+			},
+
+			"thumbprint": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 		},
 	}
@@ -126,6 +131,10 @@ func resourceSpringCloudCertificateRead(d *schema.ResourceData, meta interface{}
 	d.Set("name", id.CertificateName)
 	d.Set("service_name", id.SpringName)
 	d.Set("resource_group_name", id.ResourceGroup)
+
+	if props := resp.Properties; props != nil {
+		d.Set("thumbprint", props.Thumbprint)
+	}
 
 	return nil
 }

@@ -423,7 +423,6 @@ func (FirewallNetworkRuleCollectionResource) Destroy(ctx context.Context, client
 	}
 
 	_, err = clients.Firewall.AzureFirewallsClient.Get(ctx, resourceGroup, firewallName)
-
 	return utils.Bool(err == nil), err
 }
 

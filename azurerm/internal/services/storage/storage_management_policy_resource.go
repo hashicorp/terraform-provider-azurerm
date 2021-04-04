@@ -7,7 +7,7 @@ import (
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-06-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-01-01/storage"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -236,8 +236,7 @@ func resourceStorageManagementPolicyDelete(d *schema.ResourceData, meta interfac
 	resourceGroupName := rid.ResourceGroup
 	storageAccountName := rid.Path["storageAccounts"]
 
-	_, err = client.Delete(ctx, resourceGroupName, storageAccountName)
-	if err != nil {
+	if _, err = client.Delete(ctx, resourceGroupName, storageAccountName); err != nil {
 		return err
 	}
 	return nil

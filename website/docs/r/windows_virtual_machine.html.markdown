@@ -24,7 +24,7 @@ Manages a Windows Virtual Machine.
 
 ## Example Usage
 
-This example provisions a basic Windows Virtual Machine on an internal network. Additional examples of how to use the `azurerm_windows_virtual_machine` resource can be found [in the ./examples/virtual-machine/windows` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/virtual-machine/windows).
+This example provisions a basic Windows Virtual Machine on an internal network. Additional examples of how to use the `azurerm_windows_virtual_machine` resource can be found [in the ./examples/virtual-machines/windows directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/virtual-machines/windows).
 
 ```hcl
 provider "azurerm" {
@@ -148,6 +148,8 @@ The following arguments are supported:
 -> **NOTE:** This is a preview feature, you can opt-in with the command `az feature register -n InGuestAutoPatchVMPreview --namespace Microsoft.Compute`.
 
 * `plan` - (Optional) A `plan` block as defined below. Changing this forces a new resource to be created.
+
+* `platform_fault_domain` - (Optional) Specifies the Platform Fault Domain in which this Windows Virtual Machine should be created. Defaults to `-1`, which means this will be automatically assigned to a fault domain that best maintains balance across the available fault domains. Changing this forces a new Windows Virtual Machine to be created.
 
 * `priority`- (Optional) Specifies the priority of this Virtual Machine. Possible values are `Regular` and `Spot`. Defaults to `Regular`. Changing this forces a new resource to be created.
 

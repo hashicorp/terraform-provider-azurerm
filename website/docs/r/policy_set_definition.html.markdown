@@ -82,7 +82,7 @@ A `policy_definition_reference` block supports the following:
 
 * `reference_id` - (Optional) A unique ID within this policy set definition for this policy definition reference.
 
-* `group_names` - (Optional) A list of names of the policy definition groups that this policy definition reference belongs to.
+* `policy_group_names` - (Optional) A list of names of the policy definition groups that this policy definition reference belongs to.
 
 ---
 

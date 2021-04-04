@@ -25,7 +25,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/Azure/go-autorest/tracing"
-	"github.com/satori/go.uuid"
+	"github.com/gofrs/uuid"
 	"io"
 	"net/http"
 )
@@ -521,24 +521,10 @@ type AdaptiveNetworkHardeningProperties struct {
 // AdaptiveNetworkHardeningsEnforceFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type AdaptiveNetworkHardeningsEnforceFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AdaptiveNetworkHardeningsEnforceFuture) Result(client AdaptiveNetworkHardeningsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "security.AdaptiveNetworkHardeningsEnforceFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("security.AdaptiveNetworkHardeningsEnforceFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AdaptiveNetworkHardeningsClient) (autorest.Response, error)
 }
 
 // AdaptiveNetworkHardeningsList response for ListAdaptiveNetworkHardenings API service call

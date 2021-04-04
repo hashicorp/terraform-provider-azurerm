@@ -16,8 +16,8 @@ Manages an IotHub Storage Container Endpoint
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "resourceGroup1"
-  location = "West US"
+  name     = "example-resources"
+  location = "West Europe"
 }
 
 resource "azurerm_storage_account" "example" {

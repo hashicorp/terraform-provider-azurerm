@@ -432,6 +432,7 @@ func (client ComponentsClient) List(ctx context.Context) (result ApplicationInsi
 	}
 	if result.aiclr.hasNextLink() && result.aiclr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -491,7 +492,6 @@ func (client ComponentsClient) listNextResults(ctx context.Context, lastResults 
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ComponentsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -557,6 +557,7 @@ func (client ComponentsClient) ListByResourceGroup(ctx context.Context, resource
 	}
 	if result.aiclr.hasNextLink() && result.aiclr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -617,7 +618,6 @@ func (client ComponentsClient) listByResourceGroupNextResults(ctx context.Contex
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ComponentsClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

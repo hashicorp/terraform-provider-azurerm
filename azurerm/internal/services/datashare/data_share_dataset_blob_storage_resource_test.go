@@ -137,7 +137,7 @@ resource "azurerm_data_share" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctest%[3]d"
+  name                     = "acctest%[3]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
@@ -160,7 +160,7 @@ resource "azurerm_role_assignment" "test" {
   role_definition_name = "Storage Blob Data Reader"
   principal_id         = data.azuread_service_principal.test.object_id
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(12))
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r DataShareDataSetBlobStorageResource) basicFile(data acceptance.TestData) string {

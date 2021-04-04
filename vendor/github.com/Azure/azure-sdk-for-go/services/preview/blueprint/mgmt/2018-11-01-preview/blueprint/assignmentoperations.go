@@ -159,6 +159,7 @@ func (client AssignmentOperationsClient) List(ctx context.Context, resourceScope
 	}
 	if result.aol.hasNextLink() && result.aol.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -219,7 +220,6 @@ func (client AssignmentOperationsClient) listNextResults(ctx context.Context, la
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "blueprint.AssignmentOperationsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

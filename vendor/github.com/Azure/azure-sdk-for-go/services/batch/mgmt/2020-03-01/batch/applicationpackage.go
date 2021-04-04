@@ -490,6 +490,7 @@ func (client ApplicationPackageClient) List(ctx context.Context, resourceGroupNa
 	}
 	if result.lapr.hasNextLink() && result.lapr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -555,7 +556,6 @@ func (client ApplicationPackageClient) listNextResults(ctx context.Context, last
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "batch.ApplicationPackageClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

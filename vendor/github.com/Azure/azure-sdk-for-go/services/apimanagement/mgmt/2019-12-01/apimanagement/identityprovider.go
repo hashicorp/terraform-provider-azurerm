@@ -447,6 +447,7 @@ func (client IdentityProviderClient) ListByService(ctx context.Context, resource
 	}
 	if result.ipl.hasNextLink() && result.ipl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -508,7 +509,6 @@ func (client IdentityProviderClient) listByServiceNextResults(ctx context.Contex
 	result, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.IdentityProviderClient", "listByServiceNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

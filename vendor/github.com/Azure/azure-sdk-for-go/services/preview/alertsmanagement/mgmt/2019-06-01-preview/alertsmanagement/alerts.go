@@ -191,6 +191,7 @@ func (client AlertsClient) GetAll(ctx context.Context, targetResource string, ta
 	}
 	if result.al.hasNextLink() && result.al.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -301,7 +302,6 @@ func (client AlertsClient) getAllNextResults(ctx context.Context, lastResults Al
 	result, err = client.GetAllResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "alertsmanagement.AlertsClient", "getAllNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

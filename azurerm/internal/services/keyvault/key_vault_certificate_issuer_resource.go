@@ -277,7 +277,6 @@ func resourceKeyVaultCertificateIssuerDelete(d *schema.ResourceData, meta interf
 	}
 
 	_, err = client.DeleteCertificateIssuer(ctx, id.KeyVaultBaseUrl, id.Name)
-
 	return err
 }
 

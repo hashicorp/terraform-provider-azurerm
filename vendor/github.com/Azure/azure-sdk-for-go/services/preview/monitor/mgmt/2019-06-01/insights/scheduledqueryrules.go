@@ -68,7 +68,6 @@ func (client ScheduledQueryRulesClient) CreateOrUpdate(ctx context.Context, reso
 						Chain: []validation.Constraint{{Target: "parameters.LogSearchRule.Schedule.FrequencyInMinutes", Name: validation.Null, Rule: true, Chain: nil},
 							{Target: "parameters.LogSearchRule.Schedule.TimeWindowInMinutes", Name: validation.Null, Rule: true, Chain: nil},
 						}},
-					{Target: "parameters.LogSearchRule.Action", Name: validation.Null, Rule: true, Chain: nil},
 				}}}}}); err != nil {
 		return result, validation.NewError("insights.ScheduledQueryRulesClient", "CreateOrUpdate", err.Error())
 	}

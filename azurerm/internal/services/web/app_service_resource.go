@@ -349,8 +349,7 @@ func resourceAppServiceCreate(d *schema.ResourceData, meta interface{}) error {
 
 	backupRaw := d.Get("backup").([]interface{})
 	if backup := expandAppServiceBackup(backupRaw); backup != nil {
-		_, err = client.UpdateBackupConfiguration(ctx, resourceGroup, name, *backup)
-		if err != nil {
+		if _, err = client.UpdateBackupConfiguration(ctx, resourceGroup, name, *backup); err != nil {
 			return fmt.Errorf("Error updating Backup Settings for App Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
@@ -465,13 +464,11 @@ func resourceAppServiceUpdate(d *schema.ResourceData, meta interface{}) error {
 	if d.HasChange("backup") {
 		backupRaw := d.Get("backup").([]interface{})
 		if backup := expandAppServiceBackup(backupRaw); backup != nil {
-			_, err = client.UpdateBackupConfiguration(ctx, id.ResourceGroup, id.SiteName, *backup)
-			if err != nil {
+			if _, err = client.UpdateBackupConfiguration(ctx, id.ResourceGroup, id.SiteName, *backup); err != nil {
 				return fmt.Errorf("Error updating Backup Settings for App Service %q (Resource Group %q): %s", id.SiteName, id.ResourceGroup, err)
 			}
 		} else {
-			_, err = client.DeleteBackupConfiguration(ctx, id.ResourceGroup, id.SiteName)
-			if err != nil {
+			if _, err = client.DeleteBackupConfiguration(ctx, id.ResourceGroup, id.SiteName); err != nil {
 				return fmt.Errorf("Error removing Backup Settings for App Service %q (Resource Group %q): %s", id.SiteName, id.ResourceGroup, err)
 			}
 		}

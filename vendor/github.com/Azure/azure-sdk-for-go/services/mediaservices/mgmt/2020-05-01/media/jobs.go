@@ -142,9 +142,7 @@ func (client JobsClient) Create(ctx context.Context, resourceGroupName string, a
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.JobProperties", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "parameters.JobProperties.Input", Name: validation.Null, Rule: true, Chain: nil},
-					{Target: "parameters.JobProperties.Outputs", Name: validation.Null, Rule: true, Chain: nil},
-				}}}}}); err != nil {
+				Chain: []validation.Constraint{{Target: "parameters.JobProperties.Outputs", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
 		return result, validation.NewError("media.JobsClient", "Create", err.Error())
 	}
 
@@ -185,6 +183,7 @@ func (client JobsClient) CreatePreparer(ctx context.Context, resourceGroupName s
 		"api-version": APIVersion,
 	}
 
+	parameters.SystemData = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -411,6 +410,7 @@ func (client JobsClient) List(ctx context.Context, resourceGroupName string, acc
 	}
 	if result.jc.hasNextLink() && result.jc.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -479,7 +479,6 @@ func (client JobsClient) listNextResults(ctx context.Context, lastResults JobCol
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.JobsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -556,6 +555,7 @@ func (client JobsClient) UpdatePreparer(ctx context.Context, resourceGroupName s
 		"api-version": APIVersion,
 	}
 
+	parameters.SystemData = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),

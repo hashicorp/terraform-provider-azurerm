@@ -323,6 +323,7 @@ func (client IntegrationAccountSessionsClient) List(ctx context.Context, resourc
 	}
 	if result.iaslr.hasNextLink() && result.iaslr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -390,7 +391,6 @@ func (client IntegrationAccountSessionsClient) listNextResults(ctx context.Conte
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountSessionsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

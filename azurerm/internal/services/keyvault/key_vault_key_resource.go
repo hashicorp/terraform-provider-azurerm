@@ -130,6 +130,11 @@ func resourceKeyVaultKey() *schema.Resource {
 				Computed: true,
 			},
 
+			"versionless_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"n": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -413,6 +418,7 @@ func resourceKeyVaultKeyRead(d *schema.ResourceData, meta interface{}) error {
 
 	// Computed
 	d.Set("version", id.Version)
+	d.Set("versionless_id", id.VersionlessID())
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }

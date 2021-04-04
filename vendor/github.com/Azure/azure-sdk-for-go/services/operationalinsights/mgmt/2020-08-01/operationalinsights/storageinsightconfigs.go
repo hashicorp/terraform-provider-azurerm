@@ -378,6 +378,7 @@ func (client StorageInsightConfigsClient) ListByWorkspace(ctx context.Context, r
 	}
 	if result.silr.hasNextLink() && result.silr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -439,7 +440,6 @@ func (client StorageInsightConfigsClient) listByWorkspaceNextResults(ctx context
 	result, err = client.ListByWorkspaceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "operationalinsights.StorageInsightConfigsClient", "listByWorkspaceNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

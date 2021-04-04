@@ -348,6 +348,7 @@ func (client WebTestsClient) List(ctx context.Context) (result WebTestListResult
 	}
 	if result.wtlr.hasNextLink() && result.wtlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -407,7 +408,6 @@ func (client WebTestsClient) listNextResults(ctx context.Context, lastResults We
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.WebTestsClient", "listNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -474,6 +474,7 @@ func (client WebTestsClient) ListByComponent(ctx context.Context, componentName 
 	}
 	if result.wtlr.hasNextLink() && result.wtlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -535,7 +536,6 @@ func (client WebTestsClient) listByComponentNextResults(ctx context.Context, las
 	result, err = client.ListByComponentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.WebTestsClient", "listByComponentNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
@@ -601,6 +601,7 @@ func (client WebTestsClient) ListByResourceGroup(ctx context.Context, resourceGr
 	}
 	if result.wtlr.hasNextLink() && result.wtlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -661,7 +662,6 @@ func (client WebTestsClient) listByResourceGroupNextResults(ctx context.Context,
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.WebTestsClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

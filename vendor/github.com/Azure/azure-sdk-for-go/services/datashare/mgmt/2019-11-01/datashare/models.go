@@ -320,59 +320,19 @@ type AccountProperties struct {
 // AccountsCreateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type AccountsCreateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AccountsCreateFuture) Result(client AccountsClient) (a Account, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "datashare.AccountsCreateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("datashare.AccountsCreateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if a.Response.Response, err = future.GetResult(sender); err == nil && a.Response.Response.StatusCode != http.StatusNoContent {
-		a, err = client.CreateResponder(a.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "datashare.AccountsCreateFuture", "Result", a.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AccountsClient) (Account, error)
 }
 
 // AccountsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type AccountsDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *AccountsDeleteFuture) Result(client AccountsClient) (or OperationResponse, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "datashare.AccountsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("datashare.AccountsDeleteFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if or.Response.Response, err = future.GetResult(sender); err == nil && or.Response.Response.StatusCode != http.StatusNoContent {
-		or, err = client.DeleteResponder(or.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "datashare.AccountsDeleteFuture", "Result", or.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AccountsClient) (OperationResponse, error)
 }
 
 // AccountUpdateParameters update parameters for accounts
@@ -4372,24 +4332,10 @@ func (dsm *DataSetModel) UnmarshalJSON(body []byte) error {
 // DataSetsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type DataSetsDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *DataSetsDeleteFuture) Result(client DataSetsClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "datashare.DataSetsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("datashare.DataSetsDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(DataSetsClient) (autorest.Response, error)
 }
 
 // DefaultDto base data transfer object implementation for default resources.
@@ -6009,30 +5955,10 @@ type ProviderShareSubscriptionProperties struct {
 // ProviderShareSubscriptionsRevokeFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ProviderShareSubscriptionsRevokeFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ProviderShareSubscriptionsRevokeFuture) Result(client ProviderShareSubscriptionsClient) (pss ProviderShareSubscription, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "datashare.ProviderShareSubscriptionsRevokeFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("datashare.ProviderShareSubscriptionsRevokeFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if pss.Response.Response, err = future.GetResult(sender); err == nil && pss.Response.Response.StatusCode != http.StatusNoContent {
-		pss, err = client.RevokeResponder(pss.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "datashare.ProviderShareSubscriptionsRevokeFuture", "Result", pss.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ProviderShareSubscriptionsClient) (ProviderShareSubscription, error)
 }
 
 // ProxyDto base data transfer object implementation for proxy resources.
@@ -6653,30 +6579,10 @@ func (sp ShareProperties) MarshalJSON() ([]byte, error) {
 
 // SharesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type SharesDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *SharesDeleteFuture) Result(client SharesClient) (or OperationResponse, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "datashare.SharesDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("datashare.SharesDeleteFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if or.Response.Response, err = future.GetResult(sender); err == nil && or.Response.Response.StatusCode != http.StatusNoContent {
-		or, err = client.DeleteResponder(or.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "datashare.SharesDeleteFuture", "Result", or.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(SharesClient) (OperationResponse, error)
 }
 
 // ShareSubscription a share subscription data transfer object.
@@ -6958,88 +6864,28 @@ func (ssp ShareSubscriptionProperties) MarshalJSON() ([]byte, error) {
 // ShareSubscriptionsCancelSynchronizationFuture an abstraction for monitoring and retrieving the results
 // of a long-running operation.
 type ShareSubscriptionsCancelSynchronizationFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ShareSubscriptionsCancelSynchronizationFuture) Result(client ShareSubscriptionsClient) (sss ShareSubscriptionSynchronization, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsCancelSynchronizationFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("datashare.ShareSubscriptionsCancelSynchronizationFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if sss.Response.Response, err = future.GetResult(sender); err == nil && sss.Response.Response.StatusCode != http.StatusNoContent {
-		sss, err = client.CancelSynchronizationResponder(sss.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsCancelSynchronizationFuture", "Result", sss.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ShareSubscriptionsClient) (ShareSubscriptionSynchronization, error)
 }
 
 // ShareSubscriptionsDeleteFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ShareSubscriptionsDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ShareSubscriptionsDeleteFuture) Result(client ShareSubscriptionsClient) (or OperationResponse, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("datashare.ShareSubscriptionsDeleteFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if or.Response.Response, err = future.GetResult(sender); err == nil && or.Response.Response.StatusCode != http.StatusNoContent {
-		or, err = client.DeleteResponder(or.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsDeleteFuture", "Result", or.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ShareSubscriptionsClient) (OperationResponse, error)
 }
 
 // ShareSubscriptionsSynchronizeMethodFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ShareSubscriptionsSynchronizeMethodFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ShareSubscriptionsSynchronizeMethodFuture) Result(client ShareSubscriptionsClient) (sss ShareSubscriptionSynchronization, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsSynchronizeMethodFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("datashare.ShareSubscriptionsSynchronizeMethodFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if sss.Response.Response, err = future.GetResult(sender); err == nil && sss.Response.Response.StatusCode != http.StatusNoContent {
-		sss, err = client.SynchronizeMethodResponder(sss.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "datashare.ShareSubscriptionsSynchronizeMethodFuture", "Result", sss.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ShareSubscriptionsClient) (ShareSubscriptionSynchronization, error)
 }
 
 // ShareSubscriptionSynchronization a ShareSubscriptionSynchronization data transfer object.
@@ -8950,30 +8796,10 @@ func (ssm *SynchronizationSettingModel) UnmarshalJSON(body []byte) error {
 // SynchronizationSettingsDeleteFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type SynchronizationSettingsDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *SynchronizationSettingsDeleteFuture) Result(client SynchronizationSettingsClient) (or OperationResponse, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "datashare.SynchronizationSettingsDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("datashare.SynchronizationSettingsDeleteFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if or.Response.Response, err = future.GetResult(sender); err == nil && or.Response.Response.StatusCode != http.StatusNoContent {
-		or, err = client.DeleteResponder(or.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "datashare.SynchronizationSettingsDeleteFuture", "Result", or.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(SynchronizationSettingsClient) (OperationResponse, error)
 }
 
 // Synchronize payload for the synchronizing the data.
@@ -9274,57 +9100,17 @@ func (tm *TriggerModel) UnmarshalJSON(body []byte) error {
 // TriggersCreateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type TriggersCreateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *TriggersCreateFuture) Result(client TriggersClient) (tm TriggerModel, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "datashare.TriggersCreateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("datashare.TriggersCreateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if tm.Response.Response, err = future.GetResult(sender); err == nil && tm.Response.Response.StatusCode != http.StatusNoContent {
-		tm, err = client.CreateResponder(tm.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "datashare.TriggersCreateFuture", "Result", tm.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(TriggersClient) (TriggerModel, error)
 }
 
 // TriggersDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type TriggersDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *TriggersDeleteFuture) Result(client TriggersClient) (or OperationResponse, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "datashare.TriggersDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("datashare.TriggersDeleteFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if or.Response.Response, err = future.GetResult(sender); err == nil && or.Response.Response.StatusCode != http.StatusNoContent {
-		or, err = client.DeleteResponder(or.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "datashare.TriggersDeleteFuture", "Result", or.Response.Response, "Failure responding to request")
-		}
-	}
-	return
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(TriggersClient) (OperationResponse, error)
 }

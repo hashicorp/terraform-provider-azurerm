@@ -36,6 +36,7 @@ output "first_available_subscription_display_name" {
 
 The `subscription` block contains:
 
+* `id` - The ID of this subscription.
 * `subscription_id` - The subscription GUID.
 * `display_name` - The subscription display name.
 * `tenant_id` - The subscription tenant ID.
