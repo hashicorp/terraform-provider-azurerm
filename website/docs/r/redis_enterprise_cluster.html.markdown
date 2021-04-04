@@ -55,7 +55,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `version` - Version of redis the cluster supports, e.g. '6'.
 
--> **NOTE:** The `hostname` and `version` fields currently are not yet being returned from the service API, please see https://github.com/Azure/azure-sdk-for-go/issues/14420 for more information.
+-> **NOTE:** The `version` field currently is not yet being returned from the service API, please see https://github.com/Azure/azure-sdk-for-go/issues/14420 for more information.
 
 ## Timeouts
 
