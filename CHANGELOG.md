@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Resource:** `azurerm_communication_service` [GH-11066]
 * **New Resource:** `azurerm_express_route_port` [GH-10074]
 
 ENHANCEMENTS:
