@@ -17,6 +17,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cognitive"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/communication"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos"
@@ -122,6 +123,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 		bot.Registration{},
 		cdn.Registration{},
 		cognitive.Registration{},
+		communication.Registration{},
 		compute.Registration{},
 		containers.Registration{},
 		cosmos.Registration{},
