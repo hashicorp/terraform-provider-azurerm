@@ -12,6 +12,7 @@ type UserFeatures struct {
 type VirtualMachineFeatures struct {
 	DeleteOSDiskOnDeletion bool
 	GracefulShutdown       bool
+	ForceDelete            bool
 }
 
 type VirtualMachineScaleSetFeatures struct {
