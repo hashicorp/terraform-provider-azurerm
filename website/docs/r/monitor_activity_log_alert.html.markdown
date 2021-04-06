@@ -96,7 +96,7 @@ A `criteria` block supports the following:
 * `recommendation_type` - (Optional) The recommendation type of the event. It is only allowed when `category` is `Recommendation`.
 * `recommendation_category` - (Optional) The recommendation category of the event. Possible values are `Cost`, `Reliability`, `OperationalExcellence` and `Performance`. It is only allowed when `category` is `Recommendation`.
 * `recommendation_impact` - (Optional) The recommendation impact of the event. Possible values are `High`, `Medium` and `Low`. It is only allowed when `category` is `Recommendation`.
-* `servicehealth` - (Optional) A block to define fine grain service health settings.
+* `service_health` - (Optional) A block to define fine grain service health settings.
 
 ---
 
