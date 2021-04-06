@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -60,7 +61,7 @@ func resourcePostgresqlFlexibleServer() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"administrator_login_password": {
+			"administrator_password": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Sensitive:    true,
@@ -138,7 +139,7 @@ func resourcePostgresqlFlexibleServer() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: networkValidate.SubnetID,
 			},
 
 			"identity": {
@@ -227,7 +228,7 @@ func resourcePostgresqlFlexibleServer() *schema.Resource {
 				ValidateFunc: validation.IntBetween(7, 35),
 			},
 
-			"byok_enforcement": {
+			"cmk_enabled": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -292,8 +293,8 @@ func resourcePostgresqlFlexibleServerCreate(d *schema.ResourceData, meta interfa
 		if _, ok := d.GetOk("administrator_login"); !ok {
 			return fmt.Errorf("`administrator_login` is required when `create_mode` is `Default`")
 		}
-		if _, ok := d.GetOk("administrator_login_password"); !ok {
-			return fmt.Errorf("`administrator_login_password` is required when `create_mode` is `Default`")
+		if _, ok := d.GetOk("administrator_password"); !ok {
+			return fmt.Errorf("`administrator_password` is required when `create_mode` is `Default`")
 		}
 		if _, ok := d.GetOk("sku"); !ok {
 			return fmt.Errorf("`sku` is required when `create_mode` is `Default`")
@@ -329,7 +330,7 @@ func resourcePostgresqlFlexibleServerCreate(d *schema.ResourceData, meta interfa
 		parameters.ServerProperties.AdministratorLogin = utils.String(v.(string))
 	}
 
-	if v, ok := d.GetOk("administrator_login_password"); ok && v.(string) != "" {
+	if v, ok := d.GetOk("administrator_password"); ok && v.(string) != "" {
 		parameters.ServerProperties.AdministratorLoginPassword = utils.String(v.(string))
 	}
 
@@ -421,7 +422,7 @@ func resourcePostgresqlFlexibleServerRead(d *schema.ResourceData, meta interface
 			d.Set("source_server_id", parse.NewFlexibleServerID(*props.SourceSubscriptionID, *props.SourceResourceGroupName, *props.SourceServerName).ID())
 		}
 		d.Set("version", props.Version)
-		d.Set("byok_enforcement", props.ByokEnforcement)
+		d.Set("cmk_enabled", props.ByokEnforcement)
 		d.Set("fqdn", props.FullyQualifiedDomainName)
 		d.Set("public_network_access", props.PublicNetworkAccess == postgresqlflexibleservers.ServerPublicNetworkAccessStateEnabled)
 		d.Set("ha_state", string(props.HaState))
@@ -463,8 +464,8 @@ func resourcePostgresqlFlexibleServerUpdate(d *schema.ResourceData, meta interfa
 		ServerPropertiesForUpdate: &postgresqlflexibleservers.ServerPropertiesForUpdate{},
 	}
 
-	if d.HasChange("administrator_login_password") {
-		parameters.ServerPropertiesForUpdate.AdministratorLoginPassword = utils.String(d.Get("administrator_login_password").(string))
+	if d.HasChange("administrator_password") {
+		parameters.ServerPropertiesForUpdate.AdministratorLoginPassword = utils.String(d.Get("administrator_password").(string))
 	}
 
 	if d.HasChange("backup_retention_days") || d.HasChange("storage_mb") {

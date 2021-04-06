@@ -28,13 +28,13 @@ func TestAccPostgresqlflexibleServer_basic(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("availability_zone").Exists(),
-				check.That(data.ResourceName).Key("byok_enforcement").Exists(),
+				check.That(data.ResourceName).Key("cmk_enabled").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
 				check.That(data.ResourceName).Key("ha_state").Exists(),
 				check.That(data.ResourceName).Key("public_network_access").Exists(),
 			),
 		},
-		data.ImportStep("administrator_login_password", "create_mode"),
+		data.ImportStep("administrator_password", "create_mode"),
 	})
 }
 
@@ -62,13 +62,13 @@ func TestAccPostgresqlflexibleServer_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
 				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
-				check.That(data.ResourceName).Key("byok_enforcement").Exists(),
+				check.That(data.ResourceName).Key("cmk_enabled").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
 				check.That(data.ResourceName).Key("ha_state").Exists(),
 				check.That(data.ResourceName).Key("public_network_access").Exists(),
 			),
 		},
-		data.ImportStep("administrator_login_password", "create_mode"),
+		data.ImportStep("administrator_password", "create_mode"),
 	})
 }
 
@@ -82,26 +82,26 @@ func TestAccPostgresqlflexibleServer_completeUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
 				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
-				check.That(data.ResourceName).Key("byok_enforcement").Exists(),
+				check.That(data.ResourceName).Key("cmk_enabled").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
 				check.That(data.ResourceName).Key("ha_state").Exists(),
 				check.That(data.ResourceName).Key("public_network_access").Exists(),
 			),
 		},
-		data.ImportStep("administrator_login_password", "create_mode"),
+		data.ImportStep("administrator_password", "create_mode"),
 		{
 			Config: r.completeUpdate(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
 				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
-				check.That(data.ResourceName).Key("byok_enforcement").Exists(),
+				check.That(data.ResourceName).Key("cmk_enabled").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
 				check.That(data.ResourceName).Key("ha_state").Exists(),
 				check.That(data.ResourceName).Key("public_network_access").Exists(),
 			),
 		},
-		data.ImportStep("administrator_login_password", "create_mode"),
+		data.ImportStep("administrator_password", "create_mode"),
 	})
 }
 
@@ -114,49 +114,49 @@ func TestAccPostgresqlflexibleServer_updateMaintenanceWindow(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("availability_zone").Exists(),
-				check.That(data.ResourceName).Key("byok_enforcement").Exists(),
+				check.That(data.ResourceName).Key("cmk_enabled").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
 				check.That(data.ResourceName).Key("ha_state").Exists(),
 				check.That(data.ResourceName).Key("public_network_access").Exists(),
 			),
 		},
-		data.ImportStep("administrator_login_password", "create_mode"),
+		data.ImportStep("administrator_password", "create_mode"),
 		{
 			Config: r.updateMaintenanceWindow(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("availability_zone").Exists(),
-				check.That(data.ResourceName).Key("byok_enforcement").Exists(),
+				check.That(data.ResourceName).Key("cmk_enabled").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
 				check.That(data.ResourceName).Key("ha_state").Exists(),
 				check.That(data.ResourceName).Key("public_network_access").Exists(),
 			),
 		},
-		data.ImportStep("administrator_login_password", "create_mode"),
+		data.ImportStep("administrator_password", "create_mode"),
 		{
 			Config: r.updateMaintenanceWindowUpdated(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("availability_zone").Exists(),
-				check.That(data.ResourceName).Key("byok_enforcement").Exists(),
+				check.That(data.ResourceName).Key("cmk_enabled").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
 				check.That(data.ResourceName).Key("ha_state").Exists(),
 				check.That(data.ResourceName).Key("public_network_access").Exists(),
 			),
 		},
-		data.ImportStep("administrator_login_password", "create_mode"),
+		data.ImportStep("administrator_password", "create_mode"),
 		{
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("availability_zone").Exists(),
-				check.That(data.ResourceName).Key("byok_enforcement").Exists(),
+				check.That(data.ResourceName).Key("cmk_enabled").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
 				check.That(data.ResourceName).Key("ha_state").Exists(),
 				check.That(data.ResourceName).Key("public_network_access").Exists(),
 			),
 		},
-		data.ImportStep("administrator_login_password", "create_mode"),
+		data.ImportStep("administrator_password", "create_mode"),
 	})
 }
 
@@ -169,37 +169,37 @@ func TestAccPostgresqlflexibleServer_updateSku(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("availability_zone").Exists(),
-				check.That(data.ResourceName).Key("byok_enforcement").Exists(),
+				check.That(data.ResourceName).Key("cmk_enabled").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
 				check.That(data.ResourceName).Key("ha_state").Exists(),
 				check.That(data.ResourceName).Key("public_network_access").Exists(),
 			),
 		},
-		data.ImportStep("administrator_login_password", "create_mode"),
+		data.ImportStep("administrator_password", "create_mode"),
 		{
 			Config: r.updateSku(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("availability_zone").Exists(),
-				check.That(data.ResourceName).Key("byok_enforcement").Exists(),
+				check.That(data.ResourceName).Key("cmk_enabled").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
 				check.That(data.ResourceName).Key("ha_state").Exists(),
 				check.That(data.ResourceName).Key("public_network_access").Exists(),
 			),
 		},
-		data.ImportStep("administrator_login_password", "create_mode"),
+		data.ImportStep("administrator_password", "create_mode"),
 		{
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("availability_zone").Exists(),
-				check.That(data.ResourceName).Key("byok_enforcement").Exists(),
+				check.That(data.ResourceName).Key("cmk_enabled").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
 				check.That(data.ResourceName).Key("ha_state").Exists(),
 				check.That(data.ResourceName).Key("public_network_access").Exists(),
 			),
 		},
-		data.ImportStep("administrator_login_password", "create_mode"),
+		data.ImportStep("administrator_password", "create_mode"),
 	})
 }
 
@@ -212,26 +212,26 @@ func TestAccPostgresqlflexibleServer_pitr(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("availability_zone").Exists(),
-				check.That(data.ResourceName).Key("byok_enforcement").Exists(),
+				check.That(data.ResourceName).Key("cmk_enabled").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
 				check.That(data.ResourceName).Key("ha_state").Exists(),
 				check.That(data.ResourceName).Key("public_network_access").Exists(),
 			),
 		},
-		data.ImportStep("administrator_login_password", "create_mode"),
+		data.ImportStep("administrator_password", "create_mode"),
 		{
 			PreConfig: func() { time.Sleep(15 * time.Minute) },
 			Config:    r.pitr(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That("azurerm_postgresql_flexible_server.pitr").ExistsInAzure(r),
 				check.That("azurerm_postgresql_flexible_server.pitr").Key("availability_zone").Exists(),
-				check.That("azurerm_postgresql_flexible_server.pitr").Key("byok_enforcement").Exists(),
+				check.That("azurerm_postgresql_flexible_server.pitr").Key("cmk_enabled").Exists(),
 				check.That("azurerm_postgresql_flexible_server.pitr").Key("fqdn").Exists(),
 				check.That("azurerm_postgresql_flexible_server.pitr").Key("ha_state").Exists(),
 				check.That("azurerm_postgresql_flexible_server.pitr").Key("public_network_access").Exists(),
 			),
 		},
-		data.ImportStep("administrator_login_password", "create_mode", "point_in_time_utc"),
+		data.ImportStep("administrator_password", "create_mode", "point_in_time_utc"),
 	})
 }
 
@@ -267,13 +267,13 @@ func (r PostgresqlFlexibleServerResource) basic(data acceptance.TestData) string
 %s
 
 resource "azurerm_postgresql_flexible_server" "test" {
-  name                         = "acctest-fs-%d"
-  resource_group_name          = azurerm_resource_group.test.name
-  location                     = azurerm_resource_group.test.location
-  administrator_login          = "adminTerraform"
-  administrator_login_password = "QAZwsx123"
-  storage_mb                   = 32768
-  version                      = "12"
+  name                   = "acctest-fs-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "adminTerraform"
+  administrator_password = "QAZwsx123"
+  storage_mb             = 32768
+  version                = "12"
 
   sku {
     name = "Standard_D2s_v3"
@@ -288,13 +288,13 @@ func (r PostgresqlFlexibleServerResource) requiresImport(data acceptance.TestDat
 %s
 
 resource "azurerm_postgresql_flexible_server" "import" {
-  name                         = azurerm_postgresql_flexible_server.test.name
-  resource_group_name          = azurerm_postgresql_flexible_server.test.resource_group_name
-  location                     = azurerm_postgresql_flexible_server.test.location
-  administrator_login          = azurerm_postgresql_flexible_server.test.administrator_login
-  administrator_login_password = azurerm_postgresql_flexible_server.test.administrator_login_password
-  version                      = azurerm_postgresql_flexible_server.test.version
-  storage_mb                   = azurerm_postgresql_flexible_server.test.storage_mb
+  name                   = azurerm_postgresql_flexible_server.test.name
+  resource_group_name    = azurerm_postgresql_flexible_server.test.resource_group_name
+  location               = azurerm_postgresql_flexible_server.test.location
+  administrator_login    = azurerm_postgresql_flexible_server.test.administrator_login
+  administrator_password = azurerm_postgresql_flexible_server.test.administrator_password
+  version                = azurerm_postgresql_flexible_server.test.version
+  storage_mb             = azurerm_postgresql_flexible_server.test.storage_mb
   sku {
     name = azurerm_postgresql_flexible_server.test.sku.0.name
     tier = azurerm_postgresql_flexible_server.test.sku.0.tier
@@ -332,17 +332,17 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_postgresql_flexible_server" "test" {
-  name                         = "acctest-fs-%[2]d"
-  resource_group_name          = azurerm_resource_group.test.name
-  location                     = azurerm_resource_group.test.location
-  administrator_login          = "adminTerraform"
-  administrator_login_password = "QAZwsx123"
-  availability_zone            = "1"
-  version                      = "12"
-  ha_enabled                   = false
-  backup_retention_days        = 7
-  storage_mb                   = 32768
-  delegated_subnet_id          = azurerm_subnet.test.id
+  name                   = "acctest-fs-%[2]d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "adminTerraform"
+  administrator_password = "QAZwsx123"
+  availability_zone      = "1"
+  version                = "12"
+  ha_enabled             = false
+  backup_retention_days  = 7
+  storage_mb             = 32768
+  delegated_subnet_id    = azurerm_subnet.test.id
 
   identity {
     type = "SystemAssigned"
@@ -395,17 +395,17 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_postgresql_flexible_server" "test" {
-  name                         = "acctest-fs-%[2]d"
-  resource_group_name          = azurerm_resource_group.test.name
-  location                     = azurerm_resource_group.test.location
-  administrator_login          = "adminTerraform"
-  administrator_login_password = "123wsxQAZ"
-  availability_zone            = "1"
-  version                      = "12"
-  ha_enabled                   = true
-  backup_retention_days        = 10
-  storage_mb                   = 65536
-  delegated_subnet_id          = azurerm_subnet.test.id
+  name                   = "acctest-fs-%[2]d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "adminTerraform"
+  administrator_password = "123wsxQAZ"
+  availability_zone      = "1"
+  version                = "12"
+  ha_enabled             = true
+  backup_retention_days  = 10
+  storage_mb             = 65536
+  delegated_subnet_id    = azurerm_subnet.test.id
 
   identity {
     type = "SystemAssigned"
@@ -434,13 +434,13 @@ func (r PostgresqlFlexibleServerResource) updateMaintenanceWindow(data acceptanc
 %s
 
 resource "azurerm_postgresql_flexible_server" "test" {
-  name                         = "acctest-fs-%d"
-  resource_group_name          = azurerm_resource_group.test.name
-  location                     = azurerm_resource_group.test.location
-  administrator_login          = "adminTerraform"
-  administrator_login_password = "QAZwsx123"
-  version                      = "12"
-  storage_mb                   = 32768
+  name                   = "acctest-fs-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "adminTerraform"
+  administrator_password = "QAZwsx123"
+  version                = "12"
+  storage_mb             = 32768
   sku {
     name = "Standard_D2s_v3"
     tier = "GeneralPurpose"
@@ -460,13 +460,13 @@ func (r PostgresqlFlexibleServerResource) updateMaintenanceWindowUpdated(data ac
 %s
 
 resource "azurerm_postgresql_flexible_server" "test" {
-  name                         = "acctest-fs-%d"
-  resource_group_name          = azurerm_resource_group.test.name
-  location                     = azurerm_resource_group.test.location
-  administrator_login          = "adminTerraform"
-  administrator_login_password = "QAZwsx123"
-  version                      = "12"
-  storage_mb                   = 32768
+  name                   = "acctest-fs-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "adminTerraform"
+  administrator_password = "QAZwsx123"
+  version                = "12"
+  storage_mb             = 32768
   sku {
     name = "Standard_D2s_v3"
     tier = "GeneralPurpose"
@@ -486,13 +486,13 @@ func (r PostgresqlFlexibleServerResource) updateSku(data acceptance.TestData) st
 %s
 
 resource "azurerm_postgresql_flexible_server" "test" {
-  name                         = "acctest-fs-%d"
-  resource_group_name          = azurerm_resource_group.test.name
-  location                     = azurerm_resource_group.test.location
-  administrator_login          = "adminTerraform"
-  administrator_login_password = "QAZwsx123"
-  version                      = "12"
-  storage_mb                   = 32768
+  name                   = "acctest-fs-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "adminTerraform"
+  administrator_password = "QAZwsx123"
+  version                = "12"
+  storage_mb             = 32768
   sku {
     name = "Standard_E2s_v3"
     tier = "MemoryOptimized"

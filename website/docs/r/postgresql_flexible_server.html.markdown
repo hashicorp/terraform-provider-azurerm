@@ -53,7 +53,7 @@ resource "azurerm_postgresql_flexible_server" "example" {
   version                      = "12"
   delegated_subnet_id          = azurerm_subnet.example.id
   administrator_login          = "psqladminun"
-  administrator_login_password = "H@Sh1CoR3!"
+  administrator_password = "H@Sh1CoR3!"
 
   storage_mb = 32768
 
@@ -75,7 +75,7 @@ The following arguments are supported:
 
 * `administrator_login` - (Optional) The Administrator Login for the PostgreSQL Flexible Server. Required when `create_mode` is `Default`. Changing this forces a new PostgreSQL Flexible Server to be created.
 
-* `administrator_login_password` - (Optional) The Password associated with the `administrator_login` for the PostgreSQL Flexible Server. Required when `create_mode` is `Default`.
+* `administrator_password` - (Optional) The Password associated with the `administrator_login` for the PostgreSQL Flexible Server. Required when `create_mode` is `Default`.
 
 * `availability_zone` - (Optional) The availability Zone of the PostgreSQL Flexible Server. Possible values are  `none`, `1`, `2` and `3`. Changing this forces a new PostgreSQL Flexible Server to be created.
 
@@ -133,7 +133,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the PostgreSQL Flexible Server.
 
-* `byok_enforcement` - The status showing whether the data encryption is enabled with a customer-managed key.
+* `cmk_enabled` - The status showing whether the data encryption is enabled with a customer-managed key.
 
 * `fqdn` - The FQDN of the PostgreSQL Flexible Server.
 
