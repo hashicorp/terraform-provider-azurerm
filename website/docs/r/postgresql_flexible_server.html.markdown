@@ -47,12 +47,12 @@ resource "azurerm_subnet" "example" {
 }
 
 resource "azurerm_postgresql_flexible_server" "example" {
-  name                         = "example-psqlflexibleserver"
-  resource_group_name          = azurerm_resource_group.example.name
-  location                     = azurerm_resource_group.example.location
-  version                      = "12"
-  delegated_subnet_id          = azurerm_subnet.example.id
-  administrator_login          = "psqladminun"
+  name                   = "example-psqlflexibleserver"
+  resource_group_name    = azurerm_resource_group.example.name
+  location               = azurerm_resource_group.example.location
+  version                = "12"
+  delegated_subnet_id    = azurerm_subnet.example.id
+  administrator_login    = "psqladminun"
   administrator_password = "H@Sh1CoR3!"
 
   storage_mb = 32768
