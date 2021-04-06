@@ -13,6 +13,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_media_service_account` - `storage_authentication_type` correctly accepts both `ManagedIdentity` and `System` [GH-11222]
 * `azurerm_web_application_firewall_policy` - `http_listener_ids` and `path_based_rule_ids` are now Computed only [GH-11196]
 
 ## 2.54.0 (April 02, 2021)
