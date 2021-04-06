@@ -9,11 +9,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
 
-const springCloudAppRedisBindingType = "Microsoft.Cache"
+const springCloudAppAssociationTypeRedis = "Microsoft.Cache"
 
-func importSpringCloudAppBinding(resourceType string) func(d *schema.ResourceData, meta interface{}) (data []*schema.ResourceData, err error) {
+func importSpringCloudAppAssociation(resourceType string) func(d *schema.ResourceData, meta interface{}) (data []*schema.ResourceData, err error) {
 	return func(d *schema.ResourceData, meta interface{}) (data []*schema.ResourceData, err error) {
-		id, err := parse.SpringCloudAppBindingID(d.Id())
+		id, err := parse.SpringCloudAppAssociationID(d.Id())
 		if err != nil {
 			return []*schema.ResourceData{}, err
 		}
@@ -32,7 +32,7 @@ func importSpringCloudAppBinding(resourceType string) func(d *schema.ResourceDat
 		}
 
 		if *resp.Properties.ResourceType != resourceType {
-			return []*schema.ResourceData{}, fmt.Errorf(`spring Cloud App Binding "type" mismatch, expected "%s", got "%s"`, resourceType, *resp.Properties.ResourceType)
+			return []*schema.ResourceData{}, fmt.Errorf(`spring Cloud App Association "type" mismatch, expected "%s", got "%s"`, resourceType, *resp.Properties.ResourceType)
 		}
 
 		return []*schema.ResourceData{d}, nil

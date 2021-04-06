@@ -5,7 +5,7 @@ import (
 	"regexp"
 )
 
-func SpringCloudAppBindingName(i interface{}, k string) (_ []string, errors []error) {
+func SpringCloudAppAssociationName(i interface{}, k string) (_ []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		return nil, append(errors, fmt.Errorf("expected type of %s to be string", k))

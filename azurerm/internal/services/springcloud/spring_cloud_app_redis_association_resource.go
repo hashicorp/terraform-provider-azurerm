@@ -19,19 +19,19 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-const springCloudAppRedisBindingKeySSL = "useSsl"
+const springCloudAppRedisAssociationKeySSL = "useSsl"
 
-func resourceSpringCloudAppRedisBinding() *schema.Resource {
+func resourceSpringCloudAppRedisAssociation() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceSpringCloudAppRedisBindingCreateUpdate,
-		Read:   resourceSpringCloudAppRedisBindingRead,
-		Update: resourceSpringCloudAppRedisBindingCreateUpdate,
-		Delete: resourceSpringCloudAppRedisBindingDelete,
+		Create: resourceSpringCloudAppRedisAssociationCreateUpdate,
+		Read:   resourceSpringCloudAppRedisAssociationRead,
+		Update: resourceSpringCloudAppRedisAssociationCreateUpdate,
+		Delete: resourceSpringCloudAppRedisAssociationDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
-			_, err := parse.SpringCloudAppBindingID(id)
+			_, err := parse.SpringCloudAppAssociationID(id)
 			return err
-		}, importSpringCloudAppBinding(springCloudAppRedisBindingType)),
+		}, importSpringCloudAppAssociation(springCloudAppAssociationTypeRedis)),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -45,7 +45,7 @@ func resourceSpringCloudAppRedisBinding() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.SpringCloudAppBindingName,
+				ValidateFunc: validate.SpringCloudAppAssociationName,
 			},
 
 			"spring_cloud_app_id": {
@@ -71,12 +71,13 @@ func resourceSpringCloudAppRedisBinding() *schema.Resource {
 			"ssl_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				Default:  true,
 			},
 		},
 	}
 }
 
-func resourceSpringCloudAppRedisBindingCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSpringCloudAppRedisAssociationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.BindingsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -86,7 +87,7 @@ func resourceSpringCloudAppRedisBindingCreateUpdate(d *schema.ResourceData, meta
 		return err
 	}
 
-	id := parse.NewSpringCloudAppBindingID(appId.SubscriptionId, appId.ResourceGroup, appId.SpringName, appId.AppName, d.Get("name").(string))
+	id := parse.NewSpringCloudAppAssociationID(appId.SubscriptionId, appId.ResourceGroup, appId.SpringName, appId.AppName, d.Get("name").(string))
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.AppName, id.BindingName)
 		if err != nil {
@@ -95,14 +96,14 @@ func resourceSpringCloudAppRedisBindingCreateUpdate(d *schema.ResourceData, meta
 			}
 		}
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_spring_cloud_app_redis_binding", id.ID())
+			return tf.ImportAsExistsError("azurerm_spring_cloud_app_redis_association", id.ID())
 		}
 	}
 
 	bindingResource := appplatform.BindingResource{
 		Properties: &appplatform.BindingResourceProperties{
 			BindingParameters: map[string]interface{}{
-				springCloudAppRedisBindingKeySSL: d.Get("ssl_enabled").(bool),
+				springCloudAppRedisAssociationKeySSL: d.Get("ssl_enabled").(bool),
 			},
 			Key:        utils.String(d.Get("redis_access_key").(string)),
 			ResourceID: utils.String(d.Get("redis_cache_id").(string)),
@@ -114,15 +115,15 @@ func resourceSpringCloudAppRedisBindingCreateUpdate(d *schema.ResourceData, meta
 	}
 
 	d.SetId(id.ID())
-	return resourceSpringCloudAppRedisBindingRead(d, meta)
+	return resourceSpringCloudAppRedisAssociationRead(d, meta)
 }
 
-func resourceSpringCloudAppRedisBindingRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSpringCloudAppRedisAssociationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.BindingsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SpringCloudAppBindingID(d.Id())
+	id, err := parse.SpringCloudAppAssociationID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -130,7 +131,7 @@ func resourceSpringCloudAppRedisBindingRead(d *schema.ResourceData, meta interfa
 	resp, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.AppName, id.BindingName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Spring Cloud App Binding %q does not exist - removing from state", d.Id())
+			log.Printf("[INFO] Spring Cloud App Association %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
@@ -143,7 +144,7 @@ func resourceSpringCloudAppRedisBindingRead(d *schema.ResourceData, meta interfa
 		d.Set("redis_cache_id", props.ResourceID)
 
 		enableSSL := "false"
-		if v, ok := props.BindingParameters[springCloudAppRedisBindingKeySSL]; ok {
+		if v, ok := props.BindingParameters[springCloudAppRedisAssociationKeySSL]; ok {
 			enableSSL = v.(string)
 		}
 		d.Set("ssl_enabled", strings.EqualFold(enableSSL, "true"))
@@ -151,12 +152,12 @@ func resourceSpringCloudAppRedisBindingRead(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func resourceSpringCloudAppRedisBindingDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSpringCloudAppRedisAssociationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.BindingsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SpringCloudAppBindingID(d.Id())
+	id, err := parse.SpringCloudAppAssociationID(d.Id())
 	if err != nil {
 		return err
 	}

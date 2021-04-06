@@ -4,7 +4,7 @@ package validate
 
 import "testing"
 
-func TestSpringCloudAppBindingID(t *testing.T) {
+func TestSpringCloudAppAssociationID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
@@ -90,7 +90,7 @@ func TestSpringCloudAppBindingID(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %s", tc.Input)
-		_, errors := SpringCloudAppBindingID(tc.Input, "test")
+		_, errors := SpringCloudAppAssociationID(tc.Input, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {

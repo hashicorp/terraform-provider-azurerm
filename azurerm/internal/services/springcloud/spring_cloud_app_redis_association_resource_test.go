@@ -14,12 +14,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-type SpringCloudAppRedisBindingResource struct {
+type SpringCloudAppRedisAssociationResource struct {
 }
 
-func TestAccSpringCloudAppRedisBinding_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_app_redis_binding", "test")
-	r := SpringCloudAppRedisBindingResource{}
+func TestAccSpringCloudAppRedisAssociation_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_app_redis_association", "test")
+	r := SpringCloudAppRedisAssociationResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -32,9 +32,9 @@ func TestAccSpringCloudAppRedisBinding_basic(t *testing.T) {
 	})
 }
 
-func TestAccSpringCloudAppRedisBinding_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_app_redis_binding", "test")
-	r := SpringCloudAppRedisBindingResource{}
+func TestAccSpringCloudAppRedisAssociation_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_app_redis_association", "test")
+	r := SpringCloudAppRedisAssociationResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -47,9 +47,24 @@ func TestAccSpringCloudAppRedisBinding_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccSpringCloudAppRedisBinding_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_app_redis_binding", "test")
-	r := SpringCloudAppRedisBindingResource{}
+func TestAccSpringCloudAppRedisAssociation_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_app_redis_association", "test")
+	r := SpringCloudAppRedisAssociationResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("redis_access_key"),
+	})
+}
+
+func TestAccSpringCloudAppRedisAssociation_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_app_redis_association", "test")
+	r := SpringCloudAppRedisAssociationResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -60,7 +75,14 @@ func TestAccSpringCloudAppRedisBinding_update(t *testing.T) {
 		},
 		data.ImportStep("redis_access_key"),
 		{
-			Config: r.update(data),
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("redis_access_key"),
+		{
+			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -69,8 +91,8 @@ func TestAccSpringCloudAppRedisBinding_update(t *testing.T) {
 	})
 }
 
-func (t SpringCloudAppRedisBindingResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.SpringCloudAppBindingID(state.ID)
+func (t SpringCloudAppRedisAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.SpringCloudAppAssociationID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -83,11 +105,11 @@ func (t SpringCloudAppRedisBindingResource) Exists(ctx context.Context, clients 
 	return utils.Bool(resp.Properties != nil), nil
 }
 
-func (r SpringCloudAppRedisBindingResource) basic(data acceptance.TestData) string {
+func (r SpringCloudAppRedisAssociationResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_spring_cloud_app_redis_binding" "test" {
+resource "azurerm_spring_cloud_app_redis_association" "test" {
   name                = "acctestscarb-%d"
   spring_cloud_app_id = azurerm_spring_cloud_app.test.id
   redis_cache_id      = azurerm_redis_cache.test.id
@@ -96,34 +118,34 @@ resource "azurerm_spring_cloud_app_redis_binding" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r SpringCloudAppRedisBindingResource) update(data acceptance.TestData) string {
+func (r SpringCloudAppRedisAssociationResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_spring_cloud_app_redis_binding" "test" {
-  name                = "acctestscarb-%d"
-  spring_cloud_app_id = azurerm_spring_cloud_app.test.id
-  redis_cache_id      = azurerm_redis_cache.test.id
-  redis_access_key    = azurerm_redis_cache.test.secondary_access_key
-  ssl_enabled         = true
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r SpringCloudAppRedisBindingResource) requiresImport(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_spring_cloud_app_redis_binding" "import" {
-  name                = azurerm_spring_cloud_app_redis_binding.test.name
-  spring_cloud_app_id = azurerm_spring_cloud_app_redis_binding.test.spring_cloud_app_id
-  redis_cache_id      = azurerm_spring_cloud_app_redis_binding.test.redis_cache_id
-  redis_access_key    = azurerm_spring_cloud_app_redis_binding.test.redis_access_key
+resource "azurerm_spring_cloud_app_redis_association" "import" {
+  name                = azurerm_spring_cloud_app_redis_association.test.name
+  spring_cloud_app_id = azurerm_spring_cloud_app_redis_association.test.spring_cloud_app_id
+  redis_cache_id      = azurerm_spring_cloud_app_redis_association.test.redis_cache_id
+  redis_access_key    = azurerm_spring_cloud_app_redis_association.test.redis_access_key
 }
 `, r.basic(data))
 }
 
-func (r SpringCloudAppRedisBindingResource) template(data acceptance.TestData) string {
+func (r SpringCloudAppRedisAssociationResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_spring_cloud_app_redis_association" "test" {
+  name                = "acctestscarb-%d"
+  spring_cloud_app_id = azurerm_spring_cloud_app.test.id
+  redis_cache_id      = azurerm_redis_cache.test.id
+  redis_access_key    = azurerm_redis_cache.test.secondary_access_key
+  ssl_enabled         = false
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r SpringCloudAppRedisAssociationResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

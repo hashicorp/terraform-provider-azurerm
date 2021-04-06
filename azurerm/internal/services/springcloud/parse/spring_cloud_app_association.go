@@ -9,7 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type SpringCloudAppBindingId struct {
+type SpringCloudAppAssociationId struct {
 	SubscriptionId string
 	ResourceGroup  string
 	SpringName     string
@@ -17,8 +17,8 @@ type SpringCloudAppBindingId struct {
 	BindingName    string
 }
 
-func NewSpringCloudAppBindingID(subscriptionId, resourceGroup, springName, appName, bindingName string) SpringCloudAppBindingId {
-	return SpringCloudAppBindingId{
+func NewSpringCloudAppAssociationID(subscriptionId, resourceGroup, springName, appName, bindingName string) SpringCloudAppAssociationId {
+	return SpringCloudAppAssociationId{
 		SubscriptionId: subscriptionId,
 		ResourceGroup:  resourceGroup,
 		SpringName:     springName,
@@ -27,7 +27,7 @@ func NewSpringCloudAppBindingID(subscriptionId, resourceGroup, springName, appNa
 	}
 }
 
-func (id SpringCloudAppBindingId) String() string {
+func (id SpringCloudAppAssociationId) String() string {
 	segments := []string{
 		fmt.Sprintf("Binding Name %q", id.BindingName),
 		fmt.Sprintf("App Name %q", id.AppName),
@@ -35,22 +35,22 @@ func (id SpringCloudAppBindingId) String() string {
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Spring Cloud App Binding", segmentsStr)
+	return fmt.Sprintf("%s: (%s)", "Spring Cloud App Association", segmentsStr)
 }
 
-func (id SpringCloudAppBindingId) ID() string {
+func (id SpringCloudAppAssociationId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.AppPlatform/Spring/%s/apps/%s/bindings/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.SpringName, id.AppName, id.BindingName)
 }
 
-// SpringCloudAppBindingID parses a SpringCloudAppBinding ID into an SpringCloudAppBindingId struct
-func SpringCloudAppBindingID(input string) (*SpringCloudAppBindingId, error) {
+// SpringCloudAppAssociationID parses a SpringCloudAppAssociation ID into an SpringCloudAppAssociationId struct
+func SpringCloudAppAssociationID(input string) (*SpringCloudAppAssociationId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceId := SpringCloudAppBindingId{
+	resourceId := SpringCloudAppAssociationId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}

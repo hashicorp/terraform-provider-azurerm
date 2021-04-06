@@ -8,21 +8,21 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
 
-var _ resourceid.Formatter = SpringCloudAppBindingId{}
+var _ resourceid.Formatter = SpringCloudAppAssociationId{}
 
-func TestSpringCloudAppBindingIDFormatter(t *testing.T) {
-	actual := NewSpringCloudAppBindingID("12345678-1234-9876-4563-123456789012", "resGroup1", "spring1", "app1", "bind1").ID()
+func TestSpringCloudAppAssociationIDFormatter(t *testing.T) {
+	actual := NewSpringCloudAppAssociationID("12345678-1234-9876-4563-123456789012", "resGroup1", "spring1", "app1", "bind1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.AppPlatform/Spring/spring1/apps/app1/bindings/bind1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestSpringCloudAppBindingID(t *testing.T) {
+func TestSpringCloudAppAssociationID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *SpringCloudAppBindingId
+		Expected *SpringCloudAppAssociationId
 	}{
 
 		{
@@ -94,7 +94,7 @@ func TestSpringCloudAppBindingID(t *testing.T) {
 		{
 			// valid
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.AppPlatform/Spring/spring1/apps/app1/bindings/bind1",
-			Expected: &SpringCloudAppBindingId{
+			Expected: &SpringCloudAppAssociationId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:  "resGroup1",
 				SpringName:     "spring1",
@@ -113,7 +113,7 @@ func TestSpringCloudAppBindingID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := SpringCloudAppBindingID(v.Input)
+		actual, err := SpringCloudAppAssociationID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
