@@ -648,7 +648,7 @@ func resourceMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error {
 			return fmt.Errorf("reading MsSql Database %s (MsSql Server Name %q / Resource Group %q): %s", id.Name, id.ServerName, id.ResourceGroup, err)
 		}
 
-		//For Datawarehouse SKUs, set the geo-backup policy setting
+		// For Datawarehouse SKUs, set the geo-backup policy setting
 		if strings.HasPrefix(skuName, "DW") && geoPoliciesResponse.GeoBackupPolicyProperties.State == sql.GeoBackupPolicyStateDisabled {
 			geoBackupPolicy = false
 		}
