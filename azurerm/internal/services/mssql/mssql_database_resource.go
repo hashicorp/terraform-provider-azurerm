@@ -292,7 +292,7 @@ func resourceMsSqlDatabase() *schema.Resource {
 				},
 			},
 
-			"geo_backup_policy": {
+			"geo_backup_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  true,
@@ -452,29 +452,29 @@ func resourceMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{})
 
 	d.SetId(*read.ID)
 
-	// For datawarehouse SKUs, set the geo-backup policy
-	if d.HasChange("geo_backup_policy") && strings.HasPrefix(skuName.(string), "DW") {
-		v := d.Get("geo_backup_policy").(bool)
-
+	// For datawarehouse SKUs only
+	if strings.HasPrefix(skuName.(string), "DW") && (d.HasChange("geo_backup_enabled") || d.IsNewResource()) {
+		isEnabled := d.Get("geo_backup_enabled").(bool)
 		var geoBackupPolicyState sql.GeoBackupPolicyState
 
-		if v {
-			geoBackupPolicyState = sql.GeoBackupPolicyStateEnabled
-		} else {
-			geoBackupPolicyState = sql.GeoBackupPolicyStateDisabled
-		}
+		// The default geo backup policy configuration for a new resource is 'enabled', so we don't need to set it in that scenario
+		if !(d.IsNewResource() && isEnabled) {
+			if isEnabled {
+				geoBackupPolicyState = sql.GeoBackupPolicyStateEnabled
+			} else {
+				geoBackupPolicyState = sql.GeoBackupPolicyStateDisabled
+			}
 
-		geoBackupPolicy := sql.GeoBackupPolicy{
-			GeoBackupPolicyProperties: &sql.GeoBackupPolicyProperties{
-				State: geoBackupPolicyState,
-			},
-		}
+			geoBackupPolicy := sql.GeoBackupPolicy{
+				GeoBackupPolicyProperties: &sql.GeoBackupPolicyProperties{
+					State: geoBackupPolicyState,
+				},
+			}
 
-		_, err := geoBackupPoliciesClient.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, name, geoBackupPolicy)
-		if err != nil {
-			return fmt.Errorf("Error issuing create/update request for Sql Server %q (Database %q) Geo backup policies (Resource Group %q): %+v", serverId.Name, name, serverId.ResourceGroup, err)
+			if _, err := geoBackupPoliciesClient.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, name, geoBackupPolicy); err != nil {
+				return fmt.Errorf("Error issuing create/update request for Sql Server %q (Database %q) Geo backup policies (Resource Group %q): %+v", serverId.Name, name, serverId.ResourceGroup, err)
+			}
 		}
-
 	}
 
 	if _, err = threatClient.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, name, *expandMsSqlServerThreatDetectionPolicy(d, location)); err != nil {
@@ -612,7 +612,7 @@ func resourceMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	geoBackupPolicy := true
-	
+
 	// Hyper Scale SKU's do not currently support LRP and do not honour normal SRP operations
 	if !strings.HasPrefix(skuName, "HS") && !strings.HasPrefix(skuName, "DW") {
 		longTermPolicy, err := longTermRetentionClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
@@ -649,15 +649,15 @@ func resourceMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		//For Datawarehouse SKUs, set the geo-backup policy setting
-		if (strings.HasPrefix(skuName, "DW") && geoPoliciesResponse.GeoBackupPolicyProperties.State == sql.GeoBackupPolicyStateDisabled) {
+		if strings.HasPrefix(skuName, "DW") && geoPoliciesResponse.GeoBackupPolicyProperties.State == sql.GeoBackupPolicyStateDisabled {
 			geoBackupPolicy = false
 		}
 	}
 
-	if err := d.Set("geo_backup_policy", geoBackupPolicy); err != nil {
-		return fmt.Errorf("failure in setting `geo_backup_policy`: %+v", err)
+	if err := d.Set("geo_backup_enabled", geoBackupPolicy); err != nil {
+		return fmt.Errorf("failure in setting `geo_backup_enabled`: %+v", err)
 	}
-	
+
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
