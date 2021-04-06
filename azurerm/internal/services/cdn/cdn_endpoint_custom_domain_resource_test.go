@@ -161,16 +161,7 @@ func TestAccCdnEndpointCustomDomain_httpsCdnUpdate(t *testing.T) {
 	})
 }
 
-func TestAccCdnEndpointCustomDomain_httpsUserManaged(t *testing.T) {
-	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
-		"user_managed": {
-			"basic":  testAccCdnEndpointCustomDomain_httpsUserManagedBasic,
-			"update": testAccCdnEndpointCustomDomain_httpsUserManagedUpdate,
-		},
-	})
-}
-
-func testAccCdnEndpointCustomDomain_httpsUserManagedBasic(t *testing.T) {
+func TestAccCdnEndpointCustomDomain_httpsUserManagedBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
 
 	preCheckUserManagedCertificate(t)
@@ -190,7 +181,7 @@ func testAccCdnEndpointCustomDomain_httpsUserManagedBasic(t *testing.T) {
 	})
 }
 
-func testAccCdnEndpointCustomDomain_httpsUserManagedUpdate(t *testing.T) {
+func TestAccCdnEndpointCustomDomain_httpsUserManagedUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
 
 	preCheckUserManagedCertificate(t)
