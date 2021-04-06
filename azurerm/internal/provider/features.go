@@ -200,6 +200,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			if v, ok := scaleSetRaw["roll_instances_when_required"]; ok {
 				features.VirtualMachineScaleSet.RollInstancesWhenRequired = v.(bool)
 			}
+			if v, ok := scaleSetRaw["force_delete"]; ok {
+				features.VirtualMachineScaleSet.ForceDelete = v.(bool)
+			}
 		}
 	}
 

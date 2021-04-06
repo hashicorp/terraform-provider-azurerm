@@ -216,4 +216,8 @@ The `virtual_machine` block supports the following:
 
 The `virtual_machine_scale_set` block supports the following:
 
+* `force_delete` - Should the `azurerm_linux_virtual_machine_scale_set` and `azurerm_windows_virtual_machine_scale_set` resources send a `Force Delete` flag when deleting the Virtual Machine Scale Set? This can help to work around issues within the Azure Platform during deletion of a Virtual Machine Scale Set. Defaults to `false`.
+
+~> **Note:** Support for Force Delete is in an opt-in Preview.
+
 * `roll_instances_when_required` - (Optional) Should the `azurerm_linux_virtual_machine_scale_set` and `azurerm_windows_virtual_machine_scale_set` resources automatically roll the instances in the Scale Set when Required (for example when updating the Sku/Image). Defaults to `true`.
