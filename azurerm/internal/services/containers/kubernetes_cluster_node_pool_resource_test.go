@@ -1101,18 +1101,18 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   node_count            = 1
 
   kubelet_config {
-    cpu_manager_policy        = "static"
-    cpu_cfs_quota_enabled     = true
-    cpu_cfs_quota_period      = "10ms"
+    cpu_manager_policy    = "static"
+    cpu_cfs_quota_enabled = true
+    cpu_cfs_quota_period  = "10ms"
   }
 
   linux_os_config {
     transparent_huge_page_enabled = "always"
 
     sysctl_config {
-      fs_aio_max_nr                      = 65536
-      fs_file_max                        = 100000
-      fs_inotify_max_user_watches        = 1000000
+      fs_aio_max_nr               = 65536
+      fs_file_max                 = 100000
+      fs_inotify_max_user_watches = 1000000
     }
   }
 }
