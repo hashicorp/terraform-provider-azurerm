@@ -71,12 +71,14 @@ func resourcePostgresqlFlexibleServer() *schema.Resource {
 			"sku_name": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				Computed:     true,
 				ValidateFunc: validate.FlexibleServerSkuName,
 			},
 
 			"sku_tier": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(postgresqlflexibleservers.Burstable),
 					string(postgresqlflexibleservers.GeneralPurpose),
@@ -478,7 +480,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *schema.ResourceData, meta interfa
 		parameters.ServerPropertiesForUpdate.MaintenanceWindow = expandArmServerMaintenanceWindow(d.Get("maintenance_window").([]interface{}))
 	}
 
-	if d.HasChange("sku") {
+	if d.HasChange("sku_name") || d.HasChange("sku_tier") {
 		parameters.Sku = expandArmServerSku(d.Get("sku_name").(string), d.Get("sku_tier").(string))
 	}
 
