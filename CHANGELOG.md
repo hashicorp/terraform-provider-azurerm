@@ -9,9 +9,9 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* `azurerm_eventgrid_data_connection` - support for the `table_name`, `mapping_rule_name`, and `data_format` properties [GH-11157]
 * `azurerm_hpc_cache_nfs_target` - support for the `access_policy_name` property [GH-11186]
 * `azurerm_private_endpoint` - allows for an alias to specified [GH-10779]
-
 
 BUG FIXES:
 
