@@ -69,7 +69,7 @@ func TestAccSpringCloudAppMysqlAssociation_update(t *testing.T) {
 	})
 }
 
-func (t SpringCloudAppMysqlAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r SpringCloudAppMysqlAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.SpringCloudAppAssociationID(state.ID)
 	if err != nil {
 		return nil, err
@@ -133,7 +133,7 @@ resource "azurerm_spring_cloud_app_mysql_association" "test" {
   username            = azurerm_mysql_server.test.administrator_login
   password            = azurerm_mysql_server.test.administrator_login_password
 }
-`, r.basic(data), data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
 func (r SpringCloudAppMysqlAssociationResource) template(data acceptance.TestData) string {
