@@ -111,10 +111,10 @@ func (r LiveOutputResource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_media_live_event_output" "test" {
-  name                        = "Output-1"
-  live_event_id               = azurerm_media_live_event.test.id
-  archive_window_duration     = "PT5M"
-  asset_name                  = azurerm_media_asset.test.name
+  name                    = "Output-1"
+  live_event_id           = azurerm_media_live_event.test.id
+  archive_window_duration = "PT5M"
+  asset_name              = azurerm_media_asset.test.name
 }
 
 `, r.template(data))
@@ -125,10 +125,10 @@ func (r LiveOutputResource) requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_media_live_event_output" "import" {
-  name                        = azurerm_media_live_event_output.test.name
-  live_event_id               = azurerm_media_live_event.test.id
-  archive_window_duration     = "PT5M"
-  asset_name                  = azurerm_media_asset.test.name
+  name                    = azurerm_media_live_event_output.test.name
+  live_event_id           = azurerm_media_live_event.test.id
+  archive_window_duration = "PT5M"
+  asset_name              = azurerm_media_asset.test.name
 }
 
 `, r.basic(data))
