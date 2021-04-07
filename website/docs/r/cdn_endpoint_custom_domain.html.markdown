@@ -2,7 +2,8 @@
 subcategory: "CDN"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cdn_endpoint_custom_domain"
-description: |- Manages a CDN Endpoint Custom Domain.
+description: |-
+  Manages a CDN Endpoint Custom Domain.
 ---
 
 # azurerm_cdn_endpoint_custom_domain
