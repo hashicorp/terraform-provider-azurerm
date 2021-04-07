@@ -2,6 +2,9 @@ package mssql
 
 import (
 	"fmt"
+	"log"
+	"time"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -13,8 +16,6 @@ import (
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"log"
-	"time"
 )
 
 func resourceMsSqlJobAgent() *schema.Resource {
@@ -38,10 +39,10 @@ func resourceMsSqlJobAgent() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				// ValidateFunc: azure.ValidateMsSqlServerName,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.ValidateMsSqlJobAgentName,
 			},
 
 			"database_id": {
@@ -62,7 +63,6 @@ func resourceMsSqlJobAgent() *schema.Resource {
 
 func resourceMsSqlJobAgentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.JobAgentsClient
-	//databaseClient := meta.(*clients.Client).MSSQL.ServersClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -96,22 +96,69 @@ func resourceMsSqlJobAgentCreateUpdate(d *schema.ResourceData, meta interface{})
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resGroup, dbId.Name, name, params)
+	future, err := client.CreateOrUpdate(ctx, resGroup, dbId.ServerName, name, params)
 	if err != nil {
-		return fmt.Errorf("creating MsSql Database %q (Sql Server %q / Resource Group %q): %+v", name, dbId.ServerName, dbId.ResourceGroup, err)
+		return fmt.Errorf("creating MsSql Job Agent %q (Sql Server %q / Resource Group %q): %+v", name, dbId.ServerName, dbId.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for creation of Job Agent %q (MsSql Server Name %q / Resource Group %q): %+v", name, dbId.ServerName, resGroup, err)
 	}
 
-	return nil
+	resp, err := client.Get(ctx, dbId.ResourceGroup, dbId.ServerName, name)
+	if err != nil {
+		return fmt.Errorf("reading request for Job Agent %q (MsSql Server Name %q / Resource Group %q): %+v", name, dbId.ServerName, resGroup, err)
+	}
+
+	d.SetId(*resp.ID)
+
+	return resourceMsSqlJobAgentRead(d, meta)
 }
 
 func resourceMsSqlJobAgentRead(d *schema.ResourceData, meta interface{}) error {
-	return nil
+	client := meta.(*clients.Client).MSSQL.JobAgentsClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.JobAgentID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			d.SetId("")
+			return nil
+		}
+		return fmt.Errorf("reading MsSql Job Agent %s (MsSql Server Name %q / Resource Group %q): %s", id.Name, id.ServerName, id.ResourceGroup, err)
+	}
+
+	d.Set("name", resp.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
+	if location := resp.Location; location != nil {
+		d.Set("location", azure.NormalizeLocation(*location))
+	}
+
+	d.Set("database_id", resp.DatabaseID)
+
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceMsSqlJobAgentDelete(d *schema.ResourceData, meta interface{}) error {
-	return nil
+	client := meta.(*clients.Client).MSSQL.JobAgentsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.JobAgentID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	future, err := client.Delete(ctx, id.ResourceGroup, id.ServerName, id.Name)
+	if err != nil {
+		return fmt.Errorf("deleting Job Agent %s: %+v", id.Name, err)
+	}
+
+	return future.WaitForCompletionRef(ctx, client.Client)
 }
