@@ -90,15 +90,15 @@ func dataSourceStorageManagementPolicy() *schema.Resource {
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"tier_to_cool_after_days_since_modification_greater_than": {
-													Type:     schema.TypeFloat,
+													Type:     schema.TypeInt,
 													Computed: true,
 												},
 												"tier_to_archive_after_days_since_modification_greater_than": {
-													Type:     schema.TypeFloat,
+													Type:     schema.TypeInt,
 													Computed: true,
 												},
 												"delete_after_days_since_modification_greater_than": {
-													Type:     schema.TypeFloat,
+													Type:     schema.TypeInt,
 													Computed: true,
 												},
 											},
@@ -110,15 +110,15 @@ func dataSourceStorageManagementPolicy() *schema.Resource {
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"delete_after_days_since_creation_greater_than": {
-													Type:     schema.TypeFloat,
+													Type:     schema.TypeInt,
 													Computed: true,
 												},
 												"tier_to_archive_after_days_since_creation_greater_than": {
-													Type:     schema.TypeFloat,
+													Type:     schema.TypeInt,
 													Computed: true,
 												},
 												"tier_to_cool_after_days_since_creation_greater_than": {
-													Type:     schema.TypeFloat,
+													Type:     schema.TypeInt,
 													Optional: true,
 													Computed: true,
 												},
@@ -131,15 +131,15 @@ func dataSourceStorageManagementPolicy() *schema.Resource {
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"delete_after_days_since_creation_greater_than": {
-													Type:     schema.TypeFloat,
+													Type:     schema.TypeInt,
 													Computed: true,
 												},
 												"tier_to_archive_after_days_since_creation_greater_than": {
-													Type:     schema.TypeFloat,
+													Type:     schema.TypeInt,
 													Computed: true,
 												},
 												"tier_to_cool_after_days_since_creation_greater_than": {
-													Type:     schema.TypeFloat,
+													Type:     schema.TypeInt,
 													Computed: true,
 												},
 											},

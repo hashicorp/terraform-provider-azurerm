@@ -126,22 +126,22 @@ func resourceStorageManagementPolicy() *schema.Resource {
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"tier_to_cool_after_days_since_modification_greater_than": {
-													Type:         schema.TypeFloat,
+													Type:         schema.TypeInt,
 													Optional:     true,
 													Default:      -1,
-													ValidateFunc: validation.FloatBetween(0, 99999),
+													ValidateFunc: validation.IntBetween(0, 99999),
 												},
 												"tier_to_archive_after_days_since_modification_greater_than": {
-													Type:         schema.TypeFloat,
+													Type:         schema.TypeInt,
 													Optional:     true,
 													Default:      -1,
-													ValidateFunc: validation.FloatBetween(0, 99999),
+													ValidateFunc: validation.IntBetween(0, 99999),
 												},
 												"delete_after_days_since_modification_greater_than": {
-													Type:         schema.TypeFloat,
+													Type:         schema.TypeInt,
 													Optional:     true,
 													Default:      -1,
-													ValidateFunc: validation.FloatBetween(0, 99999),
+													ValidateFunc: validation.IntBetween(0, 99999),
 												},
 											},
 										},
@@ -153,22 +153,22 @@ func resourceStorageManagementPolicy() *schema.Resource {
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"delete_after_days_since_creation_greater_than": {
-													Type:         schema.TypeFloat,
+													Type:         schema.TypeInt,
 													Optional:     true,
 													Default:      -1,
-													ValidateFunc: validation.FloatBetween(0, 99999),
+													ValidateFunc: validation.IntBetween(0, 99999),
 												},
 												"tier_to_archive_after_days_since_creation_greater_than": {
-													Type:         schema.TypeFloat,
+													Type:         schema.TypeInt,
 													Optional:     true,
 													Default:      -1,
-													ValidateFunc: validation.FloatBetween(0, 99999),
+													ValidateFunc: validation.IntBetween(0, 99999),
 												},
 												"tier_to_cool_after_days_since_creation_greater_than": {
-													Type:         schema.TypeFloat,
+													Type:         schema.TypeInt,
 													Optional:     true,
 													Default:      -1,
-													ValidateFunc: validation.FloatBetween(0, 99999),
+													ValidateFunc: validation.IntBetween(0, 99999),
 												},
 											},
 										},
@@ -180,22 +180,22 @@ func resourceStorageManagementPolicy() *schema.Resource {
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"delete_after_days_since_creation_greater_than": {
-													Type:         schema.TypeFloat,
+													Type:         schema.TypeInt,
 													Optional:     true,
 													Default:      -1,
-													ValidateFunc: validation.FloatBetween(0, 99999),
+													ValidateFunc: validation.IntBetween(0, 99999),
 												},
 												"tier_to_archive_after_days_since_creation_greater_than": {
-													Type:         schema.TypeFloat,
+													Type:         schema.TypeInt,
 													Optional:     true,
 													Default:      -1,
-													ValidateFunc: validation.FloatBetween(0, 99999),
+													ValidateFunc: validation.IntBetween(0, 99999),
 												},
 												"tier_to_cool_after_days_since_creation_greater_than": {
-													Type:         schema.TypeFloat,
+													Type:         schema.TypeInt,
 													Optional:     true,
 													Default:      -1,
-													ValidateFunc: validation.FloatBetween(0, 99999),
+													ValidateFunc: validation.IntBetween(0, 99999),
 												},
 											},
 										},
@@ -369,19 +369,19 @@ func expandStorageManagementPolicyActionsBaseBlob(inputs []interface{}) *storage
 	input := inputs[0].(map[string]interface{})
 	result := storage.ManagementPolicyBaseBlob{}
 
-	if v, ok := input["delete_after_days_since_modification_greater_than"].(float64); ok && v != -1 {
+	if v, ok := input["delete_after_days_since_modification_greater_than"].(int); ok && v != -1 {
 		result.Delete = &storage.DateAfterModification{
-			DaysAfterModificationGreaterThan: utils.Float(v),
+			DaysAfterModificationGreaterThan: utils.Float(float64(v)),
 		}
 	}
-	if v, ok := input["tier_to_archive_after_days_since_modification_greater_than"].(float64); ok && v != -1 {
+	if v, ok := input["tier_to_archive_after_days_since_modification_greater_than"].(int); ok && v != -1 {
 		result.TierToArchive = &storage.DateAfterModification{
-			DaysAfterModificationGreaterThan: utils.Float(v),
+			DaysAfterModificationGreaterThan: utils.Float(float64(v)),
 		}
 	}
-	if v, ok := input["tier_to_cool_after_days_since_modification_greater_than"].(float64); ok && v != -1 {
+	if v, ok := input["tier_to_cool_after_days_since_modification_greater_than"].(int); ok && v != -1 {
 		result.TierToCool = &storage.DateAfterModification{
-			DaysAfterModificationGreaterThan: utils.Float(v),
+			DaysAfterModificationGreaterThan: utils.Float(float64(v)),
 		}
 	}
 
@@ -396,19 +396,19 @@ func expandStorageManagementPolicyActionsSnapshot(inputs []interface{}) *storage
 
 	result := storage.ManagementPolicySnapShot{}
 
-	if v, ok := input["delete_after_days_since_creation_greater_than"].(float64); ok && v != -1 {
+	if v, ok := input["delete_after_days_since_creation_greater_than"].(int); ok && v != -1 {
 		result.Delete = &storage.DateAfterCreation{
-			DaysAfterCreationGreaterThan: utils.Float(v),
+			DaysAfterCreationGreaterThan: utils.Float(float64(v)),
 		}
 	}
-	if v, ok := input["tier_to_archive_after_days_since_creation_greater_than"].(float64); ok && v != -1 {
+	if v, ok := input["tier_to_archive_after_days_since_creation_greater_than"].(int); ok && v != -1 {
 		result.TierToArchive = &storage.DateAfterCreation{
-			DaysAfterCreationGreaterThan: utils.Float(v),
+			DaysAfterCreationGreaterThan: utils.Float(float64(v)),
 		}
 	}
-	if v, ok := input["tier_to_cool_after_days_since_creation_greater_than"].(float64); ok && v != -1 {
+	if v, ok := input["tier_to_cool_after_days_since_creation_greater_than"].(int); ok && v != -1 {
 		result.TierToCool = &storage.DateAfterCreation{
-			DaysAfterCreationGreaterThan: utils.Float(v),
+			DaysAfterCreationGreaterThan: utils.Float(float64(v)),
 		}
 	}
 
@@ -423,19 +423,19 @@ func expandStorageManagementPolicyActionsVersion(inputs []interface{}) *storage.
 
 	result := storage.ManagementPolicyVersion{}
 
-	if v, ok := input["delete_after_days_since_creation_greater_than"].(float64); ok && v != -1 {
+	if v, ok := input["delete_after_days_since_creation_greater_than"].(int); ok && v != -1 {
 		result.Delete = &storage.DateAfterCreation{
-			DaysAfterCreationGreaterThan: utils.Float(v),
+			DaysAfterCreationGreaterThan: utils.Float(float64(v)),
 		}
 	}
-	if v, ok := input["tier_to_archive_after_days_since_creation_greater_than"].(float64); ok && v != -1 {
+	if v, ok := input["tier_to_archive_after_days_since_creation_greater_than"].(int); ok && v != -1 {
 		result.TierToArchive = &storage.DateAfterCreation{
-			DaysAfterCreationGreaterThan: utils.Float(v),
+			DaysAfterCreationGreaterThan: utils.Float(float64(v)),
 		}
 	}
-	if v, ok := input["tier_to_cool_after_days_since_creation_greater_than"].(float64); ok && v != -1 {
+	if v, ok := input["tier_to_cool_after_days_since_creation_greater_than"].(int); ok && v != -1 {
 		result.TierToCool = &storage.DateAfterCreation{
-			DaysAfterCreationGreaterThan: utils.Float(v),
+			DaysAfterCreationGreaterThan: utils.Float(float64(v)),
 		}
 	}
 
@@ -507,20 +507,20 @@ func flattenStorageManagementPolicyActionsBaseBlob(baseBlob *storage.ManagementP
 		return []interface{}{}
 	}
 
-	deleteModification, archiveModification, coolModification := float64(-1), float64(-1), float64(-1)
+	deleteModification, archiveModification, coolModification := -1, -1, -1
 	if v := baseBlob.Delete; v != nil {
 		if v.DaysAfterModificationGreaterThan != nil {
-			deleteModification = *v.DaysAfterModificationGreaterThan
+			deleteModification = int(*v.DaysAfterModificationGreaterThan)
 		}
 	}
 	if v := baseBlob.TierToArchive; v != nil {
 		if v.DaysAfterModificationGreaterThan != nil {
-			archiveModification = *v.DaysAfterModificationGreaterThan
+			archiveModification = int(*v.DaysAfterModificationGreaterThan)
 		}
 	}
 	if v := baseBlob.TierToCool; v != nil {
 		if v.DaysAfterModificationGreaterThan != nil {
-			coolModification = *v.DaysAfterModificationGreaterThan
+			coolModification = int(*v.DaysAfterModificationGreaterThan)
 		}
 	}
 
@@ -538,20 +538,20 @@ func flattenStorageManagementPolicyActionsSnapshot(snapshot *storage.ManagementP
 		return []interface{}{}
 	}
 
-	deleteCreation, archiveCreation, coolCreation := float64(-1), float64(-1), float64(-1)
+	deleteCreation, archiveCreation, coolCreation := -1, -1, -1
 	if v := snapshot.Delete; v != nil {
 		if v.DaysAfterCreationGreaterThan != nil {
-			deleteCreation = *v.DaysAfterCreationGreaterThan
+			deleteCreation = int(*v.DaysAfterCreationGreaterThan)
 		}
 	}
 	if v := snapshot.TierToArchive; v != nil {
 		if v.DaysAfterCreationGreaterThan != nil {
-			archiveCreation = *v.DaysAfterCreationGreaterThan
+			archiveCreation = int(*v.DaysAfterCreationGreaterThan)
 		}
 	}
 	if v := snapshot.TierToCool; v != nil {
 		if v.DaysAfterCreationGreaterThan != nil {
-			coolCreation = *v.DaysAfterCreationGreaterThan
+			coolCreation = int(*v.DaysAfterCreationGreaterThan)
 		}
 	}
 
@@ -569,20 +569,20 @@ func flattenStorageManagementPolicyActionsVersion(version *storage.ManagementPol
 		return []interface{}{}
 	}
 
-	deleteCreation, archiveCreation, coolCreation := float64(-1), float64(-1), float64(-1)
+	deleteCreation, archiveCreation, coolCreation := -1, -1, -1
 	if v := version.Delete; v != nil {
 		if v.DaysAfterCreationGreaterThan != nil {
-			deleteCreation = *v.DaysAfterCreationGreaterThan
+			deleteCreation = int(*v.DaysAfterCreationGreaterThan)
 		}
 	}
 	if v := version.TierToArchive; v != nil {
 		if v.DaysAfterCreationGreaterThan != nil {
-			archiveCreation = *v.DaysAfterCreationGreaterThan
+			archiveCreation = int(*v.DaysAfterCreationGreaterThan)
 		}
 	}
 	if v := version.TierToCool; v != nil {
 		if v.DaysAfterCreationGreaterThan != nil {
-			coolCreation = *v.DaysAfterCreationGreaterThan
+			coolCreation = int(*v.DaysAfterCreationGreaterThan)
 		}
 	}
 

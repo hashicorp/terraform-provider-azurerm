@@ -63,19 +63,19 @@ resource "azurerm_storage_management_policy" "example" {
     }
     actions {
       base_blob {
-        tier_to_cool_after_days_since_modification_greater_than    = 10.4
-        tier_to_archive_after_days_since_modification_greater_than = 50.89
-        delete_after_days_since_modification_greater_than          = 100.13
+        tier_to_cool_after_days_since_modification_greater_than    = 10
+        tier_to_archive_after_days_since_modification_greater_than = 50
+        delete_after_days_since_modification_greater_than          = 100
       }
       snapshot {
-        delete_after_days_since_creation_greater_than          = 30.3
-        tier_to_archive_after_days_since_creation_greater_than = 90.8
-        tier_to_cool_after_days_since_creation_greater_than    = 23.8
+        delete_after_days_since_creation_greater_than          = 30
+        tier_to_archive_after_days_since_creation_greater_than = 90
+        tier_to_cool_after_days_since_creation_greater_than    = 23
       }
       version {
-        delete_after_days_since_creation_greater_than          = 3.4
-        tier_to_archive_after_days_since_creation_greater_than = 9.8
-        tier_to_cool_after_days_since_creation_greater_than    = 90.3
+        delete_after_days_since_creation_greater_than          = 3
+        tier_to_archive_after_days_since_creation_greater_than = 9
+        tier_to_cool_after_days_since_creation_greater_than    = 90
       }
     }
   }

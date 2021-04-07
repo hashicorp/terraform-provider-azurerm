@@ -25,6 +25,19 @@ func TestAccStorageManagementPolicy_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("rule.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.name").HasValue("rule1"),
+				check.That(data.ResourceName).Key("rule.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("rule.0.filters.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.filters.0.prefix_match.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.filters.0.blob_types.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.actions.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.base_blob.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.base_blob.0.tier_to_cool_after_days_since_modification_greater_than").HasValue("10"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.base_blob.0.tier_to_archive_after_days_since_modification_greater_than").HasValue("50"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.base_blob.0.delete_after_days_since_modification_greater_than").HasValue("100"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.snapshot.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.snapshot.0.delete_after_days_since_creation_greater_than").HasValue("30"),
 			),
 		},
 		data.ImportStep(),
@@ -40,6 +53,17 @@ func TestAccStorageManagementPolicy_singleAction(t *testing.T) {
 			Config: r.singleAction(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("rule.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.name").HasValue("singleActionRule"),
+				check.That(data.ResourceName).Key("rule.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("rule.0.filters.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.filters.0.prefix_match.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.filters.0.blob_types.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.actions.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.base_blob.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.base_blob.0.tier_to_cool_after_days_since_modification_greater_than").HasValue("10"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.snapshot.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.snapshot.0.delete_after_days_since_creation_greater_than").HasValue("30"),
 			),
 		},
 		data.ImportStep(),
@@ -55,6 +79,17 @@ func TestAccStorageManagementPolicy_singleActionUpdate(t *testing.T) {
 			Config: r.singleAction(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("rule.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.name").HasValue("singleActionRule"),
+				check.That(data.ResourceName).Key("rule.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("rule.0.filters.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.filters.0.prefix_match.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.filters.0.blob_types.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.actions.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.base_blob.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.base_blob.0.tier_to_cool_after_days_since_modification_greater_than").HasValue("10"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.snapshot.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.snapshot.0.delete_after_days_since_creation_greater_than").HasValue("30"),
 			),
 		},
 		data.ImportStep(),
@@ -62,6 +97,17 @@ func TestAccStorageManagementPolicy_singleActionUpdate(t *testing.T) {
 			Config: r.singleActionUpdate(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("rule.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.name").HasValue("singleActionRule"),
+				check.That(data.ResourceName).Key("rule.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("rule.0.filters.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.filters.0.prefix_match.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.filters.0.blob_types.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.actions.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.base_blob.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.base_blob.0.delete_after_days_since_modification_greater_than").HasValue("30"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.snapshot.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.snapshot.0.delete_after_days_since_creation_greater_than").HasValue("30"),
 			),
 		},
 		data.ImportStep(),
@@ -77,6 +123,35 @@ func TestAccStorageManagementPolicy_multipleRule(t *testing.T) {
 			Config: r.multipleRule(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("rule.#").HasValue("2"),
+
+				// Rule1
+				check.That(data.ResourceName).Key("rule.0.name").HasValue("rule1"),
+				check.That(data.ResourceName).Key("rule.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("rule.0.filters.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.filters.0.prefix_match.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.filters.0.blob_types.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.actions.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.base_blob.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.base_blob.0.tier_to_cool_after_days_since_modification_greater_than").HasValue("10"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.base_blob.0.tier_to_archive_after_days_since_modification_greater_than").HasValue("50"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.base_blob.0.delete_after_days_since_modification_greater_than").HasValue("100"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.snapshot.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.snapshot.0.delete_after_days_since_creation_greater_than").HasValue("30"),
+
+				// Rule2
+				check.That(data.ResourceName).Key("rule.1.name").HasValue("rule2"),
+				check.That(data.ResourceName).Key("rule.1.enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("rule.1.filters.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.1.filters.0.prefix_match.#").HasValue("2"),
+				check.That(data.ResourceName).Key("rule.1.filters.0.blob_types.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.1.actions.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.1.actions.0.base_blob.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.1.actions.0.base_blob.0.tier_to_cool_after_days_since_modification_greater_than").HasValue("11"),
+				check.That(data.ResourceName).Key("rule.1.actions.0.base_blob.0.tier_to_archive_after_days_since_modification_greater_than").HasValue("51"),
+				check.That(data.ResourceName).Key("rule.1.actions.0.base_blob.0.delete_after_days_since_modification_greater_than").HasValue("101"),
+				check.That(data.ResourceName).Key("rule.1.actions.0.snapshot.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.1.actions.0.snapshot.0.delete_after_days_since_creation_greater_than").HasValue("31"),
 			),
 		},
 		data.ImportStep(),
@@ -92,6 +167,35 @@ func TestAccStorageManagementPolicy_updateMultipleRule(t *testing.T) {
 			Config: r.multipleRule(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("rule.#").HasValue("2"),
+
+				// Rule1
+				check.That(data.ResourceName).Key("rule.0.name").HasValue("rule1"),
+				check.That(data.ResourceName).Key("rule.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("rule.0.filters.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.filters.0.prefix_match.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.filters.0.blob_types.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.actions.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.base_blob.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.base_blob.0.tier_to_cool_after_days_since_modification_greater_than").HasValue("10"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.base_blob.0.tier_to_archive_after_days_since_modification_greater_than").HasValue("50"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.base_blob.0.delete_after_days_since_modification_greater_than").HasValue("100"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.snapshot.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.snapshot.0.delete_after_days_since_creation_greater_than").HasValue("30"),
+
+				// Rule2
+				check.That(data.ResourceName).Key("rule.1.name").HasValue("rule2"),
+				check.That(data.ResourceName).Key("rule.1.enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("rule.1.filters.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.1.filters.0.prefix_match.#").HasValue("2"),
+				check.That(data.ResourceName).Key("rule.1.filters.0.blob_types.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.1.actions.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.1.actions.0.base_blob.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.1.actions.0.base_blob.0.tier_to_cool_after_days_since_modification_greater_than").HasValue("11"),
+				check.That(data.ResourceName).Key("rule.1.actions.0.base_blob.0.tier_to_archive_after_days_since_modification_greater_than").HasValue("51"),
+				check.That(data.ResourceName).Key("rule.1.actions.0.base_blob.0.delete_after_days_since_modification_greater_than").HasValue("101"),
+				check.That(data.ResourceName).Key("rule.1.actions.0.snapshot.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.1.actions.0.snapshot.0.delete_after_days_since_creation_greater_than").HasValue("31"),
 			),
 		},
 		data.ImportStep(),
@@ -99,6 +203,35 @@ func TestAccStorageManagementPolicy_updateMultipleRule(t *testing.T) {
 			Config: r.multipleRuleUpdated(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("rule.#").HasValue("2"),
+
+				// Rule1
+				check.That(data.ResourceName).Key("rule.0.name").HasValue("rule1"),
+				check.That(data.ResourceName).Key("rule.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("rule.0.filters.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.filters.0.prefix_match.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.filters.0.blob_types.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.actions.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.base_blob.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.base_blob.0.tier_to_cool_after_days_since_modification_greater_than").HasValue("10"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.base_blob.0.tier_to_archive_after_days_since_modification_greater_than").HasValue("50"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.base_blob.0.delete_after_days_since_modification_greater_than").HasValue("100"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.snapshot.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.snapshot.0.delete_after_days_since_creation_greater_than").HasValue("30"),
+
+				// Rule2
+				check.That(data.ResourceName).Key("rule.1.name").HasValue("rule2"),
+				check.That(data.ResourceName).Key("rule.1.enabled").HasValue("true"), // check updated
+				check.That(data.ResourceName).Key("rule.1.filters.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.1.filters.0.prefix_match.#").HasValue("2"),
+				check.That(data.ResourceName).Key("rule.1.filters.0.blob_types.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.1.actions.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.1.actions.0.base_blob.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.1.actions.0.base_blob.0.tier_to_cool_after_days_since_modification_greater_than").HasValue("12"),    // check updated
+				check.That(data.ResourceName).Key("rule.1.actions.0.base_blob.0.tier_to_archive_after_days_since_modification_greater_than").HasValue("52"), // check updated
+				check.That(data.ResourceName).Key("rule.1.actions.0.base_blob.0.delete_after_days_since_modification_greater_than").HasValue("102"),         // check updated
+				check.That(data.ResourceName).Key("rule.1.actions.0.snapshot.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.1.actions.0.snapshot.0.delete_after_days_since_creation_greater_than").HasValue("32"), // check updated
 			),
 		},
 		data.ImportStep(),
@@ -114,6 +247,17 @@ func TestAccStorageManagementPolicy_blobTypes(t *testing.T) {
 			Config: r.blobTypes(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("rule.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.name").HasValue("rule1"),
+				check.That(data.ResourceName).Key("rule.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("rule.0.filters.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.filters.0.prefix_match.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.filters.0.blob_types.#").HasValue("2"),
+				check.That(data.ResourceName).Key("rule.0.actions.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.base_blob.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.base_blob.0.delete_after_days_since_modification_greater_than").HasValue("100"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.snapshot.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.snapshot.0.delete_after_days_since_creation_greater_than").HasValue("30"),
 			),
 		},
 		data.ImportStep(),
@@ -652,19 +796,19 @@ resource "azurerm_storage_management_policy" "test" {
     }
     actions {
       base_blob {
-        tier_to_cool_after_days_since_modification_greater_than    = 10.4
-        tier_to_archive_after_days_since_modification_greater_than = 50.89
-        delete_after_days_since_modification_greater_than          = 100.13
+        tier_to_cool_after_days_since_modification_greater_than    = 10
+        tier_to_archive_after_days_since_modification_greater_than = 50
+        delete_after_days_since_modification_greater_than          = 100
       }
       snapshot {
-        delete_after_days_since_creation_greater_than          = 30.3
-        tier_to_archive_after_days_since_creation_greater_than = 90.8
-        tier_to_cool_after_days_since_creation_greater_than    = 23.8
+        delete_after_days_since_creation_greater_than          = 30
+        tier_to_archive_after_days_since_creation_greater_than = 90
+        tier_to_cool_after_days_since_creation_greater_than    = 23
       }
       version {
-        delete_after_days_since_creation_greater_than          = 3.4
-        tier_to_archive_after_days_since_creation_greater_than = 9.8
-        tier_to_cool_after_days_since_creation_greater_than    = 90.3
+        delete_after_days_since_creation_greater_than          = 3
+        tier_to_archive_after_days_since_creation_greater_than = 9
+        tier_to_cool_after_days_since_creation_greater_than    = 90
       }
     }
   }
@@ -705,19 +849,19 @@ resource "azurerm_storage_management_policy" "test" {
     }
     actions {
       base_blob {
-        tier_to_cool_after_days_since_modification_greater_than    = 11.4
-        tier_to_archive_after_days_since_modification_greater_than = 51.89
-        delete_after_days_since_modification_greater_than          = 101.13
+        tier_to_cool_after_days_since_modification_greater_than    = 11
+        tier_to_archive_after_days_since_modification_greater_than = 51
+        delete_after_days_since_modification_greater_than          = 101
       }
       snapshot {
-        delete_after_days_since_creation_greater_than          = 31.3
-        tier_to_archive_after_days_since_creation_greater_than = 91.8
-        tier_to_cool_after_days_since_creation_greater_than    = 24.8
+        delete_after_days_since_creation_greater_than          = 31
+        tier_to_archive_after_days_since_creation_greater_than = 91
+        tier_to_cool_after_days_since_creation_greater_than    = 24
       }
       version {
-        delete_after_days_since_creation_greater_than          = 4.4
-        tier_to_archive_after_days_since_creation_greater_than = 10.8
-        tier_to_cool_after_days_since_creation_greater_than    = 91.3
+        delete_after_days_since_creation_greater_than          = 4
+        tier_to_archive_after_days_since_creation_greater_than = 10
+        tier_to_cool_after_days_since_creation_greater_than    = 91
       }
     }
   }
