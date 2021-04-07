@@ -1,14 +1,14 @@
 ---
 subcategory: "Media"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_media_live_output"
+page_title: "Azure Resource Manager: azurerm_media_live_event_output"
 description: |-
-  Manages a Live Output.
+  Manages an Azure Media Live Event Output.
 ---
 
 # azurerm_media_live_output
 
-Manages a Live Output.
+Manages a Azure Media Live Event Output.
 
 ## Example Usage
 
@@ -61,16 +61,14 @@ resource "azurerm_media_live_event" "example" {
   }
 }
 
-resource "azurerm_media_live_output" "example" {
+resource "azurerm_media_live_event_output" "example" {
   name                         = "exampleoutput"
-  resource_group_name          = azurerm_resource_group.example.name
-  media_services_account_name  = azurerm_media_services_account.example.name
-  live_event_name              = azurerm_media_live_event.example.name
+  live_event_id                = azurerm_media_live_event.example.id
   archive_window_length        = "PT5M"
   asset_name                   = azurerm_media_asset.example.name
   description                  = "Test live output 1"
   manifest_name                = "testmanifest"
-  output_snap_time             = 0
+  output_snap_timestamp        = 0
   hls_fragments_per_ts_segment = 5
 }
 ```
@@ -79,17 +77,13 @@ resource "azurerm_media_live_output" "example" {
 
 The following arguments are supported:
 
-* `archive_window_length` - (Required) `ISO 8601` time between 1 minute to 25 hours to indicate the maximum content length that can be archived in the asset for this live output. This also sets the maximum content length for the rewind window. For example, use `PT1H30M` to indicate 1 hour and 30 minutes of archive window. Changing this forces a new Live Output to be created.
+* `archive_window_duration` - (Required) `ISO 8601` time between 1 minute to 25 hours to indicate the maximum content length that can be archived in the asset for this live output. This also sets the maximum content length for the rewind window. For example, use `PT1H30M` to indicate 1 hour and 30 minutes of archive window. Changing this forces a new Live Output to be created.
 
 * `asset_name` - (Required) The asset that the live output will write to. Changing this forces a new Live Output to be created.
 
-* `live_event_name` - (Required) The name of the live event, maximum length is 32. Changing this forces a new Live Output to be created.
-
-* `media_services_account_name` - (Required) The Media Services account name. Changing this forces a new Live Output to be created.
+* `live_event_id` - (Required) The id of the live event. Changing this forces a new Live Output to be created.
 
 * `name` - (Required) The name which should be used for this Live Output. Changing this forces a new Live Output to be created.
-
-* `resource_group_name` - (Required) The name of the Resource Group where the Live Output should exist. Changing this forces a new Live Output to be created.
 
 ---
 
@@ -99,7 +93,7 @@ The following arguments are supported:
 
 * `manifest_name` - (Optional) The manifest file name. If not provided, the service will generate one automatically. Changing this forces a new Live Output to be created.
 
-* `output_snap_time` - (Optional) The initial timestamp that the live output will start at, any content before this value will not be archived. Changing this forces a new Live Output to be created.
+* `output_snap_timestamp` - (Optional) The initial timestamp that the live output will start at, any content before this value will not be archived. Changing this forces a new Live Output to be created.
 
 ## Attributes Reference
 

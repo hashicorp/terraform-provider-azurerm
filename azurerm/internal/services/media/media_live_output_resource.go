@@ -43,23 +43,14 @@ func resourceMediaLiveOutput() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			"media_services_account_name": {
+			"live_event_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateMediaServicesAccountName,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
-			"live_event_name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: ValidateLiveEventName,
-			},
-
-			"archive_window_length": {
+			"archive_window_duration": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -98,7 +89,7 @@ func resourceMediaLiveOutput() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"output_snap_time": {
+			"output_snap_timestamp": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				ForceNew:     true,
@@ -114,17 +105,21 @@ func resourceMediaLiveOutputCreate(d *schema.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceID := parse.NewLiveOutputID(subscriptionID, d.Get("resource_group_name").(string), d.Get("media_services_account_name").(string), d.Get("live_event_name").(string), d.Get("name").(string))
+	eventID, err := parse.LiveEventID(d.Get("live_event_id").(string))
+	if err != nil {
+		return err
+	}
+	id := parse.NewLiveOutputID(subscriptionID, eventID.ResourceGroup, eventID.MediaserviceName, eventID.Name, d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceID.ResourceGroup, resourceID.MediaserviceName, resourceID.LiveeventName, resourceID.Name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.MediaserviceName, id.LiveeventName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", resourceID, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_media_live_output", resourceID.ID())
+			return tf.ImportAsExistsError("azurerm_media_live_event_output", id.ID())
 		}
 	}
 
@@ -132,7 +127,7 @@ func resourceMediaLiveOutputCreate(d *schema.ResourceData, meta interface{}) err
 		LiveOutputProperties: &media.LiveOutputProperties{},
 	}
 
-	if archiveWindowLength, ok := d.GetOk("archive_window_length"); ok {
+	if archiveWindowLength, ok := d.GetOk("archive_window_duration"); ok {
 		parameters.LiveOutputProperties.ArchiveWindowLength = utils.String(archiveWindowLength.(string))
 	}
 
@@ -158,22 +153,23 @@ func resourceMediaLiveOutputCreate(d *schema.ResourceData, meta interface{}) err
 		parameters.LiveOutputProperties.OutputSnapTime = utils.Int64(int64(outputSnapTime.(int)))
 	}
 
-	future, err := client.Create(ctx, resourceID.ResourceGroup, resourceID.MediaserviceName, resourceID.LiveeventName, resourceID.Name, parameters)
+	future, err := client.Create(ctx, id.ResourceGroup, id.MediaserviceName, id.LiveeventName, id.Name, parameters)
 	if err != nil {
-		return fmt.Errorf("creating %s: %+v", resourceID, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation %s: %+v", resourceID, err)
+		return fmt.Errorf("waiting for creation %s: %+v", id, err)
 	}
 
-	d.SetId(resourceID.ID())
+	d.SetId(id.ID())
 
 	return resourceMediaLiveOutputRead(d, meta)
 }
 
 func resourceMediaLiveOutputRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Media.LiveOutputsClient
+	subscriptionID := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -194,12 +190,12 @@ func resourceMediaLiveOutputRead(d *schema.ResourceData, meta interface{}) error
 	}
 
 	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("media_services_account_name", id.MediaserviceName)
-	d.Set("live_event_name", id.LiveeventName)
+
+	eventID := parse.NewLiveEventID(subscriptionID, id.ResourceGroup, id.MediaserviceName, id.LiveeventName)
+	d.Set("live_event_id", eventID.ID())
 
 	if props := resp.LiveOutputProperties; props != nil {
-		d.Set("archive_window_length", props.ArchiveWindowLength)
+		d.Set("archive_window_duration", props.ArchiveWindowLength)
 		d.Set("asset_name", props.AssetName)
 		d.Set("description", props.Description)
 
@@ -214,7 +210,7 @@ func resourceMediaLiveOutputRead(d *schema.ResourceData, meta interface{}) error
 		if props.OutputSnapTime != nil {
 			outputSnapTime = *props.OutputSnapTime
 		}
-		d.Set("output_snap_time", outputSnapTime)
+		d.Set("output_snap_timestamp", outputSnapTime)
 	}
 
 	return nil

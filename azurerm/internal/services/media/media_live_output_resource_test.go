@@ -17,7 +17,7 @@ import (
 type LiveOutputResource struct{}
 
 func TestAccLiveOutput_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_media_live_output", "test")
+	data := acceptance.BuildTestData(t, "azurerm_media_live_event_output", "test")
 	r := LiveOutputResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
@@ -32,7 +32,7 @@ func TestAccLiveOutput_basic(t *testing.T) {
 }
 
 func TestAccLiveOutput_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_media_live_output", "test")
+	data := acceptance.BuildTestData(t, "azurerm_media_live_event_output", "test")
 	r := LiveOutputResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
@@ -47,7 +47,7 @@ func TestAccLiveOutput_requiresImport(t *testing.T) {
 }
 
 func TestAccLiveOutput_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_media_live_output", "test")
+	data := acceptance.BuildTestData(t, "azurerm_media_live_event_output", "test")
 	r := LiveOutputResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
@@ -62,6 +62,36 @@ func TestAccLiveOutput_complete(t *testing.T) {
 	})
 }
 
+func TestAccLiveOutput_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_media_live_event_output", "test")
+	r := LiveOutputResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).Key("name").HasValue("Output-1"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).Key("manifest_name").HasValue("testmanifest"),
+				check.That(data.ResourceName).Key("hls_fragments_per_ts_segment").HasValue("5"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).Key("name").HasValue("Output-1"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (LiveOutputResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.LiveOutputID(state.ID)
 	if err != nil {
@@ -70,7 +100,7 @@ func (LiveOutputResource) Exists(ctx context.Context, clients *clients.Client, s
 
 	resp, err := clients.Media.LiveOutputsClient.Get(ctx, id.ResourceGroup, id.MediaserviceName, id.LiveeventName, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Live Event %s (Media Services Account %s) (resource group: %s): %v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving Live Event Output %s (Media Services Account %s) (resource group: %s): %v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
 	}
 
 	return utils.Bool(resp.LiveOutputProperties != nil), nil
@@ -80,12 +110,10 @@ func (r LiveOutputResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_media_live_output" "test" {
+resource "azurerm_media_live_event_output" "test" {
   name                        = "Output-1"
-  resource_group_name         = azurerm_resource_group.test.name
-  media_services_account_name = azurerm_media_services_account.test.name
-  live_event_name             = azurerm_media_live_event.test.name
-  archive_window_length       = "PT5M"
+  live_event_id               = azurerm_media_live_event.test.id
+  archive_window_duration     = "PT5M"
   asset_name                  = azurerm_media_asset.test.name
 }
 
@@ -96,12 +124,10 @@ func (r LiveOutputResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_media_live_output" "import" {
-  name                        = azurerm_media_live_output.test.name
-  resource_group_name         = azurerm_media_live_output.test.resource_group_name
-  media_services_account_name = azurerm_media_live_output.test.media_services_account_name
-  live_event_name             = azurerm_media_live_event.test.name
-  archive_window_length       = "PT5M"
+resource "azurerm_media_live_event_output" "import" {
+  name                        = azurerm_media_live_event_output.test.name
+  live_event_id               = azurerm_media_live_event.test.id
+  archive_window_duration     = "PT5M"
   asset_name                  = azurerm_media_asset.test.name
 }
 
@@ -112,16 +138,14 @@ func (r LiveOutputResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_media_live_output" "test" {
+resource "azurerm_media_live_event_output" "test" {
   name                         = "Output-2"
-  resource_group_name          = azurerm_resource_group.test.name
-  media_services_account_name  = azurerm_media_services_account.test.name
-  live_event_name              = azurerm_media_live_event.test.name
-  archive_window_length        = "PT5M"
+  live_event_id                = azurerm_media_live_event.test.id
+  archive_window_duration      = "PT5M"
   asset_name                   = azurerm_media_asset.test.name
   description                  = "Test live output 1"
   manifest_name                = "testmanifest"
-  output_snap_time             = 0
+  output_snap_timestamp        = 0
   hls_fragments_per_ts_segment = 5
 }
 
