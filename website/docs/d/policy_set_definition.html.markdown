@@ -66,7 +66,7 @@ An `policy_definition_reference` block exports the following:
 
 * `reference_id` - The unique ID within this policy set definition for this policy definition reference.
 
-* `group_names` - The list of names of the policy definition groups that this policy definition reference belongs to.
+* `policy_group_names` - The list of names of the policy definition groups that this policy definition reference belongs to.
 
 ---
 

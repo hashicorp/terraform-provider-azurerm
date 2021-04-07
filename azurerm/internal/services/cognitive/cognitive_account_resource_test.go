@@ -197,6 +197,28 @@ func TestAccCognitiveAccount_withMultipleCognitiveAccounts(t *testing.T) {
 	})
 }
 
+func TestAccCognitiveAccount_networkAcls(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
+	r := CognitiveAccountResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.networkAcls(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.networkAclsUpdated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t CognitiveAccountResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.AccountID(state.ID)
 	if err != nil {
@@ -384,4 +406,83 @@ resource "azurerm_cognitive_account" "test2" {
   sku_name            = "S0"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (r CognitiveAccountResource) networkAcls(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cognitive_account" "test" {
+  name                  = "acctestcogacc-%d"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  kind                  = "Face"
+  sku_name              = "S0"
+  custom_subdomain_name = "acctestcogacc-%d"
+
+  network_acls {
+    default_action             = "Deny"
+    virtual_network_subnet_ids = [azurerm_subnet.test_a.id, azurerm_subnet.test_b.id]
+  }
+}
+`, r.networkAclsTemplate(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r CognitiveAccountResource) networkAclsUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+resource "azurerm_cognitive_account" "test" {
+  name                  = "acctestcogacc-%d"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  kind                  = "Face"
+  sku_name              = "S0"
+  custom_subdomain_name = "acctestcogacc-%d"
+
+  network_acls {
+    default_action             = "Allow"
+    ip_rules                   = ["123.0.0.101"]
+    virtual_network_subnet_ids = [azurerm_subnet.test_a.id]
+  }
+}
+`, r.networkAclsTemplate(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (CognitiveAccountResource) networkAclsTemplate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cognitive-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test_a" {
+  name                 = "acctestsubneta%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.0.2.0/24"
+  service_endpoints    = ["Microsoft.CognitiveServices"]
+}
+
+resource "azurerm_subnet" "test_b" {
+  name                 = "acctestsubnetb%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.0.4.0/24"
+  service_endpoints    = ["Microsoft.CognitiveServices"]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
