@@ -98,6 +98,8 @@ A `addon_profile` block exports the following:
 
 * `azure_policy` - A `azure_policy` block.
 
+* `open_service_mesh` - A `open_service_mesh` block.
+
 ---
 
 A `agent_pool_profile` block exports the following:
@@ -255,6 +257,12 @@ A `kube_dashboard` block supports the following:
 A `azure_policy` block supports the following:
 
 * `enabled` - Is Azure Policy for Kubernetes enabled?
+
+---
+
+A `open_service_mesh` block supports the following:
+
+* `enabled` - Is Open Service Mesh enabled?
 
 ---
 

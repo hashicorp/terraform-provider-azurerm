@@ -215,6 +215,12 @@ A `addon_profile` block supports the following:
 
 * `oms_agent` - (Optional) A `oms_agent` block as defined below. For more details, please visit [How to onboard Azure Monitor for containers](https://docs.microsoft.com/en-us/azure/monitoring/monitoring-container-insights-onboard).
 
+* `open_service_mesh` - (Optional) A `open_service_mesh` block as defined below. For more details please visit [Announcing Public Preview of the Open Service Mesh (OSM) AKS add-on](https://techcommunity.microsoft.com/t5/apps-on-azure/announcing-public-preview-of-the-open-service-mesh-osm-aks-add/ba-p/2247361)
+
+-> **NOTE:** At this time Open Service Mesh is not supported in Azure China or Azure US Government.
+
+~> **Note:** Open Service Mesh is available on an opt-in Preview basis - to use this the Preview Feature `AKS-OpenServiceMesh` will need to be registered, [see the AKS Documentation for more information](https://docs.microsoft.com/en-gb/azure/aks/servicemesh-osm-about)
+
 ---
 
 A `auto_scaler_profile` block supports the following:
@@ -465,6 +471,14 @@ A `upgrade_settings` block supports the following:
 * `max_surge` - (Required) The maximum number or percentage of nodes which will be added to the Node Pool size during an upgrade.
 
 -> **Note:** If a percentage is provided, the number of surge nodes is calculated from the `node_count` value on the current cluster. Node surge can allow a cluster to have more nodes than `max_count` during an upgrade. Ensure that your cluster has enough [IP space](https://docs.microsoft.com/en-us/azure/aks/upgrade-cluster#customize-node-surge-upgrade) during an upgrade.
+
+---
+
+The `open_service_mesh` block exports the following:
+
+* `enabled` - (Required) Is the Open Service Mesh enabled?
+
+---
 
 ## Attributes Reference
 
