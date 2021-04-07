@@ -329,9 +329,14 @@ func resourceHPCCacheRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("cache_size_in_gb", props.CacheSizeGB)
 		d.Set("subnet_id", props.Subnet)
 		d.Set("mount_addresses", utils.FlattenStringSlice(props.MountAddresses))
-		if err := flattenStorageCacheNetworkSettings(props.NetworkSettings, d); err != nil {
-			return err
+
+		mtu, ntpServer, dnsSetting := flattenStorageCacheNetworkSettings(props.NetworkSettings)
+		d.Set("mtu", mtu)
+		d.Set("ntp_server", ntpServer)
+		if err := d.Set("dns_setting", dnsSetting); err != nil {
+			return fmt.Errorf("setting `dns_setting`: %v", err)
 		}
+
 		if securitySettings := props.SecuritySettings; securitySettings != nil {
 			if securitySettings.AccessPolicies != nil {
 				defaultPolicy := CacheGetAccessPolicyByName(*securitySettings.AccessPolicies, "default")
@@ -501,13 +506,18 @@ func expandStorageCacheNetworkSettings(d *schema.ResourceData) *storagecache.Cac
 	return out
 }
 
-func flattenStorageCacheNetworkSettings(settings *storagecache.CacheNetworkSettings, d *schema.ResourceData) error {
+func flattenStorageCacheNetworkSettings(settings *storagecache.CacheNetworkSettings) (mtu int, ntpServer string, dnsSetting []interface{}) {
 	if settings == nil {
-		return nil
+		return
 	}
 
-	d.Set("mtu", settings.Mtu)
-	d.Set("ntp_server", settings.NtpServer)
+	if settings.Mtu != nil {
+		mtu = int(*settings.Mtu)
+	}
+
+	if settings.NtpServer != nil {
+		ntpServer = *settings.NtpServer
+	}
 
 	if settings.DNSServers != nil {
 		dnsServers := utils.FlattenStringSlice(settings.DNSServers)
@@ -517,16 +527,13 @@ func flattenStorageCacheNetworkSettings(settings *storagecache.CacheNetworkSetti
 			searchDomain = *settings.DNSSearchDomain
 		}
 
-		dnsSetting := []interface{}{
+		dnsSetting = []interface{}{
 			map[string]interface{}{
 				"servers":       dnsServers,
 				"search_domain": searchDomain,
 			},
 		}
 
-		if err := d.Set("dns_setting", dnsSetting); err != nil {
-			return err
-		}
 	}
-	return nil
+	return
 }
