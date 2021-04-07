@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Resource:** `azurerm_api_management_email_template` [GH-10914]
 * **New Resource:** `azurerm_communication_service` [GH-11066]
 * **New Resource:** `azurerm_express_route_port` [GH-10074]
 * **New Resource:** `azurerm_spring_cloud_app_redis_association` [GH-11154]
