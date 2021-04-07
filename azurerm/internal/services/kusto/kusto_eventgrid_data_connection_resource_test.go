@@ -62,6 +62,21 @@ func TestAccKustoEventGridDataConnection_complete(t *testing.T) {
 	})
 }
 
+func TestAccKustoEventGridDataConnection_mappingRule(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kusto_eventgrid_data_connection", "test")
+	r := KustoEventGridDataConnectionResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.mappingRule(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKustoEventGridDataConnection_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_eventgrid_data_connection", "test")
 	r := KustoEventGridDataConnectionResource{}
@@ -168,6 +183,31 @@ resource "azurerm_kusto_eventgrid_data_connection" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
+func (r KustoEventGridDataConnectionResource) mappingRule(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_kusto_eventgrid_data_connection" "test" {
+  name                         = "acctestkrgdc-%d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  cluster_name                 = azurerm_kusto_cluster.test.name
+  database_name                = azurerm_kusto_database.test.name
+  storage_account_id           = azurerm_storage_account.test.id
+  eventhub_id                  = azurerm_eventhub.test.id
+  eventhub_consumer_group_name = azurerm_eventhub_consumer_group.test.name
+
+  blob_storage_event_type = "Microsoft.Storage.BlobRenamed"
+  skip_first_record       = true
+
+  mapping_rule_name = "Json_Mapping"
+  data_format       = "MULTIJSON"
+
+  depends_on = [azurerm_eventgrid_event_subscription.test]
+}
+`, r.template(data), data.RandomInteger)
+}
+
 func (KustoEventGridDataConnectionResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -175,7 +215,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-SecurityCenter-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
