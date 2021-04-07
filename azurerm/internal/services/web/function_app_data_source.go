@@ -221,14 +221,6 @@ func dataSourceFunctionAppRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("possible_outbound_ip_addresses", props.PossibleOutboundIPAddresses)
 		d.Set("custom_domain_verification_id", props.CustomDomainVerificationID)
 
-		if clientCertEnabled := props.ClientCertEnabled; clientCertEnabled != nil {
-			if *clientCertEnabled {
-				d.Set("client_cert_mode", props.ClientCertMode)
-			} else {
-				d.Set("client_cert_mode", "Ignore")
-			}
-		}
-
 		clientCertMode := ""
 		if props.ClientCertEnabled != nil && *props.ClientCertEnabled {
 			clientCertMode = string(props.ClientCertMode)
