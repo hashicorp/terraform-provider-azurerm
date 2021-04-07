@@ -15,6 +15,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* Data Source: `azurerm_dns_zone` - fixing a bug where the Resource ID wouldn't contain the Resource Group name when looking this up [GH-11221]
 * `azurerm_media_service_account` - `storage_authentication_type` correctly accepts both `ManagedIdentity` and `System` [GH-11222]
 * `azurerm_web_application_firewall_policy` - `http_listener_ids` and `path_based_rule_ids` are now Computed only [GH-11196]
 
