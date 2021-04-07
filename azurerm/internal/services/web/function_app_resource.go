@@ -297,7 +297,7 @@ func resourceFunctionAppCreate(d *schema.ResourceData, meta interface{}) error {
 	enabled := d.Get("enabled").(bool)
 	clientAffinityEnabled := d.Get("client_affinity_enabled").(bool)
 	clientCertMode := d.Get("client_cert_mode").(string)
-	clientCertEnabled := clientCertMode != "Ignore"
+	clientCertEnabled := clientCertMode != ""
 	httpsOnly := d.Get("https_only").(bool)
 	dailyMemoryTimeQuota := d.Get("daily_memory_time_quota").(int)
 	t := d.Get("tags").(map[string]interface{})
@@ -453,7 +453,7 @@ func resourceFunctionAppUpdate(d *schema.ResourceData, meta interface{}) error {
 		},
 	}
 
-	if clientCertEnabled {
+	if clientCertMode != "" {
 		siteEnvelope.SiteProperties.ClientCertMode = web.ClientCertMode(clientCertMode)
 	}
 
@@ -636,8 +636,8 @@ func resourceFunctionAppRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("custom_domain_verification_id", props.CustomDomainVerificationID)
 
 		clientCertMode := ""
-		if props.ClientCertEnabled != nil {
-			clientCertMode = *props.ClientCertMode
+		if props.ClientCertEnabled != nil && *props.ClientCertEnabled {
+			clientCertMode = string(props.ClientCertMode)
 		}
 		d.Set("client_cert_mode", clientCertMode)
 	}
