@@ -65,22 +65,14 @@ func dataSourcePostgresqlFlexibleServer() *schema.Resource {
 				},
 			},
 
-			"sku": {
-				Type:     schema.TypeList,
+			"sku_name": {
+				Type:     schema.TypeString,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
+			},
 
-						"tier": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
+			"sku_tier": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 
 			"version": {
@@ -121,8 +113,10 @@ func dataSourceArmPostgresqlFlexibleServerRead(d *schema.ResourceData, meta inte
 		d.Set("version", props.Version)
 		d.Set("administrator_login", props.AdministratorLogin)
 	}
-	if err := d.Set("sku", flattenArmServerSku(resp.Sku)); err != nil {
-		return fmt.Errorf("setting `sku`: %+v", err)
+
+	if sku := resp.Sku; sku != nil {
+		d.Set("sku_name", sku.Name)
+		d.Set("sku_tier", sku.Tier)
 	}
 	if err := d.Set("identity", flattenArmServerIdentity(resp.Identity)); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)

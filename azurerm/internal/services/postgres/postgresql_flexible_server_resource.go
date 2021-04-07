@@ -68,30 +68,20 @@ func resourcePostgresqlFlexibleServer() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"sku": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validate.FlexibleServerSkuName,
-						},
+			"sku_name": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.FlexibleServerSkuName,
+			},
 
-						"tier": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(postgresqlflexibleservers.Burstable),
-								string(postgresqlflexibleservers.GeneralPurpose),
-								string(postgresqlflexibleservers.MemoryOptimized),
-							}, false),
-						},
-					},
-				},
+			"sku_tier": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(postgresqlflexibleservers.Burstable),
+					string(postgresqlflexibleservers.GeneralPurpose),
+					string(postgresqlflexibleservers.MemoryOptimized),
+				}, false),
 			},
 
 			"storage_mb": {
@@ -266,16 +256,16 @@ func resourcePostgresqlFlexibleServerCreate(d *schema.ResourceData, meta interfa
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	id := parse.NewFlexibleServerID(subscriptionId, resourceGroup, name).ID()
+	id := parse.NewFlexibleServerID(subscriptionId, resourceGroup, name)
 
-	existing, err := client.Get(ctx, resourceGroup, name)
+	existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for present of existing Postgresql Flexible Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("checking for present of existing Postgresql Flexible Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 	}
 	if !utils.ResponseWasNotFound(existing.Response) {
-		return tf.ImportAsExistsError("azurerm_postgresql_flexible_server", id)
+		return tf.ImportAsExistsError("azurerm_postgresql_flexible_server", id.ID())
 	}
 
 	createMode := d.Get("create_mode").(string)
@@ -296,8 +286,11 @@ func resourcePostgresqlFlexibleServerCreate(d *schema.ResourceData, meta interfa
 		if _, ok := d.GetOk("administrator_password"); !ok {
 			return fmt.Errorf("`administrator_password` is required when `create_mode` is `Default`")
 		}
-		if _, ok := d.GetOk("sku"); !ok {
-			return fmt.Errorf("`sku` is required when `create_mode` is `Default`")
+		if _, ok := d.GetOk("sku_name"); !ok {
+			return fmt.Errorf("`sku_name` is required when `create_mode` is `Default`")
+		}
+		if _, ok := d.GetOk("sku_tier"); !ok {
+			return fmt.Errorf("`sku_tier` is required when `create_mode` is `Default`")
 		}
 		if _, ok := d.GetOk("version"); !ok {
 			return fmt.Errorf("`version` is required when `create_mode` is `Default`")
@@ -322,7 +315,7 @@ func resourcePostgresqlFlexibleServerCreate(d *schema.ResourceData, meta interfa
 			HaEnabled:                haEnabled,
 			StorageProfile:           expandArmServerStorageProfile(d),
 		},
-		Sku:  expandArmServerSku(d.Get("sku").([]interface{})),
+		Sku:  expandArmServerSku(d.Get("sku_name").(string), d.Get("sku_tier").(string)),
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
@@ -357,13 +350,13 @@ func resourcePostgresqlFlexibleServerCreate(d *schema.ResourceData, meta interfa
 		parameters.ServerProperties.PointInTimeUTC = &date.Time{Time: v}
 	}
 
-	future, err := client.Create(ctx, resourceGroup, name, parameters)
+	future, err := client.Create(ctx, id.ResourceGroup, id.Name, parameters)
 	if err != nil {
-		return fmt.Errorf("creating Postgresql Flexible Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating Postgresql Flexible Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of the Postgresql Flexible Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of the Postgresql Flexible Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	// `maintenance_window` could only be updated with, could not be created with
@@ -373,17 +366,17 @@ func resourcePostgresqlFlexibleServerCreate(d *schema.ResourceData, meta interfa
 				MaintenanceWindow: expandArmServerMaintenanceWindow(v.([]interface{})),
 			},
 		}
-		mwFuture, err := client.Update(ctx, resourceGroup, name, mwParams)
+		mwFuture, err := client.Update(ctx, id.ResourceGroup, id.Name, mwParams)
 		if err != nil {
-			return fmt.Errorf("updating Postgresql Flexible Server %q maintenance window (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("updating Postgresql Flexible Server %q maintenance window (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 
 		if err := mwFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting for the update of the Postgresql Flexible Server %q maintenance window (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("waiting for the update of the Postgresql Flexible Server %q maintenance window (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 	}
 
-	d.SetId(id)
+	d.SetId(id.ID())
 
 	return resourcePostgresqlFlexibleServerRead(d, meta)
 }
@@ -442,8 +435,9 @@ func resourcePostgresqlFlexibleServerRead(d *schema.ResourceData, meta interface
 		}
 	}
 
-	if err := d.Set("sku", flattenArmServerSku(resp.Sku)); err != nil {
-		return fmt.Errorf("setting `sku`: %+v", err)
+	if sku := resp.Sku; sku != nil {
+		d.Set("sku_name", sku.Name)
+		d.Set("sku_tier", sku.Tier)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -485,7 +479,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *schema.ResourceData, meta interfa
 	}
 
 	if d.HasChange("sku") {
-		parameters.Sku = expandArmServerSku(d.Get("sku").([]interface{}))
+		parameters.Sku = expandArmServerSku(d.Get("sku_name").(string), d.Get("sku_tier").(string))
 	}
 
 	if d.HasChange("tags") {
@@ -577,14 +571,13 @@ func expandArmServerStorageProfile(d *schema.ResourceData) *postgresqlflexiblese
 	return &storage
 }
 
-func expandArmServerSku(input []interface{}) *postgresqlflexibleservers.Sku {
-	if len(input) == 0 {
+func expandArmServerSku(name, tier string) *postgresqlflexibleservers.Sku {
+	if name == "" || tier == "" {
 		return nil
 	}
-	v := input[0].(map[string]interface{})
 	return &postgresqlflexibleservers.Sku{
-		Name: utils.String(v["name"].(string)),
-		Tier: postgresqlflexibleservers.SkuTier(v["tier"].(string)),
+		Name: utils.String(name),
+		Tier: postgresqlflexibleservers.SkuTier(tier),
 	}
 }
 
@@ -636,27 +629,6 @@ func flattenArmServerMaintenanceWindow(input *postgresqlflexibleservers.Maintena
 			"day_of_week":  dayOfWeek,
 			"start_hour":   startHour,
 			"start_minute": startMinute,
-		},
-	}
-}
-
-func flattenArmServerSku(input *postgresqlflexibleservers.Sku) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
-	}
-
-	var name string
-	if input.Name != nil {
-		name = *input.Name
-	}
-	var tier postgresqlflexibleservers.SkuTier
-	if input.Tier != "" {
-		tier = input.Tier
-	}
-	return []interface{}{
-		map[string]interface{}{
-			"name": name,
-			"tier": tier,
 		},
 	}
 }

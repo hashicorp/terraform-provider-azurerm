@@ -275,10 +275,8 @@ resource "azurerm_postgresql_flexible_server" "test" {
   storage_mb             = 32768
   version                = "12"
 
-  sku {
-    name = "Standard_D2s_v3"
-    tier = "GeneralPurpose"
-  }
+  sku_name = "Standard_D2s_v3"
+  sku_tier = "GeneralPurpose"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -295,10 +293,8 @@ resource "azurerm_postgresql_flexible_server" "import" {
   administrator_password = azurerm_postgresql_flexible_server.test.administrator_password
   version                = azurerm_postgresql_flexible_server.test.version
   storage_mb             = azurerm_postgresql_flexible_server.test.storage_mb
-  sku {
-    name = azurerm_postgresql_flexible_server.test.sku.0.name
-    tier = azurerm_postgresql_flexible_server.test.sku.0.tier
-  }
+  sku_name               = azurerm_postgresql_flexible_server.test.sku_name
+  sku_tier               = azurerm_postgresql_flexible_server.test.sku_tier
 }
 `, r.basic(data))
 }
@@ -348,10 +344,8 @@ resource "azurerm_postgresql_flexible_server" "test" {
     type = "SystemAssigned"
   }
 
-  sku {
-    name = "Standard_D2s_v3"
-    tier = "GeneralPurpose"
-  }
+  sku_name = "Standard_D2s_v3"
+  sku_tier = "GeneralPurpose"
 
   maintenance_window {
     day_of_week  = 0
@@ -411,10 +405,8 @@ resource "azurerm_postgresql_flexible_server" "test" {
     type = "SystemAssigned"
   }
 
-  sku {
-    name = "Standard_D2s_v3"
-    tier = "GeneralPurpose"
-  }
+  sku_name = "Standard_D2s_v3"
+  sku_tier = "GeneralPurpose"
 
   maintenance_window {
     day_of_week  = 0
@@ -441,10 +433,8 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_password = "QAZwsx123"
   version                = "12"
   storage_mb             = 32768
-  sku {
-    name = "Standard_D2s_v3"
-    tier = "GeneralPurpose"
-  }
+  sku_name               = "Standard_D2s_v3"
+  sku_tier               = "GeneralPurpose"
 
   maintenance_window {
     day_of_week  = 0
@@ -467,10 +457,8 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_password = "QAZwsx123"
   version                = "12"
   storage_mb             = 32768
-  sku {
-    name = "Standard_D2s_v3"
-    tier = "GeneralPurpose"
-  }
+  sku_name               = "Standard_D2s_v3"
+  sku_tier               = "GeneralPurpose"
 
   maintenance_window {
     day_of_week  = 3
@@ -493,10 +481,8 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_password = "QAZwsx123"
   version                = "12"
   storage_mb             = 32768
-  sku {
-    name = "Standard_E2s_v3"
-    tier = "MemoryOptimized"
-  }
+  sku_name               = "Standard_E2s_v3"
+  sku_tier               = "MemoryOptimized"
 }
 `, r.template(data), data.RandomInteger)
 }

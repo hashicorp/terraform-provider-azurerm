@@ -45,7 +45,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `identity` - A `identity` block as defined below.
 
-* `sku` - A `sku` block as defined below.
+* `sku_name` - The SKU Name for the PostgreSQL Flexible Server.
+
+* `sku_tier` - The SKU tier for the PostgreSQL Flexible Server.
 
 * `version` - The version of PostgreSQL Flexible Server to use.
 
@@ -60,14 +62,6 @@ A `identity` block exports the following:
 * `tenant_id` - The ID of the Tenant the Service Principal is assigned in.
 
 * `type` - The Type of Identity which should be used for this PostgreSQL Flexible Server.
-
----
-
-A `sku` block exports the following:
-
-* `name` - The SKU Name for the PostgreSQL Flexible Server.
-
-* `tier` - The SKU tier for the PostgreSQL Flexible Server.
 
 ## Timeouts
 

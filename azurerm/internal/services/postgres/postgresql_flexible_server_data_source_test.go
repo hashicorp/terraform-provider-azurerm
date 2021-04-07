@@ -23,8 +23,8 @@ func TestAccDataSourcePostgresqlflexibleServer_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("fqdn").Exists(),
 				check.That(data.ResourceName).Key("version").Exists(),
 				check.That(data.ResourceName).Key("administrator_login").Exists(),
-				check.That(data.ResourceName).Key("sku.0.name").Exists(),
-				check.That(data.ResourceName).Key("sku.0.tier").Exists(),
+				check.That(data.ResourceName).Key("sku_name").Exists(),
+				check.That(data.ResourceName).Key("sku_tier").Exists(),
 			),
 		},
 	})

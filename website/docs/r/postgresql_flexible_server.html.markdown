@@ -57,10 +57,8 @@ resource "azurerm_postgresql_flexible_server" "example" {
 
   storage_mb = 32768
 
-  sku {
-    name = "Standard_D4s_v3"
-    tier = "GeneralPurpose"
-  }
+  sku_name = "Standard_D4s_v3"
+  sku_tier = "GeneralPurpose"
 }
 ```
 
@@ -93,7 +91,9 @@ The following arguments are supported:
 
 * `point_in_time_utc` - (Optional) The point in time to restore from `creation_source_server_id` when `create_mode` is `PointInTimeRestore`. Changing this forces a new PostgreSQL Flexible Server to be created.
 
-* `sku` - (Optional) A `sku` block as defined below.
+* `sku_name` - (Optional) The SKU Name for the PostgreSQL Flexible Server. Possible values are `Standard_B1ms`, `Standard_B2s`, `Standard_D2s_v3`, `Standard_D4s_v3`, `Standard_D8s_v3`, `Standard_D16s_v3`, `Standard_D32s_v3`, `Standard_D48s_v3`, `Standard_D64s_v3`, `Standard_E2s_v3`, `Standard_E4s_v3`, `Standard_E8s_v3`, `Standard_E16s_v3`, `Standard_E32s_v3`, `Standard_E48s_v3`, `Standard_E64s_v3`.
+
+* `sku_tier` - (Optional) The SKU tier for the PostgreSQL Flexible Server. Possible values are `Burstable`, `GeneralPurpose`, or `MemoryOptimized`.
 
 * `source_server_id` - (Optional) The resource ID of the source PostgreSQL Flexible Server to be restored. Required when `create_mode` is `PointInTimeRestore`. Changing this forces a new PostgreSQL Flexible Server to be created.
 
@@ -119,13 +119,6 @@ A `maintenance_window` block supports the following:
 
 * `start_minute` - (Optional) The start minute for maintenance window. Defaults to `0`.
 
----
-
-A `sku` block supports the following:
-
-* `name` - (Required) The SKU Name for the PostgreSQL Flexible Server. Possible values are `Standard_B1ms`, `Standard_B2s`, `Standard_D2s_v3`, `Standard_D4s_v3`, `Standard_D8s_v3`, `Standard_D16s_v3`, `Standard_D32s_v3`, `Standard_D48s_v3`, `Standard_D64s_v3`, `Standard_E2s_v3`, `Standard_E4s_v3`, `Standard_E8s_v3`, `Standard_E16s_v3`, `Standard_E32s_v3`, `Standard_E48s_v3`, `Standard_E64s_v3`.
-
-* `tier` - (Required) The SKU tier for the PostgreSQL Flexible Server. Possible values are `Burstable`, `GeneralPurpose`, or `MemoryOptimized`.
 
 ## Attributes Reference
 
