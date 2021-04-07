@@ -19,6 +19,7 @@ type VirtualMachineScaleSetFeatures struct {
 }
 
 type KeyVaultFeatures struct {
+	ValidateKeyVaultEndpoint    bool
 	PurgeSoftDeleteOnDestroy    bool
 	RecoverSoftDeletedKeyVaults bool
 }

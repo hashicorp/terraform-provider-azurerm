@@ -371,21 +371,23 @@ func resourceKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 	d.SetId(id.ID())
 	meta.(*clients.Client).KeyVault.AddToCache(id, *read.Properties.VaultURI)
 
-	if props := read.Properties; props != nil {
-		if vault := props.VaultURI; vault != nil {
-			log.Printf("[DEBUG] Waiting for %s to become available", id)
-			stateConf := &resource.StateChangeConf{
-				Pending:                   []string{"pending"},
-				Target:                    []string{"available"},
-				Refresh:                   keyVaultRefreshFunc(*vault),
-				Delay:                     30 * time.Second,
-				PollInterval:              10 * time.Second,
-				ContinuousTargetOccurence: 10,
-				Timeout:                   d.Timeout(schema.TimeoutCreate),
-			}
+	if meta.(*clients.Client).Features.KeyVault.ValidateKeyVaultEndpoint {
+		if props := read.Properties; props != nil {
+			if vault := props.VaultURI; vault != nil {
+				log.Printf("[DEBUG] Waiting for %s to become available", id)
+				stateConf := &resource.StateChangeConf{
+					Pending:                   []string{"pending"},
+					Target:                    []string{"available"},
+					Refresh:                   keyVaultRefreshFunc(*vault),
+					Delay:                     30 * time.Second,
+					PollInterval:              10 * time.Second,
+					ContinuousTargetOccurence: 10,
+					Timeout:                   d.Timeout(schema.TimeoutCreate),
+				}
 
-			if _, err := stateConf.WaitForState(); err != nil {
-				return fmt.Errorf("Error waiting for %s to become available: %s", id, err)
+				if _, err := stateConf.WaitForState(); err != nil {
+					return fmt.Errorf("Error waiting for %s to become available: %s", id, err)
+				}
 			}
 		}
 	}
@@ -677,16 +679,17 @@ func resourceKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("setting `access_policy` for KeyVault %q: %+v", *resp.Name, err)
 	}
 
-	contactsResp, err := managementClient.GetCertificateContacts(ctx, *props.VaultURI)
-	if err != nil {
-		if !utils.ResponseWasForbidden(contactsResp.Response) && !utils.ResponseWasNotFound(contactsResp.Response) {
-			return fmt.Errorf("retrieving `contact` for KeyVault: %+v", err)
+	if _, ok := d.GetOk("contact"); ok || meta.(*clients.Client).Features.KeyVault.ValidateKeyVaultEndpoint {
+		contactsResp, err := managementClient.GetCertificateContacts(ctx, *props.VaultURI)
+		if err != nil {
+			if !utils.ResponseWasForbidden(contactsResp.Response) && !utils.ResponseWasNotFound(contactsResp.Response) {
+				return fmt.Errorf("retrieving `contact` for KeyVault: %+v", err)
+			}
+		}
+		if err := d.Set("contact", flattenKeyVaultCertificateContactList(contactsResp)); err != nil {
+			return fmt.Errorf("setting `contact` for KeyVault: %+v", err)
 		}
 	}
-	if err := d.Set("contact", flattenKeyVaultCertificateContactList(contactsResp)); err != nil {
-		return fmt.Errorf("setting `contact` for KeyVault: %+v", err)
-	}
-
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 

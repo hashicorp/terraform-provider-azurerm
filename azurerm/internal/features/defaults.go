@@ -4,6 +4,7 @@ func Default() UserFeatures {
 	return UserFeatures{
 		// NOTE: ensure all nested objects are fully populated
 		KeyVault: KeyVaultFeatures{
+			ValidateKeyVaultEndpoint:    true,
 			PurgeSoftDeleteOnDestroy:    true,
 			RecoverSoftDeletedKeyVaults: true,
 		},
