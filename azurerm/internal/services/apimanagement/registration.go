@@ -46,6 +46,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_api_management_certificate":                 resourceApiManagementCertificate(),
 		"azurerm_api_management_custom_domain":               resourceApiManagementCustomDomain(),
 		"azurerm_api_management_diagnostic":                  resourceApiManagementDiagnostic(),
+		"azurerm_api_management_email_template":              resourceApiManagementEmailTemplate(),
 		"azurerm_api_management_group":                       resourceApiManagementGroup(),
 		"azurerm_api_management_group_user":                  resourceApiManagementGroupUser(),
 		"azurerm_api_management_identity_provider_aad":       resourceApiManagementIdentityProviderAAD(),
