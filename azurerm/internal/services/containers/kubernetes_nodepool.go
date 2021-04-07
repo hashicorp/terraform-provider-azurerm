@@ -721,38 +721,65 @@ func expandAgentPoolKubeletConfig(input []interface{}) *containerservice.Kubelet
 		return nil
 	}
 
-	config := input[0].(map[string]interface{})
-	return &containerservice.KubeletConfig{
-		CPUManagerPolicy:      utils.String(config["cpu_manager_policy"].(string)),
-		CPUCfsQuota:           utils.Bool(config["cpu_cfs_quota_enabled"].(bool)),
-		CPUCfsQuotaPeriod:     utils.String(config["cpu_cfs_quota_period"].(string)),
-		ImageGcHighThreshold:  utils.Int32(int32(config["image_gc_high_threshold"].(int))),
-		ImageGcLowThreshold:   utils.Int32(int32(config["image_gc_low_threshold"].(int))),
-		TopologyManagerPolicy: utils.String(config["topology_manager_policy"].(string)),
-		AllowedUnsafeSysctls:  utils.ExpandStringSlice(config["allowed_unsafe_sysctls"].(*pluginsdk.Set).List()),
+	raw := input[0].(map[string]interface{})
+	result := &containerservice.KubeletConfig{
+		CPUCfsQuota: utils.Bool(raw["cpu_cfs_quota_enabled"].(bool)),
 		// must be false, otherwise the backend will report error: CustomKubeletConfig.FailSwapOn must be set to false to enable swap file on nodes.
-		FailSwapOn:            utils.Bool(false),
-		ContainerLogMaxSizeMB: utils.Int32(int32(config["container_log_max_size_mb"].(int))),
-		ContainerLogMaxFiles:  utils.Int32(int32(config["container_log_max_line"].(int))),
-		PodMaxPids:            utils.Int32(int32(config["pod_max_pid"].(int))),
+		FailSwapOn:           utils.Bool(false),
+		AllowedUnsafeSysctls: utils.ExpandStringSlice(raw["allowed_unsafe_sysctls"].(*pluginsdk.Set).List()),
 	}
+
+	if v := raw["cpu_manager_policy"].(string); v != "" {
+		result.CPUManagerPolicy = utils.String(v)
+	}
+	if v := raw["cpu_cfs_quota_period"].(string); v != "" {
+		result.CPUCfsQuotaPeriod = utils.String(v)
+	}
+	if v := raw["image_gc_high_threshold"].(int); v != 0 {
+		result.ImageGcHighThreshold = utils.Int32(int32(v))
+	}
+	if v := raw["image_gc_low_threshold"].(int); v != 0 {
+		result.ImageGcLowThreshold = utils.Int32(int32(v))
+	}
+	if v := raw["topology_manager_policy"].(string); v != "" {
+		result.TopologyManagerPolicy = utils.String(v)
+	}
+	if v := raw["container_log_max_size_mb"].(int); v != 0 {
+		result.ContainerLogMaxSizeMB = utils.Int32(int32(v))
+	}
+	if v := raw["container_log_max_line"].(int); v != 0 {
+		result.ContainerLogMaxFiles = utils.Int32(int32(v))
+	}
+	if v := raw["pod_max_pid"].(int); v != 0 {
+		result.PodMaxPids = utils.Int32(int32(v))
+	}
+
+	return result
 }
 
 func expandAgentPoolLinuxOSConfig(input []interface{}) (*containerservice.LinuxOSConfig, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
-	v := input[0].(map[string]interface{})
-	sysctlConfig, err := expandAgentPoolSysctlConfig(v["sysctl_config"].([]interface{}))
+	raw := input[0].(map[string]interface{})
+	sysctlConfig, err := expandAgentPoolSysctlConfig(raw["sysctl_config"].([]interface{}))
 	if err != nil {
 		return nil, err
 	}
-	return &containerservice.LinuxOSConfig{
-		Sysctls:                    sysctlConfig,
-		TransparentHugePageEnabled: utils.String(v["transparent_huge_page_enabled"].(string)),
-		TransparentHugePageDefrag:  utils.String(v["transparent_huge_page_defrag"].(string)),
-		SwapFileSizeMB:             utils.Int32(int32(v["swap_file_size_mb"].(int))),
-	}, nil
+
+	result := &containerservice.LinuxOSConfig{
+		Sysctls: sysctlConfig,
+	}
+	if v := raw["transparent_huge_page_enabled"].(string); v != "" {
+		result.TransparentHugePageEnabled = utils.String(v)
+	}
+	if v := raw["transparent_huge_page_defrag"].(string); v != "" {
+		result.TransparentHugePageDefrag = utils.String(v)
+	}
+	if v := raw["swap_file_size_mb"].(int); v != 0 {
+		result.SwapFileSizeMB = utils.Int32(int32(v))
+	}
+	return result, nil
 }
 
 func expandAgentPoolSysctlConfig(input []interface{}) (*containerservice.SysctlConfig, error) {
@@ -1055,9 +1082,9 @@ func flattenAgentPoolLinuxOSConfig(input *containerservice.LinuxOSConfig) ([]int
 		return make([]interface{}, 0), nil
 	}
 
-	var swapFileSizeMB int32
+	var swapFileSizeMB int
 	if input.SwapFileSizeMB != nil {
-		swapFileSizeMB = *input.SwapFileSizeMB
+		swapFileSizeMB = int(*input.SwapFileSizeMB)
 	}
 	var transparentHugePageDefrag string
 	if input.TransparentHugePageDefrag != nil {
@@ -1086,53 +1113,53 @@ func flattenAgentPoolSysctlConfig(input *containerservice.SysctlConfig) ([]inter
 		return make([]interface{}, 0), nil
 	}
 
-	var fsAioMaxNr int32
+	var fsAioMaxNr int
 	if input.FsAioMaxNr != nil {
-		fsAioMaxNr = *input.FsAioMaxNr
+		fsAioMaxNr = int(*input.FsAioMaxNr)
 	}
-	var fsFileMax int32
+	var fsFileMax int
 	if input.FsFileMax != nil {
-		fsFileMax = *input.FsFileMax
+		fsFileMax = int(*input.FsFileMax)
 	}
-	var fsInotifyMaxUserWatches int32
+	var fsInotifyMaxUserWatches int
 	if input.FsInotifyMaxUserWatches != nil {
-		fsInotifyMaxUserWatches = *input.FsInotifyMaxUserWatches
+		fsInotifyMaxUserWatches = int(*input.FsInotifyMaxUserWatches)
 	}
-	var fsNrOpen int32
+	var fsNrOpen int
 	if input.FsNrOpen != nil {
-		fsNrOpen = *input.FsNrOpen
+		fsNrOpen = int(*input.FsNrOpen)
 	}
-	var kernelThreadsMax int32
+	var kernelThreadsMax int
 	if input.KernelThreadsMax != nil {
-		kernelThreadsMax = *input.KernelThreadsMax
+		kernelThreadsMax = int(*input.KernelThreadsMax)
 	}
-	var netCoreNetdevMaxBacklog int32
+	var netCoreNetdevMaxBacklog int
 	if input.NetCoreNetdevMaxBacklog != nil {
-		netCoreNetdevMaxBacklog = *input.NetCoreNetdevMaxBacklog
+		netCoreNetdevMaxBacklog = int(*input.NetCoreNetdevMaxBacklog)
 	}
-	var netCoreOptmemMax int32
+	var netCoreOptmemMax int
 	if input.NetCoreOptmemMax != nil {
-		netCoreOptmemMax = *input.NetCoreOptmemMax
+		netCoreOptmemMax = int(*input.NetCoreOptmemMax)
 	}
-	var netCoreRmemDefault int32
+	var netCoreRmemDefault int
 	if input.NetCoreRmemDefault != nil {
-		netCoreRmemDefault = *input.NetCoreRmemDefault
+		netCoreRmemDefault = int(*input.NetCoreRmemDefault)
 	}
-	var netCoreRmemMax int32
+	var netCoreRmemMax int
 	if input.NetCoreRmemMax != nil {
-		netCoreRmemMax = *input.NetCoreRmemMax
+		netCoreRmemMax = int(*input.NetCoreRmemMax)
 	}
-	var netCoreSomaxconn int32
+	var netCoreSomaxconn int
 	if input.NetCoreSomaxconn != nil {
-		netCoreSomaxconn = *input.NetCoreSomaxconn
+		netCoreSomaxconn = int(*input.NetCoreSomaxconn)
 	}
-	var netCoreWmemDefault int32
+	var netCoreWmemDefault int
 	if input.NetCoreWmemDefault != nil {
-		netCoreWmemDefault = *input.NetCoreWmemDefault
+		netCoreWmemDefault = int(*input.NetCoreWmemDefault)
 	}
-	var netCoreWmemMax int32
+	var netCoreWmemMax int
 	if input.NetCoreWmemMax != nil {
-		netCoreWmemMax = *input.NetCoreWmemMax
+		netCoreWmemMax = int(*input.NetCoreWmemMax)
 	}
 	var netIpv4IpLocalPortRangeMin, netIpv4IpLocalPortRangeMax int
 	if input.NetIpv4IPLocalPortRange != nil {
@@ -1150,65 +1177,65 @@ func flattenAgentPoolSysctlConfig(input *containerservice.SysctlConfig) ([]inter
 			return nil, err
 		}
 	}
-	var netIpv4NeighDefaultGcThresh1 int32
+	var netIpv4NeighDefaultGcThresh1 int
 	if input.NetIpv4NeighDefaultGcThresh1 != nil {
-		netIpv4NeighDefaultGcThresh1 = *input.NetIpv4NeighDefaultGcThresh1
+		netIpv4NeighDefaultGcThresh1 = int(*input.NetIpv4NeighDefaultGcThresh1)
 	}
-	var netIpv4NeighDefaultGcThresh2 int32
+	var netIpv4NeighDefaultGcThresh2 int
 	if input.NetIpv4NeighDefaultGcThresh2 != nil {
-		netIpv4NeighDefaultGcThresh2 = *input.NetIpv4NeighDefaultGcThresh2
+		netIpv4NeighDefaultGcThresh2 = int(*input.NetIpv4NeighDefaultGcThresh2)
 	}
-	var netIpv4NeighDefaultGcThresh3 int32
+	var netIpv4NeighDefaultGcThresh3 int
 	if input.NetIpv4NeighDefaultGcThresh3 != nil {
-		netIpv4NeighDefaultGcThresh3 = *input.NetIpv4NeighDefaultGcThresh3
+		netIpv4NeighDefaultGcThresh3 = int(*input.NetIpv4NeighDefaultGcThresh3)
 	}
-	var netIpv4TcpFinTimeout int32
+	var netIpv4TcpFinTimeout int
 	if input.NetIpv4TCPFinTimeout != nil {
-		netIpv4TcpFinTimeout = *input.NetIpv4TCPFinTimeout
+		netIpv4TcpFinTimeout = int(*input.NetIpv4TCPFinTimeout)
 	}
-	var netIpv4TcpkeepaliveIntvl int32
+	var netIpv4TcpkeepaliveIntvl int
 	if input.NetIpv4TcpkeepaliveIntvl != nil {
-		netIpv4TcpkeepaliveIntvl = *input.NetIpv4TcpkeepaliveIntvl
+		netIpv4TcpkeepaliveIntvl = int(*input.NetIpv4TcpkeepaliveIntvl)
 	}
-	var netIpv4TcpKeepaliveProbes int32
+	var netIpv4TcpKeepaliveProbes int
 	if input.NetIpv4TCPKeepaliveProbes != nil {
-		netIpv4TcpKeepaliveProbes = *input.NetIpv4TCPKeepaliveProbes
+		netIpv4TcpKeepaliveProbes = int(*input.NetIpv4TCPKeepaliveProbes)
 	}
-	var netIpv4TcpKeepaliveTime int32
+	var netIpv4TcpKeepaliveTime int
 	if input.NetIpv4TCPKeepaliveTime != nil {
-		netIpv4TcpKeepaliveTime = *input.NetIpv4TCPKeepaliveTime
+		netIpv4TcpKeepaliveTime = int(*input.NetIpv4TCPKeepaliveTime)
 	}
-	var netIpv4TcpMaxSynBacklog int32
+	var netIpv4TcpMaxSynBacklog int
 	if input.NetIpv4TCPMaxSynBacklog != nil {
-		netIpv4TcpMaxSynBacklog = *input.NetIpv4TCPMaxSynBacklog
+		netIpv4TcpMaxSynBacklog = int(*input.NetIpv4TCPMaxSynBacklog)
 	}
-	var netIpv4TcpMaxTwBuckets int32
+	var netIpv4TcpMaxTwBuckets int
 	if input.NetIpv4TCPMaxTwBuckets != nil {
-		netIpv4TcpMaxTwBuckets = *input.NetIpv4TCPMaxTwBuckets
+		netIpv4TcpMaxTwBuckets = int(*input.NetIpv4TCPMaxTwBuckets)
 	}
 	var netIpv4TcpTwReuse bool
 	if input.NetIpv4TCPTwReuse != nil {
 		netIpv4TcpTwReuse = *input.NetIpv4TCPTwReuse
 	}
-	var netNetfilterNfConntrackBuckets int32
+	var netNetfilterNfConntrackBuckets int
 	if input.NetNetfilterNfConntrackBuckets != nil {
-		netNetfilterNfConntrackBuckets = *input.NetNetfilterNfConntrackBuckets
+		netNetfilterNfConntrackBuckets = int(*input.NetNetfilterNfConntrackBuckets)
 	}
-	var netNetfilterNfConntrackMax int32
+	var netNetfilterNfConntrackMax int
 	if input.NetNetfilterNfConntrackMax != nil {
-		netNetfilterNfConntrackMax = *input.NetNetfilterNfConntrackMax
+		netNetfilterNfConntrackMax = int(*input.NetNetfilterNfConntrackMax)
 	}
-	var vmMaxMapCount int32
+	var vmMaxMapCount int
 	if input.VMMaxMapCount != nil {
-		vmMaxMapCount = *input.VMMaxMapCount
+		vmMaxMapCount = int(*input.VMMaxMapCount)
 	}
-	var vmSwappiness int32
+	var vmSwappiness int
 	if input.VMSwappiness != nil {
-		vmSwappiness = *input.VMSwappiness
+		vmSwappiness = int(*input.VMSwappiness)
 	}
-	var vmVfsCachePressure int32
+	var vmVfsCachePressure int
 	if input.VMVfsCachePressure != nil {
-		vmVfsCachePressure = *input.VMVfsCachePressure
+		vmVfsCachePressure = int(*input.VMVfsCachePressure)
 	}
 	return []interface{}{
 		map[string]interface{}{

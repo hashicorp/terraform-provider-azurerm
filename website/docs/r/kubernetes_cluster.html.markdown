@@ -378,7 +378,7 @@ A `kubelet_config` block supports the following:
 
 * `container_log_max_line` - (Optional) Specifies the maximum number of container log files that can be present for a container. must be at least 2. Changing this forces a new resource to be created.
 
-* `container_log_max_size_mb` - (Optional) Specifies the maximum size (e.g. 10Mi) of container log file before it is rotated. Changing this forces a new resource to be created.
+* `container_log_max_size_mb` - (Optional) Specifies the maximum size (e.g. 10MB) of container log file before it is rotated. Changing this forces a new resource to be created.
 
 * `cpu_cfs_quota_enabled` - (Optional) Is CPU CFS quota enforcement for containers enabled? Changing this forces a new resource to be created.
 
@@ -386,9 +386,9 @@ A `kubelet_config` block supports the following:
 
 * `cpu_manager_policy` - (Optional) Specifies the CPU Manager policy to use. Possible values are `none` and `static`, Changing this forces a new resource to be created.
 
-* `image_gc_high_threshold` - (Optional) Specifies the percent of disk usage after which image garbage collection is always run. Must be between `0` and `100`. Changing this forces a new resource to be created.
+* `image_gc_high_threshold` - (Optional) Specifies the percent of disk usage above which image garbage collection is always run. Must be between `0` and `100`. Changing this forces a new resource to be created.
 
-* `image_gc_low_threshold` - (Optional) Specifies the percent of disk usage before which image garbage collection is never run. Must be between `0` and `100`. Changing this forces a new resource to be created.
+* `image_gc_low_threshold` - (Optional) Specifies the percent of disk usage lower than which image garbage collection is never run. Must be between `0` and `100`. Changing this forces a new resource to be created.
 
 * `pod_max_pid` - (Optional) Specifies the maximum number of processes per pod. Changing this forces a new resource to be created.
 
@@ -420,7 +420,7 @@ A `linux_os_config` block supports the following:
 
 * `sysctl_config` - (Optional) A `sysctl_config` block as defined below. Changing this forces a new resource to be created.
 
-* `transparent_huge_page_defrag` - (Optional) Specifies the Transparent Huge Page defrag configuration. Possible values are `always`, `defer`, `defer+madvise`, `madvise` and `never`. Changing this forces a new resource to be created.
+* `transparent_huge_page_defrag` - (Optional) specifies the defrag configuration for Transparent Huge Page. Possible values are `always`, `defer`, `defer+madvise`, `madvise` and `never`. Changing this forces a new resource to be created.
 
 * `transparent_huge_page_enabled` - (Optional) Specifies the Transparent Huge Page enabled configuration. Possible values are `always`, `madvise` and `never`. Changing this forces a new resource to be created.
 

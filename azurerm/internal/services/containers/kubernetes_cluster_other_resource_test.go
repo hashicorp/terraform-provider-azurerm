@@ -15,6 +15,7 @@ var kubernetesOtherTests = map[string]func(t *testing.T){
 	"requiresImport":                    testAccKubernetesCluster_requiresImport,
 	"criticalAddonsTaint":               testAccKubernetesCluster_criticalAddonsTaint,
 	"kubeletAndLinuxOSConfig":           testAccKubernetesCluster_kubeletAndLinuxOSConfig,
+	"kubeletAndLinuxOSConfig_partial":   testAccKubernetesCluster_kubeletAndLinuxOSConfigPartial,
 	"linuxProfile":                      testAccKubernetesCluster_linuxProfile,
 	"nodeLabels":                        testAccKubernetesCluster_nodeLabels,
 	"nodeResourceGroup":                 testAccKubernetesCluster_nodeResourceGroup,
@@ -184,6 +185,26 @@ func testAccKubernetesCluster_kubeletAndLinuxOSConfig(t *testing.T) {
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.kubeletAndLinuxOSConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_kubeletAndLinuxOSConfigPartial(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccKubernetesCluster_kubeletAndLinuxOSConfigPartial(t)
+}
+
+func testAccKubernetesCluster_kubeletAndLinuxOSConfigPartial(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.kubeletAndLinuxOSConfigPartial(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -864,6 +885,51 @@ resource "azurerm_kubernetes_cluster" "test" {
         vm_max_map_count                   = 65536
         vm_swappiness                      = 45
         vm_vfs_cache_pressure              = 80
+      }
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) kubeletAndLinuxOSConfigPartial(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+    kubelet_config {
+      cpu_manager_policy        = "static"
+      cpu_cfs_quota_enabled     = true
+      cpu_cfs_quota_period      = "10ms"
+    }
+
+    linux_os_config {
+      transparent_huge_page_enabled = "always"
+
+      sysctl_config {
+        fs_aio_max_nr                      = 65536
+        fs_file_max                        = 100000
+        fs_inotify_max_user_watches        = 1000000
       }
     }
   }
