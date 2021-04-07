@@ -88,9 +88,21 @@ func TestAccFunctionAppDataSource_clientCertMode(t *testing.T) {
 
 	data.DataSourceTest(t, []resource.TestStep{
 		{
+			Config: FunctionAppDataSource{}.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("client_cert_mode").HasValue(""),
+			),
+		},
+		{
 			Config: FunctionAppDataSource{}.certClientMode(data, "Optional"),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("client_cert_mode").HasValue("Optional"),
+			),
+		},
+		{
+			Config: FunctionAppDataSource{}.certClientMode(data, "Required"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("client_cert_mode").HasValue("Required"),
 			),
 		},
 	})
