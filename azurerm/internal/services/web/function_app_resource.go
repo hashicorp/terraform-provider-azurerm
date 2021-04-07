@@ -121,9 +121,7 @@ func resourceFunctionApp() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					"Required",
 					"Optional",
-					"Ignore",
 				}, false),
-				Default: "Ignore",
 			},
 
 			"daily_memory_time_quota": {
@@ -335,7 +333,7 @@ func resourceFunctionAppCreate(d *schema.ResourceData, meta interface{}) error {
 		},
 	}
 
-	if clientCertEnabled {
+	if clientCertMode != "" {
 		siteEnvelope.SiteProperties.ClientCertMode = web.ClientCertMode(clientCertMode)
 	}
 
@@ -418,7 +416,7 @@ func resourceFunctionAppUpdate(d *schema.ResourceData, meta interface{}) error {
 	enabled := d.Get("enabled").(bool)
 	clientAffinityEnabled := d.Get("client_affinity_enabled").(bool)
 	clientCertMode := d.Get("client_cert_mode").(string)
-	clientCertEnabled := clientCertMode != "Ignore"
+	clientCertEnabled := clientCertMode != ""
 	httpsOnly := d.Get("https_only").(bool)
 	dailyMemoryTimeQuota := d.Get("daily_memory_time_quota").(int)
 	t := d.Get("tags").(map[string]interface{})
@@ -637,13 +635,11 @@ func resourceFunctionAppRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("client_affinity_enabled", props.ClientAffinityEnabled)
 		d.Set("custom_domain_verification_id", props.CustomDomainVerificationID)
 
-		if clientCertEnabled := props.ClientCertEnabled; clientCertEnabled != nil {
-			if *clientCertEnabled {
-				d.Set("client_cert_mode", props.ClientCertMode)
-			} else {
-				d.Set("client_cert_mode", "Ignore")
-			}
+		clientCertMode := ""
+		if props.ClientCertEnabled != nil {
+			clientCertMode = *props.ClientCertMode
 		}
+		d.Set("client_cert_mode", clientCertMode)
 	}
 
 	appSettings := flattenAppServiceAppSettings(appSettingsResp.Properties)

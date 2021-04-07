@@ -227,7 +227,11 @@ func dataSourceFunctionAppRead(d *schema.ResourceData, meta interface{}) error {
 			} else {
 				d.Set("client_cert_mode", "Ignore")
 			}
+		clientCertMode := ""
+		if props.ClientCertMode != nil {
+			clientCertMode = props.ClientCertMode
 		}
+		d.Set("client_cert_mode", clientCertMode)
 	}
 
 	osType := ""

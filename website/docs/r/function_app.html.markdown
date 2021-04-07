@@ -146,7 +146,7 @@ The following arguments are supported:
 
 * `client_affinity_enabled` - (Optional) Should the Function App send session affinity cookies, which route client requests in the same session to the same instance?
 
-* `client_cert_mode` - (Optional) The mode of the Function App's client certificates requirement for incoming requests. Possible values are "Required", "Optional", and "Ignore". Defaults to "Ignore".
+* `client_cert_mode` - (Optional) The mode of the Function App's client certificates requirement for incoming requests. Possible values are `Required` and `Optional`.
 
 * `daily_memory_time_quota` - (Optional) The amount of memory in gigabyte-seconds that your application is allowed to consume per day. Setting this value only affects function apps under the consumption plan. Defaults to `0`.
 

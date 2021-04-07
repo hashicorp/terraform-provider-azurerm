@@ -910,7 +910,7 @@ func TestAccFunctionApp_clientCertMode(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("client_cert_mode").HasValue("Ignore"),
+				check.That(data.ResourceName).Key("client_cert_mode").HasValue(""),
 			),
 		},
 		{
@@ -928,10 +928,10 @@ func TestAccFunctionApp_clientCertMode(t *testing.T) {
 			),
 		},
 		{
-			Config: r.clientCertMode(data, "Ignore"),
+			Config: r.basic(),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("client_cert_mode").HasValue("Ignore"),
+				check.That(data.ResourceName).Key("client_cert_mode").HasValue(""),
 			),
 		},
 		data.ImportStep(),
