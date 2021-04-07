@@ -434,21 +434,21 @@ func testAccKubernetesClusterNodePool_nodeLabels(t *testing.T) {
 		{
 			Config: r.nodeLabelsConfig(data, labels1),
 			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("node_labels.#").HasValue("1"),
+				check.That(data.ResourceName).Key("node_labels.%").HasValue("1"),
 				check.That(data.ResourceName).Key("node_labels.key").HasValue("value"),
 			),
 		},
 		{
 			Config: r.nodeLabelsConfig(data, labels2),
 			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("node_labels.#").HasValue("1"),
+				check.That(data.ResourceName).Key("node_labels.%").HasValue("1"),
 				check.That(data.ResourceName).Key("node_labels.key2").HasValue("value2"),
 			),
 		},
 		{
 			Config: r.nodeLabelsConfig(data, labels3),
 			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("node_labels.#").HasValue("0"),
+				check.That(data.ResourceName).Key("node_labels.%").HasValue("0"),
 			),
 		},
 	})
@@ -1591,7 +1591,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   windows_profile {
     admin_username = "azureuser"
-    admin_password = "P@55W0rd1234!"
+    admin_password = "P@55W0rd1234!h@2h1C0rP"
   }
 
   network_profile {
