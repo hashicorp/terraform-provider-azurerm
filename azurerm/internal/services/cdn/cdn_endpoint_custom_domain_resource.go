@@ -32,9 +32,9 @@ func resourceArmCdnEndpointCustomDomain() *schema.Resource {
 		}),
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(20 * time.Hour),
+			Create: schema.DefaultTimeout(30 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Delete: schema.DefaultTimeout(20 * time.Hour),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -53,10 +53,9 @@ func resourceArmCdnEndpointCustomDomain() *schema.Resource {
 			},
 
 			"host_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				// Ipv6 (with square enclosed), Ipv4, domain name is allowed
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
@@ -73,7 +72,7 @@ func resourceArmCdnEndpointCustomDomainCreate(d *schema.ResourceData, meta inter
 
 	cdnEndpointId, err := parse.EndpointID(epid)
 	if err != nil {
-		return fmt.Errorf("parsing CDN Endpoint ID %q: %+v", epid, err)
+		return err
 	}
 
 	id := parse.NewCustomDomainID(cdnEndpointId.SubscriptionId, cdnEndpointId.ResourceGroup, cdnEndpointId.ProfileName, cdnEndpointId.Name, name)
@@ -81,15 +80,11 @@ func resourceArmCdnEndpointCustomDomainCreate(d *schema.ResourceData, meta inter
 	existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.EndpointName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for existing Cdn Endpoint Custom Domain %q: %+v", id, err)
+			return fmt.Errorf("checking for existing %q: %+v", id, err)
 		}
 	}
 
-	if existing.ID != nil && *existing.ID != "" {
-		id, err := parse.CustomDomainID(*existing.ID)
-		if err != nil {
-			return err
-		}
+	if !utils.ResponseWasNotFound(existing.Response) {
 		return tf.ImportAsExistsError("azurerm_cdn_endpoint_custom_domain", id.ID())
 	}
 
@@ -101,10 +96,10 @@ func resourceArmCdnEndpointCustomDomainCreate(d *schema.ResourceData, meta inter
 
 	future, err := client.Create(ctx, id.ResourceGroup, id.ProfileName, id.EndpointName, id.Name, props)
 	if err != nil {
-		return fmt.Errorf("creating Cdn Endpoint Custom Domain %q: %+v", id, err)
+		return fmt.Errorf("creating %q: %+v", id, err)
 	}
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Cdn Endpoint Custom Domain %q: %+v", id, err)
+		return fmt.Errorf("waiting for creation of %q: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -125,12 +120,12 @@ func resourceArmCdnEndpointCustomDomainRead(d *schema.ResourceData, meta interfa
 	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.EndpointName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Cdn Endpoint Custom Domain %q was not found - removing from state!", id)
+			log.Printf("[DEBUG] %q was not found - removing from state!", id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Cdn Endpoint Custom Domain %q: %+v", id, err)
+		return fmt.Errorf("retrieving %q: %+v", id, err)
 	}
 
 	cdnEndpointId := parse.NewEndpointID(id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.EndpointName)
@@ -156,10 +151,10 @@ func resourceArmCdnEndpointCustomDomainDelete(d *schema.ResourceData, meta inter
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.ProfileName, id.EndpointName, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting Cdn Endpoint Custom Domain %q: %+v", id, err)
+		return fmt.Errorf("deleting %q: %+v", id, err)
 	}
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of Cdn Endpoint Custom Domain %q: %+v", id, err)
+		return fmt.Errorf("waiting for deletion of %q: %+v", id, err)
 	}
 
 	return nil
