@@ -82,6 +82,10 @@ func schemaFeatures(supportLegacyTestSuite bool) *schema.Schema {
 						Type:     schema.TypeBool,
 						Optional: true,
 					},
+					"force_delete": {
+						Type:     schema.TypeBool,
+						Optional: true,
+					},
 				},
 			},
 		},
@@ -92,9 +96,13 @@ func schemaFeatures(supportLegacyTestSuite bool) *schema.Schema {
 			MaxItems: 1,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
+					"force_delete": {
+						Type:     schema.TypeBool,
+						Optional: true,
+					},
 					"roll_instances_when_required": {
 						Type:     schema.TypeBool,
-						Required: true,
+						Optional: true,
 					},
 				},
 			},
