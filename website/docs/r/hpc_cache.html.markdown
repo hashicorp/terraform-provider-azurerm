@@ -70,7 +70,7 @@ The following arguments are supported:
 
 * `ntp_server` - (Optional) The NTP server IP Address or FQDN for the HPC Cache. Defaults to `time.windows.com`.
 
-* `dns_setting` - (Optional) A `dns_setting` block as defined below.
+* `dns` - (Optional) A `dns` block as defined below.
   
 ---
 
@@ -102,7 +102,7 @@ A `default_access_policy` block contains the following:
 
 ---
 
-A `dns_setting` block contains the following:
+A `dns` block contains the following:
 
 * `servers` - (Required) A list of DNS servers for the HPC Cache. At most three IP(s) are allowed to set.
 
