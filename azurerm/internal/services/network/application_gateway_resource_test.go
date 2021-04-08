@@ -234,7 +234,6 @@ func TestAccApplicationGateway_customPathRuleFirewallPolicy(t *testing.T) {
 			Config: r.customPathRuleFirewallPolicy(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("url_path_map.0.path_rule.0.firewall_policy_id").Exists(),
 			),
 		},
 		data.ImportStep(),
