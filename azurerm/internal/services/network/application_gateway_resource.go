@@ -1166,7 +1166,7 @@ func resourceApplicationGateway() *schema.Resource {
 									"firewall_policy_id": {
 										Type:         schema.TypeString,
 										Optional:     true,
-										ValidateFunc: azure.ValidateResourceID,
+										ValidateFunc: networkValidate.FirewallPolicyID,
 									},
 								},
 							},
