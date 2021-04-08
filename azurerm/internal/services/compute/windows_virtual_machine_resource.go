@@ -90,10 +90,9 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 			"os_disk": virtualMachineOSDiskSchema(),
 
 			"size": {
-				Type:             schema.TypeString,
-				Required:         true,
-				ValidateFunc:     validation.StringIsNotEmpty,
-				DiffSuppressFunc: suppress.CaseDifference,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			// Optional
