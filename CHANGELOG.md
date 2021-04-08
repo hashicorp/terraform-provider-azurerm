@@ -12,6 +12,7 @@ ENHANCEMENTS:
 * `azurerm_eventgrid_data_connection` - support for the `table_name`, `mapping_rule_name`, and `data_format` properties [GH-11157]
 * `azurerm_hpc_cache_nfs_target` - support for the `access_policy_name` property [GH-11186]
 * `azurerm_private_endpoint` - allows for an alias to specified [GH-10779]
+* `azurerm_web_application_firewall_policy` - `version` within the `managed_rule_set` block can now be set to (OWASP) `3.2` [GH-11244]
 
 BUG FIXES:
 
