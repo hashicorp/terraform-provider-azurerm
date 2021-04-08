@@ -109,8 +109,8 @@ func (r AssetFilterResource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_media_asset_filter" "test" {
-  name                        = "Filter-1"
-  asset_id                    = azurerm_media_asset.test.id
+  name     = "Filter-1"
+  asset_id = azurerm_media_asset.test.id
 }
 
 `, r.template(data))
@@ -121,8 +121,8 @@ func (r AssetFilterResource) requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_media_asset_filter" "import" {
-  name                        = azurerm_media_asset_filter.test.name
-  asset_id                    = azurerm_media_asset.test.id
+  name     = azurerm_media_asset_filter.test.name
+  asset_id = azurerm_media_asset.test.id
 }
 
 `, r.basic(data))
@@ -133,9 +133,9 @@ func (r AssetFilterResource) complete(data acceptance.TestData) string {
 %s
 
 resource "azurerm_media_asset_filter" "test" {
-  name                        = "Filter-1"
-  asset_id                    = azurerm_media_asset.test.id
-  first_quality_bitrate       = 128000
+  name                  = "Filter-1"
+  asset_id              = azurerm_media_asset.test.id
+  first_quality_bitrate = 128000
 
   presentation_time_range {
     start_timescale                  = 0

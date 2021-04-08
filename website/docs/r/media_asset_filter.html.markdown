@@ -45,17 +45,17 @@ resource "azurerm_media_asset" "example" {
 }
 
 resource "azurerm_media_asset_filter" "example" {
-  name                        = "Filter1"
-  asset_id                    = azurerm_media_asset.example.id
-  first_quality_bitrate       = 128000
+  name                  = "Filter1"
+  asset_id              = azurerm_media_asset.example.id
+  first_quality_bitrate = 128000
 
   presentation_time_range {
-    start_timescale              = 0
-    end_timescale               = 170000000
+    start_timescale                  = 0
+    end_timescale                    = 170000000
     presentation_window_in_timescale = 9223372036854775000
     live_backoff_in_timescale        = 0
-    timescale_increment_in_seconds                    = 10000000
-    force_end_timescale          = false
+    timescale_increment_in_seconds   = 10000000
+    force_end_timescale              = false
   }
 
   track_selection {
