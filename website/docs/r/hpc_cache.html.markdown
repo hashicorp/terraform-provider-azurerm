@@ -67,6 +67,10 @@ The following arguments are supported:
 * `mtu` - (Optional) The IPv4 maximum transmission unit configured for the subnet of the HPC Cache. Possible values range from 576 - 1500. Defaults to 1500.
 
 * `default_access_policy` - (Optional) A `default_access_policy` block as defined below.
+
+* `ntp_server` - (Optional) The NTP server IP Address or FQDN for the HPC Cache. Defaults to `time.windows.com`.
+
+* `dns` - (Optional) A `dns` block as defined below.
   
 ---
 
@@ -95,6 +99,14 @@ An `access_rule` block contains the following:
 A `default_access_policy` block contains the following:
 
 * `access_rule` - (Required) One to three `access_rule` blocks as defined above.
+
+---
+
+A `dns` block contains the following:
+
+* `servers` - (Required) A list of DNS servers for the HPC Cache. At most three IP(s) are allowed to set.
+
+* `search_domain` - (Optional) The DNS search domain for the HPC Cache.
 
 ## Attributes Reference
 
