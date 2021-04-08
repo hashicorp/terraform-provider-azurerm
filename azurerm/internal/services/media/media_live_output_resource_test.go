@@ -145,7 +145,7 @@ resource "azurerm_media_live_event_output" "test" {
   asset_name                   = azurerm_media_asset.test.name
   description                  = "Test live output 1"
   manifest_name                = "testmanifest"
-  output_snap_timestamp        = 0
+  output_snap_time_in_seconds  = 0
   hls_fragments_per_ts_segment = 5
 }
 

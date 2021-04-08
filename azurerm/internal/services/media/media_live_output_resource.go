@@ -89,7 +89,7 @@ func resourceMediaLiveOutput() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"output_snap_timestamp": {
+			"output_snap_time_in_seconds": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				ForceNew:     true,
@@ -149,7 +149,7 @@ func resourceMediaLiveOutputCreate(d *schema.ResourceData, meta interface{}) err
 		parameters.LiveOutputProperties.ManifestName = utils.String(manifestName.(string))
 	}
 
-	if outputSnapTime, ok := d.GetOk("output_snap_time"); ok {
+	if outputSnapTime, ok := d.GetOk("output_snap_time_in_seconds"); ok {
 		parameters.LiveOutputProperties.OutputSnapTime = utils.Int64(int64(outputSnapTime.(int)))
 	}
 
@@ -210,7 +210,7 @@ func resourceMediaLiveOutputRead(d *schema.ResourceData, meta interface{}) error
 		if props.OutputSnapTime != nil {
 			outputSnapTime = *props.OutputSnapTime
 		}
-		d.Set("output_snap_timestamp", outputSnapTime)
+		d.Set("output_snap_time_in_seconds", outputSnapTime)
 	}
 
 	return nil
