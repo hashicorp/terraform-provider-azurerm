@@ -61,6 +61,35 @@ func TestAccAssetFilter_complete(t *testing.T) {
 	})
 }
 
+func TestAccAssetFilter_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_media_asset_filter", "test")
+	r := AssetFilterResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).Key("name").HasValue("Filter-1"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).Key("first_quality_bitrate").HasValue("128000"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).Key("name").HasValue("Filter-1"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (AssetFilterResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.AssetFilterID(state.ID)
 	if err != nil {
@@ -81,9 +110,7 @@ func (r AssetFilterResource) basic(data acceptance.TestData) string {
 
 resource "azurerm_media_asset_filter" "test" {
   name                        = "Filter-1"
-  resource_group_name         = azurerm_resource_group.test.name
-  media_services_account_name = azurerm_media_services_account.test.name
-  asset_name                  = azurerm_media_asset.test.name
+  asset_id                    = azurerm_media_asset.test.id
 }
 
 `, r.template(data))
@@ -95,9 +122,7 @@ func (r AssetFilterResource) requiresImport(data acceptance.TestData) string {
 
 resource "azurerm_media_asset_filter" "import" {
   name                        = azurerm_media_asset_filter.test.name
-  resource_group_name         = azurerm_media_asset_filter.test.resource_group_name
-  media_services_account_name = azurerm_media_asset_filter.test.media_services_account_name
-  asset_name                  = azurerm_media_asset.test.name
+  asset_id                    = azurerm_media_asset.test.id
 }
 
 `, r.basic(data))
@@ -109,34 +134,32 @@ func (r AssetFilterResource) complete(data acceptance.TestData) string {
 
 resource "azurerm_media_asset_filter" "test" {
   name                        = "Filter-1"
-  resource_group_name         = azurerm_resource_group.test.name
-  media_services_account_name = azurerm_media_services_account.test.name
-  asset_name                  = azurerm_media_asset.test.name
+  asset_id                    = azurerm_media_asset.test.id
   first_quality_bitrate       = 128000
 
   presentation_time_range {
-    start_timestamp              = 0
-    end_timestamp                = 170000000
-    presentation_window_duration = 9223372036854775000
-    live_backoff_duration        = 0
-    timescale                    = 10000000
-    force_end_timestamp          = false
+    start_timescale                  = 0
+    end_timescale                    = 170000000
+    presentation_window_in_timescale = 9223372036854775000
+    live_backoff_in_timescale        = 0
+    timescale_increment_in_seconds   = 10000000
+    force_end_timescale              = false
   }
 
-  track {
-    selection {
+  track_selection {
+    condition {
       property  = "Type"
       operation = "Equal"
       value     = "Audio"
     }
 
-    selection {
+    condition {
       property  = "Language"
       operation = "NotEqual"
       value     = "en"
     }
 
-    selection {
+    condition {
       property  = "FourCC"
       operation = "NotEqual"
       value     = "EC-3"
@@ -144,14 +167,14 @@ resource "azurerm_media_asset_filter" "test" {
   }
 
 
-  track {
-    selection {
+  track_selection {
+    condition {
       property  = "Type"
       operation = "Equal"
       value     = "Video"
     }
 
-    selection {
+    condition {
       property  = "Bitrate"
       operation = "Equal"
       value     = "3000000-5000000"

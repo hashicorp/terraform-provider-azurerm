@@ -48,23 +48,11 @@ func resourceMediaAssetFilter() *schema.Resource {
 				),
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			"media_services_account_name": {
+			"asset_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateMediaServicesAccountName,
-			},
-
-			"asset_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringMatch(
-					regexp.MustCompile("^[-a-zA-Z0-9]{1,128}$"),
-					"Asset name must be 1 - 128 characters long, contain only letters, hyphen and numbers.",
-				),
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"first_quality_bitrate": {
@@ -79,36 +67,36 @@ func resourceMediaAssetFilter() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"end_timestamp": {
+						"end_timescale": {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(0),
 						},
 
-						"force_end_timestamp": {
+						"force_end_timescale": {
 							Type:     schema.TypeBool,
 							Optional: true,
 						},
 
-						"live_backoff_duration": {
+						"live_backoff_in_timescale": {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(0),
 						},
 
-						"presentation_window_duration": {
+						"presentation_window_in_timescale": {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(0),
 						},
 
-						"start_timestamp": {
+						"start_timescale": {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(0),
 						},
 
-						"timescale": {
+						"timescale_increment_in_seconds": {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(0),
@@ -117,12 +105,12 @@ func resourceMediaAssetFilter() *schema.Resource {
 				},
 			},
 
-			"track": {
+			"track_selection": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"selection": {
+						"condition": {
 							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Resource{
@@ -169,16 +157,21 @@ func resourceMediaAssetFilterCreateUpdate(d *schema.ResourceData, meta interface
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceID := parse.NewAssetFilterID(subscriptionID, d.Get("resource_group_name").(string), d.Get("media_services_account_name").(string), d.Get("asset_name").(string), d.Get("name").(string))
+	assetID, err := parse.AssetID(d.Get("asset_id").(string))
+	if err != nil {
+		return err
+	}
+
+	id := parse.NewAssetFilterID(subscriptionID, assetID.ResourceGroup, assetID.MediaserviceName, assetID.Name, d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceID.ResourceGroup, resourceID.MediaserviceName, resourceID.AssetName, resourceID.Name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.MediaserviceName, id.AssetName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of %s: %+v", resourceID, err)
+				return fmt.Errorf("checking for presence of %s: %+v", id, err)
 			}
 		}
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_media_content_key_policy", resourceID.ID())
+			return tf.ImportAsExistsError("azurerm_media_asset_filter", id.ID())
 		}
 	}
 
@@ -196,22 +189,22 @@ func resourceMediaAssetFilterCreateUpdate(d *schema.ResourceData, meta interface
 		parameters.FilterProperties.PresentationTimeRange = expandPresentationTimeRange(v.([]interface{}))
 	}
 
-	if v, ok := d.GetOk("track"); ok {
+	if v, ok := d.GetOk("track_selection"); ok {
 		parameters.FilterProperties.Tracks = expandTracks(v.([]interface{}))
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resourceID.ResourceGroup, resourceID.MediaserviceName, resourceID.AssetName, resourceID.Name, parameters)
-	if err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", resourceID, err)
+	if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.MediaserviceName, id.AssetName, id.Name, parameters); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	d.SetId(resourceID.ID())
+	d.SetId(id.ID())
 
 	return resourceMediaAssetFilterRead(d, meta)
 }
 
 func resourceMediaAssetFilterRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Media.AssetFiltersClient
+	subscriptionID := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -231,9 +224,8 @@ func resourceMediaAssetFilterRead(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("media_services_account_name", id.MediaserviceName)
-	d.Set("asset_name", id.AssetName)
+	assetID := parse.NewAssetID(subscriptionID, id.ResourceGroup, id.MediaserviceName, id.AssetName)
+	d.Set("asset_id", assetID.ID())
 
 	if props := resp.FilterProperties; props != nil {
 		var firstQualityBitrate int32
@@ -246,7 +238,7 @@ func resourceMediaAssetFilterRead(d *schema.ResourceData, meta interface{}) erro
 			return fmt.Errorf("Error flattening `presentation_time_range`: %s", err)
 		}
 
-		if err := d.Set("track", flattenTracks(resp.Tracks)); err != nil {
+		if err := d.Set("track_selection", flattenTracks(resp.Tracks)); err != nil {
 			return fmt.Errorf("Error flattening `track`: %s", err)
 		}
 	}
@@ -279,27 +271,27 @@ func expandPresentationTimeRange(input []interface{}) *media.PresentationTimeRan
 	timeRange := input[0].(map[string]interface{})
 	presentationTimeRange := &media.PresentationTimeRange{}
 
-	if v := timeRange["end_timestamp"]; v != nil {
+	if v := timeRange["end_timescale"]; v != nil {
 		presentationTimeRange.EndTimestamp = utils.Int64(int64(v.(int)))
 	}
 
-	if v := timeRange["force_end_timestamp"]; v != nil {
+	if v := timeRange["force_end_timescale"]; v != nil {
 		presentationTimeRange.ForceEndTimestamp = utils.Bool(v.(bool))
 	}
 
-	if v := timeRange["live_backoff_duration"]; v != nil {
+	if v := timeRange["live_backoff_in_timescale"]; v != nil {
 		presentationTimeRange.LiveBackoffDuration = utils.Int64(int64(v.(int)))
 	}
 
-	if v := timeRange["presentation_window_duration"]; v != nil {
+	if v := timeRange["presentation_window_in_timescale"]; v != nil {
 		presentationTimeRange.PresentationWindowDuration = utils.Int64(int64(v.(int)))
 	}
 
-	if v := timeRange["start_timestamp"]; v != nil {
+	if v := timeRange["start_timescale"]; v != nil {
 		presentationTimeRange.StartTimestamp = utils.Int64(int64(v.(int)))
 	}
 
-	if v := timeRange["timescale"]; v != nil {
+	if v := timeRange["timescale_increment_in_seconds"]; v != nil {
 		presentationTimeRange.Timescale = utils.Int64(int64(v.(int)))
 	}
 
@@ -343,12 +335,12 @@ func flattenPresentationTimeRange(input *media.PresentationTimeRange) []interfac
 
 	return []interface{}{
 		map[string]interface{}{
-			"end_timestamp":                endTimestamp,
-			"force_end_timestamp":          forceEndTimestamp,
-			"live_backoff_duration":        liveBackoffDuration,
-			"presentation_window_duration": presentationWindowDuration,
-			"start_timestamp":              startTimestamp,
-			"timescale":                    timeScale,
+			"end_timescale":                    endTimestamp,
+			"force_end_timescale":              forceEndTimestamp,
+			"live_backoff_in_timescale":        liveBackoffDuration,
+			"presentation_window_in_timescale": presentationWindowDuration,
+			"start_timescale":                  startTimestamp,
+			"timescale_increment_in_seconds":   timeScale,
 		},
 	}
 }
@@ -359,7 +351,7 @@ func expandTracks(input []interface{}) *[]media.FilterTrackSelection {
 	for _, trackRaw := range input {
 		track := trackRaw.(map[string]interface{})
 
-		if rawSelection := track["selection"]; rawSelection != nil {
+		if rawSelection := track["condition"]; rawSelection != nil {
 			trackSelectionList := rawSelection.([]interface{})
 			filterTrackSelections := make([]media.FilterTrackPropertyCondition, 0)
 			for _, trackSelection := range trackSelectionList {
@@ -410,7 +402,7 @@ func flattenTracks(input *[]media.FilterTrackSelection) []interface{} {
 			}
 		}
 		tracks = append(tracks, map[string]interface{}{
-			"selection": selections,
+			"condition": selections,
 		})
 	}
 
