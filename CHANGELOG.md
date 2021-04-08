@@ -1,32 +1,32 @@
-## 2.55.0 (Unreleased)
+## 2.55.0 (April 08, 2021)
 
 FEATURES:
 
-* **New Resource:** `azurerm_api_management_email_template` [GH-10914]
-* **New Resource:** `azurerm_communication_service` [GH-11066]
-* **New Resource:** `azurerm_express_route_port` [GH-10074]
-* **New Resource:** `azurerm_spring_cloud_app_redis_association` [GH-11154]
+* **New Resource:** `azurerm_api_management_email_template` ([#10914](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10914))
+* **New Resource:** `azurerm_communication_service` ([#11066](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11066))
+* **New Resource:** `azurerm_express_route_port` ([#10074](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10074))
+* **New Resource:** `azurerm_spring_cloud_app_redis_association` ([#11154](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11154))
 
 ENHANCEMENTS:
 
-* Data Source: `azurerm_user_assigned_identity` - exporting `tenant_id` [GH-11253]
-* Data Source: `azurerm_function_app` - exporting `client_cert_mode` [GH-11161]
-* `azurerm_eventgrid_data_connection` - support for the `table_name`, `mapping_rule_name`, and `data_format` properties [GH-11157]
-* `azurerm_hpc_cache` - support for configuring `dns` [GH-11236]
-* `azurerm_hpc_cache` - support for configuring `ntp_server` [GH-11236]
-* `azurerm_hpc_cache_nfs_target` - support for the `access_policy_name` property [GH-11186]
-* `azurerm_hpc_cache_nfs_target` - `usage_model` can now be set to `READ_HEAVY_CHECK_180`, `WRITE_WORKLOAD_CHECK_30`, `WRITE_WORKLOAD_CHECK_60` and `WRITE_WORKLOAD_CLOUDWS` [GH-11247]
-* `azurerm_function_app` - support for configuring `client_cert_mode` [GH-11161]
-* `azurerm_netapp_volume` - adding `root_access_enabled` to the `export_policy_rule` block [GH-11105]
-* `azurerm_private_endpoint` - allows for an alias to specified [GH-10779]
-* `azurerm_user_assigned_identity` - exporting `tenant_id` [GH-11253]
-* `azurerm_web_application_firewall_policy` - `version` within the `managed_rule_set` block can now be set to (OWASP) `3.2` [GH-11244]
+* Data Source: `azurerm_user_assigned_identity` - exporting `tenant_id` ([#11253](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11253))
+* Data Source: `azurerm_function_app` - exporting `client_cert_mode` ([#11161](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11161))
+* `azurerm_eventgrid_data_connection` - support for the `table_name`, `mapping_rule_name`, and `data_format` properties ([#11157](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11157))
+* `azurerm_hpc_cache` - support for configuring `dns` ([#11236](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11236))
+* `azurerm_hpc_cache` - support for configuring `ntp_server` ([#11236](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11236))
+* `azurerm_hpc_cache_nfs_target` - support for the `access_policy_name` property ([#11186](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11186))
+* `azurerm_hpc_cache_nfs_target` - `usage_model` can now be set to `READ_HEAVY_CHECK_180`, `WRITE_WORKLOAD_CHECK_30`, `WRITE_WORKLOAD_CHECK_60` and `WRITE_WORKLOAD_CLOUDWS` ([#11247](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11247))
+* `azurerm_function_app` - support for configuring `client_cert_mode` ([#11161](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11161))
+* `azurerm_netapp_volume` - adding `root_access_enabled` to the `export_policy_rule` block ([#11105](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11105))
+* `azurerm_private_endpoint` - allows for an alias to specified ([#10779](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10779))
+* `azurerm_user_assigned_identity` - exporting `tenant_id` ([#11253](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11253))
+* `azurerm_web_application_firewall_policy` - `version` within the `managed_rule_set` block can now be set to (OWASP) `3.2` ([#11244](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11244))
 
 BUG FIXES:
 
-* Data Source: `azurerm_dns_zone` - fixing a bug where the Resource ID wouldn't contain the Resource Group name when looking this up [GH-11221]
-* `azurerm_media_service_account` - `storage_authentication_type` correctly accepts both `ManagedIdentity` and `System` [GH-11222]
-* `azurerm_web_application_firewall_policy` - `http_listener_ids` and `path_based_rule_ids` are now Computed only [GH-11196]
+* Data Source: `azurerm_dns_zone` - fixing a bug where the Resource ID wouldn't contain the Resource Group name when looking this up ([#11221](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11221))
+* `azurerm_media_service_account` - `storage_authentication_type` correctly accepts both `ManagedIdentity` and `System` ([#11222](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11222))
+* `azurerm_web_application_firewall_policy` - `http_listener_ids` and `path_based_rule_ids` are now Computed only ([#11196](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11196))
 
 ## 2.54.0 (April 02, 2021)
 
