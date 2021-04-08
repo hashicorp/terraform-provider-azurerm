@@ -93,7 +93,7 @@ func resourceHPCCache() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"dns_setting": {
+			"dns": {
 				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
@@ -333,8 +333,8 @@ func resourceHPCCacheRead(d *schema.ResourceData, meta interface{}) error {
 		mtu, ntpServer, dnsSetting := flattenStorageCacheNetworkSettings(props.NetworkSettings)
 		d.Set("mtu", mtu)
 		d.Set("ntp_server", ntpServer)
-		if err := d.Set("dns_setting", dnsSetting); err != nil {
-			return fmt.Errorf("setting `dns_setting`: %v", err)
+		if err := d.Set("dns", dnsSetting); err != nil {
+			return fmt.Errorf("setting `dns`: %v", err)
 		}
 
 		if securitySettings := props.SecuritySettings; securitySettings != nil {
@@ -495,7 +495,7 @@ func expandStorageCacheNetworkSettings(d *schema.ResourceData) *storagecache.Cac
 		NtpServer: utils.String(d.Get("ntp_server").(string)),
 	}
 
-	if dnsSetting, ok := d.GetOk("dns_setting"); ok {
+	if dnsSetting, ok := d.GetOk("dns"); ok {
 		dnsSetting := dnsSetting.([]interface{})[0].(map[string]interface{})
 		out.DNSServers = utils.ExpandStringSlice(dnsSetting["servers"].([]interface{}))
 		searchDomain := dnsSetting["search_domain"].(string)

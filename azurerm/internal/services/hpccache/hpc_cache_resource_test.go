@@ -375,7 +375,7 @@ resource "azurerm_hpc_cache" "test" {
   cache_size_in_gb    = 3072
   subnet_id           = azurerm_subnet.test.id
   sku_name            = "Standard_2G"
-  dns_setting {
+  dns {
     servers       = ["8.8.8.8"]
     search_domain = "foo.com"
   }
