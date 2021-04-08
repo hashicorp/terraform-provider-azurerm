@@ -91,7 +91,7 @@ resource "azurerm_spring_cloud_app_mysql_association" "test" {
   name                = "acctestscamb-%d"
   spring_cloud_app_id = azurerm_spring_cloud_app.test.id
   mysql_server_id     = azurerm_mysql_server.test.id
-  database_name       = "mysql"
+  database_name       = azurerm_mysql_database.test.name
   username            = azurerm_mysql_server.test.administrator_login
   password            = azurerm_mysql_server.test.administrator_login_password
 }
@@ -117,8 +117,8 @@ func (r SpringCloudAppMysqlAssociationResource) update(data acceptance.TestData)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_mysql_database" "test" {
-  name                = "acctest-db-%d"
+resource "azurerm_mysql_database" "updated" {
+  name                = "acctest-db2-%d"
   resource_group_name = azurerm_resource_group.test.name
   server_name         = azurerm_mysql_server.test.name
   charset             = "utf8"
@@ -129,7 +129,7 @@ resource "azurerm_spring_cloud_app_mysql_association" "test" {
   name                = "acctestscamb-%d"
   spring_cloud_app_id = azurerm_spring_cloud_app.test.id
   mysql_server_id     = azurerm_mysql_server.test.id
-  database_name       = azurerm_mysql_database.test.name
+  database_name       = azurerm_mysql_database.updated.name
   username            = azurerm_mysql_server.test.administrator_login
   password            = azurerm_mysql_server.test.administrator_login_password
 }
@@ -171,5 +171,13 @@ resource "azurerm_mysql_server" "test" {
   storage_mb                       = 51200
   version                          = "5.7"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+
+resource "azurerm_mysql_database" "test" {
+  name                = "acctest-db-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_mysql_server.test.name
+  charset             = "utf8"
+  collation           = "utf8_unicode_ci"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

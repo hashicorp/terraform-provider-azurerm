@@ -79,6 +79,7 @@ func resourceSpringCloudAppMysqlAssociation() *schema.Resource {
 			"password": {
 				Type:         schema.TypeString,
 				Required:     true,
+				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
@@ -100,7 +101,7 @@ func resourceSpringCloudAppMysqlAssociationCreateUpdate(d *schema.ResourceData, 
 		existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.AppName, id.BindingName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for present of existing %s: %+v", id, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 		if !utils.ResponseWasNotFound(existing.Response) {

@@ -3,20 +3,16 @@ subcategory: "Spring Cloud"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_spring_cloud_app_mysql_association"
 description: |-
-  Associates a [Spring Cloud Application](spring_cloud_app.html) with a [Mysql Database](mysql_database.html).
+  Associates a [Spring Cloud Application](spring_cloud_app.html) with a [MySQL Database](mysql_database.html).
 ---
 
 # azurerm_spring_cloud_app_mysql_association
 
-Associates a [Spring Cloud Application](spring_cloud_app.html) with a [Mysql Database](mysql_database.html).
+Associates a [Spring Cloud Application](spring_cloud_app.html) with a [MySQL Database](mysql_database.html).
 
 ## Example Usage
 
 ```hcl
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
@@ -74,34 +70,34 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Spring Cloud Application Association. Changing this forces a new resource to be created.
 
-* `spring_cloud_app_id` - (Required) Specifies the Spring Cloud Application resource ID in which the Association is created. Changing this forces a new resource to be created.
+* `spring_cloud_app_id` - (Required) Specifies the ID of the Spring Cloud Application where this Association is created. Changing this forces a new resource to be created.
 
-* `mysql_server_id` - (Required) Specifies the Mysql Server resource ID. Changing this forces a new resource to be created.
+* `mysql_server_id` - (Required) Specifies the ID of the MySQL Server. Changing this forces a new resource to be created.
 
-* `database_name` - (Required) Specifies the Mysql Database name.
+* `database_name` - (Required) Specifies the name of the MySQL Database which the Spring Cloud App should be associated with.
 
-* `username` - (Required) Specifies the username when connecting to Mysql Database.
+* `username` - (Required) Specifies the username which should be used when connecting to the MySQL Database from the Spring Cloud App.
 
-* `password` - (Required) Specifies the password when connecting to Mysql Database.
+* `password` - (Required) Specifies the password which should be used when connecting to the MySQL Database from the Spring Cloud App.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The ID of the Spring Cloud Application Mysql Association.
+* `id` - The ID of the Spring Cloud Application MySQL Association.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Spring Cloud Application Mysql Association.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Spring Cloud Application Mysql Association.
-* `update` - (Defaults to 30 minutes) Used when updating the Spring Cloud Application Mysql Association.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Spring Cloud Application Mysql Association.
+* `create` - (Defaults to 30 minutes) Used when creating the Spring Cloud Application MySQL Association.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Spring Cloud Application MySQL Association.
+* `update` - (Defaults to 30 minutes) Used when updating the Spring Cloud Application MySQL Association.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Spring Cloud Application MySQL Association.
 
 ## Import
 
-Spring Cloud Application Mysql Association can be imported using the `resource id`, e.g.
+Spring Cloud Application MySQL Association can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_spring_cloud_app_mysql_association.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourcegroup1/providers/Microsoft.AppPlatform/Spring/service1/apps/app1/bindings/bind1
