@@ -1424,9 +1424,12 @@ func expandAppServiceLogs(input interface{}) web.SiteLogsConfigProperties {
 		httpLogsConfigs := v.([]interface{})
 
 		for _, config := range httpLogsConfigs {
-			httpLogsConfig := config.(map[string]interface{})
-
 			logs.HTTPLogs = &web.HTTPLogsConfig{}
+
+			if config == nil {
+				continue
+			}
+			httpLogsConfig := config.(map[string]interface{})
 
 			if v, ok := httpLogsConfig["file_system"]; ok {
 				fileSystemConfigs := v.([]interface{})
