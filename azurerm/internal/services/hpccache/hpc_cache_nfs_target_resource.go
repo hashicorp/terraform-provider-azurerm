@@ -96,6 +96,8 @@ func resourceHPCCacheNFSTarget() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			// TODO: use SDK enums once following issue is addressed
+			// https://github.com/Azure/azure-rest-api-specs/issues/13839
 			"usage_model": {
 				Type:     schema.TypeString,
 				Required: true,
