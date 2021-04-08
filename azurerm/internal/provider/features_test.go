@@ -35,6 +35,7 @@ func TestExpandFeatures(t *testing.T) {
 					DeleteOSDiskOnDeletion: true,
 					GracefulShutdown:       false,
 					ForceDelete:            false,
+					ShutdownBeforeDeletion: true,
 				},
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 					ForceDelete:               false,
@@ -72,6 +73,7 @@ func TestExpandFeatures(t *testing.T) {
 							"delete_os_disk_on_deletion": true,
 							"graceful_shutdown":          true,
 							"force_delete":               true,
+							"shutdown_before_deletion":   true,
 						},
 					},
 					"virtual_machine_scale_set": []interface{}{
@@ -100,6 +102,7 @@ func TestExpandFeatures(t *testing.T) {
 					DeleteOSDiskOnDeletion: true,
 					GracefulShutdown:       true,
 					ForceDelete:            true,
+					ShutdownBeforeDeletion: true,
 				},
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 					RollInstancesWhenRequired: true,
@@ -137,6 +140,7 @@ func TestExpandFeatures(t *testing.T) {
 							"delete_os_disk_on_deletion": false,
 							"graceful_shutdown":          false,
 							"force_delete":               false,
+							"shutdown_before_deletion":   false,
 						},
 					},
 					"virtual_machine_scale_set": []interface{}{
@@ -165,6 +169,7 @@ func TestExpandFeatures(t *testing.T) {
 					DeleteOSDiskOnDeletion: false,
 					GracefulShutdown:       false,
 					ForceDelete:            false,
+					ShutdownBeforeDeletion: false,
 				},
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 					ForceDelete:               false,
@@ -402,6 +407,7 @@ func TestExpandFeaturesVirtualMachine(t *testing.T) {
 					DeleteOSDiskOnDeletion: true,
 					GracefulShutdown:       false,
 					ForceDelete:            false,
+					ShutdownBeforeDeletion: true,
 				},
 			},
 		},
@@ -414,6 +420,7 @@ func TestExpandFeaturesVirtualMachine(t *testing.T) {
 							"delete_os_disk_on_deletion": true,
 							"graceful_shutdown":          false,
 							"force_delete":               false,
+							"shutdown_before_deletion":   false,
 						},
 					},
 				},
@@ -435,6 +442,7 @@ func TestExpandFeaturesVirtualMachine(t *testing.T) {
 							"delete_os_disk_on_deletion": false,
 							"graceful_shutdown":          true,
 							"force_delete":               false,
+							"shutdown_before_deletion":   false,
 						},
 					},
 				},
@@ -456,6 +464,7 @@ func TestExpandFeaturesVirtualMachine(t *testing.T) {
 							"delete_os_disk_on_deletion": false,
 							"graceful_shutdown":          false,
 							"force_delete":               true,
+							"shutdown_before_deletion":   false,
 						},
 					},
 				},
@@ -465,6 +474,30 @@ func TestExpandFeaturesVirtualMachine(t *testing.T) {
 					DeleteOSDiskOnDeletion: false,
 					GracefulShutdown:       false,
 					ForceDelete:            true,
+					ShutdownBeforeDeletion: false,
+				},
+			},
+		},
+		{
+			Name: "Shutdown Before Deletion Enabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"virtual_machine": []interface{}{
+						map[string]interface{}{
+							"delete_os_disk_on_deletion": false,
+							"graceful_shutdown":          false,
+							"force_delete":               false,
+							"shutdown_before_deletion":   true,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				VirtualMachine: features.VirtualMachineFeatures{
+					DeleteOSDiskOnDeletion: false,
+					GracefulShutdown:       false,
+					ForceDelete:            false,
+					ShutdownBeforeDeletion: true,
 				},
 			},
 		},
@@ -477,6 +510,7 @@ func TestExpandFeaturesVirtualMachine(t *testing.T) {
 							"delete_os_disk_on_deletion": false,
 							"graceful_shutdown":          false,
 							"force_delete":               false,
+							"shutdown_before_deletion":   false,
 						},
 					},
 				},
@@ -486,6 +520,7 @@ func TestExpandFeaturesVirtualMachine(t *testing.T) {
 					DeleteOSDiskOnDeletion: false,
 					GracefulShutdown:       false,
 					ForceDelete:            false,
+					ShutdownBeforeDeletion: false,
 				},
 			},
 		},

@@ -86,6 +86,11 @@ func schemaFeatures(supportLegacyTestSuite bool) *schema.Schema {
 						Type:     schema.TypeBool,
 						Optional: true,
 					},
+					"shutdown_before_deletion": {
+						Type:     schema.TypeBool,
+						Optional: true,
+						Default:  true,
+					},
 				},
 			},
 		},
@@ -197,6 +202,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			}
 			if v, ok := virtualMachinesRaw["force_delete"]; ok {
 				features.VirtualMachine.ForceDelete = v.(bool)
+			}
+			if v, ok := virtualMachinesRaw["shutdown_before_deletion"]; ok {
+				features.VirtualMachine.ShutdownBeforeDeletion = v.(bool)
 			}
 		}
 	}
