@@ -86,6 +86,38 @@ func resourceHPCCache() *schema.Resource {
 				ValidateFunc: validation.IntBetween(576, 1500),
 			},
 
+			"ntp_server": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "time.windows.com",
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"dns": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"servers": {
+							Type:     schema.TypeList,
+							Required: true,
+							MaxItems: 3,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.IsIPAddress,
+							},
+						},
+
+						"search_domain": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
+
 			// TODO 3.0: remove this property
 			"root_squash_enabled": {
 				Type:       schema.TypeBool,
@@ -207,7 +239,6 @@ func resourceHPCCacheCreateOrUpdate(d *schema.ResourceData, meta interface{}) er
 	cacheSize := d.Get("cache_size_in_gb").(int)
 	subnet := d.Get("subnet_id").(string)
 	skuName := d.Get("sku_name").(string)
-	mtu := d.Get("mtu").(int)
 
 	var accessPolicies []storagecache.NfsAccessPolicy
 	if !d.IsNewResource() {
@@ -236,11 +267,9 @@ func resourceHPCCacheCreateOrUpdate(d *schema.ResourceData, meta interface{}) er
 		Name:     utils.String(name),
 		Location: utils.String(location),
 		CacheProperties: &storagecache.CacheProperties{
-			CacheSizeGB: utils.Int32(int32(cacheSize)),
-			Subnet:      utils.String(subnet),
-			NetworkSettings: &storagecache.CacheNetworkSettings{
-				Mtu: utils.Int32(int32(mtu)),
-			},
+			CacheSizeGB:     utils.Int32(int32(cacheSize)),
+			Subnet:          utils.String(subnet),
+			NetworkSettings: expandStorageCacheNetworkSettings(d),
 			SecuritySettings: &storagecache.CacheSecuritySettings{
 				AccessPolicies: &accessPolicies,
 			},
@@ -300,9 +329,14 @@ func resourceHPCCacheRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("cache_size_in_gb", props.CacheSizeGB)
 		d.Set("subnet_id", props.Subnet)
 		d.Set("mount_addresses", utils.FlattenStringSlice(props.MountAddresses))
-		if props.NetworkSettings != nil {
-			d.Set("mtu", props.NetworkSettings.Mtu)
+
+		mtu, ntpServer, dnsSetting := flattenStorageCacheNetworkSettings(props.NetworkSettings)
+		d.Set("mtu", mtu)
+		d.Set("ntp_server", ntpServer)
+		if err := d.Set("dns", dnsSetting); err != nil {
+			return fmt.Errorf("setting `dns`: %v", err)
 		}
+
 		if securitySettings := props.SecuritySettings; securitySettings != nil {
 			if securitySettings.AccessPolicies != nil {
 				defaultPolicy := CacheGetAccessPolicyByName(*securitySettings.AccessPolicies, "default")
@@ -453,4 +487,52 @@ func flattenStorageCacheNfsAccessRules(input *[]storagecache.NfsAccessRule) ([]i
 	}
 
 	return rules, nil
+}
+
+func expandStorageCacheNetworkSettings(d *schema.ResourceData) *storagecache.CacheNetworkSettings {
+	out := &storagecache.CacheNetworkSettings{
+		Mtu:       utils.Int32(int32(d.Get("mtu").(int))),
+		NtpServer: utils.String(d.Get("ntp_server").(string)),
+	}
+
+	if dnsSetting, ok := d.GetOk("dns"); ok {
+		dnsSetting := dnsSetting.([]interface{})[0].(map[string]interface{})
+		out.DNSServers = utils.ExpandStringSlice(dnsSetting["servers"].([]interface{}))
+		searchDomain := dnsSetting["search_domain"].(string)
+		if searchDomain != "" {
+			out.DNSSearchDomain = &searchDomain
+		}
+	}
+	return out
+}
+
+func flattenStorageCacheNetworkSettings(settings *storagecache.CacheNetworkSettings) (mtu int, ntpServer string, dnsSetting []interface{}) {
+	if settings == nil {
+		return
+	}
+
+	if settings.Mtu != nil {
+		mtu = int(*settings.Mtu)
+	}
+
+	if settings.NtpServer != nil {
+		ntpServer = *settings.NtpServer
+	}
+
+	if settings.DNSServers != nil {
+		dnsServers := utils.FlattenStringSlice(settings.DNSServers)
+
+		searchDomain := ""
+		if settings.DNSSearchDomain != nil {
+			searchDomain = *settings.DNSSearchDomain
+		}
+
+		dnsSetting = []interface{}{
+			map[string]interface{}{
+				"servers":       dnsServers,
+				"search_domain": searchDomain,
+			},
+		}
+	}
+	return
 }
