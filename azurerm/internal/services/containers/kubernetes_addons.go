@@ -266,7 +266,7 @@ func expandKubernetesAddOnProfiles(input []interface{}, env azure.Environment) (
 		}
 	}
 
-	openServiceMesh := profile[""].([]interface{})
+	openServiceMesh := profile["open_service_mesh"].([]interface{})
 	if len(openServiceMesh) > 0 && openServiceMesh[0] != nil {
 		value := openServiceMesh[0].(map[string]interface{})
 		enabled := value["enabled"].(bool)
