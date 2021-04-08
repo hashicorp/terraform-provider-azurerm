@@ -6,7 +6,7 @@ description: |-
   Manages an Azure Media Live Event Output.
 ---
 
-# azurerm_media_live_output
+# azurerm_media_live_event_output
 
 Manages a Azure Media Live Event Output.
 
@@ -83,7 +83,7 @@ The following arguments are supported:
 
 * `live_event_id` - (Required) The id of the live event. Changing this forces a new Live Output to be created.
 
-* `name` - (Required) The name which should be used for this Live Output. Changing this forces a new Live Output to be created.
+* `name` - (Required) The name which should be used for this Live Event Output. Changing this forces a new Live Output to be created.
 
 ---
 
