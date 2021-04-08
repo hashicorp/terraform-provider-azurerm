@@ -101,8 +101,12 @@ func resourceHPCCacheNFSTarget() *schema.Resource {
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"READ_HEAVY_INFREQ",
+					"READ_HEAVY_CHECK_180",
 					"WRITE_WORKLOAD_15",
 					"WRITE_AROUND",
+					"WRITE_WORKLOAD_CHECK_30",
+					"WRITE_WORKLOAD_CHECK_60",
+					"WRITE_WORKLOAD_CLOUDWS",
 				}, false),
 			},
 		},
