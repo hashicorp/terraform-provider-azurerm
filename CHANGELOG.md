@@ -14,6 +14,7 @@ ENHANCEMENTS:
 * `azurerm_hpc_cache` - support for configuring `dns` [GH-11236]
 * `azurerm_hpc_cache` - support for configuring `ntp_server` [GH-11236]
 * `azurerm_hpc_cache_nfs_target` - support for the `access_policy_name` property [GH-11186]
+* `azurerm_hpc_cache_nfs_target` - `usage_model` can now be set to `READ_HEAVY_CHECK_180`, `WRITE_WORKLOAD_CHECK_30`, `WRITE_WORKLOAD_CHECK_60` and `WRITE_WORKLOAD_CLOUDWS` [GH-11247]
 * `azurerm_private_endpoint` - allows for an alias to specified [GH-10779]
 * `azurerm_user_assigned_identity` - exporting `tenant_id` [GH-11253]
 * `azurerm_web_application_firewall_policy` - `version` within the `managed_rule_set` block can now be set to (OWASP) `3.2` [GH-11244]
