@@ -45,6 +45,11 @@ func dataSourceArmUserAssignedIdentity() *schema.Resource {
 				Computed: true,
 			},
 
+			"tenant_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"tags": tags.SchemaDataSource(),
 		},
 	}
@@ -77,6 +82,10 @@ func dataSourceArmUserAssignedIdentityRead(d *schema.ResourceData, meta interfac
 
 		if clientId := props.ClientID; clientId != nil {
 			d.Set("client_id", clientId.String())
+		}
+
+		if tenantId := props.TenantID; tenantId != nil {
+			d.Set("tenant_id", tenantId.String())
 		}
 	}
 

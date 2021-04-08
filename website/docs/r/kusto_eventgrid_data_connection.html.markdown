@@ -120,7 +120,15 @@ The following arguments are supported:
   Values are `Microsoft.Storage.BlobCreated` and `Microsoft.Storage.BlobRenamed`. Defaults
   to `Microsoft.Storage.BlobCreated`.
 
+* `data_format` - (Optional) Specifies the data format of the EventHub messages. Allowed values: `AVRO`, `CSV`, `JSON`, `MULTIJSON`, `PSV`, `RAW`, `SCSV`, `SINGLEJSON`, `SOHSV`, `TSV` and `TXT`
+
+* `mapping_rule_name` - (Optional) Specifies the mapping rule used for the message ingestion. Mapping rule must exist before resource is created.
+
+* `table_name` - (Optional) Specifies the target table name used for the message ingestion. Table must exist before resource is created.
+
 * `skip_first_record` - (Optional) is the first record of every file ignored? Defaults to `false`.
+
+
 
 ## Attributes Reference
 

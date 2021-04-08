@@ -205,6 +205,23 @@ func TestAccPrivateEndpoint_privateDnsZoneRemove(t *testing.T) {
 	})
 }
 
+func TestAccPrivateEndpoint_privateConnectionAlias(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
+	r := PrivateEndpointResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.privateConnectionAlias(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("subnet_id").Exists(),
+				check.That(data.ResourceName).Key("private_service_connection.0.private_connection_resource_alias").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t PrivateEndpointResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.PrivateEndpointID(state.ID)
 	if err != nil {
@@ -704,4 +721,24 @@ resource "azurerm_private_endpoint" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (r PrivateEndpointResource) privateConnectionAlias(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_private_endpoint" "test" {
+  name                = "acctest-privatelink-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  subnet_id           = azurerm_subnet.endpoint.id
+
+  private_service_connection {
+    name                              = azurerm_private_link_service.test.name
+    is_manual_connection              = true
+    private_connection_resource_alias = azurerm_private_link_service.test.alias
+    request_message                   = "test"
+  }
+}
+`, r.template(data, r.serviceAutoApprove(data)), data.RandomInteger)
 }

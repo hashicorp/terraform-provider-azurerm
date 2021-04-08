@@ -988,6 +988,29 @@ func resourceApplicationGateway() *schema.Resource {
 											},
 										},
 									},
+
+									"url": {
+										Type:     schema.TypeList,
+										Optional: true,
+										MaxItems: 1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"path": {
+													Type:     schema.TypeString,
+													Optional: true,
+												},
+												"query_string": {
+													Type:     schema.TypeString,
+													Optional: true,
+												},
+												"reroute": {
+													Type:     schema.TypeBool,
+													Optional: true,
+													Default:  false,
+												},
+											},
+										},
+									},
 								},
 							},
 						},
@@ -1377,6 +1400,11 @@ func resourceApplicationGatewayCreateUpdate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("fail to expand `http_listener`: %+v", err)
 	}
 
+	rewriteRuleSets, err := expandApplicationGatewayRewriteRuleSets(d)
+	if err != nil {
+		return fmt.Errorf("error expanding `rewrite_rule_set`: %v", err)
+	}
+
 	gateway := network.ApplicationGateway{
 		Location: utils.String(location),
 		Zones:    azure.ExpandZones(d.Get("zones").([]interface{})),
@@ -1401,7 +1429,7 @@ func resourceApplicationGatewayCreateUpdate(d *schema.ResourceData, meta interfa
 			SslCertificates:               sslCertificates,
 			SslPolicy:                     expandApplicationGatewaySslPolicy(d),
 
-			RewriteRuleSets: expandApplicationGatewayRewriteRuleSets(d),
+			RewriteRuleSets: rewriteRuleSets,
 			URLPathMaps:     urlPathMaps,
 		},
 	}
@@ -2888,7 +2916,7 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGa
 	return results, nil
 }
 
-func expandApplicationGatewayRewriteRuleSets(d *schema.ResourceData) *[]network.ApplicationGatewayRewriteRuleSet {
+func expandApplicationGatewayRewriteRuleSets(d *schema.ResourceData) (*[]network.ApplicationGatewayRewriteRuleSet, error) {
 	vs := d.Get("rewrite_rule_set").([]interface{})
 	ruleSets := make([]network.ApplicationGatewayRewriteRuleSet, 0)
 
@@ -2903,6 +2931,7 @@ func expandApplicationGatewayRewriteRuleSets(d *schema.ResourceData) *[]network.
 			conditions := make([]network.ApplicationGatewayRewriteRuleCondition, 0)
 			requestConfigurations := make([]network.ApplicationGatewayHeaderConfiguration, 0)
 			responseConfigurations := make([]network.ApplicationGatewayHeaderConfiguration, 0)
+			urlConfiguration := network.ApplicationGatewayURLConfiguration{}
 
 			rule := network.ApplicationGatewayRewriteRule{
 				Name:         utils.String(r["name"].(string)),
@@ -2939,10 +2968,31 @@ func expandApplicationGatewayRewriteRuleSets(d *schema.ResourceData) *[]network.
 				responseConfigurations = append(responseConfigurations, config)
 			}
 
+			for _, rawConfig := range r["url"].([]interface{}) {
+				c := rawConfig.(map[string]interface{})
+				if c["path"] == nil && c["query_string"] == nil {
+					return nil, fmt.Errorf("At least one of `path` or `query_string` must be set")
+				}
+				if c["path"] != nil {
+					urlConfiguration.ModifiedPath = utils.String(c["path"].(string))
+				}
+				if c["query_string"] != nil {
+					urlConfiguration.ModifiedQueryString = utils.String(c["query_string"].(string))
+				}
+				if c["reroute"] != nil {
+					urlConfiguration.Reroute = utils.Bool(c["reroute"].(bool))
+				}
+			}
+
 			rule.ActionSet = &network.ApplicationGatewayRewriteRuleActionSet{
 				RequestHeaderConfigurations:  &requestConfigurations,
 				ResponseHeaderConfigurations: &responseConfigurations,
 			}
+
+			if len(r["url"].([]interface{})) > 0 {
+				rule.ActionSet.URLConfiguration = &urlConfiguration
+			}
+
 			rules = append(rules, rule)
 		}
 
@@ -2956,7 +3006,7 @@ func expandApplicationGatewayRewriteRuleSets(d *schema.ResourceData) *[]network.
 		ruleSets = append(ruleSets, ruleSet)
 	}
 
-	return &ruleSets
+	return &ruleSets, nil
 }
 
 func flattenApplicationGatewayRewriteRuleSets(input *[]network.ApplicationGatewayRewriteRuleSet) []interface{} {
@@ -3018,6 +3068,8 @@ func flattenApplicationGatewayRewriteRuleSets(input *[]network.ApplicationGatewa
 
 					requestConfigs := make([]interface{}, 0)
 					responseConfigs := make([]interface{}, 0)
+					urlConfigs := make([]interface{}, 0)
+
 					if rule.ActionSet != nil {
 						actionSet := *rule.ActionSet
 
@@ -3052,9 +3104,28 @@ func flattenApplicationGatewayRewriteRuleSets(input *[]network.ApplicationGatewa
 								responseConfigs = append(responseConfigs, responseConfig)
 							}
 						}
+
+						if actionSet.URLConfiguration != nil {
+							config := *actionSet.URLConfiguration
+							urlConfig := map[string]interface{}{}
+
+							if config.ModifiedPath != nil {
+								urlConfig["path"] = *config.ModifiedPath
+							}
+
+							if config.ModifiedQueryString != nil {
+								urlConfig["query_string"] = *config.ModifiedQueryString
+							}
+
+							if config.Reroute != nil {
+								urlConfig["reroute"] = *config.Reroute
+							}
+							urlConfigs = append(urlConfigs, urlConfig)
+						}
 					}
 					ruleOutput["request_header_configuration"] = requestConfigs
 					ruleOutput["response_header_configuration"] = responseConfigs
+					ruleOutput["url"] = urlConfigs
 
 					rules = append(rules, ruleOutput)
 				}

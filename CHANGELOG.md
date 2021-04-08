@@ -1,30 +1,65 @@
-## 2.54.0 (Unreleased)
+## 2.55.0 (Unreleased)
 
 FEATURES:
 
-* **New Resource:** `azurerm_hpc_cache_access_policy` [GH-11083]
-* **New Resource:** `azurerm_management_group_subscription_association` [GH-11069]
-* **New Resource:** `azurerm_media_live_event` [GH-10724]
+* **New Resource:** `azurerm_api_management_email_template` [GH-10914]
+* **New Resource:** `azurerm_communication_service` [GH-11066]
+* **New Resource:** `azurerm_express_route_port` [GH-10074]
+* **New Resource:** `azurerm_spring_cloud_app_redis_association` [GH-11154]
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v52.6.0` of `github.com/Azure/azure-sdk-for-go` [GH-11108]
-* dependencies: updating `storage` to API version `2021-01-01` [GH-11094]
-* dependencies: updating `storagecache` (a.k.a `hpc`) to API version `2021-03-01` [GH-11083]
-* `azurerm_container_registry` - support for the `quarantine_policy_enabled` property [GH-11011]
-* `azurerm_firewall` - support for the `private_ip_ranges` property [pGH-10627]
-* `azurerm_spring_cloud_service` - supports for the `sample_rate` property [GH-11106]
-* `azurerm_storage_account` - support for the `container_delete_retention_policy` property [GH-11131]
+* Data Source: `azurerm_user_assigned_identity` - exporting `tenant_id` [GH-11253]
+* Data Source: `azurerm_function_app` - exporting `client_cert_mode` [GH-11161]
+* `azurerm_eventgrid_data_connection` - support for the `table_name`, `mapping_rule_name`, and `data_format` properties [GH-11157]
+* `azurerm_hpc_cache` - support for configuring `dns` [GH-11236]
+* `azurerm_hpc_cache` - support for configuring `ntp_server` [GH-11236]
+* `azurerm_hpc_cache_nfs_target` - support for the `access_policy_name` property [GH-11186]
+* `azurerm_hpc_cache_nfs_target` - `usage_model` can now be set to `READ_HEAVY_CHECK_180`, `WRITE_WORKLOAD_CHECK_30`, `WRITE_WORKLOAD_CHECK_60` and `WRITE_WORKLOAD_CLOUDWS` [GH-11247]
+* `azurerm_function_app` - support for configuring `client_cert_mode` [GH-11161]
+* `azurerm_netapp_volume` - adding `root_access_enabled` to the `export_policy_rule` block [GH-11105]
+* `azurerm_private_endpoint` - allows for an alias to specified [GH-10779]
+* `azurerm_user_assigned_identity` - exporting `tenant_id` [GH-11253]
+* `azurerm_web_application_firewall_policy` - `version` within the `managed_rule_set` block can now be set to (OWASP) `3.2` [GH-11244]
 
 BUG FIXES:
 
-* `azurerm_api_management` - the `certificate_password` property is now optional [GH-11139]
-* `azurerm_data_factory_linked_service_azure_blob_storage` - correct managed identity implementation by implementing the `service_endpoint` property [GH-10830]
-* `azurerm_machine_learning_workspace` - deprecate the `Enterprise` sku as it has been deprecated by Azure [GH-11063]
-* `azurerm_machine_learning_workspace` - support container registries in other subscriptions [GH-11065]
-* `azurerm_site_recovery_fabric` - Fixes error in checking for existing resource [GH-11130]
-* `azurerm_spring_cloud_custom_domain` - `thumbprint` is required when specifying `certificate_name` [GH-11145]
-* `azurerm_subscription` - fixes broken timeout on destroy [GH-11124]
+* Data Source: `azurerm_dns_zone` - fixing a bug where the Resource ID wouldn't contain the Resource Group name when looking this up [GH-11221]
+* `azurerm_media_service_account` - `storage_authentication_type` correctly accepts both `ManagedIdentity` and `System` [GH-11222]
+* `azurerm_web_application_firewall_policy` - `http_listener_ids` and `path_based_rule_ids` are now Computed only [GH-11196]
+
+## 2.54.0 (April 02, 2021)
+
+FEATURES:
+
+* **New Resource:** `azurerm_hpc_cache_access_policy` ([#11083](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11083))
+* **New Resource:** `azurerm_management_group_subscription_association` ([#11069](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11069))
+* **New Resource:** `azurerm_media_live_event` ([#10724](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10724))
+
+ENHANCEMENTS:
+
+* dependencies: updating to `v52.6.0` of `github.com/Azure/azure-sdk-for-go` ([#11108](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11108))
+* dependencies: updating `storage` to API version `2021-01-01` ([#11094](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11094))
+* dependencies: updating `storagecache` (a.k.a `hpc`) to API version `2021-03-01` ([#11083](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11083))
+* `azurerm_application_gateway` - support for rewriting urls with the `url` block ([#10950](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10950))
+* `azurerm_cognitive_account` - Add support for `network_acls` ([#11164](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11164))
+* `azurerm_container_registry` - support for the `quarantine_policy_enabled` property ([#11011](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11011))
+* `azurerm_firewall` - support for the `private_ip_ranges` property [p[#10627](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10627)]
+* `azurerm_log_analytics_workspace` - Fix issue where -1 couldn't be specified for `daily_quota_gb` ([#11182](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11182))
+* `azurerm_spring_cloud_service` - supports for the `sample_rate` property ([#11106](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11106))
+* `azurerm_storage_account` - support for the `container_delete_retention_policy` property ([#11131](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11131))
+* `azurerm_virtual_desktop_host_pool` - support for the `custom_rdp_properties` property ([#11160](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11160))
+* `azurerm_web_application_firewall_policy` - support for the `http_listener_ids` and `path_based_rule_ids` properties ([#10860](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10860))
+
+BUG FIXES:
+
+* `azurerm_api_management` - the `certificate_password` property is now optional ([#11139](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11139))
+* `azurerm_data_factory_linked_service_azure_blob_storage` - correct managed identity implementation by implementing the `service_endpoint` property ([#10830](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10830))
+* `azurerm_machine_learning_workspace` - deprecate the `Enterprise` sku as it has been deprecated by Azure ([#11063](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11063))
+* `azurerm_machine_learning_workspace` - support container registries in other subscriptions ([#11065](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11065))
+* `azurerm_site_recovery_fabric` - Fixes error in checking for existing resource ([#11130](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11130))
+* `azurerm_spring_cloud_custom_domain` - `thumbprint` is required when specifying `certificate_name` ([#11145](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11145))
+* `azurerm_subscription` - fixes broken timeout on destroy ([#11124](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11124))
 
 ## 2.53.0 (March 26, 2021)
 

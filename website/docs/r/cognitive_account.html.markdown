@@ -50,8 +50,21 @@ The following arguments are supported:
 
 -> **NOTE:** This URL is mandatory if the `kind` is set to `QnAMaker`.
 
+* `network_acls` - (Optional) A `network_acls` block as defined below.
+
+* `custom_subdomain_name` - (Optional) The subdomain name used for token-based authentication. Changing this forces a new resource to be created.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
+---
+
+A `network_acls` block supports the following:
+
+* `default_action` - (Required) The Default Action to use when no rules match from `ip_rules` / `virtual_network_subnet_ids`. Possible values are `Allow` and `Deny`.
+
+* `ip_rules` - (Optional) One or more IP Addresses, or CIDR Blocks which should be able to access the Cognitive Account.
+
+* `virtual_network_subnet_ids` - (Optional) One or more Subnet ID's which should be able to access this Cognitive Account.
 
 ## Attributes Reference
 

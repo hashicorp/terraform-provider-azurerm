@@ -26,12 +26,16 @@ func TestAccDataSourceAzureRMUserAssignedIdentity_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("location").HasValue(azure.NormalizeLocation(data.Locations.Primary)),
 				check.That(data.ResourceName).Key("principal_id").MatchesRegex(validate.UUIDRegExp),
 				check.That(data.ResourceName).Key("client_id").MatchesRegex(validate.UUIDRegExp),
+				check.That(data.ResourceName).Key("tenant_id").MatchesRegex(validate.UUIDRegExp),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("principal_id").MatchesOtherKey(
 					check.That("azurerm_user_assigned_identity.test").Key("principal_id"),
 				),
 				check.That(data.ResourceName).Key("client_id").MatchesOtherKey(
 					check.That("azurerm_user_assigned_identity.test").Key("client_id"),
+				),
+				check.That(data.ResourceName).Key("tenant_id").MatchesOtherKey(
+					check.That("azurerm_user_assigned_identity.test").Key("tenant_id"),
 				),
 			),
 		},
