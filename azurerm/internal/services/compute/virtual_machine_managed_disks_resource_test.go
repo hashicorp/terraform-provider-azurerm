@@ -890,7 +890,7 @@ resource "azurerm_virtual_machine" "test" {
 }
 
 output "principal_id" {
-  value = azurerm_virtual_machine.test.identity[0]["principal_id"]
+  value = azurerm_virtual_machine.test.identity[0].principal_id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
