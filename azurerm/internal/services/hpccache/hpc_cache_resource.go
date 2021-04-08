@@ -533,7 +533,6 @@ func flattenStorageCacheNetworkSettings(settings *storagecache.CacheNetworkSetti
 				"search_domain": searchDomain,
 			},
 		}
-
 	}
 	return
 }
