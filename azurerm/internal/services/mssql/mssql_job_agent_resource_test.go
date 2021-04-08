@@ -107,10 +107,10 @@ resource "azurerm_mssql_server" "test" {
 }
 
 resource "azurerm_mssql_database" "test" {
-  name           = "acctestmssqldb%[1]d"
-  server_id      = azurerm_mssql_server.test.id
-  collation      = "SQL_Latin1_General_CP1_CI_AS"
-  sku_name       = "S1"
+  name      = "acctestmssqldb%[1]d"
+  server_id = azurerm_mssql_server.test.id
+  collation = "SQL_Latin1_General_CP1_CI_AS"
+  sku_name  = "S1"
 }
 
 resource "azurerm_mssql_job_agent" "test" {
@@ -156,10 +156,10 @@ resource "azurerm_mssql_server" "test" {
 }
 
 resource "azurerm_mssql_database" "test" {
-  name           = "acctestmssqldb%[1]d"
-  server_id      = azurerm_mssql_server.test.id
-  collation      = "SQL_Latin1_General_CP1_CI_AS"
-  sku_name       = "S1"
+  name      = "acctestmssqldb%[1]d"
+  server_id = azurerm_mssql_server.test.id
+  collation = "SQL_Latin1_General_CP1_CI_AS"
+  sku_name  = "S1"
 }
 
 resource "azurerm_mssql_job_agent" "test" {
@@ -169,7 +169,7 @@ resource "azurerm_mssql_job_agent" "test" {
   database_id         = azurerm_mssql_database.test.id
 
   tags = {
-	ENV = "production"
+    ENV = "production"
   }
 }
 `, data.RandomInteger, data.Locations.Primary)

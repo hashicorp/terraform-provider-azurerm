@@ -28,10 +28,10 @@ resource "azurerm_mssql_server" "example" {
 }
 
 resource "azurerm_mssql_database" "example" {
-  name           = "example-db"
-  server_id      = azurerm_mssql_server.example.id
-  collation      = "SQL_Latin1_General_CP1_CI_AS"
-  sku_name       = "S1"
+  name      = "example-db"
+  server_id = azurerm_mssql_server.example.id
+  collation = "SQL_Latin1_General_CP1_CI_AS"
+  sku_name  = "S1"
 }
 
 resource "azurerm_mssql_job_agent" "example" {
