@@ -115,7 +115,7 @@ $ make test
 The majority of tests in the provider are `Acceptance Tests` - which provisions real resources in Azure. It's possible to run the entire acceptance test suite by running `make testacc` - however it's likely you'll want to run a subset, which you can do using a prefix, by running:
 
 ```sh
-make acctests SERVICE='<resource>' TESTARGS='-run=<nameOfTheTest>' TESTTIMEOUT='60m'
+make acctests SERVICE='<service>' TESTARGS='-run=<nameOfTheTest>' TESTTIMEOUT='60m'
 ```
 
 * `<service>` is the name of the folder which contains the file with the test(s) you want to run. The available folders are found in `azurerm/internal/services/`. So examples are `mssql`, `compute` or `mariadb`
