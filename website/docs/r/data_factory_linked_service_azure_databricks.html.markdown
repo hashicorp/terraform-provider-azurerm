@@ -49,11 +49,12 @@ resource "azurerm_data_factory_linked_service_azure_databricks" "msi_linked" {
   }
 
   new_cluster_config {
-    node_type         = "Standard_NC12"
-    cluster_version   = "5.5.x-gpu-scala2.11"
-    number_of_workers = "1:10"
-    driver_node_type  = "Standard_NC12"
-    log_destination   = "dbfs:/logs"
+    node_type             = "Standard_NC12"
+    cluster_version       = "5.5.x-gpu-scala2.11"
+    min_number_of_workers = 1
+    max_number_of_workers = 5
+    driver_node_type      = "Standard_NC12"
+    log_destination       = "dbfs:/logs"
 
     custom_tags = {
       custom_tag1 = "sct_value_1"
@@ -123,19 +124,19 @@ resource "azurerm_data_factory_linked_service_azure_databricks" "at_linked" {
 
 The following arguments are supported:
 
-* `adb_domain` - (Required) The domain URL of the databricks instance
+* `adb_domain` - (Required) The domain URL of the databricks instance.
 
 * `data_factory_name` - (Required) The Data Factory name in which to associate the Linked Service with. Changing this forces a new resource.
 
 * `name` - (Required) Specifies the name of the Data Factory Linked Service. Changing this forces a new resource to be created. Must be unique within a data factory. See the [Microsoft documentation](https://docs.microsoft.com/en-us/azure/data-factory/naming-rules) for all restrictions.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the Data Factory Linked Service. Changing this forces a new resource
+* `resource_group_name` - (Required) The name of the resource group in which to create the Data Factory Linked Service. Changing this forces a new resource.
 
 ---
 
 You must specify exactly one of the following authentication blocks:
 
-* `authentication_access_token` - (Optional) Authenticate to ADB via access token as defined in the `authentication_access_token` block below
+* `authentication_access_token` - (Optional) Authenticate to ADB via access token as defined in the `authentication_access_token` block below.
 
 * `authentication_key_vault_password` - (Optional) Authenticate to ADB via Azure Key Vault Linked Service as defined in the `authentication_key_vault_password` block below.
 
@@ -145,7 +146,7 @@ You must specify exactly one of the following authentication blocks:
 
 You must specify exactly one of the following modes for cluster integration:
 
-* `existing_cluster_id` - (Optional) The cluster_id of an existing cluster within the linked ADB instance
+* `existing_cluster_id` - (Optional) The cluster_id of an existing cluster within the linked ADB instance.
 
 * `instance_pool` - (Optional) Leverages an instance pool within the linked ADB instance as defined by  `instance_pool` block below.
 
@@ -153,7 +154,7 @@ You must specify exactly one of the following modes for cluster integration:
 
 ---
 
-* `additional_properties` - (Optional) A map of additional properties to associate with the Data Factory Linked Service
+* `additional_properties` - (Optional) A map of additional properties to associate with the Data Factory Linked Service.
 
 * `annotations` - (Optional) List of tags that can be used for describing the Data Factory Linked Service.
 
@@ -175,46 +176,45 @@ A `authentication_key_vault_password` block supports the following:
 
 A `authentication_access_token` block supports the following:
 
-* `access_token` - (Required) The access token to authenticate to databricks
+* `access_token` - (Required) The access token to authenticate to databricks.
 
 ---
 
 A `authentication_msi` block supports the following:
 
-* `workspace_resource_id` - (Required) The resource identifier of the databricks workspace
+* `workspace_resource_id` - (Required) The resource identifier of the databricks workspace.
 
 ---
 
-
 A `new_cluster_config` block supports the following:
 
-* `cluster_version` - (Required) Spark version of a the cluster
+* `cluster_version` - (Required) Spark version of a the cluster.
 
-* `node_type` - (Required) Node type for the new cluster
+* `node_type` - (Required) Node type for the new cluster.
 
-* `custom_tags` - (Optional) Tags for the cluster resource
+* `custom_tags` - (Optional) Tags for the cluster resource.
 
-* `driver_node_type` - (Optional) Driver node type for the cluster
+* `driver_node_type` - (Optional) Driver node type for the cluster.
 
-* `init_scripts` - (Optional) User defined initialization scripts for the cluster
+* `init_scripts` - (Optional) User defined initialization scripts for the cluster.
 
-* `log_destination` - (Optional) Location to deliver Spark driver, worker, and event logs
+* `log_destination` - (Optional) Location to deliver Spark driver, worker, and event logs.
 
-* `number_of_workers` - (Optional) The number of worker nodes. For a fixed number of workers, use a single value (e.g. "1") for autoscaling provide the min:max (e.g. "1:10"). Defaults to 1.
+* `spark_config` - (Optional) User-specified Spark configuration variables key-value pairs.
 
-* `spark_config` - (Optional) User-specified Spark configuration variables key-value pairs
+* `spark_environment_variables` - (Optional) User-specified Spark environment variables key-value pairs.
 
-* `spark_environment_variables` - (Optional) User-specified Spark environment variables key-value pairs
-* 
 ---
 
 A `instance_pool` block supports the following:
 
-* `instnace_pool_id` - (Required) Identifier of the instance pool within the linked ADB instance
+* `instance_pool_id` - (Required) Identifier of the instance pool within the linked ADB instance.
 
-* `number_of_workers` - (Optional) Fixed number of workers to use 
+* `cluster_version` - (Required) Spark version of a the cluster.
 
-* `cluster_version` - (Required) Spark version of a the cluster
+* `min_number_of_workers` - (Optional) The minimum number of worker nodes. Defaults to 1.
+
+* `max_number_of_workers` - (Optional) The max number of worker nodes. Set this value if you want to enable autoscaling between the `min_number_of_workers` and this value. Omit this value to use a fixed number of workers defined in the `min_number_of_workers` property.
 
 ---
 ## Attributes Reference

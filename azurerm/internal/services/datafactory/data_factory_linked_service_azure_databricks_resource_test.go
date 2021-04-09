@@ -18,108 +18,62 @@ type LinkedServiceDatabricksResource struct {
 }
 
 func TestAccDataFactoryLinkedServiceDatabricks_authViaMSI(t *testing.T) {
-	// Build random test data.
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_databricks", "test")
 
-	// Create an instance of this class so we can reference the functions.
 	r := LinkedServiceDatabricksResource{}
-
-	// Execute a test case
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			// Define the configuration to use the resource definition returned by the "basic" function (below)
 			Config: r.authentication_msi(data),
-			// Create a composition of validations to perform post-creation
 			Check: resource.ComposeTestCheckFunc(
-				// This verifies that the resource now exists in Azure (i.e. Creation was successful)
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// ?? Is this just validating that the service_principal_key exists on the resource. This should be true because this was not created with a managed identity.
-		// If it was created with a managed identity, then this shouldn't exist?
-		data.ImportStep(""),
+		data.ImportStep(),
 	})
 }
 
 func TestAccDataFactoryLinkedServiceDatabricks_authViaAccessToken(t *testing.T) {
-	// Build random test data.
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_databricks", "test")
 
-	// Create an instance of this class so we can reference the functions.
 	r := LinkedServiceDatabricksResource{}
-
-	// Execute a test case
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			// Define the configuration to use the resource definition returned by the "basic" function (below)
 			Config: r.authentication_access_token(data),
-			//  Create a composition of validations to perform post-creation
 			Check: resource.ComposeTestCheckFunc(
-				// This verifies that the resource now exists in Azure (i.e. Creation was successful)
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// ?? Is this just validating that the service_principal_key exists on the resource. This should be true because this was not created with a managed identity.
-		// If it was created with a managed identity, then this shouldn't exist?
-		data.ImportStep(""),
+		data.ImportStep("authentication_access_token"),
 	})
 }
 
 func TestAccDataFactoryLinkedServiceDatabricks_authViaKeyVault(t *testing.T) {
-	// Build random test data.
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_databricks", "test")
 
-	// Create an instance of this class so we can reference the functions.
 	r := LinkedServiceDatabricksResource{}
-
-	// Execute a test case
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			// Define the configuration to use the resource definition returned by the "basic" function (below)
 			Config: r.authentication_key_vault(data),
-			// Create a composition of validations to perform post-creation
 			Check: resource.ComposeTestCheckFunc(
-				// This verifies that the resource now exists in Azure (i.e. Creation was successful)
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// ?? Is this just validating that the service_principal_key exists on the resource. This should be true because this was not created with a managed identity.
-		// If it was created with a managed identity, then this shouldn't exist?
-		data.ImportStep(""),
+		data.ImportStep(),
 	})
 }
 
 func TestAccDataFactoryLinkedServiceDatabricks_newClusterConfig(t *testing.T) {
-	// Build random test data.
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_databricks", "test")
-
-	// Create an instance of this class so we can reference the functions.
 	r := LinkedServiceDatabricksResource{}
 
-	// Execute a test case
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			// Define the configuration to use the resource definition returned by the "basic" function (below)
 			Config: r.newClusterConfig(data),
-			// Create a composition of validations to perform post-creation
 			Check: resource.ComposeTestCheckFunc(
-				// This verifies that the resource now exists in Azure (i.e. Creation was successful)
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("new_cluster_config.0.cluster_version").HasValue("5.5.x-gpu-scala2.11"),
-				check.That(data.ResourceName).Key("new_cluster_config.0.node_type").HasValue("Standard_NC12"),
-				check.That(data.ResourceName).Key("new_cluster_config.0.number_of_workers").HasValue("5"),
-				check.That(data.ResourceName).Key("new_cluster_config.0.driver_node_type").HasValue("Standard_NC13"),
-				check.That(data.ResourceName).Key("new_cluster_config.0.log_destination").HasValue("dbfs:/logs"),
-				check.That(data.ResourceName).Key("new_cluster_config.0.init_scripts.#").HasValue("2"),
-				check.That(data.ResourceName).Key("new_cluster_config.0.custom_tags.sct1").HasValue("sct_value_1"),
-				check.That(data.ResourceName).Key("new_cluster_config.0.custom_tags.sct2").HasValue("sct_value_2"),
-				check.That(data.ResourceName).Key("new_cluster_config.0.spark_config.sc1").HasValue("sc_value_1"),
-				check.That(data.ResourceName).Key("new_cluster_config.0.spark_config.sc2").HasValue("sc_value_2"),
-				check.That(data.ResourceName).Key("new_cluster_config.0.spark_environment_variables.sev1").HasValue("sev_value_1"),
-				check.That(data.ResourceName).Key("new_cluster_config.0.spark_environment_variables.sev2").HasValue("sev_value_2"),
 			),
 		},
-		data.ImportStep(""),
+		data.ImportStep(),
 	})
 }
 func TestAccDataFactoryLinkedServiceDatabricks_update(t *testing.T) {
@@ -131,53 +85,15 @@ func TestAccDataFactoryLinkedServiceDatabricks_update(t *testing.T) {
 			Config: r.update1(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("parameters.%").HasValue("2"),
-				check.That(data.ResourceName).Key("parameters.key1").HasValue("u1k1"),
-				check.That(data.ResourceName).Key("parameters.key2").HasValue("u1k2"),
-				check.That(data.ResourceName).Key("annotations.#").HasValue("2"),
-				check.That(data.ResourceName).Key("annotations.0").HasValue("a1"),
-				check.That(data.ResourceName).Key("annotations.1").HasValue("a2"),
-				check.That(data.ResourceName).Key("description").HasValue("Initial Description"),
-				check.That(data.ResourceName).Key("new_cluster_config.0.cluster_version").HasValue("5.5.x-gpu-scala2.11"),
-				check.That(data.ResourceName).Key("new_cluster_config.0.node_type").HasValue("Standard_NC12"),
-				check.That(data.ResourceName).Key("new_cluster_config.0.number_of_workers").HasValue("1:10"),
-				check.That(data.ResourceName).Key("new_cluster_config.0.driver_node_type").HasValue("Standard_NC12"),
-				check.That(data.ResourceName).Key("new_cluster_config.0.log_destination").HasValue("dbfs:/logs"),
-				check.That(data.ResourceName).Key("new_cluster_config.0.init_scripts.#").HasValue("2"),
-				check.That(data.ResourceName).Key("new_cluster_config.0.custom_tags.sct1").HasValue("sct_value_1"),
-				check.That(data.ResourceName).Key("new_cluster_config.0.custom_tags.sct2").HasValue("sct_value_2"),
-				check.That(data.ResourceName).Key("new_cluster_config.0.spark_config.sc1").HasValue("sc_value_1"),
-				check.That(data.ResourceName).Key("new_cluster_config.0.spark_config.sc2").HasValue("sc_value_2"),
-				check.That(data.ResourceName).Key("new_cluster_config.0.spark_environment_variables.sev1").HasValue("sev_value_1"),
-				check.That(data.ResourceName).Key("new_cluster_config.0.spark_environment_variables.sev2").HasValue("sev_value_2"),
 			),
 		},
 		{
 			Config: r.update2(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("parameters.%").HasValue("2"),
-				check.That(data.ResourceName).Key("parameters.key1").HasValue("u2k1"),
-				check.That(data.ResourceName).Key("parameters.key2").HasValue("u2k2"),
-				check.That(data.ResourceName).Key("annotations.#").HasValue("2"),
-				check.That(data.ResourceName).Key("annotations.0").HasValue("b1"),
-				check.That(data.ResourceName).Key("annotations.1").HasValue("b2"),
-				check.That(data.ResourceName).Key("description").HasValue("Updated Description"),
-				check.That(data.ResourceName).Key("new_cluster_config.0.cluster_version").HasValue("6.5.x-gpu-scala2.11"),
-				check.That(data.ResourceName).Key("new_cluster_config.0.node_type").HasValue("Standard_NC20"),
-				check.That(data.ResourceName).Key("new_cluster_config.0.number_of_workers").HasValue("5"),
-				check.That(data.ResourceName).Key("new_cluster_config.0.driver_node_type").HasValue("Standard_NC13"),
-				check.That(data.ResourceName).Key("new_cluster_config.0.log_destination").HasValue("dbfs:/logs_updated"),
-				check.That(data.ResourceName).Key("new_cluster_config.0.init_scripts.#").HasValue("3"),
-				check.That(data.ResourceName).Key("new_cluster_config.0.custom_tags.sct1").HasValue("updated_sct_value_1"),
-				check.That(data.ResourceName).Key("new_cluster_config.0.custom_tags.sct2").HasValue("updated_sct_value_2"),
-				check.That(data.ResourceName).Key("new_cluster_config.0.spark_config.sc1").HasValue("updated_sc_value_1"),
-				check.That(data.ResourceName).Key("new_cluster_config.0.spark_config.sc2").HasValue("updated_sc_value_2"),
-				check.That(data.ResourceName).Key("new_cluster_config.0.spark_environment_variables.sev1").HasValue("updated_sev_value_1"),
-				check.That(data.ResourceName).Key("new_cluster_config.0.spark_environment_variables.sev2").HasValue("updated_sev_value_2"),
 			),
 		},
-		data.ImportStep(""),
+		data.ImportStep(),
 	})
 }
 
@@ -321,9 +237,9 @@ resource "azurerm_data_factory_linked_service_azure_databricks" "test" {
   annotations = ["test1", "test2"]
   adb_domain  = "https://adb-111111111.11.azuredatabricks.net"
   instance_pool {
-    instance_pool_id  = "0308-201055-safes631-pool-EHfwukQo"
-    number_of_workers = "1"
-    cluster_version   = "5.5.x-gpu-scala2.11"
+    instance_pool_id      = "0308-201055-safes631-pool-EHfwukQo"
+    min_number_of_workers = 3
+    cluster_version       = "5.5.x-gpu-scala2.11"
   }
 
 }
@@ -361,11 +277,11 @@ resource "azurerm_data_factory_linked_service_azure_databricks" "test" {
   annotations = ["test1", "test2"]
   adb_domain  = "https://adb-111111111.11.azuredatabricks.net"
   new_cluster_config {
-    cluster_version   = "5.5.x-gpu-scala2.11"
-    number_of_workers = "5"
-    node_type         = "Standard_NC12"
-    driver_node_type  = "Standard_NC13"
-    log_destination   = "dbfs:/logs"
+    cluster_version       = "5.5.x-gpu-scala2.11"
+    min_number_of_workers = 5
+    node_type             = "Standard_NC12"
+    driver_node_type      = "Standard_NC13"
+    log_destination       = "dbfs:/logs"
 
     custom_tags = {
       sct1 = "sct_value_1"
@@ -421,12 +337,12 @@ resource "azurerm_data_factory_linked_service_azure_databricks" "test" {
   adb_domain = "https://someFakeDomain"
 
   new_cluster_config {
-    node_type         = "Standard_NC12"
-    cluster_version   = "5.5.x-gpu-scala2.11"
-    number_of_workers = "1:10"
-
-    driver_node_type = "Standard_NC12"
-    log_destination  = "dbfs:/logs"
+    node_type             = "Standard_NC12"
+    cluster_version       = "5.5.x-gpu-scala2.11"
+    min_number_of_workers = 3
+    max_number_of_workers = 5
+    driver_node_type      = "Standard_NC12"
+    log_destination       = "dbfs:/logs"
 
     custom_tags = {
       sct1 = "sct_value_1"
@@ -483,9 +399,9 @@ resource "azurerm_data_factory_linked_service_azure_databricks" "test" {
   adb_domain = "https://someFakedomain"
 
   new_cluster_config {
-    node_type         = "Standard_NC20"
-    cluster_version   = "6.5.x-gpu-scala2.11"
-    number_of_workers = "5"
+    node_type             = "Standard_NC20"
+    cluster_version       = "6.5.x-gpu-scala2.11"
+    min_number_of_workers = 5
 
     driver_node_type = "Standard_NC13"
     log_destination  = "dbfs:/logs_updated"
