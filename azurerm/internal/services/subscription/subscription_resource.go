@@ -136,6 +136,7 @@ func resourceSubscriptionCreate(d *schema.ResourceData, meta interface{}) error 
 		aliasName = uuid.New().String()
 		d.Set("alias", aliasName)
 	}
+	t := d.Get("tags").(map[string]interface{})
 
 	id := parse.NewSubscriptionAliasId(aliasName)
 
@@ -185,7 +186,7 @@ func resourceSubscriptionCreate(d *schema.ResourceData, meta interface{}) error 
 			return fmt.Errorf("an Alias for Subscription %q already exists with name %q - to be managed via Terraform this resource needs to be imported into the State. Please see the resource documentation for %q for more information", subscriptionId, *exists, "azurerm_subscription")
 		}
 
-		req.Properties.SubscriptionID = utils.String(subscriptionId)
+		req.Properties.SubscriptionID = utils.String(subscriptionId)		
 		existingSub, err := client.Get(ctx, subscriptionId)
 		if err != nil {
 			return fmt.Errorf("could not read existing Subscription %q", subscriptionId)
@@ -206,6 +207,7 @@ func resourceSubscriptionCreate(d *schema.ResourceData, meta interface{}) error 
 		// If we're not assuming control of an existing Subscription, we need to know where to create it.
 		req.Properties.DisplayName = utils.String(d.Get("subscription_name").(string))
 		req.Properties.BillingScope = utils.String(d.Get("billing_scope_id").(string))
+		req.Properties.tags = utils.Expand(t)
 	}
 
 	future, err := aliasClient.Create(ctx, aliasName, req)
