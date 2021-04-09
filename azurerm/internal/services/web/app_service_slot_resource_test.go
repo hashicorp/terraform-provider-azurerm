@@ -1078,6 +1078,23 @@ func TestAccAppServiceSlot_applicationBlobStorageLogs(t *testing.T) {
 	})
 }
 
+func TestAccAppServiceSlot_emptyApplicationLogs(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	r := AppServiceSlotResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.emptyApplicationLogs(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("logs.0.application_logs.0.file_system_level").HasValue("Off"),
+				check.That(data.ResourceName).Key("logs.0.application_logs.0.azure_blob_storage.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccAppServiceSlot_httpFileSystemLogs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
@@ -3502,6 +3519,50 @@ resource "azurerm_app_service_slot" "test" {
         retention_in_days = 4
         retention_in_mb   = 25
       }
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (r AppServiceSlotResource) emptyApplicationLogs(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+}
+
+resource "azurerm_app_service_slot" "test" {
+  name                = "acctestASSlot-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
+
+  logs {
+    application_logs {
     }
   }
 }
