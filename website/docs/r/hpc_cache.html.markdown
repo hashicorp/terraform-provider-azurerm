@@ -71,7 +71,9 @@ The following arguments are supported:
 * `ntp_server` - (Optional) The NTP server IP Address or FQDN for the HPC Cache. Defaults to `time.windows.com`.
 
 * `dns` - (Optional) A `dns` block as defined below.
-  
+
+* `tags` - (Optional) A mapping of tags to assign to the HPC Cache.
+
 ---
 
 An `access_rule` block contains the following:

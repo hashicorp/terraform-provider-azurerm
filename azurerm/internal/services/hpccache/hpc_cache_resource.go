@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+
 	"github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2021-03-01/storagecache"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -206,6 +208,8 @@ func resourceHPCCache() *schema.Resource {
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
+
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -277,6 +281,7 @@ func resourceHPCCacheCreateOrUpdate(d *schema.ResourceData, meta interface{}) er
 		Sku: &storagecache.CacheSku{
 			Name: utils.String(skuName),
 		},
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, cache)
@@ -362,7 +367,7 @@ func resourceHPCCacheRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("sku_name", sku.Name)
 	}
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceHPCCacheDelete(d *schema.ResourceData, meta interface{}) error {
