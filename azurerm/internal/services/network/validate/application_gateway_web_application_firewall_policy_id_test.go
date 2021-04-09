@@ -4,7 +4,7 @@ package validate
 
 import "testing"
 
-func TestFirewallPolicyID(t *testing.T) {
+func TestApplicationGatewayWebApplicationFirewallPolicyID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
@@ -48,25 +48,25 @@ func TestFirewallPolicyID(t *testing.T) {
 
 		{
 			// missing value for Name
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/firewallPolicies/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies/",
 			Valid: false,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/firewallPolicies/firewallPolicy1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies/applicationGatewayWebApplicationFirewallPolicy1",
 			Valid: true,
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.NETWORK/FIREWALLPOLICIES/FIREWALLPOLICY1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.NETWORK/APPLICATIONGATEWAYWEBAPPLICATIONFIREWALLPOLICIES/APPLICATIONGATEWAYWEBAPPLICATIONFIREWALLPOLICY1",
 			Valid: false,
 		},
 	}
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %s", tc.Input)
-		_, errors := FirewallPolicyID(tc.Input, "test")
+		_, errors := ApplicationGatewayWebApplicationFirewallPolicyID(tc.Input, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {
