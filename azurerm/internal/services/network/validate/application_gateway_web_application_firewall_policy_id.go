@@ -8,14 +8,14 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 )
 
-func FirewallPolicyID(input interface{}, key string) (warnings []string, errors []error) {
+func ApplicationGatewayWebApplicationFirewallPolicyID(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
 		return
 	}
 
-	if _, err := parse.FirewallPolicyID(v); err != nil {
+	if _, err := parse.ApplicationGatewayWebApplicationFirewallPolicyID(v); err != nil {
 		errors = append(errors, err)
 	}
 

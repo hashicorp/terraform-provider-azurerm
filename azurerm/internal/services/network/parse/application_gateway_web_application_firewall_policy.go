@@ -9,42 +9,42 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type FirewallPolicyId struct {
+type ApplicationGatewayWebApplicationFirewallPolicyId struct {
 	SubscriptionId string
 	ResourceGroup  string
 	Name           string
 }
 
-func NewFirewallPolicyID(subscriptionId, resourceGroup, name string) FirewallPolicyId {
-	return FirewallPolicyId{
+func NewApplicationGatewayWebApplicationFirewallPolicyID(subscriptionId, resourceGroup, name string) ApplicationGatewayWebApplicationFirewallPolicyId {
+	return ApplicationGatewayWebApplicationFirewallPolicyId{
 		SubscriptionId: subscriptionId,
 		ResourceGroup:  resourceGroup,
 		Name:           name,
 	}
 }
 
-func (id FirewallPolicyId) String() string {
+func (id ApplicationGatewayWebApplicationFirewallPolicyId) String() string {
 	segments := []string{
 		fmt.Sprintf("Name %q", id.Name),
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Firewall Policy", segmentsStr)
+	return fmt.Sprintf("%s: (%s)", "Application Gateway Web Application Firewall Policy", segmentsStr)
 }
 
-func (id FirewallPolicyId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/firewallPolicies/%s"
+func (id ApplicationGatewayWebApplicationFirewallPolicyId) ID() string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
-// FirewallPolicyID parses a FirewallPolicy ID into an FirewallPolicyId struct
-func FirewallPolicyID(input string) (*FirewallPolicyId, error) {
+// ApplicationGatewayWebApplicationFirewallPolicyID parses a ApplicationGatewayWebApplicationFirewallPolicy ID into an ApplicationGatewayWebApplicationFirewallPolicyId struct
+func ApplicationGatewayWebApplicationFirewallPolicyID(input string) (*ApplicationGatewayWebApplicationFirewallPolicyId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceId := FirewallPolicyId{
+	resourceId := ApplicationGatewayWebApplicationFirewallPolicyId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}
@@ -57,7 +57,7 @@ func FirewallPolicyID(input string) (*FirewallPolicyId, error) {
 		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
-	if resourceId.Name, err = id.PopSegment("firewallPolicies"); err != nil {
+	if resourceId.Name, err = id.PopSegment("ApplicationGatewayWebApplicationFirewallPolicies"); err != nil {
 		return nil, err
 	}
 

@@ -8,21 +8,21 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
 
-var _ resourceid.Formatter = FirewallPolicyId{}
+var _ resourceid.Formatter = ApplicationGatewayWebApplicationFirewallPolicyId{}
 
-func TestFirewallPolicyIDFormatter(t *testing.T) {
-	actual := NewFirewallPolicyID("12345678-1234-9876-4563-123456789012", "resGroup1", "firewallPolicy1").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/firewallPolicies/firewallPolicy1"
+func TestApplicationGatewayWebApplicationFirewallPolicyIDFormatter(t *testing.T) {
+	actual := NewApplicationGatewayWebApplicationFirewallPolicyID("12345678-1234-9876-4563-123456789012", "resGroup1", "applicationGatewayWebApplicationFirewallPolicy1").ID()
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies/applicationGatewayWebApplicationFirewallPolicy1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestFirewallPolicyID(t *testing.T) {
+func TestApplicationGatewayWebApplicationFirewallPolicyID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *FirewallPolicyId
+		Expected *ApplicationGatewayWebApplicationFirewallPolicyId
 	}{
 
 		{
@@ -63,23 +63,23 @@ func TestFirewallPolicyID(t *testing.T) {
 
 		{
 			// missing value for Name
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/firewallPolicies/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/firewallPolicies/firewallPolicy1",
-			Expected: &FirewallPolicyId{
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies/applicationGatewayWebApplicationFirewallPolicy1",
+			Expected: &ApplicationGatewayWebApplicationFirewallPolicyId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:  "resGroup1",
-				Name:           "firewallPolicy1",
+				Name:           "applicationGatewayWebApplicationFirewallPolicy1",
 			},
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.NETWORK/FIREWALLPOLICIES/FIREWALLPOLICY1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.NETWORK/APPLICATIONGATEWAYWEBAPPLICATIONFIREWALLPOLICIES/APPLICATIONGATEWAYWEBAPPLICATIONFIREWALLPOLICY1",
 			Error: true,
 		},
 	}
@@ -87,7 +87,7 @@ func TestFirewallPolicyID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := FirewallPolicyID(v.Input)
+		actual, err := ApplicationGatewayWebApplicationFirewallPolicyID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
