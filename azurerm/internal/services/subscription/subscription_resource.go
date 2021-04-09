@@ -186,7 +186,7 @@ func resourceSubscriptionCreate(d *schema.ResourceData, meta interface{}) error 
 			return fmt.Errorf("an Alias for Subscription %q already exists with name %q - to be managed via Terraform this resource needs to be imported into the State. Please see the resource documentation for %q for more information", subscriptionId, *exists, "azurerm_subscription")
 		}
 
-		req.Properties.SubscriptionID = utils.String(subscriptionId)		
+		req.Properties.SubscriptionID = utils.String(subscriptionId)
 		existingSub, err := client.Get(ctx, subscriptionId)
 		if err != nil {
 			return fmt.Errorf("could not read existing Subscription %q", subscriptionId)
