@@ -351,7 +351,7 @@ func resourceKeyVaultCertificate() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.ForceNewSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
