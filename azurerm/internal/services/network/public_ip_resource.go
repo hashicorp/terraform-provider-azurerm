@@ -233,7 +233,7 @@ func resourcePublicIpCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 			}
 			newIpTags = append(newIpTags, ipTag)
 		}
-		
+
 		publicIp.PublicIPAddressPropertiesFormat.IPTags = &newIpTags
 	}
 
