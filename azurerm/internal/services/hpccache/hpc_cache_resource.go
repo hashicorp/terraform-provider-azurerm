@@ -118,6 +118,89 @@ func resourceHPCCache() *schema.Resource {
 				},
 			},
 
+			"directory_flat_file": {
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"group_file_uri": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"passwd_file_uri": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+				ConflictsWith: []string{"directory_ldap"},
+			},
+
+			"directory_ldap": {
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"server": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"base_dn": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"conn_encrypted": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+
+						"certificate_validation_url": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"download_certificate": {
+							Type:         schema.TypeBool,
+							Optional:     true,
+							RequiredWith: []string{"directory_ldap.0.certificate_validation_url"},
+						},
+
+						"bind": {
+							Type:     schema.TypeList,
+							MaxItems: 1,
+							Optional: true,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"dn": {
+										Type:         schema.TypeString,
+										Sensitive:    true,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"password": {
+										Type:         schema.TypeString,
+										Sensitive:    true,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+							},
+						},
+					},
+				},
+				ConflictsWith: []string{"directory_flat_file"},
+			},
+
 			// TODO 3.0: remove this property
 			"root_squash_enabled": {
 				Type:       schema.TypeBool,
