@@ -36,7 +36,6 @@ func resourceExpressRouteCircuitConnection() *schema.Resource {
 			return err
 		}),
 
-
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,
@@ -139,8 +138,7 @@ func resourceExpressRouteCircuitConnectionCreateUpdate(d *schema.ResourceData, m
 	expressRouteCircuitConnectionParameters := network.ExpressRouteCircuitConnection{
 		Name: utils.String(d.Get("name").(string)),
 		ExpressRouteCircuitConnectionPropertiesFormat: &network.ExpressRouteCircuitConnectionPropertiesFormat{
-			AddressPrefix:    utils.String(d.Get("address_prefix").(string)),
-			AuthorizationKey: utils.String(d.Get("authorization_key").(string)),
+			AddressPrefix: utils.String(d.Get("address_prefix").(string)),
 			ExpressRouteCircuitPeering: &network.SubResource{
 				ID: utils.String(d.Get("peering_id").(string)),
 			},
@@ -150,6 +148,11 @@ func resourceExpressRouteCircuitConnectionCreateUpdate(d *schema.ResourceData, m
 			Ipv6CircuitConnectionConfig: expandExpressRouteCircuitConnectionIpv6CircuitConnectionConfig(d.Get("ipv6circuit_connection_config").([]interface{})),
 		},
 	}
+
+	if v, ok := d.GetOk("authorization_key"); ok {
+		expressRouteCircuitConnectionParameters.ExpressRouteCircuitConnectionPropertiesFormat.AuthorizationKey = utils.String(v.(string))
+	}
+
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, circuitName, peeringName, name, expressRouteCircuitConnectionParameters)
 	if err != nil {
 		return fmt.Errorf("creating/updating ExpressRouteCircuitConnection %q (Resource Group %q / circuitName %q / peeringName %q): %+v", name, resourceGroup, circuitName, peeringName, err)

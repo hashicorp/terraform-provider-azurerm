@@ -18,22 +18,89 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_express_route_port" "example" {
-  name = "example-expressrouteport"
-  resource_group_name = azurerm_resource_group.example.name
-  location = azurerm_resource_group.example.location
+resource "azurerm_express_route_circuit" "example1" {
+  name                  = "expressRoute1"
+  resource_group_name   = azurerm_resource_group.example.name
+  location              = azurerm_resource_group.example.location
+  service_provider_name = "Equinix"
+  peering_location      = "Silicon Valley"
+  bandwidth_in_mbps     = 50
+
+  sku {
+    tier   = "Standard"
+    family = "MeteredData"
+  }
+
+  allow_classic_operations = false
+
+  tags = {
+    environment = "Production"
+  }
 }
 
-resource "azurerm_express_route_circuit" "example" {
-  name = "example-expressroutecircuit"
-  resource_group_name = azurerm_resource_group.example.name
-  location = azurerm_resource_group.example.location
+resource "azurerm_express_route_circuit" "example2" {
+  name                  = "expressRoute2"
+  resource_group_name   = azurerm_resource_group.example.name
+  location              = azurerm_resource_group.example.location
+  service_provider_name = "Equinix"
+  peering_location      = "Silicon Valley"
+  bandwidth_in_mbps     = 50
+
+  sku {
+    tier   = "Standard"
+    family = "MeteredData"
+  }
+
+  allow_classic_operations = false
+
+  tags = {
+    environment = "Production"
+  }
 }
 
-resource "azurerm_express_route_circuit_peering" "example" {
-  name = "example-expressroutecircuitpeering"
-  resource_group_name = azurerm_resource_group.example.name
-  circuit_name = azurerm_express_route_circuit.example.name
+resource "azurerm_express_route_circuit_peering" "example1" {
+  peering_type                  = "MicrosoftPeering"
+  express_route_circuit_name    = azurerm_express_route_circuit.example.name
+  resource_group_name           = azurerm_resource_group.example.name
+  peer_asn                      = 100
+  primary_peer_address_prefix   = "123.0.0.0/30"
+  secondary_peer_address_prefix = "123.0.0.4/30"
+  vlan_id                       = 300
+
+  microsoft_peering_config {
+    advertised_public_prefixes = ["123.1.0.0/24"]
+  }
+
+  ipv6 {
+    primary_peer_address_prefix   = "2002:db01::/126"
+    secondary_peer_address_prefix = "2003:db01::/126"
+
+    microsoft_peering {
+      advertised_public_prefixes = ["2002:db01::/126"]
+    }
+  }
+}
+resource "azurerm_express_route_circuit_peering" "example2" {
+  peering_type                  = "MicrosoftPeering"
+  express_route_circuit_name    = azurerm_express_route_circuit.example.name
+  resource_group_name           = azurerm_resource_group.example.name
+  peer_asn                      = 100
+  primary_peer_address_prefix   = "123.0.0.0/30"
+  secondary_peer_address_prefix = "123.0.0.4/30"
+  vlan_id                       = 300
+
+  microsoft_peering_config {
+    advertised_public_prefixes = ["123.1.0.0/24"]
+  }
+
+  ipv6 {
+    primary_peer_address_prefix   = "2002:db01::/126"
+    secondary_peer_address_prefix = "2003:db01::/126"
+
+    microsoft_peering {
+      advertised_public_prefixes = ["2002:db01::/126"]
+    }
+  }
 }
 
 resource "azurerm_express_route_circuit_connection" "example" {
@@ -41,6 +108,9 @@ resource "azurerm_express_route_circuit_connection" "example" {
   resource_group_name = azurerm_resource_group.example.name
   circuit_name = azurerm_express_route_circuit.example.name
   peering_name = azurerm_express_route_circuit_peering.example.name
+  peering_id = azurerm_express_route_circuit_peering.example1.id
+  peer_peering_id = azurerm_express_route_circuit_peering.example2.id
+  address_prefix = "192.169.8.0/29"
 }
 ```
 
@@ -56,9 +126,9 @@ The following arguments are supported:
 
 * `peering_name` - (Required) The name of the peering. Changing this forces a new network ExpressRouteCircuitConnection to be created.
 
----
+* `address_prefix` - (Required) /29 IP address space to carve out Customer addresses for tunnels.
 
-* `address_prefix` - (Optional) /29 IP address space to carve out Customer addresses for tunnels.
+---
 
 * `authorization_key` - (Optional) The authorization key.
 
