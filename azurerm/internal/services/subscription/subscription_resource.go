@@ -207,7 +207,7 @@ func resourceSubscriptionCreate(d *schema.ResourceData, meta interface{}) error 
 		// If we're not assuming control of an existing Subscription, we need to know where to create it.
 		req.Properties.DisplayName = utils.String(d.Get("subscription_name").(string))
 		req.Properties.BillingScope = utils.String(d.Get("billing_scope_id").(string))
-		req.Properties.tags = utils.Expand(t)
+		req.Properties.tags = tags.Expand(t)
 	}
 
 	future, err := aliasClient.Create(ctx, aliasName, req)
