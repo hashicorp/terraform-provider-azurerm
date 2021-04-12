@@ -275,9 +275,8 @@ func resourceStorageAccount() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"retention_in_days": {
-										Type:         schema.TypeInt,
-										Optional:     true,
-										ValidateFunc: validation.IntBetween(1, 146000),
+										Type:     schema.TypeInt,
+										Computed: true,
 									},
 								},
 							},
@@ -290,8 +289,10 @@ func resourceStorageAccount() *schema.Resource {
 						},
 
 						"default_service_version": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      "2020-06-12",
+							ValidateFunc: validate.BlobPropertiesDefaultServiceVersion,
 						},
 
 						"last_access_time_tracking_policy": {
@@ -301,18 +302,24 @@ func resourceStorageAccount() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"name": {
-										Type:     schema.TypeString,
-										Computed: true,
+										Type:         schema.TypeString,
+										Optional:     true,
+										Default:      "AccessTimeTracking",
+										ValidateFunc: validation.StringInSlice([]string{"AccessTimeTracking"}, false),
 									},
 									"granularity_in_days": {
-										Type:     schema.TypeInt,
-										Computed: true,
+										Type:         schema.TypeInt,
+										Optional:     true,
+										Default:      1,
+										ValidateFunc: validation.IntInSlice([]int{1}),
 									},
 									"blob_type": {
 										Type:     schema.TypeList,
+										Optional: true,
 										Computed: true,
 										Elem: &schema.Schema{
-											Type: schema.TypeString,
+											Type:         schema.TypeString,
+											ValidateFunc: validation.StringInSlice([]string{"blockBlob"}, false),
 										},
 									},
 								},
@@ -817,8 +824,8 @@ func resourceStorageAccountCreate(d *schema.ResourceData, meta interface{}) erro
 		if accountKind != string(storage.FileStorage) {
 			blobClient := meta.(*clients.Client).Storage.BlobServicesClient
 
-			blobProperties,err := expandBlobProperties(val.([]interface{}),isHnsEnabled,accountKind)
-			if err!=nil{
+			blobProperties, err := expandBlobProperties(val.([]interface{}), isHnsEnabled, accountKind)
+			if err != nil {
 				return err
 			}
 
@@ -1078,8 +1085,8 @@ func resourceStorageAccountUpdate(d *schema.ResourceData, meta interface{}) erro
 		// FileStorage does not support blob settings
 		if accountKind != string(storage.FileStorage) {
 			blobClient := meta.(*clients.Client).Storage.BlobServicesClient
-			blobProperties,err := expandBlobProperties(d.Get("blob_properties").([]interface{}),d.Get("is_hns_enabled").(bool),accountKind)
-			if err!=nil{
+			blobProperties, err := expandBlobProperties(d.Get("blob_properties").([]interface{}), d.Get("is_hns_enabled").(bool), accountKind)
+			if err != nil {
 				return err
 			}
 
@@ -1316,7 +1323,6 @@ func resourceStorageAccountRead(d *schema.ResourceData, meta interface{}) error 
 			}
 		}
 
-		time.Sleep(30*time.Second)
 		if err := d.Set("blob_properties", flattenBlobProperties(blobProps)); err != nil {
 			return fmt.Errorf("Error setting `blob_properties `for AzureRM Storage Account %q: %+v", name, err)
 		}
@@ -1538,7 +1544,7 @@ func expandStorageAccountBypass(networkRule map[string]interface{}) storage.Bypa
 	return storage.Bypass(strings.Join(bypassValues, ", "))
 }
 
-func expandBlobProperties(input []interface{},isHnsEnabled bool, accountKind string) (*storage.BlobServiceProperties,error) {
+func expandBlobProperties(input []interface{}, isHnsEnabled bool, accountKind string) (*storage.BlobServiceProperties, error) {
 	props := storage.BlobServiceProperties{
 		BlobServicePropertiesProperties: &storage.BlobServicePropertiesProperties{
 			Cors: &storage.CorsRules{
@@ -1559,7 +1565,7 @@ func expandBlobProperties(input []interface{},isHnsEnabled bool, accountKind str
 	}
 
 	if len(input) == 0 || input[0] == nil {
-		return &props,nil
+		return &props, nil
 	}
 
 	v := input[0].(map[string]interface{})
@@ -1573,15 +1579,19 @@ func expandBlobProperties(input []interface{},isHnsEnabled bool, accountKind str
 
 	props.IsVersioningEnabled = utils.Bool(v["versioning_enabled"].(bool))
 
-	changeFeed,err := expandBlobPropertiesChangeFeed(v["change_feed"].([]interface{}),isHnsEnabled,accountKind)
-	if err!=nil{
-		return  nil,err
+	changeFeed, err := expandBlobPropertiesChangeFeed(v["change_feed"].([]interface{}), isHnsEnabled, accountKind)
+	if err != nil {
+		return nil, err
 	}
 	props.ChangeFeed = changeFeed
 
+	if version, ok := v["default_service_version"].(string); ok && version != "" {
+		props.DefaultServiceVersion = utils.String(version)
+	}
+
 	props.LastAccessTimeTrackingPolicy = expandBlobPropertiesLastAccessTimeTracking(v["last_access_time_tracking_policy"].([]interface{}))
 
-	return &props,nil
+	return &props, nil
 }
 
 func expandBlobPropertiesDeleteRetentionPolicy(input []interface{}) *storage.DeleteRetentionPolicy {
@@ -1633,31 +1643,24 @@ func expandBlobPropertiesCors(input []interface{}) *storage.CorsRules {
 	return &blobCorsRules
 }
 
-func expandBlobPropertiesChangeFeed(input []interface{},isHnsEnabled bool, accountKind string) (*storage.ChangeFeed,error) {
+func expandBlobPropertiesChangeFeed(input []interface{}, isHnsEnabled bool, accountKind string) (*storage.ChangeFeed, error) {
 	if len(input) == 0 {
 		return &storage.ChangeFeed{
 			Enabled: utils.Bool(false),
-		},nil
+		}, nil
 	}
 
-	if isHnsEnabled{
-		return nil,fmt.Errorf("`change_feed` in `blob_properties` could not be enabled when `is_hns_enabled` is enabled")
+	if isHnsEnabled {
+		return nil, fmt.Errorf("`change_feed` in `blob_properties` could not be enabled when `is_hns_enabled` is enabled")
 	}
 
-	if accountKind!= string(storage.BlobStorage) && accountKind!= string(storage.StorageV2){
-		return nil,fmt.Errorf("`change_feed` in `blob_properties` is only support `account_kind` is `BlobStorage` or `StorageV2`")
+	if accountKind != string(storage.BlobStorage) && accountKind != string(storage.StorageV2) {
+		return nil, fmt.Errorf("`change_feed` in `blob_properties` is only support `account_kind` is `BlobStorage` or `StorageV2`")
 	}
 
-	changeFeed := input[0].(map[string]interface{})
-
-	result := storage.ChangeFeed{
+	return &storage.ChangeFeed{
 		Enabled: utils.Bool(true),
-	}
-
-	if v, ok := changeFeed["retention_in_days"].(int); ok && v != 0 {
-		result.RetentionInDays = utils.Int32(int32(v))
-	}
-	return &result,nil
+	}, nil
 }
 
 func expandBlobPropertiesLastAccessTimeTracking(input []interface{}) *storage.LastAccessTimeTrackingPolicy {
@@ -1668,7 +1671,7 @@ func expandBlobPropertiesLastAccessTimeTracking(input []interface{}) *storage.La
 	}
 
 	return &storage.LastAccessTimeTrackingPolicy{
-		Enable:                    utils.Bool(true),
+		Enable: utils.Bool(true),
 	}
 }
 

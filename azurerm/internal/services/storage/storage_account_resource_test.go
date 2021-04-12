@@ -792,7 +792,7 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 
   tags = {
-    %s
+                %s
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, tags)
@@ -1524,8 +1524,6 @@ resource "azurerm_storage_account" "test" {
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
-account_kind = "BlobStorage"
-allow_blob_public_access = true
 
   blob_properties {
     cors_rule {
@@ -1539,10 +1537,11 @@ allow_blob_public_access = true
     delete_retention_policy {
       days = 300
     }
-    versioning_enabled = true
-    change_feed {
-      retention_in_days = 3
-    }
+
+    default_service_version = "2019-07-07"
+    versioning_enabled      = true
+    change_feed {}
+    last_access_time_tracking_policy {}
 
     container_delete_retention_policy {
       days = 7
