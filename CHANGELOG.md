@@ -1,5 +1,9 @@
 ## 2.56.0 (Unreleased)
 
+ENHANCEMENTS:
+
+* `azurerm_application_gateway` - support for configuring `firewall_policy_id` within the `path_rule` block [GH-11239]
+
 BUG FIXES:
 
 * `azurerm_app_service_slot` - fix crash bug when given empty `http_logs` [GH-11267]
