@@ -260,11 +260,12 @@ func flattenLighthouseDefinitionAuthorization(input *[]managedservices.Authoriza
 }
 
 func flattenLighthouseDefinitionAuthorizationDelegatedRoleDefinitionIds(input *[]frsUUID.UUID) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
 	result := make([]interface{}, 0)
-	if input != nil {
-		for _, item := range *input {
-			result = append(result, item.String())
-		}
+	for _, item := range *input {
+		result = append(result, item.String())
 	}
 	return result
 }
