@@ -1,3 +1,9 @@
+## 2.56.0 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_app_service_slot` - fix crash bug when given empty `http_logs` [GH-11267]
+
 ## 2.55.0 (April 08, 2021)
 
 FEATURES:
