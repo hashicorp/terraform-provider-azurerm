@@ -253,6 +253,10 @@ func (r AppServiceEnvironmentV3Resource) Delete() sdk.ResourceFunc {
 			}
 
 			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+				if response.WasNotFound(future.Response()) {
+					return nil
+				}
+
 				return fmt.Errorf("waiting for removal of %s: %+v", id, err)
 			}
 
@@ -288,7 +292,7 @@ func (r AppServiceEnvironmentV3Resource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("cluster_setting") {
-				patch.AppServiceEnvironment.ClusterSettings = expandAppServiceEnvironmentClusterSettings(state.ClusterSetting)
+				patch.AppServiceEnvironment.ClusterSettings = expandClusterSettingsModel(state.ClusterSetting)
 			}
 
 			if _, err = client.Update(ctx, id.ResourceGroup, id.HostingEnvironmentName, patch); err != nil {

@@ -182,8 +182,9 @@ func (r AppServiceEnvironmentV3Resource) requiresImport(data acceptance.TestData
 %s
 
 resource "azurerm_app_service_environment_v3" "import" {
-  name      = azurerm_app_service_environment.test.name
-  subnet_id = azurerm_app_service_environment.test.subnet_id
+  name                = azurerm_app_service_environment_v3.test.name
+  resource_group_name = azurerm_app_service_environment_v3.test.resource_group_name
+  subnet_id           = azurerm_app_service_environment_v3.test.subnet_id
 }
 `, template)
 }
