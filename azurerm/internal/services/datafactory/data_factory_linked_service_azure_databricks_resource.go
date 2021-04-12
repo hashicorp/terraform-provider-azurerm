@@ -1,7 +1,6 @@
 package datafactory
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -155,7 +154,7 @@ func resourceDataFactoryLinkedServiceAzureDatabricks() *schema.Resource {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							Default:      "1",
-							ValidateFunc: validation.IntAtLeast(1),
+							ValidateFunc: validation.IntBetween(1, 10),
 						},
 						"max_number_of_workers": {
 							Type:         schema.TypeInt,
@@ -216,12 +215,12 @@ func resourceDataFactoryLinkedServiceAzureDatabricks() *schema.Resource {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							Default:      1,
-							ValidateFunc: validation.IntAtLeast(1),
+							ValidateFunc: validation.IntBetween(1, 10),
 						},
 						"max_number_of_workers": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validation.IntBetween(1, 10), //TODO: Confirm real number max workers
+							ValidateFunc: validation.IntBetween(1, 10),
 						},
 						"instance_pool_id": {
 							Type:         schema.TypeString,
@@ -301,21 +300,16 @@ func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *schema.ResourceDa
 	accessTokenKeyVaultAuth := d.Get("authentication_key_vault_password").([]interface{})
 
 	// Set the properties based on the authentication type that was provided
-	if len(msiAuth) > 0 {
-		if msiAuth[0] == nil {
-			return fmt.Errorf("`authentication_msi` missing data at index 0")
-		}
+	if len(msiAuth) > 0 && msiAuth[0] != nil {
 		workspaceResourceID := msiAuth[0].(map[string]interface{})["workspace_resource_id"].(string)
 
 		databricksProperties = &datafactory.AzureDatabricksLinkedServiceTypeProperties{
 			Authentication:      "MSI",
 			WorkspaceResourceID: workspaceResourceID,
 		}
-	} else if len(accessTokenAuth) > 0 {
+	}
+	if len(accessTokenAuth) > 0 && accessTokenAuth[0] != nil {
 		// Setup authentication using access tokens
-		if accessTokenAuth[0] == nil {
-			return fmt.Errorf("`authentication_access_token` missing data at index 0")
-		}
 		accessToken := accessTokenAuth[0].(map[string]interface{})["access_token"].(string)
 
 		accessTokenAsSecureString := datafactory.SecureString{
@@ -327,10 +321,9 @@ func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *schema.ResourceDa
 		databricksProperties = &datafactory.AzureDatabricksLinkedServiceTypeProperties{
 			AccessToken: &accessTokenAsSecureString,
 		}
-	} else {
-		if accessTokenKeyVaultAuth[0] == nil {
-			return fmt.Errorf("`authentication_key_vault_password` missing data at index 0")
-		}
+	}
+
+	if len(accessTokenKeyVaultAuth) > 0 && accessTokenKeyVaultAuth[0] != nil {
 		databricksProperties = &datafactory.AzureDatabricksLinkedServiceTypeProperties{
 			AccessToken: expandAzureKeyVaultPassword(accessTokenKeyVaultAuth),
 		}
@@ -359,10 +352,10 @@ func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *schema.ResourceDa
 
 		if minWorkersProperty := instancePoolMap["min_number_of_workers"]; minWorkersProperty != nil {
 			maxWorkersProperty := instancePoolMap["max_number_of_workers"]
-			if numOfWorkersProperty, errorMessage := constructNumberOfWorkersProperties(minWorkersProperty, maxWorkersProperty); errorMessage != nil {
+			if numOfWorkersProperty, err := constructNumberOfWorkersProperties(minWorkersProperty, maxWorkersProperty); err == nil {
 				databricksProperties.NewClusterNumOfWorker = numOfWorkersProperty
 			} else {
-				return fmt.Errorf(errorMessage.(string))
+				return fmt.Errorf("expanding `instance_pool`: +%v", err)
 			}
 		}
 	} else if v, ok := d.GetOk("new_cluster_config"); ok {
@@ -377,10 +370,10 @@ func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *schema.ResourceDa
 
 		if minWorkersProperty := newClusterMap["min_number_of_workers"]; minWorkersProperty != nil {
 			maxWorkersProperty := newClusterMap["max_number_of_workers"]
-			if numOfWorkersProperty, errorMessage := constructNumberOfWorkersProperties(minWorkersProperty, maxWorkersProperty); errorMessage != nil {
+			if numOfWorkersProperty, err := constructNumberOfWorkersProperties(minWorkersProperty, maxWorkersProperty); err == nil {
 				databricksProperties.NewClusterNumOfWorker = numOfWorkersProperty
 			} else {
-				return fmt.Errorf(errorMessage.(string))
+				return fmt.Errorf("expanding `new_cluster_config`: +%v", err)
 			}
 		}
 
@@ -530,7 +523,7 @@ func resourceDataFactoryLinkedServiceDatabricksRead(d *schema.ResourceData, meta
 
 			minWorkers, maxWorkers, err := parseNumberOfWorkersProperties(numOfWorkers.(string))
 			if err != nil {
-				return fmt.Errorf("%+v", err)
+				return fmt.Errorf("setting `instance_pool`: %+v", err)
 			}
 
 			instancePoolMap := map[string]interface{}{
@@ -555,7 +548,7 @@ func resourceDataFactoryLinkedServiceDatabricksRead(d *schema.ResourceData, meta
 
 			minWorkers, maxWorkers, err := parseNumberOfWorkersProperties(numOfWorkers.(string))
 			if err != nil {
-				return fmt.Errorf("%+v", err)
+				return fmt.Errorf("setting `new_cluster_config`: %+v", err)
 			}
 
 			newClusterMap := map[string]interface{}{
@@ -650,23 +643,21 @@ func resourceDataFactoryLinkedServiceDatabricksDelete(d *schema.ResourceData, me
 }
 
 func constructNumberOfWorkersProperties(minWorkersProperty interface{}, maxWorkersProperty interface{}) (string, interface{}) {
-	var errorMessage string
+	var err error
 
 	// Default settings
 	minWorkers := minWorkersProperty.(int)
 	workersConfig := fmt.Sprintf("%d", minWorkers)
 
 	// If max workers are set, we'll assume they want to setup autoscaling and throw an error if the configuration looks invalid
-	if maxWorkersProperty != nil {
-		maxWorkers := maxWorkersProperty.(int)
-
+	if maxWorkers := maxWorkersProperty.(int); maxWorkers > 0 {
 		if maxWorkers < minWorkers {
-			errorMessage = "`max_number_of_workers` cannot be less than `min_number_of_workers"
+			err = fmt.Errorf("`max_number_of_workers` [%d]` cannot be less than `min_number_of_workers` [%d]", maxWorkers, minWorkers)
 		} else if maxWorkers > minWorkers {
 			workersConfig = fmt.Sprintf("%d:%d", minWorkers, maxWorkers)
 		}
 	}
-	return workersConfig, errorMessage
+	return workersConfig, err
 }
 
 func parseNumberOfWorkersProperties(numberOfWorkersProperty string) (interface{}, interface{}, interface{}) {
@@ -676,14 +667,15 @@ func parseNumberOfWorkersProperties(numberOfWorkersProperty string) (interface{}
 	var min interface{}
 	var max interface{}
 	var err error
-	if len(numOfWorkersParts) == 1 {
+	switch len(numOfWorkersParts) {
+	case 1:
 		min, err = strconv.Atoi(numOfWorkersParts[0])
-	} else if len(numOfWorkersParts) == 2 {
+	case 2:
 		if min, err = strconv.Atoi(numOfWorkersParts[0]); err == nil {
 			max, err = strconv.Atoi(numOfWorkersParts[1])
 		}
-	} else {
-		err = errors.New("Unknown format for number of workers property")
+	default:
+		err = fmt.Errorf("Number of workers property has unknown format: %s", numberOfWorkersProperty)
 	}
 
 	return min, max, err
