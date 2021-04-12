@@ -1162,6 +1162,12 @@ func resourceApplicationGateway() *schema.Resource {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
+
+									"firewall_policy_id": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: networkValidate.ApplicationGatewayWebApplicationFirewallPolicyID,
+									},
 								},
 							},
 						},
@@ -3422,6 +3428,7 @@ func expandApplicationGatewayURLPathMaps(d *schema.ResourceData, gatewayID strin
 			backendAddressPoolName := ruleConfigMap["backend_address_pool_name"].(string)
 			backendHTTPSettingsName := ruleConfigMap["backend_http_settings_name"].(string)
 			redirectConfigurationName := ruleConfigMap["redirect_configuration_name"].(string)
+			firewallPolicyID := ruleConfigMap["firewall_policy_id"].(string)
 
 			rulePaths := make([]string, 0)
 			for _, rulePath := range ruleConfigMap["paths"].([]interface{}) {
@@ -3468,6 +3475,12 @@ func expandApplicationGatewayURLPathMaps(d *schema.ResourceData, gatewayID strin
 				rewriteRuleSetID := fmt.Sprintf("%s/rewriteRuleSets/%s", gatewayID, rewriteRuleSetName)
 				rule.ApplicationGatewayPathRulePropertiesFormat.RewriteRuleSet = &network.SubResource{
 					ID: utils.String(rewriteRuleSetID),
+				}
+			}
+
+			if firewallPolicyID != "" && len(firewallPolicyID) > 0 {
+				rule.ApplicationGatewayPathRulePropertiesFormat.FirewallPolicy = &network.SubResource{
+					ID: utils.String(firewallPolicyID),
 				}
 			}
 
@@ -3637,6 +3650,10 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 							rewriteRuleSet := rewriteId.Path["rewriteRuleSets"]
 							ruleOutput["rewrite_rule_set_name"] = rewriteRuleSet
 							ruleOutput["rewrite_rule_set_id"] = *rewrite.ID
+						}
+
+						if fwp := ruleProps.FirewallPolicy; fwp != nil && fwp.ID != nil {
+							ruleOutput["firewall_policy_id"] = *fwp.ID
 						}
 
 						pathOutputs := make([]interface{}, 0)
