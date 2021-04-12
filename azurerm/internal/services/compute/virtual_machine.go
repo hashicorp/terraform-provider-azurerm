@@ -861,5 +861,5 @@ func findInvalidDataDiskChanges(d *schema.ResourceData) (errors []error) {
 		}
 	}
 
-	return
+	return errors
 }
