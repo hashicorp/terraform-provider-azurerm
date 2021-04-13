@@ -251,7 +251,7 @@ func TestAccSpringCloudAppCosmosDbAssociation_table_requiresImport(t *testing.T)
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.RequiresImportErrorStep(r.sql_requiresImport),
+		data.RequiresImportErrorStep(r.table_requiresImport),
 	})
 }
 
