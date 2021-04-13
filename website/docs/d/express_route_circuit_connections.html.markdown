@@ -14,9 +14,9 @@ Use this data source to access information about an existing network ExpressRout
 
 ```hcl
 data "azurerm_express_route_circuit_connection" "example" {
-  name = "example-expressroutecircuitconnection"
+  name                = "example-expressroutecircuitconnection"
   resource_group_name = "existing"
-  circuit_name = "existing"
+  circuit_name        = "existing"
 }
 
 output "id" {

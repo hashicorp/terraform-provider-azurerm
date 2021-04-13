@@ -90,11 +90,6 @@ func resourceExpressRouteCircuitConnection() *schema.Resource {
 							Optional:     true,
 							ValidateFunc: validation.IsCIDR,
 						},
-
-						"circuit_connection_status": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
 					},
 				},
 			},
@@ -230,14 +225,9 @@ func flattenExpressRouteCircuitConnectionIpv6CircuitConnectionConfig(input *netw
 	if input.AddressPrefix != nil {
 		addressPrefix = *input.AddressPrefix
 	}
-	var circuitConnectionStatus network.CircuitConnectionStatus
-	if input.CircuitConnectionStatus != "" {
-		circuitConnectionStatus = input.CircuitConnectionStatus
-	}
 	return []interface{}{
 		map[string]interface{}{
-			"address_prefix":            addressPrefix,
-			"circuit_connection_status": circuitConnectionStatus,
+			"address_prefix": addressPrefix,
 		},
 	}
 }

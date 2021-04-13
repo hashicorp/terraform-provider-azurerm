@@ -60,7 +60,7 @@ resource "azurerm_express_route_circuit" "example2" {
 
 resource "azurerm_express_route_circuit_peering" "example1" {
   peering_type                  = "AzurePrivatePeering"
-  express_route_circuit_name    = azurerm_express_route_circuit.example.name
+  express_route_circuit_name    = azurerm_express_route_circuit.example1.name
   resource_group_name           = azurerm_resource_group.example.name
   peer_asn                      = 100
   primary_peer_address_prefix   = "123.0.0.0/30"
@@ -69,7 +69,7 @@ resource "azurerm_express_route_circuit_peering" "example1" {
 }
 resource "azurerm_express_route_circuit_peering" "example2" {
   peering_type                  = "AzurePrivatePeering"
-  express_route_circuit_name    = azurerm_express_route_circuit.example.name
+  express_route_circuit_name    = azurerm_express_route_circuit.example2.name
   resource_group_name           = azurerm_resource_group.example.name
   peer_asn                      = 100
   primary_peer_address_prefix   = "123.0.0.0/30"
@@ -78,13 +78,13 @@ resource "azurerm_express_route_circuit_peering" "example2" {
 }
 
 resource "azurerm_express_route_circuit_connection" "example" {
-  name = "example-expressroutecircuitconnection"
+  name                = "example-expressroutecircuitconnection"
   resource_group_name = azurerm_resource_group.example.name
-  circuit_name = azurerm_express_route_circuit.example.name
-  peering_id = azurerm_express_route_circuit_peering.example1.id
-  peer_peering_id = azurerm_express_route_circuit_peering.example2.id
-  address_prefix = "192.169.8.0/29"
-  authorization_key = "00000000-0000-0000-0000-000000000000"
+  circuit_name        = azurerm_express_route_circuit.example1.name
+  peering_id          = azurerm_express_route_circuit_peering.example1.id
+  peer_peering_id     = azurerm_express_route_circuit_peering.example2.id
+  address_prefix      = "192.169.8.0/29"
+  authorization_key   = "00000000-0000-0000-0000-000000000000"
   ipv6circuit_connection_config {
     address_prefix = "2002:db01::/125"
   }
@@ -100,6 +100,10 @@ The following arguments are supported:
 * `resource_group_name` - (Required) The name of the Resource Group where the network ExpressRouteCircuitConnection should exist. Changing this forces a new network ExpressRouteCircuitConnection to be created.
 
 * `circuit_name` - (Required) The name of the express route circuit. Changing this forces a new network ExpressRouteCircuitConnection to be created.
+  
+* `peering_id` - (Required) The ID of the Express Route Circuit Private Peering Resource of the circuit initiating connection.
+  
+* `peer_peering_id` - (Required) The ID of the Express Route Circuit Private Peering Resource of the peered circuit.
 
 * `address_prefix` - (Required) /29 IP address space to carve out Customer addresses for tunnels.
 
@@ -120,10 +124,6 @@ An `ipv6circuit_connection_config` block exports the following:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the network ExpressRouteCircuitConnection.
-
-* `circuit_connection_status` - Express Route Circuit connection state.
-
-* `type` - Type of the resource.
 
 ## Timeouts
 

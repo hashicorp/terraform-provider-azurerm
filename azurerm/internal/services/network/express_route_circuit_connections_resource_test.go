@@ -191,8 +191,8 @@ func (r ExpressRouteCircuitConnectionResource) basic(data acceptance.TestData) s
 	rg := os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP")
 	circuitName := os.Getenv("ARM_TEST_CIRCUIT_NAME_FIRST")
 	template := r.template(data)
-	return fmt.Sprintf(`
-%s
+
+	return fmt.Sprintf(`%s
 
 resource "azurerm_express_route_circuit_connection" "test" {
   name = "acctest-nercc-%d"
@@ -207,8 +207,7 @@ resource "azurerm_express_route_circuit_connection" "test" {
 
 func (r ExpressRouteCircuitConnectionResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
-	return fmt.Sprintf(`
-%s
+	return fmt.Sprintf(`%s
 
 resource "azurerm_express_route_circuit_connection" "import" {
   name = azurerm_express_route_circuit_connection.test.name
@@ -226,8 +225,7 @@ func (r ExpressRouteCircuitConnectionResource) complete(data acceptance.TestData
 	circuitName := os.Getenv("ARM_TEST_CIRCUIT_NAME_FIRST")
 
 	template := r.template(data)
-	return fmt.Sprintf(`
-%s
+	return fmt.Sprintf(`%s
 
 resource "azurerm_express_route_circuit_connection" "test" {
   name = "acctest-nercc-%d"
@@ -249,8 +247,7 @@ func (r ExpressRouteCircuitConnectionResource) updateIpv6CircuitConnectionConfig
 	circuitName := os.Getenv("ARM_TEST_CIRCUIT_NAME_FIRST")
 
 	template := r.template(data)
-	return fmt.Sprintf(`
-%s
+	return fmt.Sprintf(`%s
 
 resource "azurerm_express_route_circuit_connection" "test" {
   name = "acctest-nercc-%d"
