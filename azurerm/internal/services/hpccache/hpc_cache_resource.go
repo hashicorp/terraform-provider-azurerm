@@ -162,7 +162,7 @@ func resourceHPCCache() *schema.Resource {
 							Optional: true,
 						},
 
-						"certificate_validation_url": {
+						"certificate_validation_uri": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -171,7 +171,7 @@ func resourceHPCCache() *schema.Resource {
 						"download_certificate": {
 							Type:         schema.TypeBool,
 							Optional:     true,
-							RequiredWith: []string{"directory_ldap.0.certificate_validation_url"},
+							RequiredWith: []string{"directory_ldap.0.certificate_validation_uri"},
 						},
 
 						"bind": {
@@ -346,6 +346,8 @@ func resourceHPCCacheCreateOrUpdate(d *schema.ResourceData, meta interface{}) er
 		}
 	}
 
+	directorySetting := expandStorageCacheDirectorySettings(d)
+
 	cache := &storagecache.Cache{
 		Name:     utils.String(name),
 		Location: utils.String(location),
@@ -356,6 +358,7 @@ func resourceHPCCacheCreateOrUpdate(d *schema.ResourceData, meta interface{}) er
 			SecuritySettings: &storagecache.CacheSecuritySettings{
 				AccessPolicies: &accessPolicies,
 			},
+			DirectoryServicesSettings: directorySetting,
 		},
 		Sku: &storagecache.CacheSku{
 			Name: utils.String(skuName),
@@ -371,14 +374,32 @@ func resourceHPCCacheCreateOrUpdate(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error waiting for HPC Cache %q (Resource Group %q) to finish provisioning: %+v", name, resourceGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("Error retrieving HPC Cache %q (Resource Group %q): %+v", name, resourceGroup, err)
+	// If any directory setting is set, we'll further check the `usernameDownloaded` in response to ensure the configuration is correct, and the cache is functional.
+	// There are situations that the LRO succeeded, whilst ends up with a non-functional cache (e.g. providing some invalid flat file setting).
+	if directorySetting != nil {
+		resp, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			return fmt.Errorf("Error retrieving HPC Cache %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+
+		prop := resp.CacheProperties
+		if prop == nil {
+			return fmt.Errorf("Unepxected nil `cacheProperties` in response")
+		}
+		ds := prop.DirectoryServicesSettings
+		if ds == nil {
+			return fmt.Errorf("Unexpected nil `directoryServicesSettings` in response")
+		}
+		ud := ds.UsernameDownload
+		if ud == nil {
+			return fmt.Errorf("Unexpected nil `usernameDownload` in response")
+		}
+		if ud.UsernameDownloaded != storagecache.UsernameDownloadedTypeYes {
+			return fmt.Errorf("failed to download directory info, current status: %s", ud.UsernameDownloaded)
+		}
 	}
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read ID for HPC Cache %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	d.SetId(*resp.ID)
+
+	d.SetId(id.ID())
 
 	return resourceHPCCacheRead(d, meta)
 }
@@ -418,6 +439,19 @@ func resourceHPCCacheRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("ntp_server", ntpServer)
 		if err := d.Set("dns", dnsSetting); err != nil {
 			return fmt.Errorf("setting `dns`: %v", err)
+		}
+
+		flatFile, ldap, err := flattenStorageCacheDirectorySettings(d, props.DirectoryServicesSettings)
+		if err != nil {
+			return err
+		}
+
+		if err := d.Set("directory_flat_file", flatFile); err != nil {
+			fmt.Errorf("setting `directory_flat_file`: %v", err)
+		}
+
+		if err := d.Set("directory_ldap", ldap); err != nil {
+			fmt.Errorf("setting `directory_ldap`: %v", err)
 		}
 
 		if securitySettings := props.SecuritySettings; securitySettings != nil {
@@ -618,4 +652,127 @@ func flattenStorageCacheNetworkSettings(settings *storagecache.CacheNetworkSetti
 		}
 	}
 	return
+}
+
+func expandStorageCacheDirectorySettings(d *schema.ResourceData) *storagecache.CacheDirectorySettings {
+	if raw := d.Get("directory_flat_file").([]interface{}); len(raw) != 0 {
+		b := raw[0].(map[string]interface{})
+		return &storagecache.CacheDirectorySettings{
+			UsernameDownload: &storagecache.CacheUsernameDownloadSettings{
+				ExtendedGroups: utils.Bool(true),
+				UsernameSource: storagecache.UsernameSourceFile,
+				GroupFileURI:   utils.String(b["group_file_uri"].(string)),
+				UserFileURI:    utils.String(b["passwd_file_uri"].(string)),
+			},
+		}
+	}
+
+	if raw := d.Get("directory_ldap").([]interface{}); len(raw) != 0 {
+		b := raw[0].(map[string]interface{})
+		var certValidationUriPtr *string
+		certValidationUri := b["certificate_validation_uri"].(string)
+		if certValidationUri != "" {
+			certValidationUriPtr = &certValidationUri
+		}
+		return &storagecache.CacheDirectorySettings{
+			UsernameDownload: &storagecache.CacheUsernameDownloadSettings{
+				ExtendedGroups:          utils.Bool(true),
+				UsernameSource:          storagecache.UsernameSourceLDAP,
+				LdapServer:              utils.String(b["server"].(string)),
+				LdapBaseDN:              utils.String(b["base_dn"].(string)),
+				EncryptLdapConnection:   utils.Bool(b["conn_encrypted"].(bool)),
+				RequireValidCertificate: utils.Bool(certValidationUriPtr != nil),
+				AutoDownloadCertificate: utils.Bool(b["download_certificate"].(bool)),
+				CaCertificateURI:        certValidationUriPtr,
+				Credentials:             expandStorageCacheDirectoryLdapBind(b["bind"].([]interface{})),
+			},
+		}
+	}
+
+	return nil
+}
+
+func flattenStorageCacheDirectorySettings(d *schema.ResourceData, input *storagecache.CacheDirectorySettings) (flatFile, ldap []interface{}, err error) {
+	if input == nil || input.UsernameDownload == nil {
+		return nil, nil, nil
+	}
+
+	ud := input.UsernameDownload
+	switch ud.UsernameSource {
+	case storagecache.UsernameSourceFile:
+		var groupFileUri string
+		if ud.GroupFileURI != nil {
+			groupFileUri = *ud.GroupFileURI
+		}
+
+		var passwdFileUri string
+		if ud.UserFileURI != nil {
+			passwdFileUri = *ud.UserFileURI
+		}
+
+		return []interface{}{
+			map[string]interface{}{
+				"group_file_uri":  groupFileUri,
+				"passwd_file_uri": passwdFileUri,
+			},
+		}, nil, nil
+	case storagecache.UsernameSourceLDAP:
+		var server string
+		if ud.LdapServer != nil {
+			server = *ud.LdapServer
+		}
+
+		var baseDn string
+		if ud.LdapBaseDN != nil {
+			baseDn = *ud.LdapBaseDN
+		}
+
+		var connEncrypted bool
+		if ud.EncryptLdapConnection != nil {
+			connEncrypted = *ud.EncryptLdapConnection
+		}
+
+		var certValidationUri string
+		if ud.CaCertificateURI != nil {
+			certValidationUri = *ud.CaCertificateURI
+		}
+
+		var downloadCert bool
+		if ud.AutoDownloadCertificate != nil {
+			downloadCert = *ud.AutoDownloadCertificate
+		}
+
+		return nil, []interface{}{
+			map[string]interface{}{
+				"server":                     server,
+				"base_dn":                    baseDn,
+				"conn_encrypted":             connEncrypted,
+				"certificate_validation_uri": certValidationUri,
+				"download_certificate":       downloadCert,
+				"bind":                       flattenStorageCacheDirectoryLdapBind(d),
+			},
+		}, nil
+	default:
+		return nil, nil, nil
+	}
+}
+
+func flattenStorageCacheDirectoryLdapBind(d *schema.ResourceData) []interface{} {
+	// Since the credentials are never returned from response. We will set whatever specified in the config back to state as the best effort.
+	ldap := d.Get("directory_ldap").([]interface{})
+	if len(ldap) == 0 {
+		return nil
+	}
+	return ldap[0].(map[string]interface{})["bind"].([]interface{})
+}
+
+func expandStorageCacheDirectoryLdapBind(input []interface{}) *storagecache.CacheUsernameDownloadSettingsCredentials {
+	if input == nil || len(input) == 0 {
+		return nil
+	}
+	b := input[0].(map[string]interface{})
+	return &storagecache.CacheUsernameDownloadSettingsCredentials{
+		BindDn:       utils.String(b["dn"].(string)),
+		BindPassword: utils.String(b["password"].(string)),
+	}
 }
