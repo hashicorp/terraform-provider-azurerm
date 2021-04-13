@@ -7,6 +7,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* dependencies: updating `github.com/Azure/azure-sdk-for-go` to `v53.0.0` [GH-11302]
 * dependencies: updating `containerservice` to API version `2021-02-01` [GH-10972]
 * `azurerm_application_gateway` - support for configuring `firewall_policy_id` within the `path_rule` block [GH-11239]
 * `azurerm_hpc_cache` - support for `tags` [GH-11268]
