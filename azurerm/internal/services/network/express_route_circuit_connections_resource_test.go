@@ -153,7 +153,7 @@ func (r ExpressRouteCircuitConnectionResource) Exists(ctx context.Context, clien
 	return utils.Bool(true), nil
 }
 
-func (r ExpressRouteCircuitConnectionResource) template(data acceptance.TestData) string {
+func (r ExpressRouteCircuitConnectionResource) template() string {
 	rg := os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP")
 	circuitName1 := os.Getenv("ARM_TEST_CIRCUIT_NAME_FIRST")
 	circuitName2 := os.Getenv("ARM_TEST_CIRCUIT_NAME_SECOND")
@@ -190,7 +190,7 @@ resource "azurerm_express_route_circuit_peering" "peer_test" {
 func (r ExpressRouteCircuitConnectionResource) basic(data acceptance.TestData) string {
 	rg := os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP")
 	circuitName := os.Getenv("ARM_TEST_CIRCUIT_NAME_FIRST")
-	template := r.template(data)
+	template := r.template()
 
 	return fmt.Sprintf(`%s
 
@@ -224,7 +224,7 @@ func (r ExpressRouteCircuitConnectionResource) complete(data acceptance.TestData
 	rg := os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP")
 	circuitName := os.Getenv("ARM_TEST_CIRCUIT_NAME_FIRST")
 
-	template := r.template(data)
+	template := r.template()
 	return fmt.Sprintf(`%s
 
 resource "azurerm_express_route_circuit_connection" "test" {
@@ -246,7 +246,7 @@ func (r ExpressRouteCircuitConnectionResource) updateIpv6CircuitConnectionConfig
 	rg := os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP")
 	circuitName := os.Getenv("ARM_TEST_CIRCUIT_NAME_FIRST")
 
-	template := r.template(data)
+	template := r.template()
 	return fmt.Sprintf(`%s
 
 resource "azurerm_express_route_circuit_connection" "test" {
