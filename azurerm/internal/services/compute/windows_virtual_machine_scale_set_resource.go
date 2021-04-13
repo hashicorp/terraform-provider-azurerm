@@ -732,13 +732,23 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta in
 		}
 
 		if d.HasChange("source_image_id") || d.HasChange("source_image_reference") {
+			// Must include all storage profile properties when updating disk image.  See: https://github.com/terraform-providers/terraform-provider-azurerm/issues/8273
+			ultraSSDEnabled := d.Get("additional_capabilities.0.ultra_ssd_enabled").(bool)
+			dataDisks, _ := ExpandVirtualMachineScaleSetDataDisk(d.Get("data_disk").([]interface{}), ultraSSDEnabled)
+			if err != nil {
+				return fmt.Errorf("expanding `data_disk`: %+v", err)
+			}
+
+			osDiskRaw := d.Get("os_disk").([]interface{})
+
 			sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
 			sourceImageId := d.Get("source_image_id").(string)
 			sourceImageReference, err := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
 			if err != nil {
 				return err
 			}
-
+			updateProps.VirtualMachineProfile.StorageProfile.DataDisks = dataDisks
+			updateProps.VirtualMachineProfile.StorageProfile.OsDisk = ExpandVirtualMachineScaleSetOSDiskUpdate(osDiskRaw)
 			updateProps.VirtualMachineProfile.StorageProfile.ImageReference = sourceImageReference
 		}
 	}
