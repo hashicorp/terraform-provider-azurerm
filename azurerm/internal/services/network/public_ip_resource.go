@@ -223,10 +223,6 @@ func resourcePublicIpCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 		newIpTags := []network.IPTag{}
 
 		for key, val := range ipTags {
-			if strings.EqualFold(key, "routingpreference") && !strings.EqualFold(sku, "standard") {
-				return fmt.Errorf("IP Tag 'RoutingPreference' requires Standard SKU")
-			}
-
 			ipTag := network.IPTag{
 				IPTagType: utils.String(key),
 				Tag:       utils.String(val.(string)),
@@ -333,7 +329,9 @@ func flattenPublicIpPropsIpTags(ipTags []network.IPTag) map[string]interface{} {
 	mapIpTags := make(map[string]interface{})
 
 	for _, tag := range ipTags {
-		mapIpTags[*tag.IPTagType] = tag.Tag
+		if tag.Tag != nil {
+			mapIpTags[*tag.IPTagType] = tag.Tag
+		}
 	}
 	return mapIpTags
 }
