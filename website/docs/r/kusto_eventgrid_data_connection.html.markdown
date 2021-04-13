@@ -89,6 +89,10 @@ resource "azurerm_kusto_eventgrid_data_connection" "example" {
   storage_account_id           = azurerm_storage_account.example.id
   eventhub_id                  = azurerm_eventhub.example.id
   eventhub_consumer_group_name = azurerm_eventhub_consumer_group.example.name
+  
+  table_name        = "my-table"         #(Optional)
+  mapping_rule_name = "my-table-mapping" #(Optional)
+  data_format       = "JSON"             #(Optional)
 
   depends_on = [azurerm_eventgrid_event_subscription.example]
 }
