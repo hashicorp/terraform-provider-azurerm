@@ -17,7 +17,6 @@ data "azurerm_express_route_circuit_connection" "example" {
   name = "example-expressroutecircuitconnection"
   resource_group_name = "existing"
   circuit_name = "existing"
-  peering_name = "existing"
 }
 
 output "id" {
@@ -34,8 +33,6 @@ The following arguments are supported:
 * `resource_group_name` - (Required) The name of the Resource Group where the network ExpressRouteCircuitConnection exists.
 
 * `circuit_name` - (Required) The name of the express route circuit.
-
-* `peering_name` - (Required) The name of the peering.
 
 ## Attributes Reference
 

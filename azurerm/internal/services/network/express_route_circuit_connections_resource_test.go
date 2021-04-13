@@ -198,7 +198,6 @@ resource "azurerm_express_route_circuit_connection" "test" {
   name = "acctest-nercc-%d"
   resource_group_name = "%s"
   circuit_name = "%s"
-  peering_name = azurerm_express_route_circuit_peering.test.peering_type
   peering_id = azurerm_express_route_circuit_peering.test.id
   peer_peering_id = azurerm_express_route_circuit_peering.peer_test.id
   address_prefix = "192.169.8.0/29"
@@ -215,7 +214,6 @@ resource "azurerm_express_route_circuit_connection" "import" {
   name = azurerm_express_route_circuit_connection.test.name
   resource_group_name = azurerm_express_route_circuit_connection.test.resource_group_name
   circuit_name = azurerm_express_route_circuit_connection.test.circuit_name
-  peering_name = azurerm_express_route_circuit_connection.test.peering_name
   peering_id = azurerm_express_route_circuit_peering.test.id
   peer_peering_id = azurerm_express_route_circuit_peering.peer_test.id
   address_prefix = "192.169.8.0/29"
@@ -235,7 +233,6 @@ resource "azurerm_express_route_circuit_connection" "test" {
   name = "acctest-nercc-%d"
   resource_group_name = "%s"
   circuit_name = "%s"
-  peering_name = azurerm_express_route_circuit_peering.test.peering_type
   peering_id = azurerm_express_route_circuit_peering.test.id
   peer_peering_id = azurerm_express_route_circuit_peering.peer_test.id
   address_prefix = "192.169.8.0/29"
@@ -259,7 +256,6 @@ resource "azurerm_express_route_circuit_connection" "test" {
   name = "acctest-nercc-%d"
   resource_group_name = "%s"
   circuit_name = "%s"
-  peering_name = azurerm_express_route_circuit_peering.test.peering_type
   peering_id = azurerm_express_route_circuit_peering.test.id
   peer_peering_id = azurerm_express_route_circuit_peering.peer_test.id
   address_prefix = "192.169.8.0/29"

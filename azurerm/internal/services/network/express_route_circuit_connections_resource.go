@@ -2,12 +2,12 @@ package network
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -53,32 +53,23 @@ func resourceExpressRouteCircuitConnection() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"peering_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(network.AzurePrivatePeering),
-					string(network.AzurePublicPeering),
-					string(network.MicrosoftPeering),
-				}, false),
-			},
-
 			"peering_id": {
 				Type:         schema.TypeString,
 				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"peer_peering_id": {
 				Type:         schema.TypeString,
 				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"address_prefix": {
 				Type:         schema.TypeString,
-				Optional:     true,
+				Required:     true,
 				ValidateFunc: validation.IsCIDR,
 			},
 
@@ -119,15 +110,14 @@ func resourceExpressRouteCircuitConnectionCreateUpdate(d *schema.ResourceData, m
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	circuitName := d.Get("circuit_name").(string)
-	peeringName := d.Get("peering_name").(string)
 
-	id := parse.NewExpressRouteCircuitConnectionID(subscriptionId, resourceGroup, circuitName, peeringName, name).ID()
+	id := parse.NewExpressRouteCircuitConnectionID(subscriptionId, resourceGroup, circuitName, "AzurePrivatePeering", name).ID()
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, circuitName, peeringName, name)
+		existing, err := client.Get(ctx, resourceGroup, circuitName, "AzurePrivatePeering", name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for existing ExpressRouteCircuitConnection %q (Resource Group %q / circuitName %q / peeringName %q): %+v", name, resourceGroup, circuitName, peeringName, err)
+				return fmt.Errorf("checking for existing ExpressRouteCircuitConnection %q (Resource Group %q / circuitName %q): %+v", name, resourceGroup, circuitName, err)
 			}
 		}
 		if !utils.ResponseWasNotFound(existing.Response) {
@@ -153,13 +143,13 @@ func resourceExpressRouteCircuitConnectionCreateUpdate(d *schema.ResourceData, m
 		expressRouteCircuitConnectionParameters.ExpressRouteCircuitConnectionPropertiesFormat.AuthorizationKey = utils.String(v.(string))
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, circuitName, peeringName, name, expressRouteCircuitConnectionParameters)
+	future, err := client.CreateOrUpdate(ctx, resourceGroup, circuitName, "AzurePrivatePeering", name, expressRouteCircuitConnectionParameters)
 	if err != nil {
-		return fmt.Errorf("creating/updating ExpressRouteCircuitConnection %q (Resource Group %q / circuitName %q / peeringName %q): %+v", name, resourceGroup, circuitName, peeringName, err)
+		return fmt.Errorf("creating/updating ExpressRouteCircuitConnection %q (Resource Group %q / circuitName %q): %+v", name, resourceGroup, circuitName, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of the ExpressRouteCircuitConnection %q (Resource Group %q / circuitName %q / peeringName %q): %+v", name, resourceGroup, circuitName, peeringName, err)
+		return fmt.Errorf("waiting for creation/update of the ExpressRouteCircuitConnection %q (Resource Group %q / circuitName %q): %+v", name, resourceGroup, circuitName, err)
 	}
 
 	d.SetId(id)
@@ -188,7 +178,6 @@ func resourceExpressRouteCircuitConnectionRead(d *schema.ResourceData, meta inte
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("circuit_name", id.CircuitName)
-	d.Set("peering_name", id.PeeringName)
 	d.Set("peering_id", resp.ExpressRouteCircuitPeering.ID)
 	d.Set("peer_peering_id", resp.PeerExpressRouteCircuitPeering.ID)
 	if props := resp.ExpressRouteCircuitConnectionPropertiesFormat; props != nil {

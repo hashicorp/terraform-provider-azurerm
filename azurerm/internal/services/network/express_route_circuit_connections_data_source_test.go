@@ -35,7 +35,6 @@ data "azurerm_express_route_circuit_connection" "test" {
   name = azurerm_express_route_circuit_connection.test.name
   resource_group_name = azurerm_express_route_circuit_connection.test.resource_group_name
   circuit_name = azurerm_express_route_circuit_connection.test.circuit_name
-  peering_name = azurerm_express_route_circuit_connection.test.peering_name
 }
 `, ExpressRouteCircuitConnectionResource{}.basic(data))
 }
