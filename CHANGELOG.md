@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Resource:** `azurerm_data_factory_linked_service_azure_databricks` [GH-10962]
 * **New Resource:** `azurerm_media_live_event_output` [GH-10917]
 * **New Resource:** `azurerm_spring_cloud_app_mysql_association` [GH-11229]
 
