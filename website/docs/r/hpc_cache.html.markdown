@@ -71,6 +71,12 @@ The following arguments are supported:
 * `ntp_server` - (Optional) The NTP server IP Address or FQDN for the HPC Cache. Defaults to `time.windows.com`.
 
 * `dns` - (Optional) A `dns` block as defined below.
+
+* `directory_flat_file` - (Optional) A `directory_flat_file` block as defined below.
+ 
+* `directory_ldap` - (Optional) A `directory_ldap` block as defined below.
+
+~> **NOTE**: Only one of `directory_flat_file` and `directory_ldap` can be set.
   
 ---
 
@@ -96,9 +102,41 @@ An `access_rule` block contains the following:
 
 ---
 
+A `bind` block contains the following:
+
+* `dn` - (Required) The Bind Distinguished Name (DN) identity to be used in the secure LDAP connection.
+ 
+* `password` - (Required) The Bind password to be used in the secure LDAP connection.
+
+---
+
 A `default_access_policy` block contains the following:
 
 * `access_rule` - (Required) One to three `access_rule` blocks as defined above.
+
+---
+
+A `directory_flat_file` block contains the following:
+
+* `group_file_uri` - (Required) The URI of the file containing group information (`/etc/group` file format in Unix-like OS).
+
+* `passwd_file_uri` - (Required) The URI of the file containing user information (`/etc/passwd` file format in Unix-like OS).
+
+---
+
+A `directory_ldap` block contains the following:
+
+* `server` - (Required) The FQDN or IP address of the LDAP server.
+
+* `base_dn` - (Required) The base distinguished name (DN) for the LDAP domain.
+
+* `conn_encrypted` - (Optional) Whether the LDAP connection should be encrypted? Defaults to `false`.
+
+* `certificate_validation_uri` - (Optional) The URI of the CA certificate to validate the LDAP secure connection.
+
+* `download_certificate` - (Optional) Whether the certificate should be automatically downloaded. This can be set to `true` only when `certificate_validation_uri` is provided. Defaults to `false`.
+
+* `bind` - (Optional) A `bind` block as defined above.
 
 ---
 

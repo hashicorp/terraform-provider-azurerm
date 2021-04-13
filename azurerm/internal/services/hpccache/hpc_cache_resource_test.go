@@ -219,15 +219,7 @@ func TestAccHPCCache_directoryLDAP(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("mount_addresses.#").Exists(),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.ldap(data),
+			Config: r.ldapBasic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("mount_addresses.#").Exists(),
@@ -235,15 +227,15 @@ func TestAccHPCCache_directoryLDAP(t *testing.T) {
 		},
 		data.ImportStep("directory_ldap.0.bind"),
 		{
-			Config: r.basic(data),
+			Config: r.ldapNone(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("mount_addresses.#").Exists(),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("directory_ldap.0.bind"),
 		{
-			Config: r.ldapUpdate(data),
+			Config: r.ldapComplete(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("mount_addresses.#").Exists(),
@@ -259,7 +251,7 @@ func TestAccHPCCache_directoryFlatFile(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.flatFileNone(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("mount_addresses.#").Exists(),
@@ -267,7 +259,7 @@ func TestAccHPCCache_directoryFlatFile(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.flatFile(data),
+			Config: r.flatFileComplete(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("mount_addresses.#").Exists(),
@@ -275,7 +267,7 @@ func TestAccHPCCache_directoryFlatFile(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.basic(data),
+			Config: r.flatFileNone(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("mount_addresses.#").Exists(),
@@ -455,7 +447,24 @@ resource "azurerm_hpc_cache" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r HPCCacheResource) flatFile(data acceptance.TestData) string {
+func (r HPCCacheResource) flatFileNone(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_hpc_cache" "test" {
+  name                = "acctest-HPC-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cache_size_in_gb    = 3072
+  subnet_id           = azurerm_subnet.test.id
+  sku_name            = "Standard_2G"
+
+  depends_on = [azurerm_linux_virtual_machine.test]
+}
+`, r.directoryFlatFileTemplate(data), data.RandomInteger)
+}
+
+func (r HPCCacheResource) flatFileComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -519,7 +528,24 @@ resource "azurerm_linux_virtual_machine" "test" {
 `, r.directoryTemplate(data), data.RandomInteger)
 }
 
-func (r HPCCacheResource) ldap(data acceptance.TestData) string {
+func (r HPCCacheResource) ldapNone(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_hpc_cache" "test" {
+  name                = "acctest-HPC-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cache_size_in_gb    = 3072
+  subnet_id           = azurerm_subnet.test.id
+  sku_name            = "Standard_2G"
+
+  depends_on = [azurerm_linux_virtual_machine.test]
+}
+`, r.directoryLdapTemplate(data), data.RandomInteger)
+}
+
+func (r HPCCacheResource) ldapBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -544,7 +570,7 @@ resource "azurerm_hpc_cache" "test" {
 `, r.directoryLdapTemplate(data), data.RandomInteger)
 }
 
-func (r HPCCacheResource) ldapUpdate(data acceptance.TestData) string {
+func (r HPCCacheResource) ldapComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
