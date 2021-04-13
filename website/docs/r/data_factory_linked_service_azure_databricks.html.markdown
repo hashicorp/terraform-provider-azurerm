@@ -37,16 +37,13 @@ resource "azurerm_databricks_workspace" "example" {
 }
 
 resource "azurerm_data_factory_linked_service_azure_databricks" "msi_linked" {
-
   name                = "ADBLinkedServiceViaMSI"
   data_factory_name   = azurerm_data_factory.example.name
   resource_group_name = azurerm_resource_group.example.name
   description         = "ADB Linked Service via MSI"
   adb_domain          = "https://${azurerm_databricks_workspace.example.workspace_url}"
 
-  authentication_msi = {
-    workspace_resource_id = azurerm_databricks_workspace.example.id
-  }
+  msi_work_space_resource_id = azurerm_databricks_workspace.example.id
 
   new_cluster_config {
     node_type             = "Standard_NC12"
@@ -102,22 +99,15 @@ resource "azurerm_databricks_workspace" "example" {
 }
 
 resource "azurerm_data_factory_linked_service_azure_databricks" "at_linked" {
-
   name                = "ADBLinkedServiceViaAccessToken"
   data_factory_name   = azurerm_data_factory.example.name
   resource_group_name = azurerm_resource_group.example.name
   description         = "ADB Linked Service via Access Token"
   existing_cluster_id = "0308-201146-sly615"
 
-  authentication_access_token = {
-    access_token = "SomeDatabricksAccessToken"
-  }
-
-  adb_domain = "https://${azurerm_databricks_workspace.example.workspace_url}"
-
-
+  access_token = "SomeDatabricksAccessToken"
+  adb_domain   = "https://${azurerm_databricks_workspace.example.workspace_url}"
 }
-
 ```
 
 ## Arguments Reference
@@ -136,11 +126,11 @@ The following arguments are supported:
 
 You must specify exactly one of the following authentication blocks:
 
-* `authentication_access_token` - (Optional) Authenticate to ADB via access token as defined in the `authentication_access_token` block below.
+* `access_token` - (Optional) Authenticate to ADB via an access token.
 
-* `authentication_key_vault_password` - (Optional) Authenticate to ADB via Azure Key Vault Linked Service as defined in the `authentication_key_vault_password` block below.
+* `key_vault_password` - (Optional) Authenticate to ADB via Azure Key Vault Linked Service as defined in the `key_vault_password` block below.
 
-* `authentication_msi` - (Optional) Authenticate to ADB via managed service identity as defined in the `authentication_msi` blocks as defined below.
+* `msi_work_space_resource_id` - (Optional) Authenticate to ADB via managed service identity.
 
 ---
 
@@ -166,23 +156,11 @@ You must specify exactly one of the following modes for cluster integration:
 
 ---
 
-A `authentication_key_vault_password` block supports the following:
+A `key_vault_password` block supports the following:
 
 * `linked_service_name` - (Required) Specifies the name of an existing Key Vault Data Factory Linked Service.
 
 * `secret_name` - (Required) Specifies the secret name in Azure Key Vault that stores ADB access token.
-
----
-
-A `authentication_access_token` block supports the following:
-
-* `access_token` - (Required) The access token to authenticate to databricks.
-
----
-
-A `authentication_msi` block supports the following:
-
-* `workspace_resource_id` - (Required) The resource identifier of the databricks workspace.
 
 ---
 

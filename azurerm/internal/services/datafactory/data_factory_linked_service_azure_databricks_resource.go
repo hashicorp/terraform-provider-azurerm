@@ -56,40 +56,22 @@ func resourceDataFactoryLinkedServiceAzureDatabricks() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			// Authentication types
-			"authentication_msi": {
-				Type:     schema.TypeList,
-				MaxItems: 1,
-				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"workspace_resource_id": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: databricksValidator.WorkspaceID,
-						},
-					},
-				},
-				ExactlyOneOf: []string{"authentication_access_token", "authentication_msi", "authentication_key_vault_password"},
+			"msi_work_space_resource_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: databricksValidator.WorkspaceID,
+				ExactlyOneOf: []string{"access_token", "msi_work_space_resource_id", "key_vault_password"},
 			},
 
-			"authentication_access_token": {
-				Type:     schema.TypeList,
-				MaxItems: 1,
-				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"access_token": {
-							Type:         schema.TypeString,
-							Required:     true,
-							Sensitive:    true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-					},
-				},
-				ExactlyOneOf: []string{"authentication_access_token", "authentication_msi", "authentication_key_vault_password"},
+			"access_token": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Sensitive:    true,
+				ValidateFunc: validation.StringIsNotEmpty,
+				ExactlyOneOf: []string{"access_token", "msi_work_space_resource_id", "key_vault_password"},
 			},
 
-			"authentication_key_vault_password": {
+			"key_vault_password": {
 				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
@@ -108,7 +90,7 @@ func resourceDataFactoryLinkedServiceAzureDatabricks() *schema.Resource {
 						},
 					},
 				},
-				ExactlyOneOf: []string{"authentication_access_token", "authentication_msi", "authentication_key_vault_password"},
+				ExactlyOneOf: []string{"access_token", "msi_work_space_resource_id", "key_vault_password"},
 			},
 
 			"description": {
@@ -295,31 +277,24 @@ func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *schema.ResourceDa
 	var databricksProperties *datafactory.AzureDatabricksLinkedServiceTypeProperties
 
 	// Check if the MSI authentication block is set
-	msiAuth := d.Get("authentication_msi").([]interface{})
-	accessTokenAuth := d.Get("authentication_access_token").([]interface{})
-	accessTokenKeyVaultAuth := d.Get("authentication_key_vault_password").([]interface{})
+	msiAuth := d.Get("msi_work_space_resource_id").(string)
+	accessTokenAuth := d.Get("access_token").(string)
+	accessTokenKeyVaultAuth := d.Get("key_vault_password").([]interface{})
 
 	// Set the properties based on the authentication type that was provided
-	if len(msiAuth) > 0 && msiAuth[0] != nil {
-		workspaceResourceID := msiAuth[0].(map[string]interface{})["workspace_resource_id"].(string)
-
+	if msiAuth != "" {
 		databricksProperties = &datafactory.AzureDatabricksLinkedServiceTypeProperties{
 			Authentication:      "MSI",
-			WorkspaceResourceID: workspaceResourceID,
+			WorkspaceResourceID: msiAuth,
 		}
 	}
-	if len(accessTokenAuth) > 0 && accessTokenAuth[0] != nil {
-		// Setup authentication using access tokens
-		accessToken := accessTokenAuth[0].(map[string]interface{})["access_token"].(string)
-
-		accessTokenAsSecureString := datafactory.SecureString{
-			Value: utils.String(accessToken),
-			Type:  datafactory.TypeSecureString,
-		}
-
+	if accessTokenAuth != "" {
 		// Assign the access token in the properties block
 		databricksProperties = &datafactory.AzureDatabricksLinkedServiceTypeProperties{
-			AccessToken: &accessTokenAsSecureString,
+			AccessToken: &datafactory.SecureString{
+				Value: utils.String(accessTokenAuth),
+				Type:  datafactory.TypeSecureString,
+			},
 		}
 	}
 
@@ -336,10 +311,7 @@ func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *schema.ResourceDa
 		databricksProperties.ExistingClusterID = v.(string)
 	}
 
-	if v, ok := d.GetOk("instance_pool"); ok {
-		if v.([]interface{})[0] == nil {
-			return fmt.Errorf("`instance_pool` missing data at index 0")
-		}
+	if v, ok := d.GetOk("instance_pool"); ok && v.([]interface{})[0] != nil {
 		instancePoolMap := v.([]interface{})[0].(map[string]interface{})
 
 		if data := instancePoolMap["instance_pool_id"]; data != nil {
@@ -352,16 +324,15 @@ func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *schema.ResourceDa
 
 		if minWorkersProperty := instancePoolMap["min_number_of_workers"]; minWorkersProperty != nil {
 			maxWorkersProperty := instancePoolMap["max_number_of_workers"]
-			if numOfWorkersProperty, err := constructNumberOfWorkersProperties(minWorkersProperty, maxWorkersProperty); err == nil {
+			if numOfWorkersProperty, err := buildNumberOfWorkersProperties(minWorkersProperty, maxWorkersProperty); err == nil {
 				databricksProperties.NewClusterNumOfWorker = numOfWorkersProperty
 			} else {
 				return fmt.Errorf("expanding `instance_pool`: +%v", err)
 			}
 		}
-	} else if v, ok := d.GetOk("new_cluster_config"); ok {
-		if v.([]interface{})[0] == nil {
-			return fmt.Errorf("`new_cluster_config` missing data at index 0")
-		}
+	}
+
+	if v, ok := d.GetOk("new_cluster_config"); ok && v.([]interface{})[0] != nil {
 		newClusterMap := v.([]interface{})[0].(map[string]interface{})
 
 		if data := newClusterMap["cluster_version"]; data != nil {
@@ -370,7 +341,7 @@ func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *schema.ResourceDa
 
 		if minWorkersProperty := newClusterMap["min_number_of_workers"]; minWorkersProperty != nil {
 			maxWorkersProperty := newClusterMap["max_number_of_workers"]
-			if numOfWorkersProperty, err := constructNumberOfWorkersProperties(minWorkersProperty, maxWorkersProperty); err == nil {
+			if numOfWorkersProperty, err := buildNumberOfWorkersProperties(minWorkersProperty, maxWorkersProperty); err == nil {
 				databricksProperties.NewClusterNumOfWorker = numOfWorkersProperty
 			} else {
 				return fmt.Errorf("expanding `new_cluster_config`: +%v", err)
@@ -411,44 +382,44 @@ func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *schema.ResourceDa
 		databricksProperties.NewClusterInitScripts = &initScripts
 	}
 
-	DatabricksLinkedService := &datafactory.AzureDatabricksLinkedService{
+	databricksLinkedService := &datafactory.AzureDatabricksLinkedService{
 		Description: utils.String(d.Get("description").(string)),
 		AzureDatabricksLinkedServiceTypeProperties: databricksProperties,
 		Type: datafactory.TypeAzureDatabricks,
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		DatabricksLinkedService.Parameters = expandDataFactoryParameters(v.(map[string]interface{}))
+		databricksLinkedService.Parameters = expandDataFactoryParameters(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("integration_runtime_name"); ok {
-		DatabricksLinkedService.ConnectVia = expandDataFactoryLinkedServiceIntegrationRuntime(v.(string))
+		databricksLinkedService.ConnectVia = expandDataFactoryLinkedServiceIntegrationRuntime(v.(string))
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		DatabricksLinkedService.AdditionalProperties = v.(map[string]interface{})
+		databricksLinkedService.AdditionalProperties = v.(map[string]interface{})
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
 		annotations := v.([]interface{})
-		DatabricksLinkedService.Annotations = &annotations
+		databricksLinkedService.Annotations = &annotations
 	}
 
 	linkedService := datafactory.LinkedServiceResource{
-		Properties: DatabricksLinkedService,
+		Properties: databricksLinkedService,
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, dataFactoryName, name, linkedService, ""); err != nil {
-		return fmt.Errorf("Error creating/updating Data Factory Linked Service Azure Databricks %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("creating/updating Data Factory Linked Service Azure Databricks %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 	if err != nil {
-		return fmt.Errorf("Error retrieving Data Factory Linked Service Databricks %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("retrieving Data Factory Linked Service Databricks %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
 	}
 
 	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Data Factory Linked Service Databricks %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("reading Data Factory Linked Service Databricks %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -483,36 +454,29 @@ func resourceDataFactoryLinkedServiceDatabricksRead(d *schema.ResourceData, meta
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("data_factory_name", dataFactoryName)
 
-	Databricks, ok := resp.Properties.AsAzureDatabricksLinkedService()
-
+	databricks, ok := resp.Properties.AsAzureDatabricksLinkedService()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Linked Service Databricks %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeAzureDatabricks, *resp.Type)
+		return fmt.Errorf("classifiying Data Factory Linked Service Databricks %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeAzureDatabricks, *resp.Type)
 	}
 
 	// Check the properties and verify if authentication is set to MSI
-	if props := Databricks.AzureDatabricksLinkedServiceTypeProperties; props != nil {
+	if props := databricks.AzureDatabricksLinkedServiceTypeProperties; props != nil {
+		d.Set("adb_domain", props.Domain)
+
 		if props.Authentication != nil && props.Authentication == "MSI" {
-			authenticationMsi := make(map[string]interface{})
-			authenticationMsi["workspace_resource_id"] = props.WorkspaceResourceID
-			authenticationMsiArray := []interface{}{authenticationMsi}
-			d.Set("authentication_msi", authenticationMsiArray)
-		} else if props.AccessToken != nil {
-			// Check the data type of the access token so we know how to process it.
-			if accessToken := props.AccessToken; accessToken != nil {
-				// We only process AzureKeyVaultSecreReference because a string based access token is masked with asterisks in the GET response
-				// so we can't set it
-				if keyVaultPassword, ok := accessToken.AsAzureKeyVaultSecretReference(); ok {
-					if err := d.Set("authentication_key_vault_password", flattenAzureKeyVaultPassword(keyVaultPassword)); err != nil {
-						return fmt.Errorf("setting `authentication_key_vault_password`: %+v", err)
-					}
+			d.Set("msi_work_space_resource_id", props.WorkspaceResourceID)
+		} else if accessToken := props.AccessToken; accessToken != nil {
+			// We only process AzureKeyVaultSecreReference because a string based access token is masked with asterisks in the GET response
+			// so we can't set it
+			if keyVaultPassword, ok := accessToken.AsAzureKeyVaultSecretReference(); ok {
+				if err := d.Set("key_vault_password", flattenAzureKeyVaultPassword(keyVaultPassword)); err != nil {
+					return fmt.Errorf("setting `key_vault_password`: %+v", err)
 				}
 			}
 		}
 
-		if props.Domain != nil {
-			d.Set("adb_domain", props.Domain)
-		}
-
+		instancePoolArray := make([]interface{}, 0)
+		newClusterArray := make([]interface{}, 0)
 		if props.ExistingClusterID != nil {
 			if err := d.Set("existing_cluster_id", props.ExistingClusterID); err != nil {
 				return fmt.Errorf("setting `existing_cluster_id`: %+v", err)
@@ -528,18 +492,15 @@ func resourceDataFactoryLinkedServiceDatabricksRead(d *schema.ResourceData, meta
 
 			instancePoolMap := map[string]interface{}{
 				"instance_pool_id":      id,
-				"min_number_of_workers": minWorkers.(int),
+				"min_number_of_workers": minWorkers,
 				"cluster_version":       clusterVersion,
 			}
 
-			if maxWorkers != nil {
-				instancePoolMap["max_number_of_workers"] = maxWorkers.(int)
+			if maxWorkers != 0 {
+				instancePoolMap["max_number_of_workers"] = maxWorkers
 			}
 
-			instancePoolArray := []interface{}{instancePoolMap}
-			if err := d.Set("instance_pool", instancePoolArray); err != nil {
-				return fmt.Errorf("setting `instance_pool`: %+v", err)
-			}
+			instancePoolArray = append(instancePoolArray, instancePoolMap)
 		} else {
 			// Process assuming it's a new cluster config
 			numOfWorkers := props.NewClusterNumOfWorker
@@ -552,13 +513,13 @@ func resourceDataFactoryLinkedServiceDatabricksRead(d *schema.ResourceData, meta
 			}
 
 			newClusterMap := map[string]interface{}{
-				"min_number_of_workers": minWorkers.(int),
+				"min_number_of_workers": minWorkers,
 				"cluster_version":       clusterVersion,
 				"node_type":             nodeType,
 			}
 
-			if maxWorkers != nil {
-				newClusterMap["max_number_of_workers"] = maxWorkers.(int)
+			if maxWorkers != 0 {
+				newClusterMap["max_number_of_workers"] = maxWorkers
 			}
 
 			// Retrieve all the optional arguments
@@ -585,36 +546,31 @@ func resourceDataFactoryLinkedServiceDatabricksRead(d *schema.ResourceData, meta
 			if data := props.NewClusterInitScripts; data != nil {
 				newClusterMap["init_scripts"] = data
 			}
-
-			// Set the ResourceData with the map
-			newClusterArray := []interface{}{newClusterMap}
-
-			if err := d.Set("new_cluster_config", newClusterArray); err != nil {
-				return fmt.Errorf("setting `new_cluster_config`: %+v", err)
-			}
+			newClusterArray = append(newClusterArray, newClusterMap)
+		}
+		if err := d.Set("new_cluster_config", newClusterArray); err != nil {
+			return fmt.Errorf("setting `new_cluster_config`: %+v", err)
+		}
+		if err := d.Set("instance_pool", instancePoolArray); err != nil {
+			return fmt.Errorf("setting `instance_pool`: %+v", err)
 		}
 	}
 
-	d.Set("additional_properties", Databricks.AdditionalProperties)
+	d.Set("additional_properties", databricks.AdditionalProperties)
+	d.Set("description", databricks.Description)
 
-	if Databricks.Description != nil {
-		d.Set("description", Databricks.Description)
-	}
-
-	annotations := flattenDataFactoryAnnotations(Databricks.Annotations)
+	annotations := flattenDataFactoryAnnotations(databricks.Annotations)
 	if err := d.Set("annotations", annotations); err != nil {
 		return fmt.Errorf("Error setting `annotations`: %+v", err)
 	}
 
-	parameters := flattenDataFactoryParameters(Databricks.Parameters)
+	parameters := flattenDataFactoryParameters(databricks.Parameters)
 	if err := d.Set("parameters", parameters); err != nil {
 		return fmt.Errorf("Error setting `parameters`: %+v", err)
 	}
 
-	if connectVia := Databricks.ConnectVia; connectVia != nil {
-		if connectVia.ReferenceName != nil {
-			d.Set("integration_runtime_name", connectVia.ReferenceName)
-		}
+	if connectVia := databricks.ConnectVia; connectVia != nil {
+		d.Set("integration_runtime_name", connectVia.ReferenceName)
 	}
 
 	return nil
@@ -642,7 +598,7 @@ func resourceDataFactoryLinkedServiceDatabricksDelete(d *schema.ResourceData, me
 	return nil
 }
 
-func constructNumberOfWorkersProperties(minWorkersProperty interface{}, maxWorkersProperty interface{}) (string, interface{}) {
+func buildNumberOfWorkersProperties(minWorkersProperty interface{}, maxWorkersProperty interface{}) (string, interface{}) {
 	var err error
 
 	// Default settings
@@ -660,12 +616,12 @@ func constructNumberOfWorkersProperties(minWorkersProperty interface{}, maxWorke
 	return workersConfig, err
 }
 
-func parseNumberOfWorkersProperties(numberOfWorkersProperty string) (interface{}, interface{}, interface{}) {
+func parseNumberOfWorkersProperties(numberOfWorkersProperty string) (int, int, error) {
 	// The number of workers should be either a fixed number (no autoscaling) or have a format of min:max if autoscaling is set.
 	numOfWorkersParts := strings.Split(numberOfWorkersProperty, ":")
 
-	var min interface{}
-	var max interface{}
+	var min int
+	var max int
 	var err error
 	switch len(numOfWorkersParts) {
 	case 1:

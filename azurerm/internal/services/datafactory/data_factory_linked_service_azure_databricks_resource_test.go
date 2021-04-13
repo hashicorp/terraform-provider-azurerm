@@ -23,7 +23,7 @@ func TestAccDataFactoryLinkedServiceDatabricks_authViaMSI(t *testing.T) {
 	r := LinkedServiceDatabricksResource{}
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.authentication_msi(data),
+			Config: r.msi(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -38,12 +38,12 @@ func TestAccDataFactoryLinkedServiceDatabricks_authViaAccessToken(t *testing.T) 
 	r := LinkedServiceDatabricksResource{}
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.authentication_access_token(data),
+			Config: r.access_token(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("authentication_access_token"),
+		data.ImportStep("access_token"),
 	})
 }
 
@@ -53,7 +53,7 @@ func TestAccDataFactoryLinkedServiceDatabricks_authViaKeyVault(t *testing.T) {
 	r := LinkedServiceDatabricksResource{}
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.authentication_key_vault(data),
+			Config: r.key_vault(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -114,7 +114,7 @@ func (t LinkedServiceDatabricksResource) Exists(ctx context.Context, clients *cl
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func (LinkedServiceDatabricksResource) authentication_msi(data acceptance.TestData) string {
+func (LinkedServiceDatabricksResource) msi(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -135,22 +135,20 @@ data "azurerm_client_config" "current" {
 }
 
 resource "azurerm_data_factory_linked_service_azure_databricks" "test" {
-  name                = "acctestDatabricksLinkedService%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
-  authentication_msi {
-    workspace_resource_id = "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/test/providers/Microsoft.Databricks/workspaces/testworkspace"
-  }
+  name                       = "acctestDatabricksLinkedService%d"
+  resource_group_name        = azurerm_resource_group.test.name
+  data_factory_name          = azurerm_data_factory.test.name
+  msi_work_space_resource_id = "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/test/providers/Microsoft.Databricks/workspaces/testworkspace"
+
   description         = "Initial description"
   annotations         = ["test1", "test2"]
   existing_cluster_id = "test"
   adb_domain          = "https://adb-111111111.11.azuredatabricks.net"
-
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceDatabricksResource) authentication_access_token(data acceptance.TestData) string {
+func (LinkedServiceDatabricksResource) access_token(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -174,20 +172,16 @@ resource "azurerm_data_factory_linked_service_azure_databricks" "test" {
   name                = "acctestDatabricksLinkedService%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-  authentication_access_token {
-    access_token = "SomeFakeAccessToken"
-  }
-  description = "Initial description"
-  annotations = ["test1", "test2"]
-
+  access_token        = "SomeFakeAccessToken"
+  description         = "Initial description"
+  annotations         = ["test1", "test2"]
   adb_domain          = "https://adb-111111111.11.azuredatabricks.net"
   existing_cluster_id = "1234"
-
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceDatabricksResource) authentication_key_vault(data acceptance.TestData) string {
+func (LinkedServiceDatabricksResource) key_vault(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -224,12 +218,12 @@ resource "azurerm_data_factory_linked_service_key_vault" "test" {
   key_vault_id        = azurerm_key_vault.test.id
 }
 
-//   Create a databricks linked service that leveraged the KV linked service for password management
+// Create a databricks linked service that leveraged the KV linked service for password management
 resource "azurerm_data_factory_linked_service_azure_databricks" "test" {
   name                = "acctestDatabricksLinkedService%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-  authentication_key_vault_password {
+  key_vault_password {
     linked_service_name = azurerm_data_factory_linked_service_key_vault.test.name
     secret_name         = "secret"
   }
@@ -241,7 +235,6 @@ resource "azurerm_data_factory_linked_service_azure_databricks" "test" {
     min_number_of_workers = 3
     cluster_version       = "5.5.x-gpu-scala2.11"
   }
-
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -267,12 +260,11 @@ data "azurerm_client_config" "current" {
 }
 
 resource "azurerm_data_factory_linked_service_azure_databricks" "test" {
-  name                = "acctestDatabricksLinkedService%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
-  authentication_msi {
-    workspace_resource_id = "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/test/providers/Microsoft.Databricks/workspaces/testworkspace"
-  }
+  name                       = "acctestDatabricksLinkedService%d"
+  resource_group_name        = azurerm_resource_group.test.name
+  data_factory_name          = azurerm_data_factory.test.name
+  msi_work_space_resource_id = "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/test/providers/Microsoft.Databricks/workspaces/testworkspace"
+
   description = "Initial description"
   annotations = ["test1", "test2"]
   adb_domain  = "https://adb-111111111.11.azuredatabricks.net"
@@ -331,10 +323,9 @@ resource "azurerm_data_factory_linked_service_azure_databricks" "test" {
     key1 = "u1k1"
     key2 = "u1k2"
   }
-  authentication_msi {
-    workspace_resource_id = "/subscriptions/d111111-1111-1111-1111-111111111111/resourceGroups/Testing-rg-creation/providers/Microsoft.Databricks/workspaces/databricks-test"
-  }
-  adb_domain = "https://someFakeDomain"
+
+  msi_work_space_resource_id = "/subscriptions/d111111-1111-1111-1111-111111111111/resourceGroups/Testing-rg-creation/providers/Microsoft.Databricks/workspaces/databricks-test"
+  adb_domain                 = "https://someFakeDomain"
 
   new_cluster_config {
     node_type             = "Standard_NC12"
@@ -393,10 +384,8 @@ resource "azurerm_data_factory_linked_service_azure_databricks" "test" {
     key1 = "u2k1"
     key2 = "u2k2"
   }
-  authentication_msi {
-    workspace_resource_id = "/subscriptions/d111111-1111-1111-1111-111111111111/resourceGroups/Testing-rg-creation/providers/Microsoft.Databricks/workspaces/databricks-test"
-  }
-  adb_domain = "https://someFakedomain"
+  msi_work_space_resource_id = "/subscriptions/d111111-1111-1111-1111-111111111111/resourceGroups/Testing-rg-creation/providers/Microsoft.Databricks/workspaces/databricks-test"
+  adb_domain                 = "https://someFakedomain"
 
   new_cluster_config {
     node_type             = "Standard_NC20"
