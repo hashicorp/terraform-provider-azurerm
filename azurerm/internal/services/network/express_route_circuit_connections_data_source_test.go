@@ -32,9 +32,9 @@ func (ExpressRouteCircuitConnectionDataSource) basic(data acceptance.TestData) s
 %s
 
 data "azurerm_express_route_circuit_connection" "test" {
-  name = azurerm_express_route_circuit_connection.test.name
+  name                = azurerm_express_route_circuit_connection.test.name
   resource_group_name = azurerm_express_route_circuit_connection.test.resource_group_name
-  circuit_name = azurerm_express_route_circuit_connection.test.circuit_name
+  circuit_name        = azurerm_express_route_circuit_connection.test.circuit_name
 }
 `, ExpressRouteCircuitConnectionResource{}.basic(data))
 }
