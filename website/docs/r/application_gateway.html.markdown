@@ -336,6 +336,8 @@ A `path_rule` block supports the following:
 
 * `rewrite_rule_set_name` - (Optional) The Name of the Rewrite Rule Set which should be used for this URL Path Map. Only valid for v2 SKUs.
 
+* `firewall_policy_id` - (Optional) The ID of the Web Application Firewall Policy which should be used as a HTTP Listener.
+
 ---
 
 A `probe` block support the following:

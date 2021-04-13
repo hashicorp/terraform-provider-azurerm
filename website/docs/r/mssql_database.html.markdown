@@ -88,6 +88,10 @@ The following arguments are supported:
 
 * `extended_auditing_policy` - (Optional) A `extended_auditing_policy` block as defined below.
 
+* `geo_backup_enabled` - (Optional) A boolean that specifies if the Geo Backup Policy is enabled. 
+
+~> **NOTE** `geo_backup_enabled` is only applicable for DataWarehouse SKUs (DW*). This setting is ignored for all other SKUs.
+
 * `license_type` - (Optional) Specifies the license type applied to this database. Possible values are `LicenseIncluded` and `BasePrice`.
 
 * `long_term_retention_policy` - (Optional) A `long_term_retention_policy` block as defined below.
