@@ -208,7 +208,7 @@ The `virtual_machine` block supports the following:
 
 ~> **Note:** When using a graceful shutdown, Azure gives the Virtual Machine a 5 minutes window in which to complete the shutdown process, at which point the machine will be force powered off - [more information can be found in this blog post](https://azure.microsoft.com/en-us/blog/linux-and-graceful-shutdowns-2/).
 
-* `force_delete` - Should the `azurerm_linux_virtual_machine` and `azurerm_windows_virtual_machine` resources send a `Force Delete` flag when deleting the Virtual Machine? This can help to work around issues within the Azure Platform during deletion of a Virtual Machine. Defaults to `false`.
+* `force_delete` - Should the `azurerm_linux_virtual_machine` and `azurerm_windows_virtual_machine` resources send a `Force Delete` flag when deleting the Virtual Machine? Force Delete force-detaches all devices from the Virtual Machine during deletion, rather than waiting for them to gracefully detach - which can be helpful during the deletion of other resources. Defaults to `false`.  
 
 ~> **Note:** Support for Force Delete is in an opt-in Preview.
 
@@ -216,7 +216,7 @@ The `virtual_machine` block supports the following:
 
 The `virtual_machine_scale_set` block supports the following:
 
-* `force_delete` - Should the `azurerm_linux_virtual_machine_scale_set` and `azurerm_windows_virtual_machine_scale_set` resources send a `Force Delete` flag when deleting the Virtual Machine Scale Set? This can help to work around issues within the Azure Platform during deletion of a Virtual Machine Scale Set. Defaults to `false`.
+* `force_delete` - Should the `azurerm_linux_virtual_machine_scale_set` and `azurerm_windows_virtual_machine_scale_set` resources send a `Force Delete` flag when deleting the Virtual Machine Scale Set? Force Delete force-detaches all devices from the Virtual Machine Scale Set during deletion, rather than waiting for them to gracefully detach - which can be helpful during the deletion of other resources. Defaults to `false`.
 
 ~> **Note:** Support for Force Delete is in an opt-in Preview.
 
