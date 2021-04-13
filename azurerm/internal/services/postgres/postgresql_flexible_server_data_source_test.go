@@ -29,7 +29,6 @@ func TestAccDataSourcePostgresqlflexibleServer_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("fqdn").Exists(),
 				check.That(data.ResourceName).Key("high_availiblity_state").Exists(),
 				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
-				check.That(data.ResourceName).Key("standby_availability_zone").Exists(),
 			),
 		},
 	})
