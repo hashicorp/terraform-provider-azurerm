@@ -329,7 +329,7 @@ func flattenPublicIpPropsIpTags(ipTags []network.IPTag) map[string]interface{} {
 	mapIpTags := make(map[string]interface{})
 
 	for _, tag := range ipTags {
-		if tag.Tag != nil {
+		if tag.IPTagType != nil {
 			mapIpTags[*tag.IPTagType] = tag.Tag
 		}
 	}
