@@ -7,6 +7,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * `azurerm_application_gateway` - support for configuring `firewall_policy_id` within the `path_rule` block [GH-11239]
+* `azurerm_mssql_database` - support for the `geo_backup_enabled` property [GH-11177]
 
 BUG FIXES:
 
