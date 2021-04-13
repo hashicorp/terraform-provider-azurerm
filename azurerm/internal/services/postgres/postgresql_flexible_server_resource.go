@@ -32,7 +32,7 @@ func resourcePostgresqlFlexibleServer() *schema.Resource {
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(1 * time.Hour),
-			Read:   schema.DefaultTimeout(10 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
 			Update: schema.DefaultTimeout(1 * time.Hour),
 			Delete: schema.DefaultTimeout(1 * time.Hour),
 		},

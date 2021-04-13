@@ -20,7 +20,7 @@ func dataSourcePostgresqlFlexibleServer() *schema.Resource {
 		Read: dataSourceArmPostgresqlFlexibleServerRead,
 
 		Timeouts: &schema.ResourceTimeout{
-			Read: schema.DefaultTimeout(10 * time.Minute),
+			Read: schema.DefaultTimeout(5 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{

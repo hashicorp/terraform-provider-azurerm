@@ -65,4 +65,4 @@ A `identity` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `read` - (Defaults to 10 minutes) Used when retrieving the PostgreSQL Flexible Server.
+* `read` - (Defaults to 5 minutes) Used when retrieving the PostgreSQL Flexible Server.
