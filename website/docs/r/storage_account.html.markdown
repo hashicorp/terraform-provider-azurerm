@@ -141,7 +141,7 @@ A `blob_properties` block supports the following:
 
 * `change_feed` - (Optional) A `change_feed` block as defined below.
 
-* `default_service_version` - (Optional) The default version to use for requests to the Blob service if an incoming request’s version is not specified.
+* `default_service_version` - (Optional) The default version to use for requests to the Blob service if an incoming request’s version is not specified. Default to `2020-06-12`.
 
 * `last_access_time_tracking_policy` - (Optional) A `last_access_time_tracking_policy` block as defined below.
 
@@ -185,7 +185,18 @@ A `container_delete_retention_policy` block supports the following:
 
 A `change_feed` block supports the following:
 
-* `retention_in_days` - (Optional) The duration of changeFeed retention in days.
+* `retention_in_days` - (Optional) The duration of changeFeed retention in days, between `1` and `146000` days. A null value indicates an infinite retention of the change feed.
+
+---
+
+`last_access_time_tracking_policy` exports the following:
+
+* `name` - (Optional) The name of the policy. Default to `AccessTimeTracking`. Current possible value is `AccessTimeTracking`.
+
+* `granularity_in_days` - (Optional) The blob object tracking granularity in days, typically how often the blob object should be tracked. Default to `1`. Current possible value is `1`.
+
+* `blob_type` - (Optional) An array of predefined supported blob types. Default to `blockBlob`. Current possible value is `blockBlob`.
+
 
 ---
 
@@ -354,17 +365,6 @@ The following attributes are exported in addition to the arguments listed above:
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this Storage Account.
 
 -> You can access the Principal ID via `${azurerm_storage_account.example.identity.0.principal_id}` and the Tenant ID via `${azurerm_storage_account.example.identity.0.tenant_id}`
-
----
-
-`last_access_time_tracking_policy` exports the following:
-
-* `name` - The name of the policy.
-
-* `granularity_in_days` - The blob object tracking granularity in days, typically how often the blob object should be tracked.
-
-* `blob_type` - An array of predefined supported blob types.
-
 
 ## Timeouts
 

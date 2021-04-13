@@ -533,6 +533,9 @@ func TestAccStorageAccount_blobProperties(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("blob_properties.0.cors_rule.#").HasValue("1"),
 				check.That(data.ResourceName).Key("blob_properties.0.delete_retention_policy.0.days").HasValue("300"),
+				check.That(data.ResourceName).Key("blob_properties.0.last_access_time_tracking_policy.0.name").Exists(),
+				check.That(data.ResourceName).Key("blob_properties.0.last_access_time_tracking_policy.0.granularity_in_days").Exists(),
+				check.That(data.ResourceName).Key("blob_properties.0.last_access_time_tracking_policy.0.blob_type.#").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -542,6 +545,8 @@ func TestAccStorageAccount_blobProperties(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("blob_properties.0.cors_rule.#").HasValue("2"),
 				check.That(data.ResourceName).Key("blob_properties.0.delete_retention_policy.0.days").HasValue("7"),
+				check.That(data.ResourceName).Key("blob_properties.0.versioning_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("blob_properties.0.default_service_version").HasValue("2020-06-12"),
 			),
 		},
 		data.ImportStep(),
@@ -792,7 +797,7 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 
   tags = {
-                %s
+                    %s
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, tags)
@@ -1540,7 +1545,9 @@ resource "azurerm_storage_account" "test" {
 
     default_service_version = "2019-07-07"
     versioning_enabled      = true
-    change_feed {}
+    change_feed {
+      retention_in_days = 3
+    }
     last_access_time_tracking_policy {}
 
     container_delete_retention_policy {

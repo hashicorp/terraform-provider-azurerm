@@ -275,8 +275,9 @@ func resourceStorageAccount() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"retention_in_days": {
-										Type:     schema.TypeInt,
-										Computed: true,
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 146000),
 									},
 								},
 							},
@@ -1643,8 +1644,8 @@ func expandBlobPropertiesCors(input []interface{}) *storage.CorsRules {
 	return &blobCorsRules
 }
 
-func expandBlobPropertiesChangeFeed(input []interface{}, isHnsEnabled bool, accountKind string) (*storage.ChangeFeed, error) {
-	if len(input) == 0 {
+func expandBlobPropertiesChangeFeed(inputs []interface{}, isHnsEnabled bool, accountKind string) (*storage.ChangeFeed, error) {
+	if len(inputs) == 0 {
 		return &storage.ChangeFeed{
 			Enabled: utils.Bool(false),
 		}, nil
@@ -1658,9 +1659,16 @@ func expandBlobPropertiesChangeFeed(input []interface{}, isHnsEnabled bool, acco
 		return nil, fmt.Errorf("`change_feed` in `blob_properties` is only support `account_kind` is `BlobStorage` or `StorageV2`")
 	}
 
-	return &storage.ChangeFeed{
+	result := storage.ChangeFeed{
 		Enabled: utils.Bool(true),
-	}, nil
+	}
+
+	input := inputs[0].(map[string]interface{})
+	if v, ok := input["retention_in_days"].(int); ok && v != 0 {
+		result.RetentionInDays = utils.Int32(int32(v))
+	}
+
+	return &result, nil
 }
 
 func expandBlobPropertiesLastAccessTimeTracking(input []interface{}) *storage.LastAccessTimeTrackingPolicy {
