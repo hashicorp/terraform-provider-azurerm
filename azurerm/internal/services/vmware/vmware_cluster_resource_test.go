@@ -26,7 +26,7 @@ func TestAccVmwareCluster_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("cluster_id").Exists(),
+				check.That(data.ResourceName).Key("cluster_name").Exists(),
 				check.That(data.ResourceName).Key("hosts.#").Exists(),
 			),
 		},
@@ -58,7 +58,7 @@ func TestAccVmwareCluster_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("cluster_id").Exists(),
+				check.That(data.ResourceName).Key("cluster_name").Exists(),
 				check.That(data.ResourceName).Key("hosts.#").Exists(),
 			),
 		},
@@ -67,7 +67,7 @@ func TestAccVmwareCluster_update(t *testing.T) {
 			Config: r.update(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("cluster_id").Exists(),
+				check.That(data.ResourceName).Key("cluster_name").Exists(),
 				check.That(data.ResourceName).Key("hosts.#").Exists(),
 			),
 		},
@@ -76,7 +76,7 @@ func TestAccVmwareCluster_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("cluster_id").Exists(),
+				check.That(data.ResourceName).Key("cluster_name").Exists(),
 				check.That(data.ResourceName).Key("hosts.#").Exists(),
 			),
 		},
@@ -103,10 +103,10 @@ func (r VmwareClusterResource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_vmware_cluster" "test" {
-  name             = "acctest-Cluster-%d"
-  private_cloud_id = azurerm_vmware_private_cloud.test.id
-  cluster_size     = 3
-  sku_name         = "av36"
+  name            = "acctest-Cluster-%d"
+  vmware_cloud_id = azurerm_vmware_private_cloud.test.id
+  cluster_size    = 3
+  sku_name        = "av36"
 }
 `, VmwarePrivateCloudResource{}.basic(data), data.RandomInteger)
 }
@@ -116,10 +116,10 @@ func (r VmwareClusterResource) requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_vmware_cluster" "import" {
-  name             = azurerm_vmware_cluster.test.name
-  private_cloud_id = azurerm_vmware_cluster.test.private_cloud_id
-  cluster_size     = azurerm_vmware_cluster.test.cluster_size
-  sku_name         = azurerm_vmware_cluster.test.sku_name
+  name            = azurerm_vmware_cluster.test.name
+  vmware_cloud_id = azurerm_vmware_cluster.test.vmware_cloud_id
+  cluster_size    = azurerm_vmware_cluster.test.cluster_size
+  sku_name        = azurerm_vmware_cluster.test.sku_name
 }
 `, r.basic(data))
 }
@@ -129,10 +129,10 @@ func (r VmwareClusterResource) update(data acceptance.TestData) string {
 %s
 
 resource "azurerm_vmware_cluster" "test" {
-  name             = "acctest-Cluster-%d"
-  private_cloud_id = azurerm_vmware_private_cloud.test.id
-  cluster_size     = 4
-  sku_name         = "av36"
+  name            = "acctest-Cluster-%d"
+  vmware_cloud_id = azurerm_vmware_private_cloud.test.id
+  cluster_size    = 4
+  sku_name        = "av36"
 }
 `, VmwarePrivateCloudResource{}.basic(data), data.RandomInteger)
 }

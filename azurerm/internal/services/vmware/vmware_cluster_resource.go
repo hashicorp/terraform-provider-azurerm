@@ -44,7 +44,7 @@ func resourceVmwareCluster() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"private_cloud_id": {
+			"vmware_cloud_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -68,7 +68,7 @@ func resourceVmwareCluster() *schema.Resource {
 				}, false),
 			},
 
-			"cluster_id": {
+			"cluster_name": {
 				Type:     schema.TypeInt,
 				Computed: true,
 			},
@@ -90,21 +90,21 @@ func resourceVmwareClusterCreate(d *schema.ResourceData, meta interface{}) error
 	defer cancel()
 
 	name := d.Get("name").(string)
-	privateCloudId, err := parse.PrivateCloudID(d.Get("private_cloud_id").(string))
+	privateCloudId, err := parse.PrivateCloudID(d.Get("vmware_cloud_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewClusterID(subscriptionId, privateCloudId.ResourceGroup, privateCloudId.Name, name).ID()
+	id := parse.NewClusterID(subscriptionId, privateCloudId.ResourceGroup, privateCloudId.Name, name)
 
-	existing, err := client.Get(ctx, privateCloudId.ResourceGroup, privateCloudId.Name, name)
+	existing, err := client.Get(ctx, id.ResourceGroup, id.PrivateCloudName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for present of existing Vmware  Cluster %q (Resource Group %q / privateCloudName %q): %+v", name, privateCloudId.ResourceGroup, privateCloudId.Name, err)
+			return fmt.Errorf("checking for present of existing %q : %+v", id.ID(), err)
 		}
 	}
 	if !utils.ResponseWasNotFound(existing.Response) {
-		return tf.ImportAsExistsError("azurerm_vmware_cluster", id)
+		return tf.ImportAsExistsError("azurerm_vmware_cluster", id.ID())
 	}
 
 	cluster := avs.Cluster{
@@ -115,16 +115,16 @@ func resourceVmwareClusterCreate(d *schema.ResourceData, meta interface{}) error
 			ClusterSize: utils.Int32(int32(d.Get("cluster_size").(int))),
 		},
 	}
-	future, err := client.CreateOrUpdate(ctx, privateCloudId.ResourceGroup, privateCloudId.Name, name, cluster)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ResourceGroup, id.ResourceGroup, cluster)
 	if err != nil {
-		return fmt.Errorf("creating Vmware  Cluster %q (Resource Group %q / privateCloudName %q): %+v", name, privateCloudId.ResourceGroup, privateCloudId.Name, err)
+		return fmt.Errorf("creating Vmware  Cluster %q (Resource Group %q / privateCloudName %q): %+v", id.ResourceGroup, id.ResourceGroup, id.ResourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the creation of the Vmware  Cluster %q (Resource Group %q / privateCloudName %q): %+v", name, privateCloudId.ResourceGroup, privateCloudId.Name, err)
+		return fmt.Errorf("waiting for the creation of the Vmware  Cluster %q (Resource Group %q / privateCloudName %q): %+v", id.ResourceGroup, id.ResourceGroup, id.ResourceGroup, err)
 	}
 
-	d.SetId(id)
+	d.SetId(id.ID())
 	return resourceVmwareClusterRead(d, meta)
 }
 
@@ -150,11 +150,11 @@ func resourceVmwareClusterRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	d.Set("name", id.Name)
-	d.Set("private_cloud_id", parse.NewPrivateCloudID(subscriptionId, id.ResourceGroup, id.PrivateCloudName).ID())
+	d.Set("vmware_cloud_id", parse.NewPrivateCloudID(subscriptionId, id.ResourceGroup, id.PrivateCloudName).ID())
 	d.Set("sku_name", resp.Sku.Name)
 	if props := resp.ClusterProperties; props != nil {
 		d.Set("cluster_size", props.ClusterSize)
-		d.Set("cluster_id", props.ClusterID)
+		d.Set("cluster_name", props.ClusterID)
 		d.Set("hosts", utils.FlattenStringSlice(props.Hosts))
 	}
 	return nil

@@ -40,10 +40,10 @@ resource "azurerm_vmware_private_cloud" "example" {
 }
 
 resource "azurerm_vmware_cluster" "example" {
-  name             = "example-Cluster"
-  private_cloud_id = azurerm_avs_private_cloud.example.id
-  cluster_size     = 3
-  sku_name         = "av36"
+  name            = "example-Cluster"
+  vmware_cloud_id = azurerm_vmware_private_cloud.example.id
+  cluster_size    = 3
+  sku_name        = "av36"
 }
 ```
 
@@ -53,11 +53,11 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Vmware Cluster. Changing this forces a new Vmware Cluster to be created.
 
-* `private_cloud_id` - (Required) The ID of the Vmware Private Cloud to create the Vmware Cluster. Changing this forces a new Vmware Cluster to be created.
+* `vmware_cloud_id` - (Required) The ID of the Vmware Private Cloud to create the Vmware Cluster. Changing this forces a new Vmware Cluster to be created.
 
-* `cluster_size` - (Required) The size of the Vmware Cluster.
+* `cluster_size` - (Required) The number of the Vmware Cluster.
 
-* `sku_name` - (Required) The cluster sku name. Possible values are `av20`, `av36` and `av36t`. Changing this forces a new Vmware Cluster to be created.
+* `sku_name` - (Required) The cluster sku to use. Possible values are `av20`, `av36` and `av36t`. Changing this forces a new Vmware Cluster to be created.
 
 ## Attributes Reference
 
@@ -65,7 +65,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Vmware Cluster.
 
-* `cluster_id` - The ID of the Vmware Cluster.
+* `cluster_name` - The ID of the Vmware Cluster.
 
 * `hosts` - The list of host of the Vmware Cluster.
 
