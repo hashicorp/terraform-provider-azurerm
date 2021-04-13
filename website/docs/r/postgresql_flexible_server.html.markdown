@@ -57,8 +57,7 @@ resource "azurerm_postgresql_flexible_server" "example" {
 
   storage_mb = 32768
 
-  sku_name = "Standard_D4s_v3"
-  sku_tier = "GeneralPurpose"
+  sku_name = "GP_Standard_D4s_v3"
 }
 ```
 
@@ -75,7 +74,7 @@ The following arguments are supported:
 
 * `administrator_password` - (Optional) The Password associated with the `administrator_login` for the PostgreSQL Flexible Server. Required when `create_mode` is `Default`.
 
-* `availability_zone` - (Optional) The availability Zone of the PostgreSQL Flexible Server. Possible values are  `none`, `1`, `2` and `3`. Changing this forces a new PostgreSQL Flexible Server to be created.
+* `zone` - (Optional) The availability Zone of the PostgreSQL Flexible Server. Possible values are  `none`, `1`, `2` and `3`. Changing this forces a new PostgreSQL Flexible Server to be created.
 
 * `backup_retention_days` - (Optional) The backup retention days for the PostgreSQL Flexible Server. Possible values are between `7` and `35` days.
 
@@ -83,17 +82,15 @@ The following arguments are supported:
 
 * `delegated_subnet_id` - (Optional) The ID of the virtual network subnet to create the PostgreSQL Flexible Server. The provided subnet should not have any other resource deployed in it and this subnet will be delegated to the PostgreSQL Flexible Server, if not already delegated. Changing this forces a new PostgreSQL Flexible Server to be created.
 
-* `ha_enabled` - (Optional) Should High availability for the PostgreSQL Flexible Server be enabled? If enabled the server will provisions a physically separate primary and standby PostgreSQL Flexible Server in different zones. Defaults to `false`.
+* `high_availiblity_enabled` - (Optional) Should High availability for the PostgreSQL Flexible Server be enabled? If enabled the server will provisions a physically separate primary and standby PostgreSQL Flexible Server in different zones. Defaults to `false`.
 
 * `identity` - (Optional) A `identity` block as defined below. Changing this forces a new PostgreSQL Flexible Server to be created.
 
 * `maintenance_window` - (Optional) A `maintenance_window` block as defined below.
 
-* `point_in_time_utc` - (Optional) The point in time to restore from `creation_source_server_id` when `create_mode` is `PointInTimeRestore`. Changing this forces a new PostgreSQL Flexible Server to be created.
+* `point_in_time_restore_time_in_utc` - (Optional) The point in time to restore from `creation_source_server_id` when `create_mode` is `PointInTimeRestore`. Changing this forces a new PostgreSQL Flexible Server to be created.
 
-* `sku_name` - (Optional) The SKU Name for the PostgreSQL Flexible Server. Possible values are `Standard_B1ms`, `Standard_B2s`, `Standard_D2s_v3`, `Standard_D4s_v3`, `Standard_D8s_v3`, `Standard_D16s_v3`, `Standard_D32s_v3`, `Standard_D48s_v3`, `Standard_D64s_v3`, `Standard_E2s_v3`, `Standard_E4s_v3`, `Standard_E8s_v3`, `Standard_E16s_v3`, `Standard_E32s_v3`, `Standard_E48s_v3`, `Standard_E64s_v3`.
-
-* `sku_tier` - (Optional) The SKU tier for the PostgreSQL Flexible Server. Possible values are `Burstable`, `GeneralPurpose`, or `MemoryOptimized`.
+* `sku_name` - (Optional) The SKU Name for the PostgreSQL Flexible Server. The name of the SKU, follows the `tier` + `name` pattern (e.g. `B_Standard_B1ms`, `GP_Standard_D2s_v3`, `MO_Standard_E4s_v3`).
 
 * `source_server_id` - (Optional) The resource ID of the source PostgreSQL Flexible Server to be restored. Required when `create_mode` is `PointInTimeRestore`. Changing this forces a new PostgreSQL Flexible Server to be created.
 
@@ -130,9 +127,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `fqdn` - The FQDN of the PostgreSQL Flexible Server.
 
-* `ha_state` - The state of the High Availability server.
+* `high_availiblity_state` - The state of the High Availability server.
 
-* `public_network_access` - Is public network access enabled?
+* `public_network_access_enabled` - Is public network access enabled?
 
 * `standby_availability_zone` -  The standby availability Zone information of the server.
 

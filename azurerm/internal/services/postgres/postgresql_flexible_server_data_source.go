@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"fmt"
+	"github.com/Azure/azure-sdk-for-go/services/preview/postgresql/mgmt/2020-02-14-preview/postgresqlflexibleservers"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -37,7 +38,22 @@ func dataSourcePostgresqlFlexibleServer() *schema.Resource {
 				Computed: true,
 			},
 
-			"fqdn": {
+			"sku_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"storage_mb": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+
+			"version": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"delegated_subnet_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -65,17 +81,32 @@ func dataSourcePostgresqlFlexibleServer() *schema.Resource {
 				},
 			},
 
-			"sku_name": {
+			"backup_retention_days": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+
+			"cmk_enabled": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
-			"sku_tier": {
+			"fqdn": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
-			"version": {
+			"high_availiblity_state": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"public_network_access_enabled": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+
+			"standby_availability_zone": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -109,15 +140,31 @@ func dataSourceArmPostgresqlFlexibleServerRead(d *schema.ResourceData, meta inte
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 	if props := resp.ServerProperties; props != nil {
-		d.Set("fqdn", props.FullyQualifiedDomainName)
-		d.Set("version", props.Version)
 		d.Set("administrator_login", props.AdministratorLogin)
+		d.Set("storage_mb", props.StorageProfile.StorageMB)
+		d.Set("version", props.Version)
+		d.Set("cmk_enabled", props.ByokEnforcement)
+		d.Set("fqdn", props.FullyQualifiedDomainName)
+		d.Set("public_network_access_enabled", props.PublicNetworkAccess == postgresqlflexibleservers.ServerPublicNetworkAccessStateEnabled)
+		d.Set("high_availiblity_state", string(props.HaState))
+		d.Set("standby_availability_zone", props.StandbyAvailabilityZone)
+
+		if props.DelegatedSubnetArguments != nil {
+			d.Set("delegated_subnet_id", props.DelegatedSubnetArguments.SubnetArmResourceID)
+		}
+
+		if storage := props.StorageProfile; storage != nil {
+			d.Set("storage_mb", storage.StorageMB)
+			d.Set("backup_retention_days", storage.BackupRetentionDays)
+		}
 	}
 
-	if sku := resp.Sku; sku != nil {
-		d.Set("sku_name", sku.Name)
-		d.Set("sku_tier", sku.Tier)
+	sku, err := flattenFlexibleServerSku(resp.Sku)
+	if err != nil {
+		return fmt.Errorf("flattening `sku_name` for PostgreSQL Flexible Server %s (Resource Group %q): %v", name, resourceGroup, err)
 	}
+
+	d.Set("sku_name", sku)
 	if err := d.Set("identity", flattenArmServerIdentity(resp.Identity)); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}

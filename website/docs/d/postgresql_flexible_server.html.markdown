@@ -47,8 +47,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `sku_name` - The SKU Name for the PostgreSQL Flexible Server.
 
-* `sku_tier` - The SKU tier for the PostgreSQL Flexible Server.
-
 * `version` - The version of PostgreSQL Flexible Server to use.
 
 * `tags` - A mapping of tags assigned to the PostgreSQL Flexible Server.

@@ -9,8 +9,8 @@ func TestFlexibleServerSkuName(t *testing.T) {
 		valid bool
 	}{
 		{
-			name:  "Standard_E64s_v3",
-			input: "Standard_E64s_v3",
+			name:  "GP_Standard_E64s_v3",
+			input: "GP_Standard_E64s_v3",
 			valid: true,
 		},
 		{
@@ -24,38 +24,38 @@ func TestFlexibleServerSkuName(t *testing.T) {
 			valid: false,
 		},
 		{
-			name:  "Standard_E32s_v3",
-			input: "Standard_E32s_v3",
+			name:  "B_Standard_E32s_v3",
+			input: "B_Standard_E32s_v3",
 			valid: true,
 		},
 		{
-			name:  "Standard_E30s_v3",
-			input: "Standard_E30s_v3",
+			name:  "B_Standard_E30s_v3",
+			input: "B_Standard_E30s_v3",
 			valid: false,
 		},
 		{
-			name:  "Standard_E16s",
-			input: "Standard_E16s",
+			name:  "MO_Standard_E16s",
+			input: "MO_Standard_E16s",
 			valid: false,
 		},
 		{
-			name:  "Standard_E2s_v3",
-			input: "Standard_E2s_v3",
+			name:  "MO_Standard_E2s_v3",
+			input: "MO_Standard_E2s_v3",
 			valid: true,
 		},
 		{
-			name:  "Standard_B1ms",
-			input: "Standard_B1ms",
+			name:  "B_Standard_B1ms",
+			input: "B_Standard_B1ms",
 			valid: true,
 		},
 		{
-			name:  "Standard_B1",
-			input: "Standard_B1",
+			name:  "B_Standard_B1",
+			input: "B_Standard_B1",
 			valid: false,
 		},
 		{
-			name:  "Standard_D2s_v3",
-			input: "Standard_D2s_v3",
+			name:  "MO_Standard_D2s_v3",
+			input: "MO_Standard_D2s_v3",
 			valid: true,
 		},
 	}

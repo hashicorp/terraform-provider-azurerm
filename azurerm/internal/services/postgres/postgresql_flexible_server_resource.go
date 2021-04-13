@@ -3,6 +3,7 @@ package postgres
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/postgresql/mgmt/2020-02-14-preview/postgresqlflexibleservers"
@@ -75,17 +76,6 @@ func resourcePostgresqlFlexibleServer() *schema.Resource {
 				ValidateFunc: validate.FlexibleServerSkuName,
 			},
 
-			"sku_tier": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(postgresqlflexibleservers.Burstable),
-					string(postgresqlflexibleservers.GeneralPurpose),
-					string(postgresqlflexibleservers.MemoryOptimized),
-				}, false),
-			},
-
 			"storage_mb": {
 				Type:         schema.TypeInt,
 				Optional:     true,
@@ -104,7 +94,7 @@ func resourcePostgresqlFlexibleServer() *schema.Resource {
 				}, false),
 			},
 
-			"availability_zone": {
+			"zone": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
@@ -163,7 +153,7 @@ func resourcePostgresqlFlexibleServer() *schema.Resource {
 				},
 			},
 
-			"point_in_time_utc": {
+			"point_in_time_restore_time_in_utc": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
@@ -177,7 +167,7 @@ func resourcePostgresqlFlexibleServer() *schema.Resource {
 				ValidateFunc: validate.FlexibleServerID,
 			},
 
-			"ha_enabled": {
+			"high_availiblity_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
@@ -230,12 +220,12 @@ func resourcePostgresqlFlexibleServer() *schema.Resource {
 				Computed: true,
 			},
 
-			"ha_state": {
+			"high_availiblity_state": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
-			"public_network_access": {
+			"public_network_access_enabled": {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
@@ -276,8 +266,8 @@ func resourcePostgresqlFlexibleServerCreate(d *schema.ResourceData, meta interfa
 		if _, ok := d.GetOk("source_server_id"); !ok {
 			return fmt.Errorf("`source_server_id` is required when `create_mode` is `PointInTimeRestore`")
 		}
-		if _, ok := d.GetOk("point_in_time_utc"); !ok {
-			return fmt.Errorf("`point_in_time_utc` is required when `create_mode` is `PointInTimeRestore`")
+		if _, ok := d.GetOk("point_in_time_restore_time_in_utc"); !ok {
+			return fmt.Errorf("`point_in_time_restore_time_in_utc` is required when `create_mode` is `PointInTimeRestore`")
 		}
 	}
 
@@ -291,9 +281,6 @@ func resourcePostgresqlFlexibleServerCreate(d *schema.ResourceData, meta interfa
 		if _, ok := d.GetOk("sku_name"); !ok {
 			return fmt.Errorf("`sku_name` is required when `create_mode` is `Default`")
 		}
-		if _, ok := d.GetOk("sku_tier"); !ok {
-			return fmt.Errorf("`sku_tier` is required when `create_mode` is `Default`")
-		}
 		if _, ok := d.GetOk("version"); !ok {
 			return fmt.Errorf("`version` is required when `create_mode` is `Default`")
 		}
@@ -303,8 +290,13 @@ func resourcePostgresqlFlexibleServerCreate(d *schema.ResourceData, meta interfa
 	}
 
 	haEnabled := postgresqlflexibleservers.Disabled
-	if d.Get("ha_enabled").(bool) {
+	if d.Get("high_availiblity_enabled").(bool) {
 		haEnabled = postgresqlflexibleservers.Enabled
+	}
+
+	sku, err := expandFlexibleServerSku(d.Get("sku_name").(string))
+	if err != nil {
+		return fmt.Errorf("expanding `sku_name` for PostgreSQL Flexible Server %s (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
 	}
 
 	parameters := postgresqlflexibleservers.Server{
@@ -317,7 +309,7 @@ func resourcePostgresqlFlexibleServerCreate(d *schema.ResourceData, meta interfa
 			HaEnabled:                haEnabled,
 			StorageProfile:           expandArmServerStorageProfile(d),
 		},
-		Sku:  expandArmServerSku(d.Get("sku_name").(string), d.Get("sku_tier").(string)),
+		Sku:  sku,
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
@@ -329,7 +321,7 @@ func resourcePostgresqlFlexibleServerCreate(d *schema.ResourceData, meta interfa
 		parameters.ServerProperties.AdministratorLoginPassword = utils.String(v.(string))
 	}
 
-	if v, ok := d.GetOk("availability_zone"); ok && v.(string) != "" {
+	if v, ok := d.GetOk("zone"); ok && v.(string) != "" {
 		parameters.ServerProperties.AvailabilityZone = utils.String(v.(string))
 	}
 
@@ -343,11 +335,11 @@ func resourcePostgresqlFlexibleServerCreate(d *schema.ResourceData, meta interfa
 		parameters.ServerProperties.SourceServerName = utils.String(sourceServer.Name)
 	}
 
-	pointInTimeUTC := d.Get("point_in_time_utc").(string)
+	pointInTimeUTC := d.Get("point_in_time_restore_time_in_utc").(string)
 	if pointInTimeUTC != "" {
 		v, err := time.Parse(time.RFC3339, pointInTimeUTC)
 		if err != nil {
-			return fmt.Errorf("unable to parse `point_in_time_utc` value")
+			return fmt.Errorf("unable to parse `point_in_time_restore_time_in_utc` value")
 		}
 		parameters.ServerProperties.PointInTimeUTC = &date.Time{Time: v}
 	}
@@ -411,16 +403,16 @@ func resourcePostgresqlFlexibleServerRead(d *schema.ResourceData, meta interface
 	}
 	if props := resp.ServerProperties; props != nil {
 		d.Set("administrator_login", props.AdministratorLogin)
-		d.Set("availability_zone", props.AvailabilityZone)
-		d.Set("ha_enabled", props.HaEnabled == postgresqlflexibleservers.Enabled)
+		d.Set("zone", props.AvailabilityZone)
+		d.Set("high_availiblity_enabled", props.HaEnabled == postgresqlflexibleservers.Enabled)
 		if props.SourceServerName != nil && props.SourceSubscriptionID != nil && props.SourceResourceGroupName != nil {
 			d.Set("source_server_id", parse.NewFlexibleServerID(*props.SourceSubscriptionID, *props.SourceResourceGroupName, *props.SourceServerName).ID())
 		}
 		d.Set("version", props.Version)
 		d.Set("cmk_enabled", props.ByokEnforcement)
 		d.Set("fqdn", props.FullyQualifiedDomainName)
-		d.Set("public_network_access", props.PublicNetworkAccess == postgresqlflexibleservers.ServerPublicNetworkAccessStateEnabled)
-		d.Set("ha_state", string(props.HaState))
+		d.Set("public_network_access_enabled", props.PublicNetworkAccess == postgresqlflexibleservers.ServerPublicNetworkAccessStateEnabled)
+		d.Set("high_availiblity_state", string(props.HaState))
 		d.Set("standby_availability_zone", props.StandbyAvailabilityZone)
 
 		if props.DelegatedSubnetArguments != nil {
@@ -437,10 +429,12 @@ func resourcePostgresqlFlexibleServerRead(d *schema.ResourceData, meta interface
 		}
 	}
 
-	if sku := resp.Sku; sku != nil {
-		d.Set("sku_name", sku.Name)
-		d.Set("sku_tier", sku.Tier)
+	sku, err := flattenFlexibleServerSku(resp.Sku)
+	if err != nil {
+		return fmt.Errorf("flattening `sku_name` for PostgreSQL Flexible Server %s (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
 	}
+
+	d.Set("sku_name", sku)
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
@@ -468,9 +462,9 @@ func resourcePostgresqlFlexibleServerUpdate(d *schema.ResourceData, meta interfa
 		parameters.ServerPropertiesForUpdate.StorageProfile = expandArmServerStorageProfile(d)
 	}
 
-	if d.HasChange("ha_enabled") {
+	if d.HasChange("high_availiblity_enabled") {
 		haEnabled := postgresqlflexibleservers.Disabled
-		if d.Get("ha_enabled").(bool) {
+		if d.Get("high_availiblity_enabled").(bool) {
 			haEnabled = postgresqlflexibleservers.Enabled
 		}
 		parameters.ServerPropertiesForUpdate.HaEnabled = haEnabled
@@ -480,8 +474,12 @@ func resourcePostgresqlFlexibleServerUpdate(d *schema.ResourceData, meta interfa
 		parameters.ServerPropertiesForUpdate.MaintenanceWindow = expandArmServerMaintenanceWindow(d.Get("maintenance_window").([]interface{}))
 	}
 
-	if d.HasChange("sku_name") || d.HasChange("sku_tier") {
-		parameters.Sku = expandArmServerSku(d.Get("sku_name").(string), d.Get("sku_tier").(string))
+	if d.HasChange("sku_name") {
+		sku, err := expandFlexibleServerSku(d.Get("sku_name").(string))
+		if err != nil {
+			return fmt.Errorf("expanding `sku_name` for PostgreSQL Flexible Server %s (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
+		}
+		parameters.Sku = sku
 	}
 
 	if d.HasChange("tags") {
@@ -573,14 +571,48 @@ func expandArmServerStorageProfile(d *schema.ResourceData) *postgresqlflexiblese
 	return &storage
 }
 
-func expandArmServerSku(name, tier string) *postgresqlflexibleservers.Sku {
-	if name == "" || tier == "" {
-		return nil
+func expandFlexibleServerSku(name string) (*postgresqlflexibleservers.Sku, error) {
+	if name == "" {
+		return nil, nil
 	}
+	parts := strings.SplitAfterN(name, "_", 2)
+
+	var tier postgresqlflexibleservers.SkuTier
+	switch strings.TrimSuffix(parts[0], "_") {
+	case "B":
+		tier = postgresqlflexibleservers.Burstable
+	case "GP":
+		tier = postgresqlflexibleservers.GeneralPurpose
+	case "MO":
+		tier = postgresqlflexibleservers.MemoryOptimized
+	default:
+		return nil, fmt.Errorf("sku_name %s has unknown sku tier %s", name, parts[0])
+	}
+
 	return &postgresqlflexibleservers.Sku{
-		Name: utils.String(name),
-		Tier: postgresqlflexibleservers.SkuTier(tier),
+		Name: utils.String(parts[1]),
+		Tier: tier,
+	}, nil
+}
+
+func flattenFlexibleServerSku(sku *postgresqlflexibleservers.Sku) (string, error) {
+	if sku == nil || sku.Name == nil || sku.Tier == "" {
+		return "", nil
 	}
+
+	var tier string
+	switch sku.Tier {
+	case postgresqlflexibleservers.Burstable:
+		tier = "B"
+	case postgresqlflexibleservers.GeneralPurpose:
+		tier = "GP"
+	case postgresqlflexibleservers.MemoryOptimized:
+		tier = "MO"
+	default:
+		return "", fmt.Errorf("sku_name has unknown sku tier %s", sku.Tier)
+	}
+
+	return strings.Join([]string{tier, *sku.Name}, "_"), nil
 }
 
 func flattenArmServerIdentity(input *postgresqlflexibleservers.Identity) []interface{} {
