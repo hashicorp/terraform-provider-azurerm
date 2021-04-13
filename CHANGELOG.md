@@ -1,5 +1,9 @@
 ## 2.56.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_spring_cloud_app_mysql_association` [GH-11229]
+
 ENHANCEMENTS:
 
 * `azurerm_application_gateway` - support for configuring `firewall_policy_id` within the `path_rule` block [GH-11239]
