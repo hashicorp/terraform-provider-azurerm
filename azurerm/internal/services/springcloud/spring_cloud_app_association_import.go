@@ -9,7 +9,10 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
 
-const springCloudAppAssociationTypeRedis = "Microsoft.Cache"
+const (
+	springCloudAppAssociationTypeMysql = "Microsoft.DBforMySQL"
+	springCloudAppAssociationTypeRedis = "Microsoft.Cache"
+)
 
 func importSpringCloudAppAssociation(resourceType string) func(d *schema.ResourceData, meta interface{}) (data []*schema.ResourceData, err error) {
 	return func(d *schema.ResourceData, meta interface{}) (data []*schema.ResourceData, err error) {
