@@ -541,6 +541,30 @@ func TestAccMsSqlDatabase_withShortTermRetentionPolicy(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlDatabase_geoBackupPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MsSqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withGeoBackupPoliciesDisabled(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("geo_backup_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withGeoBackupPoliciesEnabled(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("geo_backup_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (MsSqlDatabaseResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.DatabaseID(state.ID)
 	if err != nil {
@@ -1349,6 +1373,32 @@ resource "azurerm_mssql_database" "test" {
   short_term_retention_policy {
     retention_days = 10
   }
+}
+`, r.template(data), data.RandomIntOfLength(15), data.RandomInteger)
+}
+
+func (r MsSqlDatabaseResource) withGeoBackupPoliciesEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_database" "test" {
+  name               = "acctest-db-%[3]d"
+  server_id          = azurerm_sql_server.test.id
+  sku_name           = "DW100c"
+  geo_backup_enabled = true
+}
+`, r.template(data), data.RandomIntOfLength(15), data.RandomInteger)
+}
+
+func (r MsSqlDatabaseResource) withGeoBackupPoliciesDisabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_database" "test" {
+  name               = "acctest-db-%[3]d"
+  server_id          = azurerm_sql_server.test.id
+  sku_name           = "DW100c"
+  geo_backup_enabled = false
 }
 `, r.template(data), data.RandomIntOfLength(15), data.RandomInteger)
 }
