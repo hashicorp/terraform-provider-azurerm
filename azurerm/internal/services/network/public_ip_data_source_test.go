@@ -32,6 +32,7 @@ func TestAccDataSourcePublicIP_static(t *testing.T) {
 				check.That(data.ResourceName).Key("ip_version").HasValue("IPv4"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.environment").HasValue("test"),
+				check.That(data.ResourceName).Key("ip_tags.RoutingPreference").HasValue("Internet"),
 			),
 		},
 	})
@@ -79,6 +80,11 @@ resource "azurerm_public_ip" "test" {
   allocation_method       = "Static"
   domain_name_label       = "acctest-%d"
   idle_timeout_in_minutes = 30
+  sku                     = "Standard"
+
+  ip_tags = {
+    RoutingPreference = "Internet"
+  }
 
   tags = {
     environment = "test"
