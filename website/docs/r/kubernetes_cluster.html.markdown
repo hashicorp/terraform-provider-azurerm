@@ -66,7 +66,9 @@ The following arguments are supported:
 
 * `default_node_pool` - (Required) A `default_node_pool` block as defined below.
 
-* `dns_prefix` - (Required) DNS prefix specified when creating the managed cluster. Changing this forces a new resource to be created.
+* `dns_prefix` - (Optional) DNS prefix specified when creating the managed cluster. Changing this forces a new resource to be created.
+
+* `private_cluster_custom_dns_prefix` - (Optional) Specifies the Custom DNS prefix when creating the private cluster. Changing this forces a new resource to be created.
 
 -> **NOTE:** The `dns_prefix` must contain between 3 and 45 characters, and can contain only letters, numbers, and hyphens. It must start with a letter and must end with a letter or a number.
 
