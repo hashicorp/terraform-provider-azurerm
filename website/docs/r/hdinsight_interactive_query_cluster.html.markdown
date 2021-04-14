@@ -169,11 +169,11 @@ A `roles` block supports the following:
 
 A `network` block supports the following:
 
-* `connection_direction` - (Optional) The direction of the resource provider connection. Possible values include `Inbound` or `Outbound`. Defaults to `Inbound`.
+* `connection_direction` - (Optional) The direction of the resource provider connection. Possible values include `Inbound` or `Outbound`. Defaults to `Inbound`. Changing this forces a new resource to be created.
 
 -> **NOTE:** To enabled the private link the `connection_direction` must be set to `Outbound`.
 
-* `private_link_enabled` - (Optional) Is the private link enabled? Possible values include `True` or `False`. Defaults to `False`.
+* `private_link_enabled` - (Optional) Is the private link enabled? Possible values include `True` or `False`. Defaults to `False`. Changing this forces a new resource to be created.
 
 ---
 
