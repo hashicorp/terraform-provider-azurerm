@@ -257,8 +257,11 @@ func resourceFirewallPolicyRuleCollectionGroup() *schema.Resource {
 										Type:     schema.TypeSet,
 										Required: true,
 										Elem: &schema.Schema{
-											Type:         schema.TypeString,
-											ValidateFunc: azValidate.PortOrPortRangeWithin(1, 65535),
+											Type: schema.TypeString,
+											ValidateFunc: validation.Any(
+												azValidate.PortOrPortRangeWithin(1, 65535),
+												validation.StringInSlice([]string{`*`}, false),
+											),
 										},
 									},
 								},
