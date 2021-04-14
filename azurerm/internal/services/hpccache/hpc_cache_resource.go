@@ -3,6 +3,7 @@ package hpccache
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"strconv"
 	"time"
 
@@ -118,6 +119,53 @@ func resourceHPCCache() *schema.Resource {
 				},
 			},
 
+			"directory_ad": {
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"primary_dns": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.IsIPAddress,
+						},
+						"domain_name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"cache_net_bios_name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[-0-9a-zA-Z]{1,15}$`), ""),
+						},
+						"domain_net_bios_name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[-0-9a-zA-Z]{1,15}$`), ""),
+						},
+						"username": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"password": {
+							Type:         schema.TypeString,
+							Required:     true,
+							Sensitive:    true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"secondary_dns": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsIPAddress,
+						},
+					},
+				},
+				ConflictsWith: []string{"directory_flat_file", "directory_ldap"},
+			},
+
 			"directory_flat_file": {
 				Type:     schema.TypeList,
 				MaxItems: 1,
@@ -136,7 +184,7 @@ func resourceHPCCache() *schema.Resource {
 						},
 					},
 				},
-				ConflictsWith: []string{"directory_ldap"},
+				ConflictsWith: []string{"directory_ad", "directory_ldap"},
 			},
 
 			"directory_ldap": {
@@ -183,7 +231,6 @@ func resourceHPCCache() *schema.Resource {
 								Schema: map[string]*schema.Schema{
 									"dn": {
 										Type:         schema.TypeString,
-										Sensitive:    true,
 										Required:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
@@ -198,7 +245,7 @@ func resourceHPCCache() *schema.Resource {
 						},
 					},
 				},
-				ConflictsWith: []string{"directory_flat_file"},
+				ConflictsWith: []string{"directory_ad", "directory_flat_file"},
 			},
 
 			// TODO 3.0: remove this property
@@ -374,7 +421,7 @@ func resourceHPCCacheCreateOrUpdate(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error waiting for HPC Cache %q (Resource Group %q) to finish provisioning: %+v", name, resourceGroup, err)
 	}
 
-	// If any directory setting is set, we'll further check the `usernameDownloaded` in response to ensure the configuration is correct, and the cache is functional.
+	// If any directory setting is set, we'll further check either the `usernameDownloaded` (for LDAP/Flat File), or the `domainJoined` (for AD) in response to ensure the configuration is correct, and the cache is functional.
 	// There are situations that the LRO succeeded, whilst ends up with a non-functional cache (e.g. providing some invalid flat file setting).
 	if directorySetting != nil {
 		resp, err := client.Get(ctx, resourceGroup, name)
@@ -390,12 +437,24 @@ func resourceHPCCacheCreateOrUpdate(d *schema.ResourceData, meta interface{}) er
 		if ds == nil {
 			return fmt.Errorf("Unexpected nil `directoryServicesSettings` in response")
 		}
-		ud := ds.UsernameDownload
-		if ud == nil {
-			return fmt.Errorf("Unexpected nil `usernameDownload` in response")
-		}
-		if ud.UsernameDownloaded != storagecache.UsernameDownloadedTypeYes {
-			return fmt.Errorf("failed to download directory info, current status: %s", ud.UsernameDownloaded)
+
+		// In case the user uses active directory service, we
+		if directorySetting.ActiveDirectory != nil {
+			ad := ds.ActiveDirectory
+			if ad == nil {
+				return fmt.Errorf("Unexpected nil `activeDirectory` in response")
+			}
+			if ad.DomainJoined != storagecache.Yes {
+				return fmt.Errorf("failed to join domain, current status: %s", ad.DomainJoined)
+			}
+		} else {
+			ud := ds.UsernameDownload
+			if ud == nil {
+				return fmt.Errorf("Unexpected nil `usernameDownload` in response")
+			}
+			if ud.UsernameDownloaded != storagecache.UsernameDownloadedTypeYes {
+				return fmt.Errorf("failed to download directory info, current status: %s", ud.UsernameDownloaded)
+			}
 		}
 	}
 
@@ -441,9 +500,13 @@ func resourceHPCCacheRead(d *schema.ResourceData, meta interface{}) error {
 			return fmt.Errorf("setting `dns`: %v", err)
 		}
 
-		flatFile, ldap, err := flattenStorageCacheDirectorySettings(d, props.DirectoryServicesSettings)
+		ad, flatFile, ldap, err := flattenStorageCacheDirectorySettings(d, props.DirectoryServicesSettings)
 		if err != nil {
 			return err
+		}
+
+		if err := d.Set("directory_ad", ad); err != nil {
+			fmt.Errorf("setting `directory_ad`: %v", err)
 		}
 
 		if err := d.Set("directory_flat_file", flatFile); err != nil {
@@ -655,6 +718,33 @@ func flattenStorageCacheNetworkSettings(settings *storagecache.CacheNetworkSetti
 }
 
 func expandStorageCacheDirectorySettings(d *schema.ResourceData) *storagecache.CacheDirectorySettings {
+	if raw := d.Get("directory_ad").([]interface{}); len(raw) != 0 {
+		b := raw[0].(map[string]interface{})
+
+		var secondaryDNSPtr *string
+		if secondaryDNS := b["secondary_dns"].(string); secondaryDNS != "" {
+			secondaryDNSPtr = &secondaryDNS
+		}
+
+		return &storagecache.CacheDirectorySettings{
+			UsernameDownload: &storagecache.CacheUsernameDownloadSettings{
+				ExtendedGroups: utils.Bool(true),
+				UsernameSource: storagecache.UsernameSourceAD,
+			},
+			ActiveDirectory: &storagecache.CacheActiveDirectorySettings{
+				PrimaryDNSIPAddress:   utils.String(b["primary_dns"].(string)),
+				SecondaryDNSIPAddress: secondaryDNSPtr,
+				DomainName:            utils.String(b["domain_name"].(string)),
+				CacheNetBiosName:      utils.String(b["cache_net_bios_name"].(string)),
+				DomainNetBiosName:     utils.String(b["domain_net_bios_name"].(string)),
+				Credentials: &storagecache.CacheActiveDirectorySettingsCredentials{
+					Username: utils.String(b["username"].(string)),
+					Password: utils.String(b["password"].(string)),
+				},
+			},
+		}
+	}
+
 	if raw := d.Get("directory_flat_file").([]interface{}); len(raw) != 0 {
 		b := raw[0].(map[string]interface{})
 		return &storagecache.CacheDirectorySettings{
@@ -692,13 +782,61 @@ func expandStorageCacheDirectorySettings(d *schema.ResourceData) *storagecache.C
 	return nil
 }
 
-func flattenStorageCacheDirectorySettings(d *schema.ResourceData, input *storagecache.CacheDirectorySettings) (flatFile, ldap []interface{}, err error) {
+func flattenStorageCacheDirectorySettings(d *schema.ResourceData, input *storagecache.CacheDirectorySettings) (ad, flatFile, ldap []interface{}, err error) {
 	if input == nil || input.UsernameDownload == nil {
-		return nil, nil, nil
+		return nil, nil, nil, nil
 	}
 
 	ud := input.UsernameDownload
 	switch ud.UsernameSource {
+	case storagecache.UsernameSourceAD:
+		var (
+			primaryDNS        string
+			domainName        string
+			cacheNetBiosName  string
+			username          string
+			password          string
+			domainNetBiosName string
+			secondaryDNS      string
+		)
+
+		if ad := input.ActiveDirectory; ad != nil {
+			if ad.PrimaryDNSIPAddress != nil {
+				primaryDNS = *ad.PrimaryDNSIPAddress
+			}
+			if ad.DomainName != nil {
+				domainName = *ad.DomainName
+			}
+			if ad.CacheNetBiosName != nil {
+				cacheNetBiosName = *ad.CacheNetBiosName
+			}
+			if ad.DomainNetBiosName != nil {
+				domainNetBiosName = *ad.DomainNetBiosName
+			}
+			if ad.SecondaryDNSIPAddress != nil {
+				secondaryDNS = *ad.SecondaryDNSIPAddress
+			}
+		}
+		// Since the credentials are never returned from response. We will set whatever specified in the config back to state as the best effort.
+		ad := d.Get("directory_ad").([]interface{})
+		if len(ad) == 1 {
+			b := ad[0].(map[string]interface{})
+			username = b["username"].(string)
+			password = b["password"].(string)
+		}
+
+		return []interface{}{
+			map[string]interface{}{
+				"primary_dns":          primaryDNS,
+				"domain_name":          domainName,
+				"cache_net_bios_name":  cacheNetBiosName,
+				"domain_net_bios_name": domainNetBiosName,
+				"secondary_dns":        secondaryDNS,
+				"username":             username,
+				"password":             password,
+			},
+		}, nil, nil, nil
+
 	case storagecache.UsernameSourceFile:
 		var groupFileUri string
 		if ud.GroupFileURI != nil {
@@ -710,7 +848,7 @@ func flattenStorageCacheDirectorySettings(d *schema.ResourceData, input *storage
 			passwdFileUri = *ud.UserFileURI
 		}
 
-		return []interface{}{
+		return nil, []interface{}{
 			map[string]interface{}{
 				"group_file_uri":  groupFileUri,
 				"passwd_file_uri": passwdFileUri,
@@ -742,7 +880,7 @@ func flattenStorageCacheDirectorySettings(d *schema.ResourceData, input *storage
 			downloadCert = *ud.AutoDownloadCertificate
 		}
 
-		return nil, []interface{}{
+		return nil, nil, []interface{}{
 			map[string]interface{}{
 				"server":                     server,
 				"base_dn":                    baseDn,
@@ -753,7 +891,7 @@ func flattenStorageCacheDirectorySettings(d *schema.ResourceData, input *storage
 			},
 		}, nil
 	default:
-		return nil, nil, nil
+		return nil, nil, nil, nil
 	}
 }
 
