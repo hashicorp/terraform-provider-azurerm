@@ -2,9 +2,9 @@
 
 function runGraduallyDeprecatedFunctions {
   echo "==> Checking for use of gradually deprecated functions..."
-  
+
   # require resources to be imported is now hard-coded on - but only checking for additions
-  result=$(git diff origin/master | grep + | grep -R "features\.ShouldResourcesBeImported")
+  result=$(git diff master | grep + | grep -R "features\.ShouldResourcesBeImported")
   if [ "$result" != "" ];
   then
     echo "The Feature Flag for 'ShouldResourcesBeImported' will be deprecated in the future"
@@ -14,10 +14,11 @@ function runGraduallyDeprecatedFunctions {
     echo ""
     echo "In the future this function will be marked as Deprecated - however it's not for"
     echo "the moment to not conflict with open Pull Requests."
+    exit 1
   fi
 
   # using Resource ID Formatters/Parsers
-  result=$(git diff origin/master | grep + | grep -R "d\.SetId(\*")
+  result=$(git diff master | grep + | grep -R "d\.SetId(\\*")
   if [ "$result" != "" ];
   then
     echo "Due to the Azure API returning the Resource ID's inconsistently - Terraform"
@@ -53,6 +54,7 @@ function runGraduallyDeprecatedFunctions {
     echo "New Resources should be using Resource ID Formatters/Parsers by default"
     echo "however existing (unmodified) resources can continue to use the Azure ID"
     echo "for the moment - but over time these will be switched across."
+    exit 1
   fi
 }
 
@@ -67,11 +69,18 @@ function runDeprecatedFunctions {
     echo "Please remove the references to 'd.SetId("") from the Data Sources listed below"
     echo "and raise an error instead:"
     echo ""
-    echo $result
+    exit 1
   fi
 }
 
 function main {
+  if [ "$GITHUB_ACTIONS_STAGE" == "UNIT_TESTS" ];
+  then
+    echo "Skipping - the Gradually Deprecated check is separate in Github Actions"
+    echo "so this can be skipped as a part of the build process."
+    exit 0
+  fi
+
   runGraduallyDeprecatedFunctions
   runDeprecatedFunctions
 }
