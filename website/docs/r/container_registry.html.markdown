@@ -52,7 +52,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-* `georeplication_locations` - (Optional) A list of Azure locations where the container registry should be geo-replicated.
+* `georeplication_locations` - (Optional / **Deprecated in favor of `georeplications`**) A list of Azure locations where the container registry should be geo-replicated.
 
 ~> **NOTE:** The `georeplication_locations` is only supported on new resources with the `Premium` SKU.
 

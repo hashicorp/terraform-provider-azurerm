@@ -217,7 +217,7 @@ func TestAccContainerRegistry_geoReplicationLocation(t *testing.T) {
 	data.ResourceTest(t, r, []resource.TestStep{
 		// first config creates an ACR with locations
 		{
-			Config: r.geoReplicationLocation(data, skuPremium, []string{secondaryLocation}),
+			Config: r.geoReplicationLocation(data, []string{secondaryLocation}),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku").HasValue(skuPremium),
@@ -227,7 +227,7 @@ func TestAccContainerRegistry_geoReplicationLocation(t *testing.T) {
 		},
 		// second config updates the ACR with updated locations
 		{
-			Config: r.geoReplicationLocation(data, skuPremium, []string{ternaryLocation}),
+			Config: r.geoReplicationLocation(data, []string{ternaryLocation}),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku").HasValue(skuPremium),
@@ -235,17 +235,27 @@ func TestAccContainerRegistry_geoReplicationLocation(t *testing.T) {
 				check.That(data.ResourceName).Key("georeplication_locations.0").HasValue(ternaryLocation),
 			),
 		},
-		// For compatibility, downgrade from Premium to Basic should remove all replications first, but it's unnecessary. Once georeplication_locations is deprecated, this can be done in single update.
-		// third config updates the ACR with no location.
+		// third config updates the ACR with updated locations
 		{
-			Config: r.geoReplicationUpdateWithNoLocation(data, skuPremium),
+			Config: r.geoReplicationLocation(data, []string{secondaryLocation, ternaryLocation}),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku").HasValue(skuPremium),
+				check.That(data.ResourceName).Key("georeplication_locations.#").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+		// For compatibility, downgrade from Premium to Basic should remove all replications first, but it's unnecessary. Once georeplication_locations is deprecated, this can be done in single update.
+		// fourth config updates the ACR with no location.
+		{
+			Config: r.geoReplicationUpdateWithNoLocation(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku").HasValue(skuPremium),
 				check.That(data.ResourceName).Key("georeplication_locations.#").HasValue("0"),
 			),
 		},
-		// fourth config updates the SKU to basic.
+		// fifth config updates the SKU to basic.
 		{
 			Config: r.geoReplicationUpdateWithNoLocation_basic(data),
 			Check: resource.ComposeTestCheckFunc(
@@ -270,30 +280,48 @@ func TestAccContainerRegistry_geoReplication(t *testing.T) {
 	data.ResourceTest(t, r, []resource.TestStep{
 		// first config creates an ACR with locations
 		{
-			Config: r.geoReplication(data, skuPremium, secondaryLocation),
+			Config: r.geoReplication(data, secondaryLocation),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku").HasValue(skuPremium),
 				check.That(data.ResourceName).Key("georeplications.#").HasValue("1"),
 				check.That(data.ResourceName).Key("georeplications.0.location").HasValue(secondaryLocation),
+				check.That(data.ResourceName).Key("georeplications.0.tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("georeplications.0.tags.Environment").HasValue("Production"),
 			),
 		},
 		data.ImportStep(),
 		// second config updates the ACR with updated locations
 		{
-			Config: r.geoReplication(data, skuPremium, ternaryLocation),
+			Config: r.geoReplication(data, ternaryLocation),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku").HasValue(skuPremium),
 				check.That(data.ResourceName).Key("georeplications.#").HasValue("1"),
 				check.That(data.ResourceName).Key("georeplications.0.location").HasValue(ternaryLocation),
+				check.That(data.ResourceName).Key("georeplications.0.tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("georeplications.0.tags.Environment").HasValue("Production"),
+			),
+		},
+		data.ImportStep(),
+		// third config updates the ACR with updated locations
+		{
+			Config: r.geoReplicationMultipleLocations(data, secondaryLocation, ternaryLocation),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku").HasValue(skuPremium),
+				check.That(data.ResourceName).Key("georeplications.#").HasValue("2"),
+				check.That(data.ResourceName).Key("georeplications.0.location").HasValue(secondaryLocation),
+				check.That(data.ResourceName).Key("georeplications.0.tags.%").HasValue("0"),
+				check.That(data.ResourceName).Key("georeplications.1.location").HasValue(ternaryLocation),
+				check.That(data.ResourceName).Key("georeplications.1.tags.%").HasValue("0"),
 			),
 		},
 		data.ImportStep(),
 		// For compatibility, downgrade from Premium to Basic should remove all replications first, but it's unnecessary. Once georeplication_locations is deprecated, this can be done in single update.
-		// third config updates the ACR with no location
+		// fourth config updates the ACR with no location
 		{
-			Config: r.geoReplicationUpdateWithNoReplication(data, skuPremium),
+			Config: r.geoReplicationUpdateWithNoReplication(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku").HasValue(skuPremium),
@@ -301,7 +329,7 @@ func TestAccContainerRegistry_geoReplication(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		// fourth config updates the SKU to basic.
+		// fifth config updates the SKU to basic.
 		{
 			Config: r.geoReplicationUpdateWithNoReplication_basic(data),
 			Check: resource.ComposeTestCheckFunc(
@@ -310,6 +338,43 @@ func TestAccContainerRegistry_geoReplication(t *testing.T) {
 				check.That(data.ResourceName).Key("georeplications.#").HasValue("0"),
 			),
 		},
+	})
+}
+
+func TestAccContainerRegistry_geoReplicationSwitch(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
+	r := ContainerRegistryResource{}
+
+	skuPremium := "Premium"
+
+	secondaryLocation := location.Normalize(data.Locations.Secondary)
+	ternaryLocation := location.Normalize(data.Locations.Ternary)
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		// first config creates an ACR using georeplication_locations
+		{
+			Config: r.geoReplicationLocation(data, []string{secondaryLocation, ternaryLocation}),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku").HasValue(skuPremium),
+				check.That(data.ResourceName).Key("georeplication_locations.#").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+		// second config updates the ACR using georeplications
+		{
+			Config: r.geoReplicationMultipleLocations(data, secondaryLocation, ternaryLocation),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku").HasValue(skuPremium),
+				check.That(data.ResourceName).Key("georeplications.#").HasValue("2"),
+				check.That(data.ResourceName).Key("georeplications.0.location").HasValue(secondaryLocation),
+				check.That(data.ResourceName).Key("georeplications.0.tags.%").HasValue("0"),
+				check.That(data.ResourceName).Key("georeplications.1.location").HasValue(ternaryLocation),
+				check.That(data.ResourceName).Key("georeplications.1.tags.%").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -555,7 +620,7 @@ resource "azurerm_container_registry" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (ContainerRegistryResource) geoReplicationLocation(data acceptance.TestData, sku string, replicationRegions []string) string {
+func (ContainerRegistryResource) geoReplicationLocation(data acceptance.TestData, replicationRegions []string) string {
 	regions := make([]string, 0)
 	for _, region := range replicationRegions {
 		// ensure they're quoted
@@ -575,13 +640,13 @@ resource "azurerm_container_registry" "test" {
   name                     = "testacccr%d"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
-  sku                      = "%s"
+  sku                      = "Premium"
   georeplication_locations = [%s]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku, strings.Join(regions, ","))
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, strings.Join(regions, ","))
 }
 
-func (ContainerRegistryResource) geoReplication(data acceptance.TestData, sku string, replication string) string {
+func (ContainerRegistryResource) geoReplication(data acceptance.TestData, replication string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -596,18 +661,44 @@ resource "azurerm_container_registry" "test" {
   name                = "testacccr%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "%s"
+  sku                 = "Premium"
   georeplications {
-    location = %s
+    location = "%s"
     tags = {
       Environment = "Production"
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku, fmt.Sprintf("%q", replication))
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, replication)
 }
 
-func (ContainerRegistryResource) geoReplicationUpdateWithNoLocation(data acceptance.TestData, sku string) string {
+func (ContainerRegistryResource) geoReplicationMultipleLocations(data acceptance.TestData, primaryLocation string, secondaryLocation string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_registry" "test" {
+  name                = "testacccr%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Premium"
+  georeplications {
+    location = "%s"
+  }
+  georeplications {
+    location = "%s"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, primaryLocation, secondaryLocation)
+}
+
+func (ContainerRegistryResource) geoReplicationUpdateWithNoLocation(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -622,13 +713,13 @@ resource "azurerm_container_registry" "test" {
   name                     = "testacccr%d"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
-  sku                      = "%s"
+  sku                      = "Premium"
   georeplication_locations = []
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (ContainerRegistryResource) geoReplicationUpdateWithNoReplication(data acceptance.TestData, sku string) string {
+func (ContainerRegistryResource) geoReplicationUpdateWithNoReplication(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -643,10 +734,10 @@ resource "azurerm_container_registry" "test" {
   name                = "testacccr%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "%s"
+  sku                 = "Premium"
   georeplications     = []
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 func (ContainerRegistryResource) geoReplicationUpdateWithNoLocation_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
