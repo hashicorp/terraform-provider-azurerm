@@ -559,7 +559,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     scale_down_unneeded              = "15m"
     scale_down_unready               = "15m"
     scale_down_utilization_threshold = "0.5"
-	empty_bulk_delete_max            = "50"
+    empty_bulk_delete_max            = "50"
     skip_nodes_with_local_storage    = false
     skip_nodes_with_system_pods      = false
   }
