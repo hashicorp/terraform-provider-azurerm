@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -19,31 +18,30 @@ import (
 type ExpressRouteConnectionResource struct{}
 
 func TestAccExpressRouteConnection(t *testing.T) {
+	if os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" || os.Getenv("ARM_TEST_CIRCUIT_NAME") == "" {
+		t.Skip("Skipping as ARM_TEST_DATA_RESOURCE_GROUP and/or ARM_TEST_CIRCUIT_NAME are not specified")
+		return
+	}
+
 	// NOTE: As the provider status of the Express Route Circuit only can be manually updated to `Provisioned` by service team, so currently there is only one authorized test data.
 	// And there can be only one Express Route Connection on the same Express Route Circuit, otherwise tests will conflict if run at the same time.
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"Resource": {
-			"basic":          testAccExpressRouteConnection_basic,
-			"requiresImport": testAccExpressRouteConnection_requiresImport,
-			"complete":       testAccExpressRouteConnection_complete,
-			"update":         testAccExpressRouteConnection_update,
+			"basic": testAccExpressRouteConnection_basic,
+			//"requiresImport": testAccExpressRouteConnection_requiresImport,
+			//"complete":       testAccExpressRouteConnection_complete,
+			//"update":         testAccExpressRouteConnection_update,
 		},
 	})
 }
 
 func testAccExpressRouteConnection_basic(t *testing.T) {
-	expressRouteCircuitRg, expressRouteCircuitName, err := testGetExpressRouteCircuitResourceGroupAndNameFromSubscription()
-	if err != nil {
-		t.Skip(fmt.Sprintf("%+v", err))
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_express_route_connection", "test")
 	r := ExpressRouteConnectionResource{}
 
 	data.ResourceSequentialTest(t, r, []resource.TestStep{
 		{
-			Config: r.basic(data, expressRouteCircuitRg, expressRouteCircuitName),
+			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -53,18 +51,12 @@ func testAccExpressRouteConnection_basic(t *testing.T) {
 }
 
 func testAccExpressRouteConnection_requiresImport(t *testing.T) {
-	expressRouteCircuitRG, expressRouteCircuitName, err := testGetExpressRouteCircuitResourceGroupAndNameFromSubscription()
-	if err != nil {
-		t.Skip(fmt.Sprintf("%+v", err))
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_express_route_connection", "test")
 	r := ExpressRouteConnectionResource{}
 
 	data.ResourceSequentialTest(t, r, []resource.TestStep{
 		{
-			Config: r.basic(data, expressRouteCircuitRG, expressRouteCircuitName),
+			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -74,18 +66,12 @@ func testAccExpressRouteConnection_requiresImport(t *testing.T) {
 }
 
 func testAccExpressRouteConnection_complete(t *testing.T) {
-	expressRouteCircuitRG, expressRouteCircuitName, err := testGetExpressRouteCircuitResourceGroupAndNameFromSubscription()
-	if err != nil {
-		t.Skip(fmt.Sprintf("%+v", err))
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_express_route_connection", "test")
 	r := ExpressRouteConnectionResource{}
 
 	data.ResourceSequentialTest(t, r, []resource.TestStep{
 		{
-			Config: r.complete(data, expressRouteCircuitRG, expressRouteCircuitName),
+			Config: r.complete(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -95,25 +81,19 @@ func testAccExpressRouteConnection_complete(t *testing.T) {
 }
 
 func testAccExpressRouteConnection_update(t *testing.T) {
-	expressRouteCircuitRG, expressRouteCircuitName, err := testGetExpressRouteCircuitResourceGroupAndNameFromSubscription()
-	if err != nil {
-		t.Skip(fmt.Sprintf("%+v", err))
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_express_route_connection", "test")
 	r := ExpressRouteConnectionResource{}
 
 	data.ResourceSequentialTest(t, r, []resource.TestStep{
 		{
-			Config: r.basic(data, expressRouteCircuitRG, expressRouteCircuitName),
+			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.complete(data, expressRouteCircuitRG, expressRouteCircuitName),
+			Config: r.complete(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -141,25 +121,20 @@ func (r ExpressRouteConnectionResource) Exists(ctx context.Context, client *clie
 	return utils.Bool(resp.ExpressRouteConnectionProperties != nil), nil
 }
 
-func (r ExpressRouteConnectionResource) basic(data acceptance.TestData, expressRouteCircuitRG string, expressRouteCircuitName string) string {
+func (r ExpressRouteConnectionResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_express_route_connection" "test" {
   name                             = "acctest-ExpressRouteConnection-%d"
   express_route_gateway_id         = azurerm_express_route_gateway.test.id
-  express_route_circuit_peering_id = "${data.azurerm_express_route_circuit.test.id}/peerings/AzurePrivatePeering"
+  express_route_circuit_peering_id = azurerm_express_route_circuit_peering.test.id
 }
-`, r.template(data, expressRouteCircuitRG, expressRouteCircuitName), data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r ExpressRouteConnectionResource) requiresImport(data acceptance.TestData) string {
-	expressRouteCircuitRG, expressRouteCircuitName, err := testGetExpressRouteCircuitResourceGroupAndNameFromSubscription()
-	if err != nil {
-		return ""
-	}
-
-	config := r.basic(data, expressRouteCircuitRG, expressRouteCircuitName)
+	config := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -171,7 +146,7 @@ resource "azurerm_express_route_connection" "import" {
 `, config)
 }
 
-func (r ExpressRouteConnectionResource) complete(data acceptance.TestData, expressRouteCircuitRG string, expressRouteCircuitName string) string {
+func (r ExpressRouteConnectionResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -183,7 +158,7 @@ resource "azurerm_virtual_hub_route_table" "test" {
 resource "azurerm_express_route_connection" "test" {
   name                             = "acctest-ExpressRouteConnection-%d"
   express_route_gateway_id         = azurerm_express_route_gateway.test.id
-  express_route_circuit_peering_id = "${data.azurerm_express_route_circuit.test.id}/peerings/AzurePrivatePeering"
+  express_route_circuit_peering_id = azurerm_express_route_circuit_peering.test.id
   routing_weight                   = 2
   authorization_key                = "90f8db47-e25b-4b65-a68b-7743ced2a16b"
   enable_internet_security         = true
@@ -197,27 +172,32 @@ resource "azurerm_express_route_connection" "test" {
     }
   }
 }
-`, r.template(data, expressRouteCircuitRG, expressRouteCircuitName), data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
-func (r ExpressRouteConnectionResource) template(data acceptance.TestData, expressRouteCircuitRG string, expressRouteCircuitName string) string {
+func (r ExpressRouteConnectionResource) template(data acceptance.TestData) string {
+	circuitRG := os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP")
+	circuitName := os.Getenv("ARM_TEST_CIRCUIT_NAME")
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-data "azurerm_resource_group" "test" {
-  name = "%s"
-}
-
-data "azurerm_express_route_circuit" "test" {
-  name                = "%s"
-  resource_group_name = data.azurerm_resource_group.test.name
+resource "azurerm_express_route_circuit_peering" "test" {
+  peering_type                  = "AzurePrivatePeering"
+  express_route_circuit_name    = "%s"
+  resource_group_name           = "%s"
+  shared_key                    = "ItsASecret"
+  peer_asn                      = 100
+  primary_peer_address_prefix   = "192.168.1.0/30"
+  secondary_peer_address_prefix = "192.168.2.0/30"
+  vlan_id                       = 100
 }
 
 resource "azurerm_resource_group" "test2" {
   name     = "acctestRG-erconnection-%d"
-  location = data.azurerm_resource_group.test.location
+  location = "%s"
 }
 
 resource "azurerm_virtual_wan" "test" {
@@ -241,22 +221,5 @@ resource "azurerm_express_route_gateway" "test" {
   virtual_hub_id      = azurerm_virtual_hub.test.id
   scale_units         = 1
 }
-`, expressRouteCircuitRG, expressRouteCircuitName, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
-func testGetExpressRouteCircuitResourceGroupAndNameFromSubscription() (string, string, error) {
-	subscription := strings.ToLower(os.Getenv("ARM_SUBSCRIPTION_ID"))
-	expressRouteCircuitRG := ""
-	expressRouteCircuitName := ""
-
-	// As provider status of the Express Route Circuit must be set as provisioned manually by service team, so test cases have to use existing Express Route Circuit for testing.
-	// Once hashicorp gets the provisioned Express Route Circuit, the same logic for their subscriptions will also be added here.
-	if strings.HasPrefix(subscription, "67a9759d") || strings.HasPrefix(subscription, "85b3dbca") {
-		expressRouteCircuitRG = "xz3-test"
-		expressRouteCircuitName = "tf-er"
-	} else {
-		return expressRouteCircuitRG, expressRouteCircuitName, fmt.Errorf("Skipping since test is not running as one of the two valid subscriptions allowed to run ExpressRouteConnection tests")
-	}
-
-	return expressRouteCircuitRG, expressRouteCircuitName, nil
+`, circuitName, circuitRG, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
