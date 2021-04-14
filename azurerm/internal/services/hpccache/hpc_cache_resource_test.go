@@ -527,51 +527,62 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-HPC-%d"
-  location = %q
+data "azurerm_resource_group" "test" {
+  name = "%s"
+}
+
+data "azurerm_subnet" "test" {
+  resource_group_name  = "%s"
+  virtual_network_name = "%s"
+  name                 = "%s"
 }
 
 resource "azurerm_hpc_cache" "test" {
   name                = "acctest-HPC-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
+  resource_group_name = data.azurerm_resource_group.test.name
+  location            = data.azurerm_resource_group.test.location
   cache_size_in_gb    = 3072
-  subnet_id           = %q
+  subnet_id           = data.azurerm_subnet.test.id
   sku_name            = "Standard_2G"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, info.SubnetID.ID())
-
+`, info.SubnetID.ResourceGroup, info.SubnetID.ResourceGroup, info.SubnetID.VirtualNetworkName, info.SubnetID.Name,
+		data.RandomInteger)
 }
+
 func (r HPCCacheResource) ad(data acceptance.TestData, info HPCCacheDirectoryADInfo) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-HPC-%d"
-  location = %q
+data "azurerm_resource_group" "test" {
+  name = "%s"
+}
+
+data "azurerm_subnet" "test" {
+  resource_group_name  = "%s"
+  virtual_network_name = "%s"
+  name                 = "%s"
 }
 
 resource "azurerm_hpc_cache" "test" {
   name                = "acctest-HPC-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
+  resource_group_name = data.azurerm_resource_group.test.name
+  location            = data.azurerm_resource_group.test.location
   cache_size_in_gb    = 3072
-  subnet_id           = %q
+  subnet_id           = data.azurerm_subnet.test.id
   sku_name            = "Standard_2G"
   directory_ad {
-    primary_dns          = %q
-    domain_name          = %q
-    cache_net_bios_name  = %q
-    domain_net_bios_name = %q
-    username             = %q
-    password             = %q
+    primary_dns          = "%s"
+    domain_name          = "%s"
+    cache_net_bios_name  = "%s"
+    domain_net_bios_name = "%s"
+    username             = "%s"
+    password             = "%s"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger,
-		info.SubnetID.ID(), info.PrimaryDNS, info.DomainName, info.CacheNetBiosName, info.DomainNetBiosName, info.Username, info.Password)
+`, info.SubnetID.ResourceGroup, info.SubnetID.ResourceGroup, info.SubnetID.VirtualNetworkName, info.SubnetID.Name,
+		data.RandomInteger, info.PrimaryDNS, info.DomainName, info.CacheNetBiosName, info.DomainNetBiosName, info.Username, info.Password)
 }
 
 func (r HPCCacheResource) flatFileNone(data acceptance.TestData) string {
