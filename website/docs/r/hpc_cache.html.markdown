@@ -72,11 +72,13 @@ The following arguments are supported:
 
 * `dns` - (Optional) A `dns` block as defined below.
 
+* `directory_ad` - (Optional) A `directory_ad` block as defined below.
+ 
 * `directory_flat_file` - (Optional) A `directory_flat_file` block as defined below.
  
 * `directory_ldap` - (Optional) A `directory_ldap` block as defined below.
 
-~> **NOTE**: Only one of `directory_flat_file` and `directory_ldap` can be set.
+~> **NOTE**: Only one of `directory_ad`, `directory_flat_file` and `directory_ldap` can be set.
   
 ---
 
@@ -113,6 +115,24 @@ A `bind` block contains the following:
 A `default_access_policy` block contains the following:
 
 * `access_rule` - (Required) One to three `access_rule` blocks as defined above.
+
+---
+
+A `directory_ad` block contains the following:
+
+* `primary_dns` - (Required) The primary DNS IP address used to resolve the Active Directory domain controller's FQDN.
+
+* `domain_name` - (Required) The fully qualified domain name of the Active Directory domain controller.
+ 
+* `cache_net_bios_name` - (Required) The NetBIOS name to assign to the HPC Cache when it joins the Active Directory domain as a server.
+
+* `domain_net_bios_name` - (Required) The Active Directory domain's NetBIOS name.
+
+* `username` - (Required) The username of the Active Directory domain administrator.
+ 
+* `password` - (Required) The password of the Active Directory domain administrator.
+
+* `secondary_dns` - (Optional) The secondary DNS IP address used to resolve the Active Directory domain controller's FQDN.
 
 ---
 

@@ -3,6 +3,7 @@ package hpccache_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -16,6 +17,24 @@ import (
 
 type HPCCacheResource struct {
 }
+
+type HPCCacheDirectoryADInfo struct {
+	PrimaryDNS        string
+	DomainName        string
+	CacheNetBiosName  string
+	DomainNetBiosName string
+	Username          string
+	Password          string
+}
+
+const (
+	adPrimaryDNSEnv        = "ARM_TEST_HPC_AD_PRIMARY_DNS"
+	adDomainNameEnv        = "ARM_TEST_HPC_AD_DOMAIN_NAME"
+	adCacheNetBiosNameEnv  = "ARM_TEST_HPC_AD_CACHE_NET_BIOS_NAME"
+	adDomainNetBiosNameEnv = "ARM_TEST_HPC_AD_DOMAIN_NET_BIOS_NAME"
+	adUsernameEnv          = "ARM_TEST_HPC_AD_USERNAME"
+	adPasswordEnv          = "ARM_TEST_HPC_AD_PASSWORD"
+)
 
 func TestAccHPCCache_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache", "test")
@@ -205,6 +224,51 @@ func TestAccHPCCache_defaultAccessPolicy(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.defaultAccessPolicyBasic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccHPCCache_directoryAD(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hpc_cache", "test")
+	r := HPCCacheResource{}
+
+	requiredEnvVars := []string{adPrimaryDNSEnv, adDomainNameEnv, adCacheNetBiosNameEnv, adDomainNetBiosNameEnv, adUsernameEnv, adPasswordEnv}
+	for _, ev := range requiredEnvVars {
+		if os.Getenv(ev) == "" {
+			t.Skipf("Skip since env var %q is not set", ev)
+		}
+	}
+
+	adInfo := HPCCacheDirectoryADInfo{
+		PrimaryDNS:        os.Getenv(adPrimaryDNSEnv),
+		DomainName:        os.Getenv(adDomainNameEnv),
+		CacheNetBiosName:  os.Getenv(adCacheNetBiosNameEnv),
+		DomainNetBiosName: os.Getenv(adDomainNetBiosNameEnv),
+		Username:          os.Getenv(adUsernameEnv),
+		Password:          os.Getenv(adPasswordEnv),
+	}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.ad(data, adInfo),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("directory_ad.0.username", "directory_ad.0.password"),
+		{
+			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -445,6 +509,29 @@ resource "azurerm_hpc_cache" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r HPCCacheResource) ad(data acceptance.TestData, info HPCCacheDirectoryADInfo) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_hpc_cache" "test" {
+  name                = "acctest-HPCC-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cache_size_in_gb    = 3072
+  subnet_id           = azurerm_subnet.test.id
+  sku_name            = "Standard_2G"
+  directory_ad {
+    primary_dns          = %q
+    domain_name          = %q
+    cache_net_bios_name  = %q
+    domain_net_bios_name = %q
+    username             = %q
+    password             = %q
+  }
+}
+`, r.template(data), data.RandomInteger, info.PrimaryDNS, info.DomainName, info.CacheNetBiosName, info.DomainNetBiosName, info.Username, info.Password)
 }
 
 func (r HPCCacheResource) flatFileNone(data acceptance.TestData) string {
