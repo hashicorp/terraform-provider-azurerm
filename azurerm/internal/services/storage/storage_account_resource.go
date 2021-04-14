@@ -296,35 +296,10 @@ func resourceStorageAccount() *schema.Resource {
 							ValidateFunc: validate.BlobPropertiesDefaultServiceVersion,
 						},
 
-						"last_access_time_tracking_policy": {
-							Type:     schema.TypeList,
+						"last_access_time_tracking_policy_enabled": {
+							Type:     schema.TypeBool,
 							Optional: true,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"name": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										Default:      "AccessTimeTracking",
-										ValidateFunc: validation.StringInSlice([]string{"AccessTimeTracking"}, false),
-									},
-									"granularity_in_days": {
-										Type:         schema.TypeInt,
-										Optional:     true,
-										Default:      1,
-										ValidateFunc: validation.IntInSlice([]int{1}),
-									},
-									"blob_type": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Computed: true,
-										Elem: &schema.Schema{
-											Type:         schema.TypeString,
-											ValidateFunc: validation.StringInSlice([]string{"blockBlob"}, false),
-										},
-									},
-								},
-							},
+							Default:  false,
 						},
 
 						"container_delete_retention_policy": {
@@ -1590,8 +1565,9 @@ func expandBlobProperties(input []interface{}, isHnsEnabled bool, accountKind st
 		props.DefaultServiceVersion = utils.String(version)
 	}
 
-	props.LastAccessTimeTrackingPolicy = expandBlobPropertiesLastAccessTimeTracking(v["last_access_time_tracking_policy"].([]interface{}))
-
+	props.LastAccessTimeTrackingPolicy = &storage.LastAccessTimeTrackingPolicy{
+		Enable: utils.Bool(v["last_access_time_tracking_policy_enabled"].(bool)),
+	}
 	return &props, nil
 }
 
@@ -1652,11 +1628,11 @@ func expandBlobPropertiesChangeFeed(inputs []interface{}, isHnsEnabled bool, acc
 	}
 
 	if isHnsEnabled {
-		return nil, fmt.Errorf("`change_feed` in `blob_properties` could not be enabled when `is_hns_enabled` is enabled")
+		return nil, fmt.Errorf("`change_feed` in `blob_properties` cannot be enabled when `is_hns_enabled` is enabled")
 	}
 
 	if accountKind != string(storage.BlobStorage) && accountKind != string(storage.StorageV2) {
-		return nil, fmt.Errorf("`change_feed` in `blob_properties` is only support `account_kind` is `BlobStorage` or `StorageV2`")
+		return nil, fmt.Errorf("`change_feed` can only be configured when `account_kind` is set to `BlobStorage` or `StorageV2`")
 	}
 
 	result := storage.ChangeFeed{
@@ -1669,18 +1645,6 @@ func expandBlobPropertiesChangeFeed(inputs []interface{}, isHnsEnabled bool, acc
 	}
 
 	return &result, nil
-}
-
-func expandBlobPropertiesLastAccessTimeTracking(input []interface{}) *storage.LastAccessTimeTrackingPolicy {
-	if len(input) == 0 {
-		return &storage.LastAccessTimeTrackingPolicy{
-			Enable: utils.Bool(false),
-		}
-	}
-
-	return &storage.LastAccessTimeTrackingPolicy{
-		Enable: utils.Bool(true),
-	}
 }
 
 func expandQueueProperties(input []interface{}) (queues.StorageServiceProperties, error) {
@@ -1913,15 +1877,20 @@ func flattenBlobProperties(input storage.BlobServiceProperties) []interface{} {
 		defaultServiceVersion = *input.BlobServicePropertiesProperties.DefaultServiceVersion
 	}
 
+	var LastAccessTimeTrackingPolicy bool
+	if v := input.BlobServicePropertiesProperties.LastAccessTimeTrackingPolicy; v != nil && v.Enable != nil {
+		LastAccessTimeTrackingPolicy = *v.Enable
+	}
+
 	return []interface{}{
 		map[string]interface{}{
-			"cors_rule":                         flattenedCorsRules,
-			"delete_retention_policy":           flattenedDeletePolicy,
-			"change_feed":                       flattenBlobPropertiesChangeFeed(input.BlobServicePropertiesProperties.ChangeFeed),
-			"versioning_enabled":                versioning,
-			"default_service_version":           defaultServiceVersion,
-			"last_access_time_tracking_policy":  flattenBlobPropertiesLastAccessTimeTrackingPolicy(input.BlobServicePropertiesProperties.LastAccessTimeTrackingPolicy),
-			"container_delete_retention_policy": flattenedContainerDeletePolicy,
+			"cors_rule":                                flattenedCorsRules,
+			"delete_retention_policy":                  flattenedDeletePolicy,
+			"change_feed":                              flattenBlobPropertiesChangeFeed(input.BlobServicePropertiesProperties.ChangeFeed),
+			"versioning_enabled":                       versioning,
+			"default_service_version":                  defaultServiceVersion,
+			"last_access_time_tracking_policy_enabled": LastAccessTimeTrackingPolicy,
+			"container_delete_retention_policy":        flattenedContainerDeletePolicy,
 		},
 	}
 }
@@ -2004,29 +1973,10 @@ func flattenBlobPropertiesChangeFeed(input *storage.ChangeFeed) []interface{} {
 		days = int(*input.RetentionInDays)
 	}
 
-	return []interface{}{map[string]interface{}{
-		"retention_in_days": days,
-	},
-	}
-}
-
-func flattenBlobPropertiesLastAccessTimeTrackingPolicy(input *storage.LastAccessTimeTrackingPolicy) []interface{} {
-	policy := make([]interface{}, 0)
-
-	if input == nil || input.Enable == nil || !*input.Enable {
-		return policy
-	}
-
-	days := 0
-	if input.TrackingGranularityInDays != nil {
-		days = int(*input.TrackingGranularityInDays)
-	}
-
-	return []interface{}{map[string]interface{}{
-		"name":                input.Name,
-		"granularity_in_days": days,
-		"blob_type":           utils.FlattenStringSlice(input.BlobType),
-	},
+	return []interface{}{
+		map[string]interface{}{
+			"retention_in_days": days,
+		},
 	}
 }
 

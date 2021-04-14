@@ -141,9 +141,9 @@ A `blob_properties` block supports the following:
 
 * `change_feed` - (Optional) A `change_feed` block as defined below.
 
-* `default_service_version` - (Optional) The default version to use for requests to the Blob service if an incoming request’s version is not specified. Default to `2020-06-12`.
+* `default_service_version` - (Optional) The API Version which should be used by default for requests to the Data Plane API if an incoming request doesn't specify an API Version. Defaults to `2020-06-12`.
 
-* `last_access_time_tracking_policy` - (Optional) A `last_access_time_tracking_policy` block as defined below.
+* `last_access_time_tracking_policy_enabled` - (Optional) Is the last access time based tracking enabled? Default to `false`.
 
 * `container_delete_retention_policy` - (Optional) A `container_delete_retention_policy` block as defined below.
 
@@ -186,17 +186,6 @@ A `container_delete_retention_policy` block supports the following:
 A `change_feed` block supports the following:
 
 * `retention_in_days` - (Optional) The duration of changeFeed retention in days, between `1` and `146000` days. A null value indicates an infinite retention of the change feed.
-
----
-
-`last_access_time_tracking_policy` exports the following:
-
-* `name` - (Optional) The name of the policy. Default to `AccessTimeTracking`. Current possible value is `AccessTimeTracking`.
-
-* `granularity_in_days` - (Optional) The blob object tracking granularity in days, typically how often the blob object should be tracked. Default to `1`. Current possible value is `1`.
-
-* `blob_type` - (Optional) An array of predefined supported blob types. Default to `blockBlob`. Current possible value is `blockBlob`.
-
 
 ---
 
