@@ -60,7 +60,9 @@ func (r Registration) PackagePath() string {
 }
 
 func (r Registration) DataSources() []sdk.DataSource {
-	return []sdk.DataSource{}
+	return []sdk.DataSource{
+		AppServiceEnvironmentV3DataSource{},
+	}
 }
 
 func (r Registration) Resources() []sdk.Resource {

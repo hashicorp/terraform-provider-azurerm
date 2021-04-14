@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
-	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -247,16 +246,10 @@ func (r AppServiceEnvironmentV3Resource) Delete() sdk.ResourceFunc {
 
 			future, err := client.Delete(ctx, id.ResourceGroup, id.HostingEnvironmentName, utils.Bool(false))
 			if err != nil {
-				if !response.WasNotFound(future.Response()) {
-					return fmt.Errorf("deleting %s: %+v", id, err)
-				}
+				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
 			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				if response.WasNotFound(future.Response()) {
-					return nil
-				}
-
 				return fmt.Errorf("waiting for removal of %s: %+v", id, err)
 			}
 

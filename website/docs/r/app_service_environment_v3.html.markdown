@@ -1,15 +1,17 @@
 ---
 subcategory: "App Service (Web Apps)"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_app_service_environment"
+page_title: "Azure Resource Manager: azurerm_app_service_environment_v3"
 description: |-
-  Manages an App Service Environment V3.
+  Manages a 3rd Generation (v3) App Service Environment.
 
 ---
 
 # azurerm_app_service_environment
 
-Manages an App Service Environment V3.
+Manages a 3rd Generation (v3) App Service Environment.
+
+~> **NOTE:** App Service Environment V3 is currently in Preview.
 
 ## Example Usage
 
@@ -102,14 +104,14 @@ A `cluster_setting` block supports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 6 hours) Used when creating the App Service Environment.
-* `update` - (Defaults to 6 hours) Used when updating the App Service Environment.
-* `read` - (Defaults to 5 minutes) Used when retrieving the App Service Environment.
-* `delete` - (Defaults to 6 hours) Used when deleting the App Service Environment.
+* `create` - (Defaults to 6 hours) Used when creating the 3rd Generation (v3) App Service Environment.
+* `update` - (Defaults to 6 hours) Used when updating the 3rd Generation (v3) App Service Environment.
+* `read` - (Defaults to 5 minutes) Used when retrieving the 3rd Generation (v3) App Service Environment.
+* `delete` - (Defaults to 6 hours) Used when deleting the 3rd Generation (v3) App Service Environment.
 
 ## Import
 
-The App Service Environment can be imported using the `resource id`, e.g.
+A 3rd Generation (v3) App Service Environment can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_app_service_environment.myAppServiceEnv /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myResourceGroup/providers/Microsoft.Web/hostingEnvironments/myAppServiceEnv
