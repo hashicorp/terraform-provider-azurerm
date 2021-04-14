@@ -18,6 +18,7 @@ import (
 type ExpressRouteConnectionResource struct{}
 
 func TestAccExpressRouteConnection(t *testing.T) {
+	// NOTE: As provider status of the Express Route Circuit must be set as provisioned manually by service team, so test cases have to use existing Express Route Circuit for testing.
 	if os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" || os.Getenv("ARM_TEST_CIRCUIT_NAME") == "" {
 		t.Skip("Skipping as ARM_TEST_DATA_RESOURCE_GROUP and/or ARM_TEST_CIRCUIT_NAME are not specified")
 		return
