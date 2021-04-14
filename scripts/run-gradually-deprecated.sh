@@ -18,7 +18,7 @@ function runGraduallyDeprecatedFunctions {
   fi
 
   # using Resource ID Formatters/Parsers
-  result=$(git diff master | grep + | grep -R "d\.SetId(\*")
+  result=$(git diff master | grep + | grep -R "d\.SetId(\\*")
   if [ "$result" != "" ];
   then
     echo "Due to the Azure API returning the Resource ID's inconsistently - Terraform"
@@ -74,6 +74,13 @@ function runDeprecatedFunctions {
 }
 
 function main {
+  if [ "$GITHUB_ACTIONS_STAGE" == "UNIT_TESTS" ];
+  then
+    echo "Skipping - the Gradually Deprecated check is separate in Github Actions"
+    echo "so this can be skipped as a part of the build process."
+    exit 0
+  fi
+
   runGraduallyDeprecatedFunctions
   runDeprecatedFunctions
 }
