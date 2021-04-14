@@ -308,16 +308,10 @@ func resourceSynapseWorkspaceCreate(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Granting workspace identity control for SQL pool: %+v", err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Synapse Workspace %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	id := parse.NewWorkspaceID(subscriptionId, resourceGroup, name)
+	d.SetId(id.ID())
 
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for Synapse Workspace %q (Resource Group %q) ID", name, resourceGroup)
-	}
-
-	d.SetId(*resp.ID)
 	return resourceSynapseWorkspaceRead(d, meta)
 }
 
