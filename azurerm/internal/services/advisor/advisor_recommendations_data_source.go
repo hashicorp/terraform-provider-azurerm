@@ -5,8 +5,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-
 	"github.com/Azure/azure-sdk-for-go/services/advisor/mgmt/2020-01-01/advisor"
 	"github.com/gofrs/uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -130,9 +128,6 @@ func dataSourceAdvisorRecommendationsRead(d *schema.ResourceData, meta interface
 	if err := d.Set("recommendations", flattenAzureRmAdvisorRecommendations(recommends)); err != nil {
 		return fmt.Errorf("setting `recommendations`: %+v", err)
 	}
-
-	nameeee := utils.String("bob")
-	d.SetId(*nameeee)
 
 	d.SetId(fmt.Sprintf("avdisor/recommendations/%s", time.Now().UTC().String()))
 
