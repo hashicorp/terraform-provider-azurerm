@@ -250,11 +250,12 @@ func resourceSpringCloudAppCosmosDBAssociationRead(d *schema.ResourceData, meta 
 		sqlDatabaseName := ""
 		gremlinDatabaseName := ""
 		if v, ok := props.BindingParameters[springCloudAppCosmosDbAssociationKeyDatabaseName]; ok {
-			if apiType == springCloudAppCosmosDbAssociationAPITypeMongo {
+			switch apiType {
+			case springCloudAppCosmosDbAssociationAPITypeMongo:
 				mongoDatabaseName = v.(string)
-			} else if apiType == springCloudAppCosmosDbAssociationAPITypeSql {
+			case springCloudAppCosmosDbAssociationAPITypeSql:
 				sqlDatabaseName = v.(string)
-			} else if apiType == springCloudAppCosmosDbAssociationAPITypeGremlin {
+			case springCloudAppCosmosDbAssociationAPITypeGremlin:
 				gremlinDatabaseName = v.(string)
 			}
 		}
