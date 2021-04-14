@@ -12,8 +12,10 @@ ENHANCEMENTS:
 * dependencies: updating `containerservice` to API version `2021-02-01` [GH-10972]
 * `azurerm_application_gateway` - support for configuring `firewall_policy_id` within the `path_rule` block [GH-11239]
 * `azurerm_hpc_cache` - support for `tags` [GH-11268]
+* `azurerm_linux_virtual_machine_scale_set` - Support health extension for rolling ugrade mode [GH-9136]
 * `azurerm_mssql_database` - support for the `geo_backup_enabled` property [GH-11177]
 * `azurerm_public_ip` - support for `ip_tags` [GH-11270]
+* `azurerm_windows_virtual_machine_scale_set` - Support health extension for rolling ugrade mode [GH-9136]
 
 BUG FIXES:
 
