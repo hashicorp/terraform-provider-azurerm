@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hpccache/parse"
+	networkParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -19,6 +20,8 @@ type HPCCacheResource struct {
 }
 
 type HPCCacheDirectoryADInfo struct {
+	SubnetID networkParse.SubnetId
+
 	PrimaryDNS        string
 	DomainName        string
 	CacheNetBiosName  string
@@ -28,6 +31,7 @@ type HPCCacheDirectoryADInfo struct {
 }
 
 const (
+	adSubnetIDEnv          = "ARM_TEST_HPC_AD_SUBNET_ID"
 	adPrimaryDNSEnv        = "ARM_TEST_HPC_AD_PRIMARY_DNS"
 	adDomainNameEnv        = "ARM_TEST_HPC_AD_DOMAIN_NAME"
 	adCacheNetBiosNameEnv  = "ARM_TEST_HPC_AD_CACHE_NET_BIOS_NAME"
@@ -236,14 +240,20 @@ func TestAccHPCCache_directoryAD(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache", "test")
 	r := HPCCacheResource{}
 
-	requiredEnvVars := []string{adPrimaryDNSEnv, adDomainNameEnv, adCacheNetBiosNameEnv, adDomainNetBiosNameEnv, adUsernameEnv, adPasswordEnv}
+	requiredEnvVars := []string{adSubnetIDEnv, adPrimaryDNSEnv, adDomainNameEnv, adCacheNetBiosNameEnv, adDomainNetBiosNameEnv, adUsernameEnv, adPasswordEnv}
 	for _, ev := range requiredEnvVars {
 		if os.Getenv(ev) == "" {
 			t.Skipf("Skip since env var %q is not set", ev)
 		}
 	}
 
+	subnetId, err := networkParse.SubnetID(os.Getenv(adSubnetIDEnv))
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	adInfo := HPCCacheDirectoryADInfo{
+		SubnetID:          *subnetId,
 		PrimaryDNS:        os.Getenv(adPrimaryDNSEnv),
 		DomainName:        os.Getenv(adDomainNameEnv),
 		CacheNetBiosName:  os.Getenv(adCacheNetBiosNameEnv),
@@ -254,7 +264,7 @@ func TestAccHPCCache_directoryAD(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.adNone(data, adInfo),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -268,7 +278,7 @@ func TestAccHPCCache_directoryAD(t *testing.T) {
 		},
 		data.ImportStep("directory_ad.0.username", "directory_ad.0.password"),
 		{
-			Config: r.basic(data),
+			Config: r.adNone(data, adInfo),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -511,16 +521,45 @@ resource "azurerm_hpc_cache" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r HPCCacheResource) ad(data acceptance.TestData, info HPCCacheDirectoryADInfo) string {
+func (r HPCCacheResource) adNone(data acceptance.TestData, info HPCCacheDirectoryADInfo) string {
 	return fmt.Sprintf(`
-%s
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-HPC-%d"
+  location = %q
+}
 
 resource "azurerm_hpc_cache" "test" {
-  name                = "acctest-HPCC-%d"
+  name                = "acctest-HPC-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   cache_size_in_gb    = 3072
-  subnet_id           = azurerm_subnet.test.id
+  subnet_id           = %q
+  sku_name            = "Standard_2G"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, info.SubnetID.ID())
+
+}
+func (r HPCCacheResource) ad(data acceptance.TestData, info HPCCacheDirectoryADInfo) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-HPC-%d"
+  location = %q
+}
+
+resource "azurerm_hpc_cache" "test" {
+  name                = "acctest-HPC-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cache_size_in_gb    = 3072
+  subnet_id           = %q
   sku_name            = "Standard_2G"
   directory_ad {
     primary_dns          = %q
@@ -531,7 +570,8 @@ resource "azurerm_hpc_cache" "test" {
     password             = %q
   }
 }
-`, r.template(data), data.RandomInteger, info.PrimaryDNS, info.DomainName, info.CacheNetBiosName, info.DomainNetBiosName, info.Username, info.Password)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger,
+		info.SubnetID.ID(), info.PrimaryDNS, info.DomainName, info.CacheNetBiosName, info.DomainNetBiosName, info.Username, info.Password)
 }
 
 func (r HPCCacheResource) flatFileNone(data acceptance.TestData) string {
