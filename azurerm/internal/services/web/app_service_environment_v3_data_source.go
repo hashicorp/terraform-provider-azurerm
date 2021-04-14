@@ -41,15 +41,17 @@ func (r AppServiceEnvironmentV3DataSource) Attributes() map[string]*schema.Schem
 		"cluster_setting": {
 			Type:     schema.TypeList,
 			Computed: true,
-			Elem: map[string]*schema.Schema{
-				"name": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"name": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
 
-				"value": {
-					Type:     schema.TypeString,
-					Computed: true,
+					"value": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
 				},
 			},
 		},
