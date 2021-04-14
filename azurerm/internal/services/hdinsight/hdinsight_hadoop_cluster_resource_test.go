@@ -1170,14 +1170,12 @@ resource "azurerm_nat_gateway_public_ip_association" "test" {
   public_ip_address_id = azurerm_public_ip.test.id
 }
 
-resource "azurerm_subnet_nat_gateway_association" "example" {
+resource "azurerm_subnet_nat_gateway_association" "test" {
   subnet_id      = azurerm_subnet.test.id
   nat_gateway_id = azurerm_nat_gateway.test.id
 }
 
 resource "azurerm_subnet_network_security_group_association" "test" {
-  depends_on = [azurerm_subnet.test, azurerm_network_security_group.test]
-
   subnet_id                 = azurerm_subnet.test.id
   network_security_group_id = azurerm_network_security_group.test.id
 }
