@@ -27,10 +27,10 @@ func TestAccExpressRouteConnection(t *testing.T) {
 	// And there can be only one Express Route Connection on the same Express Route Circuit, otherwise tests will conflict if run at the same time.
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"Resource": {
-			"basic": testAccExpressRouteConnection_basic,
-			//"requiresImport": testAccExpressRouteConnection_requiresImport,
-			//"complete":       testAccExpressRouteConnection_complete,
-			//"update":         testAccExpressRouteConnection_update,
+			"basic":          testAccExpressRouteConnection_basic,
+			"requiresImport": testAccExpressRouteConnection_requiresImport,
+			"complete":       testAccExpressRouteConnection_complete,
+			"update":         testAccExpressRouteConnection_update,
 		},
 	})
 }

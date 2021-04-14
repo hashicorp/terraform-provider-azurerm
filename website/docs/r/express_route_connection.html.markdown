@@ -46,8 +46,8 @@ resource "azurerm_express_route_circuit" "example" {
   name                  = "example-expressroutecircuit"
   location              = azurerm_resource_group.example.location
   resource_group_name   = azurerm_resource_group.example.name
-  service_provider_name = "Microsoft ER Test"
-  peering_location      = "Area51"
+  service_provider_name = "Equinix"
+  peering_location      = "Silicon Valley"
   bandwidth_in_mbps     = 50
 
   sku {
