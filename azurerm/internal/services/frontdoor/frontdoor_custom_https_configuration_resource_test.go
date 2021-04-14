@@ -36,6 +36,14 @@ func TestAccFrontDoorCustomHttpsConfiguration_CustomHttps(t *testing.T) {
 				check.That(data.ResourceName).Key("custom_https_provisioning_enabled").HasValue("false"),
 			),
 		},
+		{
+			Config: r.CustomHttpsKeyVault(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("custom_https_provisioning_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("custom_https_configuration.0.certificate_source").HasValue("AzureKeyVault"),
+			),
+		},
 	})
 }
 
@@ -81,11 +89,112 @@ resource "azurerm_frontdoor_custom_https_configuration" "test" {
 `, r.template(data))
 }
 
+func (r FrontDoorCustomHttpsConfigurationResource) CustomHttpsKeyVault(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_frontdoor_custom_https_configuration" "test" {
+  frontend_endpoint_id              = azurerm_frontdoor.test.frontend_endpoints[local.endpoint_name]
+  resource_group_name               = azurerm_resource_group.test.name
+  custom_https_provisioning_enabled = true
+
+  custom_https_configuration {
+    certificate_source                      = "AzureKeyVault"
+    azure_key_vault_certificate_vault_id    = azurerm_key_vault.test.id
+    azure_key_vault_certificate_secret_name = azurerm_key_vault_certificate.test.name
+  }
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "acctest-FD-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard"
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+}
+
+data "azuread_service_principal" "front_door" {
+  # from https://docs.microsoft.com/en-us/azure/frontdoor/front-door-custom-domain-https#prepare-your-azure-key-vault-account-and-certificate
+  application_id = "ad0e1c7e-6d38-4ba4-9efd-0bc77ba9f037"
+}
+
+resource "azurerm_key_vault_access_policy" "front_door" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azuread_service_principal.front_door.object_id
+
+  certificate_permissions = [
+    "Get",
+  ]
+
+  secret_permissions = [
+    "Get",
+  ]
+}
+
+resource "azurerm_key_vault_certificate" "test" {
+  name         = "generated-cert"
+  key_vault_id = azurerm_key_vault.test.id
+
+  certificate_policy {
+    issuer_parameters {
+      name = "Self"
+    }
+
+    key_properties {
+      exportable = true
+      key_size   = 2048
+      key_type   = "RSA"
+      reuse_key  = true
+    }
+
+    lifetime_action {
+      action {
+        action_type = "AutoRenew"
+      }
+
+      trigger {
+        days_before_expiry = 30
+      }
+    }
+
+    secret_properties {
+      content_type = "application/x-pkcs12"
+    }
+
+    x509_certificate_properties {
+      # Server Authentication = 1.3.6.1.5.5.7.3.1
+      # Client Authentication = 1.3.6.1.5.5.7.3.2
+      extended_key_usage = ["1.3.6.1.5.5.7.3.1"]
+
+      key_usage = [
+        "cRLSign",
+        "dataEncipherment",
+        "digitalSignature",
+        "keyAgreement",
+        "keyCertSign",
+        "keyEncipherment",
+      ]
+
+      subject_alternative_names {
+        dns_names = ["internal.contoso.com", "domain.hello.world"]
+      }
+
+      subject            = "CN=hello-world"
+      validity_in_months = 12
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
 func (FrontDoorCustomHttpsConfigurationResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
+
+data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-frontdoor-%d"
