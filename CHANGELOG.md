@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Resource:** `azurerm_data_factory_linked_service_azure_databricks` [GH-10962]
+* **New Resource:** `azurerm_data_lake_store_virtual_network_rule` [GH-10430]
 * **New Resource:** `azurerm_media_live_event_output` [GH-10917]
 * **New Resource:** `azurerm_spring_cloud_app_mysql_association` [GH-11229]
 
@@ -11,7 +12,8 @@ ENHANCEMENTS:
 * dependencies: updating `github.com/Azure/azure-sdk-for-go` to `v53.0.0` [GH-11302]
 * dependencies: updating `containerservice` to API version `2021-02-01` [GH-10972]
 * `azurerm_application_gateway` - support for configuring `firewall_policy_id` within the `path_rule` block [GH-11239]
-* * `azurerm_firewall_policy_rule_collection_group` - allow `*` for the `network_rule_collection.destination_ports` property [GH-11326]
+* `azurerm_firewall_policy_rule_collection_group` - allow `*` for the `network_rule_collection.destination_ports` property [GH-11326]
+* `azurerm_data_factory_linked_service_sql_database` - support managed identity and service principal auth and add the `keyvault_password` property [GH-10735]
 * `azurerm_hpc_cache` - support for `tags` [GH-11268]
 * `azurerm_linux_virtual_machine_scale_set` - Support health extension for rolling ugrade mode [GH-9136]
 * `azurerm_mssql_database` - support for the `geo_backup_enabled` property [GH-11177]
