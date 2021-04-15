@@ -165,6 +165,7 @@ func resourceManagedDisk() *schema.Resource {
 }
 
 func resourceManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Compute.DisksClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -174,8 +175,9 @@ func resourceManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
+	id := parse.NewManagedDiskID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.DiskName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("Error checking for presence of existing Managed Disk %q (Resource Group %q): %s", name, resourceGroup, err)
@@ -272,18 +274,20 @@ func resourceManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	if networkAccessPolicy, ok := d.GetOk("network_access_policy"); ok {
-		props.NetworkAccessPolicy = compute.NetworkAccessPolicy(networkAccessPolicy.(string))
+	if networkAccessPolicy := d.Get("network_access_policy").(string); networkAccessPolicy != "" {
+		props.NetworkAccessPolicy = compute.NetworkAccessPolicy(networkAccessPolicy)
+	} else {
+		props.NetworkAccessPolicy = compute.AllowAll
 	}
 
-	if props.NetworkAccessPolicy == compute.AllowPrivate {
-		if d.HasChange("disk_access_id") {
-			v := d.Get("disk_access_id")
-			diskAccessID := v.(string)
-			props.DiskAccessID = &diskAccessID
+	if diskAccessID := d.Get("disk_access_id").(string); d.HasChange("disk_access_id") {
+		if props.NetworkAccessPolicy == compute.AllowPrivate {
+			props.DiskAccessID = utils.String(diskAccessID)
+		} else if diskAccessID != "" {
+			return fmt.Errorf("[ERROR] disk_access_id is only available when network_access_policy is set to AllowPrivate")
+		} else {
+			props.DiskAccessID = nil
 		}
-	} else if d.HasChange("disk_access_id") {
-		return fmt.Errorf("[ERROR] disk_access_id are only available for when network_access_policy is set to AllowPrivate")
 	}
 
 	createDisk := compute.Disk{
@@ -314,7 +318,7 @@ func resourceManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error reading Managed Disk %s (Resource Group %q): ID was nil", name, resourceGroup)
 	}
 
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceManagedDiskRead(d, meta)
 }
@@ -403,18 +407,20 @@ func resourceManagedDiskUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	if d.HasChange("network_access_policy") {
-		diskUpdate.NetworkAccessPolicy = compute.NetworkAccessPolicy(d.Get("network_access_policy").(string))
+	if networkAccessPolicy := d.Get("network_access_policy").(string); networkAccessPolicy != "" {
+		diskUpdate.NetworkAccessPolicy = compute.NetworkAccessPolicy(networkAccessPolicy)
+	} else {
+		diskUpdate.NetworkAccessPolicy = compute.AllowAll
 	}
 
-	if diskUpdate.NetworkAccessPolicy == compute.AllowPrivate {
-		if d.HasChange("disk_access_id") {
-			v := d.Get("disk_access_id")
-			diskAccessID := v.(string)
-			diskUpdate.DiskAccessID = &diskAccessID
+	if diskAccessID := d.Get("disk_access_id").(string); d.HasChange("disk_access_id") {
+		if diskUpdate.NetworkAccessPolicy == compute.AllowPrivate {
+			diskUpdate.DiskAccessID = utils.String(diskAccessID)
+		} else if diskAccessID != "" {
+			return fmt.Errorf("[ERROR] disk_access_id is only available when network_access_policy is set to AllowPrivate")
+		} else {
+			diskUpdate.DiskAccessID = nil
 		}
-	} else if d.HasChange("disk_access_id") {
-		return fmt.Errorf("[ERROR] disk_access_id are only available for when network_access_policy is set to AllowPrivate")
 	}
 
 	// whilst we need to shut this down, if we're not attached to anything there's no point
@@ -588,7 +594,10 @@ func resourceManagedDiskRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("disk_iops_read_write", props.DiskIOPSReadWrite)
 		d.Set("disk_mbps_read_write", props.DiskMBpsReadWrite)
 		d.Set("os_type", props.OsType)
-		d.Set("network_access_policy", props.NetworkAccessPolicy)
+
+		if networkAccessPolicy := props.NetworkAccessPolicy; networkAccessPolicy != compute.AllowAll {
+			d.Set("network_access_policy", props.NetworkAccessPolicy)
+		}
 		d.Set("disk_access_id", props.DiskAccessID)
 
 		diskEncryptionSetId := ""
