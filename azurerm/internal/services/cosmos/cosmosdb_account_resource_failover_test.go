@@ -249,6 +249,10 @@ resource "azurerm_cosmosdb_account" "test" {
     consistency_level = "BoundedStaleness"
   }
 
+  capabilities {
+    name = "EnableMongo"
+  }
+
   geo_location {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
