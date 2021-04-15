@@ -570,7 +570,9 @@ func resourceCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) err
 
 	if kind == string(documentdb.MongoDB) {
 		if v, ok := d.GetOk("mongo_server_version"); ok {
-			account.DatabaseAccountCreateUpdateProperties.APIProperties.ServerVersion = documentdb.ServerVersion(v.(string))
+			account.DatabaseAccountCreateUpdateProperties.APIProperties = &documentdb.APIProperties{
+				ServerVersion: documentdb.ServerVersion(v.(string)),
+			}
 		}
 	}
 
