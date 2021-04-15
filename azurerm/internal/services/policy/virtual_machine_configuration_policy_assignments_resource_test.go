@@ -56,9 +56,9 @@ func (r VirtualMachineConfigurationPolicyAssignmentResource) Exists(ctx context.
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Guest Configuration %q (Resource Group %q / Virtual Machine %q): %+v", id.GuestConfigurationAssignmentName, id.ResourceGroup, id.VirtualMachineName, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return utils.Bool(true), nil
+	return utils.Bool(resp.Properties != nil), nil
 }
 
 func (r VirtualMachineConfigurationPolicyAssignmentResource) templateBase(data acceptance.TestData) string {
