@@ -86,7 +86,7 @@ func resourceContainerRegistry() *schema.Resource {
 			},
 
 			"georeplications": {
-				Type:          schema.TypeList,
+				Type:          schema.TypeSet,
 				Optional:      true,
 				Computed:      true, // TODO -- remove this when deprecation resolves
 				ConflictsWith: []string{"georeplication_locations"},
@@ -250,8 +250,8 @@ func resourceContainerRegistry() *schema.Resource {
 		CustomizeDiff: func(d *schema.ResourceDiff, v interface{}) error {
 			sku := d.Get("sku").(string)
 			geoReplicationLocations := d.Get("georeplication_locations").(*schema.Set)
-			geoReplications := d.Get("georeplications").([]interface{})
-			hasGeoReplicationsApplied := geoReplicationLocations.Len() > 0 || len(geoReplications) > 0
+			geoReplications := d.Get("georeplications").(*schema.Set)
+			hasGeoReplicationsApplied := geoReplicationLocations.Len() > 0 || geoReplications.Len() > 0
 			// if locations have been specified for geo-replication then, the SKU has to be Premium
 			if hasGeoReplicationsApplied && !strings.EqualFold(sku, string(containerregistry.Premium)) {
 				return fmt.Errorf("ACR geo-replication can only be applied when using the Premium Sku.")
@@ -317,7 +317,7 @@ func resourceContainerRegistryCreate(d *schema.ResourceData, meta interface{}) e
 	adminUserEnabled := d.Get("admin_enabled").(bool)
 	t := d.Get("tags").(map[string]interface{})
 	geoReplicationLocations := d.Get("georeplication_locations").(*schema.Set)
-	geoReplications := d.Get("georeplications").([]interface{})
+	geoReplications := d.Get("georeplications").(*schema.Set)
 
 	networkRuleSet := expandNetworkRuleSet(d.Get("network_rule_set").([]interface{}))
 	if networkRuleSet != nil && !strings.EqualFold(sku, string(containerregistry.Premium)) {
@@ -382,7 +382,7 @@ func resourceContainerRegistryCreate(d *schema.ResourceData, meta interface{}) e
 	if geoReplicationLocations != nil && geoReplicationLocations.Len() > 0 {
 		newGeoReplicationLocations = expandReplicationsFromLocations(geoReplicationLocations.List())
 	} else {
-		newGeoReplicationLocations = expandReplications(geoReplications)
+		newGeoReplicationLocations = expandReplications(geoReplications.List())
 	}
 	// geo replications have been specified
 	if len(newGeoReplicationLocations) > 0 {
@@ -431,8 +431,8 @@ func resourceContainerRegistryUpdate(d *schema.ResourceData, meta interface{}) e
 
 	oldReplicationsRaw, newReplicationsRaw := d.GetChange("georeplications")
 	hasGeoReplicationsChanges := d.HasChange("georeplications")
-	oldReplications := oldReplicationsRaw.([]interface{})
-	newReplications := newReplicationsRaw.([]interface{})
+	oldReplications := oldReplicationsRaw.(*schema.Set)
+	newReplications := newReplicationsRaw.(*schema.Set)
 
 	// handle upgrade to Premium SKU first
 	if skuChange && isPremiumSku {
@@ -470,13 +470,13 @@ func resourceContainerRegistryUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	// geo replication is only supported by Premium Sku
-	hasGeoReplicationsApplied := newGeoReplicationLocations.Len() > 0 || len(newReplications) > 0
+	hasGeoReplicationsApplied := newGeoReplicationLocations.Len() > 0 || newReplications.Len() > 0
 	if hasGeoReplicationsApplied && !strings.EqualFold(sku, string(containerregistry.Premium)) {
 		return fmt.Errorf("ACR geo-replication can only be applied when using the Premium Sku.")
 	}
 
 	if hasGeoReplicationsChanges {
-		err := applyGeoReplicationLocations(d, meta, resourceGroup, name, expandReplications(oldReplications), expandReplications(newReplications))
+		err := applyGeoReplicationLocations(d, meta, resourceGroup, name, expandReplications(oldReplications.List()), expandReplications(newReplications.List()))
 		if err != nil {
 			return fmt.Errorf("Error applying geo replications for Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
@@ -549,7 +549,7 @@ func applyGeoReplicationLocations(d *schema.ResourceData, meta interface{}, reso
 
 	// delete previously deployed locations
 	for _, replication := range oldGeoReplications {
-		if replication == nil {
+		if replication == nil || len(*replication.Location) == 0 {
 			continue
 		}
 		oldLocation := azure.NormalizeLocation(*replication.Location)
@@ -565,7 +565,7 @@ func applyGeoReplicationLocations(d *schema.ResourceData, meta interface{}, reso
 
 	// create new geo-replication locations
 	for _, replication := range newGeoReplications {
-		if replication == nil {
+		if replication == nil || len(*replication.Location) == 0 {
 			continue
 		}
 		locationToCreate := azure.NormalizeLocation(*replication.Location)
