@@ -170,5 +170,5 @@ resource "azurerm_cosmosdb_sql_database" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
 }
-`, CosmosDBAccountResource{}.capabilities(data, documentdb.GlobalDocumentDB, []string{"EnableServerless"}), data.RandomInteger)
+`, CosmosDBAccountResource{}.capabilities(data, []string{"EnableServerless"}), data.RandomInteger)
 }

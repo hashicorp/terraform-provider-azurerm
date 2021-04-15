@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-01-15/documentdb"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
@@ -130,7 +129,7 @@ resource "azurerm_cosmosdb_gremlin_database" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
 }
-`, CosmosDBAccountResource{}.capabilities(data, documentdb.GlobalDocumentDB, []string{"EnableGremlin"}), data.RandomInteger)
+`, CosmosDBAccountResource{}.capabilities(data, []string{"EnableGremlin"}), data.RandomInteger)
 }
 
 func (r CosmosGremlinDatabaseResource) requiresImport(data acceptance.TestData) string {
@@ -155,7 +154,7 @@ resource "azurerm_cosmosdb_gremlin_database" "test" {
   account_name        = azurerm_cosmosdb_account.test.name
   throughput          = %[3]d
 }
-`, CosmosDBAccountResource{}.capabilities(data, documentdb.GlobalDocumentDB, []string{"EnableGremlin"}), data.RandomInteger, throughput)
+`, CosmosDBAccountResource{}.capabilities(data, []string{"EnableGremlin"}), data.RandomInteger, throughput)
 }
 
 func (CosmosGremlinDatabaseResource) autoscale(data acceptance.TestData, maxThroughput int) string {
@@ -170,5 +169,5 @@ resource "azurerm_cosmosdb_gremlin_database" "test" {
     max_throughput = %[3]d
   }
 }
-`, CosmosDBAccountResource{}.capabilities(data, documentdb.GlobalDocumentDB, []string{"EnableGremlin"}), data.RandomInteger, maxThroughput)
+`, CosmosDBAccountResource{}.capabilities(data, []string{"EnableGremlin"}), data.RandomInteger, maxThroughput)
 }
