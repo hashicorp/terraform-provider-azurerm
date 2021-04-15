@@ -407,9 +407,9 @@ resource "azurerm_monitor_activity_log_alert" "test" {
   criteria {
     category = "ServiceHealth"
     service_health {
-      events   = ["Incident", "Maintenance"]
-      services = ["Action Groups", "Activity Logs & Alerts"]
-      locations  = ["Global", "West Europe"]
+      events    = ["Incident", "Maintenance"]
+      services  = ["Action Groups", "Activity Logs & Alerts"]
+      locations = ["Global", "West Europe"]
     }
   }
 
@@ -474,9 +474,9 @@ resource "azurerm_monitor_activity_log_alert" "test" {
   criteria {
     category = "ServiceHealth"
     service_health {
-      events   = ["Incident", "Maintenance","ActionRequired"]
-      services = ["Action Groups"]
-      locations  = ["Global", "West Europe","East US"]
+      events    = ["Incident", "Maintenance", "ActionRequired"]
+      services  = ["Action Groups"]
+      locations = ["Global", "West Europe", "East US"]
     }
   }
 
@@ -498,63 +498,63 @@ resource "azurerm_monitor_activity_log_alert" "test" {
 
 func (MonitorActivityLogAlertResource) serviceHealth_delete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-	provider "azurerm" {
-	  features {}
-	}
-	
-	resource "azurerm_resource_group" "test" {
-	  name     = "acctestRG-%d"
-	  location = "%s"
-	}
-	
-	resource "azurerm_monitor_action_group" "test1" {
-	  name                = "acctestActionGroup1-%d"
-	  resource_group_name = azurerm_resource_group.test.name
-	  short_name          = "acctestag1"
-	}
-	
-	resource "azurerm_monitor_action_group" "test2" {
-	  name                = "acctestActionGroup2-%d"
-	  resource_group_name = azurerm_resource_group.test.name
-	  short_name          = "acctestag2"
-	}
-	
-	resource "azurerm_storage_account" "test" {
-	  name                     = "acctestsa%s"
-	  resource_group_name      = azurerm_resource_group.test.name
-	  location                 = azurerm_resource_group.test.location
-	  account_tier             = "Standard"
-	  account_replication_type = "LRS"
-	}
-	
-	resource "azurerm_monitor_activity_log_alert" "test" {
-	  name                = "acctestActivityLogAlert-%d"
-	  resource_group_name = azurerm_resource_group.test.name
-	  enabled             = true
-	  description         = "This is just a test resource."
-	
-	  scopes = [
-		azurerm_resource_group.test.id,
-		azurerm_storage_account.test.id,
-	  ]
-	
-	  criteria {
-		category = "Recommendation"
-	  }
-	
-	  action {
-		action_group_id = azurerm_monitor_action_group.test1.id
-	  }
-	
-	  action {
-		action_group_id = azurerm_monitor_action_group.test2.id
-	
-		webhook_properties = {
-		  from = "terraform test"
-		  to   = "microsoft azure"
-		}
-	  }
-	}
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_monitor_action_group" "test1" {
+  name                = "acctestActionGroup1-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  short_name          = "acctestag1"
+}
+
+resource "azurerm_monitor_action_group" "test2" {
+  name                = "acctestActionGroup2-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  short_name          = "acctestag2"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_monitor_activity_log_alert" "test" {
+  name                = "acctestActivityLogAlert-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  enabled             = true
+  description         = "This is just a test resource."
+
+  scopes = [
+    azurerm_resource_group.test.id,
+    azurerm_storage_account.test.id,
+  ]
+
+  criteria {
+    category = "Recommendation"
+  }
+
+  action {
+    action_group_id = azurerm_monitor_action_group.test1.id
+  }
+
+  action {
+    action_group_id = azurerm_monitor_action_group.test2.id
+
+    webhook_properties = {
+      from = "terraform test"
+      to   = "microsoft azure"
+    }
+  }
+}
 	`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger)
 }
 
