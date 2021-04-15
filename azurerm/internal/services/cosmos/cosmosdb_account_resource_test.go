@@ -21,32 +21,32 @@ type CosmosDBAccountResource struct {
 }
 
 func TestAccCosmosDBAccount_basic_global_boundedStaleness(t *testing.T) {
-	testAccCosmosDBAccount_basicWith(t, documentdb.GlobalDocumentDB, documentdb.BoundedStaleness)
+	testAccCosmosDBAccount_basicWith(t, documentdb.BoundedStaleness)
 }
 
 func TestAccCosmosDBAccount_basic_global_consistentPrefix(t *testing.T) {
-	testAccCosmosDBAccount_basicWith(t, documentdb.GlobalDocumentDB, documentdb.ConsistentPrefix)
+	testAccCosmosDBAccount_basicWith(t, documentdb.ConsistentPrefix)
 }
 
 func TestAccCosmosDBAccount_basic_global_eventual(t *testing.T) {
-	testAccCosmosDBAccount_basicWith(t, documentdb.GlobalDocumentDB, documentdb.Eventual)
+	testAccCosmosDBAccount_basicWith(t, documentdb.Eventual)
 }
 
 func TestAccCosmosDBAccount_basic_global_session(t *testing.T) {
-	testAccCosmosDBAccount_basicWith(t, documentdb.GlobalDocumentDB, documentdb.Session)
+	testAccCosmosDBAccount_basicWith(t, documentdb.Session)
 }
 
 func TestAccCosmosDBAccount_basic_global_strong(t *testing.T) {
-	testAccCosmosDBAccount_basicWith(t, documentdb.GlobalDocumentDB, documentdb.Strong)
+	testAccCosmosDBAccount_basicWith(t, documentdb.Strong)
 }
 
-func testAccCosmosDBAccount_basicWith(t *testing.T, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) {
+func testAccCosmosDBAccount_basicWith(t *testing.T, consistency documentdb.DefaultConsistencyLevel) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.basic(data, kind, consistency),
+			Config: r.basic(data, documentdb.GlobalDocumentDB, consistency),
 			Check: resource.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, consistency, 1),
 			),
@@ -138,6 +138,10 @@ func testAccCosmosDBAccount_completeWith(t *testing.T, kind documentdb.DatabaseA
 	})
 }
 
+func TestAccCosmosDBAccount_completeZoneRedundant_update(t *testing.T) {
+	testAccCosmosDBAccount_zoneRedundant_updateWith(t, documentdb.GlobalDocumentDB)
+}
+
 func TestAccCosmosDBAccount_completeZoneRedundant_global(t *testing.T) {
 	testAccCosmosDBAccount_zoneRedundantWith(t, documentdb.GlobalDocumentDB)
 }
@@ -227,32 +231,32 @@ func testAccCosmosDBAccount_updateWith(t *testing.T, kind documentdb.DatabaseAcc
 }
 
 func TestAccCosmosDBAccount_capabilities_EnableAggregationPipeline(t *testing.T) {
-	testAccCosmosDBAccount_capabilitiesWith(t, documentdb.GlobalDocumentDB, []string{"EnableAggregationPipeline"})
+	testAccCosmosDBAccount_capabilitiesWith(t, []string{"EnableAggregationPipeline"})
 }
 
 func TestAccCosmosDBAccount_capabilities_EnableCassandra(t *testing.T) {
-	testAccCosmosDBAccount_capabilitiesWith(t, documentdb.GlobalDocumentDB, []string{"EnableCassandra"})
+	testAccCosmosDBAccount_capabilitiesWith(t, []string{"EnableCassandra"})
 }
 
 func TestAccCosmosDBAccount_capabilities_EnableGremlin(t *testing.T) {
-	testAccCosmosDBAccount_capabilitiesWith(t, documentdb.GlobalDocumentDB, []string{"EnableGremlin"})
+	testAccCosmosDBAccount_capabilitiesWith(t, []string{"EnableGremlin"})
 }
 
 func TestAccCosmosDBAccount_capabilities_EnableTable(t *testing.T) {
-	testAccCosmosDBAccount_capabilitiesWith(t, documentdb.GlobalDocumentDB, []string{"EnableTable"})
+	testAccCosmosDBAccount_capabilitiesWith(t, []string{"EnableTable"})
 }
 
 func TestAccCosmosDBAccount_capabilities_EnableServerless(t *testing.T) {
-	testAccCosmosDBAccount_capabilitiesWith(t, documentdb.GlobalDocumentDB, []string{"EnableServerless"})
+	testAccCosmosDBAccount_capabilitiesWith(t, []string{"EnableServerless"})
 }
 
-func testAccCosmosDBAccount_capabilitiesWith(t *testing.T, kind documentdb.DatabaseAccountKind, capabilities []string) {
+func testAccCosmosDBAccount_capabilitiesWith(t *testing.T, capabilities []string) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.capabilities(data, kind, capabilities),
+			Config: r.capabilities(data, documentdb.GlobalDocumentDB, capabilities),
 			Check: resource.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, documentdb.Strong, 1),
 			),
@@ -961,147 +965,4 @@ func checkAccCosmosDBAccount_basic(data acceptance.TestData, consistency documen
 		check.That(data.ResourceName).Key("primary_readonly_key").Exists(),
 		check.That(data.ResourceName).Key("secondary_readonly_key").Exists(),
 	)
-}
-
-func (CosmosDBAccountResource) network_access_enabled(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-cosmos-%d"
-  location = "%s"
-}
-
-resource "azurerm_cosmosdb_account" "test" {
-  name                          = "acctest-ca-%d"
-  location                      = azurerm_resource_group.test.location
-  resource_group_name           = azurerm_resource_group.test.name
-  offer_type                    = "Standard"
-  kind                          = "%s"
-  public_network_access_enabled = true
-
-  consistency_policy {
-    consistency_level = "%s"
-  }
-
-  geo_location {
-    location          = azurerm_resource_group.test.location
-    failover_priority = 0
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
-}
-
-func (CosmosDBAccountResource) key_vault_uri(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {
-    key_vault {
-      purge_soft_delete_on_destroy = false
-    }
-  }
-}
-
-provider "azuread" {}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-cosmos-%d"
-  location = "%s"
-}
-
-data "azuread_service_principal" "cosmosdb" {
-  display_name = "Azure Cosmos DB"
-}
-
-data "azurerm_client_config" "current" {}
-
-resource "azurerm_key_vault" "test" {
-  name                = "acctestkv-%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
-
-  purge_protection_enabled   = true
-  soft_delete_enabled        = true
-  soft_delete_retention_days = 7
-
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.object_id
-
-    key_permissions = [
-      "list",
-      "create",
-      "delete",
-      "get",
-      "purge",
-      "update",
-    ]
-
-    secret_permissions = [
-      "get",
-      "delete",
-      "set",
-    ]
-  }
-
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azuread_service_principal.cosmosdb.id
-
-    key_permissions = [
-      "list",
-      "create",
-      "delete",
-      "get",
-      "update",
-      "unwrapKey",
-      "wrapKey",
-    ]
-
-    secret_permissions = [
-      "get",
-      "delete",
-      "set",
-    ]
-  }
-}
-
-resource "azurerm_key_vault_key" "test" {
-  name         = "key-%s"
-  key_vault_id = azurerm_key_vault.test.id
-  key_type     = "RSA"
-  key_size     = 2048
-
-  key_opts = [
-    "decrypt",
-    "encrypt",
-    "sign",
-    "unwrapKey",
-    "verify",
-    "wrapKey",
-  ]
-}
-
-resource "azurerm_cosmosdb_account" "test" {
-  name                = "acctest-ca-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  offer_type          = "Standard"
-  kind                = "%s"
-  key_vault_key_id    = azurerm_key_vault_key.test.versionless_id
-
-  consistency_policy {
-    consistency_level = "%s"
-  }
-
-  geo_location {
-    location          = azurerm_resource_group.test.location
-    failover_priority = 0
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, string(kind), string(consistency))
 }
