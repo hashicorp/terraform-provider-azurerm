@@ -158,7 +158,9 @@ func resourceRedisEnterpriseClusterCreate(d *schema.ResourceData, meta interface
 	}
 
 	if v, ok := d.GetOk("minimum_tls_version"); ok {
-		parameters.ClusterProperties.MinimumTLSVersion = redisenterprise.TLSVersion(v.(string))
+		parameters.ClusterProperties = &redisenterprise.ClusterProperties{
+			MinimumTLSVersion: redisenterprise.TLSVersion(v.(string)),
+		}
 	}
 
 	future, err := client.Create(ctx, resourceId.ResourceGroup, resourceId.RedisEnterpriseName, parameters)
