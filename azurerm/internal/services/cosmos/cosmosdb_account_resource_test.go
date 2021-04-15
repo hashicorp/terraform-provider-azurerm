@@ -256,7 +256,7 @@ func testAccCosmosDBAccount_capabilitiesWith(t *testing.T, capabilities []string
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.capabilities(data, documentdb.GlobalDocumentDB, capabilities),
+			Config: r.capabilities(data, capabilities),
 			Check: resource.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, documentdb.Strong, 1),
 			),
@@ -271,14 +271,14 @@ func TestAccCosmosDBAccount_capabilitiesAdd(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.capabilities(data, documentdb.GlobalDocumentDB, []string{"EnableCassandra"}),
+			Config: r.capabilities(data, []string{"EnableCassandra"}),
 			Check: resource.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, documentdb.Strong, 1),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.capabilities(data, documentdb.GlobalDocumentDB, []string{"EnableCassandra", "EnableAggregationPipeline"}),
+			Config: r.capabilities(data, []string{"EnableCassandra", "EnableAggregationPipeline"}),
 			Check: resource.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, documentdb.Strong, 1),
 			),
@@ -293,14 +293,14 @@ func TestAccCosmosDBAccount_capabilitiesUpdate(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.capabilities(data, documentdb.GlobalDocumentDB, []string{"EnableCassandra"}),
+			Config: r.capabilities(data, []string{"EnableCassandra"}),
 			Check: resource.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, documentdb.Strong, 1),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.capabilities(data, documentdb.GlobalDocumentDB, []string{"EnableTable", "EnableAggregationPipeline"}),
+			Config: r.capabilities(data, []string{"EnableTable", "EnableAggregationPipeline"}),
 			Check: resource.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, documentdb.Strong, 1),
 			),
@@ -675,7 +675,7 @@ resource "azurerm_cosmosdb_account" "test" {
 `, r.completePreReqs(data), data.RandomInteger, string(kind), string(consistency))
 }
 
-func (CosmosDBAccountResource) capabilities(data acceptance.TestData, kind documentdb.DatabaseAccountKind, capabilities []string) string {
+func (CosmosDBAccountResource) capabilities(data acceptance.TestData, capabilities []string) string {
 	capeTf := ""
 	for _, c := range capabilities {
 		capeTf += fmt.Sprintf("capabilities {name = \"%s\"}\n", c)
@@ -696,7 +696,7 @@ resource "azurerm_cosmosdb_account" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   offer_type          = "Standard"
-  kind                = "%s"
+  kind                = "GlobalDocumentDB"
 
   consistency_policy {
     consistency_level = "Strong"
@@ -709,7 +709,7 @@ resource "azurerm_cosmosdb_account" "test" {
     failover_priority = 0
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), capeTf)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, capeTf)
 }
 
 func (CosmosDBAccountResource) geoLocationUpdate(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) string {

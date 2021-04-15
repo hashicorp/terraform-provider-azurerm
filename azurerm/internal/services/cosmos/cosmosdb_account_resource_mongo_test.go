@@ -635,45 +635,6 @@ resource "azurerm_cosmosdb_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, capeTf)
 }
 
-func (CosmosDBAccountMongoResource) geoLocationUpdate(data acceptance.TestData, consistency documentdb.DefaultConsistencyLevel) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-cosmos-%d"
-  location = "%s"
-}
-
-resource "azurerm_cosmosdb_account" "test" {
-  name                = "acctest-ca-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  offer_type          = "Standard"
-  kind                = "MongoDB"
-
-  consistency_policy {
-    consistency_level = "%s"
-  }
-
-  geo_location {
-    location          = azurerm_resource_group.test.location
-    failover_priority = 0
-  }
-
-  geo_location {
-    location          = "%s"
-    failover_priority = 1
-  }
-
-  capabilities {
-    name = "EnableMongo"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(consistency), data.Locations.Secondary)
-}
-
 func (CosmosDBAccountMongoResource) zoneRedundantUpdate(data acceptance.TestData, consistency documentdb.DefaultConsistencyLevel) string {
 	return fmt.Sprintf(`
 variable "geo_location" {
