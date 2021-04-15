@@ -189,6 +189,11 @@ func resourceNetAppVolume() *schema.Resource {
 							Type:     schema.TypeBool,
 							Optional: true,
 						},
+
+						"root_access_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
 					},
 				},
 			},
@@ -733,6 +738,7 @@ func expandNetAppVolumeExportPolicyRule(input []interface{}) *netapp.VolumePrope
 
 			unixReadOnly := v["unix_read_only"].(bool)
 			unixReadWrite := v["unix_read_write"].(bool)
+			rootAccessEnabled := v["root_access_enabled"].(bool)
 
 			result := netapp.ExportPolicyRule{
 				AllowedClients: utils.String(allowedClients),
@@ -742,6 +748,7 @@ func expandNetAppVolumeExportPolicyRule(input []interface{}) *netapp.VolumePrope
 				RuleIndex:      utils.Int32(ruleIndex),
 				UnixReadOnly:   utils.Bool(unixReadOnly),
 				UnixReadWrite:  utils.Bool(unixReadWrite),
+				HasRootAccess:  utils.Bool(rootAccessEnabled),
 			}
 
 			results = append(results, result)
@@ -827,13 +834,18 @@ func flattenNetAppVolumeExportPolicyRule(input *netapp.VolumePropertiesExportPol
 		if v := item.UnixReadWrite; v != nil {
 			unixReadWrite = *v
 		}
+		rootAccessEnabled := false
+		if v := item.HasRootAccess; v != nil {
+			rootAccessEnabled = *v
+		}
 
 		results = append(results, map[string]interface{}{
-			"rule_index":        ruleIndex,
-			"allowed_clients":   utils.FlattenStringSlice(&allowedClients),
-			"unix_read_only":    unixReadOnly,
-			"unix_read_write":   unixReadWrite,
-			"protocols_enabled": utils.FlattenStringSlice(&protocolsEnabled),
+			"rule_index":          ruleIndex,
+			"allowed_clients":     utils.FlattenStringSlice(&allowedClients),
+			"unix_read_only":      unixReadOnly,
+			"unix_read_write":     unixReadWrite,
+			"root_access_enabled": rootAccessEnabled,
+			"protocols_enabled":   utils.FlattenStringSlice(&protocolsEnabled),
 			// TODO: Remove in next major version
 			"cifs_enabled":  cifsEnabled,
 			"nfsv3_enabled": nfsv3Enabled,

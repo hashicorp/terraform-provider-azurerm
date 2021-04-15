@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2019-05-01/containerregistry"
+	"github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2020-11-01-preview/containerregistry"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -81,6 +81,12 @@ func resourceContainerRegistry() *schema.Resource {
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				Set: location.HashCode,
+			},
+
+			"public_network_access_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
 			},
 
 			"storage_account_id": {
@@ -170,6 +176,11 @@ func resourceContainerRegistry() *schema.Resource {
 				},
 			},
 
+			"quarantine_policy_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
 			"retention_policy": {
 				Type:       schema.TypeList,
 				MaxItems:   1,
@@ -219,6 +230,11 @@ func resourceContainerRegistry() *schema.Resource {
 			// if locations have been specified for geo-replication then, the SKU has to be Premium
 			if geoReplicationLocations != nil && geoReplicationLocations.Len() > 0 && !strings.EqualFold(sku, string(containerregistry.Premium)) {
 				return fmt.Errorf("ACR geo-replication can only be applied when using the Premium Sku.")
+			}
+
+			quarantinePolicyEnabled := d.Get("quarantine_policy_enabled").(bool)
+			if quarantinePolicyEnabled && !strings.EqualFold(sku, string(containerregistry.Premium)) {
+				return fmt.Errorf("ACR quarantine policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please set quarantine_policy {}")
 			}
 
 			retentionPolicyEnabled, ok := d.GetOk("retention_policy.0.enabled")
@@ -282,12 +298,18 @@ func resourceContainerRegistryCreate(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("`network_rule_set_set` can only be specified for a Premium Sku. If you are reverting from a Premium to Basic SKU plese set network_rule_set = []")
 	}
 
+	quarantinePolicy := expandQuarantinePolicy(d.Get("quarantine_policy_enabled").(bool))
+
 	retentionPolicyRaw := d.Get("retention_policy").([]interface{})
 	retentionPolicy := expandRetentionPolicy(retentionPolicyRaw)
 
 	trustPolicyRaw := d.Get("trust_policy").([]interface{})
 	trustPolicy := expandTrustPolicy(trustPolicyRaw)
 
+	publicNetworkAccess := containerregistry.PublicNetworkAccessEnabled
+	if !d.Get("public_network_access_enabled").(bool) {
+		publicNetworkAccess = containerregistry.PublicNetworkAccessDisabled
+	}
 	parameters := containerregistry.Registry{
 		Location: &location,
 		Sku: &containerregistry.Sku{
@@ -298,9 +320,11 @@ func resourceContainerRegistryCreate(d *schema.ResourceData, meta interface{}) e
 			AdminUserEnabled: utils.Bool(adminUserEnabled),
 			NetworkRuleSet:   networkRuleSet,
 			Policies: &containerregistry.Policies{
-				RetentionPolicy: retentionPolicy,
-				TrustPolicy:     trustPolicy,
+				QuarantinePolicy: quarantinePolicy,
+				RetentionPolicy:  retentionPolicy,
+				TrustPolicy:      trustPolicy,
 			},
+			PublicNetworkAccess: publicNetworkAccess,
 		},
 
 		Tags: tags.Expand(t),
@@ -386,16 +410,25 @@ func resourceContainerRegistryUpdate(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("`network_rule_set_set` can only be specified for a Premium Sku. If you are reverting from a Premium to Basic SKU plese set network_rule_set = []")
 	}
 
+	quarantinePolicy := expandQuarantinePolicy(d.Get("quarantine_policy_enabled").(bool))
 	retentionPolicy := expandRetentionPolicy(d.Get("retention_policy").([]interface{}))
 	trustPolicy := expandTrustPolicy(d.Get("trust_policy").([]interface{}))
+
+	publicNetworkAccess := containerregistry.PublicNetworkAccessEnabled
+	if !d.Get("public_network_access_enabled").(bool) {
+		publicNetworkAccess = containerregistry.PublicNetworkAccessDisabled
+	}
+
 	parameters := containerregistry.RegistryUpdateParameters{
 		RegistryPropertiesUpdateParameters: &containerregistry.RegistryPropertiesUpdateParameters{
 			AdminUserEnabled: utils.Bool(adminUserEnabled),
 			NetworkRuleSet:   networkRuleSet,
 			Policies: &containerregistry.Policies{
-				RetentionPolicy: retentionPolicy,
-				TrustPolicy:     trustPolicy,
+				QuarantinePolicy: quarantinePolicy,
+				RetentionPolicy:  retentionPolicy,
+				TrustPolicy:      trustPolicy,
 			},
+			PublicNetworkAccess: publicNetworkAccess,
 		},
 		Tags: tags.Expand(t),
 	}
@@ -577,6 +610,7 @@ func resourceContainerRegistryRead(d *schema.ResourceData, meta interface{}) err
 	}
 	d.Set("admin_enabled", resp.AdminUserEnabled)
 	d.Set("login_server", resp.LoginServer)
+	d.Set("public_network_access_enabled", resp.PublicNetworkAccess == containerregistry.PublicNetworkAccessEnabled)
 
 	networkRuleSet := flattenNetworkRuleSet(resp.NetworkRuleSet)
 	if err := d.Set("network_rule_set", networkRuleSet); err != nil {
@@ -584,6 +618,9 @@ func resourceContainerRegistryRead(d *schema.ResourceData, meta interface{}) err
 	}
 
 	if properties := resp.RegistryProperties; properties != nil {
+		if err := d.Set("quarantine_policy_enabled", flattenQuarantinePolicy(properties.Policies)); err != nil {
+			return fmt.Errorf("Error setting `quarantine_policy`: %+v", err)
+		}
 		if err := d.Set("retention_policy", flattenRetentionPolicy(properties.Policies)); err != nil {
 			return fmt.Errorf("Error setting `retention_policy`: %+v", err)
 		}
@@ -727,9 +764,21 @@ func expandNetworkRuleSet(profiles []interface{}) *containerregistry.NetworkRule
 	return &networkRuleSet
 }
 
+func expandQuarantinePolicy(enabled bool) *containerregistry.QuarantinePolicy {
+	quarantinePolicy := containerregistry.QuarantinePolicy{
+		Status: containerregistry.PolicyStatusDisabled,
+	}
+
+	if enabled {
+		quarantinePolicy.Status = containerregistry.PolicyStatusEnabled
+	}
+
+	return &quarantinePolicy
+}
+
 func expandRetentionPolicy(p []interface{}) *containerregistry.RetentionPolicy {
 	retentionPolicy := containerregistry.RetentionPolicy{
-		Status: containerregistry.Disabled,
+		Status: containerregistry.PolicyStatusDisabled,
 	}
 
 	if len(p) > 0 {
@@ -737,7 +786,7 @@ func expandRetentionPolicy(p []interface{}) *containerregistry.RetentionPolicy {
 		days := int32(v["days"].(int))
 		enabled := v["enabled"].(bool)
 		if enabled {
-			retentionPolicy.Status = containerregistry.Enabled
+			retentionPolicy.Status = containerregistry.PolicyStatusEnabled
 		}
 		retentionPolicy.Days = utils.Int32(days)
 	}
@@ -747,14 +796,14 @@ func expandRetentionPolicy(p []interface{}) *containerregistry.RetentionPolicy {
 
 func expandTrustPolicy(p []interface{}) *containerregistry.TrustPolicy {
 	trustPolicy := containerregistry.TrustPolicy{
-		Status: containerregistry.Disabled,
+		Status: containerregistry.PolicyStatusDisabled,
 	}
 
 	if len(p) > 0 {
 		v := p[0].(map[string]interface{})
 		enabled := v["enabled"].(bool)
 		if enabled {
-			trustPolicy.Status = containerregistry.Enabled
+			trustPolicy.Status = containerregistry.PolicyStatusEnabled
 		}
 		trustPolicy.Type = containerregistry.Notary
 	}
@@ -802,6 +851,14 @@ func flattenNetworkRuleSet(networkRuleSet *containerregistry.NetworkRuleSet) []i
 	values["virtual_network"] = virtualNetworkRules
 
 	return []interface{}{values}
+}
+
+func flattenQuarantinePolicy(p *containerregistry.Policies) bool {
+	if p == nil || p.QuarantinePolicy == nil {
+		return false
+	}
+
+	return p.QuarantinePolicy.Status == containerregistry.PolicyStatusEnabled
 }
 
 func flattenRetentionPolicy(p *containerregistry.Policies) []interface{} {

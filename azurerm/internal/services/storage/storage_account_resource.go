@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-06-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-01-01/storage"
 	azautorest "github.com/Azure/go-autorest/autorest"
 	autorestAzure "github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/response"
@@ -229,7 +229,7 @@ func resourceStorageAccount() *schema.Resource {
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
-								"SystemAssigned",
+								string(storage.IdentityTypeSystemAssigned),
 							}, true),
 						},
 						"principal_id": {
@@ -253,6 +253,21 @@ func resourceStorageAccount() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"cors_rule": schemaStorageAccountCorsRule(true),
 						"delete_retention_policy": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"days": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										Default:      7,
+										ValidateFunc: validation.IntBetween(1, 365),
+									},
+								},
+							},
+						},
+						"container_delete_retention_policy": {
 							Type:     schema.TypeList,
 							Optional: true,
 							MaxItems: 1,
@@ -1484,7 +1499,8 @@ func expandBlobProperties(input []interface{}) storage.BlobServiceProperties {
 
 	deletePolicyRaw := v["delete_retention_policy"].([]interface{})
 	props.BlobServicePropertiesProperties.DeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(deletePolicyRaw)
-
+	containerDeletePolicyRaw := v["container_delete_retention_policy"].([]interface{})
+	props.BlobServicePropertiesProperties.ContainerDeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(containerDeletePolicyRaw)
 	corsRaw := v["cors_rule"].([]interface{})
 	props.BlobServicePropertiesProperties.Cors = expandBlobPropertiesCors(corsRaw)
 
@@ -1751,14 +1767,20 @@ func flattenBlobProperties(input storage.BlobServiceProperties) []interface{} {
 		flattenedDeletePolicy = flattenBlobPropertiesDeleteRetentionPolicy(deletePolicy)
 	}
 
-	if len(flattenedCorsRules) == 0 && len(flattenedDeletePolicy) == 0 {
+	flattenedContainerDeletePolicy := make([]interface{}, 0)
+	if containerDeletePolicy := input.BlobServicePropertiesProperties.ContainerDeleteRetentionPolicy; containerDeletePolicy != nil {
+		flattenedContainerDeletePolicy = flattenBlobPropertiesDeleteRetentionPolicy(containerDeletePolicy)
+	}
+
+	if len(flattenedCorsRules) == 0 && len(flattenedDeletePolicy) == 0 && len(flattenedContainerDeletePolicy) == 0 {
 		return []interface{}{}
 	}
 
 	return []interface{}{
 		map[string]interface{}{
-			"cors_rule":               flattenedCorsRules,
-			"delete_retention_policy": flattenedDeletePolicy,
+			"cors_rule":                         flattenedCorsRules,
+			"delete_retention_policy":           flattenedDeletePolicy,
+			"container_delete_retention_policy": flattenedContainerDeletePolicy,
 		},
 	}
 }
@@ -1973,7 +1995,7 @@ func expandAzureRmStorageAccountIdentity(d *schema.ResourceData) *storage.Identi
 	identity := identities[0].(map[string]interface{})
 	identityType := identity["type"].(string)
 	return &storage.Identity{
-		Type: &identityType,
+		Type: storage.IdentityType(identityType),
 	}
 }
 
@@ -1983,8 +2005,8 @@ func flattenAzureRmStorageAccountIdentity(identity *storage.Identity) []interfac
 	}
 
 	result := make(map[string]interface{})
-	if identity.Type != nil {
-		result["type"] = *identity.Type
+	if identity.Type != "" {
+		result["type"] = string(identity.Type)
 	}
 	if identity.PrincipalID != nil {
 		result["principal_id"] = *identity.PrincipalID

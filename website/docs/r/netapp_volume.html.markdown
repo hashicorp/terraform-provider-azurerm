@@ -140,6 +140,8 @@ An `export_policy_rule` block supports the following:
 
 * `unix_read_write` - (Optional) Is the file system on unix read and write?
 
+* `allow_root_access` - (Optional) Is root access permitted to this volume?
+
 ---
 
 An `data_protection_replication` is used when enabling the Cross-Region Replication (CRR) data protection option by deploying two Azure NetApp Files Volumes, one to be a primary volume and the other one will be the secondary, the secondary will have this block and will reference the primary volume, each volume must be in a supported [region pair](https://docs.microsoft.com/en-us/azure/azure-netapp-files/cross-region-replication-introduction#supported-region-pairs) and it supports the following:
