@@ -16,6 +16,7 @@ ENHANCEMENTS:
 * `azurerm_data_factory_linked_service_sql_database` - support managed identity and service principal auth and add the `keyvault_password` property [GH-10735]
 * `azurerm_hpc_cache` - support for `tags` [GH-11268]
 * `azurerm_linux_virtual_machine_scale_set` - Support health extension for rolling ugrade mode [GH-9136]
+* `azurerm_monitor_activity_log_alert` - support for `service_health` [GH-10978]
 * `azurerm_mssql_database` - support for the `geo_backup_enabled` property [GH-11177]
 * `azurerm_public_ip` - support for `ip_tags` [GH-11270]
 * `azurerm_windows_virtual_machine_scale_set` - Support health extension for rolling ugrade mode [GH-9136]
