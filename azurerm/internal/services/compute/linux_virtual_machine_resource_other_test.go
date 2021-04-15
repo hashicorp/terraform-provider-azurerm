@@ -421,7 +421,7 @@ func TestAccLinuxVirtualMachine_otherUltraSsdDefault(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.otherUltraSsdDefault(data),
+			Config: r.otherUltraSsd(data, false),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("additional_capabilities.0.ultra_ssd_enabled").HasValue("false"),
@@ -437,7 +437,7 @@ func TestAccLinuxVirtualMachine_otherUltraSsdEnabled(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.otherUltraSsdEnabled(data),
+			Config: r.otherUltraSsd(data, true),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("additional_capabilities.0.ultra_ssd_enabled").HasValue("true"),
@@ -453,7 +453,7 @@ func TestAccLinuxVirtualMachine_otherUltraSsdUpdated(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.otherUltraSsdDefault(data),
+			Config: r.otherUltraSsd(data, false),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("additional_capabilities.0.ultra_ssd_enabled").HasValue("false"),
@@ -461,7 +461,7 @@ func TestAccLinuxVirtualMachine_otherUltraSsdUpdated(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.otherUltraSsdEnabled(data),
+			Config: r.otherUltraSsd(data, true),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("additional_capabilities.0.ultra_ssd_enabled").HasValue("true"),
@@ -1539,7 +1539,7 @@ resource "azurerm_linux_virtual_machine" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LinuxVirtualMachineResource) otherUltraSsdDefault(data acceptance.TestData) string {
+func (r LinuxVirtualMachineResource) otherUltraSsd(data acceptance.TestData, ultraSsdEnabled bool) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1547,42 +1547,7 @@ resource "azurerm_linux_virtual_machine" "test" {
   name                = "acctestVM-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  size                = "Standard_F2"
-  admin_username      = "adminuser"
-  network_interface_ids = [
-    azurerm_network_interface.test.id,
-  ]
-  zone = 1
-
-  admin_ssh_key {
-    username   = "adminuser"
-    public_key = local.first_public_key
-  }
-
-  os_disk {
-    caching              = "ReadWrite"
-    storage_account_type = "Standard_LRS"
-  }
-
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
-    version   = "latest"
-  }
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r LinuxVirtualMachineResource) otherUltraSsdEnabled(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_linux_virtual_machine" "test" {
-  name                = "acctestVM-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  size                = "Standard_F2"
+  size                = "Standard_D2s_v3"
   admin_username      = "adminuser"
   network_interface_ids = [
     azurerm_network_interface.test.id,
@@ -1607,10 +1572,10 @@ resource "azurerm_linux_virtual_machine" "test" {
   }
 
   additional_capabilities {
-    ultra_ssd_enabled = true
+    ultra_ssd_enabled = %t
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, ultraSsdEnabled)
 }
 
 func (r LinuxVirtualMachineResource) otherEncryptionAtHostEnabled(data acceptance.TestData, enabled bool) string {
@@ -1621,7 +1586,7 @@ resource "azurerm_linux_virtual_machine" "test" {
   name                = "acctestVM-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  size                = "Standard_DS3_V2"
+  size                = "Standard_DS3_v2"
   admin_username      = "adminuser"
   network_interface_ids = [
     azurerm_network_interface.test.id,
