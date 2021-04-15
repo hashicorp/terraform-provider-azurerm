@@ -26,7 +26,7 @@ func TestAccVmwareCluster_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("cluster_name").Exists(),
+				check.That(data.ResourceName).Key("cluster_number").Exists(),
 				check.That(data.ResourceName).Key("hosts.#").Exists(),
 			),
 		},
@@ -58,7 +58,7 @@ func TestAccVmwareCluster_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("cluster_name").Exists(),
+				check.That(data.ResourceName).Key("cluster_number").Exists(),
 				check.That(data.ResourceName).Key("hosts.#").Exists(),
 			),
 		},
@@ -67,7 +67,7 @@ func TestAccVmwareCluster_update(t *testing.T) {
 			Config: r.update(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("cluster_name").Exists(),
+				check.That(data.ResourceName).Key("cluster_number").Exists(),
 				check.That(data.ResourceName).Key("hosts.#").Exists(),
 			),
 		},
@@ -76,7 +76,7 @@ func TestAccVmwareCluster_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("cluster_name").Exists(),
+				check.That(data.ResourceName).Key("cluster_number").Exists(),
 				check.That(data.ResourceName).Key("hosts.#").Exists(),
 			),
 		},

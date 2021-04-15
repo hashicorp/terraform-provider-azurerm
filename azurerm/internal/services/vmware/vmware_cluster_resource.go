@@ -68,7 +68,7 @@ func resourceVmwareCluster() *schema.Resource {
 				}, false),
 			},
 
-			"cluster_name": {
+			"cluster_number": {
 				Type:     schema.TypeInt,
 				Computed: true,
 			},
@@ -115,7 +115,7 @@ func resourceVmwareClusterCreate(d *schema.ResourceData, meta interface{}) error
 			ClusterSize: utils.Int32(int32(d.Get("cluster_size").(int))),
 		},
 	}
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ResourceGroup, id.ResourceGroup, cluster)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.PrivateCloudName, id.Name, cluster)
 	if err != nil {
 		return fmt.Errorf("creating Vmware  Cluster %q (Resource Group %q / privateCloudName %q): %+v", id.ResourceGroup, id.ResourceGroup, id.ResourceGroup, err)
 	}
@@ -154,7 +154,7 @@ func resourceVmwareClusterRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("sku_name", resp.Sku.Name)
 	if props := resp.ClusterProperties; props != nil {
 		d.Set("cluster_size", props.ClusterSize)
-		d.Set("cluster_name", props.ClusterID)
+		d.Set("cluster_number", props.ClusterID)
 		d.Set("hosts", utils.FlattenStringSlice(props.Hosts))
 	}
 	return nil

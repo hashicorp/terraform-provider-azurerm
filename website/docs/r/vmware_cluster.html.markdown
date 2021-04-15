@@ -55,7 +55,7 @@ The following arguments are supported:
 
 * `vmware_cloud_id` - (Required) The ID of the Vmware Private Cloud to create the Vmware Cluster. Changing this forces a new Vmware Cluster to be created.
 
-* `cluster_size` - (Required) The number of the Vmware Cluster.
+* `cluster_size` - (Required) The count of the Vmware Cluster.
 
 * `sku_name` - (Required) The cluster sku to use. Possible values are `av20`, `av36` and `av36t`. Changing this forces a new Vmware Cluster to be created.
 
@@ -65,7 +65,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Vmware Cluster.
 
-* `cluster_name` - The ID of the Vmware Cluster.
+* `cluster_number` - The ID number of the Vmware Cluster in this Vmware Private Cloud.
 
 * `hosts` - The list of host of the Vmware Cluster.
 
