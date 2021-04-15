@@ -172,7 +172,7 @@ func resourceMonitorActivityLogAlert() *schema.Resource {
 										},
 										Set: schema.HashString,
 									},
-									"regions": {
+									"locations": {
 										Type:     schema.TypeSet,
 										Optional: true,
 										Elem: &schema.Schema{
@@ -452,7 +452,7 @@ func expandMonitorActivityLogAlertCriteria(input []interface{}) *insights.AlertR
 func expandServiceHealth(serviceHealth []interface{}, conditions []insights.AlertRuleAnyOfOrLeafCondition) []insights.AlertRuleAnyOfOrLeafCondition {
 	for _, serviceItem := range serviceHealth {
 		vs := serviceItem.(map[string]interface{})
-		rv := vs["regions"].(*schema.Set)
+		rv := vs["locations"].(*schema.Set)
 		if len(rv.List()) > 0 {
 			conditions = append(conditions, insights.AlertRuleAnyOfOrLeafCondition{
 				Field:       utils.String("properties.impactedServices[*].ImpactedRegions[*].RegionName"),
@@ -540,7 +540,37 @@ func flattenMonitorActivityLogAlertCriteria(input *insights.AlertRuleAllOfCondit
 			}
 		}
 	}
+
+	if result["category"] == "ServiceHealth" {
+		flattenMonitorActivityLogAlertServiceHealth(input, result)
+	}
+
 	return []interface{}{result}
+}
+
+func flattenMonitorActivityLogAlertServiceHealth(input *insights.AlertRuleAllOfCondition, result map[string]interface{}) {
+	shResult := make(map[string]interface{})
+	for _, condition := range *input.AllOf {
+		if condition.Field != nil && condition.ContainsAny != nil && len(*condition.ContainsAny) > 0 {
+			switch strings.ToLower(*condition.Field) {
+			case "properties.impactedservices[*].impactedregions[*].regionname":
+				shResult["locations"] = *condition.ContainsAny
+			case "properties.impactedservices[*].servicename":
+				shResult["services"] = *condition.ContainsAny
+			}
+		}
+		if condition.Field == nil && len(*condition.AnyOf) > 0 {
+			events := []string{}
+			for _, evCond := range *condition.AnyOf {
+				if evCond.Field != nil && evCond.Equals != nil {
+					events = append(events, *evCond.Equals)
+				}
+			}
+			shResult["events"] = events
+		}
+	}
+
+	result["service_health"] = []interface{}{shResult}
 }
 
 func flattenMonitorActivityLogAlertAction(input *insights.ActionList) (result []interface{}) {
@@ -555,7 +585,7 @@ func flattenMonitorActivityLogAlertAction(input *insights.ActionList) (result []
 			v["action_group_id"] = *action.ActionGroupID
 		}
 
-		props := make(map[string]string)
+		props := make(map[string]interface{})
 		for pk, pv := range action.WebhookProperties {
 			if pv != nil {
 				props[pk] = *pv
