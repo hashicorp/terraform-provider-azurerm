@@ -511,6 +511,10 @@ resource "azurerm_cosmosdb_account" "test" {
 
   enable_multiple_write_locations = true
 
+  capabilities {
+    name = "EnableMongo"
+  }
+
   geo_location {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
