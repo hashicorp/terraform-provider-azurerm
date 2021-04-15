@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/cosmos-db/mgmt/2020-04-01-preview/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-01-15/documentdb"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -94,6 +94,18 @@ func resourceCosmosDbAccount() *schema.Resource {
 					string(documentdb.MongoDB),
 					string(documentdb.Parse),
 				}, true),
+			},
+
+			"mongo_server_version": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(documentdb.ThreeFullStopTwo),
+					string(documentdb.ThreeFullStopSix),
+					string(documentdb.FourFullStopZero),
+				}, false),
 			},
 
 			"ip_range_filter": {
@@ -208,6 +220,7 @@ func resourceCosmosDbAccount() *schema.Resource {
 						"zone_redundant": {
 							Type:     schema.TypeBool,
 							Optional: true,
+							Computed: true,
 						},
 					},
 				},
@@ -439,6 +452,14 @@ func resourceCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) err
 		Tags: tags.Expand(t),
 	}
 
+	if kind == string(documentdb.MongoDB) {
+		if v, ok := d.GetOk("mongo_server_version"); ok {
+			account.DatabaseAccountCreateUpdateProperties.APIProperties = &documentdb.APIProperties{
+				ServerVersion: documentdb.ServerVersion(v.(string)),
+			}
+		}
+	}
+
 	if keyVaultKeyIDRaw, ok := d.GetOk("key_vault_key_id"); ok {
 		keyVaultKey, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyVaultKeyIDRaw.(string))
 		if err != nil {
@@ -547,6 +568,12 @@ func resourceCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) err
 		Tags: tags.Expand(t),
 	}
 
+	if kind == string(documentdb.MongoDB) {
+		if v, ok := d.GetOk("mongo_server_version"); ok {
+			account.DatabaseAccountCreateUpdateProperties.APIProperties.ServerVersion = documentdb.ServerVersion(v.(string))
+		}
+	}
+
 	if keyVaultKeyIDRaw, ok := d.GetOk("key_vault_key_id"); ok {
 		keyVaultKey, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyVaultKeyIDRaw.(string))
 		if err != nil {
@@ -643,6 +670,10 @@ func resourceCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("enable_free_tier", resp.EnableFreeTier)
 	d.Set("analytical_storage_enabled", resp.EnableAnalyticalStorage)
 	d.Set("public_network_access_enabled", resp.PublicNetworkAccess == documentdb.Enabled)
+
+	if resp.Kind == documentdb.MongoDB {
+		d.Set("mongo_server_version", resp.APIProperties.ServerVersion)
+	}
 
 	if v := resp.IsVirtualNetworkFilterEnabled; v != nil {
 		d.Set("is_virtual_network_filter_enabled", resp.IsVirtualNetworkFilterEnabled)
@@ -932,12 +963,10 @@ func expandAzureRmCosmosDBAccountGeoLocations(d *schema.ResourceData) ([]documen
 func expandAzureRmCosmosDBAccountCapabilities(d *schema.ResourceData) *[]documentdb.Capability {
 	capabilities := d.Get("capabilities").(*schema.Set).List()
 	s := make([]documentdb.Capability, 0)
-
 	for _, c := range capabilities {
 		m := c.(map[string]interface{})
 		s = append(s, documentdb.Capability{Name: utils.String(m["name"].(string))})
 	}
-
 	return &s
 }
 

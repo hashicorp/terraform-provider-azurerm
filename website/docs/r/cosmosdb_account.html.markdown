@@ -78,6 +78,8 @@ The following arguments are supported:
 
 * `kind` - (Optional) Specifies the Kind of CosmosDB to create - possible values are `GlobalDocumentDB` and `MongoDB`. Defaults to `GlobalDocumentDB`. Changing this forces a new resource to be created.
 
+* `mongo_server_version` - (Optional) Specifies Mongo API version. Only has effect if `kind` is set to `MongoDB`. Possible values are `3.2`, `3.6`, `4.0`. Changing this forces a new resources to be created.
+
 * `consistency_policy` - (Required) Specifies a `consistency_policy` resource, used to define the consistency policy for this CosmosDB account.
 
 * `geo_location` - (Required) Specifies a `geo_location` resource, used to define where data should be replicated with the `failover_priority` 0 specifying the primary location. Value is a `geo_location` block as defined below.

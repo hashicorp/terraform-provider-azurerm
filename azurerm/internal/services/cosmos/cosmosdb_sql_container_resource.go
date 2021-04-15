@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/cosmos-db/mgmt/2020-04-01-preview/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-01-15/documentdb"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -74,6 +74,7 @@ func resourceCosmosDbSQLContainer() *schema.Resource {
 			"partition_key_path": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				Default:      "/id",
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},

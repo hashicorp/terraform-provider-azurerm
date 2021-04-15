@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/cosmos-db/mgmt/2020-04-01-preview/documentdb"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
@@ -121,8 +120,8 @@ func TestAccCosmosDbMongoCollection_withIndex(t *testing.T) {
 			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("default_ttl_seconds").HasValue("707"),
-				check.That(data.ResourceName).Key("index.#").HasValue("3"),
-				check.That(data.ResourceName).Key("system_indexes.#").HasValue("2"),
+				check.That(data.ResourceName).Key("index.#").HasValue("4"),
+				check.That(data.ResourceName).Key("system_indexes.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -214,6 +213,11 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
   resource_group_name = azurerm_cosmosdb_mongo_database.test.resource_group_name
   account_name        = azurerm_cosmosdb_mongo_database.test.account_name
   database_name       = azurerm_cosmosdb_mongo_database.test.name
+
+  index {
+    keys   = ["_id"]
+    unique = true
+  }
 }
 `, CosmosMongoDatabaseResource{}.basic(data), data.RandomInteger)
 }
@@ -230,6 +234,11 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
 
   shard_key           = "seven"
   default_ttl_seconds = 707
+
+  index {
+    keys   = ["_id"]
+    unique = true
+  }
 }
 `, CosmosMongoDatabaseResource{}.basic(data), data.RandomInteger)
 }
@@ -246,6 +255,11 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
 
   shard_key           = "seven"
   default_ttl_seconds = 70707
+
+  index {
+    keys   = ["_id"]
+    unique = true
+  }
 }
 `, CosmosMongoDatabaseResource{}.basic(data), data.RandomInteger)
 }
@@ -259,6 +273,11 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
   resource_group_name = azurerm_cosmosdb_mongo_database.test.resource_group_name
   account_name        = azurerm_cosmosdb_mongo_database.test.account_name
   database_name       = azurerm_cosmosdb_mongo_database.test.name
+
+  index {
+    keys   = ["_id"]
+    unique = true
+  }
 
   throughput = %[3]d
 }
@@ -275,6 +294,11 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
   account_name        = azurerm_cosmosdb_mongo_database.test.account_name
   database_name       = azurerm_cosmosdb_mongo_database.test.name
   shard_key           = "seven"
+
+  index {
+    keys   = ["_id"]
+    unique = true
+  }
 
   autoscale_settings {
     max_throughput = %[3]d
@@ -297,6 +321,11 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
 
   index {
     keys   = ["seven", "six"]
+    unique = true
+  }
+
+  index {
+    keys   = ["_id"]
     unique = true
   }
 
@@ -333,7 +362,7 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
     unique = true
   }
 }
-`, CosmosDBAccountResource{}.capabilities(data, documentdb.MongoDB, []string{"EnableMongo"}), data.RandomInteger)
+`, CosmosDBAccountMongoResource{}.capabilities(data, []string{"EnableMongo"}), data.RandomInteger)
 }
 
 func (CosmosMongoCollectionResource) serverless(data acceptance.TestData) string {
@@ -357,5 +386,5 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
     unique = true
   }
 }
-`, CosmosDBAccountResource{}.capabilities(data, documentdb.MongoDB, []string{"EnableMongo", "EnableServerless"}), data.RandomInteger)
+`, CosmosDBAccountMongoResource{}.capabilities(data, []string{"EnableMongo", "EnableServerless"}), data.RandomInteger)
 }

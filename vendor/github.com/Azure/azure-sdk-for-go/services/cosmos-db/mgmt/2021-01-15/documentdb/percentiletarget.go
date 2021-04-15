@@ -98,7 +98,7 @@ func (client PercentileTargetClient) ListMetricsPreparer(ctx context.Context, re
 		"targetRegion":      autorest.Encode("path", targetRegion),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"$filter":     autorest.Encode("query", filter),
 		"api-version": APIVersion,

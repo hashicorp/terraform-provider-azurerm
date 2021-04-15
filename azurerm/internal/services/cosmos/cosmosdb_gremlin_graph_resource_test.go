@@ -161,6 +161,7 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_gremlin_database.test.name
+  partition_key_path  = "/test"
   throughput          = 400
 
   index_policy {
@@ -212,6 +213,7 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_gremlin_database.test.name
+  partition_key_path  = "/test"
   throughput          = 400
 
   index_policy {
@@ -238,6 +240,7 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_gremlin_database.test.name
+  partition_key_path  = "/test"
   throughput          = 400
 
   index_policy {

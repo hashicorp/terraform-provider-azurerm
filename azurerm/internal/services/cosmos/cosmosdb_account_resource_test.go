@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/cosmos-db/mgmt/2020-04-01-preview/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-01-15/documentdb"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -38,102 +38,6 @@ func TestAccCosmosDBAccount_basic_global_session(t *testing.T) {
 
 func TestAccCosmosDBAccount_basic_global_strong(t *testing.T) {
 	testAccCosmosDBAccount_basicWith(t, documentdb.GlobalDocumentDB, documentdb.Strong)
-}
-
-func TestAccCosmosDBAccount_basic_mongo_boundedStaleness(t *testing.T) {
-	testAccCosmosDBAccount_basicWith(t, documentdb.MongoDB, documentdb.BoundedStaleness)
-}
-
-func TestAccCosmosDBAccount_basic_mongo_consistentPrefix(t *testing.T) {
-	testAccCosmosDBAccount_basicWith(t, documentdb.MongoDB, documentdb.ConsistentPrefix)
-}
-
-func TestAccCosmosDBAccount_basic_mongo_eventual(t *testing.T) {
-	testAccCosmosDBAccount_basicWith(t, documentdb.MongoDB, documentdb.Eventual)
-}
-
-func TestAccCosmosDBAccount_basic_mongo_session(t *testing.T) {
-	testAccCosmosDBAccount_basicWith(t, documentdb.MongoDB, documentdb.Session)
-}
-
-func TestAccCosmosDBAccount_basic_mongo_strong(t *testing.T) {
-	testAccCosmosDBAccount_basicWith(t, documentdb.MongoDB, documentdb.Strong)
-}
-
-func TestAccCosmosDBAccount_basic_parse_boundedStaleness(t *testing.T) {
-	testAccCosmosDBAccount_basicWith(t, documentdb.MongoDB, documentdb.BoundedStaleness)
-}
-
-func TestAccCosmosDBAccount_basic_parse_consistentPrefix(t *testing.T) {
-	testAccCosmosDBAccount_basicWith(t, documentdb.MongoDB, documentdb.ConsistentPrefix)
-}
-
-func TestAccCosmosDBAccount_basic_parse_eventual(t *testing.T) {
-	testAccCosmosDBAccount_basicWith(t, documentdb.MongoDB, documentdb.Eventual)
-}
-
-func TestAccCosmosDBAccount_basic_parse_session(t *testing.T) {
-	testAccCosmosDBAccount_basicWith(t, documentdb.MongoDB, documentdb.Session)
-}
-
-func TestAccCosmosDBAccount_basic_parse_strong(t *testing.T) {
-	testAccCosmosDBAccount_basicWith(t, documentdb.MongoDB, documentdb.Strong)
-}
-
-func TestAccCosmosDBAccount_public_network_access_enabled(t *testing.T) {
-	testAccCosmosDBAccount_public_network_access_enabled(t, documentdb.MongoDB, documentdb.Strong)
-}
-
-func testAccCosmosDBAccount_public_network_access_enabled(t *testing.T, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) {
-	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
-	r := CosmosDBAccountResource{}
-
-	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.network_access_enabled(data, kind, consistency),
-			Check: resource.ComposeAggregateTestCheckFunc(
-				checkAccCosmosDBAccount_basic(data, consistency, 1),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccCosmosDBAccount_keyVaultUri(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
-	r := CosmosDBAccountResource{}
-
-	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.key_vault_uri(data, documentdb.MongoDB, documentdb.Strong),
-			Check: resource.ComposeAggregateTestCheckFunc(
-				checkAccCosmosDBAccount_basic(data, documentdb.Strong, 1),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccCosmosDBAccount_keyVaultUriUpdateConsistancy(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
-	r := CosmosDBAccountResource{}
-
-	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.key_vault_uri(data, documentdb.MongoDB, documentdb.Strong),
-			Check: resource.ComposeAggregateTestCheckFunc(
-				checkAccCosmosDBAccount_basic(data, documentdb.Strong, 1),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.key_vault_uri(data, documentdb.MongoDB, documentdb.Session),
-			Check: resource.ComposeAggregateTestCheckFunc(
-				checkAccCosmosDBAccount_basic(data, documentdb.Strong, 1),
-			),
-		},
-		data.ImportStep(),
-	})
 }
 
 func testAccCosmosDBAccount_basicWith(t *testing.T, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) {
@@ -171,10 +75,6 @@ func TestAccCosmosDBAccount_requiresImport(t *testing.T) {
 
 func TestAccCosmosDBAccount_updateConsistency_global(t *testing.T) {
 	testAccCosmosDBAccount_updateConsistency(t, documentdb.GlobalDocumentDB)
-}
-
-func TestAccCosmosDBAccount_updateConsistency_mongo(t *testing.T) {
-	testAccCosmosDBAccount_updateConsistency(t, documentdb.MongoDB)
 }
 
 func testAccCosmosDBAccount_updateConsistency(t *testing.T, kind documentdb.DatabaseAccountKind) {
@@ -215,10 +115,6 @@ func testAccCosmosDBAccount_updateConsistency(t *testing.T, kind documentdb.Data
 	})
 }
 
-func TestAccCosmosDBAccount_complete_mongo(t *testing.T) {
-	testAccCosmosDBAccount_completeWith(t, documentdb.MongoDB)
-}
-
 func TestAccCosmosDBAccount_complete_global(t *testing.T) {
 	testAccCosmosDBAccount_completeWith(t, documentdb.GlobalDocumentDB)
 }
@@ -240,10 +136,6 @@ func testAccCosmosDBAccount_completeWith(t *testing.T, kind documentdb.DatabaseA
 		},
 		data.ImportStep(),
 	})
-}
-
-func TestAccCosmosDBAccount_completeZoneRedundant_mongo(t *testing.T) {
-	testAccCosmosDBAccount_zoneRedundantWith(t, documentdb.MongoDB)
 }
 
 func TestAccCosmosDBAccount_completeZoneRedundant_global(t *testing.T) {
@@ -289,14 +181,6 @@ func testAccCosmosDBAccount_zoneRedundant_updateWith(t *testing.T, kind document
 		},
 		data.ImportStep(),
 	})
-}
-
-func TestAccCosmosDBAccount_zoneRedundant_update_mongo(t *testing.T) {
-	testAccCosmosDBAccount_zoneRedundant_updateWith(t, documentdb.MongoDB)
-}
-
-func TestAccCosmosDBAccount_update_mongo(t *testing.T) {
-	testAccCosmosDBAccount_updateWith(t, documentdb.MongoDB)
 }
 
 func TestAccCosmosDBAccount_update_global(t *testing.T) {
@@ -360,26 +244,6 @@ func TestAccCosmosDBAccount_capabilities_EnableTable(t *testing.T) {
 
 func TestAccCosmosDBAccount_capabilities_EnableServerless(t *testing.T) {
 	testAccCosmosDBAccount_capabilitiesWith(t, documentdb.GlobalDocumentDB, []string{"EnableServerless"})
-}
-
-func TestAccCosmosDBAccount_capabilities_EnableMongo(t *testing.T) {
-	testAccCosmosDBAccount_capabilitiesWith(t, documentdb.MongoDB, []string{"EnableMongo"})
-}
-
-func TestAccCosmosDBAccount_capabilities_MongoDBv34(t *testing.T) {
-	testAccCosmosDBAccount_capabilitiesWith(t, documentdb.MongoDB, []string{"MongoDBv3.4"})
-}
-
-func TestAccCosmosDBAccount_capabilities_mongoEnableDocLevelTTL(t *testing.T) {
-	testAccCosmosDBAccount_capabilitiesWith(t, documentdb.MongoDB, []string{"mongoEnableDocLevelTTL"})
-}
-
-func TestAccCosmosDBAccount_capabilities_DisableRateLimitingResponses(t *testing.T) {
-	testAccCosmosDBAccount_capabilitiesWith(t, documentdb.MongoDB, []string{"DisableRateLimitingResponses"})
-}
-
-func TestAccCosmosDBAccount_capabilities_AllowSelfServeUpgradeToMongo36(t *testing.T) {
-	testAccCosmosDBAccount_capabilitiesWith(t, documentdb.MongoDB, []string{"AllowSelfServeUpgradeToMongo36"})
 }
 
 func testAccCosmosDBAccount_capabilitiesWith(t *testing.T, kind documentdb.DatabaseAccountKind, capabilities []string) {
@@ -1229,10 +1093,6 @@ resource "azurerm_cosmosdb_account" "test" {
   offer_type          = "Standard"
   kind                = "%s"
   key_vault_key_id    = azurerm_key_vault_key.test.versionless_id
-
-  capabilities {
-    name = "EnableMongo"
-  }
 
   consistency_policy {
     consistency_level = "%s"

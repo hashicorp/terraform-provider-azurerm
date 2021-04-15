@@ -83,7 +83,7 @@ func (client DatabaseAccountsClient) CheckNameExistsPreparer(ctx context.Context
 		"accountName": autorest.Encode("path", accountName),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -182,7 +182,7 @@ func (client DatabaseAccountsClient) CreateOrUpdatePreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -276,7 +276,7 @@ func (client DatabaseAccountsClient) DeletePreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -372,7 +372,7 @@ func (client DatabaseAccountsClient) FailoverPriorityChangePreparer(ctx context.
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -472,7 +472,7 @@ func (client DatabaseAccountsClient) GetPreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -562,7 +562,7 @@ func (client DatabaseAccountsClient) GetReadOnlyKeysPreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -639,7 +639,7 @@ func (client DatabaseAccountsClient) ListPreparer(ctx context.Context) (*http.Re
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -723,7 +723,7 @@ func (client DatabaseAccountsClient) ListByResourceGroupPreparer(ctx context.Con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -813,7 +813,7 @@ func (client DatabaseAccountsClient) ListConnectionStringsPreparer(ctx context.C
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -903,7 +903,7 @@ func (client DatabaseAccountsClient) ListKeysPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -993,7 +993,7 @@ func (client DatabaseAccountsClient) ListMetricDefinitionsPreparer(ctx context.C
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1086,7 +1086,7 @@ func (client DatabaseAccountsClient) ListMetricsPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"$filter":     autorest.Encode("query", filter),
 		"api-version": APIVersion,
@@ -1177,7 +1177,7 @@ func (client DatabaseAccountsClient) ListReadOnlyKeysPreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1269,7 +1269,7 @@ func (client DatabaseAccountsClient) ListUsagesPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1358,7 +1358,7 @@ func (client DatabaseAccountsClient) OfflineRegionPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1454,7 +1454,7 @@ func (client DatabaseAccountsClient) OnlineRegionPreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1548,7 +1548,7 @@ func (client DatabaseAccountsClient) RegenerateKeyPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1642,7 +1642,7 @@ func (client DatabaseAccountsClient) UpdatePreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
