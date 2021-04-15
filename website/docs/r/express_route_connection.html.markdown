@@ -10,7 +10,7 @@ description: |-
 
 Manages an Express Route Connection.
 
-~> **NOTE:** The provider status of the Express Route Circuit must be set as provisioned while creating the Express Route Connection. See more details from https://docs.microsoft.com/en-us/azure/expressroute/expressroute-howto-circuit-portal-resource-manager#send-the-service-key-to-your-connectivity-provider-for-provisioning.
+~> **NOTE:** The provider status of the Express Route Circuit must be set as provisioned while creating the Express Route Connection. See more details [here](https://docs.microsoft.com/en-us/azure/expressroute/expressroute-howto-circuit-portal-resource-manager#send-the-service-key-to-your-connectivity-provider-for-provisioning).
 
 ## Example Usage
 
@@ -82,9 +82,9 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Express Route Connection. Changing this forces a new resource to be created.
 
-* `express_route_circuit_peering_id` - (Required) The ID of the Express Route Circuit Peering within this Express Route Connection should be created. Changing this forces a new resource to be created.
+* `express_route_circuit_peering_id` - (Required) The ID of the Express Route Circuit Peering within which this Express Route Connection should be created. Changing this forces a new resource to be created.
 
-* `express_route_gateway_id` - (Required) The ID of the Express Route Gateway within this Express Route Connection should be created. Changing this forces a new resource to be created.
+* `express_route_gateway_id` - (Required) The ID of the Express Route Gateway within which this Express Route Connection should be created. Changing this forces a new resource to be created.
 
 * `authorization_key` - (Optional) The authorization key to establish the Express Route Connection.
 
@@ -92,7 +92,7 @@ The following arguments are supported:
 
 * `routing` - (Optional)  A `routing` block as defined below.
 
-* `routing_weight` - (Optional) The routing weight associated to the Express Route Connection. Valid values are between `0` and `32000`.
+* `routing_weight` - (Optional) The routing weight associated to the Express Route Connection. Valid value is between `0` and `32000`. Defaults to `0`.
 
 ---
 

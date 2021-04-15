@@ -16,12 +16,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmExpressRouteConnection() *schema.Resource {
+func resourceExpressRouteConnection() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmExpressRouteConnectionCreateUpdate,
-		Read:   resourceArmExpressRouteConnectionRead,
-		Update: resourceArmExpressRouteConnectionCreateUpdate,
-		Delete: resourceArmExpressRouteConnectionDelete,
+		Create: resourceExpressRouteConnectionCreateUpdate,
+		Read:   resourceExpressRouteConnectionRead,
+		Update: resourceExpressRouteConnectionCreateUpdate,
+		Delete: resourceExpressRouteConnectionDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -100,7 +100,7 @@ func resourceArmExpressRouteConnection() *schema.Resource {
 									},
 
 									"route_table_ids": {
-										Type:     schema.TypeList,
+										Type:     schema.TypeSet,
 										Optional: true,
 										Computed: true,
 										Elem: &schema.Schema{
@@ -118,12 +118,14 @@ func resourceArmExpressRouteConnection() *schema.Resource {
 			"routing_weight": {
 				Type:         schema.TypeInt,
 				Optional:     true,
+				Default:      0,
 				ValidateFunc: validation.IntBetween(0, 32000),
 			},
 		},
 	}
 }
-func resourceArmExpressRouteConnectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+
+func resourceExpressRouteConnectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ExpressRouteConnectionsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -155,6 +157,7 @@ func resourceArmExpressRouteConnectionCreateUpdate(d *schema.ResourceData, meta 
 			ExpressRouteCircuitPeering: &network.ExpressRouteCircuitPeeringID{
 				ID: utils.String(d.Get("express_route_circuit_peering_id").(string)),
 			},
+			RoutingWeight: utils.Int32(int32(d.Get("routing_weight").(int))),
 		},
 	}
 
@@ -166,12 +169,8 @@ func resourceArmExpressRouteConnectionCreateUpdate(d *schema.ResourceData, meta 
 		expressRouteConnectionParameters.ExpressRouteConnectionProperties.EnableInternetSecurity = utils.Bool(v.(bool))
 	}
 
-	if v, ok := d.GetOk("routing_weight"); ok {
-		expressRouteConnectionParameters.ExpressRouteConnectionProperties.RoutingWeight = utils.Int32(int32(v.(int)))
-	}
-
 	if v, ok := d.GetOk("routing"); ok {
-		expressRouteConnectionParameters.ExpressRouteConnectionProperties.RoutingConfiguration = expandArmExpressRouteConnectionRouting(v.([]interface{}))
+		expressRouteConnectionParameters.ExpressRouteConnectionProperties.RoutingConfiguration = expandExpressRouteConnectionRouting(v.([]interface{}))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ExpressRouteGatewayName, name, expressRouteConnectionParameters)
@@ -185,10 +184,10 @@ func resourceArmExpressRouteConnectionCreateUpdate(d *schema.ResourceData, meta 
 
 	d.SetId(id.ID())
 
-	return resourceArmExpressRouteConnectionRead(d, meta)
+	return resourceExpressRouteConnectionRead(d, meta)
 }
 
-func resourceArmExpressRouteConnectionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceExpressRouteConnectionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ExpressRouteConnectionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -211,6 +210,8 @@ func resourceArmExpressRouteConnectionRead(d *schema.ResourceData, meta interfac
 	d.Set("express_route_gateway_id", parse.NewExpressRouteGatewayID(id.SubscriptionId, id.ResourceGroup, id.ExpressRouteGatewayName).ID())
 
 	if props := resp.ExpressRouteConnectionProperties; props != nil {
+		d.Set("routing_weight", props.RoutingWeight)
+
 		if v := props.ExpressRouteCircuitPeering; v != nil {
 			d.Set("express_route_circuit_peering_id", v.ID)
 		}
@@ -223,11 +224,7 @@ func resourceArmExpressRouteConnectionRead(d *schema.ResourceData, meta interfac
 			d.Set("enable_internet_security", v)
 		}
 
-		if v := props.RoutingWeight; v != nil {
-			d.Set("routing_weight", v)
-		}
-
-		if err := d.Set("routing", flattenArmExpressRouteConnectionRouting(props.RoutingConfiguration)); err != nil {
+		if err := d.Set("routing", flattenExpressRouteConnectionRouting(props.RoutingConfiguration)); err != nil {
 			return fmt.Errorf("setting `routing`: %+v", err)
 		}
 	}
@@ -235,7 +232,7 @@ func resourceArmExpressRouteConnectionRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func resourceArmExpressRouteConnectionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceExpressRouteConnectionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ExpressRouteConnectionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -257,7 +254,7 @@ func resourceArmExpressRouteConnectionDelete(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func expandArmExpressRouteConnectionRouting(input []interface{}) *network.RoutingConfiguration {
+func expandExpressRouteConnectionRouting(input []interface{}) *network.RoutingConfiguration {
 	if len(input) == 0 {
 		return &network.RoutingConfiguration{}
 	}
@@ -272,13 +269,13 @@ func expandArmExpressRouteConnectionRouting(input []interface{}) *network.Routin
 	}
 
 	if propagatedRouteTable := v["propagated_route_table"].([]interface{}); len(propagatedRouteTable) != 0 {
-		result.PropagatedRouteTables = expandArmExpressRouteConnectionPropagatedRouteTable(propagatedRouteTable)
+		result.PropagatedRouteTables = expandExpressRouteConnectionPropagatedRouteTable(propagatedRouteTable)
 	}
 
 	return &result
 }
 
-func expandArmExpressRouteConnectionPropagatedRouteTable(input []interface{}) *network.PropagatedRouteTable {
+func expandExpressRouteConnectionPropagatedRouteTable(input []interface{}) *network.PropagatedRouteTable {
 	if len(input) == 0 {
 		return &network.PropagatedRouteTable{}
 	}
@@ -291,14 +288,14 @@ func expandArmExpressRouteConnectionPropagatedRouteTable(input []interface{}) *n
 		result.Labels = utils.ExpandStringSlice(labels)
 	}
 
-	if routeTableIds := v["route_table_ids"].([]interface{}); len(routeTableIds) != 0 {
+	if routeTableIds := v["route_table_ids"].(*schema.Set).List(); len(routeTableIds) != 0 {
 		result.Ids = expandIDsToSubResources(routeTableIds)
 	}
 
 	return &result
 }
 
-func flattenArmExpressRouteConnectionRouting(input *network.RoutingConfiguration) []interface{} {
+func flattenExpressRouteConnectionRouting(input *network.RoutingConfiguration) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -311,12 +308,12 @@ func flattenArmExpressRouteConnectionRouting(input *network.RoutingConfiguration
 	return []interface{}{
 		map[string]interface{}{
 			"associated_route_table_id": associatedRouteTableId,
-			"propagated_route_table":    flattenArmExpressRouteConnectionPropagatedRouteTable(input.PropagatedRouteTables),
+			"propagated_route_table":    flattenExpressRouteConnectionPropagatedRouteTable(input.PropagatedRouteTables),
 		},
 	}
 }
 
-func flattenArmExpressRouteConnectionPropagatedRouteTable(input *network.PropagatedRouteTable) []interface{} {
+func flattenExpressRouteConnectionPropagatedRouteTable(input *network.PropagatedRouteTable) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
