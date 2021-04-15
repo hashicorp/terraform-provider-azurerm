@@ -59,8 +59,6 @@ func TestAccPostgresqlflexibleServer_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
-				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
 				check.That(data.ResourceName).Key("cmk_enabled").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
 				check.That(data.ResourceName).Key("high_availiblity_state").Exists(),
@@ -79,8 +77,6 @@ func TestAccPostgresqlflexibleServer_completeUpdate(t *testing.T) {
 			Config: r.complete(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
-				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
 				check.That(data.ResourceName).Key("cmk_enabled").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
 				check.That(data.ResourceName).Key("high_availiblity_state").Exists(),
@@ -92,8 +88,6 @@ func TestAccPostgresqlflexibleServer_completeUpdate(t *testing.T) {
 			Config: r.completeUpdate(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
-				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
 				check.That(data.ResourceName).Key("cmk_enabled").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
 				check.That(data.ResourceName).Key("high_availiblity_state").Exists(),
@@ -335,12 +329,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   backup_retention_days    = 7
   storage_mb               = 32768
   delegated_subnet_id      = azurerm_subnet.test.id
-
-  identity {
-    type = "SystemAssigned"
-  }
-
-  sku_name = "GP_Standard_D2s_v3"
+  sku_name                 = "GP_Standard_D2s_v3"
 
   maintenance_window {
     day_of_week  = 0
@@ -395,12 +384,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   backup_retention_days    = 10
   storage_mb               = 65536
   delegated_subnet_id      = azurerm_subnet.test.id
-
-  identity {
-    type = "SystemAssigned"
-  }
-
-  sku_name = "GP_Standard_D2s_v3"
+  sku_name                 = "GP_Standard_D2s_v3"
 
   maintenance_window {
     day_of_week  = 0

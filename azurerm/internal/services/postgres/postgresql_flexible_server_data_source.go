@@ -58,29 +58,6 @@ func dataSourcePostgresqlFlexibleServer() *schema.Resource {
 				Computed: true,
 			},
 
-			"identity": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"principal_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"tenant_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"type": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
-
 			"backup_retention_days": {
 				Type:     schema.TypeInt,
 				Computed: true,
@@ -165,8 +142,5 @@ func dataSourceArmPostgresqlFlexibleServerRead(d *schema.ResourceData, meta inte
 	}
 
 	d.Set("sku_name", sku)
-	if err := d.Set("identity", flattenArmServerIdentity(resp.Identity)); err != nil {
-		return fmt.Errorf("setting `identity`: %+v", err)
-	}
 	return tags.FlattenAndSet(d, resp.Tags)
 }

@@ -124,35 +124,6 @@ func resourcePostgresqlFlexibleServer() *schema.Resource {
 				ValidateFunc: networkValidate.SubnetID,
 			},
 
-			"identity": {
-				Type:     schema.TypeList,
-				Optional: true,
-				ForceNew: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"type": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ForceNew: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(postgresqlflexibleservers.SystemAssigned),
-							}, false),
-						},
-
-						"principal_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"tenant_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
-
 			"point_in_time_restore_time_in_utc": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -301,7 +272,6 @@ func resourcePostgresqlFlexibleServerCreate(d *schema.ResourceData, meta interfa
 
 	parameters := postgresqlflexibleservers.Server{
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
-		Identity: expandArmServerIdentity(d.Get("identity").([]interface{})),
 		ServerProperties: &postgresqlflexibleservers.ServerProperties{
 			CreateMode:               postgresqlflexibleservers.CreateMode(d.Get("create_mode").(string)),
 			DelegatedSubnetArguments: expandArmServerServerPropertiesDelegatedSubnetArguments(d.Get("delegated_subnet_id").(string)),
@@ -398,9 +368,6 @@ func resourcePostgresqlFlexibleServerRead(d *schema.ResourceData, meta interface
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
-	if err := d.Set("identity", flattenArmServerIdentity(resp.Identity)); err != nil {
-		return fmt.Errorf("setting `identity`: %+v", err)
-	}
 	if props := resp.ServerProperties; props != nil {
 		d.Set("administrator_login", props.AdministratorLogin)
 		d.Set("zone", props.AvailabilityZone)
@@ -519,16 +486,6 @@ func resourcePostgresqlFlexibleServerDelete(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func expandArmServerIdentity(input []interface{}) *postgresqlflexibleservers.Identity {
-	if len(input) == 0 {
-		return nil
-	}
-	v := input[0].(map[string]interface{})
-	return &postgresqlflexibleservers.Identity{
-		Type: postgresqlflexibleservers.ResourceIdentityType(v["type"].(string)),
-	}
-}
-
 func expandArmServerServerPropertiesDelegatedSubnetArguments(input string) *postgresqlflexibleservers.ServerPropertiesDelegatedSubnetArguments {
 	if len(input) == 0 {
 		return nil
@@ -613,32 +570,6 @@ func flattenFlexibleServerSku(sku *postgresqlflexibleservers.Sku) (string, error
 	}
 
 	return strings.Join([]string{tier, *sku.Name}, "_"), nil
-}
-
-func flattenArmServerIdentity(input *postgresqlflexibleservers.Identity) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
-	}
-
-	var t postgresqlflexibleservers.ResourceIdentityType
-	if input.Type != "" {
-		t = input.Type
-	}
-	var principalId string
-	if input.PrincipalID != nil {
-		principalId = *input.PrincipalID
-	}
-	var tenantId string
-	if input.TenantID != nil {
-		tenantId = *input.TenantID
-	}
-	return []interface{}{
-		map[string]interface{}{
-			"type":         t,
-			"principal_id": principalId,
-			"tenant_id":    tenantId,
-		},
-	}
 }
 
 func flattenArmServerMaintenanceWindow(input *postgresqlflexibleservers.MaintenanceWindow) []interface{} {

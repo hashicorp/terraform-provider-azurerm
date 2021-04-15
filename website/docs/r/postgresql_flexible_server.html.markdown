@@ -84,8 +84,6 @@ The following arguments are supported:
 
 * `high_availiblity_enabled` - (Optional) Should High availability for the PostgreSQL Flexible Server be enabled? If enabled the server will provisions a physically separate primary and standby PostgreSQL Flexible Server in different zones. Defaults to `false`.
 
-* `identity` - (Optional) A `identity` block as defined below. Changing this forces a new PostgreSQL Flexible Server to be created.
-
 * `maintenance_window` - (Optional) A `maintenance_window` block as defined below.
 
 * `point_in_time_restore_time_in_utc` - (Optional) The point in time to restore from `creation_source_server_id` when `create_mode` is `PointInTimeRestore`. Changing this forces a new PostgreSQL Flexible Server to be created.
@@ -99,12 +97,6 @@ The following arguments are supported:
 * `version` - (Optional) The version of PostgreSQL Flexible Server to use. Possible values are `11` and `12`. Required when `create_mode` is `Default`. Changing this forces a new PostgreSQL Flexible Server to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the PostgreSQL Flexible Server.
-
----
-
-A `identity` block supports the following:
-
-* `type` - (Required) The Type of Identity which should be used for this PostgreSQL Flexible Server. Possible value is only `SystemAssigned`. Changing this forces a new PostgreSQL Flexible Server to be created.
 
 ---
 
