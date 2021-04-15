@@ -26,12 +26,6 @@ func TestAccMonitorDiagnosticSetting_eventhub(t *testing.T) {
 			Config: r.eventhub(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("eventhub_name").Exists(),
-				check.That(data.ResourceName).Key("eventhub_authorization_rule_id").Exists(),
-				check.That(data.ResourceName).Key("log.#").HasValue("1"),
-				check.That(data.ResourceName).Key("log.782743152.category").HasValue("AuditEvent"),
-				check.That(data.ResourceName).Key("metric.#").HasValue("1"),
-				check.That(data.ResourceName).Key("metric.1439188313.category").HasValue("AllMetrics"),
 			),
 		},
 		data.ImportStep(),
@@ -65,11 +59,6 @@ func TestAccMonitorDiagnosticSetting_logAnalyticsWorkspace(t *testing.T) {
 			Config: r.logAnalyticsWorkspace(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("log_analytics_workspace_id").Exists(),
-				check.That(data.ResourceName).Key("log.#").HasValue("1"),
-				check.That(data.ResourceName).Key("log.782743152.category").HasValue("AuditEvent"),
-				check.That(data.ResourceName).Key("metric.#").HasValue("1"),
-				check.That(data.ResourceName).Key("metric.1439188313.category").HasValue("AllMetrics"),
 			),
 		},
 		data.ImportStep(),
@@ -100,11 +89,6 @@ func TestAccMonitorDiagnosticSetting_storageAccount(t *testing.T) {
 			Config: r.storageAccount(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("storage_account_id").Exists(),
-				check.That(data.ResourceName).Key("log.#").HasValue("1"),
-				check.That(data.ResourceName).Key("log.782743152.category").HasValue("AuditEvent"),
-				check.That(data.ResourceName).Key("metric.#").HasValue("1"),
-				check.That(data.ResourceName).Key("metric.1439188313.category").HasValue("AllMetrics"),
 			),
 		},
 		data.ImportStep(),
@@ -118,6 +102,21 @@ func TestAccMonitorDiagnosticSetting_activityLog(t *testing.T) {
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.activityLog(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMonitorDiagnosticSetting_dynamicBlock(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_diagnostic_setting", "test")
+	r := MonitorDiagnosticSettingResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.dynamicBlock(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -205,6 +204,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   metric {
     category = "AllMetrics"
+    enabled  = true
 
     retention_policy {
       enabled = false
@@ -290,6 +290,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   metric {
     category = "AllMetrics"
+    enabled  = true
 
     retention_policy {
       enabled = false
@@ -321,77 +322,25 @@ resource "azurerm_log_analytics_workspace" "test" {
   retention_in_days   = 30
 }
 
-resource "azurerm_data_factory" "test" {
-  name                = "acctest-DF-%[1]d"
+resource "azurerm_key_vault" "test" {
+  name                = "acctest%[3]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "standard"
 }
 
 resource "azurerm_monitor_diagnostic_setting" "test" {
   name                       = "acctest-DS-%[1]d"
-  target_resource_id         = azurerm_data_factory.test.id
+  target_resource_id         = azurerm_key_vault.test.id
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
 
   log_analytics_destination_type = "Dedicated"
 
   log {
-    category = "ActivityRuns"
-    retention_policy {
-      enabled = false
-    }
-  }
+    category = "AuditEvent"
+    enabled  = false
 
-  log {
-    category = "PipelineRuns"
-    retention_policy {
-      enabled = false
-    }
-  }
-
-  log {
-    category = "TriggerRuns"
-    retention_policy {
-      enabled = false
-    }
-  }
-
-  log {
-    category = "SSISIntegrationRuntimeLogs"
-    retention_policy {
-      enabled = false
-    }
-  }
-
-  log {
-    category = "SSISPackageEventMessageContext"
-    retention_policy {
-      enabled = false
-    }
-  }
-
-  log {
-    category = "SSISPackageEventMessages"
-    retention_policy {
-      enabled = false
-    }
-  }
-
-  log {
-    category = "SSISPackageExecutableStatistics"
-    retention_policy {
-      enabled = false
-    }
-  }
-
-  log {
-    category = "SSISPackageExecutionComponentPhases"
-    retention_policy {
-      enabled = false
-    }
-  }
-
-  log {
-    category = "SSISPackageExecutionDataStatistics"
     retention_policy {
       enabled = false
     }
@@ -399,12 +348,14 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   metric {
     category = "AllMetrics"
+    enabled  = true
+
     retention_policy {
       enabled = false
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
 }
 
 func (MonitorDiagnosticSettingResource) storageAccount(data acceptance.TestData) string {
@@ -453,6 +404,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   metric {
     category = "AllMetrics"
+    enabled  = true
 
     retention_policy {
       enabled = false
@@ -533,6 +485,63 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   log {
     category = "ServiceHealth"
     enabled  = true
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
+}
+
+func (MonitorDiagnosticSettingResource) dynamicBlock(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctest%[3]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_replication_type = "LRS"
+  account_tier             = "Standard"
+}
+
+data "azurerm_monitor_diagnostic_categories" "test" {
+  resource_id = azurerm_storage_account.test.id
+}
+
+resource "azurerm_monitor_diagnostic_setting" "test" {
+  name               = "acctest-DS-%[1]d"
+  target_resource_id = azurerm_storage_account.test.id
+  storage_account_id = azurerm_storage_account.test.id
+
+  dynamic "log" {
+    for_each = data.azurerm_monitor_diagnostic_categories.test.logs
+
+    content {
+      category = log.key
+      enabled  = true
+
+      retention_policy {
+        enabled = false
+      }
+    }
+  }
+
+  dynamic "metric" {
+    for_each = data.azurerm_monitor_diagnostic_categories.test.metrics
+
+    content {
+      category = metric.key
+      enabled  = true
+
+      retention_policy {
+        enabled = false
+      }
+    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))

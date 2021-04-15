@@ -101,7 +101,7 @@ A `log` block supports the following:
 
 * `retention_policy` - (Optional) A `retention_policy` block as defined below.
 
-* `enabled` - (Optional) Is this Diagnostic Log enabled? Defaults to `true`.
+* `enabled` - (Optional) Is this Diagnostic Log enabled? Defaults to `false`.
 
 ---
 
@@ -113,7 +113,7 @@ A `metric` block supports the following:
 
 * `retention_policy` - (Optional) A `retention_policy` block as defined below.
 
-* `enabled` - (Optional) Is this Diagnostic Metric enabled? Defaults to `true`.
+* `enabled` - (Optional) Is this Diagnostic Metric enabled? Defaults to `false`.
 
 ---
 

@@ -108,7 +108,6 @@ func resourceMonitorDiagnosticSetting() *schema.Resource {
 						"enabled": {
 							Type:     schema.TypeBool,
 							Optional: true,
-							Default:  true,
 						},
 
 						"retention_policy": {
@@ -147,7 +146,6 @@ func resourceMonitorDiagnosticSetting() *schema.Resource {
 						"enabled": {
 							Type:     schema.TypeBool,
 							Optional: true,
-							Default:  true,
 						},
 
 						"retention_policy": {
@@ -523,35 +521,40 @@ func flattenMonitorDiagnosticMetrics(input *[]insights.MetricSettings) []interfa
 	}
 
 	for _, v := range *input {
-		output := make(map[string]interface{})
-
+		var category string
 		if v.Category != nil {
-			output["category"] = *v.Category
+			category = *v.Category
 		}
 
+		var enabled bool
 		if v.Enabled != nil {
-			output["enabled"] = *v.Enabled
+			enabled = *v.Enabled
 		}
 
 		policies := make([]interface{}, 0)
 
 		if inputPolicy := v.RetentionPolicy; inputPolicy != nil {
-			outputPolicy := make(map[string]interface{})
-
+			var days int
 			if inputPolicy.Days != nil {
-				outputPolicy["days"] = int(*inputPolicy.Days)
+				days = int(*inputPolicy.Days)
 			}
 
+			var enabled bool
 			if inputPolicy.Enabled != nil {
-				outputPolicy["enabled"] = *inputPolicy.Enabled
+				enabled = *inputPolicy.Enabled
 			}
 
-			policies = append(policies, outputPolicy)
+			policies = append(policies, map[string]interface{}{
+				"days":    days,
+				"enabled": enabled,
+			})
 		}
 
-		output["retention_policy"] = policies
-
-		results = append(results, output)
+		results = append(results, map[string]interface{}{
+			"category":         category,
+			"enabled":          enabled,
+			"retention_policy": policies,
+		})
 	}
 
 	return results
