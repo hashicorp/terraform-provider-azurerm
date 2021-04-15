@@ -281,11 +281,12 @@ func resourceManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if diskAccessID := d.Get("disk_access_id").(string); d.HasChange("disk_access_id") {
-		if props.NetworkAccessPolicy == compute.AllowPrivate {
+		switch {
+		case props.NetworkAccessPolicy == compute.AllowPrivate:
 			props.DiskAccessID = utils.String(diskAccessID)
-		} else if diskAccessID != "" {
+		case diskAccessID != "" && props.NetworkAccessPolicy != compute.AllowPrivate:
 			return fmt.Errorf("[ERROR] disk_access_id is only available when network_access_policy is set to AllowPrivate")
-		} else {
+		default:
 			props.DiskAccessID = nil
 		}
 	}
@@ -414,11 +415,12 @@ func resourceManagedDiskUpdate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if diskAccessID := d.Get("disk_access_id").(string); d.HasChange("disk_access_id") {
-		if diskUpdate.NetworkAccessPolicy == compute.AllowPrivate {
+		switch {
+		case diskUpdate.NetworkAccessPolicy == compute.AllowPrivate:
 			diskUpdate.DiskAccessID = utils.String(diskAccessID)
-		} else if diskAccessID != "" {
+		case diskAccessID != "" && diskUpdate.NetworkAccessPolicy != compute.AllowPrivate:
 			return fmt.Errorf("[ERROR] disk_access_id is only available when network_access_policy is set to AllowPrivate")
-		} else {
+		default:
 			diskUpdate.DiskAccessID = nil
 		}
 	}
