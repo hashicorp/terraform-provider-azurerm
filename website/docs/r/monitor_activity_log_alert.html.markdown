@@ -103,7 +103,7 @@ A `criteria` block supports the following:
 A `service_health` block supports the following:
 
 * `events` (Optional) Events this alert will monitor Possible values are `Incident`, `Maintenance`, `Informational`, and `ActionRequired`.
-* `regions` (Optional) Regions this alert will monitor. For example, `West Europe`. Defaults to `Global`.
+* `locations` (Optional) Locations this alert will monitor. For example, `West Europe`. Defaults to `Global`.
 * `services` (Optional) Services this alert will monitor. For example, `Activity Logs & Alerts`, `Action Groups`. Defaults to all Services.
 
 
