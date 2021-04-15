@@ -7,8 +7,7 @@ function runGraduallyDeprecatedFunctions {
 
   for f in "${flist[@]}"; do
     # require resources to be imported is now hard-coded on - but only checking for additions
-    grep "features\.ShouldResourcesBeImported" "$f" && {
-      echo "In file: $f"
+    grep -H -n "features\.ShouldResourcesBeImported" "$f" && {
       echo "The Feature Flag for 'ShouldResourcesBeImported' will be deprecated in the future"
       echo "and shouldn't be used in new resources - please remove new usages of the"
       echo "'ShouldResourcesBeImported' function from these changes - since this is now enabled"
@@ -20,8 +19,7 @@ function runGraduallyDeprecatedFunctions {
   }
 
   # using Resource ID Formatters/Parsers
-  grep "d\.SetId(\\*" "$f" && {
-      echo "In file: $f"
+  grep -H -n "d\.SetId(\\*" "$f" && {
       echo "Due to the Azure API returning the Resource ID's inconsistently - Terraform"
       echo "now manages it's own Resource ID's, all new resources should use a generated"
       echo "Resource ID Formatter and Parser."
