@@ -14,6 +14,12 @@ func Any(validators ...schema.SchemaValidateFunc) schema.SchemaValidateFunc {
 	return validation.Any(validators...)
 }
 
+// IntAtMost returns a SchemaValidateFunc which tests if the provided value
+// is of type int and is at most max (inclusive)
+func IntAtMost(max int) schema.SchemaValidateFunc {
+	return validation.IntAtMost(max)
+}
+
 // IntBetween returns a SchemaValidateFunc which tests if the provided value
 // is of type int and is between min and max (inclusive)
 func IntBetween(min, max int) schema.SchemaValidateFunc {
