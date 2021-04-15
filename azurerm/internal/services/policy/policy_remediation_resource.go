@@ -20,7 +20,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourcePolicyRemediation() *schema.Resource {
+func resourceArmPolicyRemediation() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmPolicyRemediationCreateUpdate,
 		Read:   resourceArmPolicyRemediationRead,
