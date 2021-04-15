@@ -15,7 +15,7 @@ Manages a Kusto (also known as Azure Data Explorer) EventHub Data Connection
 ```hcl
 resource "azurerm_resource_group" "rg" {
   name     = "my-kusto-rg"
-  location = "East US"
+  location = "West Europe"
 }
 
 resource "azurerm_kusto_cluster" "cluster" {
@@ -95,6 +95,8 @@ The following arguments are supported:
 * `data_format` - (Optional) Specifies the data format of the EventHub messages. Allowed values: `AVRO`, `CSV`, `JSON`, `MULTIJSON`, `PSV`, `RAW`, `SCSV`, `SINGLEJSON`, `SOHSV`, `TSV` and `TXT`
 
 * `eventhub_id` - (Required) Specifies the resource id of the EventHub this data connection will use for ingestion. Changing this forces a new resource to be created.
+
+* `event_system_properties` - (Optional) Specifies a list of system properties for the Event Hub.
 
 * `consumer_group` - (Required) Specifies the EventHub consumer group this data connection will use for ingestion. Changing this forces a new resource to be created.
 

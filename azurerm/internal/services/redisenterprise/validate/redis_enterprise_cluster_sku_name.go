@@ -33,6 +33,10 @@ func RedisEnterpriseClusterSkuName(v interface{}, k string) (warnings []string, 
 
 	isFlash := strings.Contains(skuParts[0], "Flash")
 
+	if isFlash {
+		validValues = "3, 9, 15, ..."
+	}
+
 	if len(skuParts) > 1 {
 		i, err := strconv.ParseInt(skuParts[1], 10, 32)
 		if err != nil {
@@ -43,7 +47,6 @@ func RedisEnterpriseClusterSkuName(v interface{}, k string) (warnings []string, 
 		skuCapacity := int32(i)
 
 		if isFlash {
-			validValues = "3, 9, 15, ..."
 			if skuCapacity%6 == 3 {
 				validCapacity = true
 			}

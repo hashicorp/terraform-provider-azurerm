@@ -682,6 +682,60 @@ func TestAccWindowsVirtualMachineScaleSet_otherPlatformFaultDomainCount(t *testi
 	})
 }
 
+func TestAccWindowsVirtualMachineScaleSet_otherRollingUpgradePolicyUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.otherRollingUpgradePolicyUpdate(data, 40, 40, 40, "PT0S"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
+		{
+			Config: r.otherRollingUpgradePolicyUpdate(data, 30, 100, 100, "PT1S"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
+	})
+}
+
+func TestAccWindowsVirtualMachineScaleSet_otherHealthProbeUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.otherHealthProbe(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+			"enable_automatic_updates",
+		),
+		{
+			Config: r.otherHealthProbeUpdated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+			"enable_automatic_updates",
+		),
+	})
+}
+
 func (WindowsVirtualMachineScaleSetResource) otherAdditionalUnattendContent(data acceptance.TestData) string {
 	template := WindowsVirtualMachineScaleSetResource{}.template(data)
 	return fmt.Sprintf(`
@@ -2436,4 +2490,307 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   platform_fault_domain_count = 3
 }
 `, r.template(data))
+}
+
+func (r WindowsVirtualMachineScaleSetResource) otherRollingUpgradePolicyUpdate(data acceptance.TestData, max_batch_instance_percent, max_unhealthy_instance_percent, max_unhealthy_upgraded_instance_percent int, pause_time_between_batches string) string {
+	return fmt.Sprintf(`
+%s
+
+locals {
+  frontend_ip_configuration_name = "internal"
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "actestvmsspip-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  allocation_method   = "Static"
+}
+
+resource "azurerm_lb" "test" {
+  name                = "actestvmsslb-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  frontend_ip_configuration {
+    name                 = local.frontend_ip_configuration_name
+    public_ip_address_id = azurerm_public_ip.test.id
+  }
+}
+
+resource "azurerm_lb_backend_address_pool" "test" {
+  name                = "backend"
+  resource_group_name = azurerm_resource_group.test.name
+  loadbalancer_id     = azurerm_lb.test.id
+}
+
+resource "azurerm_lb_probe" "test" {
+  name                = "running-probe"
+  resource_group_name = azurerm_resource_group.test.name
+  loadbalancer_id     = azurerm_lb.test.id
+  port                = 3389
+  protocol            = "Tcp"
+}
+
+resource "azurerm_lb_rule" "test" {
+  resource_group_name            = azurerm_resource_group.test.name
+  loadbalancer_id                = azurerm_lb.test.id
+  probe_id                       = azurerm_lb_probe.test.id
+  backend_address_pool_id        = azurerm_lb_backend_address_pool.test.id
+  frontend_ip_configuration_name = local.frontend_ip_configuration_name
+  name                           = "LBRule"
+  protocol                       = "Tcp"
+  frontend_port                  = 389
+  backend_port                   = 389
+}
+
+resource "azurerm_windows_virtual_machine_scale_set" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 3
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  upgrade_mode    = "Rolling"
+  health_probe_id = azurerm_lb_probe.test.id
+
+  rolling_upgrade_policy {
+    max_batch_instance_percent              = %d
+    max_unhealthy_instance_percent          = %d
+    max_unhealthy_upgraded_instance_percent = %d
+    pause_time_between_batches              = "%s"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2019-Datacenter"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name                                   = "internal"
+      subnet_id                              = azurerm_subnet.test.id
+      load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
+      primary                                = true
+    }
+  }
+
+  depends_on = [azurerm_lb_rule.test]
+
+}
+`, r.template(data), data.RandomInteger, max_batch_instance_percent, max_unhealthy_instance_percent, max_unhealthy_upgraded_instance_percent, pause_time_between_batches)
+}
+
+func (r WindowsVirtualMachineScaleSetResource) otherHealthProbe(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+locals {
+  frontend_ip_configuration_name = "internal"
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "actestvmsspip-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  allocation_method   = "Static"
+}
+
+resource "azurerm_lb" "test" {
+  name                = "actestvmsslb-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  frontend_ip_configuration {
+    name                 = local.frontend_ip_configuration_name
+    public_ip_address_id = azurerm_public_ip.test.id
+  }
+}
+
+resource "azurerm_lb_backend_address_pool" "test" {
+  name                = "backend"
+  resource_group_name = azurerm_resource_group.test.name
+  loadbalancer_id     = azurerm_lb.test.id
+}
+
+resource "azurerm_lb_probe" "test" {
+  name                = "ssh-running-probe"
+  resource_group_name = azurerm_resource_group.test.name
+  loadbalancer_id     = azurerm_lb.test.id
+  port                = 3389
+  protocol            = "Tcp"
+}
+
+resource "azurerm_lb_probe" "test2" {
+  name                = "ssh-running-probe2"
+  resource_group_name = azurerm_resource_group.test.name
+  loadbalancer_id     = azurerm_lb.test.id
+  port                = 3389
+  protocol            = "Tcp"
+}
+
+resource "azurerm_lb_rule" "test" {
+  resource_group_name            = azurerm_resource_group.test.name
+  loadbalancer_id                = azurerm_lb.test.id
+  probe_id                       = azurerm_lb_probe.test.id
+  backend_address_pool_id        = azurerm_lb_backend_address_pool.test.id
+  frontend_ip_configuration_name = local.frontend_ip_configuration_name
+  name                           = "LBRule"
+  protocol                       = "Tcp"
+  frontend_port                  = 22
+  backend_port                   = 22
+}
+
+resource "azurerm_windows_virtual_machine_scale_set" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 3
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  upgrade_mode    = "Automatic"
+  health_probe_id = azurerm_lb_probe.test.id
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2019-Datacenter"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name                                   = "internal"
+      subnet_id                              = azurerm_subnet.test.id
+      load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
+      primary                                = true
+    }
+  }
+
+  depends_on = [azurerm_lb_rule.test]
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r WindowsVirtualMachineScaleSetResource) otherHealthProbeUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+locals {
+  frontend_ip_configuration_name = "internal"
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "actestvmsspip-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  allocation_method   = "Static"
+}
+
+resource "azurerm_lb" "test" {
+  name                = "actestvmsslb-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  frontend_ip_configuration {
+    name                 = local.frontend_ip_configuration_name
+    public_ip_address_id = azurerm_public_ip.test.id
+  }
+}
+
+resource "azurerm_lb_backend_address_pool" "test" {
+  name                = "backend"
+  resource_group_name = azurerm_resource_group.test.name
+  loadbalancer_id     = azurerm_lb.test.id
+}
+
+resource "azurerm_lb_probe" "test" {
+  name                = "ssh-running-probe"
+  resource_group_name = azurerm_resource_group.test.name
+  loadbalancer_id     = azurerm_lb.test.id
+  port                = 3389
+  protocol            = "Tcp"
+}
+
+resource "azurerm_lb_probe" "test2" {
+  name                = "ssh-running-probe2"
+  resource_group_name = azurerm_resource_group.test.name
+  loadbalancer_id     = azurerm_lb.test.id
+  port                = 3389
+  protocol            = "Tcp"
+}
+
+resource "azurerm_lb_rule" "test" {
+  resource_group_name            = azurerm_resource_group.test.name
+  loadbalancer_id                = azurerm_lb.test.id
+  probe_id                       = azurerm_lb_probe.test2.id
+  backend_address_pool_id        = azurerm_lb_backend_address_pool.test.id
+  frontend_ip_configuration_name = local.frontend_ip_configuration_name
+  name                           = "LBRule"
+  protocol                       = "Tcp"
+  frontend_port                  = 22
+  backend_port                   = 22
+}
+
+resource "azurerm_windows_virtual_machine_scale_set" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 3
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  upgrade_mode    = "Automatic"
+  health_probe_id = azurerm_lb_probe.test2.id
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2019-Datacenter"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name                                   = "internal"
+      subnet_id                              = azurerm_subnet.test.id
+      load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
+      primary                                = true
+    }
+  }
+
+  depends_on = [azurerm_lb_rule.test]
+}
+`, r.template(data), data.RandomInteger)
 }

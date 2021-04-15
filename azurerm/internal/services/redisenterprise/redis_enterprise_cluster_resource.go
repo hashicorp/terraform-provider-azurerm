@@ -81,6 +81,7 @@ func resourceRedisEnterpriseCluster() *schema.Resource {
 			},
 
 			// RP currently does not return this value, but will in the near future (RP defaults to 1.2)
+			// https://github.com/Azure/azure-sdk-for-go/issues/14420
 			// "minimum_tls_version": {
 			// 	Type:     schema.TypeString,
 			// 	Optional: true,
@@ -93,15 +94,19 @@ func resourceRedisEnterpriseCluster() *schema.Resource {
 			// },
 
 			// RP currently does not return this value, but will in the near future
+			// https://github.com/Azure/azure-sdk-for-go/issues/14420
 			"hostname": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:       schema.TypeString,
+				Computed:   true,
+				Deprecated: "This field currently is not yet being returned from the service API, please see https://github.com/Azure/azure-sdk-for-go/issues/14420 for more information",
 			},
 
 			// RP currently does not return this value, but will in the near future
+			// https://github.com/Azure/azure-sdk-for-go/issues/14420
 			"version": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:       schema.TypeString,
+				Computed:   true,
+				Deprecated: "This field currently is not yet being returned from the service API, please see https://github.com/Azure/azure-sdk-for-go/issues/14420 for more information",
 			},
 
 			"tags": tags.ForceNewSchema(),
@@ -135,8 +140,8 @@ func resourceRedisEnterpriseClusterCreate(d *schema.ResourceData, meta interface
 
 	// If the sku type is flash check to make sure that the sku is supported in that region
 	if strings.Contains(string(sku.Name), "Flash") {
-		if err := validate.RedisEnterpriseClusterFlashSkuTypeLocation(location); err != nil {
-			return fmt.Errorf("%s", err)
+		if err := validate.RedisEnterpriseClusterLocationFlashSkuSupport(location); err != nil {
+			return fmt.Errorf("%s: %s", resourceId, err)
 		}
 	}
 
@@ -149,14 +154,15 @@ func resourceRedisEnterpriseClusterCreate(d *schema.ResourceData, meta interface
 
 	if v, ok := d.GetOk("zones"); ok {
 		// Zones are currently not supported in these regions
-		if location == "centraluseuap" || location == "westus" {
-			return fmt.Errorf("Redis Enterprise Cluster %q: 'Zones' are not currently supported in the 'West US' or 'Central US EUAP' regions, got %q", resourceId, location)
+		if err := validate.RedisEnterpriseClusterLocationZoneSupport(location); err != nil {
+			return fmt.Errorf("%s: %s", resourceId, err)
 		}
 
 		parameters.Zones = azure.ExpandZones(v.([]interface{}))
 	}
 
 	// RP currently does not return this value but will in the near future
+	// https://github.com/Azure/azure-sdk-for-go/issues/14420
 	// if v, ok := d.GetOk("minimum_tls_version"); ok {
 	// 	parameters.ClusterProperties.MinimumTLSVersion = redisenterprise.TLSVersion(v.(string))
 	// }

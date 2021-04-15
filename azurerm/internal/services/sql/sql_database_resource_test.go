@@ -1033,7 +1033,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
+  name     = "acctestRG-sql-%[1]d-p"
   location = "%[2]s"
 }
 
@@ -1058,7 +1058,7 @@ resource "azurerm_sql_database" "test" {
 }
 
 resource "azurerm_resource_group" "test2" {
-  name     = "acctestRG2-%[1]d"
+  name     = "acctestRG-sql-%[1]d-s"
   location = "%[3]s"
 }
 

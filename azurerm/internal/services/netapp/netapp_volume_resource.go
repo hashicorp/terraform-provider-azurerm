@@ -92,6 +92,14 @@ func resourceNetAppVolume() *schema.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
+			"create_from_snapshot_resource_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
+
 			"protocols": {
 				Type:     schema.TypeSet,
 				ForceNew: true,
@@ -178,6 +186,11 @@ func resourceNetAppVolume() *schema.Resource {
 						},
 
 						"unix_read_write": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+
+						"root_access_enabled": {
 							Type:     schema.TypeBool,
 							Optional: true,
 						},
@@ -281,6 +294,70 @@ func resourceNetAppVolumeCreateUpdate(d *schema.ResourceData, meta interface{}) 
 		volumeType = "DataProtection"
 	}
 
+	// Handling volume creation from snapshot case
+	snapshotResourceID := d.Get("create_from_snapshot_resource_id").(string)
+	snapshotID := ""
+	if snapshotResourceID != "" {
+		// Get snapshot ID GUID value
+		parsedSnapshotResourceID, err := parse.SnapshotID(snapshotResourceID)
+		if err != nil {
+			return fmt.Errorf("Error parsing snapshotResourceID %q: %+v", snapshotResourceID, err)
+		}
+
+		snapshotClient := meta.(*clients.Client).NetApp.SnapshotClient
+		snapshotResponse, err := snapshotClient.Get(
+			ctx,
+			parsedSnapshotResourceID.ResourceGroup,
+			parsedSnapshotResourceID.NetAppAccountName,
+			parsedSnapshotResourceID.CapacityPoolName,
+			parsedSnapshotResourceID.VolumeName,
+			parsedSnapshotResourceID.Name,
+		)
+		if err != nil {
+			return fmt.Errorf("Error getting snapshot from NetApp Volume %q (Resource Group %q): %+v", parsedSnapshotResourceID.VolumeName, parsedSnapshotResourceID.ResourceGroup, err)
+		}
+		snapshotID = *snapshotResponse.SnapshotID
+
+		// Validate if properties that cannot be changed matches (protocols, subnet_id, location, resource group, account_name, pool_name, service_level)
+		sourceVolume, err := client.Get(
+			ctx,
+			parsedSnapshotResourceID.ResourceGroup,
+			parsedSnapshotResourceID.NetAppAccountName,
+			parsedSnapshotResourceID.CapacityPoolName,
+			parsedSnapshotResourceID.VolumeName,
+		)
+		if err != nil {
+			return fmt.Errorf("Error getting source NetApp Volume (snapshot's parent resource) %q (Resource Group %q): %+v", parsedSnapshotResourceID.VolumeName, parsedSnapshotResourceID.ResourceGroup, err)
+		}
+
+		parsedVolumeID, _ := parse.VolumeID(*sourceVolume.ID)
+		propertyMismatch := []string{}
+		if !ValidateSlicesEquality(*sourceVolume.ProtocolTypes, *utils.ExpandStringSlice(protocols), false) {
+			propertyMismatch = append(propertyMismatch, "protocols")
+		}
+		if !strings.EqualFold(*sourceVolume.SubnetID, subnetID) {
+			propertyMismatch = append(propertyMismatch, "subnet_id")
+		}
+		if !strings.EqualFold(*sourceVolume.Location, location) {
+			propertyMismatch = append(propertyMismatch, "location")
+		}
+		if !strings.EqualFold(string(sourceVolume.ServiceLevel), serviceLevel) {
+			propertyMismatch = append(propertyMismatch, "service_level")
+		}
+		if !strings.EqualFold(parsedVolumeID.ResourceGroup, resourceGroup) {
+			propertyMismatch = append(propertyMismatch, "resource_group_name")
+		}
+		if !strings.EqualFold(parsedVolumeID.NetAppAccountName, accountName) {
+			propertyMismatch = append(propertyMismatch, "account_name")
+		}
+		if !strings.EqualFold(parsedVolumeID.CapacityPoolName, poolName) {
+			propertyMismatch = append(propertyMismatch, "pool_name")
+		}
+		if len(propertyMismatch) > 0 {
+			return fmt.Errorf("Following NetApp Volume properties on new Volume from Snapshot does not match Snapshot's source Volume %q (Resource Group %q): %+v", name, resourceGroup, propertyMismatch)
+		}
+	}
+
 	parameters := netapp.Volume{
 		Location: utils.String(location),
 		VolumeProperties: &netapp.VolumeProperties{
@@ -291,6 +368,7 @@ func resourceNetAppVolumeCreateUpdate(d *schema.ResourceData, meta interface{}) 
 			UsageThreshold: utils.Int64(storageQuotaInGB),
 			ExportPolicy:   exportPolicyRule,
 			VolumeType:     utils.String(volumeType),
+			SnapshotID:     utils.String(snapshotID),
 			DataProtection: dataProtectionReplication,
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -390,10 +468,8 @@ func resourceNetAppVolumeRead(d *schema.ResourceData, meta interface{}) error {
 		if err := d.Set("mount_ip_addresses", flattenNetAppVolumeMountIPAddresses(props.MountTargets)); err != nil {
 			return fmt.Errorf("setting `mount_ip_addresses`: %+v", err)
 		}
-		if props.DataProtection.Replication != nil {
-			if err := d.Set("data_protection_replication", flattenNetAppVolumeDataProtectionReplication(props.DataProtection)); err != nil {
-				return fmt.Errorf("setting `data_protection_replication`: %+v", err)
-			}
+		if err := d.Set("data_protection_replication", flattenNetAppVolumeDataProtectionReplication(props.DataProtection)); err != nil {
+			return fmt.Errorf("setting `data_protection_replication`: %+v", err)
 		}
 	}
 
@@ -662,6 +738,7 @@ func expandNetAppVolumeExportPolicyRule(input []interface{}) *netapp.VolumePrope
 
 			unixReadOnly := v["unix_read_only"].(bool)
 			unixReadWrite := v["unix_read_write"].(bool)
+			rootAccessEnabled := v["root_access_enabled"].(bool)
 
 			result := netapp.ExportPolicyRule{
 				AllowedClients: utils.String(allowedClients),
@@ -671,6 +748,7 @@ func expandNetAppVolumeExportPolicyRule(input []interface{}) *netapp.VolumePrope
 				RuleIndex:      utils.Int32(ruleIndex),
 				UnixReadOnly:   utils.Bool(unixReadOnly),
 				UnixReadWrite:  utils.Bool(unixReadWrite),
+				HasRootAccess:  utils.Bool(rootAccessEnabled),
 			}
 
 			results = append(results, result)
@@ -756,13 +834,18 @@ func flattenNetAppVolumeExportPolicyRule(input *netapp.VolumePropertiesExportPol
 		if v := item.UnixReadWrite; v != nil {
 			unixReadWrite = *v
 		}
+		rootAccessEnabled := false
+		if v := item.HasRootAccess; v != nil {
+			rootAccessEnabled = *v
+		}
 
 		results = append(results, map[string]interface{}{
-			"rule_index":        ruleIndex,
-			"allowed_clients":   utils.FlattenStringSlice(&allowedClients),
-			"unix_read_only":    unixReadOnly,
-			"unix_read_write":   unixReadWrite,
-			"protocols_enabled": utils.FlattenStringSlice(&protocolsEnabled),
+			"rule_index":          ruleIndex,
+			"allowed_clients":     utils.FlattenStringSlice(&allowedClients),
+			"unix_read_only":      unixReadOnly,
+			"unix_read_write":     unixReadWrite,
+			"root_access_enabled": rootAccessEnabled,
+			"protocols_enabled":   utils.FlattenStringSlice(&protocolsEnabled),
 			// TODO: Remove in next major version
 			"cifs_enabled":  cifsEnabled,
 			"nfsv3_enabled": nfsv3Enabled,
@@ -789,7 +872,11 @@ func flattenNetAppVolumeMountIPAddresses(input *[]netapp.MountTargetProperties) 
 }
 
 func flattenNetAppVolumeDataProtectionReplication(input *netapp.VolumePropertiesDataProtection) []interface{} {
-	if input == nil || input.Replication == nil || strings.ToLower(string(input.Replication.EndpointType)) != "dst" {
+	if input == nil || input.Replication == nil {
+		return []interface{}{}
+	}
+
+	if strings.ToLower(string(input.Replication.EndpointType)) == "" || strings.ToLower(string(input.Replication.EndpointType)) != "dst" {
 		return []interface{}{}
 	}
 

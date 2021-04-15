@@ -538,8 +538,7 @@ resource "azurerm_snapshot" "test" {
   create_option       = "Import"
   source_uri          = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
   depends_on = [
-    azurerm_virtual_machine,
-    test,
+    azurerm_virtual_machine.test,
   ]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)

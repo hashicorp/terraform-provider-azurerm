@@ -109,8 +109,8 @@ func resourceMediaServicesAccount() *schema.Resource {
 				Optional: true,
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(media.ManagedIdentity),
-					string(media.System),
+					string(media.StorageAuthenticationSystem),
+					string(media.StorageAuthenticationManagedIdentity),
 				}, true),
 			},
 

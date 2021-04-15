@@ -10,10 +10,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
 
-// TODO: remove once one of the PR's has been merged
-var _ = importSentinelDataConnector(securityinsight.DataConnectorKindAmazonWebServicesCloudTrail)
-var _ = assertDataConnectorKind(securityinsight.AADDataConnector{}, securityinsight.DataConnectorKindAmazonWebServicesCloudTrail)
-
 func importSentinelDataConnector(expectKind securityinsight.DataConnectorKind) func(d *schema.ResourceData, meta interface{}) (data []*schema.ResourceData, err error) {
 	return func(d *schema.ResourceData, meta interface{}) (data []*schema.ResourceData, err error) {
 		id, err := parse.DataConnectorID(d.Id())
@@ -25,7 +21,7 @@ func importSentinelDataConnector(expectKind securityinsight.DataConnectorKind) f
 		ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 		defer cancel()
 
-		resp, err := client.Get(ctx, id.ResourceGroup, operationalInsightsResourceProvider, id.WorkspaceName, id.Name)
+		resp, err := client.Get(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.Name)
 		if err != nil {
 			return nil, fmt.Errorf("retrieving Sentinel Alert Rule %q: %+v", id, err)
 		}
@@ -42,6 +38,8 @@ func assertDataConnectorKind(dc securityinsight.BasicDataConnector, expectKind s
 	switch dc.(type) {
 	case securityinsight.AADDataConnector:
 		kind = securityinsight.DataConnectorKindAzureActiveDirectory
+	case securityinsight.AATPDataConnector:
+		kind = securityinsight.DataConnectorKindAzureAdvancedThreatProtection
 	case securityinsight.ASCDataConnector:
 		kind = securityinsight.DataConnectorKindAzureSecurityCenter
 	case securityinsight.MCASDataConnector:

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
@@ -76,7 +76,7 @@ func withJsonWorkingAroundTheBrokenNetworkAPI(v network.Interface) autorest.Prep
 					b, err = json.Marshal(out)
 					if err == nil {
 						r.ContentLength = int64(len(b))
-						r.Body = ioutil.NopCloser(bytes.NewReader(b))
+						r.Body = io.NopCloser(bytes.NewReader(b))
 					}
 				}
 			}

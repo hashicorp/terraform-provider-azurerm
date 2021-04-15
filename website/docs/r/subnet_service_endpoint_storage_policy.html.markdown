@@ -15,7 +15,7 @@ Manages a Subnet Service Endpoint Storage Policy.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-rg"
-  location = "west europe"
+  location = "West Europe"
 }
 
 resource "azurerm_subnet_service_endpoint_storage_policy" "example" {

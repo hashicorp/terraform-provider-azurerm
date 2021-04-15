@@ -19,7 +19,7 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "Southeast Asia"
+  location = "West Europe"
 }
 
 resource "azurerm_spring_cloud_service" "example" {
@@ -56,6 +56,8 @@ The following arguments are supported:
 * `https_only` - (Optional) Is only https allowed? Defaults to `false`.
 
 * `persistent_disk` - (Optional) An `persistent_disk` block as defined below.
+
+* `tls_enabled` - (Optional) Is End to End TLS Enabled? Defaults to `false`.
 
 ---
 

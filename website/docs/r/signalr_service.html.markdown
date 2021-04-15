@@ -15,7 +15,7 @@ Manages an Azure SignalR service.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "terraform-signalr"
-  location = "West US"
+  location = "West Europe"
 }
 
 resource "azurerm_signalr_service" "example" {
@@ -36,6 +36,13 @@ resource "azurerm_signalr_service" "example" {
     flag  = "ServiceMode"
     value = "Default"
   }
+
+  upstream_endpoint {
+    category_pattern = ["connections", "messages"]
+    event_pattern    = ["*"]
+    hub_pattern      = ["hub1"]
+    url_template     = "http://foo.com"
+  }
 }
 ```
 
@@ -55,6 +62,8 @@ The following arguments are supported:
 
 * `features` - (Optional) A `features` block as documented below.
 
+* `upstream_endpoint` - (Optional) An `upstream_endpoint` block as documented below. Using this block requires the SignalR service to be Serverless. When creating multiple blocks they will be processed in the order they are defined in.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -70,6 +79,18 @@ A `features` block supports the following:
 * `flag` - (Required) The kind of Feature. Possible values are `EnableConnectivityLogs`, `EnableMessagingLogs`, and `ServiceMode`.
 
 * `value` - (Required) A value of a feature flag. Possible values are `Classic`, `Default` and `Serverless`.
+
+---
+
+An `upstream_endpoint` block supports the following:
+
+* `url_template` - (Required) The upstream URL Template. This can be a url or a template such as `http://host.com/{hub}/api/{category}/{event}`.
+
+* `category_pattern` - (Optional) The categories to match on, or `*` for all.
+
+* `event_pattern` - (Optional) The events to match on, or `*` for all.
+
+* `hub_pattern` - (Optional) The hubs to match on, or `*` for all.
 
 ---
 

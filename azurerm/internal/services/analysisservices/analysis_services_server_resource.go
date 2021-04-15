@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"log"
-	"regexp"
 	"strings"
 	"time"
 
@@ -13,9 +12,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/analysisservices/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/analysisservices/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -46,7 +47,7 @@ func resourceAnalysisServicesServer() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAnalysisServicesServerName,
+				ValidateFunc: validate.ServerName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -94,12 +95,12 @@ func resourceAnalysisServicesServer() *schema.Resource {
 						"range_start": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.IPv4Address,
+							ValidateFunc: azValidate.IPv4Address,
 						},
 						"range_end": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.IPv4Address,
+							ValidateFunc: azValidate.IPv4Address,
 						},
 					},
 				},
@@ -110,7 +111,7 @@ func resourceAnalysisServicesServer() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validateQuerypoolConnectionMode(),
+				ValidateFunc: validate.QueryPoolConnectionMode(),
 			},
 
 			"backup_blob_container_uri": {
@@ -132,24 +133,23 @@ func resourceAnalysisServicesServer() *schema.Resource {
 
 func resourceAnalysisServicesServerCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AnalysisServices.ServerClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Analysis Services Server creation.")
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
+	id := parse.NewServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		server, err := client.GetDetails(ctx, resourceGroup, name)
+		server, err := client.GetDetails(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(server.Response) {
-				return fmt.Errorf("Error checking for presence of existing Analysis Services Server %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if server.ID != nil && *server.ID != "" {
-			return tf.ImportAsExistsError("azurerm_analysis_services_server", *server.ID)
+		if !utils.ResponseWasNotFound(server.Response) {
+			return tf.ImportAsExistsError("azurerm_analysis_services_server", id.ID())
 		}
 	}
 
@@ -161,33 +161,22 @@ func resourceAnalysisServicesServerCreate(d *schema.ResourceData, meta interface
 	t := d.Get("tags").(map[string]interface{})
 
 	analysisServicesServer := analysisservices.Server{
-		Name:             &name,
 		Location:         &location,
 		Sku:              &analysisservices.ResourceSku{Name: &sku},
 		ServerProperties: serverProperties,
 		Tags:             tags.Expand(t),
 	}
 
-	future, err := client.Create(ctx, resourceGroup, name, analysisServicesServer)
+	future, err := client.Create(ctx, id.ResourceGroup, id.Name, analysisServicesServer)
 	if err != nil {
-		return fmt.Errorf("Error creating Analysis Services Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for completion of Analysis Services Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for completion of %s: %+v", id, err)
 	}
 
-	resp, getDetailsErr := client.GetDetails(ctx, resourceGroup, name)
-	if getDetailsErr != nil {
-		return fmt.Errorf("Error retrieving Analytics Services Server %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read ID for Analytics Services Server %q (Resource Group %q)", name, resourceGroup)
-	}
-
-	d.SetId(*resp.ID)
-
+	d.SetId(id.ID())
 	return resourceAnalysisServicesServerRead(d, meta)
 }
 
@@ -207,15 +196,12 @@ func resourceAnalysisServicesServerRead(d *schema.ResourceData, meta interface{}
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving Analytics Services Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-
-	if location := server.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(server.Location))
 
 	if server.Sku != nil {
 		d.Set("sku", server.Sku.Name)
@@ -332,25 +318,6 @@ func resourceAnalysisServicesServerDelete(d *schema.ResourceData, meta interface
 	}
 
 	return nil
-}
-
-func validateAnalysisServicesServerName(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-
-	if !regexp.MustCompile(`^[a-z][0-9a-z]{2,62}$`).Match([]byte(value)) {
-		errors = append(errors, fmt.Errorf("%q must begin with a letter, be lowercase alphanumeric, and be between 3 and 63 characters in length", k))
-	}
-
-	return warnings, errors
-}
-
-func validateQuerypoolConnectionMode() schema.SchemaValidateFunc {
-	connectionModes := make([]string, len(analysisservices.PossibleConnectionModeValues()))
-	for i, v := range analysisservices.PossibleConnectionModeValues() {
-		connectionModes[i] = string(v)
-	}
-
-	return validation.StringInSlice(connectionModes, true)
 }
 
 func expandAnalysisServicesServerProperties(d *schema.ResourceData) *analysisservices.ServerProperties {

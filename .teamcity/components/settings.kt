@@ -19,17 +19,20 @@ var runNightly = mapOf(
 
 // specifies a list of services which should be run with a custom test configuration
 var serviceTestConfigurationOverrides = mapOf(
-        // Spring Cloud only allows a max of 10 provisioned
-        "appplatform" to testConfiguration(5, defaultStartHour),
-
         // these tests all conflict with one another
         "authorization" to testConfiguration(1, defaultStartHour),
+
+        //Blueprints are constrained on the number of targets available - these execute quickly, so can be serialised
+        "blueprints" to testConfiguration(1, defaultStartHour),
 
         // The AKS API has a low rate limit
         "containers" to testConfiguration(5, defaultStartHour),
 
         // Data Lake has a low quota
         "datalake" to testConfiguration(2, defaultStartHour),
+
+        // HPC Cache has a 4 instance per subscription quota as of early 2021
+        "hpccache" to testConfiguration(3, defaultStartHour),
 
         // HSM has low quota and potentially slow recycle time
         "hsm" to testConfiguration(1, defaultStartHour),
@@ -43,5 +46,11 @@ var serviceTestConfigurationOverrides = mapOf(
 
         // SignalR only allows provisioning one "Free" instance at a time,
         // which is used in multiple tests
-        "signalr" to testConfiguration(1, defaultStartHour)
+        "signalr" to testConfiguration(1, defaultStartHour),
+
+        // Spring Cloud only allows a max of 10 provisioned
+        "springcloud" to testConfiguration(5, defaultStartHour),
+
+        // Currently have a quota of 10 nodes, 3 nodes required per test so lets limit it to 3
+        "vmware" to testConfiguration(3, defaultStartHour)
 )

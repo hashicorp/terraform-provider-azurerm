@@ -69,7 +69,7 @@ func resourceDataFactory() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								"SystemAssigned",
+								string(datafactory.SystemAssigned),
 							}, false),
 						},
 						"principal_id": {
@@ -210,7 +210,7 @@ func resourceDataFactoryCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	if v, ok := d.GetOk("identity.0.type"); ok {
 		identityType := v.(string)
 		dataFactory.Identity = &datafactory.FactoryIdentity{
-			Type: &identityType,
+			Type: datafactory.FactoryIdentityType(identityType),
 		}
 	}
 
@@ -417,9 +417,7 @@ func flattenDataFactoryIdentity(identity *datafactory.FactoryIdentity) interface
 	}
 
 	result := make(map[string]interface{})
-	if identity.Type != nil {
-		result["type"] = *identity.Type
-	}
+	result["type"] = string(identity.Type)
 	if identity.PrincipalID != nil {
 		result["principal_id"] = identity.PrincipalID.String()
 	}

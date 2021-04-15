@@ -185,8 +185,7 @@ func (r BackendAddressPoolAddressResource) Read() sdk.ResourceFunc {
 				}
 			}
 			if backendAddress == nil {
-				metadata.Logger.Warnf("%s was not found - removing from state!")
-				return metadata.MarkAsGone()
+				return metadata.MarkAsGone(id)
 			}
 
 			backendAddressPoolId := parse.NewLoadBalancerBackendAddressPoolID(id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName, id.BackendAddressPoolName)

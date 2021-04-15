@@ -355,7 +355,8 @@ func resourceCosmosDbAccount() *schema.Resource {
 				Computed:  true,
 				Sensitive: true,
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
+					Type:      schema.TypeString,
+					Sensitive: true,
 				},
 			},
 
@@ -999,6 +1000,17 @@ func findZoneRedundant(locations *[]documentdb.Location, id string) bool {
 		if location.ID != nil && *location.ID == id {
 			if location.IsZoneRedundant != nil {
 				return *location.IsZoneRedundant
+			}
+		}
+	}
+	return false
+}
+
+func isServerlessCapacityMode(accResp documentdb.DatabaseAccountGetResults) bool {
+	if props := accResp.DatabaseAccountGetProperties; props != nil && props.Capabilities != nil {
+		for _, v := range *props.Capabilities {
+			if v.Name != nil && *v.Name == "EnableServerless" {
+				return true
 			}
 		}
 	}

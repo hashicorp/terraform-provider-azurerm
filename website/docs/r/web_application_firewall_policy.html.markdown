@@ -15,7 +15,7 @@ Manages a Azure Web Application Firewall Policy instance.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-rg"
-  location = "West US 2"
+  location = "West Europe"
 }
 
 resource "azurerm_web_application_firewall_policy" "example" {
@@ -122,6 +122,10 @@ The following arguments are supported:
 
 * `managed_rules` - (Required) A `managed_rules` blocks as defined below.
 
+* `http_listener_ids` - (Optional) A list of HTTP Listener IDs from an `azurerm_application_gateway`.
+
+* `path_based_rule_ids` - (Optional) A list of URL Path Map Path Rule IDs from an `azurerm_application_gateway`.
+
 * `tags` - (Optional) A mapping of tags to assign to the Web Application Firewall Policy.
 
 ---
@@ -164,11 +168,11 @@ The `match_variables` block supports the following:
 
 The `policy_settings` block supports the following:
 
-* `enabled` - (Optional) Describes if the policy is in enabled state or disabled state. Defaults to `Enabled`.
+* `enabled` - (Optional) Describes if the policy is in enabled state or disabled state. Defaults to `true`.
 
 * `mode` - (Optional) Describes if it is in detection mode or prevention mode at the policy level. Defaults to `Prevention`.
 
-* `file_upload_limit_mb` - (Optional) The File Upload Limit in MB. Accepted values are in the range `1` to `750`. Defaults to `100`.
+* `file_upload_limit_in_mb` - (Optional) The File Upload Limit in MB. Accepted values are in the range `1` to `750`. Defaults to `100`.
 
 * `request_body_check` - (Optional) Is Request Body Inspection enabled? Defaults to `true`.
 
@@ -180,7 +184,7 @@ The `managed_rules` block supports the following:
 
 * `exclusion` - (Optional) One or more `exclusion` block defined below.
 
-* `managed_rule_set` - (Optional) One or more `managed_rule_set` block defined below.
+* `managed_rule_set` - (Required) One or more `managed_rule_set` block defined below.
 
 ---
 
@@ -198,7 +202,7 @@ The `managed_rule_set` block supports the following:
 
 * `type` - (Optional) The rule set type. Possible values: `Microsoft_BotManagerRuleSet` and `OWASP`.
 
-* `version` - (Required) The rule set version. Possible values: `0.1`, `1.0`, `2.2.9`, `3.0` and `3.1`.
+* `version` - (Required) The rule set version. Possible values: `0.1`, `1.0`, `2.2.9`, `3.0`, `3.1` and `3.2`.
 
 * `rule_group_override` - (Optional) One or more `rule_group_override` block defined below.
 

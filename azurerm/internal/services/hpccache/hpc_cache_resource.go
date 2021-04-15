@@ -3,9 +3,12 @@ package hpccache
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2020-03-01/storagecache"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+
+	"github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2021-03-01/storagecache"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -25,10 +28,10 @@ func resourceHPCCache() *schema.Resource {
 		Delete: resourceHPCCacheDelete,
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
+			Create: schema.DefaultTimeout(60 * time.Minute),
+			Update: schema.DefaultTimeout(60 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(60 * time.Minute),
 		},
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.CacheID(id)
@@ -85,14 +88,119 @@ func resourceHPCCache() *schema.Resource {
 				ValidateFunc: validation.IntBetween(576, 1500),
 			},
 
-			"root_squash_enabled": {
-				Type:     schema.TypeBool,
+			"ntp_server": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "time.windows.com",
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"dns": {
+				Type:     schema.TypeList,
 				Optional: true,
-				// TODO 3.0: remove "Computed: true" and add "Default: true"
-				// The old resource has no consistent default for the rootSquash setting. In order not to
-				// break users, we intentionally mark this property as Computed.
-				// https://docs.microsoft.com/en-us/azure/hpc-cache/configuration#configure-root-squash.
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"servers": {
+							Type:     schema.TypeList,
+							Required: true,
+							MaxItems: 3,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.IsIPAddress,
+							},
+						},
+
+						"search_domain": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
+
+			// TODO 3.0: remove this property
+			"root_squash_enabled": {
+				Type:       schema.TypeBool,
+				Optional:   true,
+				Computed:   true,
+				Deprecated: "This property is not functional and will be deprecated in favor of `default_access_policy.0.access_rule.x.root_squash_enabled`, where the scope of access_rule is `default`.",
+			},
+
+			"default_access_policy": {
+				Type:     schema.TypeList,
+				MinItems: 1,
+				MaxItems: 1,
+				Optional: true,
+				// This is computed because there is always a "default" policy in the cache. It is created together with the cache, and users can't remove it.
 				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"access_rule": {
+							Type:     schema.TypeSet,
+							Required: true,
+							MinItems: 1,
+							MaxItems: 3,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"scope": {
+										Type:     schema.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(storagecache.Default),
+											string(storagecache.Network),
+											string(storagecache.Host),
+										}, false),
+									},
+
+									"access": {
+										Type:     schema.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(storagecache.NfsAccessRuleAccessRw),
+											string(storagecache.NfsAccessRuleAccessRo),
+											string(storagecache.NfsAccessRuleAccessNo),
+										}, false),
+									},
+
+									"filter": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
+									"suid_enabled": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+
+									"submount_access_enabled": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+
+									"root_squash_enabled": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+
+									"anonymous_uid": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntAtLeast(0),
+									},
+
+									"anonymous_gid": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntAtLeast(0),
+									},
+								},
+							},
+						},
+					},
+				},
 			},
 
 			"mount_addresses": {
@@ -100,12 +208,15 @@ func resourceHPCCache() *schema.Resource {
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
+
+			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceHPCCacheCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HPCCache.CachesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -113,16 +224,18 @@ func resourceHPCCacheCreateOrUpdate(d *schema.ResourceData, meta interface{}) er
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
+	id := parse.NewCacheID(subscriptionId, resourceGroup, name)
+
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing HPC Cache %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("Error checking for presence of existing HPC Cache %q: %s", id, err)
 			}
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_hpc_cache", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_hpc_cache", id.ID())
 		}
 	}
 
@@ -130,25 +243,45 @@ func resourceHPCCacheCreateOrUpdate(d *schema.ResourceData, meta interface{}) er
 	cacheSize := d.Get("cache_size_in_gb").(int)
 	subnet := d.Get("subnet_id").(string)
 	skuName := d.Get("sku_name").(string)
-	rootSquash := d.Get("root_squash_enabled").(bool)
-	mtu := d.Get("mtu").(int)
+
+	var accessPolicies []storagecache.NfsAccessPolicy
+	if !d.IsNewResource() {
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		if err != nil {
+			return fmt.Errorf("retrieving existing HPC Cache %q: %v", id, err)
+		}
+		if prop := existing.CacheProperties; prop != nil {
+			if settings := existing.SecuritySettings; settings != nil {
+				if policies := settings.AccessPolicies; policies != nil {
+					accessPolicies = *policies
+				}
+			}
+		}
+	}
+	defaultAccessPolicy := expandStorageCacheDefaultAccessPolicy(d.Get("default_access_policy").([]interface{}))
+	if defaultAccessPolicy != nil {
+		var err error
+		accessPolicies, err = CacheInsertOrUpdateAccessPolicy(accessPolicies, *defaultAccessPolicy)
+		if err != nil {
+			return err
+		}
+	}
 
 	cache := &storagecache.Cache{
 		Name:     utils.String(name),
 		Location: utils.String(location),
 		CacheProperties: &storagecache.CacheProperties{
-			CacheSizeGB: utils.Int32(int32(cacheSize)),
-			Subnet:      utils.String(subnet),
-			NetworkSettings: &storagecache.CacheNetworkSettings{
-				Mtu: utils.Int32(int32(mtu)),
-			},
+			CacheSizeGB:     utils.Int32(int32(cacheSize)),
+			Subnet:          utils.String(subnet),
+			NetworkSettings: expandStorageCacheNetworkSettings(d),
 			SecuritySettings: &storagecache.CacheSecuritySettings{
-				RootSquash: &rootSquash,
+				AccessPolicies: &accessPolicies,
 			},
 		},
 		Sku: &storagecache.CacheSku{
 			Name: utils.String(skuName),
 		},
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, cache)
@@ -190,7 +323,7 @@ func resourceHPCCacheRead(d *schema.ResourceData, meta interface{}) error {
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving HPC Cache %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Error retrieving HPC Cache %q: %+v", id, err)
 	}
 
 	d.Set("name", id.Name)
@@ -201,11 +334,32 @@ func resourceHPCCacheRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("cache_size_in_gb", props.CacheSizeGB)
 		d.Set("subnet_id", props.Subnet)
 		d.Set("mount_addresses", utils.FlattenStringSlice(props.MountAddresses))
-		if props.NetworkSettings != nil {
-			d.Set("mtu", props.NetworkSettings.Mtu)
+
+		mtu, ntpServer, dnsSetting := flattenStorageCacheNetworkSettings(props.NetworkSettings)
+		d.Set("mtu", mtu)
+		d.Set("ntp_server", ntpServer)
+		if err := d.Set("dns", dnsSetting); err != nil {
+			return fmt.Errorf("setting `dns`: %v", err)
 		}
-		if props.SecuritySettings != nil {
-			d.Set("root_squash_enabled", props.SecuritySettings.RootSquash)
+
+		if securitySettings := props.SecuritySettings; securitySettings != nil {
+			if securitySettings.AccessPolicies != nil {
+				defaultPolicy := CacheGetAccessPolicyByName(*securitySettings.AccessPolicies, "default")
+				if defaultPolicy != nil {
+					defaultAccessPolicy, err := flattenStorageCacheNfsDefaultAccessPolicy(*defaultPolicy)
+					if err != nil {
+						return err
+					}
+					if err := d.Set("default_access_policy", defaultAccessPolicy); err != nil {
+						return fmt.Errorf("setting `default_access_policy`: %v", err)
+					}
+
+					// Set the "root_squash_enabled" for whatever is set in the config, to make any existing .tf that has specified this property
+					// not encounter plan diff.
+					// TODO 3.0 - remove this part.
+					d.Set("root_squash_enabled", d.Get("root_squash_enabled"))
+				}
+			}
 		}
 	}
 
@@ -213,7 +367,7 @@ func resourceHPCCacheRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("sku_name", sku.Name)
 	}
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceHPCCacheDelete(d *schema.ResourceData, meta interface{}) error {
@@ -236,4 +390,154 @@ func resourceHPCCacheDelete(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	return nil
+}
+
+func expandStorageCacheDefaultAccessPolicy(input []interface{}) *storagecache.NfsAccessPolicy {
+	if len(input) == 0 {
+		return nil
+	}
+
+	return &storagecache.NfsAccessPolicy{
+		Name:        utils.String("default"),
+		AccessRules: expandStorageCacheNfsAccessRules(input[0].(map[string]interface{})["access_rule"].(*schema.Set).List()),
+	}
+}
+
+func flattenStorageCacheNfsDefaultAccessPolicy(input storagecache.NfsAccessPolicy) ([]interface{}, error) {
+	rules, err := flattenStorageCacheNfsAccessRules(input.AccessRules)
+	if err != nil {
+		return nil, err
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"access_rule": rules,
+		},
+	}, nil
+}
+
+func expandStorageCacheNfsAccessRules(input []interface{}) *[]storagecache.NfsAccessRule {
+	var out []storagecache.NfsAccessRule
+	for _, accessRuleRaw := range input {
+		b := accessRuleRaw.(map[string]interface{})
+		out = append(out, storagecache.NfsAccessRule{
+			Scope:          storagecache.NfsAccessRuleScope(b["scope"].(string)),
+			Access:         storagecache.NfsAccessRuleAccess(b["access"].(string)),
+			Filter:         utils.String(b["filter"].(string)),
+			Suid:           utils.Bool(b["suid_enabled"].(bool)),
+			SubmountAccess: utils.Bool(b["submount_access_enabled"].(bool)),
+			RootSquash:     utils.Bool(b["root_squash_enabled"].(bool)),
+			AnonymousUID:   utils.String(strconv.Itoa(b["anonymous_uid"].(int))),
+			AnonymousGID:   utils.String(strconv.Itoa(b["anonymous_gid"].(int))),
+		})
+	}
+	return &out
+}
+
+func flattenStorageCacheNfsAccessRules(input *[]storagecache.NfsAccessRule) ([]interface{}, error) {
+	if input == nil {
+		return nil, nil
+	}
+
+	var rules []interface{}
+	for _, accessRule := range *input {
+		filter := ""
+		if accessRule.Filter != nil {
+			filter = *accessRule.Filter
+		}
+
+		suidEnabled := false
+		if accessRule.Suid != nil {
+			suidEnabled = *accessRule.Suid
+		}
+
+		submountAccessEnabled := false
+		if accessRule.SubmountAccess != nil {
+			submountAccessEnabled = *accessRule.SubmountAccess
+		}
+
+		rootSquashEnabled := false
+		if accessRule.RootSquash != nil {
+			rootSquashEnabled = *accessRule.RootSquash
+		}
+
+		anonymousUID := 0
+		if accessRule.AnonymousUID != nil {
+			var err error
+			anonymousUID, err = strconv.Atoi(*accessRule.AnonymousUID)
+			if err != nil {
+				return nil, fmt.Errorf("converting `anonymous_uid` from string to int")
+			}
+		}
+
+		anonymousGID := 0
+		if accessRule.AnonymousGID != nil {
+			var err error
+			anonymousGID, err = strconv.Atoi(*accessRule.AnonymousGID)
+			if err != nil {
+				return nil, fmt.Errorf("converting `anonymous_gid` from string to int")
+			}
+		}
+
+		rules = append(rules, map[string]interface{}{
+			"scope":                   accessRule.Scope,
+			"access":                  accessRule.Access,
+			"filter":                  filter,
+			"suid_enabled":            suidEnabled,
+			"submount_access_enabled": submountAccessEnabled,
+			"root_squash_enabled":     rootSquashEnabled,
+			"anonymous_uid":           anonymousUID,
+			"anonymous_gid":           anonymousGID,
+		})
+	}
+
+	return rules, nil
+}
+
+func expandStorageCacheNetworkSettings(d *schema.ResourceData) *storagecache.CacheNetworkSettings {
+	out := &storagecache.CacheNetworkSettings{
+		Mtu:       utils.Int32(int32(d.Get("mtu").(int))),
+		NtpServer: utils.String(d.Get("ntp_server").(string)),
+	}
+
+	if dnsSetting, ok := d.GetOk("dns"); ok {
+		dnsSetting := dnsSetting.([]interface{})[0].(map[string]interface{})
+		out.DNSServers = utils.ExpandStringSlice(dnsSetting["servers"].([]interface{}))
+		searchDomain := dnsSetting["search_domain"].(string)
+		if searchDomain != "" {
+			out.DNSSearchDomain = &searchDomain
+		}
+	}
+	return out
+}
+
+func flattenStorageCacheNetworkSettings(settings *storagecache.CacheNetworkSettings) (mtu int, ntpServer string, dnsSetting []interface{}) {
+	if settings == nil {
+		return
+	}
+
+	if settings.Mtu != nil {
+		mtu = int(*settings.Mtu)
+	}
+
+	if settings.NtpServer != nil {
+		ntpServer = *settings.NtpServer
+	}
+
+	if settings.DNSServers != nil {
+		dnsServers := utils.FlattenStringSlice(settings.DNSServers)
+
+		searchDomain := ""
+		if settings.DNSSearchDomain != nil {
+			searchDomain = *settings.DNSSearchDomain
+		}
+
+		dnsSetting = []interface{}{
+			map[string]interface{}{
+				"servers":       dnsServers,
+				"search_domain": searchDomain,
+			},
+		}
+	}
+	return
 }

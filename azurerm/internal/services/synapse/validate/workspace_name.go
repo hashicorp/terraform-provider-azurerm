@@ -14,18 +14,18 @@ func WorkspaceName(i interface{}, k string) (warnings []string, errors []error) 
 	}
 
 	// The name attribute rules are :
-	// 1. can contain only lowercase letters or numbers.
-	// 2. must not end with the string 'ondemand'
-	// 3. The value must be between 1 and 45 characters long
+	// 1. can contain only lowercase letters, numbers or hyphens
+	// 2. must start and end with a lowercase letter or number
+	// 3. must not contain the string '-ondemand'
+	// 4. The value must be between 1 and 50 characters long
 
-	if !regexp.MustCompile(`^[a-z\d]{1,45}$`).MatchString(v) {
-		errors = append(errors, fmt.Errorf("%s can contain only lowercase letters or numbers, and be between 1 and 45 characters long", k))
+	if !regexp.MustCompile(`^[a-z0-9]([a-z0-9-]{0,48}[a-z0-9])?$`).MatchString(v) {
+		errors = append(errors, fmt.Errorf("%s must start and end with a letter or number, can contain only lowercase letters, numbers or hyphens, and be between 1 and 50 characters long", k))
 		return
 	}
-	if strings.HasSuffix(v, "ondemand") {
-		errors = append(errors, fmt.Errorf("%s must not end with the string 'ondemand'", k))
+	if strings.Contains(v, "-ondemand") {
+		errors = append(errors, fmt.Errorf("%s must not contain the string '-ondemand'", k))
 		return
 	}
-
 	return warnings, errors
 }

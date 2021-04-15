@@ -292,6 +292,12 @@ func resourceMsSqlDatabase() *schema.Resource {
 				},
 			},
 
+			"geo_backup_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"tags": tags.Schema(),
 		},
 
@@ -311,6 +317,8 @@ func resourceMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{})
 	threatClient := meta.(*clients.Client).MSSQL.DatabaseThreatDetectionPoliciesClient
 	longTermRetentionClient := meta.(*clients.Client).MSSQL.BackupLongTermRetentionPoliciesClient
 	shortTermRetentionClient := meta.(*clients.Client).MSSQL.BackupShortTermRetentionPoliciesClient
+	geoBackupPoliciesClient := meta.(*clients.Client).MSSQL.GeoBackupPoliciesClient
+
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -444,6 +452,31 @@ func resourceMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{})
 
 	d.SetId(*read.ID)
 
+	// For datawarehouse SKUs only
+	if strings.HasPrefix(skuName.(string), "DW") && (d.HasChange("geo_backup_enabled") || d.IsNewResource()) {
+		isEnabled := d.Get("geo_backup_enabled").(bool)
+		var geoBackupPolicyState sql.GeoBackupPolicyState
+
+		// The default geo backup policy configuration for a new resource is 'enabled', so we don't need to set it in that scenario
+		if !(d.IsNewResource() && isEnabled) {
+			if isEnabled {
+				geoBackupPolicyState = sql.GeoBackupPolicyStateEnabled
+			} else {
+				geoBackupPolicyState = sql.GeoBackupPolicyStateDisabled
+			}
+
+			geoBackupPolicy := sql.GeoBackupPolicy{
+				GeoBackupPolicyProperties: &sql.GeoBackupPolicyProperties{
+					State: geoBackupPolicyState,
+				},
+			}
+
+			if _, err := geoBackupPoliciesClient.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, name, geoBackupPolicy); err != nil {
+				return fmt.Errorf("Error issuing create/update request for Sql Server %q (Database %q) Geo backup policies (Resource Group %q): %+v", serverId.Name, name, serverId.ResourceGroup, err)
+			}
+		}
+	}
+
 	if _, err = threatClient.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, name, *expandMsSqlServerThreatDetectionPolicy(d, location)); err != nil {
 		return fmt.Errorf("setting database threat detection policy: %+v", err)
 	}
@@ -509,6 +542,7 @@ func resourceMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error {
 	auditingClient := meta.(*clients.Client).MSSQL.DatabaseExtendedBlobAuditingPoliciesClient
 	longTermRetentionClient := meta.(*clients.Client).MSSQL.BackupLongTermRetentionPoliciesClient
 	shortTermRetentionClient := meta.(*clients.Client).MSSQL.BackupShortTermRetentionPoliciesClient
+	geoBackupPoliciesClient := meta.(*clients.Client).MSSQL.GeoBackupPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -577,6 +611,8 @@ func resourceMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("failure in setting `extended_auditing_policy`: %+v", err)
 	}
 
+	geoBackupPolicy := true
+
 	// Hyper Scale SKU's do not currently support LRP and do not honour normal SRP operations
 	if !strings.HasPrefix(skuName, "HS") && !strings.HasPrefix(skuName, "DW") {
 		longTermPolicy, err := longTermRetentionClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
@@ -602,6 +638,24 @@ func resourceMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error {
 		zero := make([]interface{}, 0)
 		d.Set("long_term_retention_policy", zero)
 		d.Set("short_term_retention_policy", zero)
+
+		geoPoliciesResponse, err := geoBackupPoliciesClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				d.SetId("")
+				return nil
+			}
+			return fmt.Errorf("reading MsSql Database %s (MsSql Server Name %q / Resource Group %q): %s", id.Name, id.ServerName, id.ResourceGroup, err)
+		}
+
+		// For Datawarehouse SKUs, set the geo-backup policy setting
+		if strings.HasPrefix(skuName, "DW") && geoPoliciesResponse.GeoBackupPolicyProperties.State == sql.GeoBackupPolicyStateDisabled {
+			geoBackupPolicy = false
+		}
+	}
+
+	if err := d.Set("geo_backup_enabled", geoBackupPolicy); err != nil {
+		return fmt.Errorf("failure in setting `geo_backup_enabled`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

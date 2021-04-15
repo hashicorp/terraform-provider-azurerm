@@ -21,6 +21,7 @@ import (
 	bot "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot/client"
 	cdn "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn/client"
 	cognitiveServices "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cognitive/client"
+	communication "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/communication/client"
 	compute "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/client"
 	containerServices "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/client"
 	cosmosdb "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/client"
@@ -74,6 +75,7 @@ import (
 	postgres "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/client"
 	powerBI "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/powerbi/client"
 	privatedns "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns/client"
+	purview "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/purview/client"
 	recoveryServices "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/recoveryservices/client"
 	redis "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis/client"
 	redisenterprise "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redisenterprise/client"
@@ -119,6 +121,7 @@ type Client struct {
 	Bot                   *bot.Client
 	Cdn                   *cdn.Client
 	Cognitive             *cognitiveServices.Client
+	Communication         *communication.Client
 	Compute               *compute.Client
 	Containers            *containerServices.Client
 	Cosmos                *cosmosdb.Client
@@ -172,6 +175,7 @@ type Client struct {
 	Postgres              *postgres.Client
 	PowerBI               *powerBI.Client
 	PrivateDns            *privatedns.Client
+	Purview               *purview.Client
 	RecoveryServices      *recoveryServices.Client
 	Redis                 *redis.Client
 	RedisEnterprise       *redisenterprise.Client
@@ -219,6 +223,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Bot = bot.NewClient(o)
 	client.Cdn = cdn.NewClient(o)
 	client.Cognitive = cognitiveServices.NewClient(o)
+	client.Communication = communication.NewClient(o)
 	client.Compute = compute.NewClient(o)
 	client.Containers = containerServices.NewClient(o)
 	client.Cosmos = cosmosdb.NewClient(o)
@@ -272,6 +277,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Postgres = postgres.NewClient(o)
 	client.PowerBI = powerBI.NewClient(o)
 	client.PrivateDns = privatedns.NewClient(o)
+	client.Purview = purview.NewClient(o)
 	client.RecoveryServices = recoveryServices.NewClient(o)
 	client.Redis = redis.NewClient(o)
 	client.RedisEnterprise = redisenterprise.NewClient(o)

@@ -2,6 +2,8 @@ package validate
 
 import (
 	"fmt"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 func DataboxEdgeCountry(v interface{}, k string) (warnings []string, errors []error) {
@@ -19,7 +21,7 @@ func DataboxEdgeCountry(v interface{}, k string) (warnings []string, errors []er
 		}
 	}
 
-	errors = append(errors, fmt.Errorf("expected %q to be one of [%s], got %q", k, prettyErrorString(validCountries), value))
+	errors = append(errors, fmt.Errorf("expected %q to be one of [%s], got %q", k, azure.QuotedStringSlice(validCountries), value))
 
 	return warnings, errors
 }

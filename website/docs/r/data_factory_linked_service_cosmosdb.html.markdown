@@ -17,7 +17,7 @@ Manages a Linked Service (connection) between a SFTP Server and Azure Data Facto
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "northeurope"
+  location = "West Europe"
 }
 
 data "azurerm_cosmosdb_account" "example" {

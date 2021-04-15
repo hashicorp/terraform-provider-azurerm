@@ -70,12 +70,9 @@ resource "azurerm_key_vault_access_policy" "example-disk" {
   object_id = azurerm_disk_encryption_set.example.identity.0.principal_id
 
   key_permissions = [
-    "decrypt",
-    "encrypt",
-    "sign",
-    "unwrapKey",
-    "verify",
-    "wrapKey",
+    "Get",
+    "WrapKey",
+    "UnwrapKey"
   ]
 }
 
