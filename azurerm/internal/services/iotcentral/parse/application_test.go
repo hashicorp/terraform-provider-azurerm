@@ -12,7 +12,7 @@ var _ resourceid.Formatter = ApplicationId{}
 
 func TestApplicationIDFormatter(t *testing.T) {
 	actual := NewApplicationID("12345678-1234-9876-4563-123456789012", "resGroup1", "app1").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.IoTCentral/IoTApps/app1"
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.IoTCentral/ioTApps/app1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
@@ -63,13 +63,13 @@ func TestApplicationID(t *testing.T) {
 
 		{
 			// missing value for IoTAppName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.IoTCentral/IoTApps/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.IoTCentral/ioTApps/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.IoTCentral/IoTApps/app1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.IoTCentral/ioTApps/app1",
 			Expected: &ApplicationId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:  "resGroup1",
@@ -156,13 +156,13 @@ func TestApplicationIDInsensitively(t *testing.T) {
 
 		{
 			// missing value for IoTAppName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.IoTCentral/IoTApps/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.IoTCentral/ioTApps/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.IoTCentral/IoTApps/app1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.IoTCentral/ioTApps/app1",
 			Expected: &ApplicationId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:  "resGroup1",

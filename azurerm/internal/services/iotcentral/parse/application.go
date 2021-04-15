@@ -33,7 +33,7 @@ func (id ApplicationId) String() string {
 }
 
 func (id ApplicationId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.IoTCentral/IoTApps/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.IoTCentral/ioTApps/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.IoTAppName)
 }
 
@@ -57,7 +57,7 @@ func ApplicationID(input string) (*ApplicationId, error) {
 		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
-	if resourceId.IoTAppName, err = id.PopSegment("IoTApps"); err != nil {
+	if resourceId.IoTAppName, err = id.PopSegment("ioTApps"); err != nil {
 		return nil, err
 	}
 
@@ -93,15 +93,15 @@ func ApplicationIDInsensitively(input string) (*ApplicationId, error) {
 		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
-	// find the correct casing for the 'IoTApps' segment
-	IoTAppsKey := "IoTApps"
+	// find the correct casing for the 'ioTApps' segment
+	ioTAppsKey := "ioTApps"
 	for key := range id.Path {
-		if strings.EqualFold(key, IoTAppsKey) {
-			IoTAppsKey = key
+		if strings.EqualFold(key, ioTAppsKey) {
+			ioTAppsKey = key
 			break
 		}
 	}
-	if resourceId.IoTAppName, err = id.PopSegment(IoTAppsKey); err != nil {
+	if resourceId.IoTAppName, err = id.PopSegment(ioTAppsKey); err != nil {
 		return nil, err
 	}
 
