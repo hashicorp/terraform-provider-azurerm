@@ -93,9 +93,10 @@ func (r FrontDoorCustomHttpsConfigurationResource) CustomHttpsKeyVault(data acce
 	return fmt.Sprintf(`
 %s
 
+data "azurerm_client_config" "current" {}
+
 resource "azurerm_frontdoor_custom_https_configuration" "test" {
   frontend_endpoint_id              = azurerm_frontdoor.test.frontend_endpoints[local.endpoint_name]
-  resource_group_name               = azurerm_resource_group.test.name
   custom_https_provisioning_enabled = true
 
   custom_https_configuration {
@@ -109,7 +110,7 @@ resource "azurerm_key_vault" "test" {
   name                = "acctest-FD-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "Standard"
+  sku_name            = "standard"
   tenant_id           = data.azurerm_client_config.current.tenant_id
 }
 
@@ -193,8 +194,6 @@ func (FrontDoorCustomHttpsConfigurationResource) template(data acceptance.TestDa
 provider "azurerm" {
   features {}
 }
-
-data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-frontdoor-%d"
