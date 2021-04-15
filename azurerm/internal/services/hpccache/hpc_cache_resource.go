@@ -511,15 +511,15 @@ func resourceHPCCacheRead(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		if err := d.Set("directory_ad", ad); err != nil {
-			fmt.Errorf("setting `directory_ad`: %v", err)
+			return fmt.Errorf("setting `directory_ad`: %v", err)
 		}
 
 		if err := d.Set("directory_flat_file", flatFile); err != nil {
-			fmt.Errorf("setting `directory_flat_file`: %v", err)
+			return fmt.Errorf("setting `directory_flat_file`: %v", err)
 		}
 
 		if err := d.Set("directory_ldap", ldap); err != nil {
-			fmt.Errorf("setting `directory_ldap`: %v", err)
+			return fmt.Errorf("setting `directory_ldap`: %v", err)
 		}
 
 		if securitySettings := props.SecuritySettings; securitySettings != nil {
@@ -896,7 +896,7 @@ func flattenStorageCacheDirectorySettings(d *schema.ResourceData, input *storage
 			},
 		}, nil
 	default:
-		return nil, nil, nil, nil
+		return nil, nil, nil, fmt.Errorf("source type %q is not supported", ud.UsernameSource)
 	}
 }
 
@@ -910,7 +910,7 @@ func flattenStorageCacheDirectoryLdapBind(d *schema.ResourceData) []interface{} 
 }
 
 func expandStorageCacheDirectoryLdapBind(input []interface{}) *storagecache.CacheUsernameDownloadSettingsCredentials {
-	if input == nil || len(input) == 0 {
+	if len(input) == 0 {
 		return nil
 	}
 	b := input[0].(map[string]interface{})
