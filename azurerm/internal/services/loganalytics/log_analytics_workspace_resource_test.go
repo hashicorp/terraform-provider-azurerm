@@ -193,6 +193,21 @@ func TestAccLogAnalyticsWorkspace_withCapacityReservation(t *testing.T) {
 	})
 }
 
+func TestAccLogAnalyticsWorkspace_negativeOne(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
+	r := LogAnalyticsWorkspaceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withVolumeCap(data, -1.0),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t LogAnalyticsWorkspaceResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.LogAnalyticsWorkspaceID(state.ID)
 	if err != nil {

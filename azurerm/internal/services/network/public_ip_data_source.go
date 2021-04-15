@@ -130,6 +130,11 @@ func dataSourcePublicIPRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("ip_address", props.IPAddress)
 		d.Set("ip_version", string(props.PublicIPAddressVersion))
 		d.Set("idle_timeout_in_minutes", props.IdleTimeoutInMinutes)
+
+		iptags := flattenPublicIpPropsIpTags(*props.IPTags)
+		if iptags != nil {
+			d.Set("ip_tags", iptags)
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

@@ -156,6 +156,9 @@ func (r ConsumerGroupResource) Read() sdk.ResourceFunc {
 			metadata.Logger.Infof("retrieving Consumer Group %q..", id.ConsumergroupName)
 			resp, err := client.Get(ctx, id.ResourceGroup, id.NamespaceName, id.EventhubName, id.ConsumergroupName)
 			if err != nil {
+				if utils.ResponseWasNotFound(resp.Response) {
+					return metadata.MarkAsGone(id)
+				}
 				return fmt.Errorf("reading Consumer Group %q (EventHub %q / Namespace %q / Resource Group %q): %+v", id.ConsumergroupName, id.EventhubName, id.NamespaceName, id.ResourceGroup, err)
 			}
 

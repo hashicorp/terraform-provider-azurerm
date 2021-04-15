@@ -276,6 +276,15 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 				ValidateFunc: computeValidate.VirtualMachineScaleSetID,
 			},
 
+			"platform_fault_domain": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Default:      -1,
+				ForceNew:     true,
+				RequiredWith: []string{"virtual_machine_scale_set_id"},
+				ValidateFunc: validation.IntAtLeast(-1),
+			},
+
 			"winrm_listener": winRmListenerSchema(),
 
 			"zone": {
@@ -515,6 +524,11 @@ func resourceWindowsVirtualMachineCreate(d *schema.ResourceData, meta interface{
 		}
 	}
 
+	platformFaultDomain := d.Get("platform_fault_domain").(int)
+	if platformFaultDomain != -1 {
+		params.PlatformFaultDomain = utils.Int32(int32(platformFaultDomain))
+	}
+
 	if v, ok := d.GetOk("timezone"); ok {
 		params.VirtualMachineProperties.OsProfile.WindowsConfiguration.TimeZone = utils.String(v.(string))
 	}
@@ -644,6 +658,11 @@ func resourceWindowsVirtualMachineRead(d *schema.ResourceData, meta interface{})
 		virtualMachineScaleSetId = *props.VirtualMachineScaleSet.ID
 	}
 	d.Set("virtual_machine_scale_set_id", virtualMachineScaleSetId)
+	platformFaultDomain := -1
+	if props.PlatformFaultDomain != nil {
+		platformFaultDomain = int(*props.PlatformFaultDomain)
+	}
+	d.Set("platform_fault_domain", platformFaultDomain)
 
 	if profile := props.OsProfile; profile != nil {
 		d.Set("admin_username", profile.AdminUsername)

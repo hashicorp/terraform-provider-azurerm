@@ -1,6 +1,8 @@
 package validate
 
-import "github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+import (
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+)
 
 var ValidateWebApplicationFirewallPolicyRuleGroupName = validation.StringInSlice([]string{
 	"crs_20_protocol_violations",
@@ -34,6 +36,7 @@ var ValidateWebApplicationFirewallPolicyRuleSetVersion = validation.StringInSlic
 	"2.2.9",
 	"3.0",
 	"3.1",
+	"3.2",
 }, false)
 
 var ValidateWebApplicationFirewallPolicyRuleSetType = validation.StringInSlice([]string{

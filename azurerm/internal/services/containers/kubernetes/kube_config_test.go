@@ -2,7 +2,7 @@ package kubernetes
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"reflect"
 	"testing"
@@ -185,7 +185,7 @@ func isInvalidConfig(_ KubeConfig, encodedConfig string) (bool, error) {
 
 func LoadConfig(fileName string) string {
 	filePath := filepath.Join("testdata", fileName)
-	bytes, err := ioutil.ReadFile(filePath)
+	bytes, err := os.ReadFile(filePath)
 	if err != nil {
 		return ""
 	}
