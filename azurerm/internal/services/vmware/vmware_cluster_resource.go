@@ -117,11 +117,11 @@ func resourceVmwareClusterCreate(d *schema.ResourceData, meta interface{}) error
 	}
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.PrivateCloudName, id.Name, cluster)
 	if err != nil {
-		return fmt.Errorf("creating Vmware  Cluster %q (Resource Group %q / privateCloudName %q): %+v", id.ResourceGroup, id.ResourceGroup, id.ResourceGroup, err)
+		return fmt.Errorf("creating Vmware  Cluster %q (Resource Group %q / privateCloudName %q): %+v", id.Name, id.ResourceGroup, id.PrivateCloudName, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the creation of the Vmware  Cluster %q (Resource Group %q / privateCloudName %q): %+v", id.ResourceGroup, id.ResourceGroup, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for the creation of the Vmware  Cluster %q (Resource Group %q / privateCloudName %q): %+v", id.Name, id.ResourceGroup, id.PrivateCloudName, err)
 	}
 
 	d.SetId(id.ID())
