@@ -35,9 +35,9 @@ resource "azurerm_mssql_database" "example" {
 }
 
 resource "azurerm_mssql_job_agent" "example" {
-  name                = "example-job-agent"
-  location            = azurerm_resource_group.example.location
-  database_id         = azurerm_mssql_database.example.id
+  name        = "example-job-agent"
+  location    = azurerm_resource_group.example.location
+  database_id = azurerm_mssql_database.example.id
 }
 ```
 

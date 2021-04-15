@@ -114,9 +114,9 @@ resource "azurerm_mssql_database" "test" {
 }
 
 resource "azurerm_mssql_job_agent" "test" {
-  name                = "acctestmssqljobagent%[1]d"
-  location            = azurerm_resource_group.test.location
-  database_id         = azurerm_mssql_database.test.id
+  name        = "acctestmssqljobagent%[1]d"
+  location    = azurerm_resource_group.test.location
+  database_id = azurerm_mssql_database.test.id
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -126,9 +126,9 @@ func (r MsSqlJobAgentResource) requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_mssql_job_agent" "import" {
-  name                = azurerm_mssql_job_agent.test.name
-  location            = azurerm_resource_group.test.location
-  database_id         = azurerm_mssql_database.test.id
+  name        = azurerm_mssql_job_agent.test.name
+  location    = azurerm_resource_group.test.location
+  database_id = azurerm_mssql_database.test.id
 }
 `, r.basic(data))
 }
@@ -161,9 +161,9 @@ resource "azurerm_mssql_database" "test" {
 }
 
 resource "azurerm_mssql_job_agent" "test" {
-  name                = "acctestmssqljobagent%[1]d"
-  location            = azurerm_resource_group.test.location
-  database_id         = azurerm_mssql_database.test.id
+  name        = "acctestmssqljobagent%[1]d"
+  location    = azurerm_resource_group.test.location
+  database_id = azurerm_mssql_database.test.id
 
   tags = {
     ENV = "production"
