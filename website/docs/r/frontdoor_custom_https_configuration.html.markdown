@@ -87,9 +87,9 @@ resource "azurerm_frontdoor_custom_https_configuration" "example_custom_https_1"
   custom_https_provisioning_enabled = true
 
   custom_https_configuration {
-    certificate_source                         = "AzureKeyVault"
-    azure_key_vault_certificate_secret_name    = "examplefd1"
-    azure_key_vault_certificate_vault_id       = data.azurerm_key_vault.vault.id
+    certificate_source                      = "AzureKeyVault"
+    azure_key_vault_certificate_secret_name = "examplefd1"
+    azure_key_vault_certificate_vault_id    = data.azurerm_key_vault.vault.id
   }
 }
 ```
