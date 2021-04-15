@@ -52,8 +52,6 @@ func resourceMsSqlJobAgent() *schema.Resource {
 				ValidateFunc: validate.DatabaseID,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
 			"location": azure.SchemaLocation(),
 
 			"tags": tags.Schema(),
@@ -69,16 +67,15 @@ func resourceMsSqlJobAgentCreateUpdate(d *schema.ResourceData, meta interface{})
 	log.Printf("[INFO] preparing arguments for Job Agent creation.")
 
 	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	databaseId := d.Get("database_id").(string)
 	dbId, _ := parse.DatabaseID(databaseId)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, dbId.ServerName, name)
+		existing, err := client.Get(ctx, dbId.ResourceGroup, dbId.ServerName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Failed to check for presence of existing Job Agent %q (MsSql Server %q / Resource Group %q): %s", name, dbId.ServerName, resGroup, err)
+				return fmt.Errorf("Failed to check for presence of existing Job Agent %q (MsSql Server %q / Resource Group %q): %s", name, dbId.ServerName, dbId.ResourceGroup, err)
 			}
 		}
 
@@ -96,18 +93,18 @@ func resourceMsSqlJobAgentCreateUpdate(d *schema.ResourceData, meta interface{})
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resGroup, dbId.ServerName, name, params)
+	future, err := client.CreateOrUpdate(ctx, dbId.ResourceGroup, dbId.ServerName, name, params)
 	if err != nil {
 		return fmt.Errorf("creating MsSql Job Agent %q (Sql Server %q / Resource Group %q): %+v", name, dbId.ServerName, dbId.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Job Agent %q (MsSql Server Name %q / Resource Group %q): %+v", name, dbId.ServerName, resGroup, err)
+		return fmt.Errorf("waiting for creation of Job Agent %q (MsSql Server Name %q / Resource Group %q): %+v", name, dbId.ServerName, dbId.ResourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, dbId.ResourceGroup, dbId.ServerName, name)
 	if err != nil {
-		return fmt.Errorf("reading request for Job Agent %q (MsSql Server Name %q / Resource Group %q): %+v", name, dbId.ServerName, resGroup, err)
+		return fmt.Errorf("reading request for Job Agent %q (MsSql Server Name %q / Resource Group %q): %+v", name, dbId.ServerName, dbId.ResourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -135,7 +132,6 @@ func resourceMsSqlJobAgentRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}

@@ -115,7 +115,6 @@ resource "azurerm_mssql_database" "test" {
 
 resource "azurerm_mssql_job_agent" "test" {
   name                = "acctestmssqljobagent%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   database_id         = azurerm_mssql_database.test.id
 }
@@ -128,7 +127,6 @@ func (r MsSqlJobAgentResource) requiresImport(data acceptance.TestData) string {
 
 resource "azurerm_mssql_job_agent" "import" {
   name                = azurerm_mssql_job_agent.test.name
-  resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   database_id         = azurerm_mssql_database.test.id
 }
@@ -164,7 +162,6 @@ resource "azurerm_mssql_database" "test" {
 
 resource "azurerm_mssql_job_agent" "test" {
   name                = "acctestmssqljobagent%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   database_id         = azurerm_mssql_database.test.id
 
