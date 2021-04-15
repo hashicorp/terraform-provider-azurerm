@@ -5,31 +5,31 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 )
 
-func SchemaResourceGroupName() *schema.Schema {
-	return &schema.Schema{
-		Type:         schema.TypeString,
+func SchemaResourceGroupName() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:         pluginsdk.TypeString,
 		Required:     true,
 		ForceNew:     true,
 		ValidateFunc: validateResourceGroupName,
 	}
 }
 
-func SchemaResourceGroupNameDeprecated() *schema.Schema {
-	return &schema.Schema{
-		Type:         schema.TypeString,
+func SchemaResourceGroupNameDeprecated() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:         pluginsdk.TypeString,
 		Optional:     true,
 		ValidateFunc: validateResourceGroupName,
 		Deprecated:   "This field is no longer used and will be removed in the next major version of the Azure Provider",
 	}
 }
 
-func SchemaResourceGroupNameDeprecatedComputed() *schema.Schema {
-	return &schema.Schema{
-		Type:         schema.TypeString,
+func SchemaResourceGroupNameDeprecatedComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:         pluginsdk.TypeString,
 		Optional:     true,
 		Computed:     true,
 		ValidateFunc: validateResourceGroupName,
@@ -37,9 +37,9 @@ func SchemaResourceGroupNameDeprecatedComputed() *schema.Schema {
 	}
 }
 
-func SchemaResourceGroupNameDiffSuppress() *schema.Schema {
-	return &schema.Schema{
-		Type:             schema.TypeString,
+func SchemaResourceGroupNameDiffSuppress() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:             pluginsdk.TypeString,
 		Required:         true,
 		ForceNew:         true,
 		DiffSuppressFunc: suppress.CaseDifference,
@@ -47,17 +47,17 @@ func SchemaResourceGroupNameDiffSuppress() *schema.Schema {
 	}
 }
 
-func SchemaResourceGroupNameForDataSource() *schema.Schema {
-	return &schema.Schema{
-		Type:         schema.TypeString,
+func SchemaResourceGroupNameForDataSource() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:         pluginsdk.TypeString,
 		Required:     true,
 		ValidateFunc: validateResourceGroupName,
 	}
 }
 
-func SchemaResourceGroupNameOptionalComputed() *schema.Schema {
-	return &schema.Schema{
-		Type:         schema.TypeString,
+func SchemaResourceGroupNameOptionalComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:         pluginsdk.TypeString,
 		ForceNew:     true,
 		Optional:     true,
 		Computed:     true,
@@ -65,20 +65,20 @@ func SchemaResourceGroupNameOptionalComputed() *schema.Schema {
 	}
 }
 
-func SchemaResourceGroupNameOptional() *schema.Schema {
-	return &schema.Schema{
-		Type:         schema.TypeString,
+func SchemaResourceGroupNameOptional() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:         pluginsdk.TypeString,
 		Optional:     true,
 		ValidateFunc: validateResourceGroupName,
 	}
 }
 
-func SchemaResourceGroupNameSetOptional() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeSet,
+func SchemaResourceGroupNameSetOptional() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeSet,
 		Optional: true,
-		Elem: &schema.Schema{
-			Type:         schema.TypeString,
+		Elem: &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
 			ValidateFunc: validateResourceGroupName,
 		},
 	}

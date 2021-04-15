@@ -3,7 +3,7 @@ package azure
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestValidateResourceGroupName(t *testing.T) {
@@ -48,11 +48,11 @@ func TestValidateResourceGroupName(t *testing.T) {
 			ErrCount: 1,
 		},
 		{
-			Value:    acctest.RandString(90),
+			Value:    acceptance.RandString(90),
 			ErrCount: 0,
 		},
 		{
-			Value:    acctest.RandString(91),
+			Value:    acceptance.RandString(91),
 			ErrCount: 1,
 		},
 	}

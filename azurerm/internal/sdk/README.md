@@ -30,12 +30,12 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/sdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -48,10 +48,10 @@ type ResourceGroup struct {
 type ResourceGroupResource struct {
 }
 
-func (r ResourceGroupResource) Arguments() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
+func (r ResourceGroupResource) Arguments() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 		},
 
@@ -61,8 +61,8 @@ func (r ResourceGroupResource) Arguments() map[string]*schema.Schema {
 	}
 }
 
-func (r ResourceGroupResource) Attributes() map[string]*schema.Schema {
-	return map[string]*schema.Schema{}
+func (r ResourceGroupResource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{}
 }
 
 func (r ResourceGroupResource) ResourceType() string {
@@ -197,7 +197,7 @@ func (r ResourceGroupResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r ResourceGroupResource) IDValidationFunc() schema.SchemaValidateFunc {
+func (r ResourceGroupResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.ResourceGroupID
 }
 
