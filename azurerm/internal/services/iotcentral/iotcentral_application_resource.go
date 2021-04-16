@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iotcentral/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iotcentral/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iotcentral/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -27,6 +28,11 @@ func resourceIotCentralApplication() *schema.Resource {
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			migration.IoTCentralApplicationV0ToV1(),
 		},
 
 		Timeouts: &schema.ResourceTimeout{
@@ -86,6 +92,7 @@ func resourceIotCentralApplication() *schema.Resource {
 
 func resourceIotCentralAppCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTCentral.AppsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -151,13 +158,14 @@ func resourceIotCentralAppCreate(d *schema.ResourceData, meta interface{}) error
 	if response.ID == nil || *response.ID == "" {
 		return fmt.Errorf("Error creating IoT Central Application %q (Resource Group %q):  %+v", name, resourceGroup, err)
 	}
-
-	d.SetId(*response.ID)
+	resourceId := parse.NewApplicationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	d.SetId(resourceId.ID())
 	return resourceIotCentralAppRead(d, meta)
 }
 
 func resourceIotCentralAppUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTCentral.AppsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -199,7 +207,8 @@ func resourceIotCentralAppUpdate(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Cannot read IoT Central Application %q (Resource Group %q):  %+v", id.IoTAppName, id.ResourceGroup, err)
 	}
 
-	d.SetId(*resp.ID)
+	resourceId := parse.NewApplicationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	d.SetId(resourceId.ID())
 	return resourceIotCentralAppRead(d, meta)
 }
 
