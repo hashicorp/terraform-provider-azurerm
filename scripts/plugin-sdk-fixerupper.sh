@@ -27,6 +27,10 @@ function updateCode {
 
   # update the import for validation, the alised/unaliased part can remain the same
   find "$SERVICE_DIRECTORY" -type f -iname "*.go"  -exec sed -i '' -e 's/github\.com\/hashicorp\/terraform-plugin-sdk\/helper\/validation/github\.com\/terraform-providers\/terraform-provider-azurerm\/azurerm\/internal\/tf\/validation/g' {} \;
+
+  # `resource.` can become `pluginsdk`.
+  find "$SERVICE_DIRECTORY" -type f -iname "*.go"  -exec sed -i '' -e 's/github\.com\/hashicorp\/terraform-plugin-sdk\/helper\/resource/github\.com\/terraform-providers\/terraform-provider-azurerm\/azurerm\/internal\/tf\/pluginsdk/g' {} \;
+  find "$SERVICE_DIRECTORY" -type f -iname "*.go"  -exec sed -i '' -e 's/schema\./pluginsdk\./g' {} \;
 }
 
 function revertValidationFuncs {
@@ -39,6 +43,8 @@ function revertValidationFuncs {
 }
 
 function format {
+  echo "Running fmt.."
+  gofmt -w "$SERVICE_DIRECTORY"
   echo "Running goimports.."
   goimports -w "$SERVICE_DIRECTORY"
 }
