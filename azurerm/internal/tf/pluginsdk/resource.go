@@ -8,8 +8,10 @@ import "github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 type SchemaDiffSuppressFunc = schema.SchemaDiffSuppressFunc
 type Resource = schema.Resource
 type ResourceData = schema.ResourceData
+type ResourceDiff = schema.ResourceDiff
 type ResourceImporter = schema.ResourceImporter
 type SchemaValidateFunc schema.SchemaValidateFunc
+type StateUpgrader = schema.StateUpgrader
 
 // ImportStatePassthrough is an implementation of StateFunc that can be
 // used to simply pass the ID directly through. This should be used only
