@@ -38,3 +38,22 @@ func TestMatchResourceAttr(name, key string, r *regexp.Regexp) pluginsdk.TestChe
 	// Deprecated: use `check.That(name).Key(key).MatchesRegex(r)` instead
 	return resource.TestMatchResourceAttr(name, key, r)
 }
+
+// TestCheckResourceAttrPair is a TestCheckFunc which validates that the values
+// in state for a pair of name/key combinations are equal.
+func TestCheckResourceAttrPair(nameFirst, keyFirst, nameSecond, keySecond string) resource.TestCheckFunc {
+	// TODO: move this comment up a level in the future
+	// Deprecated: use this instead:
+	//  check.That(nameFirst).Key(keyFirst).MatchesOtherKey(
+	//    check.That(nameSecond).Key(keySecond),
+	//  ),
+	return resource.TestCheckResourceAttrPair(nameFirst, keyFirst, nameSecond, keySecond)
+}
+
+// TestCheckNoResourceAttr is a TestCheckFunc which ensures that
+// NO value exists in state for the given name/key combination.
+func TestCheckNoResourceAttr(name, key string) resource.TestCheckFunc {
+	// TODO: move this comment up a level in the future
+	// Deprecated: use `check.That(name).Key(key).DoesNotExist()` instead
+	return resource.TestCheckNoResourceAttr(name, key)
+}
