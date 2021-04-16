@@ -10,6 +10,7 @@ import (
 
 type BasicMapReader = schema.BasicMapReader
 type MapFieldReader = schema.MapFieldReader
+type MapFieldWriter = schema.MapFieldWriter
 type Resource = schema.Resource
 type ResourceData = schema.ResourceData
 type ResourceDiff = schema.ResourceDiff
