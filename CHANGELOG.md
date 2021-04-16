@@ -4,6 +4,10 @@ FEATURES:
 
 * **New Resource:** `azurerm_mssql_job_agent` [GH-11248]
 
+BUG FIXES:
+
+*`azurerm_eventgrid_system_topic` - remove strict validation on `topic_type` [GH-11352]
+
 ## 2.56.0 (April 15, 2021)
 
 FEATURES:
