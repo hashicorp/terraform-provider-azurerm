@@ -12,6 +12,8 @@ import (
 	"unicode"
 )
 
+var packagesUsingAlias = map[string]struct{}{}
+
 func main() {
 	servicePackagePath := flag.String("path", "", "The relative path to the service package")
 	name := flag.String("name", "", "The name of this Resource Type")
@@ -173,6 +175,7 @@ type ResourceId struct {
 	IDRaw    string
 
 	ServicePackageName string
+	TestPackageSuffix  string
 
 	HasResourceGroup  bool
 	HasSubscriptionId bool
@@ -291,6 +294,11 @@ func NewResourceID(typeName, servicePackageName, resourceId string) (*ResourceId
 		fmtString = strings.Replace(fmtString, segment.SegmentValue, "%s", 1)
 	}
 
+	packageSuffix := ""
+	if _, ok := packagesUsingAlias[servicePackageName]; ok {
+		packageSuffix = "test"
+	}
+
 	return &ResourceId{
 		IDFmt:              fmtString,
 		IDRaw:              resourceId,
@@ -299,6 +307,7 @@ func NewResourceID(typeName, servicePackageName, resourceId string) (*ResourceId
 		Segments:           segments,
 		ServicePackageName: servicePackageName,
 		TypeName:           typeName,
+		TestPackageSuffix:  packageSuffix,
 	}, nil
 }
 
@@ -544,7 +553,7 @@ func %[1]sIDInsensitively(input string) (*%[1]sId, error) {
 
 func (id ResourceIdGenerator) TestCode() string {
 	return fmt.Sprintf(`
-package parse
+package parse%s
 
 // NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
 
@@ -557,7 +566,7 @@ import (
 %s
 %s
 %s
-`, id.testCodeForFormatter(), id.testCodeForParser(), id.testCodeForParserInsensitive())
+`, id.TestPackageSuffix, id.testCodeForFormatter(), id.testCodeForParser(), id.testCodeForParserInsensitive())
 }
 
 func (id ResourceIdGenerator) testCodeForFormatter() string {
@@ -858,22 +867,22 @@ func (id ResourceIdGenerator) ValidatorTestCode() string {
 
 	testCasesStr := strings.Join(testCases, "\n")
 
-	return fmt.Sprintf(`package validate
+	return fmt.Sprintf(`package validate%[1]s
 
 // NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
 
 import "testing"
 
-func Test%[1]sID(t *testing.T) {
+func Test%[2]sID(t *testing.T) {
 	cases := []struct {
 		Input    string
 		Valid bool
 	}{
-%[2]s
+%[3]s
 	}
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %%s", tc.Input)
-		_, errors := %[1]sID(tc.Input, "test")
+		_, errors := %[2]sID(tc.Input, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {
@@ -881,7 +890,7 @@ func Test%[1]sID(t *testing.T) {
 		}
 	}
 }
-`, id.TypeName, testCasesStr)
+`, id.TestPackageSuffix, id.TypeName, testCasesStr)
 }
 
 func goFmtAndWriteToFile(filePath, fileContents string) error {
