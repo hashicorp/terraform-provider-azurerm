@@ -65,29 +65,10 @@ func resourceEventGridSystemTopic() *schema.Resource {
 			},
 
 			"topic_type": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"Microsoft.AppConfiguration.ConfigurationStores",
-					"Microsoft.Communication.CommunicationServices",
-					"Microsoft.ContainerRegistry.Registries",
-					"Microsoft.Devices.IoTHubs",
-					"Microsoft.EventGrid.Domains",
-					"Microsoft.EventGrid.Topics",
-					"Microsoft.Eventhub.Namespaces",
-					"Microsoft.KeyVault.vaults",
-					"Microsoft.MachineLearningServices.Workspaces",
-					"Microsoft.Maps.Accounts",
-					"Microsoft.Media.MediaServices",
-					"Microsoft.Resources.ResourceGroups",
-					"Microsoft.Resources.Subscriptions",
-					"Microsoft.ServiceBus.Namespaces",
-					"Microsoft.SignalRService.SignalR",
-					"Microsoft.Storage.StorageAccounts",
-					"Microsoft.Web.ServerFarms",
-					"Microsoft.Web.Sites",
-				}, false),
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"metric_arm_resource_id": {
