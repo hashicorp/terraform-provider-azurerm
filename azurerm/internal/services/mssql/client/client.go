@@ -85,8 +85,10 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	sqlVirtualNetworkRulesClient := sql.NewVirtualNetworkRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&sqlVirtualNetworkRulesClient.Client, o.ResourceManagerAuthorizer)
+
 	geoBackupPoliciesClient := sql.NewGeoBackupPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&geoBackupPoliciesClient.Client, o.ResourceManagerAuthorizer)
+
 	sqlEncryptionProtectorClient := sql.NewEncryptionProtectorsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&sqlEncryptionProtectorClient.Client, o.ResourceManagerAuthorizer)
 
@@ -100,6 +102,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		DatabaseExtendedBlobAuditingPoliciesClient:         &databaseExtendedBlobAuditingPoliciesClient,
 		DatabaseThreatDetectionPoliciesClient:              &databaseThreatDetectionPoliciesClient,
 		DatabaseVulnerabilityAssessmentRuleBaselinesClient: &databaseVulnerabilityAssessmentRuleBaselinesClient,
+		EncryptionProtectorClient:                          &sqlEncryptionProtectorClient,
 		ElasticPoolsClient:                                 &elasticPoolsClient,
 		JobAgentsClient:                                    &jobAgentsClient,
 		FirewallRulesClient:                                &firewallRulesClient,

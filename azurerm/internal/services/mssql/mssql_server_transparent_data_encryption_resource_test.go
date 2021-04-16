@@ -17,13 +17,13 @@ import (
 
 type MsSqlServerTransparentDataEncryptionResource struct{}
 
-func TestAccMsSqlServerTransparentDataEncryption_byok(t *testing.T) {
+func TestAccMsSqlServerTransparentDataEncryption_keyVault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server_transparent_data_encryption", "test")
 	r := MsSqlServerTransparentDataEncryptionResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.byok(data),
+			Config: r.keyVault(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -52,10 +52,10 @@ func TestAccMsSqlServerTransparentDataEncryption_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server_transparent_data_encryption", "test")
 	r := MsSqlServerTransparentDataEncryptionResource{}
 
-	// Test going from systemManaged to byok and back
+	// Test going from systemManaged to keyVault and back
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.byok(data),
+			Config: r.keyVault(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -90,7 +90,7 @@ func (MsSqlServerTransparentDataEncryptionResource) Exists(ctx context.Context, 
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func (r MsSqlServerTransparentDataEncryptionResource) byok(data acceptance.TestData) string {
+func (r MsSqlServerTransparentDataEncryptionResource) keyVault(data acceptance.TestData) string {
 	return fmt.Sprintf(
 		`
 %s
@@ -103,9 +103,9 @@ resource "azurerm_key_vault" "test" {
 	tenant_id                   = data.azurerm_client_config.current.tenant_id
 	soft_delete_retention_days  = 7
 	purge_protection_enabled    = false
-  
+
 	sku_name = "standard"
-  
+
 	access_policy {
 	  tenant_id    = data.azurerm_client_config.current.tenant_id
 	  object_id    = data.azurerm_client_config.current.object_id
@@ -114,28 +114,23 @@ resource "azurerm_key_vault" "test" {
 		"Get",  "List", "Create", "Delete", "Update", "Purge", 
 	  ]
 	}
+
 	access_policy {
 	tenant_id = azurerm_mssql_server.test.identity[0].tenant_id
 	object_id = azurerm_mssql_server.test.identity[0].principal_id
-	  
   
 	key_permissions = [
 		"Get", "WrapKey", "UnwrapKey", "List", "Create", 
 	  ]
 	}
-
-  
   }
-  
 
-
-# Create a key
   resource "azurerm_key_vault_key" "generated" {
-	name         = "byok"
+	name         = "keyVault"
 	key_vault_id = azurerm_key_vault.test.id
 	key_type     = "RSA"
 	key_size     = 2048
-  
+
 	key_opts = [
 	  "decrypt",
 	  "encrypt",
@@ -144,13 +139,12 @@ resource "azurerm_key_vault" "test" {
 	  "verify",
 	  "wrapKey",
 	]
-  
+
 	depends_on = [
 	  azurerm_key_vault.test,
 	]
   }
 
-  
   resource "azurerm_mssql_server_transparent_data_encryption" "test" {
 	server_id = azurerm_mssql_server.test.id
 	key_vault_key_id = azurerm_key_vault_key.generated.id
