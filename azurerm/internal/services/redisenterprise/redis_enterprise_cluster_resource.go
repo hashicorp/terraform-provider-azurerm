@@ -145,7 +145,10 @@ func resourceRedisEnterpriseClusterCreate(d *schema.ResourceData, meta interface
 		Name:     utils.String(d.Get("name").(string)),
 		Location: utils.String(location),
 		Sku:      sku,
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		ClusterProperties: &redisenterprise.ClusterProperties{
+			MinimumTLSVersion: redisenterprise.TLSVersion(d.Get("minimum_tls_version").(string)),
+		},
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if v, ok := d.GetOk("zones"); ok {
@@ -153,14 +156,7 @@ func resourceRedisEnterpriseClusterCreate(d *schema.ResourceData, meta interface
 		if err := validate.RedisEnterpriseClusterLocationZoneSupport(location); err != nil {
 			return fmt.Errorf("%s: %s", resourceId, err)
 		}
-
 		parameters.Zones = azure.ExpandZones(v.([]interface{}))
-	}
-
-	if v, ok := d.GetOk("minimum_tls_version"); ok {
-		parameters.ClusterProperties = &redisenterprise.ClusterProperties{
-			MinimumTLSVersion: redisenterprise.TLSVersion(v.(string)),
-		}
 	}
 
 	future, err := client.Create(ctx, resourceId.ResourceGroup, resourceId.RedisEnterpriseName, parameters)
