@@ -22,10 +22,22 @@ func Any(validators ...schema.SchemaValidateFunc) schema.SchemaValidateFunc {
 	return validation.Any(validators...)
 }
 
+// FloatBetween returns a SchemaValidateFunc which tests if the provided value
+// is of type float64 and is between min and max (inclusive).
+func FloatBetween(min, max float64) schema.SchemaValidateFunc {
+	return validation.FloatBetween(min, max)
+}
+
 // FloatAtLeast returns a SchemaValidateFunc which tests if the provided value
 // is of type float and is at least min (inclusive)
 func FloatAtLeast(min float64) schema.SchemaValidateFunc {
 	return validation.FloatAtLeast(min)
+}
+
+// IntNotInSlice returns a SchemaValidateFunc which tests if the provided value
+// is of type int and matches the value of an element in the valid slice
+func IntNotInSlice(valid []int) schema.SchemaValidateFunc {
+	return validation.IntNotInSlice(valid)
 }
 
 // IntAtLeast returns a SchemaValidateFunc which tests if the provided value
@@ -44,6 +56,12 @@ func IntAtMost(max int) schema.SchemaValidateFunc {
 // is of type int and is between min and max (inclusive)
 func IntBetween(min, max int) schema.SchemaValidateFunc {
 	return validation.IntBetween(min, max)
+}
+
+// IntDivisibleBy returns a SchemaValidateFunc which tests if the provided value
+// is of type int and is divisible by a given number
+func IntDivisibleBy(divisor int) schema.SchemaValidateFunc {
+	return validation.IntDivisibleBy(divisor)
 }
 
 // IntInSlice returns a SchemaValidateFunc which tests if the provided value
@@ -68,13 +86,43 @@ func IsIPAddress(i interface{}, k string) ([]string, []error) {
 }
 
 // IsIPv4Address is a SchemaValidateFunc which tests if the provided value is of type string and a valid IPv4 address
-func IsIPv4Address(i interface{}, k string) (warnings []string, errors []error) {
+func IsIPv4Address(i interface{}, k string) ([]string, []error) {
 	return validation.IsIPv4Address(i, k)
+}
+
+// IsIPv4Range is a SchemaValidateFunc which tests if the provided value is of type string, and in valid IP range
+func IsIPv4Range(i interface{}, k string) ([]string, []error) {
+	return validation.IsIPv4Range(i, k)
+}
+
+// IsIPv6Address is a SchemaValidateFunc which tests if the provided value is of type string and a valid IPv6 address
+func IsIPv6Address(i interface{}, k string) ([]string, []error) {
+	return validation.IsIPv6Address(i, k)
+}
+
+// IsMonth id a SchemaValidateFunc which tests if the provided value is of type string and a valid english month
+func IsMonth(ignoreCase bool) schema.SchemaValidateFunc {
+	return validation.IsMonth(ignoreCase)
 }
 
 // IsPortNumber is a SchemaValidateFunc which tests if the provided value is of type string and a valid TCP Port Number
 func IsPortNumber(i interface{}, k string) ([]string, []error) {
 	return validation.IsPortNumber(i, k)
+}
+
+// IsRFC3339Time is a SchemaValidateFunc which tests if the provided value is of type string and a valid RFC33349Time
+func IsRFC3339Time(i interface{}, k string) ([]string, []error) {
+	return validation.IsRFC3339Time(i, k)
+}
+
+// IsURLWithHTTPorHTTPS is a SchemaValidateFunc which tests if the provided value is of type string and a valid HTTP or HTTPS URL
+func IsURLWithHTTPorHTTPS(i interface{}, k string) ([]string, []error) {
+	return validation.IsURLWithHTTPorHTTPS(i, k)
+}
+
+// IsURLWithHTTPS is a SchemaValidateFunc which tests if the provided value is of type string and a valid HTTPS URL
+func IsURLWithHTTPS(i interface{}, k string) ([]string, []error) {
+	return validation.IsURLWithHTTPS(i, k)
 }
 
 // IsURLWithScheme is a SchemaValidateFunc which tests if the provided value is of type string and a valid URL with the provided schemas
@@ -83,7 +131,7 @@ func IsURLWithScheme(validSchemes []string) schema.SchemaValidateFunc {
 }
 
 // IsUUID is a ValidateFunc that ensures a string can be parsed as UUID
-func IsUUID(i interface{}, k string) (warnings []string, errors []error) {
+func IsUUID(i interface{}, k string) ([]string, []error) {
 	return validation.IsUUID(i, k)
 }
 
@@ -92,6 +140,12 @@ func IsUUID(i interface{}, k string) (warnings []string, errors []error) {
 // explicit zero values on things like required fields during validation.
 func NoZeroValues(i interface{}, k string) ([]string, []error) {
 	return validation.NoZeroValues(i, k)
+}
+
+// StringDoesNotContainAny returns a SchemaValidateFunc which validates that the
+// provided value does not contain any of the specified Unicode code points in chars.
+func StringDoesNotContainAny(chars string) schema.SchemaValidateFunc {
+	return validation.StringDoesNotContainAny(chars)
 }
 
 // StringInSlice returns a SchemaValidateFunc which tests if the provided value
@@ -113,14 +167,30 @@ func StringIsJSON(i interface{}, k string) ([]string, []error) {
 	return validation.StringIsJSON(i, k)
 }
 
+// StringIsEmpty is a ValidateFunc that ensures a string has no characters
+func StringIsEmpty(i interface{}, k string) ([]string, []error) {
+	return validation.StringIsEmpty(i, k)
+}
+
 // StringIsNotEmpty is a ValidateFunc that ensures a string is not empty
 func StringIsNotEmpty(i interface{}, k string) ([]string, []error) {
 	return validation.StringIsNotEmpty(i, k)
 }
 
+// StringIsNotWhiteSpace is a ValidateFunc that ensures a string is not empty or consisting entirely of whitespace characters
+func StringIsNotWhiteSpace(i interface{}, k string) ([]string, []error) {
+	return validation.StringIsNotWhiteSpace(i, k)
+}
+
 // StringIsValidRegExp returns a SchemaValidateFunc which tests to make sure the supplied string is a valid regular expression.
 func StringIsValidRegExp(i interface{}, k string) ([]string, []error) {
 	return validation.StringIsValidRegExp(i, k)
+}
+
+// StringLenBetween returns a SchemaValidateFunc which tests if the provided value
+// is of type string and has length between min and max (inclusive)
+func StringLenBetween(min, max int) schema.SchemaValidateFunc {
+	return validation.StringLenBetween(min, max)
 }
 
 // StringMatch returns a SchemaValidateFunc which tests if the provided value
@@ -130,8 +200,9 @@ func StringMatch(r *regexp.Regexp, message string) schema.SchemaValidateFunc {
 	return validation.StringMatch(r, message)
 }
 
-// StringLenBetween returns a SchemaValidateFunc which tests if the provided value
-// is of type string and has length between min and max (inclusive)
-func StringLenBetween(min, max int) schema.SchemaValidateFunc {
-	return validation.StringLenBetween(min, max)
+// StringNotInSlice returns a SchemaValidateFunc which tests if the provided value
+// is of type string and does not match the value of any element in the invalid slice
+// will test with in lower case if ignoreCase is true
+func StringNotInSlice(invalid []string, ignoreCase bool) schema.SchemaValidateFunc {
+	return validation.StringNotInSlice(invalid, ignoreCase)
 }

@@ -19,3 +19,9 @@ type StateUpgrader = schema.StateUpgrader
 func ImportStatePassthrough(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	return schema.ImportStatePassthrough(d, m)
 }
+
+type CreateFunc = schema.CreateFunc
+type DeleteFunc = schema.DeleteFunc
+type ExistsFunc = schema.ExistsFunc
+type ReadFunc = schema.ReadFunc
+type UpdateFunc = schema.UpdateFunc
