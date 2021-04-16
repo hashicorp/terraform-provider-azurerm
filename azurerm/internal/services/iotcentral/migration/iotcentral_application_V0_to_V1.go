@@ -72,7 +72,7 @@ func iotCentralApplicationV0Schema() *schema.Resource {
 
 func iotCentralApplicationUpgradeV0ToV1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 	oldId := rawState["id"].(string)
-	id, err := parse.ApplicationID(oldId)
+	id, err := parse.ApplicationIDInsensitively(oldId)
 	if err != nil {
 		return rawState, err
 	}

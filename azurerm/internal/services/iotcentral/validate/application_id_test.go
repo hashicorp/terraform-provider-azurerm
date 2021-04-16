@@ -48,13 +48,13 @@ func TestApplicationID(t *testing.T) {
 
 		{
 			// missing value for IoTAppName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.IoTCentral/IoTApps/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.IoTCentral/ioTApps/",
 			Valid: false,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.IoTCentral/IoTApps/app1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.IoTCentral/ioTApps/app1",
 			Valid: true,
 		},
 
