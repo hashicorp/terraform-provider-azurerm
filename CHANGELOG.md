@@ -1,3 +1,9 @@
+## 2.57.0 (Unreleased)
+
+FEATURES:
+
+* **New Resource:** `azurerm_mssql_job_agent` [GH-11248]
+
 ## 2.56.0 (April 15, 2021)
 
 FEATURES:
