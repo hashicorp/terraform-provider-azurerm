@@ -30,7 +30,7 @@ function updateCode {
 
   # `resource.` can become `pluginsdk`.
   find "$SERVICE_DIRECTORY" -type f -iname "*.go"  -exec sed -i '' -e 's/github\.com\/hashicorp\/terraform-plugin-sdk\/helper\/resource/github\.com\/terraform-providers\/terraform-provider-azurerm\/azurerm\/internal\/tf\/pluginsdk/g' {} \;
-  find "$SERVICE_DIRECTORY" -type f -iname "*.go"  -exec sed -i '' -e 's/schema\./pluginsdk\./g' {} \;
+  find "$SERVICE_DIRECTORY" -type f -iname "*.go"  -exec sed -i '' -e 's/resource\./pluginsdk\./g' {} \;
 }
 
 function revertValidationFuncs {
