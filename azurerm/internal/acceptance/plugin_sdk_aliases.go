@@ -1,8 +1,11 @@
 package acceptance
 
 import (
+	"regexp"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
 // This file is intended to provide a transition from Plugin SDKv1 to Plugin SDKv2
@@ -12,6 +15,26 @@ type InstanceState = terraform.InstanceState
 
 type TestStep = resource.TestStep
 
-func ComposeTestCheckFunc(fs ...resource.TestCheckFunc) resource.TestCheckFunc {
+func ComposeTestCheckFunc(fs ...resource.TestCheckFunc) pluginsdk.TestCheckFunc {
 	return resource.ComposeTestCheckFunc(fs...)
+}
+
+// @tombuildsstuff:
+// Below this point are convenience methods which exist to allow existing code
+// to compile. Whilst these are not initially deprecated, they will be in the
+// future - this is done to allow a gradual transition path for existing PR's.
+
+// TestCheckResourceAttr is a wrapper to enable builds to continue
+func TestCheckResourceAttr(name, key, value string) pluginsdk.TestCheckFunc {
+	// TODO: move this comment up a level in the future
+	// Deprecated: use `check.That(name).Key(key).HasValue(value)` instead
+	return resource.TestCheckResourceAttr(name, key, value)
+}
+
+// TestMatchResourceAttr is a TestCheckFunc which checks that the value
+// in state for the given name/key combination matches the given regex.
+func TestMatchResourceAttr(name, key string, r *regexp.Regexp) pluginsdk.TestCheckFunc {
+	// TODO: move this comment up a level in the future
+	// Deprecated: use `check.That(name).Key(key).MatchesRegex(r)` instead
+	return resource.TestMatchResourceAttr(name, key, r)
 }
