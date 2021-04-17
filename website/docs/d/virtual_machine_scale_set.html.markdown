@@ -39,6 +39,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `identity` - A `identity` block as defined below.
 
+* `network_profile` - A collection of network profile blocks as documented below.
+
 ---
 
 A `identity` block exports the following:
@@ -48,6 +50,29 @@ A `identity` block exports the following:
 * `principal_id` - The ID of the System Managed Service Principal assigned to the Virtual Machine Scale Set.
 
 * `type` - The identity type of the Managed Identity assigned to the Virtual Machine Scale Set.
+
+---
+
+A `network_profile` block exports the list of network profile blocks that contain the following:
+
+* `name` - The network interface configuration name.
+* `primary` - Indicates whether the network interface is the the primary.
+* `ip_configuration` - An ip_configuration block as documented below.
+* `accelerated_networking` - Whether accelerated networking is enabled or not.
+* `dns_settings` - A dns_settings block as documented below.
+* `ip_forwarding` - Whether IP forwarding is enabled or not on this NIC.
+* `network_security_group_id` - The network security group identifier.
+
+`dns_settings` block exports the following:
+
+* `dns_servers` - An list of dns servers.
+
+`ip_configuration` block exports the following:
+
+* `name` - The IP configuration name.
+* `subnet_id` - The subnet identifier.
+* `application_gateway_backend_address_pool_ids` - A list of references to backend address pools of application gateways if configured.
+* `load_balancer_backend_address_pool_ids` - A list of references to backend address pools of load balancers if configured.
 
 ## Timeouts
 
