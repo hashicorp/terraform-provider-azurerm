@@ -22,6 +22,9 @@ var serviceTestConfigurationOverrides = mapOf(
         // these tests all conflict with one another
         "authorization" to testConfiguration(1, defaultStartHour),
 
+        //Blueprints are constrained on the number of targets available - these execute quickly, so can be serialised
+        "blueprints" to testConfiguration(1, defaultStartHour),
+
         // The AKS API has a low rate limit
         "containers" to testConfiguration(5, defaultStartHour),
 
@@ -46,5 +49,8 @@ var serviceTestConfigurationOverrides = mapOf(
         "signalr" to testConfiguration(1, defaultStartHour),
 
         // Spring Cloud only allows a max of 10 provisioned
-        "springcloud" to testConfiguration(5, defaultStartHour)
+        "springcloud" to testConfiguration(5, defaultStartHour),
+
+        // Currently have a quota of 10 nodes, 3 nodes required per test so lets limit it to 3
+        "vmware" to testConfiguration(3, defaultStartHour)
 )

@@ -108,7 +108,7 @@ func resourceLogAnalyticsWorkspace() *schema.Resource {
 				Optional:         true,
 				Default:          -1.0,
 				DiffSuppressFunc: dailyQuotaGbDiffSuppressFunc,
-				ValidateFunc:     validation.FloatAtLeast(0),
+				ValidateFunc:     validation.FloatAtLeast(-1.0),
 			},
 
 			"workspace_id": {

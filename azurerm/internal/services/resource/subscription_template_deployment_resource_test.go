@@ -40,6 +40,21 @@ func TestAccSubscriptionTemplateDeployment_empty(t *testing.T) {
 	})
 }
 
+func TestAccSubscriptionTemplateDeployment_templateSpecVersion(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subscription_template_deployment", "test")
+	r := SubscriptionTemplateDeploymentResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.templateSpecVersionConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccSubscriptionTemplateDeployment_singleItemUpdatingParams(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subscription_template_deployment", "test")
 	r := SubscriptionTemplateDeploymentResource{}
@@ -54,6 +69,28 @@ func TestAccSubscriptionTemplateDeployment_singleItemUpdatingParams(t *testing.T
 		data.ImportStep(),
 		{
 			Config: r.singleItemWithParameterConfig(data, "second"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSubscriptionTemplateDeployment_singleItemUpdateTemplateWithUnchangedParams(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subscription_template_deployment", "test")
+	r := SubscriptionTemplateDeploymentResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.singleItemWithParameterConfigAndVariable(data, "templateVariableValue1", "first"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.singleItemWithParameterConfigAndVariable(data, "forceupdatetemplate", "first"),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -93,7 +130,7 @@ func TestAccSubscriptionTemplateDeployment_withOutputs(t *testing.T) {
 			Config: r.withOutputsConfig(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("output_content").HasValue("{\"testOutput\":{\"type\":\"String\""),
+				check.That(data.ResourceName).Key("output_content").HasValue("{\"testOutput\":{\"type\":\"String\",\"value\":\"some-value\"}}"),
 			),
 		},
 		data.ImportStep(),
@@ -137,6 +174,41 @@ TEMPLATE
 `, data.RandomInteger, data.Locations.Primary)
 }
 
+func (SubscriptionTemplateDeploymentResource) templateSpecVersionConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_template_spec_version" "test" {
+  name                = "acctest-standing-data-for-sub"
+  resource_group_name = "standing-data-for-acctest"
+  version             = "v1.0.0"
+}
+
+resource "azurerm_subscription_template_deployment" "test" {
+  name     = "acctestsubdeploy-%d"
+  location = %q
+
+  template_spec_version_id = data.azurerm_template_spec_version.test.id
+
+  parameters_content = <<PARAM
+{
+  "rgName": {
+   "value": "acctest-rg-tspec-%d"
+  },
+  "rgLocation": {
+   "value": %q
+  },
+  "tags": {
+   "value": {}
+  }
+}
+PARAM
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
+}
+
 func (SubscriptionTemplateDeploymentResource) emptyWithTagsConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -161,6 +233,48 @@ resource "azurerm_subscription_template_deployment" "test" {
 TEMPLATE
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (SubscriptionTemplateDeploymentResource) singleItemWithParameterConfigAndVariable(data acceptance.TestData, templateVar string, paramVal string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_subscription_template_deployment" "test" {
+  name     = "acctestsubdeploy-%d"
+  location = %q
+
+  template_content = <<TEMPLATE
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "someParam": {
+      "type": "String",
+      "allowedValues": [
+        "first",
+        "second",
+        "third"
+      ]
+    }
+  },
+  "variables": {
+    "forceChangeInTemplate": %q
+  },
+  "resources": []
+}
+TEMPLATE
+
+  parameters_content = <<PARAM
+{
+  "someParam": {
+   "value": %q
+  }
+}
+PARAM
+}
+`, data.RandomInteger, data.Locations.Primary, templateVar, paramVal)
 }
 
 func (SubscriptionTemplateDeploymentResource) singleItemWithParameterConfig(data acceptance.TestData, value string) string {

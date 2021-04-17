@@ -238,7 +238,7 @@ locals {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-${local.number}"
+  name     = "acctestRG-${local.number}"
   location = local.location
 }
 

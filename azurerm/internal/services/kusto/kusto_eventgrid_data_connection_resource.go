@@ -102,6 +102,36 @@ func resourceKustoEventGridDataConnection() *schema.Resource {
 				Optional: true,
 				Default:  false,
 			},
+
+			"table_name": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.EntityName,
+			},
+
+			"mapping_rule_name": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.EntityName,
+			},
+
+			"data_format": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(kusto.AVRO),
+					string(kusto.CSV),
+					string(kusto.JSON),
+					string(kusto.MULTIJSON),
+					string(kusto.PSV),
+					string(kusto.RAW),
+					string(kusto.SCSV),
+					string(kusto.SINGLEJSON),
+					string(kusto.SOHSV),
+					string(kusto.TSV),
+					string(kusto.TXT),
+				}, false),
+			},
 		},
 	}
 }
@@ -137,6 +167,18 @@ func resourceKustoEventGridDataConnectionCreateUpdate(d *schema.ResourceData, me
 			IgnoreFirstRecord:        utils.Bool(d.Get("skip_first_record").(bool)),
 			BlobStorageEventType:     kusto.BlobStorageEventType(d.Get("blob_storage_event_type").(string)),
 		},
+	}
+
+	if tableName, ok := d.GetOk("table_name"); ok {
+		dataConnection.EventGridConnectionProperties.TableName = utils.String(tableName.(string))
+	}
+
+	if mappingRuleName, ok := d.GetOk("mapping_rule_name"); ok {
+		dataConnection.EventGridConnectionProperties.MappingRuleName = utils.String(mappingRuleName.(string))
+	}
+
+	if df, ok := d.GetOk("data_format"); ok {
+		dataConnection.EventGridConnectionProperties.DataFormat = kusto.EventGridDataFormat(df.(string))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ClusterName, id.DatabaseName, id.Name, dataConnection)
@@ -185,6 +227,9 @@ func resourceKustoEventGridDataConnectionRead(d *schema.ResourceData, meta inter
 			d.Set("eventhub_consumer_group_name", props.ConsumerGroup)
 			d.Set("skip_first_record", props.IgnoreFirstRecord)
 			d.Set("blob_storage_event_type", props.BlobStorageEventType)
+			d.Set("table_name", props.TableName)
+			d.Set("mapping_rule_name", props.MappingRuleName)
+			d.Set("data_format", props.DataFormat)
 		}
 	}
 

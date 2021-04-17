@@ -38,6 +38,8 @@ func assertDataConnectorKind(dc securityinsight.BasicDataConnector, expectKind s
 	switch dc.(type) {
 	case securityinsight.AADDataConnector:
 		kind = securityinsight.DataConnectorKindAzureActiveDirectory
+	case securityinsight.AATPDataConnector:
+		kind = securityinsight.DataConnectorKindAzureAdvancedThreatProtection
 	case securityinsight.ASCDataConnector:
 		kind = securityinsight.DataConnectorKindAzureSecurityCenter
 	case securityinsight.MCASDataConnector:

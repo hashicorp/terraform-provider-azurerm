@@ -810,6 +810,16 @@ resource "azurerm_api_management" "test" {
     store_name           = "Root"
   }
 
+  certificate {
+    encoded_certificate = filebase64("testdata/api_management_api_test.cer")
+    store_name          = "Root"
+  }
+
+  certificate {
+    encoded_certificate = filebase64("testdata/api_management_api_test.cer")
+    store_name          = "CertificateAuthority"
+  }
+
   protocols {
     enable_http2 = true
   }
@@ -951,7 +961,7 @@ func (r ApiManagementResource) virtualNetworkInternalAdditionalLocation(data acc
 %[1]s
 
 resource "azurerm_resource_group" "test2" {
-  name     = "acctestRG2-%[2]d"
+  name     = "acctestRG-%[2]d-2"
   location = "%[3]s"
 }
 

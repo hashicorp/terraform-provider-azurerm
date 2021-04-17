@@ -39,6 +39,8 @@ The following arguments are supported:
 
 * `sku_name` - (Required) The `sku_name` is comprised of two segments separated by a hyphen (e.g. `Enterprise_E10-2`). The first segment of the `sku_name` defines the `name` of the sku, possible values are `Enterprise_E10`, `Enterprise_E20"`, `Enterprise_E50`, `Enterprise_E100`, `EnterpriseFlash_F300`, `EnterpriseFlash_F700` or `EnterpriseFlash_F1500`. The second segment defines the `capacity` of the `sku_name`, possible values for `Enteprise` skus are (`2`, `4`, `6`, ...). Possible values for `EnterpriseFlash` skus are (`3`, `9`, `15`, ...). Changing this forces a new Redis Enterprise Cluster to be created.
 
+* `minimum_tls_version` - (Optional) The minimum TLS version.  Defaults to `1.2`. Changing this forces a new Redis Enterprise Cluster to be created.
+
 * `zones` - (Optional) A list of a one or more Availability Zones, where the Redis Cache should be allocated. Possible values are: `1`, `2` and `3`. Changing this forces a new Redis Enterprise Cluster to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Redis Enterprise Cluster. Changing this forces a new Redis Enterprise Cluster to be created.
@@ -52,6 +54,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `hostname` - DNS name of the cluster endpoint.
 
 * `version` - Version of redis the cluster supports, e.g. '6'.
+
+-> **NOTE:** The `version` field currently is not yet being returned from the service API, please see https://github.com/Azure/azure-sdk-for-go/issues/14420 for more information.
 
 ## Timeouts
 

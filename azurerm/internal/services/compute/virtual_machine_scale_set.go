@@ -1150,22 +1150,18 @@ func VirtualMachineScaleSetRollingUpgradePolicySchema() *schema.Schema {
 				"max_batch_instance_percent": {
 					Type:     schema.TypeInt,
 					Required: true,
-					ForceNew: true,
 				},
 				"max_unhealthy_instance_percent": {
 					Type:     schema.TypeInt,
 					Required: true,
-					ForceNew: true,
 				},
 				"max_unhealthy_upgraded_instance_percent": {
 					Type:     schema.TypeInt,
 					Required: true,
-					ForceNew: true,
 				},
 				"pause_time_between_batches": {
 					Type:         schema.TypeString,
 					Required:     true,
-					ForceNew:     true,
 					ValidateFunc: azValidate.ISO8601Duration,
 				},
 			},
@@ -1412,10 +1408,10 @@ func VirtualMachineScaleSetExtensionsSchema() *schema.Schema {
 	}
 }
 
-func expandVirtualMachineScaleSetExtensions(input []interface{}) (*compute.VirtualMachineScaleSetExtensionProfile, error) {
-	result := &compute.VirtualMachineScaleSetExtensionProfile{}
+func expandVirtualMachineScaleSetExtensions(input []interface{}) (extensionProfile *compute.VirtualMachineScaleSetExtensionProfile, hasHealthExtension bool, err error) {
+	extensionProfile = &compute.VirtualMachineScaleSetExtensionProfile{}
 	if len(input) == 0 {
-		return result, nil
+		return nil, false, nil
 	}
 
 	extensions := make([]compute.VirtualMachineScaleSetExtension, 0)
@@ -1424,13 +1420,18 @@ func expandVirtualMachineScaleSetExtensions(input []interface{}) (*compute.Virtu
 		extension := compute.VirtualMachineScaleSetExtension{
 			Name: utils.String(extensionRaw["name"].(string)),
 		}
+		extensionType := extensionRaw["type"].(string)
 
 		extensionProps := compute.VirtualMachineScaleSetExtensionProperties{
 			Publisher:                utils.String(extensionRaw["publisher"].(string)),
-			Type:                     utils.String(extensionRaw["type"].(string)),
+			Type:                     &extensionType,
 			TypeHandlerVersion:       utils.String(extensionRaw["type_handler_version"].(string)),
 			AutoUpgradeMinorVersion:  utils.Bool(extensionRaw["auto_upgrade_minor_version"].(bool)),
 			ProvisionAfterExtensions: utils.ExpandStringSlice(extensionRaw["provision_after_extensions"].([]interface{})),
+		}
+
+		if extensionType == "ApplicationHealthLinux" || extensionType == "ApplicationHealthWindows" {
+			hasHealthExtension = true
 		}
 
 		if forceUpdateTag := extensionRaw["force_update_tag"]; forceUpdateTag != nil {
@@ -1440,7 +1441,7 @@ func expandVirtualMachineScaleSetExtensions(input []interface{}) (*compute.Virtu
 		if val, ok := extensionRaw["settings"]; ok && val.(string) != "" {
 			settings, err := structure.ExpandJsonFromString(val.(string))
 			if err != nil {
-				return nil, fmt.Errorf("failed to parse JSON from `settings`: %+v", err)
+				return nil, false, fmt.Errorf("failed to parse JSON from `settings`: %+v", err)
 			}
 			extensionProps.Settings = settings
 		}
@@ -1448,7 +1449,7 @@ func expandVirtualMachineScaleSetExtensions(input []interface{}) (*compute.Virtu
 		if val, ok := extensionRaw["protected_settings"]; ok && val.(string) != "" {
 			protectedSettings, err := structure.ExpandJsonFromString(val.(string))
 			if err != nil {
-				return nil, fmt.Errorf("failed to parse JSON from `protected_settings`: %+v", err)
+				return nil, false, fmt.Errorf("failed to parse JSON from `protected_settings`: %+v", err)
 			}
 			extensionProps.ProtectedSettings = protectedSettings
 		}
@@ -1456,9 +1457,9 @@ func expandVirtualMachineScaleSetExtensions(input []interface{}) (*compute.Virtu
 		extension.VirtualMachineScaleSetExtensionProperties = &extensionProps
 		extensions = append(extensions, extension)
 	}
-	result.Extensions = &extensions
+	extensionProfile.Extensions = &extensions
 
-	return result, nil
+	return extensionProfile, hasHealthExtension, nil
 }
 
 func flattenVirtualMachineScaleSetExtensions(input *compute.VirtualMachineScaleSetExtensionProfile, d *schema.ResourceData) ([]map[string]interface{}, error) {

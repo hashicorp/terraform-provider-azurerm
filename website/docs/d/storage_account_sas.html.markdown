@@ -54,8 +54,8 @@ data "azurerm_storage_account_sas" "example" {
     file  = false
   }
 
-  start  = "2018-03-21"
-  expiry = "2020-03-21"
+  start  = "2018-03-21T00:00:00Z"
+  expiry = "2020-03-21T00:00:00Z"
 
   permissions {
     read    = true

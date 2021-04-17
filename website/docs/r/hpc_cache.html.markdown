@@ -66,7 +66,49 @@ The following arguments are supported:
 
 * `mtu` - (Optional) The IPv4 maximum transmission unit configured for the subnet of the HPC Cache. Possible values range from 576 - 1500. Defaults to 1500.
 
-* `root_squash_enabled` - (Optional) Whether root squash property is enabled for this HPC Cache.
+* `default_access_policy` - (Optional) A `default_access_policy` block as defined below.
+
+* `ntp_server` - (Optional) The NTP server IP Address or FQDN for the HPC Cache. Defaults to `time.windows.com`.
+
+* `dns` - (Optional) A `dns` block as defined below.
+
+* `tags` - (Optional) A mapping of tags to assign to the HPC Cache.
+
+---
+
+An `access_rule` block contains the following:
+
+* `scope` - (Required) The scope of this rule. The `scope` and (potentially) the `filter` determine which clients match the rule. Possible values are: `default`, `network`, `host`.
+
+~> **NOTE**: Each `access_rule` should set a unique `scope`.
+
+* `access` - (Required) The access level for this rule. Possible values are: `rw`, `ro`, `no`.
+
+* `filter` - (Optional) The filter applied to the `scope` for this rule. The filter's format depends on its scope: `default` scope matches all clients and has no filter value; `network` scope takes a CIDR format; `host` takes an IP address or fully qualified domain name. If a client does not match any filter rule and there is no default rule, access is denied.
+
+* `suid_enabled` - (Optional) Whether [SUID](https://docs.microsoft.com/en-us/azure/hpc-cache/access-policies#suid) is allowed? Defaults to `false`.
+
+* `submount_access_enabled` - (Optional) Whether allow access to subdirectories under the root export? Defaults to `false`.
+
+* `root_squash_enabled` - (Optional) Whether to enable [root squash](https://docs.microsoft.com/en-us/azure/hpc-cache/access-policies#root-squash)? Defaults to `false`.
+
+* `anonymous_uid` - (Optional) The anonymous UID used when `root_squash_enabled` is `true`.
+  
+* `anonymous_gid` - (Optional) The anonymous GID used when `root_squash_enabled` is `true`.
+
+---
+
+A `default_access_policy` block contains the following:
+
+* `access_rule` - (Required) One to three `access_rule` blocks as defined above.
+
+---
+
+A `dns` block contains the following:
+
+* `servers` - (Required) A list of DNS servers for the HPC Cache. At most three IP(s) are allowed to set.
+
+* `search_domain` - (Optional) The DNS search domain for the HPC Cache.
 
 ## Attributes Reference
 

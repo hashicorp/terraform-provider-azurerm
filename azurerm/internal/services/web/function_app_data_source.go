@@ -88,6 +88,11 @@ func dataSourceFunctionApp() *schema.Resource {
 				Computed: true,
 			},
 
+			"client_cert_mode": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"outbound_ip_addresses": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -215,6 +220,12 @@ func dataSourceFunctionAppRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("outbound_ip_addresses", props.OutboundIPAddresses)
 		d.Set("possible_outbound_ip_addresses", props.PossibleOutboundIPAddresses)
 		d.Set("custom_domain_verification_id", props.CustomDomainVerificationID)
+
+		clientCertMode := ""
+		if props.ClientCertEnabled != nil && *props.ClientCertEnabled {
+			clientCertMode = string(props.ClientCertMode)
+		}
+		d.Set("client_cert_mode", clientCertMode)
 	}
 
 	osType := ""

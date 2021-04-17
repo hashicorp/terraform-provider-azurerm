@@ -15,6 +15,7 @@ Blueprints
 Bot
 CDN
 Cognitive Services
+Communication
 Compute
 Container
 CosmosDB (DocumentDB)
@@ -58,6 +59,7 @@ Policy
 Portal
 PowerBI
 Private DNS
+Purview
 Recovery Services
 Redis
 Redis Enterprise
