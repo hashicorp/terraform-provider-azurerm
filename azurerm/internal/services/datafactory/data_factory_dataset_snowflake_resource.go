@@ -294,17 +294,17 @@ func resourceDataFactoryDatasetSnowflakeRead(d *schema.ResourceData, meta interf
 	}
 
 	if properties := snowflakeTable.SnowflakeDatasetTypeProperties; properties != nil {
-		TableName, ok := properties.Table.(string)
+		tableName, ok := properties.Table.(string)
 		if !ok {
 			log.Printf("[DEBUG] Skipping `table_name` since it's not a string")
 		} else {
-			d.Set("table", TableName)
+			d.Set("table_name", tableName)
 		}
-		SchemaName, ok := properties.Schema.(string)
+		schemaName, ok := properties.Schema.(string)
 		if !ok {
 			log.Printf("[DEBUG] Skipping `schema_name` since it's not a string")
 		} else {
-			d.Set("schema", SchemaName)
+			d.Set("schema_name", schemaName)
 		}
 	}
 
