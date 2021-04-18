@@ -62,6 +62,10 @@ The following arguments are supported:
 
 * `public_ip_prefix_id` - (Optional) If specified then public IP address allocated will be provided from the public IP prefix resource.
 
+* `ip_tags` - (Optional) A mapping of IP tags to assign to the public IP.
+
+-> **Note** IP Tag `RoutingPreference` requires multiple `zones` and `Standard` SKU to be set.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `zones` - (Optional) A collection containing the availability zone to allocate the Public IP in.

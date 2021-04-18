@@ -225,6 +225,21 @@ func TestAccApplicationGateway_customHttpListenerFirewallPolicy(t *testing.T) {
 	})
 }
 
+func TestAccApplicationGateway_customPathRuleFirewallPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	r := ApplicationGatewayResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.customPathRuleFirewallPolicy(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 // TODO required soft delete on the keyvault
 func TestAccApplicationGateway_trustedRootCertificate_keyvault(t *testing.T) {
 	t.Skip()
@@ -369,6 +384,22 @@ func TestAccApplicationGateway_rewriteRuleSets_redirect(t *testing.T) {
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.rewriteRuleSets_redirect(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("rewrite_rule_set.0.name").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccApplicationGateway_rewriteRuleSets_rewriteUrl(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	r := ApplicationGatewayResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.rewriteRuleSets_rewriteUrl(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("rewrite_rule_set.0.name").Exists(),
@@ -2080,6 +2111,141 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ApplicationGatewayResource) customPathRuleFirewallPolicy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+# since these variables are re-used - a locals block makes this more maintainable
+locals {
+  backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
+  frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
+  frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
+  http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
+  listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
+  request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
+  path_rule_name                 = "${azurerm_virtual_network.test.name}-pathrule1"
+  url_path_map_name              = "${azurerm_virtual_network.test.name}-urlpath1"
+}
+
+resource "azurerm_public_ip" "teststd" {
+  name                = "acctest-PubIpStd-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_web_application_firewall_policy" "testfwp" {
+  name                = "acctest-fwp-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  policy_settings {
+    enabled = true
+    mode    = "Prevention"
+  }
+
+  managed_rules {
+    managed_rule_set {
+      type    = "OWASP"
+      version = "3.1"
+    }
+  }
+}
+
+resource "azurerm_web_application_firewall_policy" "testfwp_path_rule" {
+  name                = "acctest-fwp-path-rule-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  policy_settings {
+    enabled = true
+    mode    = "Prevention"
+  }
+
+  managed_rules {
+    managed_rule_set {
+      type    = "OWASP"
+      version = "3.1"
+    }
+  }
+}
+
+resource "azurerm_application_gateway" "test" {
+  name                = "acctestag-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku {
+    name     = "WAF_v2"
+    tier     = "WAF_v2"
+    capacity = 2
+  }
+
+  firewall_policy_id = azurerm_web_application_firewall_policy.testfwp.id
+
+  gateway_ip_configuration {
+    name      = "my-gateway-ip-configuration"
+    subnet_id = azurerm_subnet.test.id
+  }
+
+  frontend_port {
+    name = local.frontend_port_name
+    port = 80
+  }
+
+  frontend_ip_configuration {
+    name                 = local.frontend_ip_configuration_name
+    public_ip_address_id = azurerm_public_ip.teststd.id
+  }
+
+  backend_address_pool {
+    name = local.backend_address_pool_name
+  }
+
+  backend_http_settings {
+    name                  = local.http_setting_name
+    cookie_based_affinity = "Disabled"
+    port                  = 443
+    protocol              = "Https"
+    request_timeout       = 1
+
+    pick_host_name_from_backend_address = true
+  }
+
+  http_listener {
+    name                           = local.listener_name
+    frontend_ip_configuration_name = local.frontend_ip_configuration_name
+    frontend_port_name             = local.frontend_port_name
+    protocol                       = "Http"
+  }
+
+  request_routing_rule {
+    name               = local.request_routing_rule_name
+    rule_type          = "PathBasedRouting"
+    url_path_map_name  = local.url_path_map_name
+    http_listener_name = local.listener_name
+  }
+
+  url_path_map {
+    name                               = local.url_path_map_name
+    default_backend_address_pool_name  = local.backend_address_pool_name
+    default_backend_http_settings_name = local.http_setting_name
+
+    path_rule {
+      name                       = local.path_rule_name
+      backend_address_pool_name  = local.backend_address_pool_name
+      backend_http_settings_name = local.http_setting_name
+      firewall_policy_id         = azurerm_web_application_firewall_policy.testfwp_path_rule.id
+      paths = [
+        "/test",
+      ]
+    }
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -5146,6 +5312,128 @@ resource "azurerm_application_gateway" "test" {
       request_header_configuration {
         header_name  = "X-custom"
         header_value = "customvalue"
+      }
+    }
+  }
+
+  redirect_configuration {
+    name                 = local.redirect_configuration_name
+    redirect_type        = "Temporary"
+    target_listener_name = local.target_listener_name
+    include_path         = true
+    include_query_string = false
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r ApplicationGatewayResource) rewriteRuleSets_rewriteUrl(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+# since these variables are re-used - a locals block makes this more maintainable
+locals {
+  backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
+  frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
+  frontend_port_name2            = "${azurerm_virtual_network.test.name}-feport2"
+  frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
+  http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
+  listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
+  target_listener_name           = "${azurerm_virtual_network.test.name}-trgthttplstn"
+  request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
+  redirect_configuration_name    = "${azurerm_virtual_network.test.name}-Port80To8888Redirect"
+  rewrite_rule_set_name          = "${azurerm_virtual_network.test.name}-rwset"
+  rewrite_rule_name              = "${azurerm_virtual_network.test.name}-rwrule"
+}
+
+resource "azurerm_public_ip" "test_standard" {
+  name                = "acctest-pubip-%d-standard"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+  allocation_method   = "Static"
+}
+
+resource "azurerm_application_gateway" "test" {
+  name                = "acctestag-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku {
+    name     = "Standard_v2"
+    tier     = "Standard_v2"
+    capacity = 2
+  }
+
+  gateway_ip_configuration {
+    name      = "my-gateway-ip-configuration"
+    subnet_id = azurerm_subnet.test.id
+  }
+
+  frontend_port {
+    name = local.frontend_port_name
+    port = 80
+  }
+
+  frontend_port {
+    name = local.frontend_port_name2
+    port = 8888
+  }
+
+  frontend_ip_configuration {
+    name                 = local.frontend_ip_configuration_name
+    public_ip_address_id = azurerm_public_ip.test_standard.id
+  }
+
+  backend_address_pool {
+    name = local.backend_address_pool_name
+  }
+
+  backend_http_settings {
+    name                  = local.http_setting_name
+    cookie_based_affinity = "Disabled"
+    port                  = 80
+    protocol              = "Http"
+    request_timeout       = 1
+  }
+
+  http_listener {
+    name                           = local.listener_name
+    frontend_ip_configuration_name = local.frontend_ip_configuration_name
+    frontend_port_name             = local.frontend_port_name
+    protocol                       = "Http"
+  }
+
+  http_listener {
+    name                           = local.target_listener_name
+    frontend_ip_configuration_name = local.frontend_ip_configuration_name
+    frontend_port_name             = local.frontend_port_name2
+    protocol                       = "Http"
+  }
+
+  request_routing_rule {
+    name                        = local.request_routing_rule_name
+    rule_type                   = "Basic"
+    http_listener_name          = local.listener_name
+    redirect_configuration_name = local.redirect_configuration_name
+    rewrite_rule_set_name       = local.rewrite_rule_set_name
+  }
+
+  rewrite_rule_set {
+    name = local.rewrite_rule_set_name
+
+    rewrite_rule {
+      name          = local.rewrite_rule_name
+      rule_sequence = 1
+
+      condition {
+        variable = "var_uri_path"
+        pattern  = ".*article/(.*)/(.*)"
+      }
+
+      url {
+        path         = "/article.aspx"
+        query_string = "id={var_uri_path_1}&title={var_uri_path_2}"
       }
     }
   }

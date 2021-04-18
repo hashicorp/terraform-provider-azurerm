@@ -365,10 +365,6 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *schema.ResourceData, meta in
 		return fmt.Errorf("An `automatic_os_upgrade_policy` block cannot be specified when `upgrade_mode` is not set to `Automatic`")
 	}
 
-	if upgradeMode == compute.Automatic && len(automaticOSUpgradePolicyRaw) > 0 && healthProbeId == "" {
-		return fmt.Errorf("`healthProbeId` must be set when `upgrade_mode` is set to %q and `automatic_os_upgrade_policy` block exists", string(upgradeMode))
-	}
-
 	shouldHaveRollingUpgradePolicy := upgradeMode == compute.Automatic || upgradeMode == compute.Rolling
 	if !shouldHaveRollingUpgradePolicy && len(rollingUpgradePolicyRaw) > 0 {
 		return fmt.Errorf("A `rolling_upgrade_policy` block cannot be specified when `upgrade_mode` is set to %q", string(upgradeMode))
@@ -435,8 +431,9 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *schema.ResourceData, meta in
 		},
 	}
 
+	hasHealthExtension := false
 	if vmExtensionsRaw, ok := d.GetOk("extension"); ok {
-		virtualMachineProfile.ExtensionProfile, err = expandVirtualMachineScaleSetExtensions(vmExtensionsRaw.([]interface{}))
+		virtualMachineProfile.ExtensionProfile, hasHealthExtension, err = expandVirtualMachineScaleSetExtensions(vmExtensionsRaw.([]interface{}))
 		if err != nil {
 			return err
 		}
@@ -447,6 +444,18 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *schema.ResourceData, meta in
 			virtualMachineProfile.ExtensionProfile = &compute.VirtualMachineScaleSetExtensionProfile{}
 		}
 		virtualMachineProfile.ExtensionProfile.ExtensionsTimeBudget = utils.String(v.(string))
+	}
+
+	// otherwise the service return the error:
+	// Automatic OS Upgrade is not supported for this Virtual Machine Scale Set because a health probe or health extension was not specified.
+	if upgradeMode == compute.Automatic && len(automaticOSUpgradePolicyRaw) > 0 && (healthProbeId == "" && !hasHealthExtension) {
+		return fmt.Errorf("`health_probe_id` must be set or a health extension must be specified when `upgrade_mode` is set to %q and `automatic_os_upgrade_policy` block exists", string(upgradeMode))
+	}
+
+	// otherwise the service return the error:
+	// Rolling Upgrade mode is not supported for this Virtual Machine Scale Set because a health probe or health extension was not provided.
+	if upgradeMode == compute.Rolling && (healthProbeId == "" && !hasHealthExtension) {
+		return fmt.Errorf("`health_probe_id` must be set or a health extension must be specified when `upgrade_mode` is set to %q", string(upgradeMode))
 	}
 
 	enableAutomaticUpdates := d.Get("enable_automatic_updates").(bool)
@@ -834,7 +843,7 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta in
 	if d.HasChanges("extension", "extensions_time_budget") {
 		updateInstances = true
 
-		extensionProfile, err := expandVirtualMachineScaleSetExtensions(d.Get("extension").([]interface{}))
+		extensionProfile, _, err := expandVirtualMachineScaleSetExtensions(d.Get("extension").([]interface{}))
 		if err != nil {
 			return err
 		}

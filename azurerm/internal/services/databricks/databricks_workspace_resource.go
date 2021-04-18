@@ -383,10 +383,12 @@ func ValidateDatabricksWorkspaceName(i interface{}, k string) (warnings []string
 		errors = append(errors, fmt.Errorf("%q must be at least 3 characters: %q", k, v))
 	}
 
-	// 3) The value must have a length of at most 30.
-	// NOTE: Restricted name to 30 characters because that is the restriction in Azure Portal even though the API supports 64 characters
-	if len(v) > 30 {
-		errors = append(errors, fmt.Errorf("%q must be no more than 30 characters: %q", k, v))
+	// 3) The value must have a length of at most 64
+	// NOTE: Portal limits name to 30 characters but API allows up to 64. In order to facilitate imports of workspaces
+	// created through API, use the higher limit. Note that once the workspace is created, the portal handles workspace
+	// names >30 characters just fine
+	if len(v) > 64 {
+		errors = append(errors, fmt.Errorf("%q must be no more than 64 characters: %q", k, v))
 	}
 
 	// 4) Only alphanumeric characters, underscores, and hyphens are allowed.

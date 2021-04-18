@@ -9,7 +9,7 @@ import (
 
 	privateDnsValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns/validate"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-12-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-02-01/containerservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -866,7 +866,7 @@ func resourceKubernetesClusterCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if v, ok := d.GetOk("private_dns_zone_id"); ok {
-		if (parameters.Identity == nil && !servicePrincipalSet) || (v.(string) != "System" && (!servicePrincipalSet && parameters.Identity.Type != containerservice.ResourceIdentityTypeUserAssigned)) {
+		if (parameters.Identity == nil && !servicePrincipalSet) || (v.(string) != "System" && v.(string) != "None" && (!servicePrincipalSet && parameters.Identity.Type != containerservice.ResourceIdentityTypeUserAssigned)) {
 			return fmt.Errorf("a user assigned identity or a service principal must be used when using a custom private dns zone")
 		}
 		apiAccessProfile.PrivateDNSZone = utils.String(v.(string))

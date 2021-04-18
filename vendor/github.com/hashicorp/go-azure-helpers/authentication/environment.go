@@ -10,7 +10,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 )
 
-var environmentTranslationMap = map[string]azure.Environment{
+var sdkEnvironmentLookupMap = map[string]azure.Environment{
 	"public":       azure.PublicCloud,
 	"usgovernment": azure.USGovernmentCloud,
 	"german":       azure.GermanCloud,
@@ -99,7 +99,7 @@ func normalizeEnvironmentName(input string) string {
 
 // AzureEnvironmentByName returns a specific Azure Environment from the specified endpoint
 func AzureEnvironmentByNameFromEndpoint(ctx context.Context, endpoint string, environmentName string) (*azure.Environment, error) {
-	if env, ok := environmentTranslationMap[strings.ToLower(environmentName)]; ok {
+	if env, ok := sdkEnvironmentLookupMap[strings.ToLower(environmentName)]; ok {
 		return &env, nil
 	}
 
@@ -128,7 +128,7 @@ func AzureEnvironmentByNameFromEndpoint(ctx context.Context, endpoint string, en
 
 // IsEnvironmentAzureStack returns whether a specific Azure Environment is an Azure Stack environment
 func IsEnvironmentAzureStack(ctx context.Context, endpoint string, environmentName string) (bool, error) {
-	if _, ok := environmentTranslationMap[strings.ToLower(environmentName)]; ok {
+	if _, ok := sdkEnvironmentLookupMap[strings.ToLower(environmentName)]; ok {
 		return false, nil
 	}
 
@@ -192,11 +192,14 @@ func buildAzureEnvironment(env Environment) (*azure.Environment, error) {
 		ContainerRegistryDNSSuffix: env.Suffixes.AcrLoginServer,
 		ResourceIdentifiers: azure.ResourceIdentifier{
 			// This isn't returned from the metadata url and is universal across all environments
-			Storage:  "https://storage.azure.com/",
-			Graph:    env.Graph,
-			KeyVault: fmt.Sprintf("https://%s/", env.Suffixes.KeyVaultDns),
-			Datalake: env.ActiveDirectoryDataLake,
-			Batch:    env.Batch,
+			Storage:             "https://storage.azure.com/",
+			Graph:               env.Graph,
+			KeyVault:            fmt.Sprintf("https://%s/", env.Suffixes.KeyVaultDns),
+			Datalake:            env.ActiveDirectoryDataLake,
+			Batch:               env.Batch,
+			Synapse:             azure.NotAvailable,
+			ServiceBus:          azure.NotAvailable,
+			OperationalInsights: azure.NotAvailable,
 		},
 	}
 

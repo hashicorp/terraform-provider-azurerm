@@ -351,6 +351,7 @@ func TestAccContainerRegistry_policies(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_rule_set.0.default_action").HasValue("Allow"),
 				check.That(data.ResourceName).Key("network_rule_set.0.virtual_network.#").HasValue("0"),
+				check.That(data.ResourceName).Key("quarantine_policy_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("retention_policy.0.days").HasValue("10"),
 				check.That(data.ResourceName).Key("retention_policy.0.enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("trust_policy.0.enabled").HasValue("true"),
@@ -362,6 +363,7 @@ func TestAccContainerRegistry_policies(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_rule_set.0.default_action").HasValue("Allow"),
 				check.That(data.ResourceName).Key("network_rule_set.0.virtual_network.#").HasValue("0"),
+				check.That(data.ResourceName).Key("quarantine_policy_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("retention_policy.0.days").HasValue("20"),
 				check.That(data.ResourceName).Key("retention_policy.0.enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("trust_policy.0.enabled").HasValue("true"),
@@ -372,6 +374,7 @@ func TestAccContainerRegistry_policies(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_rule_set.#").HasValue("0"),
+				check.That(data.ResourceName).Key("quarantine_policy_enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("retention_policy.0.enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("trust_policy.0.enabled").HasValue("false"),
 			),
@@ -728,6 +731,8 @@ resource "azurerm_container_registry" "test" {
   location            = azurerm_resource_group.test.location
   admin_enabled       = false
   sku                 = "Premium"
+
+  quarantine_policy_enabled = true
 
   retention_policy {
     days    = %d
