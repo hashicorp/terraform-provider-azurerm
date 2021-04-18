@@ -1,4 +1,4 @@
-package healthbot_test
+package bot_test
 
 import (
 	"context"
@@ -10,14 +10,14 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthbot/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 type HealthbotResource struct{}
 
-func TestAccHealthbot_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_healthbot_service", "test")
+func TestAccBotHealthbot_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_bot_healthbot", "test")
 	r := HealthbotResource{}
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -30,8 +30,8 @@ func TestAccHealthbot_basic(t *testing.T) {
 	})
 }
 
-func TestAccHealthbot_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_healthbot_service", "test")
+func TestAccBotHealthbot_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_bot_healthbot", "test")
 	r := HealthbotResource{}
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -44,8 +44,8 @@ func TestAccHealthbot_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccHealthbot_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_healthbot_service", "test")
+func TestAccBotHealthbot_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_bot_healthbot", "test")
 	r := HealthbotResource{}
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -58,8 +58,8 @@ func TestAccHealthbot_complete(t *testing.T) {
 	})
 }
 
-func TestAccHealthbot_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_healthbot_service", "test")
+func TestAccBotHealthbot_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_bot_healthbot", "test")
 	r := HealthbotResource{}
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -87,14 +87,14 @@ func TestAccHealthbot_update(t *testing.T) {
 }
 
 func (r HealthbotResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.HealthbotID(state.ID)
+	id, err := parse.BotHealthbotID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.HealthBot.BotClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Bot.HealthbotClient.Get(ctx, id.ResourceGroup, id.HealthBotName)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Healthbot service %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving Healthbot service %q (resource group: %q): %+v", id.HealthBotName, id.ResourceGroup, err)
 	}
 
 	return utils.Bool(resp.Properties != nil), nil
@@ -118,7 +118,7 @@ func (r HealthbotResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_healthbot_service" "test" {
+resource "azurerm_bot_healthbot" "test" {
   name                = "acctest-hb-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -132,11 +132,11 @@ func (r HealthbotResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_healthbot_service" "import" {
-  name                = azurerm_healthbot_service.test.name
-  resource_group_name = azurerm_healthbot_service.test.resource_group_name
-  location            = azurerm_healthbot_service.test.location
-  sku_name            = azurerm_healthbot_service.test.sku_name
+resource "azurerm_bot_healthbot" "import" {
+  name                = azurerm_bot_healthbot.test.name
+  resource_group_name = azurerm_bot_healthbot.test.resource_group_name
+  location            = azurerm_bot_healthbot.test.location
+  sku_name            = azurerm_bot_healthbot.test.sku_name
 }
 `, config)
 }
@@ -146,7 +146,7 @@ func (r HealthbotResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_healthbot_service" "test" {
+resource "azurerm_bot_healthbot" "test" {
   name                = "acctest-hb-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location

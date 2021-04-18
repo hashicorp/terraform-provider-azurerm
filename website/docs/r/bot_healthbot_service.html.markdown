@@ -1,7 +1,7 @@
 ---
-subcategory: "Healthbot"
+subcategory: "Bot"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_healthbot_service"
+page_title: "Azure Resource Manager: azurerm_bot_healthbot"
 description: |-
   Manages a Healthbot Service.
 ---

@@ -1,4 +1,4 @@
-package healthbot
+package bot
 
 import (
 	"fmt"
@@ -12,8 +12,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthbot/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthbot/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -35,7 +35,7 @@ func resourceHealthbotService() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.HealthbotID(id)
+			_, err := parse.BotHealthbotID(id)
 			return err
 		}),
 
@@ -72,17 +72,17 @@ func resourceHealthbotService() *schema.Resource {
 
 func resourceHealthbotServiceCreate(d *schema.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	client := meta.(*clients.Client).HealthBot.BotClient
+	client := meta.(*clients.Client).Bot.HealthbotClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	id := parse.NewHealthbotID(subscriptionId, resourceGroup, name)
+	id := parse.NewBotHealthbotID(subscriptionId, resourceGroup, name)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.HealthBotName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -116,16 +116,16 @@ func resourceHealthbotServiceCreate(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceHealthbotServiceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).HealthBot.BotClient
+	client := meta.(*clients.Client).Bot.HealthbotClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.HealthbotID(d.Id())
+	id, err := parse.BotHealthbotID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.HealthBotName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] healthbot %q does not exist - removing from state", d.Id())
@@ -135,7 +135,7 @@ func resourceHealthbotServiceRead(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.HealthBotName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
@@ -150,11 +150,11 @@ func resourceHealthbotServiceRead(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceHealthbotServiceUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).HealthBot.BotClient
+	client := meta.(*clients.Client).Bot.HealthbotClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.HealthbotID(d.Id())
+	id, err := parse.BotHealthbotID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -170,23 +170,23 @@ func resourceHealthbotServiceUpdate(d *schema.ResourceData, meta interface{}) er
 		parameters.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, parameters); err != nil {
+	if _, err := client.Update(ctx, id.ResourceGroup, id.HealthBotName, parameters); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 	return resourceHealthbotServiceRead(d, meta)
 }
 
 func resourceHealthbotServiceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).HealthBot.BotClient
+	client := meta.(*clients.Client).Bot.HealthbotClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.HealthbotID(d.Id())
+	id, err := parse.BotHealthbotID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.HealthBotName)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}

@@ -39,7 +39,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/firewall"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthbot"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthcare"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hpccache"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hsm"
@@ -148,7 +147,6 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 		hpccache.Registration{},
 		hsm.Registration{},
 		hdinsight.Registration{},
-		healthbot.Registration{},
 		healthcare.Registration{},
 		iothub.Registration{},
 		iotcentral.Registration{},

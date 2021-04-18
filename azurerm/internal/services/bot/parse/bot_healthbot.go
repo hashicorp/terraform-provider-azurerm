@@ -9,42 +9,42 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type HealthbotId struct {
+type BotHealthbotId struct {
 	SubscriptionId string
 	ResourceGroup  string
-	Name           string
+	HealthBotName  string
 }
 
-func NewHealthbotID(subscriptionId, resourceGroup, name string) HealthbotId {
-	return HealthbotId{
+func NewBotHealthbotID(subscriptionId, resourceGroup, healthBotName string) BotHealthbotId {
+	return BotHealthbotId{
 		SubscriptionId: subscriptionId,
 		ResourceGroup:  resourceGroup,
-		Name:           name,
+		HealthBotName:  healthBotName,
 	}
 }
 
-func (id HealthbotId) String() string {
+func (id BotHealthbotId) String() string {
 	segments := []string{
-		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Health Bot Name %q", id.HealthBotName),
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Healthbot", segmentsStr)
+	return fmt.Sprintf("%s: (%s)", "Bot Healthbot", segmentsStr)
 }
 
-func (id HealthbotId) ID() string {
+func (id BotHealthbotId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.HealthBot/healthBots/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.HealthBotName)
 }
 
-// HealthbotID parses a Healthbot ID into an HealthbotId struct
-func HealthbotID(input string) (*HealthbotId, error) {
+// BotHealthbotID parses a BotHealthbot ID into an BotHealthbotId struct
+func BotHealthbotID(input string) (*BotHealthbotId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceId := HealthbotId{
+	resourceId := BotHealthbotId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}
@@ -57,7 +57,7 @@ func HealthbotID(input string) (*HealthbotId, error) {
 		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
-	if resourceId.Name, err = id.PopSegment("healthBots"); err != nil {
+	if resourceId.HealthBotName, err = id.PopSegment("healthBots"); err != nil {
 		return nil, err
 	}
 

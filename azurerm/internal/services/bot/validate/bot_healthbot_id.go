@@ -5,17 +5,17 @@ package validate
 import (
 	"fmt"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthbot/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot/parse"
 )
 
-func HealthbotID(input interface{}, key string) (warnings []string, errors []error) {
+func BotHealthbotID(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
 		return
 	}
 
-	if _, err := parse.HealthbotID(v); err != nil {
+	if _, err := parse.BotHealthbotID(v); err != nil {
 		errors = append(errors, err)
 	}
 

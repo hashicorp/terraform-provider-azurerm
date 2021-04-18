@@ -4,7 +4,7 @@ package validate
 
 import "testing"
 
-func TestHealthbotID(t *testing.T) {
+func TestBotHealthbotID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
@@ -41,13 +41,13 @@ func TestHealthbotID(t *testing.T) {
 		},
 
 		{
-			// missing Name
+			// missing HealthBotName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.HealthBot/",
 			Valid: false,
 		},
 
 		{
-			// missing value for Name
+			// missing value for HealthBotName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.HealthBot/healthBots/",
 			Valid: false,
 		},
@@ -66,7 +66,7 @@ func TestHealthbotID(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %s", tc.Input)
-		_, errors := HealthbotID(tc.Input, "test")
+		_, errors := BotHealthbotID(tc.Input, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {

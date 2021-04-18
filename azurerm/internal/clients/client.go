@@ -43,7 +43,6 @@ import (
 	firewall "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/firewall/client"
 	frontdoor "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/client"
 	hdinsight "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight/client"
-	healthbot "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthbot/client"
 	healthcare "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthcare/client"
 	hpccache "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hpccache/client"
 	hsm "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hsm/client"
@@ -146,7 +145,6 @@ type Client struct {
 	HPCCache              *hpccache.Client
 	HSM                   *hsm.Client
 	HDInsight             *hdinsight.Client
-	HealthBot             *healthbot.Client
 	HealthCare            *healthcare.Client
 	IoTCentral            *iotcentral.Client
 	IoTHub                *iothub.Client
@@ -249,7 +247,6 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.HPCCache = hpccache.NewClient(o)
 	client.HSM = hsm.NewClient(o)
 	client.HDInsight = hdinsight.NewClient(o)
-	client.HealthBot = healthbot.NewClient(o)
 	client.HealthCare = healthcare.NewClient(o)
 	client.IoTCentral = iotcentral.NewClient(o)
 	client.IoTHub = iothub.NewClient(o)
