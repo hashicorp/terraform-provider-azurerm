@@ -55,8 +55,9 @@ func resourceMsSqlJobCredential() *schema.Resource {
 			},
 
 			"password": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:      schema.TypeString,
+				Required:  true,
+				Sensitive: true,
 			},
 		},
 	}
