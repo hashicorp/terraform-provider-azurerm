@@ -24,7 +24,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&channelClient.Client, o.ResourceManagerAuthorizer)
 
 	healthBotClient := healthbot.NewBotsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&botClient.Client, o.ResourceManagerAuthorizer)
+	o.ConfigureClient(&healthBotClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
 		BotClient:        &botClient,
