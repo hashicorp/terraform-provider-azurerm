@@ -128,7 +128,6 @@ func resourceMsSqlJobCredentialRead(d *schema.ResourceData, meta interface{}) er
 
 	d.Set("name", resp.Name)
 	d.Set("username", resp.Username)
-	d.Set("password", resp.Password)
 
 	jobAgentId := parse.NewJobAgentID(id.SubscriptionId, id.ResourceGroup, id.ServerName, id.JobAgentName)
 	d.Set("job_agent_id", jobAgentId.ID())
