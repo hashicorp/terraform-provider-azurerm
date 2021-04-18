@@ -24,7 +24,7 @@ func resourceMsSqlJobCredential() *schema.Resource {
 		Delete: resourceMsSqlJobCredentialDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.JobAgentID(id)
+			_, err := parse.JobCredentialID(id)
 			return err
 		}),
 
