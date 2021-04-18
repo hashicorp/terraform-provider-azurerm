@@ -1,0 +1,154 @@
+package mssql
+
+import (
+	"fmt"
+	"log"
+	"time"
+
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/validate"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+)
+
+func resourceMsSqlJobCredential() *schema.Resource {
+	return &schema.Resource{
+		Create: resourceMsSqlJobCredentialCreateUpdate,
+		Read:   resourceMsSqlJobCredentialRead,
+		Update: resourceMsSqlJobCredentialCreateUpdate,
+		Delete: resourceMsSqlJobCredentialDelete,
+
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.JobAgentID(id)
+			return err
+		}),
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(60 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(60 * time.Minute),
+			Delete: schema.DefaultTimeout(60 * time.Minute),
+		},
+
+		Schema: map[string]*schema.Schema{
+			"name": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+			},
+
+			"job_agent_id": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.JobAgentID,
+			},
+
+			"username": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
+
+			"password": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
+		},
+	}
+}
+
+func resourceMsSqlJobCredentialCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).MSSQL.JobCredentialsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	log.Printf("[INFO] preparing arguments for Job Credential creation.")
+
+	name := d.Get("name").(string)
+	jobAgentId := d.Get("job_agent_id").(string)
+	jaId, _ := parse.JobAgentID(jobAgentId)
+	username := d.Get("username").(string)
+	password := d.Get("password").(string)
+
+	if d.IsNewResource() {
+		existing, err := client.Get(ctx, jaId.ResourceGroup, jaId.ServerName, jaId.Name, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Failed to check for presence of existing MsSql Job Credential %q (Job Agent %q / MsSql Server %q / Resource Group %q): %s", name, jaId.Name, jaId.ServerName, jaId.ResourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_mssql_job_credential", *existing.ID)
+		}
+	}
+
+	jobCredential := sql.JobCredential{
+		Name: utils.String(name),
+		JobCredentialProperties: &sql.JobCredentialProperties{
+			Username: utils.String(username),
+			Password: utils.String(password),
+		},
+	}
+
+	cred, err := client.CreateOrUpdate(ctx, jaId.ResourceGroup, jaId.ServerName, jaId.Name, name, jobCredential)
+	if err != nil {
+		return fmt.Errorf("creating MsSql Job Credential %q (Job Agent %q / Sql Server %q / Resource Group %q): %+v", name, jaId.Name, jaId.ServerName, jaId.ResourceGroup, err)
+	}
+
+	d.SetId(*cred.ID)
+
+	return resourceMsSqlJobCredentialRead(d, meta)
+}
+
+func resourceMsSqlJobCredentialRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).MSSQL.JobCredentialsClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.JobCredentialID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.JobAgentName, id.CredentialName)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			d.SetId("")
+			return nil
+		}
+		return fmt.Errorf("reading MsSql Job Credential %s (Job Agent %q / MsSql Server %q / Resource Group %q): %s", id.CredentialName, id.JobAgentName, id.ServerName, id.ResourceGroup, err)
+	}
+
+	d.Set("name", resp.Name)
+	d.Set("username", resp.Username)
+	d.Set("password", resp.Password)
+
+	jobAgentId := parse.NewJobAgentID(id.SubscriptionId, id.ResourceGroup, id.ServerName, id.JobAgentName)
+	d.Set("job_agent_id", jobAgentId.ID())
+
+	return nil
+}
+
+func resourceMsSqlJobCredentialDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).MSSQL.JobCredentialsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.JobCredentialID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	_, err = client.Delete(ctx, id.ResourceGroup, id.ServerName, id.JobAgentName, id.CredentialName)
+	if err != nil {
+		return fmt.Errorf("deleting Job Credential %s: %+v", id.CredentialName, err)
+	}
+
+	return nil
+}
