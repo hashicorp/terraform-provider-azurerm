@@ -80,7 +80,7 @@ func resourceMsSqlJobCredentialCreateUpdate(d *schema.ResourceData, meta interfa
 	password := d.Get("password").(string)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, jaId.ResourceGroup, jaId.ServerName, jaId.Name, name)
+		existing, err := client.Get(ctx, jobCredentialId.ResourceGroup, jobCredentialId.ServerName, jobCredentialId.JobAgentName, jobCredentialId.CredentialName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("Failed to check for presence of existing MsSql Job Credential %q (Job Agent %q / MsSql Server %q / Resource Group %q): %s", name, jaId.Name, jaId.ServerName, jaId.ResourceGroup, err)
