@@ -89,7 +89,7 @@ func resourceHealthbotServiceCreate(d *schema.ResourceData, meta interface{}) er
 			}
 		}
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_healthbot_service", id.ID())
+			return tf.ImportAsExistsError("azurerm_bot_healthbot", id.ID())
 		}
 	}
 
