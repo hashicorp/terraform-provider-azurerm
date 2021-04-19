@@ -164,13 +164,16 @@ func resourceExpressRouteCircuitConnectionRead(d *schema.ResourceData, meta inte
 	d.Set("name", id.ConnectionName)
 	d.Set("peering_id", parse.NewExpressRouteCircuitPeeringID(id.SubscriptionId, id.ResourceGroup, id.ExpressRouteCircuitName, "AzurePrivatePeering").ID())
 
-	if peerExpressRouteCircuitPeering := resp.PeerExpressRouteCircuitPeering; peerExpressRouteCircuitPeering != nil && peerExpressRouteCircuitPeering.ID != nil {
-		d.Set("peer_peering_id", peerExpressRouteCircuitPeering.ID)
+	if resp.PeerExpressRouteCircuitPeering != nil && resp.PeerExpressRouteCircuitPeering.ID != nil {
+		d.Set("peer_peering_id", resp.PeerExpressRouteCircuitPeering.ID)
 	}
 
 	if props := resp.ExpressRouteCircuitConnectionPropertiesFormat; props != nil {
 		d.Set("address_prefix_ipv4", props.AddressPrefix)
-		d.Set("authorization_key", props.AuthorizationKey)
+
+		if props.AuthorizationKey != nil {
+			d.Set("authorization_key", props.AuthorizationKey)
+		}
 
 		if props.Ipv6CircuitConnectionConfig != nil && props.Ipv6CircuitConnectionConfig.AddressPrefix != nil {
 			d.Set("address_prefix_ipv6", props.Ipv6CircuitConnectionConfig.AddressPrefix)
