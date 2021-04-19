@@ -93,14 +93,14 @@ func resourceMsSqlJobCredentialCreateUpdate(d *schema.ResourceData, meta interfa
 	}
 
 	jobCredential := sql.JobCredential{
-		Name: utils.String(name),
+		Name: utils.String(jobCredentialId.CredentialName),
 		JobCredentialProperties: &sql.JobCredentialProperties{
 			Username: utils.String(username),
 			Password: utils.String(password),
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, jobCredentialId.ResourceGroup, jobCredentialId.ServerName, jobCredentialId.jobAgentName, jobCredentialId.CredentialName, jobCredential); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, jobCredentialId.ResourceGroup, jobCredentialId.ServerName, jobCredentialId.JobAgentName, jobCredentialId.CredentialName, jobCredential); err != nil {
 		return fmt.Errorf("creating MsSql %s: %+v", jobCredentialId, err)
 	}
 
