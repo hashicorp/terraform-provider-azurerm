@@ -121,13 +121,13 @@ func resourceHPCCache() *schema.Resource {
 				},
 			},
 
-			"directory_ad": {
+			"directory_active_directory": {
 				Type:     schema.TypeList,
 				MaxItems: 1,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"primary_dns": {
+						"dns_primary_ip": {
 							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: validation.IsIPAddress,
@@ -137,12 +137,12 @@ func resourceHPCCache() *schema.Resource {
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
-						"cache_net_bios_name": {
+						"cache_netbios_name": {
 							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[-0-9a-zA-Z]{1,15}$`), ""),
 						},
-						"domain_net_bios_name": {
+						"domain_netbios_name": {
 							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[-0-9a-zA-Z]{1,15}$`), ""),
@@ -158,7 +158,7 @@ func resourceHPCCache() *schema.Resource {
 							Sensitive:    true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
-						"secondary_dns": {
+						"dns_secondary_ip": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.IsIPAddress,
@@ -179,14 +179,14 @@ func resourceHPCCache() *schema.Resource {
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
-						"passwd_file_uri": {
+						"password_file_uri": {
 							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},
-				ConflictsWith: []string{"directory_ad", "directory_ldap"},
+				ConflictsWith: []string{"directory_active_directory", "directory_ldap"},
 			},
 
 			"directory_ldap": {
@@ -207,7 +207,7 @@ func resourceHPCCache() *schema.Resource {
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
-						"conn_encrypted": {
+						"encrypted": {
 							Type:     schema.TypeBool,
 							Optional: true,
 						},
@@ -218,7 +218,7 @@ func resourceHPCCache() *schema.Resource {
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
-						"download_certificate": {
+						"download_certificate_automatically": {
 							Type:         schema.TypeBool,
 							Optional:     true,
 							RequiredWith: []string{"directory_ldap.0.certificate_validation_uri"},
@@ -247,7 +247,7 @@ func resourceHPCCache() *schema.Resource {
 						},
 					},
 				},
-				ConflictsWith: []string{"directory_ad", "directory_flat_file"},
+				ConflictsWith: []string{"directory_active_directory", "directory_flat_file"},
 			},
 
 			// TODO 3.0: remove this property
@@ -510,8 +510,8 @@ func resourceHPCCacheRead(d *schema.ResourceData, meta interface{}) error {
 			return err
 		}
 
-		if err := d.Set("directory_ad", ad); err != nil {
-			return fmt.Errorf("setting `directory_ad`: %v", err)
+		if err := d.Set("directory_active_directory", ad); err != nil {
+			return fmt.Errorf("setting `directory_active_directory`: %v", err)
 		}
 
 		if err := d.Set("directory_flat_file", flatFile); err != nil {
@@ -723,11 +723,11 @@ func flattenStorageCacheNetworkSettings(settings *storagecache.CacheNetworkSetti
 }
 
 func expandStorageCacheDirectorySettings(d *schema.ResourceData) *storagecache.CacheDirectorySettings {
-	if raw := d.Get("directory_ad").([]interface{}); len(raw) != 0 {
+	if raw := d.Get("directory_active_directory").([]interface{}); len(raw) != 0 {
 		b := raw[0].(map[string]interface{})
 
 		var secondaryDNSPtr *string
-		if secondaryDNS := b["secondary_dns"].(string); secondaryDNS != "" {
+		if secondaryDNS := b["dns_secondary_ip"].(string); secondaryDNS != "" {
 			secondaryDNSPtr = &secondaryDNS
 		}
 
@@ -737,11 +737,11 @@ func expandStorageCacheDirectorySettings(d *schema.ResourceData) *storagecache.C
 				UsernameSource: storagecache.UsernameSourceAD,
 			},
 			ActiveDirectory: &storagecache.CacheActiveDirectorySettings{
-				PrimaryDNSIPAddress:   utils.String(b["primary_dns"].(string)),
+				PrimaryDNSIPAddress:   utils.String(b["dns_primary_ip"].(string)),
 				SecondaryDNSIPAddress: secondaryDNSPtr,
 				DomainName:            utils.String(b["domain_name"].(string)),
-				CacheNetBiosName:      utils.String(b["cache_net_bios_name"].(string)),
-				DomainNetBiosName:     utils.String(b["domain_net_bios_name"].(string)),
+				CacheNetBiosName:      utils.String(b["cache_netbios_name"].(string)),
+				DomainNetBiosName:     utils.String(b["domain_netbios_name"].(string)),
 				Credentials: &storagecache.CacheActiveDirectorySettingsCredentials{
 					Username: utils.String(b["username"].(string)),
 					Password: utils.String(b["password"].(string)),
@@ -757,7 +757,7 @@ func expandStorageCacheDirectorySettings(d *schema.ResourceData) *storagecache.C
 				ExtendedGroups: utils.Bool(true),
 				UsernameSource: storagecache.UsernameSourceFile,
 				GroupFileURI:   utils.String(b["group_file_uri"].(string)),
-				UserFileURI:    utils.String(b["passwd_file_uri"].(string)),
+				UserFileURI:    utils.String(b["password_file_uri"].(string)),
 			},
 		}
 	}
@@ -775,9 +775,9 @@ func expandStorageCacheDirectorySettings(d *schema.ResourceData) *storagecache.C
 				UsernameSource:          storagecache.UsernameSourceLDAP,
 				LdapServer:              utils.String(b["server"].(string)),
 				LdapBaseDN:              utils.String(b["base_dn"].(string)),
-				EncryptLdapConnection:   utils.Bool(b["conn_encrypted"].(bool)),
+				EncryptLdapConnection:   utils.Bool(b["encrypted"].(bool)),
 				RequireValidCertificate: utils.Bool(certValidationUriPtr != nil),
-				AutoDownloadCertificate: utils.Bool(b["download_certificate"].(bool)),
+				AutoDownloadCertificate: utils.Bool(b["download_certificate_automatically"].(bool)),
 				CaCertificateURI:        certValidationUriPtr,
 				Credentials:             expandStorageCacheDirectoryLdapBind(b["bind"].([]interface{})),
 			},
@@ -823,7 +823,7 @@ func flattenStorageCacheDirectorySettings(d *schema.ResourceData, input *storage
 			}
 		}
 		// Since the credentials are never returned from response. We will set whatever specified in the config back to state as the best effort.
-		ad := d.Get("directory_ad").([]interface{})
+		ad := d.Get("directory_active_directory").([]interface{})
 		if len(ad) == 1 {
 			b := ad[0].(map[string]interface{})
 			username = b["username"].(string)
@@ -832,13 +832,13 @@ func flattenStorageCacheDirectorySettings(d *schema.ResourceData, input *storage
 
 		return []interface{}{
 			map[string]interface{}{
-				"primary_dns":          primaryDNS,
-				"domain_name":          domainName,
-				"cache_net_bios_name":  cacheNetBiosName,
-				"domain_net_bios_name": domainNetBiosName,
-				"secondary_dns":        secondaryDNS,
-				"username":             username,
-				"password":             password,
+				"dns_primary_ip":      primaryDNS,
+				"domain_name":         domainName,
+				"cache_netbios_name":  cacheNetBiosName,
+				"domain_netbios_name": domainNetBiosName,
+				"dns_secondary_ip":    secondaryDNS,
+				"username":            username,
+				"password":            password,
 			},
 		}, nil, nil, nil
 
@@ -855,8 +855,8 @@ func flattenStorageCacheDirectorySettings(d *schema.ResourceData, input *storage
 
 		return nil, []interface{}{
 			map[string]interface{}{
-				"group_file_uri":  groupFileUri,
-				"passwd_file_uri": passwdFileUri,
+				"group_file_uri":    groupFileUri,
+				"password_file_uri": passwdFileUri,
 			},
 		}, nil, nil
 	case storagecache.UsernameSourceLDAP:
@@ -887,12 +887,12 @@ func flattenStorageCacheDirectorySettings(d *schema.ResourceData, input *storage
 
 		return nil, nil, []interface{}{
 			map[string]interface{}{
-				"server":                     server,
-				"base_dn":                    baseDn,
-				"conn_encrypted":             connEncrypted,
-				"certificate_validation_uri": certValidationUri,
-				"download_certificate":       downloadCert,
-				"bind":                       flattenStorageCacheDirectoryLdapBind(d),
+				"server":                             server,
+				"base_dn":                            baseDn,
+				"encrypted":                          connEncrypted,
+				"certificate_validation_uri":         certValidationUri,
+				"download_certificate_automatically": downloadCert,
+				"bind":                               flattenStorageCacheDirectoryLdapBind(d),
 			},
 		}, nil
 	default:

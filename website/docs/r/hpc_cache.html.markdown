@@ -72,13 +72,13 @@ The following arguments are supported:
 
 * `dns` - (Optional) A `dns` block as defined below.
 
-* `directory_ad` - (Optional) A `directory_ad` block as defined below.
+* `directory_active_directory` - (Optional) A `directory_active_directory` block as defined below.
  
 * `directory_flat_file` - (Optional) A `directory_flat_file` block as defined below.
  
 * `directory_ldap` - (Optional) A `directory_ldap` block as defined below.
 
-~> **Note:** Only one of `directory_ad`, `directory_flat_file` and `directory_ldap` can be set.
+~> **Note:** Only one of `directory_active_directory`, `directory_flat_file` and `directory_ldap` can be set.
  
 * `tags` - (Optional) A mapping of tags to assign to the HPC Cache.
 
@@ -120,21 +120,21 @@ A `default_access_policy` block contains the following:
 
 ---
 
-A `directory_ad` block contains the following:
+A `directory_active_directory` block contains the following:
 
-* `primary_dns` - (Required) The primary DNS IP address used to resolve the Active Directory domain controller's FQDN.
+* `dns_primary_ip` - (Required) The primary DNS IP address used to resolve the Active Directory domain controller's FQDN.
 
 * `domain_name` - (Required) The fully qualified domain name of the Active Directory domain controller.
  
-* `cache_net_bios_name` - (Required) The NetBIOS name to assign to the HPC Cache when it joins the Active Directory domain as a server.
+* `cache_netbios_name` - (Required) The NetBIOS name to assign to the HPC Cache when it joins the Active Directory domain as a server.
 
-* `domain_net_bios_name` - (Required) The Active Directory domain's NetBIOS name.
+* `domain_netbios_name` - (Required) The Active Directory domain's NetBIOS name.
 
 * `username` - (Required) The username of the Active Directory domain administrator.
  
 * `password` - (Required) The password of the Active Directory domain administrator.
 
-* `secondary_dns` - (Optional) The secondary DNS IP address used to resolve the Active Directory domain controller's FQDN.
+* `dns_secondary_ip` - (Optional) The secondary DNS IP address used to resolve the Active Directory domain controller's FQDN.
 
 ---
 
@@ -142,7 +142,7 @@ A `directory_flat_file` block contains the following:
 
 * `group_file_uri` - (Required) The URI of the file containing group information (`/etc/group` file format in Unix-like OS).
 
-* `passwd_file_uri` - (Required) The URI of the file containing user information (`/etc/passwd` file format in Unix-like OS).
+* `password_file_uri` - (Required) The URI of the file containing user information (`/etc/passwd` file format in Unix-like OS).
 
 ---
 
@@ -152,11 +152,11 @@ A `directory_ldap` block contains the following:
 
 * `base_dn` - (Required) The base distinguished name (DN) for the LDAP domain.
 
-* `conn_encrypted` - (Optional) Whether the LDAP connection should be encrypted? Defaults to `false`.
+* `encrypted` - (Optional) Whether the LDAP connection should be encrypted? Defaults to `false`.
 
 * `certificate_validation_uri` - (Optional) The URI of the CA certificate to validate the LDAP secure connection.
 
-* `download_certificate` - (Optional) Whether the certificate should be automatically downloaded. This can be set to `true` only when `certificate_validation_uri` is provided. Defaults to `false`.
+* `download_certificate_automatically` - (Optional) Whether the certificate should be automatically downloaded. This can be set to `true` only when `certificate_validation_uri` is provided. Defaults to `false`.
 
 * `bind` - (Optional) A `bind` block as defined above.
 

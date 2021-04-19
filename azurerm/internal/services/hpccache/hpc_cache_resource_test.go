@@ -300,7 +300,7 @@ func TestAccHPCCache_directoryAD(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("directory_ad.0.username", "directory_ad.0.password"),
+		data.ImportStep("directory_active_directory.0.username", "directory_active_directory.0.password"),
 		{
 			Config: r.adNone(data, adInfo),
 			Check: resource.ComposeTestCheckFunc(
@@ -617,13 +617,13 @@ resource "azurerm_hpc_cache" "test" {
   cache_size_in_gb    = 3072
   subnet_id           = data.azurerm_subnet.test.id
   sku_name            = "Standard_2G"
-  directory_ad {
-    primary_dns          = "%s"
-    domain_name          = "%s"
-    cache_net_bios_name  = "%s"
-    domain_net_bios_name = "%s"
-    username             = "%s"
-    password             = "%s"
+  directory_active_directory {
+    dns_primary_ip      = "%s"
+    domain_name         = "%s"
+    cache_netbios_name  = "%s"
+    domain_netbios_name = "%s"
+    username            = "%s"
+    password            = "%s"
   }
 }
 `, info.SubnetID.ResourceGroup, info.SubnetID.ResourceGroup, info.SubnetID.VirtualNetworkName, info.SubnetID.Name,
@@ -659,8 +659,8 @@ resource "azurerm_hpc_cache" "test" {
   subnet_id           = azurerm_subnet.test.id
   sku_name            = "Standard_2G"
   directory_flat_file {
-    group_file_uri  = "http://${azurerm_network_interface.test.private_ip_address}:8000/group"
-    passwd_file_uri = "http://${azurerm_network_interface.test.private_ip_address}:8000/passwd"
+    group_file_uri    = "http://${azurerm_network_interface.test.private_ip_address}:8000/group"
+    password_file_uri = "http://${azurerm_network_interface.test.private_ip_address}:8000/passwd"
   }
 
   depends_on = [azurerm_linux_virtual_machine.test]
@@ -765,11 +765,11 @@ resource "azurerm_hpc_cache" "test" {
   subnet_id           = azurerm_subnet.test.id
   sku_name            = "Standard_2G"
   directory_ldap {
-    server                     = azurerm_network_interface.test.private_ip_address
-    base_dn                    = "dc=example,dc=com"
-    conn_encrypted             = true
-    certificate_validation_uri = "http://${azurerm_network_interface.test.private_ip_address}:8000/server.crt"
-    download_certificate       = true
+    server                             = azurerm_network_interface.test.private_ip_address
+    base_dn                            = "dc=example,dc=com"
+    encrypted                          = true
+    certificate_validation_uri         = "http://${azurerm_network_interface.test.private_ip_address}:8000/server.crt"
+    download_certificate_automatically = true
     bind {
       dn       = "cn=admin,dc=example,dc=com"
       password = "123"
