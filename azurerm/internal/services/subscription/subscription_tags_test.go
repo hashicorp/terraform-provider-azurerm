@@ -14,7 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-type SubscriptionTags struct {}
+type SubscriptionTags struct{}
 
 func TestSubscriptionTags_basic(t *testing.T) {
 	if os.Getenv("ARM_SUBSCRIPTION_ID") == "" {
@@ -64,12 +64,12 @@ func TestSubscriptionTags_updateWithTags(t *testing.T) {
 		{
 			Config: r.basicConfig(data),
 			Check: resource.ComposeTestCheckFunc(
-					assert.ExistsInAzure(r),
-					assert.Key("tags.%").HasValue("2"),
-					assert.Key("tags.cost_center").HasValue("MSFT"),
-					assert.Key("tags.environment").HasValue("Production"),
+				assert.ExistsInAzure(r),
+				assert.Key("tags.%").HasValue("2"),
+				assert.Key("tags.cost_center").HasValue("MSFT"),
+				assert.Key("tags.environment").HasValue("Production"),
 			),
-		},	
+		},
 		data.ImportStep(),
 		{
 			Config: r.withTagsUpdatedConfig(data),

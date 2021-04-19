@@ -3,10 +3,11 @@ package subscription
 import (
 	"context"
 	"fmt"
-	"time"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-11-01/subscriptions"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -15,7 +16,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"
 )
 
 func subscriptionTags() *schema.Resource {
@@ -57,26 +57,26 @@ func subscriptionTagCreateUpdate(d *schema.ResourceData, meta interface{}) error
 
 	//verify existing subscription
 	if subscriptionIdRaw, ok := d.GetOk("subscription_id"); ok {
-	 subscriptionId = subscriptionIdRaw.(string)
+		subscriptionId = subscriptionIdRaw.(string)
 
-	 locks.ByID(subscriptionId)
-	 defer locks.UnlockByID(subscriptionId)
-	 existingSub, err := client.Get(ctx, subscriptionId)
-	 if err != nil {
-	     return fmt.Errorf("could not read existing Subscription %q", subscriptionId)
-	 }
-	 // Disabled and Warned are both "effectively" cancelled states,
-	 if existingSub.State == subscriptions.Disabled || existingSub.State == subscriptions.Warned {
-	     log.Printf("[DEBUG] Existing subscription in Disabled/Cancelled state Terraform will attempt to re-activate it")
-	     if _, err := subscriptionClient.Enable(ctx, subscriptionId); err != nil {
-	         return fmt.Errorf("enabling Subscription %q: %+v", subscriptionId, err)
-	     }
-	     deadline, _ := ctx.Deadline()
-	     createDeadline := time.Until(deadline)
-	     if err := waitForSubscriptionStateToSettleSub(ctx, meta.(*clients.Client), subscriptionId, "Active", createDeadline); err != nil {
-	         return fmt.Errorf("failed waiting for Subscription %q  to enter %q state: %+v", subscriptionId, "Active", err)
-	     }
-	 }
+		locks.ByID(subscriptionId)
+		defer locks.UnlockByID(subscriptionId)
+		existingSub, err := client.Get(ctx, subscriptionId)
+		if err != nil {
+			return fmt.Errorf("could not read existing Subscription %q", subscriptionId)
+		}
+		// Disabled and Warned are both "effectively" cancelled states,
+		if existingSub.State == subscriptions.Disabled || existingSub.State == subscriptions.Warned {
+			log.Printf("[DEBUG] Existing subscription in Disabled/Cancelled state Terraform will attempt to re-activate it")
+			if _, err := subscriptionClient.Enable(ctx, subscriptionId); err != nil {
+				return fmt.Errorf("enabling Subscription %q: %+v", subscriptionId, err)
+			}
+			deadline, _ := ctx.Deadline()
+			createDeadline := time.Until(deadline)
+			if err := waitForSubscriptionStateToSettleSub(ctx, meta.(*clients.Client), subscriptionId, "Active", createDeadline); err != nil {
+				return fmt.Errorf("failed waiting for Subscription %q  to enter %q state: %+v", subscriptionId, "Active", err)
+			}
+		}
 	}
 
 	d.Set("subscription_id", subscriptionId)
@@ -84,7 +84,7 @@ func subscriptionTagCreateUpdate(d *schema.ResourceData, meta interface{}) error
 	resource_tags := resources.Tags{
 		Tags: tags.Expand(t),
 	}
-	tagPatchParamter := resources.TagsPatchResource{ Operation: "Merge", Properties: &resource_tags}
+	tagPatchParamter := resources.TagsPatchResource{Operation: "Merge", Properties: &resource_tags}
 	uptags, urerr := tagsClient.UpdateAtScope(context.Background(), "subscriptions/"+subscriptionId, tagPatchParamter)
 	if urerr != nil {
 		if !utils.ResponseWasNotFound(uptags.Response) {
@@ -135,7 +135,7 @@ func subscriptionTagDelete(d *schema.ResourceData, meta interface{}) error {
 	resource_tags := resources.Tags{
 		Tags: tags.Expand(t),
 	}
-	tagPatchParamter := resources.TagsPatchResource{ Operation: "Delete", Properties: &resource_tags}
+	tagPatchParamter := resources.TagsPatchResource{Operation: "Delete", Properties: &resource_tags}
 	_, delerr := tagsClient.UpdateAtScope(context.Background(), "subscriptions/"+subscriptionId, tagPatchParamter)
 	if delerr != nil {
 		return fmt.Errorf("Failed to Remove tags %q from subscription %q: %+v", tags.Flatten(resource_tags.Tags), subscriptionId, delerr)

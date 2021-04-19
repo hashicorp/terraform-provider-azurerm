@@ -2,16 +2,16 @@ package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-11-01/subscriptions"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"
 	subscriptionAlias "github.com/Azure/azure-sdk-for-go/services/subscription/mgmt/2020-09-01/subscription"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"
 )
 
 type Client struct {
 	Client             *subscriptions.Client
 	AliasClient        *subscriptionAlias.AliasClient
 	SubscriptionClient *subscriptionAlias.Client
-	TagsClient		   *resources.TagsClient
+	TagsClient         *resources.TagsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
