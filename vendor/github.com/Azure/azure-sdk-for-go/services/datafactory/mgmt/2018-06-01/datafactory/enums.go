@@ -1342,6 +1342,21 @@ func PossibleSparkThriftTransportProtocolValues() []SparkThriftTransportProtocol
 	return []SparkThriftTransportProtocol{SparkThriftTransportProtocolBinary, SparkThriftTransportProtocolHTTP, SparkThriftTransportProtocolSASL}
 }
 
+// SQLAlwaysEncryptedAkvAuthType enumerates the values for sql always encrypted akv auth type.
+type SQLAlwaysEncryptedAkvAuthType string
+
+const (
+	// ManagedIdentity ...
+	ManagedIdentity SQLAlwaysEncryptedAkvAuthType = "ManagedIdentity"
+	// ServicePrincipal ...
+	ServicePrincipal SQLAlwaysEncryptedAkvAuthType = "ServicePrincipal"
+)
+
+// PossibleSQLAlwaysEncryptedAkvAuthTypeValues returns an array of possible values for the SQLAlwaysEncryptedAkvAuthType const type.
+func PossibleSQLAlwaysEncryptedAkvAuthTypeValues() []SQLAlwaysEncryptedAkvAuthType {
+	return []SQLAlwaysEncryptedAkvAuthType{ManagedIdentity, ServicePrincipal}
+}
+
 // SQLPartitionOption enumerates the values for sql partition option.
 type SQLPartitionOption string
 
@@ -1695,6 +1710,10 @@ const (
 	TypeJSONSink TypeBasicCopySink = "JsonSink"
 	// TypeMicrosoftAccessSink ...
 	TypeMicrosoftAccessSink TypeBasicCopySink = "MicrosoftAccessSink"
+	// TypeMongoDbAtlasSink ...
+	TypeMongoDbAtlasSink TypeBasicCopySink = "MongoDbAtlasSink"
+	// TypeMongoDbV2Sink ...
+	TypeMongoDbV2Sink TypeBasicCopySink = "MongoDbV2Sink"
 	// TypeOdbcSink ...
 	TypeOdbcSink TypeBasicCopySink = "OdbcSink"
 	// TypeOracleSink ...
@@ -1725,7 +1744,7 @@ const (
 
 // PossibleTypeBasicCopySinkValues returns an array of possible values for the TypeBasicCopySink const type.
 func PossibleTypeBasicCopySinkValues() []TypeBasicCopySink {
-	return []TypeBasicCopySink{TypeAvroSink, TypeAzureBlobFSSink, TypeAzureDatabricksDeltaLakeSink, TypeAzureDataExplorerSink, TypeAzureDataLakeStoreSink, TypeAzureMySQLSink, TypeAzurePostgreSQLSink, TypeAzureQueueSink, TypeAzureSearchIndexSink, TypeAzureSQLSink, TypeAzureTableSink, TypeBinarySink, TypeBlobSink, TypeCommonDataServiceForAppsSink, TypeCopySink, TypeCosmosDbMongoDbAPISink, TypeCosmosDbSQLAPISink, TypeDelimitedTextSink, TypeDocumentDbCollectionSink, TypeDynamicsCrmSink, TypeDynamicsSink, TypeFileSystemSink, TypeInformixSink, TypeJSONSink, TypeMicrosoftAccessSink, TypeOdbcSink, TypeOracleSink, TypeOrcSink, TypeParquetSink, TypeRestSink, TypeSalesforceServiceCloudSink, TypeSalesforceSink, TypeSapCloudForCustomerSink, TypeSnowflakeSink, TypeSQLDWSink, TypeSQLMISink, TypeSQLServerSink, TypeSQLSink}
+	return []TypeBasicCopySink{TypeAvroSink, TypeAzureBlobFSSink, TypeAzureDatabricksDeltaLakeSink, TypeAzureDataExplorerSink, TypeAzureDataLakeStoreSink, TypeAzureMySQLSink, TypeAzurePostgreSQLSink, TypeAzureQueueSink, TypeAzureSearchIndexSink, TypeAzureSQLSink, TypeAzureTableSink, TypeBinarySink, TypeBlobSink, TypeCommonDataServiceForAppsSink, TypeCopySink, TypeCosmosDbMongoDbAPISink, TypeCosmosDbSQLAPISink, TypeDelimitedTextSink, TypeDocumentDbCollectionSink, TypeDynamicsCrmSink, TypeDynamicsSink, TypeFileSystemSink, TypeInformixSink, TypeJSONSink, TypeMicrosoftAccessSink, TypeMongoDbAtlasSink, TypeMongoDbV2Sink, TypeOdbcSink, TypeOracleSink, TypeOrcSink, TypeParquetSink, TypeRestSink, TypeSalesforceServiceCloudSink, TypeSalesforceSink, TypeSapCloudForCustomerSink, TypeSnowflakeSink, TypeSQLDWSink, TypeSQLMISink, TypeSQLServerSink, TypeSQLSink}
 }
 
 // TypeBasicCopySource enumerates the values for type basic copy source.

@@ -641,6 +641,7 @@ func (future *VNetPeeringCreateOrUpdateFuture) result(client VNetPeeringClient) 
 		return
 	}
 	if !done {
+		vnp.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("databricks.VNetPeeringCreateOrUpdateFuture")
 		return
 	}
@@ -683,6 +684,7 @@ func (future *VNetPeeringDeleteFuture) result(client VNetPeeringClient) (ar auto
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("databricks.VNetPeeringDeleteFuture")
 		return
 	}
@@ -1109,6 +1111,7 @@ func (future *WorkspacesCreateOrUpdateFuture) result(client WorkspacesClient) (w
 		return
 	}
 	if !done {
+		w.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("databricks.WorkspacesCreateOrUpdateFuture")
 		return
 	}
@@ -1151,6 +1154,7 @@ func (future *WorkspacesDeleteFuture) result(client WorkspacesClient) (ar autore
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("databricks.WorkspacesDeleteFuture")
 		return
 	}
@@ -1187,6 +1191,7 @@ func (future *WorkspacesUpdateFuture) result(client WorkspacesClient) (w Workspa
 		return
 	}
 	if !done {
+		w.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("databricks.WorkspacesUpdateFuture")
 		return
 	}

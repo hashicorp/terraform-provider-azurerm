@@ -110,6 +110,7 @@ func (future *CreateFuture) result(client Client) (rt ResourceType, err error) {
 		return
 	}
 	if !done {
+		rt.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("redis.CreateFuture")
 		return
 	}
@@ -292,6 +293,7 @@ func (future *DeleteFuture) result(client Client) (ar autorest.Response, err err
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("redis.DeleteFuture")
 		return
 	}
@@ -356,6 +358,7 @@ func (future *ExportDataFuture) result(client Client) (ar autorest.Response, err
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("redis.ExportDataFuture")
 		return
 	}
@@ -697,6 +700,7 @@ func (future *ImportDataFuture) result(client Client) (ar autorest.Response, err
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("redis.ImportDataFuture")
 		return
 	}
@@ -761,6 +765,7 @@ func (future *LinkedServerCreateFuture) result(client LinkedServerClient) (lswp 
 		return
 	}
 	if !done {
+		lswp.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("redis.LinkedServerCreateFuture")
 		return
 	}
@@ -1834,6 +1839,7 @@ func (future *PrivateEndpointConnectionsPutFuture) result(client PrivateEndpoint
 		return
 	}
 	if !done {
+		pec.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("redis.PrivateEndpointConnectionsPutFuture")
 		return
 	}

@@ -299,6 +299,7 @@ func (future *SolutionsCreateOrUpdateFuture) result(client SolutionsClient) (s S
 		return
 	}
 	if !done {
+		s.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("operationsmanagement.SolutionsCreateOrUpdateFuture")
 		return
 	}
@@ -341,6 +342,7 @@ func (future *SolutionsDeleteFuture) result(client SolutionsClient) (ar autorest
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("operationsmanagement.SolutionsDeleteFuture")
 		return
 	}
@@ -377,6 +379,7 @@ func (future *SolutionsUpdateFuture) result(client SolutionsClient) (s Solution,
 		return
 	}
 	if !done {
+		s.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("operationsmanagement.SolutionsUpdateFuture")
 		return
 	}

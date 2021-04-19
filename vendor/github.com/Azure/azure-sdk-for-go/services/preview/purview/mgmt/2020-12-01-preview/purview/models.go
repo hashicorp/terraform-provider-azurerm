@@ -415,6 +415,7 @@ func (future *AccountsCreateOrUpdateFuture) result(client AccountsClient) (a Acc
 		return
 	}
 	if !done {
+		a.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("purview.AccountsCreateOrUpdateFuture")
 		return
 	}
@@ -457,6 +458,7 @@ func (future *AccountsDeleteFuture) result(client AccountsClient) (ar autorest.R
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("purview.AccountsDeleteFuture")
 		return
 	}
@@ -501,6 +503,7 @@ func (future *AccountsUpdateFuture) result(client AccountsClient) (a Account, er
 		return
 	}
 	if !done {
+		a.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("purview.AccountsUpdateFuture")
 		return
 	}
@@ -1416,6 +1419,7 @@ func (future *PrivateEndpointConnectionsDeleteFuture) result(client PrivateEndpo
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("purview.PrivateEndpointConnectionsDeleteFuture")
 		return
 	}

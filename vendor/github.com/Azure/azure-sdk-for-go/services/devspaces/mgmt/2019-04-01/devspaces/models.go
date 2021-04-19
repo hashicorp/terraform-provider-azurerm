@@ -411,6 +411,7 @@ func (future *ControllersCreateFuture) result(client ControllersClient) (c Contr
 		return
 	}
 	if !done {
+		c.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("devspaces.ControllersCreateFuture")
 		return
 	}
@@ -453,6 +454,7 @@ func (future *ControllersDeleteFuture) result(client ControllersClient) (ar auto
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("devspaces.ControllersDeleteFuture")
 		return
 	}
