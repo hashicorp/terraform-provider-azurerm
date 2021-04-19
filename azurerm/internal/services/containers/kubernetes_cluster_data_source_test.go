@@ -30,6 +30,7 @@ var kubernetesDataSourceTests = map[string]func(t *testing.T){
 	"addOnProfileKubeDashboard":                   testAccDataSourceKubernetesCluster_addOnProfileKubeDashboard,
 	"addOnProfileAzurePolicy":                     testAccDataSourceKubernetesCluster_addOnProfileAzurePolicy,
 	"addOnProfileRouting":                         testAccDataSourceKubernetesCluster_addOnProfileRouting,
+	"addOnProfileIngressApplicationGateeway":      testAccDataSourceKubernetesCluster_addOnProfileIngressApplicationGateway,
 	"autoscalingNoAvailabilityZones":              testAccDataSourceKubernetesCluster_autoscalingNoAvailabilityZones,
 	"autoscalingWithAvailabilityZones":            testAccDataSourceKubernetesCluster_autoscalingWithAvailabilityZones,
 	"nodeLabels":                                  testAccDataSourceKubernetesCluster_nodeLabels,
@@ -450,6 +451,28 @@ func testAccDataSourceKubernetesCluster_addOnProfileRouting(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceKubernetesCluster_addOnProfileIngressApplicationGateway(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccDataSourceKubernetesCluster_addOnProfileRouting(t)
+}
+
+func testAccDataSourceKubernetesCluster_addOnProfileIngressApplicationGateway(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterDataSource{}
+
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.addOnProfileIngressApplicationGatewayConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("addon_profile.#").HasValue("1"),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.#").HasValue("1"),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.effective_application_gateway_id").Exists(),
+			),
+		},
+	})
+}
+
 func TestAccDataSourceKubernetesCluster_autoscalingNoAvailabilityZones(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
 	testAccDataSourceKubernetesCluster_autoscalingNoAvailabilityZones(t)
@@ -711,6 +734,17 @@ data "azurerm_kubernetes_cluster" "test" {
   resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
 `, KubernetesClusterResource{}.addonProfileRoutingConfig(data))
+}
+
+func (KubernetesClusterDataSource) addOnProfileIngressApplicationGatewayConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_kubernetes_cluster" "test" {
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
+}
+`, KubernetesClusterResource{}.addonProfileIngressApplicationGatewaySubnetCIDRConfig(data))
 }
 
 func (KubernetesClusterDataSource) autoScalingNoAvailabilityZonesConfig(data acceptance.TestData) string {
