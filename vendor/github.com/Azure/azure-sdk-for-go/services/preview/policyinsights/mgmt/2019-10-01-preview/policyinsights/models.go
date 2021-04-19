@@ -2048,6 +2048,7 @@ func (future *PolicyStatesTriggerResourceGroupEvaluationFuture) result(client Po
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("policyinsights.PolicyStatesTriggerResourceGroupEvaluationFuture")
 		return
 	}
@@ -2084,6 +2085,7 @@ func (future *PolicyStatesTriggerSubscriptionEvaluationFuture) result(client Pol
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("policyinsights.PolicyStatesTriggerSubscriptionEvaluationFuture")
 		return
 	}

@@ -1101,6 +1101,7 @@ func (future *MigrationConfigsCreateAndStartMigrationFuture) result(client Migra
 		return
 	}
 	if !done {
+		mcp.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("servicebus.MigrationConfigsCreateAndStartMigrationFuture")
 		return
 	}
@@ -1143,6 +1144,7 @@ func (future *NamespacesCreateOrUpdateFuture) result(client NamespacesClient) (s
 		return
 	}
 	if !done {
+		sn.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("servicebus.NamespacesCreateOrUpdateFuture")
 		return
 	}
@@ -1185,6 +1187,7 @@ func (future *NamespacesDeleteFuture) result(client NamespacesClient) (ar autore
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("servicebus.NamespacesDeleteFuture")
 		return
 	}

@@ -3702,6 +3702,7 @@ func (future *IntegrationServiceEnvironmentManagedApisDeleteFuture) result(clien
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("logic.IntegrationServiceEnvironmentManagedApisDeleteFuture")
 		return
 	}
@@ -3738,6 +3739,7 @@ func (future *IntegrationServiceEnvironmentManagedApisPutFuture) result(client I
 		return
 	}
 	if !done {
+		ma.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("logic.IntegrationServiceEnvironmentManagedApisPutFuture")
 		return
 	}
@@ -3825,6 +3827,7 @@ func (future *IntegrationServiceEnvironmentsCreateOrUpdateFuture) result(client 
 		return
 	}
 	if !done {
+		ise.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("logic.IntegrationServiceEnvironmentsCreateOrUpdateFuture")
 		return
 	}
@@ -4077,6 +4080,7 @@ func (future *IntegrationServiceEnvironmentsUpdateFuture) result(client Integrat
 		return
 	}
 	if !done {
+		ise.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("logic.IntegrationServiceEnvironmentsUpdateFuture")
 		return
 	}
@@ -6636,6 +6640,7 @@ func (future *WorkflowsMoveFuture) result(client WorkflowsClient) (ar autorest.R
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("logic.WorkflowsMoveFuture")
 		return
 	}

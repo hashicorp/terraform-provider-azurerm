@@ -183,6 +183,7 @@ func (future *DedicatedHsmCreateOrUpdateFuture) result(client DedicatedHsmClient
 		return
 	}
 	if !done {
+		dh.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("hardwaresecuritymodules.DedicatedHsmCreateOrUpdateFuture")
 		return
 	}
@@ -225,6 +226,7 @@ func (future *DedicatedHsmDeleteFuture) result(client DedicatedHsmClient) (ar au
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("hardwaresecuritymodules.DedicatedHsmDeleteFuture")
 		return
 	}
@@ -506,6 +508,7 @@ func (future *DedicatedHsmUpdateFuture) result(client DedicatedHsmClient) (dh De
 		return
 	}
 	if !done {
+		dh.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("hardwaresecuritymodules.DedicatedHsmUpdateFuture")
 		return
 	}

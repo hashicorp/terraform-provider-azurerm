@@ -918,6 +918,7 @@ func (future *ContainerGroupsCreateOrUpdateFuture) result(client ContainerGroups
 		return
 	}
 	if !done {
+		cg.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerinstance.ContainerGroupsCreateOrUpdateFuture")
 		return
 	}
@@ -960,6 +961,7 @@ func (future *ContainerGroupsDeleteFuture) result(client ContainerGroupsClient) 
 		return
 	}
 	if !done {
+		cg.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerinstance.ContainerGroupsDeleteFuture")
 		return
 	}
@@ -1002,6 +1004,7 @@ func (future *ContainerGroupsRestartFuture) result(client ContainerGroupsClient)
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerinstance.ContainerGroupsRestartFuture")
 		return
 	}
@@ -1038,6 +1041,7 @@ func (future *ContainerGroupsStartFuture) result(client ContainerGroupsClient) (
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerinstance.ContainerGroupsStartFuture")
 		return
 	}
