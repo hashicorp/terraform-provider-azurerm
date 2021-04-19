@@ -215,6 +215,7 @@ A `addon_profile` block supports the following:
 
 * `oms_agent` - (Optional) A `oms_agent` block as defined below. For more details, please visit [How to onboard Azure Monitor for containers](https://docs.microsoft.com/en-us/azure/monitoring/monitoring-container-insights-onboard).
 
+* `ingress_application_gateway` - (Optional) An `ingress_application_gateway` block as defined below.
 ---
 
 A `auto_scaler_profile` block supports the following:
@@ -430,6 +431,18 @@ A `oms_agent` block supports the following:
 
 ---
 
+An `ingress_application_gateway` block supports the following:
+
+* `enabled` - (Required) Set to true to deploy the application gateway ingress controller to this cluster.
+
+* `application_gateway_id` - (Optional) Integrate the application gateway ingress controller with the application gateway with the given ID. See [this](https://docs.microsoft.com/en-us/azure/application-gateway/tutorial-ingress-controller-add-on-existing) page for further details.
+
+* `subnet_cidr` - (Optional) Create an application gateway using the subnet CIDR and then integrate the application gateway ingress controller with the gateway. See [this](https://docs.microsoft.com/en-us/azure/application-gateway/tutorial-ingress-controller-add-on-new) page for further details.
+
+* `subnet_id` - (Optional) Create an application gateway on the subnet with the given ID and then integrate the application gateway ingress controller with the gateway. See [this](https://docs.microsoft.com/en-us/azure/application-gateway/tutorial-ingress-controller-add-on-new) page for further details.
+
+---
+
 A `role_based_access_control` block supports the following:
 
 * `azure_active_directory` - (Optional) An `azure_active_directory` block.
@@ -489,6 +502,8 @@ The following attributes are exported:
 * `node_resource_group` - The auto-generated Resource Group which contains the resources for this Managed Kubernetes Cluster.
 
 * `kubelet_identity` - A `kubelet_identity` block as defined below.  
+
+* `addon_profile` - An `addon_profile` block as defined below.
 
 ---
 
@@ -564,6 +579,18 @@ provider "kubernetes" {
   cluster_ca_certificate = base64decode(azurerm_kubernetes_cluster.main.kube_config.0.cluster_ca_certificate)
 }
 ```
+
+---
+
+The `addon_profile` block exports the following:
+
+* `ingress_application_gateway` - An `ingress_application_gateway` block as defined below.
+
+---
+
+The `ingress_application_gateway` block exports the following:
+
+* `effective_application_gateway_id` - The ID of the application gateway associated with the application gateway ingress controller deployed to this cluster.
 
 ## Timeouts
 

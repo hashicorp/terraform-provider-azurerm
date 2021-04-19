@@ -118,6 +118,35 @@ func dataSourceKubernetesCluster() *schema.Resource {
 								},
 							},
 						},
+
+						"ingress_application_gateway": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"enabled": {
+										Type:     schema.TypeBool,
+										Computed: true,
+									},
+									"application_gateway_id": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"effective_application_gateway_id": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"subnet_cidr": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"subnet_id": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -826,6 +855,44 @@ func flattenKubernetesClusterDataSourceAddonProfiles(profile map[string]*contain
 		azurePolicies = append(azurePolicies, output)
 	}
 	values["azure_policy"] = azurePolicies
+
+	ingressApplicationGateways := make([]interface{}, 0)
+	if ingressApplicationGateway := kubernetesAddonProfileLocate(profile, ingressApplicationGatewayKey); ingressApplicationGateway != nil {
+		enabled := false
+		if enabledVal := ingressApplicationGateway.Enabled; enabledVal != nil {
+			enabled = *enabledVal
+		}
+
+		applicationGatewayId := ""
+		if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "applicationGatewayId"); v != nil {
+			applicationGatewayId = *v
+		}
+
+		effectiveApplicationGatewayId := ""
+		if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "effectiveApplicationGatewayId"); v != nil {
+			effectiveApplicationGatewayId = *v
+		}
+
+		subnetCIDR := ""
+		if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "subnetCIDR"); v != nil {
+			subnetCIDR = *v
+		}
+
+		subnetId := ""
+		if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "subnetId"); v != nil {
+			subnetId = *v
+		}
+
+		output := map[string]interface{}{
+			"enabled":                          enabled,
+			"application_gateway_id":           applicationGatewayId,
+			"effective_application_gateway_id": effectiveApplicationGatewayId,
+			"subnet_cidr":                      subnetCIDR,
+			"subnet_id":                        subnetId,
+		}
+		ingressApplicationGateways = append(ingressApplicationGateways, output)
+	}
+	values["ingress_application_gateway"] = ingressApplicationGateways
 
 	return []interface{}{values}
 }
