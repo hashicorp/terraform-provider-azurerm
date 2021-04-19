@@ -29,6 +29,10 @@ func dataSourceSubscriptions() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"exact_match": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 			"subscriptions": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -90,6 +94,7 @@ func dataSourceSubscriptionsRead(d *schema.ResourceData, meta interface{}) error
 
 	displayNamePrefix := strings.ToLower(d.Get("display_name_prefix").(string))
 	displayNameContains := strings.ToLower(d.Get("display_name_contains").(string))
+	exactMatch := d.Get("exact_match").(string)
 
 	// ListComplete returns an iterator struct
 	results, err := subClient.ListComplete(ctx)
@@ -132,20 +137,30 @@ func dataSourceSubscriptionsRead(d *schema.ResourceData, meta interface{}) error
 			return fmt.Errorf("Error going to next subscriptions value: %+v", err)
 		}
 
-		// check if the display name prefix matches the given input
-		if displayNamePrefix != "" {
-			if !strings.HasPrefix(strings.ToLower(s["display_name"].(string)), displayNamePrefix) {
-				// the display name does not match the given prefix
+		// check if the exact match matches the given input
+		if exactMatch != "" {
+			if exactMatch != s["display_name"].(string) {
+				// the display name does not match
 				continue
 			}
-		}
+		} else {
 
-		// check if the display name matches the 'contains' comparison
-		if displayNameContains != "" {
-			if !strings.Contains(strings.ToLower(s["display_name"].(string)), displayNameContains) {
-				// the display name does not match the contains check
-				continue
+			// check if the display name prefix matches the given input
+			if displayNamePrefix != "" {
+				if !strings.HasPrefix(strings.ToLower(s["display_name"].(string)), displayNamePrefix) {
+					// the display name does not match the given prefix
+					continue
+				}
 			}
+
+			// check if the display name matches the 'contains' comparison
+			if displayNameContains != "" {
+				if !strings.Contains(strings.ToLower(s["display_name"].(string)), displayNameContains) {
+					// the display name does not match the contains check
+					continue
+				}
+			}
+
 		}
 
 		s["tags"] = tags.Flatten(val.Tags)
