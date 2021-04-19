@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"regexp"
 	"time"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic/validate"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
@@ -79,7 +80,7 @@ func resourceLogicAppTriggerHttpRequest() *schema.Resource {
 			"relative_path": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateLogicAppTriggerHttpRequestRelativePath,
+				ValidateFunc: validate.TriggerHttpRequestRelativePath,
 			},
 		},
 	}
@@ -191,14 +192,4 @@ func resourceLogicAppTriggerHttpRequestDelete(d *schema.ResourceData, meta inter
 	}
 
 	return nil
-}
-
-func validateLogicAppTriggerHttpRequestRelativePath(v interface{}, _ string) (warnings []string, errors []error) {
-	value := v.(string)
-
-	if !regexp.MustCompile("^[A-Za-z0-9_/}{]+$").MatchString(value) {
-		errors = append(errors, fmt.Errorf("Relative Path can only contain alphanumeric characters, underscores, forward slashes and curly braces."))
-	}
-
-	return warnings, errors
 }
