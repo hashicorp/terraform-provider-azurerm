@@ -3,8 +3,9 @@ package batch
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"time"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch/validate"
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2020-03-01/batch"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -41,7 +42,7 @@ func resourceBatchApplication() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMBatchApplicationName,
+				ValidateFunc: validate.ApplicationName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
@@ -50,7 +51,7 @@ func resourceBatchApplication() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateAzureRMBatchAccountName,
+				ValidateFunc: validate.AccountName,
 			},
 
 			"allow_updates": {
@@ -62,13 +63,13 @@ func resourceBatchApplication() *schema.Resource {
 			"default_version": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateAzureRMBatchApplicationVersion,
+				ValidateFunc: validate.ApplicationVersion,
 			},
 
 			"display_name": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateAzureRMBatchApplicationDisplayName,
+				ValidateFunc: validate.ApplicationDisplayName,
 			},
 		},
 	}
@@ -197,54 +198,4 @@ func resourceBatchApplicationDelete(d *schema.ResourceData, meta interface{}) er
 	}
 
 	return nil
-}
-
-func validateAzureRMBatchApplicationName(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-
-	if !regexp.MustCompile(`^[-_\da-zA-Z]+$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf("%q can contain any combination of alphanumeric characters, hyphens, and underscores: %q", k, value))
-	}
-
-	if 1 > len(value) {
-		errors = append(errors, fmt.Errorf("%q cannot be less than 1 character: %q", k, value))
-	}
-
-	if len(value) > 64 {
-		errors = append(errors, fmt.Errorf("%q cannot be longer than 64 characters: %q %d", k, value, len(value)))
-	}
-
-	return warnings, errors
-}
-
-func validateAzureRMBatchApplicationVersion(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-
-	if !regexp.MustCompile(`^[-._\da-zA-Z]+$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf("%q can contain any combination of alphanumeric characters, hyphens, underscores, and periods: %q", k, value))
-	}
-
-	if 1 > len(value) {
-		errors = append(errors, fmt.Errorf("%q cannot be less than 1 character: %q", k, value))
-	}
-
-	if len(value) > 64 {
-		errors = append(errors, fmt.Errorf("%q cannot be longer than 64 characters: %q %d", k, value, len(value)))
-	}
-
-	return warnings, errors
-}
-
-func validateAzureRMBatchApplicationDisplayName(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-
-	if 1 > len(value) {
-		errors = append(errors, fmt.Errorf("%q cannot be less than 1 character: %q", k, value))
-	}
-
-	if len(value) > 1024 {
-		errors = append(errors, fmt.Errorf("%q cannot be longer than 1024 characters: %q %d", k, value, len(value)))
-	}
-
-	return warnings, errors
 }
