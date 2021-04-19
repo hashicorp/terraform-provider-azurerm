@@ -23,6 +23,7 @@ import (
 )
 
 const virtualHubResourceName = "azurerm_virtual_hub"
+const defaultRouteTable = "defaultRouteTable"
 
 func resourceVirtualHub() *schema.Resource {
 	return &schema.Resource{
@@ -100,6 +101,71 @@ func resourceVirtualHub() *schema.Resource {
 				},
 			},
 
+			"defaultRouteTable": {
+				Type:     schema.TypeList,
+				Optional: false,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"labels": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+						"route": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"name": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
+									"destinations": {
+										Type:     schema.TypeSet,
+										Required: true,
+										Elem: &schema.Schema{
+											Type:         schema.TypeString,
+											ValidateFunc: validation.StringIsNotEmpty,
+										},
+									},
+
+									"destinations_type": {
+										Type:     schema.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											"CIDR",
+											"ResourceId",
+											"Service",
+										}, false),
+									},
+
+									"next_hop": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: azure.ValidateResourceID,
+									},
+
+									"next_hop_type": {
+										Type:     schema.TypeString,
+										Optional: true,
+										Default:  "ResourceId",
+										ValidateFunc: validation.StringInSlice([]string{
+											"ResourceId",
+										}, false),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -107,6 +173,7 @@ func resourceVirtualHub() *schema.Resource {
 
 func resourceVirtualHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualHubClient
+	routeTableClient := meta.(*clients.Client).Network.HubRouteTableClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -192,11 +259,26 @@ func resourceVirtualHubCreateUpdate(d *schema.ResourceData, meta interface{}) er
 	}
 	d.SetId(*resp.ID)
 
+	routeTableParams := network.HubRouteTable{
+		Name:                    utils.String(defaultRouteTable),
+		HubRouteTableProperties: expandDefaultRouteTable(d.Get("defaultRouteTable").(*schema.Set).List()),
+	}
+
+	routeTableFuture, err := routeTableClient.CreateOrUpdate(ctx, resourceGroup, name, defaultRouteTable, routeTableParams)
+	if err != nil {
+		return fmt.Errorf("creating/updating HubRouteTable %q (Resource Group %q / Virtual Hub %q): %+v", defaultRouteTable, resourceGroup, name, err)
+	}
+
+	if err := routeTableFuture.WaitForCompletionRef(ctx, routeTableClient.Client); err != nil {
+		return fmt.Errorf("waiting on creating/updating future for HubRouteTable %q (Resource Group %q / Virtual Hub %q): %+v", defaultRouteTable, resourceGroup, name, err)
+	}
+
 	return resourceVirtualHubRead(d, meta)
 }
 
 func resourceVirtualHubRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualHubClient
+	routeTableClient := meta.(*clients.Client).Network.HubRouteTableClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -233,6 +315,17 @@ func resourceVirtualHubRead(d *schema.ResourceData, meta interface{}) error {
 			virtualWanId = props.VirtualWan.ID
 		}
 		d.Set("virtual_wan_id", virtualWanId)
+	}
+
+	defaultRouteResp, err := routeTableClient.Get(ctx, id.ResourceGroup, *resp.Name, defaultRouteTable)
+	if err != nil {
+		if !utils.ResponseWasForbidden(defaultRouteResp.Response) && !utils.ResponseWasNotFound(defaultRouteResp.Response) {
+			return fmt.Errorf("retrieving `defaultRouteTable` for VirtualHub: %+v", err)
+		}
+	}
+	flattenedDefaultRouteTable := flattenDefaultRouteTable(defaultRouteResp.HubRouteTableProperties)
+	if err := d.Set("defaultRouteTable", flattenedDefaultRouteTable); err != nil {
+		return fmt.Errorf("setting `defaultRouteTable` for VirtualHub: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -314,6 +407,38 @@ func flattenVirtualHubRoute(input *network.VirtualHubRouteTable) []interface{} {
 	}
 
 	return results
+}
+
+func expandDefaultRouteTable(input []interface{}) *network.HubRouteTableProperties {
+	if len(input) == 0 {
+		return nil
+	}
+
+	item := input[0].(map[string]interface{})
+	labelsRaw := item["labels"].([]interface{})
+	routesRaw := item["route"].([]interface{})
+
+	routeTableProperties := network.HubRouteTableProperties{
+		Labels: utils.ExpandStringSlice(labelsRaw),
+		Routes: expandVirtualHubRouteTableHubRoutes(routesRaw),
+	}
+
+	return &routeTableProperties
+}
+
+func flattenDefaultRouteTable(input *network.HubRouteTableProperties) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0)
+
+	if input == nil {
+		return result
+	}
+
+	defaultRouteTableRaw := make(map[string]interface{})
+	defaultRouteTableRaw["labels"] = utils.FlattenStringSlice(input.Labels)
+	defaultRouteTableRaw["route"] = flattenVirtualHubRouteTableHubRoutes(input.Routes)
+
+	result = append(result, defaultRouteTableRaw)
+	return result
 }
 
 func virtualHubCreateRefreshFunc(ctx context.Context, client *network.VirtualHubsClient, resourceGroup, name string) resource.StateRefreshFunc {
