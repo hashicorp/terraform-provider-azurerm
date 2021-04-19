@@ -24,9 +24,8 @@ import (
 
 func resourceKeyVaultManagedHardwareSecurityModule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmKeyVaultManagedHardwareSecurityModuleCreateUpdate,
+		Create: resourceArmKeyVaultManagedHardwareSecurityModuleCreate,
 		Read:   resourceArmKeyVaultManagedHardwareSecurityModuleRead,
-		Update: resourceArmKeyVaultManagedHardwareSecurityModuleCreateUpdate,
 		Delete: resourceArmKeyVaultManagedHardwareSecurityModuleDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
@@ -37,7 +36,6 @@ func resourceKeyVaultManagedHardwareSecurityModule() *schema.Resource {
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
@@ -65,6 +63,7 @@ func resourceKeyVaultManagedHardwareSecurityModule() *schema.Resource {
 			"admin_object_ids": {
 				Type:     schema.TypeSet,
 				Required: true,
+				ForceNew: true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
 					ValidateFunc: validation.IsUUID,
@@ -74,6 +73,7 @@ func resourceKeyVaultManagedHardwareSecurityModule() *schema.Resource {
 			"tenant_id": {
 				Type:         schema.TypeString,
 				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validation.IsUUID,
 			},
 
@@ -96,15 +96,16 @@ func resourceKeyVaultManagedHardwareSecurityModule() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.Schema(),
+			// https://github.com/Azure/azure-rest-api-specs/issues/13365
+			"tags": tags.ForceNewSchema(),
 		},
 	}
 }
 
-func resourceArmKeyVaultManagedHardwareSecurityModuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).KeyVault.ManagedHsmClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Println("[INFO] Preparing arguments for Key Vault Managed Hardware Security Module")

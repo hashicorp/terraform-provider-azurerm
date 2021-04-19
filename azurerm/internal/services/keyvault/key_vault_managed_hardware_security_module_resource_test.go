@@ -47,35 +47,13 @@ func TestAccKeyVaultManagedHardwareSecurityModule_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccKeyVaultManagedHardwareSecurityModule_purgeProtectionAndSoftDelete(t *testing.T) {
+func TestAccKeyVaultManagedHardwareSecurityModule_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_hardware_security_module", "test")
 	r := KeyVaultManagedHardwareSecurityModuleResource{}
 
 	data.ResourceSequentialTest(t, r, []resource.TestStep{
 		{
-			Config: r.purgeProtectionAndSoftDelete(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccKeyVaultManagedHardwareSecurityModule_updateTags(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_hardware_security_module", "test")
-	r := KeyVaultManagedHardwareSecurityModuleResource{}
-
-	data.ResourceSequentialTest(t, r, []resource.TestStep{
-		{
-			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.updateTags(data),
+			Config: r.complete(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -134,7 +112,7 @@ resource "azurerm_key_vault_managed_hardware_security_module" "import" {
 `, template)
 }
 
-func (r KeyVaultManagedHardwareSecurityModuleResource) purgeProtectionAndSoftDelete(data acceptance.TestData) string {
+func (r KeyVaultManagedHardwareSecurityModuleResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -152,26 +130,6 @@ resource "azurerm_key_vault_managed_hardware_security_module" "test" {
   purge_protection_enabled   = true
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   admin_object_ids           = [data.azurerm_client_config.current.object_id]
-}
-`, template, data.RandomInteger)
-}
-
-func (r KeyVaultManagedHardwareSecurityModuleResource) updateTags(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_key_vault_managed_hardware_security_module" "test" {
-  name                = "kvHsm%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku_name            = "Standard_B1"
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  admin_object_ids    = [data.azurerm_client_config.current.object_id]
 
   tags = {
     Env = "Test"
