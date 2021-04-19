@@ -70,9 +70,12 @@ func resourceMsSqlJobCredentialCreateUpdate(d *schema.ResourceData, meta interfa
 
 	log.Printf("[INFO] preparing arguments for Job Credential creation.")
 
-	name := d.Get("name").(string)
-	jobAgentId := d.Get("job_agent_id").(string)
-	jaId, _ := parse.JobAgentID(jobAgentId)
+	jaId, err := parse.JobAgentID(d.Get("job_agent_id").(string))
+	if err != nil {
+		return err
+	}
+	jobCredentialId := parse.NewJobCredentialID(jaId.SubscriptionId, jaId.ResourceGroup, jaId.ServerName, jaId.Name, d.Get("name").(string))
+
 	username := d.Get("username").(string)
 	password := d.Get("password").(string)
 
