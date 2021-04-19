@@ -295,7 +295,7 @@ func resourceVirtualMachine() *schema.Resource {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							Computed:     true,
-							ValidateFunc: validateDiskSizeGB,
+							ValidateFunc: validate.DiskSizeGB,
 						},
 
 						"write_accelerator_enabled": {
@@ -364,7 +364,7 @@ func resourceVirtualMachine() *schema.Resource {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							Computed:     true,
-							ValidateFunc: validateDiskSizeGB,
+							ValidateFunc: validate.DiskSizeGB,
 						},
 
 						"lun": {
