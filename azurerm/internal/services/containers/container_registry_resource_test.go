@@ -6,6 +6,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/validate"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -13,7 +15,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -69,7 +70,7 @@ func TestAccContainerRegistryName_validation(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := containers.ValidateContainerRegistryName(tc.Value, "azurerm_container_registry")
+		_, errors := validate.ContainerRegistryName(tc.Value, "azurerm_container_registry")
 
 		if len(errors) != tc.ErrCount {
 			t.Fatalf("Expected the Azure RM Container Registry Name to trigger a validation error: %v", errors)
