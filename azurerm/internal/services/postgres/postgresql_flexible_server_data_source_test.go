@@ -40,8 +40,6 @@ func (PostgresqlFlexibleServerDataSource) basic(data acceptance.TestData) string
 data "azurerm_postgresql_flexible_server" "test" {
   name                = azurerm_postgresql_flexible_server.test.name
   resource_group_name = azurerm_postgresql_flexible_server.test.resource_group_name
-
-  depends_on = [azurerm_postgresql_flexible_server.test]
 }
 `, PostgresqlFlexibleServerResource{}.basic(data))
 }
