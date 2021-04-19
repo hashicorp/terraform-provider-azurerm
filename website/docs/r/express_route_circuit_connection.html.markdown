@@ -18,7 +18,7 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_express_route_circuit" "example1" {
+resource "azurerm_express_route_circuit" "example" {
   name                  = "example-circuit"
   resource_group_name   = azurerm_resource_group.example.name
   location              = azurerm_resource_group.example.location
@@ -50,9 +50,9 @@ resource "azurerm_express_route_circuit" "example2" {
   allow_classic_operations = false
 }
 
-resource "azurerm_express_route_circuit_peering" "example1" {
+resource "azurerm_express_route_circuit_peering" "example" {
   peering_type                  = "AzurePrivatePeering"
-  express_route_circuit_name    = azurerm_express_route_circuit.example1.name
+  express_route_circuit_name    = azurerm_express_route_circuit.example.name
   resource_group_name           = azurerm_resource_group.example.name
   peer_asn                      = 100
   primary_peer_address_prefix   = "123.0.0.0/30"
@@ -71,16 +71,12 @@ resource "azurerm_express_route_circuit_peering" "example2" {
 }
 
 resource "azurerm_express_route_circuit_connection" "example" {
-  name                = "example-expressroutecircuitconnection"
-  resource_group_name = azurerm_resource_group.example.name
-  circuit_name        = azurerm_express_route_circuit.example1.name
-  peering_id          = azurerm_express_route_circuit_peering.example1.id
+  name                = "example-expressroutecircuitconn"
+  peering_id          = azurerm_express_route_circuit_peering.example.id
   peer_peering_id     = azurerm_express_route_circuit_peering.example2.id
-  address_prefix      = "192.169.8.0/29"
+  address_prefix_ipv4 = "192.169.8.0/29"
   authorization_key   = "00000000-0000-0000-0000-000000000000"
-  ipv6circuit_connection_config {
-    address_prefix = "2002:db01::/125"
-  }
+  address_prefix_ipv6 = "2002:db01::/125"
 }
 ```
 
@@ -90,17 +86,15 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Express Route Circuit Connection. Changing this forces a new Express Route Circuit Connection to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Express Route Circuit Connection should exist. Changing this forces a new Express Route Circuit Connection to be created.
-
-* `peering_id` - (Required) The ID of the Express Route Circuit Private Peering within which this Express Route Circuit Connection should be created.
+* `peering_id` - (Required) The ID of the Express Route Circuit Private Peering within which this Express Route Circuit Connection should be created. Changing this forces a new Express Route Circuit Connection to be created.
   
-* `peer_peering_id` - (Required) The ID of the peered Express Route Circuit Private Peering.
+* `peer_peering_id` - (Required) The ID of the peered Express Route Circuit Private Peering. Changing this forces a new Express Route Circuit Connection to be created.
   
 * `address_prefix_ipv4` - (Required) The IPv4 address space to carve out customer addresses for tunnels.
 
 ---
 
-* `authorization_key` - (Optional) The authorization key.
+* `authorization_key` - (Optional) The authorization key which is associated with the Express Route Circuit Connection.
 
 * `address_prefix_ipv6` - (Required) The IPv6 address space to carve out customer addresses for global reach.
 

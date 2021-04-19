@@ -18,8 +18,7 @@ import (
 type ExpressRouteCircuitConnectionResource struct{}
 
 func TestAccExpressRouteCircuitConnection_basic(t *testing.T) {
-	if os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" || os.Getenv("ARM_TEST_CIRCUIT_NAME_FIRST") == "" ||
-		os.Getenv("ARM_TEST_CIRCUIT_NAME_SECOND") == "" {
+	if os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" || os.Getenv("ARM_TEST_CIRCUIT_NAME_FIRST") == "" || os.Getenv("ARM_TEST_CIRCUIT_NAME_SECOND") == "" {
 		t.Skip("Skipping as ARM_TEST_DATA_RESOURCE_GROUP and/or ARM_TEST_CIRCUIT_NAME_FIRST and/or ARM_TEST_CIRCUIT_NAME_SECOND are not specified")
 		return
 	}
@@ -78,8 +77,7 @@ func TestAccExpressRouteCircuitConnection_complete(t *testing.T) {
 }
 
 func TestAccExpressRouteCircuitConnection_update(t *testing.T) {
-	if os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" || os.Getenv("ARM_TEST_CIRCUIT_NAME_FIRST") == "" ||
-		os.Getenv("ARM_TEST_CIRCUIT_NAME_SECOND") == "" {
+	if os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" || os.Getenv("ARM_TEST_CIRCUIT_NAME_FIRST") == "" || os.Getenv("ARM_TEST_CIRCUIT_NAME_SECOND") == "" {
 		t.Skip("Skipping as ARM_TEST_DATA_RESOURCE_GROUP and/or ARM_TEST_CIRCUIT_NAME_FIRST and/or ARM_TEST_CIRCUIT_NAME_SECOND are not specified")
 		return
 	}
@@ -111,9 +109,8 @@ func TestAccExpressRouteCircuitConnection_update(t *testing.T) {
 	})
 }
 
-func TestAccExpressRouteCircuitConnection_updateIpv6CircuitConnectionConfig(t *testing.T) {
-	if os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" || os.Getenv("ARM_TEST_CIRCUIT_NAME_FIRST") == "" ||
-		os.Getenv("ARM_TEST_CIRCUIT_NAME_SECOND") == "" {
+func TestAccExpressRouteCircuitConnection_updateAddressPrefixIPv6(t *testing.T) {
+	if os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" || os.Getenv("ARM_TEST_CIRCUIT_NAME_FIRST") == "" || os.Getenv("ARM_TEST_CIRCUIT_NAME_SECOND") == "" {
 		t.Skip("Skipping as ARM_TEST_DATA_RESOURCE_GROUP and/or ARM_TEST_CIRCUIT_NAME_FIRST and/or ARM_TEST_CIRCUIT_NAME_SECOND are not specified")
 		return
 	}
@@ -129,7 +126,7 @@ func TestAccExpressRouteCircuitConnection_updateIpv6CircuitConnectionConfig(t *t
 		},
 		data.ImportStep(),
 		{
-			Config: r.updateIpv6CircuitConnectionConfig(data),
+			Config: r.updateAddressPrefixIPv6(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -143,79 +140,73 @@ func (r ExpressRouteCircuitConnectionResource) Exists(ctx context.Context, clien
 	if err != nil {
 		return nil, err
 	}
+
 	resp, err := client.Network.ExpressRouteCircuitConnectionClient.Get(ctx, id.ResourceGroup, id.ExpressRouteCircuitName, id.PeeringName, id.ConnectionName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
 		}
+
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
+
 	return utils.Bool(true), nil
 }
 
 func (r ExpressRouteCircuitConnectionResource) basic(data acceptance.TestData) string {
-	rg := os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP")
-
-	return fmt.Sprintf(`%s
+	return fmt.Sprintf(`
+%s
 
 resource "azurerm_express_route_circuit_connection" "test" {
-  name                = "acctest-nercc-%d"
-  resource_group_name = "%s"
+  name                = "acctest-ExpressRouteCircuitConn-%d"
   peering_id          = azurerm_express_route_circuit_peering.test.id
   peer_peering_id     = azurerm_express_route_circuit_peering.peer_test.id
   address_prefix_ipv4 = "192.169.8.0/29"
 }
-`, r.template(), data.RandomInteger, rg)
+`, r.template(), data.RandomInteger)
 }
 
 func (r ExpressRouteCircuitConnectionResource) requiresImport(data acceptance.TestData) string {
-	config := r.basic(data)
-	return fmt.Sprintf(`%s
+	return fmt.Sprintf(`
+%s
 
 resource "azurerm_express_route_circuit_connection" "import" {
   name                = azurerm_express_route_circuit_connection.test.name
-  resource_group_name = azurerm_express_route_circuit_connection.test.resource_group_name
   peering_id          = azurerm_express_route_circuit_peering.test.id
   peer_peering_id     = azurerm_express_route_circuit_peering.peer_test.id
   address_prefix_ipv4 = azurerm_express_route_circuit_connection.test.address_prefix
 }
-`, config)
+`, r.basic(data))
 }
 
 func (r ExpressRouteCircuitConnectionResource) complete(data acceptance.TestData) string {
-	rg := os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP")
-
-	template := r.template()
-	return fmt.Sprintf(`%s
+	return fmt.Sprintf(`
+%s
 
 resource "azurerm_express_route_circuit_connection" "test" {
-  name                = "acctest-nercc-%d"
-  resource_group_name = "%s"
+  name                = "acctest-ExpressRouteCircuitConn-%d"
   peering_id          = azurerm_express_route_circuit_peering.test.id
   peer_peering_id     = azurerm_express_route_circuit_peering.peer_test.id
   address_prefix_ipv4 = "192.169.8.0/29"
   authorization_key   = "946a1918-b7a2-4917-b43c-8c4cdaee006a"
   address_prefix_ipv6 = "aa:bb::/125"
 }
-`, template, data.RandomInteger, rg)
+`, r.template(), data.RandomInteger)
 }
 
-func (r ExpressRouteCircuitConnectionResource) updateIpv6CircuitConnectionConfig(data acceptance.TestData) string {
-	rg := os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP")
-
-	template := r.template()
-	return fmt.Sprintf(`%s
+func (r ExpressRouteCircuitConnectionResource) updateAddressPrefixIPv6(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
 
 resource "azurerm_express_route_circuit_connection" "test" {
-  name                = "acctest-nercc-%d"
-  resource_group_name = "%s"
+  name                = "acctest-ExpressRouteCircuitConn-%d"
   peering_id          = azurerm_express_route_circuit_peering.test.id
   peer_peering_id     = azurerm_express_route_circuit_peering.peer_test.id
   address_prefix_ipv4 = "192.169.8.0/29"
   authorization_key   = "946a1918-b7a2-4917-b43c-8c4cdaee006a"
   address_prefix_ipv6 = "aa:bb::/125"
 }
-`, template, data.RandomInteger, rg)
+`, r.template(), data.RandomInteger)
 }
 
 func (r ExpressRouteCircuitConnectionResource) template() string {

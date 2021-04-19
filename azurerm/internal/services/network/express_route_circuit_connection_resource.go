@@ -8,7 +8,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
@@ -44,8 +43,6 @@ func resourceExpressRouteCircuitConnection() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
-
-			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"peering_id": {
 				Type:         schema.TypeString,
@@ -83,7 +80,6 @@ func resourceExpressRouteCircuitConnection() *schema.Resource {
 }
 
 func resourceExpressRouteCircuitConnectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Network.ExpressRouteCircuitConnectionClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -93,7 +89,7 @@ func resourceExpressRouteCircuitConnectionCreateUpdate(d *schema.ResourceData, m
 		return err
 	}
 
-	id := parse.NewExpressRouteCircuitConnectionID(subscriptionId, d.Get("resource_group_name").(string), expressRouteCircuitPeeringId.ExpressRouteCircuitName, "AzurePrivatePeering", d.Get("name").(string))
+	id := parse.NewExpressRouteCircuitConnectionID(expressRouteCircuitPeeringId.SubscriptionId, expressRouteCircuitPeeringId.ResourceGroup, expressRouteCircuitPeeringId.ExpressRouteCircuitName, "AzurePrivatePeering", d.Get("name").(string))
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.ExpressRouteCircuitName, "AzurePrivatePeering", id.ConnectionName)
@@ -102,6 +98,7 @@ func resourceExpressRouteCircuitConnectionCreateUpdate(d *schema.ResourceData, m
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
 		}
+
 		if !utils.ResponseWasNotFound(existing.Response) {
 			return tf.ImportAsExistsError("azurerm_express_route_circuit_connection", id.ID())
 		}
@@ -132,11 +129,11 @@ func resourceExpressRouteCircuitConnectionCreateUpdate(d *schema.ResourceData, m
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ExpressRouteCircuitName, "AzurePrivatePeering", id.ConnectionName, expressRouteCircuitConnectionParameters)
 	if err != nil {
-		return fmt.Errorf("creating/updating ExpressRouteCircuitConnection %q (Resource Group %q / circuitName %q): %+v", id.ConnectionName, id.ResourceGroup, id.ExpressRouteCircuitName, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
+		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -163,8 +160,8 @@ func resourceExpressRouteCircuitConnectionRead(d *schema.ResourceData, meta inte
 		}
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
+
 	d.Set("name", id.ConnectionName)
-	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("peering_id", parse.NewExpressRouteCircuitPeeringID(id.SubscriptionId, id.ResourceGroup, id.ExpressRouteCircuitName, "AzurePrivatePeering").ID())
 
 	if peerExpressRouteCircuitPeering := resp.PeerExpressRouteCircuitPeering; peerExpressRouteCircuitPeering != nil && peerExpressRouteCircuitPeering.ID != nil {
