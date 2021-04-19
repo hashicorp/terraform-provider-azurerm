@@ -4,13 +4,14 @@ FEATURES:
 
 * **New Resource:** `azurerm_mssql_job_agent` [GH-11248]
 
+ENHANCEMENTS:
+
+* dependencies: updating to `v53.3.0` of `github.com/Azure/azure-sdk-for-go` [GH-11365]
+* `azurerm_redis_enterprise_cluster` - support for the `minimum_tls_version` and `hostname` properties [GH-11203]
+
 BUG FIXES:
 
 * `azurerm_eventgrid_system_topic` - remove strict validation on `topic_type` [GH-11352]
-
-ENHANCEMENTS:
-
-* `azurerm_redis_enterprise_cluster` - support for the `minimum_tls_version` and `hostname` properties [GH-11203]
 
 ## 2.56.0 (April 15, 2021)
 
