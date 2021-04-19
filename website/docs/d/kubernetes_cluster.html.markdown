@@ -98,6 +98,8 @@ A `addon_profile` block exports the following:
 
 * `azure_policy` - A `azure_policy` block.
 
+* `ingress_application_gateway` - An `ingress_application_gateway` block.
+
 ---
 
 A `agent_pool_profile` block exports the following:
@@ -255,6 +257,13 @@ A `kube_dashboard` block supports the following:
 A `azure_policy` block supports the following:
 
 * `enabled` - Is Azure Policy for Kubernetes enabled?
+
+An `ingress_application_gateway` block supports the following:
+
+* `enabled` -  Has this cluster been integrated with an application gateway.
+
+* `effective_application_gateway_id` - The ID of the application gateway associated with the application gateway ingress controller deployed to this cluster.
+
 
 ---
 
