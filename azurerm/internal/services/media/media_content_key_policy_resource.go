@@ -6,6 +6,8 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media/validate"
+
 	b64 "encoding/base64"
 	"encoding/hex"
 
@@ -59,7 +61,7 @@ func resourceMediaContentKeyPolicy() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateMediaServicesAccountName,
+				ValidateFunc: validate.AccountName,
 			},
 
 			"description": {
