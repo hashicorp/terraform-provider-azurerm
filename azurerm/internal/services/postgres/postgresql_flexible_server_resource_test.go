@@ -29,7 +29,6 @@ func TestAccPostgresqlflexibleServer_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("cmk_enabled").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("high_availiblity_state").Exists(),
 				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 			),
 		},
@@ -61,7 +60,6 @@ func TestAccPostgresqlflexibleServer_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("cmk_enabled").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("high_availiblity_state").Exists(),
 				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 			),
 		},
@@ -79,7 +77,6 @@ func TestAccPostgresqlflexibleServer_completeUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("cmk_enabled").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("high_availiblity_state").Exists(),
 				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 			),
 		},
@@ -90,7 +87,6 @@ func TestAccPostgresqlflexibleServer_completeUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("cmk_enabled").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("high_availiblity_state").Exists(),
 				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 			),
 		},
@@ -109,7 +105,6 @@ func TestAccPostgresqlflexibleServer_updateMaintenanceWindow(t *testing.T) {
 				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("cmk_enabled").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("high_availiblity_state").Exists(),
 				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 			),
 		},
@@ -121,7 +116,6 @@ func TestAccPostgresqlflexibleServer_updateMaintenanceWindow(t *testing.T) {
 				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("cmk_enabled").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("high_availiblity_state").Exists(),
 				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 			),
 		},
@@ -133,7 +127,6 @@ func TestAccPostgresqlflexibleServer_updateMaintenanceWindow(t *testing.T) {
 				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("cmk_enabled").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("high_availiblity_state").Exists(),
 				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 			),
 		},
@@ -145,7 +138,6 @@ func TestAccPostgresqlflexibleServer_updateMaintenanceWindow(t *testing.T) {
 				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("cmk_enabled").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("high_availiblity_state").Exists(),
 				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 			),
 		},
@@ -164,7 +156,6 @@ func TestAccPostgresqlflexibleServer_updateSku(t *testing.T) {
 				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("cmk_enabled").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("high_availiblity_state").Exists(),
 				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 			),
 		},
@@ -176,7 +167,6 @@ func TestAccPostgresqlflexibleServer_updateSku(t *testing.T) {
 				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("cmk_enabled").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("high_availiblity_state").Exists(),
 				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 			),
 		},
@@ -188,7 +178,6 @@ func TestAccPostgresqlflexibleServer_updateSku(t *testing.T) {
 				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("cmk_enabled").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("high_availiblity_state").Exists(),
 				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 			),
 		},
@@ -207,7 +196,6 @@ func TestAccPostgresqlflexibleServer_pitr(t *testing.T) {
 				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("cmk_enabled").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("high_availiblity_state").Exists(),
 				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 			),
 		},
@@ -220,7 +208,6 @@ func TestAccPostgresqlflexibleServer_pitr(t *testing.T) {
 				check.That("azurerm_postgresql_flexible_server.pitr").Key("zone").Exists(),
 				check.That("azurerm_postgresql_flexible_server.pitr").Key("cmk_enabled").Exists(),
 				check.That("azurerm_postgresql_flexible_server.pitr").Key("fqdn").Exists(),
-				check.That("azurerm_postgresql_flexible_server.pitr").Key("high_availiblity_state").Exists(),
 				check.That("azurerm_postgresql_flexible_server.pitr").Key("public_network_access_enabled").Exists(),
 			),
 		},
@@ -318,18 +305,17 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_postgresql_flexible_server" "test" {
-  name                     = "acctest-fs-%[2]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  administrator_login      = "adminTerraform"
-  administrator_password   = "QAZwsx123"
-  zone                     = "1"
-  version                  = "12"
-  high_availiblity_enabled = false
-  backup_retention_days    = 7
-  storage_mb               = 32768
-  delegated_subnet_id      = azurerm_subnet.test.id
-  sku_name                 = "GP_Standard_D2s_v3"
+  name                   = "acctest-fs-%[2]d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "adminTerraform"
+  administrator_password = "QAZwsx123"
+  zone                   = "1"
+  version                = "12"
+  backup_retention_days  = 7
+  storage_mb             = 32768
+  delegated_subnet_id    = azurerm_subnet.test.id
+  sku_name               = "GP_Standard_D2s_v3"
 
   maintenance_window {
     day_of_week  = 0
@@ -373,18 +359,17 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_postgresql_flexible_server" "test" {
-  name                     = "acctest-fs-%[2]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  administrator_login      = "adminTerraform"
-  administrator_password   = "123wsxQAZ"
-  zone                     = "1"
-  version                  = "12"
-  high_availiblity_enabled = true
-  backup_retention_days    = 10
-  storage_mb               = 65536
-  delegated_subnet_id      = azurerm_subnet.test.id
-  sku_name                 = "GP_Standard_D2s_v3"
+  name                   = "acctest-fs-%[2]d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "adminTerraform"
+  administrator_password = "123wsxQAZ"
+  zone                   = "1"
+  version                = "12"
+  backup_retention_days  = 10
+  storage_mb             = 65536
+  delegated_subnet_id    = azurerm_subnet.test.id
+  sku_name               = "GP_Standard_D2s_v3"
 
   maintenance_window {
     day_of_week  = 0

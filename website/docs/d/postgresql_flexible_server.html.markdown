@@ -41,13 +41,24 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `administrator_login` - The Administrator Login for the PostgreSQL Flexible Server.
 
-* `fqdn` -  The FQDN of the PostgreSQL Flexible Server.
+* `backup_retention_days` -  The backup retention days for the PostgreSQL Flexible Server.
 
-* `sku_name` - The SKU Name for the PostgreSQL Flexible Server.
+* `cmk_enabled` - The status showing whether the data encryption is enabled with a customer-managed key.
+
+* `delegated_subnet_id` - The ID of the virtual network subnet to create the PostgreSQL Flexible Server.
+
+* `fqdn` - The FQDN of the PostgreSQL Flexible Server.
+
+* `public_network_access_enabled` - Is public network access enabled?
+
+* `sku_name` - The SKU Name for the PostgreSQL Flexible Server. The name of the SKU, follows the `tier` + `name` pattern (e.g. `B_Standard_B1ms`, `GP_Standard_D2s_v3`, `MO_Standard_E4s_v3`).
+
+* `storage_mb` - The max storage allowed for the PostgreSQL Flexible Server.
 
 * `version` - The version of PostgreSQL Flexible Server to use.
 
 * `tags` - A mapping of tags assigned to the PostgreSQL Flexible Server.
+
 
 ## Timeouts
 

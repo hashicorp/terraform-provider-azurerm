@@ -138,12 +138,6 @@ func resourcePostgresqlFlexibleServer() *schema.Resource {
 				ValidateFunc: validate.FlexibleServerID,
 			},
 
-			"high_availiblity_enabled": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
-
 			"maintenance_window": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -191,18 +185,8 @@ func resourcePostgresqlFlexibleServer() *schema.Resource {
 				Computed: true,
 			},
 
-			"high_availiblity_state": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
 			"public_network_access_enabled": {
 				Type:     schema.TypeBool,
-				Computed: true,
-			},
-
-			"standby_availability_zone": {
-				Type:     schema.TypeString,
 				Computed: true,
 			},
 
@@ -260,11 +244,6 @@ func resourcePostgresqlFlexibleServerCreate(d *schema.ResourceData, meta interfa
 		}
 	}
 
-	haEnabled := postgresqlflexibleservers.Disabled
-	if d.Get("high_availiblity_enabled").(bool) {
-		haEnabled = postgresqlflexibleservers.Enabled
-	}
-
 	sku, err := expandFlexibleServerSku(d.Get("sku_name").(string))
 	if err != nil {
 		return fmt.Errorf("expanding `sku_name` for PostgreSQL Flexible Server %s (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
@@ -276,7 +255,6 @@ func resourcePostgresqlFlexibleServerCreate(d *schema.ResourceData, meta interfa
 			CreateMode:               postgresqlflexibleservers.CreateMode(d.Get("create_mode").(string)),
 			DelegatedSubnetArguments: expandArmServerServerPropertiesDelegatedSubnetArguments(d.Get("delegated_subnet_id").(string)),
 			Version:                  postgresqlflexibleservers.ServerVersion(d.Get("version").(string)),
-			HaEnabled:                haEnabled,
 			StorageProfile:           expandArmServerStorageProfile(d),
 		},
 		Sku:  sku,
@@ -371,7 +349,6 @@ func resourcePostgresqlFlexibleServerRead(d *schema.ResourceData, meta interface
 	if props := resp.ServerProperties; props != nil {
 		d.Set("administrator_login", props.AdministratorLogin)
 		d.Set("zone", props.AvailabilityZone)
-		d.Set("high_availiblity_enabled", props.HaEnabled == postgresqlflexibleservers.Enabled)
 		if props.SourceServerName != nil && props.SourceSubscriptionID != nil && props.SourceResourceGroupName != nil {
 			d.Set("source_server_id", parse.NewFlexibleServerID(*props.SourceSubscriptionID, *props.SourceResourceGroupName, *props.SourceServerName).ID())
 		}
@@ -379,8 +356,6 @@ func resourcePostgresqlFlexibleServerRead(d *schema.ResourceData, meta interface
 		d.Set("cmk_enabled", props.ByokEnforcement)
 		d.Set("fqdn", props.FullyQualifiedDomainName)
 		d.Set("public_network_access_enabled", props.PublicNetworkAccess == postgresqlflexibleservers.ServerPublicNetworkAccessStateEnabled)
-		d.Set("high_availiblity_state", string(props.HaState))
-		d.Set("standby_availability_zone", props.StandbyAvailabilityZone)
 
 		if props.DelegatedSubnetArguments != nil {
 			d.Set("delegated_subnet_id", props.DelegatedSubnetArguments.SubnetArmResourceID)
@@ -427,14 +402,6 @@ func resourcePostgresqlFlexibleServerUpdate(d *schema.ResourceData, meta interfa
 
 	if d.HasChange("backup_retention_days") || d.HasChange("storage_mb") {
 		parameters.ServerPropertiesForUpdate.StorageProfile = expandArmServerStorageProfile(d)
-	}
-
-	if d.HasChange("high_availiblity_enabled") {
-		haEnabled := postgresqlflexibleservers.Disabled
-		if d.Get("high_availiblity_enabled").(bool) {
-			haEnabled = postgresqlflexibleservers.Enabled
-		}
-		parameters.ServerPropertiesForUpdate.HaEnabled = haEnabled
 	}
 
 	if d.HasChange("maintenance_window") {

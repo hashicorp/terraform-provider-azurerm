@@ -82,8 +82,6 @@ The following arguments are supported:
 
 * `delegated_subnet_id` - (Optional) The ID of the virtual network subnet to create the PostgreSQL Flexible Server. The provided subnet should not have any other resource deployed in it and this subnet will be delegated to the PostgreSQL Flexible Server, if not already delegated. Changing this forces a new PostgreSQL Flexible Server to be created.
 
-* `high_availiblity_enabled` - (Optional) Should High availability for the PostgreSQL Flexible Server be enabled? If enabled the server will provisions a physically separate primary and standby PostgreSQL Flexible Server in different zones. Defaults to `false`.
-
 * `maintenance_window` - (Optional) A `maintenance_window` block as defined below.
 
 * `point_in_time_restore_time_in_utc` - (Optional) The point in time to restore from `creation_source_server_id` when `create_mode` is `PointInTimeRestore`. Changing this forces a new PostgreSQL Flexible Server to be created.
@@ -119,11 +117,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `fqdn` - The FQDN of the PostgreSQL Flexible Server.
 
-* `high_availiblity_state` - The state of the High Availability server.
-
 * `public_network_access_enabled` - Is public network access enabled?
-
-* `standby_availability_zone` -  The standby availability Zone information of the server.
 
 ## Timeouts
 

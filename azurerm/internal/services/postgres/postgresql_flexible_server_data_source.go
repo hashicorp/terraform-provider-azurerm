@@ -73,18 +73,8 @@ func dataSourcePostgresqlFlexibleServer() *schema.Resource {
 				Computed: true,
 			},
 
-			"high_availiblity_state": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
 			"public_network_access_enabled": {
 				Type:     schema.TypeBool,
-				Computed: true,
-			},
-
-			"standby_availability_zone": {
-				Type:     schema.TypeString,
 				Computed: true,
 			},
 
@@ -102,19 +92,19 @@ func dataSourceArmPostgresqlFlexibleServerRead(d *schema.ResourceData, meta inte
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	id := parse.NewFlexibleServerID(subscriptionId, resourceGroup, name).ID()
+	id := parse.NewFlexibleServerID(subscriptionId, resourceGroup, name)
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Postgresqlflexibleservers Server %q does not exist", name)
+			return fmt.Errorf("Postgresqlflexibleservers Server %q does not exist", id.Name)
 		}
-		return fmt.Errorf("retrieving Postgresqlflexibleservers Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Postgresqlflexibleservers Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	d.SetId(id)
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
+	d.SetId(id.ID())
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 	if props := resp.ServerProperties; props != nil {
 		d.Set("administrator_login", props.AdministratorLogin)
@@ -123,8 +113,6 @@ func dataSourceArmPostgresqlFlexibleServerRead(d *schema.ResourceData, meta inte
 		d.Set("cmk_enabled", props.ByokEnforcement)
 		d.Set("fqdn", props.FullyQualifiedDomainName)
 		d.Set("public_network_access_enabled", props.PublicNetworkAccess == postgresqlflexibleservers.ServerPublicNetworkAccessStateEnabled)
-		d.Set("high_availiblity_state", string(props.HaState))
-		d.Set("standby_availability_zone", props.StandbyAvailabilityZone)
 
 		if props.DelegatedSubnetArguments != nil {
 			d.Set("delegated_subnet_id", props.DelegatedSubnetArguments.SubnetArmResourceID)
@@ -138,7 +126,7 @@ func dataSourceArmPostgresqlFlexibleServerRead(d *schema.ResourceData, meta inte
 
 	sku, err := flattenFlexibleServerSku(resp.Sku)
 	if err != nil {
-		return fmt.Errorf("flattening `sku_name` for PostgreSQL Flexible Server %s (Resource Group %q): %v", name, resourceGroup, err)
+		return fmt.Errorf("flattening `sku_name` for PostgreSQL Flexible Server %s (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("sku_name", sku)
