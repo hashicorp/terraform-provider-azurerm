@@ -186,7 +186,7 @@ resource "azurerm_data_factory_dataset_snowflake" "test" {
   name                = "acctestds%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-  linked_service_name = azurerm_data_factory_linked_service_snowflake_storage.test.name
+  linked_service_name = azurerm_data_factory_linked_service_snowflake.test.name
 
   description = "test description"
   annotations = ["test1", "test2"]
@@ -265,7 +265,7 @@ resource "azurerm_data_factory_dataset_snowflake" "test" {
   name                = "acctestds%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-  linked_service_name = azurerm_data_factory_linked_service_snowflake_storage.test.name
+  linked_service_name = azurerm_data_factory_linked_service_snowflake.test.name
 
   description = "test description 2"
   annotations = ["test1", "test2", "test3"]
