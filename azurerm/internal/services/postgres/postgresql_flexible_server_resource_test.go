@@ -26,7 +26,7 @@ func TestAccPostgresqlflexibleServer_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("zones.#").Exists(),
+				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("cmk_enabled").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
 				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
@@ -102,7 +102,7 @@ func TestAccPostgresqlflexibleServer_updateMaintenanceWindow(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("zones.#").Exists(),
+				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("cmk_enabled").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
 				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
@@ -113,7 +113,7 @@ func TestAccPostgresqlflexibleServer_updateMaintenanceWindow(t *testing.T) {
 			Config: r.updateMaintenanceWindow(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("zones.#").Exists(),
+				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("cmk_enabled").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
 				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
@@ -124,7 +124,7 @@ func TestAccPostgresqlflexibleServer_updateMaintenanceWindow(t *testing.T) {
 			Config: r.updateMaintenanceWindowUpdated(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("zones.#").Exists(),
+				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("cmk_enabled").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
 				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
@@ -135,7 +135,7 @@ func TestAccPostgresqlflexibleServer_updateMaintenanceWindow(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("zones.#").Exists(),
+				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("cmk_enabled").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
 				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
@@ -153,7 +153,7 @@ func TestAccPostgresqlflexibleServer_updateSku(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("zones.#").Exists(),
+				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("cmk_enabled").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
 				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
@@ -164,7 +164,7 @@ func TestAccPostgresqlflexibleServer_updateSku(t *testing.T) {
 			Config: r.updateSku(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("zones.#").Exists(),
+				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("cmk_enabled").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
 				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
@@ -175,7 +175,7 @@ func TestAccPostgresqlflexibleServer_updateSku(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("zones.#").Exists(),
+				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("cmk_enabled").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
 				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
@@ -193,7 +193,7 @@ func TestAccPostgresqlflexibleServer_pitr(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("zones.#").Exists(),
+				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("cmk_enabled").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
 				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
@@ -205,7 +205,7 @@ func TestAccPostgresqlflexibleServer_pitr(t *testing.T) {
 			Config:    r.pitr(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That("azurerm_postgresql_flexible_server.pitr").ExistsInAzure(r),
-				check.That("azurerm_postgresql_flexible_server.pitr").Key("zones.#").Exists(),
+				check.That("azurerm_postgresql_flexible_server.pitr").Key("zone").Exists(),
 				check.That("azurerm_postgresql_flexible_server.pitr").Key("cmk_enabled").Exists(),
 				check.That("azurerm_postgresql_flexible_server.pitr").Key("fqdn").Exists(),
 				check.That("azurerm_postgresql_flexible_server.pitr").Key("public_network_access_enabled").Exists(),
@@ -310,7 +310,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   location               = azurerm_resource_group.test.location
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
-  zones                  = ["1"]
+  zone                   = "1"
   version                = "12"
   backup_retention_days  = 7
   storage_mb             = 32768
@@ -364,7 +364,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   location               = azurerm_resource_group.test.location
   administrator_login    = "adminTerraform"
   administrator_password = "123wsxQAZ"
-  zones                  = ["1"]
+  zone                   = "1"
   version                = "12"
   backup_retention_days  = 10
   storage_mb             = 65536

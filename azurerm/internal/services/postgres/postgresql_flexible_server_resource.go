@@ -94,7 +94,7 @@ func resourcePostgresqlFlexibleServer() *schema.Resource {
 				}, false),
 			},
 
-			"zones": azure.SchemaSingleZone(),
+			"zone": azure.SchemaZoneComputed(),
 
 			"create_mode": {
 				Type:     schema.TypeString,
@@ -258,12 +258,8 @@ func resourcePostgresqlFlexibleServerCreate(d *schema.ResourceData, meta interfa
 		parameters.ServerProperties.AdministratorLoginPassword = utils.String(v.(string))
 	}
 
-	if v, ok := d.GetOk("administrator_password"); ok && v.(string) != "" {
-		parameters.ServerProperties.AdministratorLoginPassword = utils.String(v.(string))
-	}
-
-	if v := d.Get("zones").([]interface{}); len(v) > 0 {
-		parameters.ServerProperties.AvailabilityZone = utils.String(v[0].(string))
+	if v, ok := d.GetOk("zone"); ok && v.(string) != "" {
+		parameters.ServerProperties.AvailabilityZone = utils.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("source_server_id"); ok && v.(string) != "" {
@@ -341,11 +337,7 @@ func resourcePostgresqlFlexibleServerRead(d *schema.ResourceData, meta interface
 	d.Set("location", location.NormalizeNilable(resp.Location))
 	if props := resp.ServerProperties; props != nil {
 		d.Set("administrator_login", props.AdministratorLogin)
-		zones := []string{}
-		if v := props.AvailabilityZone; v != nil {
-			zones = append(zones, *v)
-		}
-		d.Set("zones", zones)
+		d.Set("zone", props.AvailabilityZone)
 		if props.SourceServerName != nil && props.SourceSubscriptionID != nil && props.SourceResourceGroupName != nil {
 			d.Set("source_server_id", parse.NewFlexibleServerID(*props.SourceSubscriptionID, *props.SourceResourceGroupName, *props.SourceServerName).ID())
 		}
