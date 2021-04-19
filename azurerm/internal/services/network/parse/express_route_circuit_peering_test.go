@@ -8,21 +8,21 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
 
-var _ resourceid.Formatter = ExpressRouteCircuitConnectionId{}
+var _ resourceid.Formatter = ExpressRouteCircuitPeeringId{}
 
-func TestExpressRouteCircuitConnectionIDFormatter(t *testing.T) {
-	actual := NewExpressRouteCircuitConnectionID("12345678-1234-9876-4563-123456789012", "resGroup1", "circuit1", "peering1", "connection1").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/expressRouteCircuits/circuit1/peerings/peering1/connections/connection1"
+func TestExpressRouteCircuitPeeringIDFormatter(t *testing.T) {
+	actual := NewExpressRouteCircuitPeeringID("12345678-1234-9876-4563-123456789012", "resGroup1", "erCircuit1", "peering1").ID()
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/expressRouteCircuits/erCircuit1/peerings/peering1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestExpressRouteCircuitConnectionID(t *testing.T) {
+func TestExpressRouteCircuitPeeringID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *ExpressRouteCircuitConnectionId
+		Expected *ExpressRouteCircuitPeeringId
 	}{
 
 		{
@@ -69,43 +69,30 @@ func TestExpressRouteCircuitConnectionID(t *testing.T) {
 
 		{
 			// missing PeeringName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/expressRouteCircuits/circuit1/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/expressRouteCircuits/erCircuit1/",
 			Error: true,
 		},
 
 		{
 			// missing value for PeeringName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/expressRouteCircuits/circuit1/peerings/",
-			Error: true,
-		},
-
-		{
-			// missing ConnectionName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/expressRouteCircuits/circuit1/peerings/peering1/",
-			Error: true,
-		},
-
-		{
-			// missing value for ConnectionName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/expressRouteCircuits/circuit1/peerings/peering1/connections/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/expressRouteCircuits/erCircuit1/peerings/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/expressRouteCircuits/circuit1/peerings/peering1/connections/connection1",
-			Expected: &ExpressRouteCircuitConnectionId{
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/expressRouteCircuits/erCircuit1/peerings/peering1",
+			Expected: &ExpressRouteCircuitPeeringId{
 				SubscriptionId:          "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:           "resGroup1",
-				ExpressRouteCircuitName: "circuit1",
+				ExpressRouteCircuitName: "erCircuit1",
 				PeeringName:             "peering1",
-				ConnectionName:          "connection1",
 			},
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.NETWORK/EXPRESSROUTECIRCUITS/CIRCUIT1/PEERINGS/PEERING1/CONNECTIONS/CONNECTION1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.NETWORK/EXPRESSROUTECIRCUITS/ERCIRCUIT1/PEERINGS/PEERING1",
 			Error: true,
 		},
 	}
@@ -113,7 +100,7 @@ func TestExpressRouteCircuitConnectionID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := ExpressRouteCircuitConnectionID(v.Input)
+		actual, err := ExpressRouteCircuitPeeringID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -136,9 +123,6 @@ func TestExpressRouteCircuitConnectionID(t *testing.T) {
 		}
 		if actual.PeeringName != v.Expected.PeeringName {
 			t.Fatalf("Expected %q but got %q for PeeringName", v.Expected.PeeringName, actual.PeeringName)
-		}
-		if actual.ConnectionName != v.Expected.ConnectionName {
-			t.Fatalf("Expected %q but got %q for ConnectionName", v.Expected.ConnectionName, actual.ConnectionName)
 		}
 	}
 }

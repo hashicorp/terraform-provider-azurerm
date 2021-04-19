@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -46,28 +47,21 @@ func resourceExpressRouteCircuitConnection() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"circuit_name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
 			"peering_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: validate.ExpressRouteCircuitPeeringID,
 			},
 
 			"peer_peering_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: validate.ExpressRouteCircuitPeeringID,
 			},
 
-			"address_prefix": {
+			"address_prefix_ipv4": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.IsCIDR,
@@ -79,58 +73,50 @@ func resourceExpressRouteCircuitConnection() *schema.Resource {
 				Sensitive: true,
 			},
 
-			"ipv6circuit_connection_config": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"address_prefix": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.IsCIDR,
-						},
-					},
-				},
+			"address_prefix_ipv6": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.IsCIDR,
 			},
 		},
 	}
 }
+
 func resourceExpressRouteCircuitConnectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Network.ExpressRouteCircuitConnectionClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	circuitName := d.Get("circuit_name").(string)
+	expressRouteCircuitPeeringId, err := parse.ExpressRouteCircuitPeeringID(d.Get("peering_id").(string))
+	if err != nil {
+		return err
+	}
 
-	id := parse.NewExpressRouteCircuitConnectionID(subscriptionId, resourceGroup, circuitName, "AzurePrivatePeering", name).ID()
+	id := parse.NewExpressRouteCircuitConnectionID(subscriptionId, d.Get("resource_group_name").(string), expressRouteCircuitPeeringId.ExpressRouteCircuitName, "AzurePrivatePeering", d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, circuitName, "AzurePrivatePeering", name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.ExpressRouteCircuitName, "AzurePrivatePeering", id.ConnectionName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for existing ExpressRouteCircuitConnection %q (Resource Group %q / circuitName %q): %+v", name, resourceGroup, circuitName, err)
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
 		}
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_express_route_circuit_connection", id)
+			return tf.ImportAsExistsError("azurerm_express_route_circuit_connection", id.ID())
 		}
 	}
 
 	expressRouteCircuitConnectionParameters := network.ExpressRouteCircuitConnection{
-		Name: utils.String(d.Get("name").(string)),
+		Name: utils.String(id.ConnectionName),
 		ExpressRouteCircuitConnectionPropertiesFormat: &network.ExpressRouteCircuitConnectionPropertiesFormat{
-			AddressPrefix: utils.String(d.Get("address_prefix").(string)),
+			AddressPrefix: utils.String(d.Get("address_prefix_ipv4").(string)),
 			ExpressRouteCircuitPeering: &network.SubResource{
-				ID: utils.String(d.Get("peering_id").(string)),
+				ID: utils.String(expressRouteCircuitPeeringId.ID()),
 			},
 			PeerExpressRouteCircuitPeering: &network.SubResource{
 				ID: utils.String(d.Get("peer_peering_id").(string)),
 			},
-			Ipv6CircuitConnectionConfig: expandExpressRouteCircuitConnectionIpv6CircuitConnectionConfig(d.Get("ipv6circuit_connection_config").([]interface{})),
 		},
 	}
 
@@ -138,16 +124,23 @@ func resourceExpressRouteCircuitConnectionCreateUpdate(d *schema.ResourceData, m
 		expressRouteCircuitConnectionParameters.ExpressRouteCircuitConnectionPropertiesFormat.AuthorizationKey = utils.String(v.(string))
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, circuitName, "AzurePrivatePeering", name, expressRouteCircuitConnectionParameters)
+	if v, ok := d.GetOk("address_prefix_ipv6"); ok {
+		expressRouteCircuitConnectionParameters.ExpressRouteCircuitConnectionPropertiesFormat.Ipv6CircuitConnectionConfig = &network.Ipv6CircuitConnectionConfig{
+			AddressPrefix: utils.String(v.(string)),
+		}
+	}
+
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ExpressRouteCircuitName, "AzurePrivatePeering", id.ConnectionName, expressRouteCircuitConnectionParameters)
 	if err != nil {
-		return fmt.Errorf("creating/updating ExpressRouteCircuitConnection %q (Resource Group %q / circuitName %q): %+v", name, resourceGroup, circuitName, err)
+		return fmt.Errorf("creating/updating ExpressRouteCircuitConnection %q (Resource Group %q / circuitName %q): %+v", id.ConnectionName, id.ResourceGroup, id.ExpressRouteCircuitName, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of the ExpressRouteCircuitConnection %q (Resource Group %q / circuitName %q): %+v", name, resourceGroup, circuitName, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
-	d.SetId(id)
+	d.SetId(id.ID())
+
 	return resourceExpressRouteCircuitConnectionRead(d, meta)
 }
 
@@ -161,27 +154,32 @@ func resourceExpressRouteCircuitConnectionRead(d *schema.ResourceData, meta inte
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.CircuitName, id.PeeringName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ExpressRouteCircuitName, id.PeeringName, id.ConnectionName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] express route circuit connection %q does not exist - removing from state", d.Id())
+			log.Printf("[INFO] %s does not exist - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving ExpressRouteCircuitConnection %q (Resource Group %q / circuitName %q / peeringName %q): %+v", id.Name, id.ResourceGroup, id.CircuitName, id.PeeringName, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	d.Set("name", id.Name)
+	d.Set("name", id.ConnectionName)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("circuit_name", id.CircuitName)
-	d.Set("peering_id", resp.ExpressRouteCircuitPeering.ID)
-	d.Set("peer_peering_id", resp.PeerExpressRouteCircuitPeering.ID)
+	d.Set("peering_id", parse.NewExpressRouteCircuitPeeringID(id.SubscriptionId, id.ResourceGroup, id.ExpressRouteCircuitName, "AzurePrivatePeering").ID())
+
+	if peerExpressRouteCircuitPeering := resp.PeerExpressRouteCircuitPeering; peerExpressRouteCircuitPeering != nil && peerExpressRouteCircuitPeering.ID != nil {
+		d.Set("peer_peering_id", peerExpressRouteCircuitPeering.ID)
+	}
+
 	if props := resp.ExpressRouteCircuitConnectionPropertiesFormat; props != nil {
-		d.Set("address_prefix", props.AddressPrefix)
+		d.Set("address_prefix_ipv4", props.AddressPrefix)
 		d.Set("authorization_key", props.AuthorizationKey)
-		if err := d.Set("ipv6circuit_connection_config", flattenExpressRouteCircuitConnectionIpv6CircuitConnectionConfig(props.Ipv6CircuitConnectionConfig)); err != nil {
-			return fmt.Errorf("setting `ipv6circuit_connection_config`: %+v", err)
+
+		if props.Ipv6CircuitConnectionConfig != nil && props.Ipv6CircuitConnectionConfig.AddressPrefix != nil {
+			d.Set("address_prefix_ipv6", props.Ipv6CircuitConnectionConfig.AddressPrefix)
 		}
 	}
+
 	return nil
 }
 
@@ -195,39 +193,14 @@ func resourceExpressRouteCircuitConnectionDelete(d *schema.ResourceData, meta in
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.CircuitName, id.PeeringName, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.ExpressRouteCircuitName, id.PeeringName, id.ConnectionName)
 	if err != nil {
-		return fmt.Errorf("deleting ExpressRouteCircuitConnection %q (Resource Group %q / circuitName %q / peeringName %q): %+v", id.Name, id.ResourceGroup, id.CircuitName, id.PeeringName, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of the ExpressRouteCircuitConnection %q (Resource Group %q / circuitName %q / peeringName %q): %+v", id.Name, id.ResourceGroup, id.CircuitName, id.PeeringName, err)
+		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
+
 	return nil
-}
-
-func expandExpressRouteCircuitConnectionIpv6CircuitConnectionConfig(input []interface{}) *network.Ipv6CircuitConnectionConfig {
-	if len(input) == 0 {
-		return nil
-	}
-	v := input[0].(map[string]interface{})
-	return &network.Ipv6CircuitConnectionConfig{
-		AddressPrefix: utils.String(v["address_prefix"].(string)),
-	}
-}
-
-func flattenExpressRouteCircuitConnectionIpv6CircuitConnectionConfig(input *network.Ipv6CircuitConnectionConfig) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
-	}
-
-	var addressPrefix string
-	if input.AddressPrefix != nil {
-		addressPrefix = *input.AddressPrefix
-	}
-	return []interface{}{
-		map[string]interface{}{
-			"address_prefix": addressPrefix,
-		},
-	}
 }

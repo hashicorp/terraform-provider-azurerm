@@ -143,14 +143,79 @@ func (r ExpressRouteCircuitConnectionResource) Exists(ctx context.Context, clien
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.Network.ExpressRouteCircuitConnectionClient.Get(ctx, id.ResourceGroup, id.CircuitName, id.PeeringName, id.Name)
+	resp, err := client.Network.ExpressRouteCircuitConnectionClient.Get(ctx, id.ResourceGroup, id.ExpressRouteCircuitName, id.PeeringName, id.ConnectionName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving ExpressRouteCircuitConnection %q (Resource Group %q / circuitName %q / peeringName %q): %+v", id.Name, id.ResourceGroup, id.CircuitName, id.PeeringName, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 	return utils.Bool(true), nil
+}
+
+func (r ExpressRouteCircuitConnectionResource) basic(data acceptance.TestData) string {
+	rg := os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP")
+
+	return fmt.Sprintf(`%s
+
+resource "azurerm_express_route_circuit_connection" "test" {
+  name                = "acctest-nercc-%d"
+  resource_group_name = "%s"
+  peering_id          = azurerm_express_route_circuit_peering.test.id
+  peer_peering_id     = azurerm_express_route_circuit_peering.peer_test.id
+  address_prefix_ipv4 = "192.169.8.0/29"
+}
+`, r.template(), data.RandomInteger, rg)
+}
+
+func (r ExpressRouteCircuitConnectionResource) requiresImport(data acceptance.TestData) string {
+	config := r.basic(data)
+	return fmt.Sprintf(`%s
+
+resource "azurerm_express_route_circuit_connection" "import" {
+  name                = azurerm_express_route_circuit_connection.test.name
+  resource_group_name = azurerm_express_route_circuit_connection.test.resource_group_name
+  peering_id          = azurerm_express_route_circuit_peering.test.id
+  peer_peering_id     = azurerm_express_route_circuit_peering.peer_test.id
+  address_prefix_ipv4 = azurerm_express_route_circuit_connection.test.address_prefix
+}
+`, config)
+}
+
+func (r ExpressRouteCircuitConnectionResource) complete(data acceptance.TestData) string {
+	rg := os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP")
+
+	template := r.template()
+	return fmt.Sprintf(`%s
+
+resource "azurerm_express_route_circuit_connection" "test" {
+  name                = "acctest-nercc-%d"
+  resource_group_name = "%s"
+  peering_id          = azurerm_express_route_circuit_peering.test.id
+  peer_peering_id     = azurerm_express_route_circuit_peering.peer_test.id
+  address_prefix_ipv4 = "192.169.8.0/29"
+  authorization_key   = "946a1918-b7a2-4917-b43c-8c4cdaee006a"
+  address_prefix_ipv6 = "aa:bb::/125"
+}
+`, template, data.RandomInteger, rg)
+}
+
+func (r ExpressRouteCircuitConnectionResource) updateIpv6CircuitConnectionConfig(data acceptance.TestData) string {
+	rg := os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP")
+
+	template := r.template()
+	return fmt.Sprintf(`%s
+
+resource "azurerm_express_route_circuit_connection" "test" {
+  name                = "acctest-nercc-%d"
+  resource_group_name = "%s"
+  peering_id          = azurerm_express_route_circuit_peering.test.id
+  peer_peering_id     = azurerm_express_route_circuit_peering.peer_test.id
+  address_prefix_ipv4 = "192.169.8.0/29"
+  authorization_key   = "946a1918-b7a2-4917-b43c-8c4cdaee006a"
+  address_prefix_ipv6 = "aa:bb::/125"
+}
+`, template, data.RandomInteger, rg)
 }
 
 func (r ExpressRouteCircuitConnectionResource) template() string {
@@ -185,81 +250,4 @@ resource "azurerm_express_route_circuit_peering" "peer_test" {
   vlan_id                       = 100
 }
 `, circuitName1, rg, circuitName2)
-}
-
-func (r ExpressRouteCircuitConnectionResource) basic(data acceptance.TestData) string {
-	rg := os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP")
-	circuitName := os.Getenv("ARM_TEST_CIRCUIT_NAME_FIRST")
-	template := r.template()
-
-	return fmt.Sprintf(`%s
-
-resource "azurerm_express_route_circuit_connection" "test" {
-  name = "acctest-nercc-%d"
-  resource_group_name = "%s"
-  circuit_name = "%s"
-  peering_id = azurerm_express_route_circuit_peering.test.id
-  peer_peering_id = azurerm_express_route_circuit_peering.peer_test.id
-  address_prefix = "192.169.8.0/29"
-}
-`, template, data.RandomInteger, rg, circuitName)
-}
-
-func (r ExpressRouteCircuitConnectionResource) requiresImport(data acceptance.TestData) string {
-	config := r.basic(data)
-	return fmt.Sprintf(`%s
-
-resource "azurerm_express_route_circuit_connection" "import" {
-  name = azurerm_express_route_circuit_connection.test.name
-  resource_group_name = azurerm_express_route_circuit_connection.test.resource_group_name
-  circuit_name = azurerm_express_route_circuit_connection.test.circuit_name
-  peering_id = azurerm_express_route_circuit_peering.test.id
-  peer_peering_id = azurerm_express_route_circuit_peering.peer_test.id
-  address_prefix = "192.169.8.0/29"
-}
-`, config)
-}
-
-func (r ExpressRouteCircuitConnectionResource) complete(data acceptance.TestData) string {
-	rg := os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP")
-	circuitName := os.Getenv("ARM_TEST_CIRCUIT_NAME_FIRST")
-
-	template := r.template()
-	return fmt.Sprintf(`%s
-
-resource "azurerm_express_route_circuit_connection" "test" {
-  name = "acctest-nercc-%d"
-  resource_group_name = "%s"
-  circuit_name = "%s"
-  peering_id = azurerm_express_route_circuit_peering.test.id
-  peer_peering_id = azurerm_express_route_circuit_peering.peer_test.id
-  address_prefix = "192.169.8.0/29"
-  authorization_key = "946a1918-b7a2-4917-b43c-8c4cdaee006a"
-  ipv6circuit_connection_config {
-    address_prefix = "aa:bb::/125"
-  }
-}
-`, template, data.RandomInteger, rg, circuitName)
-}
-
-func (r ExpressRouteCircuitConnectionResource) updateIpv6CircuitConnectionConfig(data acceptance.TestData) string {
-	rg := os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP")
-	circuitName := os.Getenv("ARM_TEST_CIRCUIT_NAME_FIRST")
-
-	template := r.template()
-	return fmt.Sprintf(`%s
-
-resource "azurerm_express_route_circuit_connection" "test" {
-  name = "acctest-nercc-%d"
-  resource_group_name = "%s"
-  circuit_name = "%s"
-  peering_id = azurerm_express_route_circuit_peering.test.id
-  peer_peering_id = azurerm_express_route_circuit_peering.peer_test.id
-  address_prefix = "192.169.8.0/29"
-  authorization_key = "946a1918-b7a2-4917-b43c-8c4cdaee006a"
-  ipv6circuit_connection_config {
-    address_prefix = "aa:bb::/125"
-  }
-}
-`, template, data.RandomInteger, rg, circuitName)
 }

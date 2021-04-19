@@ -9,48 +9,45 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type ExpressRouteCircuitConnectionId struct {
+type ExpressRouteCircuitPeeringId struct {
 	SubscriptionId          string
 	ResourceGroup           string
 	ExpressRouteCircuitName string
 	PeeringName             string
-	ConnectionName          string
 }
 
-func NewExpressRouteCircuitConnectionID(subscriptionId, resourceGroup, expressRouteCircuitName, peeringName, connectionName string) ExpressRouteCircuitConnectionId {
-	return ExpressRouteCircuitConnectionId{
+func NewExpressRouteCircuitPeeringID(subscriptionId, resourceGroup, expressRouteCircuitName, peeringName string) ExpressRouteCircuitPeeringId {
+	return ExpressRouteCircuitPeeringId{
 		SubscriptionId:          subscriptionId,
 		ResourceGroup:           resourceGroup,
 		ExpressRouteCircuitName: expressRouteCircuitName,
 		PeeringName:             peeringName,
-		ConnectionName:          connectionName,
 	}
 }
 
-func (id ExpressRouteCircuitConnectionId) String() string {
+func (id ExpressRouteCircuitPeeringId) String() string {
 	segments := []string{
-		fmt.Sprintf("Connection Name %q", id.ConnectionName),
 		fmt.Sprintf("Peering Name %q", id.PeeringName),
 		fmt.Sprintf("Express Route Circuit Name %q", id.ExpressRouteCircuitName),
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Express Route Circuit Connection", segmentsStr)
+	return fmt.Sprintf("%s: (%s)", "Express Route Circuit Peering", segmentsStr)
 }
 
-func (id ExpressRouteCircuitConnectionId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/expressRouteCircuits/%s/peerings/%s/connections/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ExpressRouteCircuitName, id.PeeringName, id.ConnectionName)
+func (id ExpressRouteCircuitPeeringId) ID() string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/expressRouteCircuits/%s/peerings/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ExpressRouteCircuitName, id.PeeringName)
 }
 
-// ExpressRouteCircuitConnectionID parses a ExpressRouteCircuitConnection ID into an ExpressRouteCircuitConnectionId struct
-func ExpressRouteCircuitConnectionID(input string) (*ExpressRouteCircuitConnectionId, error) {
+// ExpressRouteCircuitPeeringID parses a ExpressRouteCircuitPeering ID into an ExpressRouteCircuitPeeringId struct
+func ExpressRouteCircuitPeeringID(input string) (*ExpressRouteCircuitPeeringId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceId := ExpressRouteCircuitConnectionId{
+	resourceId := ExpressRouteCircuitPeeringId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}
@@ -67,9 +64,6 @@ func ExpressRouteCircuitConnectionID(input string) (*ExpressRouteCircuitConnecti
 		return nil, err
 	}
 	if resourceId.PeeringName, err = id.PopSegment("peerings"); err != nil {
-		return nil, err
-	}
-	if resourceId.ConnectionName, err = id.PopSegment("connections"); err != nil {
 		return nil, err
 	}
 

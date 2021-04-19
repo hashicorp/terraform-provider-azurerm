@@ -24,7 +24,6 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 		"azurerm_application_gateway":                       dataSourceApplicationGateway(),
 		"azurerm_application_security_group":                dataSourceApplicationSecurityGroup(),
 		"azurerm_express_route_circuit":                     dataSourceExpressRouteCircuit(),
-		"azurerm_express_route_circuit_connection":          dataSourceExpressRouteCircuitConnection(),
 		"azurerm_ip_group":                                  dataSourceIpGroup(),
 		"azurerm_nat_gateway":                               dataSourceNatGateway(),
 		"azurerm_network_ddos_protection_plan":              dataSourceNetworkDDoSProtectionPlan(),

@@ -3,23 +3,23 @@ subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_express_route_circuit_connection"
 description: |-
-  Manages a network ExpressRouteCircuitConnection.
+  Manages an Express Route Circuit Connection.
 ---
 
 # azurerm_express_route_circuit_connection
 
-Manages a network ExpressRouteCircuitConnection.
+Manages an Express Route Circuit Connection.
 
 ## Example Usage
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "example-network"
+  name     = "example-resources"
   location = "West Europe"
 }
 
 resource "azurerm_express_route_circuit" "example1" {
-  name                  = "expressRoute1"
+  name                  = "example-circuit"
   resource_group_name   = azurerm_resource_group.example.name
   location              = azurerm_resource_group.example.location
   service_provider_name = "Equinix"
@@ -32,14 +32,10 @@ resource "azurerm_express_route_circuit" "example1" {
   }
 
   allow_classic_operations = false
-
-  tags = {
-    environment = "Production"
-  }
 }
 
 resource "azurerm_express_route_circuit" "example2" {
-  name                  = "expressRoute2"
+  name                  = "example-circuit2"
   resource_group_name   = azurerm_resource_group.example.name
   location              = azurerm_resource_group.example.location
   service_provider_name = "Equinix"
@@ -52,10 +48,6 @@ resource "azurerm_express_route_circuit" "example2" {
   }
 
   allow_classic_operations = false
-
-  tags = {
-    environment = "Production"
-  }
 }
 
 resource "azurerm_express_route_circuit_peering" "example1" {
@@ -67,6 +59,7 @@ resource "azurerm_express_route_circuit_peering" "example1" {
   secondary_peer_address_prefix = "123.0.0.4/30"
   vlan_id                       = 300
 }
+
 resource "azurerm_express_route_circuit_peering" "example2" {
   peering_type                  = "AzurePrivatePeering"
   express_route_circuit_name    = azurerm_express_route_circuit.example2.name
@@ -95,47 +88,40 @@ resource "azurerm_express_route_circuit_connection" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this network ExpressRouteCircuitConnection. Changing this forces a new network ExpressRouteCircuitConnection to be created.
+* `name` - (Required) The name which should be used for this Express Route Circuit Connection. Changing this forces a new Express Route Circuit Connection to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the network ExpressRouteCircuitConnection should exist. Changing this forces a new network ExpressRouteCircuitConnection to be created.
+* `resource_group_name` - (Required) The name of the Resource Group where the Express Route Circuit Connection should exist. Changing this forces a new Express Route Circuit Connection to be created.
 
-* `circuit_name` - (Required) The name of the express route circuit. Changing this forces a new network ExpressRouteCircuitConnection to be created.
+* `peering_id` - (Required) The ID of the Express Route Circuit Private Peering within which this Express Route Circuit Connection should be created.
   
-* `peering_id` - (Required) The ID of the Express Route Circuit Private Peering Resource of the circuit initiating connection.
+* `peer_peering_id` - (Required) The ID of the peered Express Route Circuit Private Peering.
   
-* `peer_peering_id` - (Required) The ID of the Express Route Circuit Private Peering Resource of the peered circuit.
-
-* `address_prefix` - (Required) /29 IP address space to carve out Customer addresses for tunnels.
+* `address_prefix_ipv4` - (Required) The IPv4 address space to carve out customer addresses for tunnels.
 
 ---
 
 * `authorization_key` - (Optional) The authorization key.
 
-* `ipv6circuit_connection_config` - (Optional) A `ipv6circuit_connection_config` block as defined below.
-
----
-
-An `ipv6circuit_connection_config` block exports the following:
-
-* `address_prefix` - (Optional) /125 IP address space to carve out customer addresses for global reach.
+* `address_prefix_ipv6` - (Required) The IPv6 address space to carve out customer addresses for global reach.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the network ExpressRouteCircuitConnection.
+* `id` - The ID of the Express Route Circuit Connection.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the network ExpressRouteCircuitConnection.
-* `read` - (Defaults to 5 minutes) Used when retrieving the network ExpressRouteCircuitConnection.
-* `delete` - (Defaults to 30 minutes) Used when deleting the network ExpressRouteCircuitConnection.
+* `create` - (Defaults to 30 minutes) Used when creating the Express Route Circuit Connection.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Express Route Circuit Connection.
+* `update` - (Defaults to 30 minutes) Used when updating the Express Route Circuit Connection.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Express Route Circuit Connection.
 
 ## Import
 
-network ExpressRouteCircuitConnections can be imported using the `resource id`, e.g.
+Express Route Circuit Connections can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_express_route_circuit_connection.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/expressRouteCircuits/circuit1/peerings/peering1/connections/connection1
