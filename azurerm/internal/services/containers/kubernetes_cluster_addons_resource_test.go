@@ -1008,7 +1008,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   addon_profile {
     ingress_application_gateway {
-      enabled     = false
+      enabled = false
     }
     kube_dashboard {
       enabled = false
