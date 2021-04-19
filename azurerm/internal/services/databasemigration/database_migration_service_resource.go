@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databasemigration/validate"
+
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 
@@ -44,7 +46,7 @@ func resourceDatabaseMigrationService() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateDatabaseMigrationServiceName,
+				ValidateFunc: validate.ServiceName,
 			},
 
 			"location": azure.SchemaLocation(),

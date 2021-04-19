@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databasemigration/validate"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -25,7 +27,7 @@ func dataSourceDatabaseMigrationService() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validateDatabaseMigrationServiceName,
+				ValidateFunc: validate.ServiceName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
