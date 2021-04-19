@@ -97,12 +97,11 @@ func resourceMsSqlJobCredentialCreateUpdate(d *schema.ResourceData, meta interfa
 		},
 	}
 
-	cred, err := client.CreateOrUpdate(ctx, jaId.ResourceGroup, jaId.ServerName, jaId.Name, name, jobCredential)
-	if err != nil {
-		return fmt.Errorf("creating MsSql Job Credential %q (Job Agent %q / Sql Server %q / Resource Group %q): %+v", name, jaId.Name, jaId.ServerName, jaId.ResourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, jobCredentialId.ResourceGroup, jobCredentialId.ServerName, jobCredentialId.jobAgentName, jobCredentialId.CredentialName, jobCredential); err != nil {
+		return fmt.Errorf("creating MsSql %s: %+v", jobCredentialId, err)
 	}
 
-	d.SetId(*cred.ID)
+	d.SetId(jobCredentialId.ID())
 
 	return resourceMsSqlJobCredentialRead(d, meta)
 }
