@@ -49,7 +49,7 @@ func resourceDedicatedHost() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateDedicatedHostName(),
+				ValidateFunc: validate.DedicatedHostName(),
 			},
 
 			"location": azure.SchemaLocation(),
