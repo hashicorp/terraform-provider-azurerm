@@ -41,7 +41,7 @@ func resourceExpressRouteCircuitConnection() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: validate.ExpressRouteCircuitConnectionName,
 			},
 
 			"peering_id": {
@@ -65,9 +65,10 @@ func resourceExpressRouteCircuitConnection() *schema.Resource {
 			},
 
 			"authorization_key": {
-				Type:      schema.TypeString,
-				Optional:  true,
-				Sensitive: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				Sensitive:    true,
+				ValidateFunc: validation.IsUUID,
 			},
 
 			"address_prefix_ipv6": {
