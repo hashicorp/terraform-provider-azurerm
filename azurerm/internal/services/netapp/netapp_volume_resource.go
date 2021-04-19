@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	netAppValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp/validate"
+
 	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2020-09-01/netapp"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -46,7 +48,7 @@ func resourceNetAppVolume() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateNetAppVolumeName,
+				ValidateFunc: netAppValidate.VolumeName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -57,21 +59,21 @@ func resourceNetAppVolume() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateNetAppAccountName,
+				ValidateFunc: netAppValidate.AccountName,
 			},
 
 			"pool_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateNetAppPoolName,
+				ValidateFunc: netAppValidate.PoolName,
 			},
 
 			"volume_path": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateNetAppVolumeVolumePath,
+				ValidateFunc: netAppValidate.VolumePath,
 			},
 
 			"service_level": {
@@ -97,7 +99,7 @@ func resourceNetAppVolume() *schema.Resource {
 				Optional:     true,
 				Computed:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: netAppValidate.SnapshotID,
 			},
 
 			"protocols": {
@@ -330,7 +332,10 @@ func resourceNetAppVolumeCreateUpdate(d *schema.ResourceData, meta interface{}) 
 			return fmt.Errorf("Error getting source NetApp Volume (snapshot's parent resource) %q (Resource Group %q): %+v", parsedSnapshotResourceID.VolumeName, parsedSnapshotResourceID.ResourceGroup, err)
 		}
 
-		parsedVolumeID, _ := parse.VolumeID(*sourceVolume.ID)
+		parsedVolumeID, err := parse.VolumeID(*sourceVolume.ID)
+		if err != nil {
+			return fmt.Errorf("parsing Source Volume ID: %s", err)
+		}
 		propertyMismatch := []string{}
 		if !ValidateSlicesEquality(*sourceVolume.ProtocolTypes, *utils.ExpandStringSlice(protocols), false) {
 			propertyMismatch = append(propertyMismatch, "protocols")
