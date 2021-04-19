@@ -144,7 +144,6 @@ func dataSourceSubscriptionsRead(d *schema.ResourceData, meta interface{}) error
 				continue
 			}
 		} else {
-
 			// check if the display name prefix matches the given input
 			if displayNamePrefix != "" {
 				if !strings.HasPrefix(strings.ToLower(s["display_name"].(string)), displayNamePrefix) {
@@ -160,7 +159,6 @@ func dataSourceSubscriptionsRead(d *schema.ResourceData, meta interface{}) error
 					continue
 				}
 			}
-
 		}
 
 		s["tags"] = tags.Flatten(val.Tags)
