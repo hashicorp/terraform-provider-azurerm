@@ -52,7 +52,7 @@ func TestValidateMetaDataKeys(t *testing.T) {
 		value := map[string]interface{}{
 			v.Input: "hello",
 		}
-		warnings, errors := storage.ValidateMetaDataKeys(value, "field")
+		warnings, errors := storage.MetaDataKeys(value, "field")
 		if len(warnings) != 0 {
 			t.Fatalf("Expected no warnings but got %d", len(warnings))
 		}
