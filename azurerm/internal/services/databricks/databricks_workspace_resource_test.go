@@ -23,7 +23,7 @@ type DatabricksWorkspaceResource struct {
 func TestAzureRMDatabrickWorkspaceName(t *testing.T) {
 	const errEmpty = "cannot be an empty string"
 	const errMinLen = "must be at least 3 characters"
-	const errMaxLen = "must be no more than 30 characters"
+	const errMaxLen = "must be no more than 64 characters"
 	const errAllowList = "can contain only alphanumeric characters, underscores, and hyphens"
 
 	cases := []struct {
@@ -42,7 +42,7 @@ func TestAzureRMDatabrickWorkspaceName(t *testing.T) {
 		},
 		{
 			Name:  "Maximum character length",
-			Input: "012345678901234567890123456789", // 30 chars
+			Input: "0123456789012345678901234567890123456789012345678901234567890123", // 64 chars
 		},
 
 		// Simple negative cases:
@@ -58,7 +58,7 @@ func TestAzureRMDatabrickWorkspaceName(t *testing.T) {
 		},
 		{
 			Name:           "Above maximum character length",
-			Input:          "0123456789012345678901234567890", // 31 chars
+			Input:          "01234567890123456789012345678901234567890123456789012345678901234", // 31 chars
 			ExpectedErrors: []string{errMaxLen},
 		},
 		{
@@ -75,7 +75,7 @@ func TestAzureRMDatabrickWorkspaceName(t *testing.T) {
 		},
 		{
 			Name:           "Too long and non-allowed char",
-			Input:          "012345678901234567890123456789ß",
+			Input:          "0123456789012345678901234567890123456789012345678901234567890123ß",
 			ExpectedErrors: []string{errMaxLen, errAllowList},
 		},
 	}
