@@ -17,7 +17,22 @@ import (
 type KeyVaultManagedHardwareSecurityModuleResource struct {
 }
 
-func TestAccKeyVaultManagedHardwareSecurityModule_basic(t *testing.T) {
+func TestAccKeyVaultManagedHardwareSecurityModule(t *testing.T) {
+	// NOTE: this is a combined test rather than separate split out tests due to
+	// Azure only being able provision against one instance at a time
+	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
+		"data_source": {
+			"basic": testAccDataSourceKeyVaultManagedHardwareSecurityModule_basic,
+		},
+		"resource": {
+			"basic":    testAccKeyVaultManagedHardwareSecurityModule_basic,
+			"update":   testAccKeyVaultManagedHardwareSecurityModule_requiresImport,
+			"complete": testAccKeyVaultManagedHardwareSecurityModule_complete,
+		},
+	})
+}
+
+func testAccKeyVaultManagedHardwareSecurityModule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_hardware_security_module", "test")
 	r := KeyVaultManagedHardwareSecurityModuleResource{}
 
@@ -32,7 +47,7 @@ func TestAccKeyVaultManagedHardwareSecurityModule_basic(t *testing.T) {
 	})
 }
 
-func TestAccKeyVaultManagedHardwareSecurityModule_requiresImport(t *testing.T) {
+func testAccKeyVaultManagedHardwareSecurityModule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_hardware_security_module", "test")
 	r := KeyVaultManagedHardwareSecurityModuleResource{}
 
@@ -47,7 +62,7 @@ func TestAccKeyVaultManagedHardwareSecurityModule_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccKeyVaultManagedHardwareSecurityModule_complete(t *testing.T) {
+func testAccKeyVaultManagedHardwareSecurityModule_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_hardware_security_module", "test")
 	r := KeyVaultManagedHardwareSecurityModuleResource{}
 

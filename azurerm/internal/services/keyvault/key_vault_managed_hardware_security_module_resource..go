@@ -111,16 +111,16 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *schema.ResourceDa
 	log.Println("[INFO] Preparing arguments for Key Vault Managed Hardware Security Module")
 
 	id := parse.NewManagedHSMID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-		}
 
+	existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_key_vault_managed_hardware_security_module", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
+	}
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_key_vault_managed_hardware_security_module", id.ID())
+	}
 
 	tenantId := uuid.FromStringOrNil(d.Get("tenant_id").(string))
 	hsm := keyvault.ManagedHsm{

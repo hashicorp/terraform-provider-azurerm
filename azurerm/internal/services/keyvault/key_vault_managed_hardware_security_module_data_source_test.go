@@ -12,7 +12,7 @@ import (
 type KeyVaultManagedHardwareSecurityModuleDataSource struct {
 }
 
-func TestAccDataSourceKeyVaultManagedHardwareSecurityModule_basic(t *testing.T) {
+func testAccDataSourceKeyVaultManagedHardwareSecurityModule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_key_vault_managed_hardware_security_module", "test")
 	r := KeyVaultManagedHardwareSecurityModuleDataSource{}
 
