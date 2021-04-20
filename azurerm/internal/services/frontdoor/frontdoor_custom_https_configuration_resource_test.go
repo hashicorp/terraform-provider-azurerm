@@ -107,7 +107,7 @@ resource "azurerm_frontdoor_custom_https_configuration" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest-FD-%d"
+  name                = "vault%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku_name            = "standard"
