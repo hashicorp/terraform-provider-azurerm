@@ -51,11 +51,11 @@ func resourceKeyVault() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
-		MigrateState: resourceKeyVaultMigrateState,
-		StateUpgraders: []schema.StateUpgrader{
-			migration.KeyVaultV1ToV2Upgrader(),
-		},
 		SchemaVersion: 2,
+		StateUpgraders: []schema.StateUpgrader{
+			migration.KeyVaultV0ToV1(),
+			migration.KeyVaultV1ToV2(),
+		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
