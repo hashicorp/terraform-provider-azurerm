@@ -1,4 +1,4 @@
-package storage
+package migration
 
 import (
 	"fmt"
@@ -12,8 +12,25 @@ import (
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/file/shares"
 )
 
+func ShareV0ToV1() schema.StateUpgrader {
+	return schema.StateUpgrader{
+		// this should have been applied from pre-0.12 migration system; backporting just in-case
+		Type:    shareSchemaForV0AndV1().CoreConfigSchema().ImpliedType(),
+		Upgrade: shareUpgradeV0ToV1,
+		Version: 0,
+	}
+}
+
+func ShareV1ToV2() schema.StateUpgrader {
+	return schema.StateUpgrader{
+		Type:    shareSchemaForV0AndV1().CoreConfigSchema().ImpliedType(),
+		Upgrade: shareUpgradeV1ToV2,
+		Version: 1,
+	}
+}
+
 // the schema schema was used for both V0 and V1
-func resourceStorageShareStateResourceV0V1() *schema.Resource {
+func shareSchemaForV0AndV1() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -41,7 +58,7 @@ func resourceStorageShareStateResourceV0V1() *schema.Resource {
 	}
 }
 
-func ResourceStorageShareStateUpgradeV0ToV1(rawState map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
+func shareUpgradeV0ToV1(rawState map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
 	shareName := rawState["name"].(string)
 	resourceGroup := rawState["resource_group_name"].(string)
 	accountName := rawState["storage_account_name"].(string)
@@ -54,7 +71,7 @@ func ResourceStorageShareStateUpgradeV0ToV1(rawState map[string]interface{}, _ i
 	return rawState, nil
 }
 
-func ResourceStorageShareStateUpgradeV1ToV2(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+func shareUpgradeV1ToV2(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 	id := rawState["id"].(string)
 
 	// name/resourceGroup/accountName

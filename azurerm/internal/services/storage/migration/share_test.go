@@ -1,4 +1,4 @@
-package storage_test
+package migration
 
 import (
 	"fmt"
@@ -7,10 +7,9 @@ import (
 
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 )
 
-func TestAzureRMStorageShareMigrateStateV0ToV1(t *testing.T) {
+func TestShareV0ToV1(t *testing.T) {
 	clouds := []azure.Environment{
 		azure.ChinaCloud,
 		azure.GermanCloud,
@@ -41,7 +40,7 @@ func TestAzureRMStorageShareMigrateStateV0ToV1(t *testing.T) {
 			"quota":                5120,
 		}
 
-		actual, err := storage.ResourceStorageShareStateUpgradeV0ToV1(input, meta)
+		actual, err := shareUpgradeV0ToV1(input, meta)
 		if err != nil {
 			t.Fatalf("Expected no error but got: %s", err)
 		}
@@ -54,7 +53,7 @@ func TestAzureRMStorageShareMigrateStateV0ToV1(t *testing.T) {
 	}
 }
 
-func TestAzureRMStorageShareMigrateStateV1ToV2(t *testing.T) {
+func TestShareV1ToV2(t *testing.T) {
 	clouds := []azure.Environment{
 		azure.ChinaCloud,
 		azure.GermanCloud,
@@ -85,7 +84,7 @@ func TestAzureRMStorageShareMigrateStateV1ToV2(t *testing.T) {
 			"quota":                5120,
 		}
 
-		actual, err := storage.ResourceStorageShareStateUpgradeV1ToV2(input, meta)
+		actual, err := shareUpgradeV1ToV2(input, meta)
 		if err != nil {
 			t.Fatalf("Expected no error but got: %s", err)
 		}
