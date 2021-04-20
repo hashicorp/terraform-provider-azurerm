@@ -1,4 +1,4 @@
-package authorization
+package migration
 
 import (
 	"fmt"
@@ -7,7 +7,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceArmRoleDefinitionV0() *schema.Resource {
+func RoleDefinitionV0ToV1() schema.StateUpgrader {
+	return schema.StateUpgrader{
+		Type:    roleDefinitionSchemaForV0().CoreConfigSchema().ImpliedType(),
+		Upgrade: roleDefinitionUpgradeV0ToV1,
+		Version: 0,
+	}
+}
+
+func roleDefinitionSchemaForV0() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"role_definition_id": {
@@ -84,7 +92,7 @@ func resourceArmRoleDefinitionV0() *schema.Resource {
 	}
 }
 
-func resourceArmRoleDefinitionStateUpgradeV0(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+func roleDefinitionUpgradeV0ToV1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 	log.Println("[DEBUG] Migrating ID from v0 to v1 format")
 
 	oldID := rawState["id"].(string)

@@ -6,6 +6,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/authorization/migration"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2020-04-01-preview/authorization"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -31,21 +33,16 @@ func resourceArmRoleDefinition() *schema.Resource {
 			return err
 		}),
 
+		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			migration.RoleDefinitionV0ToV1(),
+		},
+
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
 			Update: schema.DefaultTimeout(60 * time.Minute),
 			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		SchemaVersion: 1,
-
-		StateUpgraders: []schema.StateUpgrader{
-			{
-				Type:    resourceArmRoleDefinitionV0().CoreConfigSchema().ImpliedType(),
-				Upgrade: resourceArmRoleDefinitionStateUpgradeV0,
-				Version: 0,
-			},
 		},
 
 		Schema: map[string]*schema.Schema{
