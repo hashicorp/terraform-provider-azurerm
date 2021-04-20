@@ -171,6 +171,27 @@ func TestAccContainerGroup_linuxBasic(t *testing.T) {
 	})
 }
 
+func TestAccContainerGroup_exposedPort(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	r := ContainerGroupResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.exposedPort(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("container.#").HasValue("1"),
+				check.That(data.ResourceName).Key("os_type").HasValue("Linux"),
+				check.That(data.ResourceName).Key("container.0.ports.#").HasValue("2"),
+			),
+		},
+		data.ImportStep(
+			"image_registry_credential.0.password",
+			"image_registry_credential.1.password",
+		),
+	})
+}
+
 func TestAccContainerGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
 	r := ContainerGroupResource{}
@@ -207,6 +228,29 @@ func TestAccContainerGroup_linuxBasicUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("container.#").HasValue("2"),
 				check.That(data.ResourceName).Key("container.0.ports.#").HasValue("2"),
+			),
+		},
+	})
+}
+
+func TestAccContainerGroup_exposedPortUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	r := ContainerGroupResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.exposedPort(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("exposed_port.#").HasValue("1"),
+			),
+		},
+		{
+			Config: r.exposedPortUpdated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("container.0.ports.#").HasValue("2"),
+				check.That(data.ResourceName).Key("exposed_port.#").HasValue("2"),
 			),
 		},
 	})
@@ -617,6 +661,42 @@ resource "azurerm_container_group" "test" {
   ip_address_type     = "public"
   os_type             = "Linux"
 
+  container {
+    name   = "hw"
+    image  = "microsoft/aci-helloworld:latest"
+    cpu    = "0.5"
+    memory = "0.5"
+    ports {
+      port     = 80
+      protocol = "TCP"
+    }
+  }
+
+  tags = {
+    environment = "Testing"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ContainerGroupResource) exposedPort(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_group" "test" {
+  name                = "acctestcontainergroup-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  ip_address_type     = "public"
+  os_type             = "Linux"
+
   exposed_port {
     port     = 80
     protocol = "TCP"
@@ -630,6 +710,10 @@ resource "azurerm_container_group" "test" {
     ports {
       port     = 80
       protocol = "TCP"
+    }
+    ports {
+      port     = 5443
+      protocol = "UDP"
     }
   }
 
@@ -877,6 +961,54 @@ resource "azurerm_container_group" "test" {
   ip_address_type     = "public"
   os_type             = "Linux"
 
+  container {
+    name   = "hw"
+    image  = "microsoft/aci-helloworld:latest"
+    cpu    = "0.5"
+    memory = "0.5"
+
+    ports {
+      port = 80
+    }
+
+    ports {
+      port     = 5443
+      protocol = "UDP"
+    }
+  }
+
+  container {
+    name   = "sidecar"
+    image  = "microsoft/aci-tutorial-sidecar"
+    cpu    = "0.5"
+    memory = "0.5"
+  }
+
+  tags = {
+    environment = "Testing"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ContainerGroupResource) exposedPortUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_group" "test" {
+  name                = "acctestcontainergroup-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  ip_address_type     = "public"
+  os_type             = "Linux"
+
   exposed_port {
     port = 80
   }
@@ -900,13 +1032,6 @@ resource "azurerm_container_group" "test" {
       port     = 5443
       protocol = "UDP"
     }
-  }
-
-  container {
-    name   = "sidecar"
-    image  = "microsoft/aci-tutorial-sidecar"
-    cpu    = "0.5"
-    memory = "0.5"
   }
 
   tags = {
