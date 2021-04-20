@@ -922,9 +922,12 @@ func schemaAppServiceIpRestriction() *schema.Schema {
 							"x_fd_health_probe": {
 								Type:     schema.TypeSet,
 								Optional: true,
-								MaxItems: 8,
+								MaxItems: 1,
 								Elem: &schema.Schema{
 									Type: schema.TypeString,
+									ValidateFunc: validation.StringInSlice([]string{
+										"1",
+									}, false),
 								},
 							},
 						},

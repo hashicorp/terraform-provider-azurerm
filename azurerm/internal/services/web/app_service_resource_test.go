@@ -491,9 +491,8 @@ func TestAccAppService_completeIpRestriction(t *testing.T) {
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_forwarded_for.1").HasValue("9.9.9.9/32"),
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_azure_fdid.#").HasValue("1"),
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_azure_fdid.0").HasValue("55ce4ed1-4b06-4bf1-b40e-4638452104da"),
-				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_fd_health_probe.#").HasValue("8"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_fd_health_probe.#").HasValue("1"),
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_fd_health_probe.0").HasValue("1"),
-				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_fd_health_probe.7").HasValue("8"),
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_forwarded_host.#").HasValue("1"),
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_forwarded_host.0").HasValue("example.com"),
 			),
@@ -2786,7 +2785,7 @@ resource "azurerm_app_service" "test" {
       action     = "Allow"
       headers {
         x_azure_fdid      = ["55ce4ed1-4b06-4bf1-b40e-4638452104da"]
-        x_fd_health_probe = ["1", "2", "3", "4", "5", "6", "7", "8"]
+        x_fd_health_probe = ["1"]
         x_forwarded_for   = ["9.9.9.9/32", "2002::1234:abcd:ffff:c0a8:101/64"]
         x_forwarded_host  = ["example.com"]
       }
