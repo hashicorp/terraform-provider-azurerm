@@ -108,10 +108,10 @@ resource "azurerm_subscription_tags" "test" {
   tags = {
     environment = "Production"
     cost_center = "MSFT"
-	location = "%s"
+    location    = "%s"
   }
 }
-		`, subscriptionId, data.Locations.Primary )
+		`, subscriptionId, data.Locations.Primary)
 }
 
 func (t SubscriptionTags) requiresImportConfig(data acceptance.TestData) string {
@@ -138,8 +138,8 @@ resource "azurerm_subscription_tags" "test" {
   subscription_id = "%s"
   tags = {
     environment = "staging"
-	location = "%s"
+    location    = "%s"
   }
 }
-	`, subscriptionId, data.Locations.Primary )
+	`, subscriptionId, data.Locations.Primary)
 }
