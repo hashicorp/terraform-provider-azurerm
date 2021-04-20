@@ -1,4 +1,4 @@
-package storage_test
+package migration
 
 import (
 	"fmt"
@@ -7,10 +7,9 @@ import (
 
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 )
 
-func TestAzureRMStorageTableMigrateStateV0ToV1(t *testing.T) {
+func TestTableStateV0ToV1(t *testing.T) {
 	clouds := []azure.Environment{
 		azure.ChinaCloud,
 		azure.GermanCloud,
@@ -39,7 +38,7 @@ func TestAzureRMStorageTableMigrateStateV0ToV1(t *testing.T) {
 			"storage_account_name": "account1",
 		}
 
-		actual, err := storage.ResourceStorageTableStateUpgradeV0ToV1(input, meta)
+		actual, err := tableStateUpgradeV0ToV1(input, meta)
 		if err != nil {
 			t.Fatalf("Expected no error but got: %s", err)
 		}
@@ -52,7 +51,7 @@ func TestAzureRMStorageTableMigrateStateV0ToV1(t *testing.T) {
 	}
 }
 
-func TestAzureRMStorageTableMigrateStateV1ToV2(t *testing.T) {
+func TestTableStateV1ToV2(t *testing.T) {
 	clouds := []azure.Environment{
 		azure.ChinaCloud,
 		azure.GermanCloud,
@@ -81,7 +80,7 @@ func TestAzureRMStorageTableMigrateStateV1ToV2(t *testing.T) {
 			"storage_account_name": "account1",
 		}
 
-		actual, err := storage.ResourceStorageTableStateUpgradeV1ToV2(input, meta)
+		actual, err := tableStateUpgradeV1ToV2(input, meta)
 		if err != nil {
 			t.Fatalf("Expected no error but got: %s", err)
 		}
