@@ -153,6 +153,7 @@ func resourceMonitorActivityLogAlert() *schema.Resource {
 						},
 						"service_health": {
 							Type:     schema.TypeList,
+							Computed: true,
 							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
