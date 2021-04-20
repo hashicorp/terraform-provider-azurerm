@@ -33,7 +33,7 @@ func TestRoleDefinitionMigrateState(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		newID, _ := resourceArmRoleDefinitionStateUpgradeV0(tc.InputAttributes, nil)
+		newID, _ := migration.roleDefinitionUpgradeV0ToV1(tc.InputAttributes, nil)
 
 		if newID["id"].(string) != tc.ExpectedNewID {
 			t.Fatalf("ID migration failed, expected %q, got: %q", tc.ExpectedNewID, newID["id"].(string))
