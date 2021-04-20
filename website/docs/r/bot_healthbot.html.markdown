@@ -1,12 +1,12 @@
 ---
 subcategory: "Bot"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_bot_healthbot"
+page_title: "Azure Resource Manager: azurerm_healthbot"
 description: |-
   Manages a Healthbot Service.
 ---
 
-# azurerm_healthbot_service
+# azurerm_healthbot
 
 Manages a Healthbot Service.
 
@@ -18,7 +18,7 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_healthbot_service" "example" {
+resource "azurerm_healthbot" "example" {
   name                = "example-bot"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
@@ -70,5 +70,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Healthbot Service can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_healthbot_service.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.HealthBot/healthBots/bot1
+terraform import azurerm_healthbot.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.HealthBot/healthBots/bot1
 ```

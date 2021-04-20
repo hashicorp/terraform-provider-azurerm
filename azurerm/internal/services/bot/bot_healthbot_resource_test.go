@@ -17,7 +17,7 @@ import (
 type HealthbotResource struct{}
 
 func TestAccBotHealthbot_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_bot_healthbot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_healthbot", "test")
 	r := HealthbotResource{}
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccBotHealthbot_basic(t *testing.T) {
 }
 
 func TestAccBotHealthbot_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_bot_healthbot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_healthbot", "test")
 	r := HealthbotResource{}
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -45,7 +45,7 @@ func TestAccBotHealthbot_requiresImport(t *testing.T) {
 }
 
 func TestAccBotHealthbot_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_bot_healthbot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_healthbot", "test")
 	r := HealthbotResource{}
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -59,7 +59,7 @@ func TestAccBotHealthbot_complete(t *testing.T) {
 }
 
 func TestAccBotHealthbot_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_bot_healthbot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_healthbot", "test")
 	r := HealthbotResource{}
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -118,7 +118,7 @@ func (r HealthbotResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_bot_healthbot" "test" {
+resource "azurerm_healthbot" "test" {
   name                = "acctest-hb-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -132,11 +132,11 @@ func (r HealthbotResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_bot_healthbot" "import" {
-  name                = azurerm_bot_healthbot.test.name
-  resource_group_name = azurerm_bot_healthbot.test.resource_group_name
-  location            = azurerm_bot_healthbot.test.location
-  sku_name            = azurerm_bot_healthbot.test.sku_name
+resource "azurerm_healthbot" "import" {
+  name                = azurerm_healthbot.test.name
+  resource_group_name = azurerm_healthbot.test.resource_group_name
+  location            = azurerm_healthbot.test.location
+  sku_name            = azurerm_healthbot.test.sku_name
 }
 `, config)
 }
@@ -146,7 +146,7 @@ func (r HealthbotResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_bot_healthbot" "test" {
+resource "azurerm_healthbot" "test" {
   name                = "acctest-hb-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
