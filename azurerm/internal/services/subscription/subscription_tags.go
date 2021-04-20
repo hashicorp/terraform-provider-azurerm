@@ -55,7 +55,7 @@ func subscriptionTagCreateUpdate(d *schema.ResourceData, meta interface{}) error
 
 	subscriptionId := ""
 
-	//verify existing subscription
+	//  verify existing subscription
 	if subscriptionIdRaw, ok := d.GetOk("subscription_id"); ok {
 		subscriptionId = subscriptionIdRaw.(string)
 
@@ -90,7 +90,6 @@ func subscriptionTagCreateUpdate(d *schema.ResourceData, meta interface{}) error
 		if !utils.ResponseWasNotFound(uptags.Response) {
 			return fmt.Errorf("Adding tag value %q for subscription %q: %+v", tags.Flatten(resource_tags.Tags), subscriptionId, urerr)
 		}
-
 	}
 	d.SetId(*uptags.ID)
 
@@ -108,7 +107,6 @@ func subscriptionTagRead(d *schema.ResourceData, meta interface{}) error {
 		if !utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Failed to Retrieve tags for subscription %q: %+v", subscriptionId, err)
 		}
-
 	}
 	t := make(map[string]*string)
 	t = *&resp.Properties.Tags
@@ -139,9 +137,7 @@ func subscriptionTagDelete(d *schema.ResourceData, meta interface{}) error {
 	_, delerr := tagsClient.UpdateAtScope(context.Background(), "subscriptions/"+subscriptionId, tagPatchParamter)
 	if delerr != nil {
 		return fmt.Errorf("Failed to Remove tags %q from subscription %q: %+v", tags.Flatten(resource_tags.Tags), subscriptionId, delerr)
-
 	}
-
 	return nil
 }
 
