@@ -14,7 +14,7 @@ import (
 	keyVaultParser "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/parse"
-	serverValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/validate"
+	mssqlValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/validate"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -45,7 +45,7 @@ func resourceMsSqlTransparentDataEncryption() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: serverValidate.ServerID,
+				ValidateFunc: mssqlValidate.ServerID,
 			},
 			"key_vault_key_id": {
 				Type:         schema.TypeString,
@@ -61,8 +61,6 @@ func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *schema.ResourceData, 
 	serverKeysClient := meta.(*clients.Client).MSSQL.ServerKeysClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for MSSQL Encrypted Protector creation.")
 
 	serverId, err := parse.ServerID(d.Get("server_id").(string))
 
@@ -137,11 +135,11 @@ func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *schema.ResourceData, 
 		// Create a key on the server
 		futureServers, err := serverKeysClient.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, serverKeyName, serverKey)
 		if err != nil {
-			return err
+			return fmt.Errorf("creating/updating server key for %s: %+v", serverId, err)
 		}
 
 		if err = futureServers.WaitForCompletionRef(ctx, serverKeysClient.Client); err != nil {
-			return err
+			return fmt.Errorf("waiting on update of %s: %+v", serverId, err)
 		}
 	}
 
@@ -149,17 +147,18 @@ func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *schema.ResourceData, 
 		EncryptionProtectorProperties: &encryptionProtectorProperties,
 	}
 
-	futureEncryptionProtector, err := encryptionProtectorClient.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, encryptionProtectorObject)
+	// Encryption protector always uses "current" for the name
+	id := parse.NewEncryptionProtectorID(serverId.SubscriptionId, serverId.ResourceGroup, serverId.Name, "current")
+
+	futureEncryptionProtector, err := encryptionProtectorClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, encryptionProtectorObject)
 	if err != nil {
-		return err
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err = futureEncryptionProtector.WaitForCompletionRef(ctx, encryptionProtectorClient.Client); err != nil {
-		return fmt.Errorf("waiting on create/update future for Encryption Protector on server %q (Resource Group %q): %+v", serverId.Name, serverId.ResourceGroup, err)
+		return fmt.Errorf("waiting on create/update future for %s: %+v", id, err)
 	}
 
-	// Encryption protector always uses "current" for the name
-	id := parse.NewEncryptionProtectorID(serverId.SubscriptionId, serverId.ResourceGroup, serverId.Name, "current")
 	d.SetId(id.ID())
 
 	return resourceMsSqlTransparentDataEncryptionRead(d, meta)
@@ -182,7 +181,7 @@ func resourceMsSqlTransparentDataEncryptionRead(d *schema.ResourceData, meta int
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request for Encryption Protector on server %s: %v", id.ServerName, err)
+		return fmt.Errorf("making Read request for %s: %v", id, err)
 	}
 
 	serverId := parse.NewServerID(id.SubscriptionId, id.ResourceGroup, id.ServerName)
@@ -215,7 +214,7 @@ func resourceMsSqlTransparentDataEncryptionDelete(d *schema.ResourceData, meta i
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	serverId, err := parse.ServerID(d.Get("server_id").(string))
+	id, err := parse.EncryptionProtectorID(d.Id())
 
 	if err != nil {
 		return err
@@ -231,13 +230,13 @@ func resourceMsSqlTransparentDataEncryptionDelete(d *schema.ResourceData, meta i
 		},
 	}
 
-	futureEncryptionProtector, err := encryptionProtectorClient.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, encryptionProtector)
+	futureEncryptionProtector, err := encryptionProtectorClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, encryptionProtector)
 	if err != nil {
-		return err
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err = futureEncryptionProtector.WaitForCompletionRef(ctx, encryptionProtectorClient.Client); err != nil {
-		return fmt.Errorf("waiting on create/update future for Encryption Protector on server %q (Resource Group %q): %+v", serverId.Name, serverId.ResourceGroup, err)
+		return fmt.Errorf("waiting on create/update future for %s: %+v", id, err)
 	}
 
 	return nil

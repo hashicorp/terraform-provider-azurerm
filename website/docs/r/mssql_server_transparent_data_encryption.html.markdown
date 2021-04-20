@@ -10,9 +10,9 @@ description: |-
 
 Manages the transparent data encryption configuration for a MSSQL Server
 
-~> **NOTE:** Once transparent data encryption is enabled on a MS SQL instance, it is not possible to remove TDE. You will be able to switch between 'ServiceManaged' and 'CustomerManaged' keys, but will not be able to remove encryption. For safety when this resource is deleted, the TDE mode will automatically be set to 'ServiceManaged'. See `key_vault_uri` for more information on how to specify the key types.
+~> **NOTE:** Once transparent data encryption is enabled on a MS SQL instance, it is not possible to remove TDE. You will be able to switch between 'ServiceManaged' and 'CustomerManaged' keys, but will not be able to remove encryption. For safety when this resource is deleted, the TDE mode will automatically be set to 'ServiceManaged'. See `key_vault_uri` for more information on how to specify the key types. As SQL Server only supports a single configuration for encryption settings, this resource will replace the current encryption settings on the server. 
 
-~> **Note:** See [documentation](https://docs.microsoft.com/en-us/azure/azure-sql/database/transparent-data-encryption-byok-overview) for important information on how handle lifecycle management of the keys to prevent data lockout.
+~> **Note:** See [documentation](https://docs.microsoft.com/en-us/azure/azure-sql/database/transparent-data-encryption-byok-overview) for important information on how handle lifecycle management of the keys to prevent data lockout. 
 
 ## Example Usage with Service Managed Key
 
@@ -175,4 +175,14 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 * `read` - (Defaults to 5 minutes) Used when retrieving the MSSQL.
 * `update` - (Defaults to 30 minutes) Used when updating the MSSQL.
 * `delete` - (Defaults to 30 minutes) Used when deleting the MSSQL.
+
+## Import
+
+~> **NOTE:** This resource does not need to be imported to manage it, however the import will work. 
+
+SQL Server Transparent Data Encryption can be imported using the resource id, e.g.
+
+```shell
+terraform import azurerm_mssql_server_transparent_data_encryption.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Sql/servers/server1/encryptionProtector/current
+```
 
