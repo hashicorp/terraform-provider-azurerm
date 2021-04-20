@@ -82,9 +82,9 @@ The following arguments are supported:
 
 ~> **Note:** DNS label/name is not supported when deploying to virtual networks.
 
-* `exposed_port` - (Optional) A set of public ports for the container group. Changing this forces a new resource to be created. Set as documented in the `exposed_port` block below.
+* `exposed_port` - (Optional) Zero or more `exposed_port` blocks as defined below. Changing this forces a new resource to be created. 
 
-~> **Note:** Any `exposed_port` specified at the container group level must also be specified in a `ports` block on an individual container.
+~> **Note:** The `exposed_port` can only contain ports that are also exposed on one or more containers in the group. 
 
 * `ip_address_type` - (Optional) Specifies the ip address type of the container. `Public` or `Private`. Changing this forces a new resource to be created. If set to `Private`, `network_profile_id` also needs to be set.
 
@@ -184,7 +184,7 @@ A `ports` block supports:
 
 * `protocol` - (Required) The network protocol associated with port. Possible values are `TCP` & `UDP`. Changing this forces a new resource to be created.
 
-~> **Note:** If there are no `exposed_port` blocks, then all `ports` blocks will be automatically exposed on the container group level.
+~> **Note:** Omitting these blocks will default the exposed ports on the group to all ports on all containers defined in the `container` blocks of this group.
 
 --
 
