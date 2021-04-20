@@ -937,6 +937,7 @@ func (future *ZonesDeleteFuture) result(client ZonesClient) (ar autorest.Respons
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("dns.ZonesDeleteFuture")
 		return
 	}

@@ -558,6 +558,7 @@ func (future *ConfigurationStoresCreateFuture) result(client ConfigurationStores
 		return
 	}
 	if !done {
+		cs.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("appconfiguration.ConfigurationStoresCreateFuture")
 		return
 	}
@@ -600,6 +601,7 @@ func (future *ConfigurationStoresDeleteFuture) result(client ConfigurationStores
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("appconfiguration.ConfigurationStoresDeleteFuture")
 		return
 	}
@@ -636,6 +638,7 @@ func (future *ConfigurationStoresUpdateFuture) result(client ConfigurationStores
 		return
 	}
 	if !done {
+		cs.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("appconfiguration.ConfigurationStoresUpdateFuture")
 		return
 	}
@@ -1359,6 +1362,7 @@ func (future *PrivateEndpointConnectionsCreateOrUpdateFuture) result(client Priv
 		return
 	}
 	if !done {
+		pec.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("appconfiguration.PrivateEndpointConnectionsCreateOrUpdateFuture")
 		return
 	}
@@ -1401,6 +1405,7 @@ func (future *PrivateEndpointConnectionsDeleteFuture) result(client PrivateEndpo
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("appconfiguration.PrivateEndpointConnectionsDeleteFuture")
 		return
 	}

@@ -393,6 +393,7 @@ func (future *PrivateZonesCreateOrUpdateFuture) result(client PrivateZonesClient
 		return
 	}
 	if !done {
+		pz.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("privatedns.PrivateZonesCreateOrUpdateFuture")
 		return
 	}
@@ -435,6 +436,7 @@ func (future *PrivateZonesDeleteFuture) result(client PrivateZonesClient) (ar au
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("privatedns.PrivateZonesDeleteFuture")
 		return
 	}
@@ -471,6 +473,7 @@ func (future *PrivateZonesUpdateFuture) result(client PrivateZonesClient) (pz Pr
 		return
 	}
 	if !done {
+		pz.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("privatedns.PrivateZonesUpdateFuture")
 		return
 	}
@@ -1234,6 +1237,7 @@ func (future *VirtualNetworkLinksCreateOrUpdateFuture) result(client VirtualNetw
 		return
 	}
 	if !done {
+		vnl.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("privatedns.VirtualNetworkLinksCreateOrUpdateFuture")
 		return
 	}
@@ -1276,6 +1280,7 @@ func (future *VirtualNetworkLinksDeleteFuture) result(client VirtualNetworkLinks
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("privatedns.VirtualNetworkLinksDeleteFuture")
 		return
 	}
@@ -1312,6 +1317,7 @@ func (future *VirtualNetworkLinksUpdateFuture) result(client VirtualNetworkLinks
 		return
 	}
 	if !done {
+		vnl.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("privatedns.VirtualNetworkLinksUpdateFuture")
 		return
 	}

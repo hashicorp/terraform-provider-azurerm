@@ -61,6 +61,7 @@ func (future *AuthorizationsCreateOrUpdateFuture) result(client AuthorizationsCl
 		return
 	}
 	if !done {
+		era.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("avs.AuthorizationsCreateOrUpdateFuture")
 		return
 	}
@@ -103,6 +104,7 @@ func (future *AuthorizationsDeleteFuture) result(client AuthorizationsClient) (a
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("avs.AuthorizationsDeleteFuture")
 		return
 	}
@@ -427,6 +429,7 @@ func (future *ClustersCreateOrUpdateFuture) result(client ClustersClient) (c Clu
 		return
 	}
 	if !done {
+		c.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("avs.ClustersCreateOrUpdateFuture")
 		return
 	}
@@ -469,6 +472,7 @@ func (future *ClustersDeleteFuture) result(client ClustersClient) (ar autorest.R
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("avs.ClustersDeleteFuture")
 		return
 	}
@@ -505,6 +509,7 @@ func (future *ClustersUpdateFuture) result(client ClustersClient) (c Cluster, er
 		return
 	}
 	if !done {
+		c.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("avs.ClustersUpdateFuture")
 		return
 	}
@@ -1737,6 +1742,7 @@ func (future *PrivateCloudsCreateOrUpdateFuture) result(client PrivateCloudsClie
 		return
 	}
 	if !done {
+		pc.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("avs.PrivateCloudsCreateOrUpdateFuture")
 		return
 	}
@@ -1779,6 +1785,7 @@ func (future *PrivateCloudsDeleteFuture) result(client PrivateCloudsClient) (ar 
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("avs.PrivateCloudsDeleteFuture")
 		return
 	}
@@ -1815,6 +1822,7 @@ func (future *PrivateCloudsUpdateFuture) result(client PrivateCloudsClient) (pc 
 		return
 	}
 	if !done {
+		pc.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("avs.PrivateCloudsUpdateFuture")
 		return
 	}

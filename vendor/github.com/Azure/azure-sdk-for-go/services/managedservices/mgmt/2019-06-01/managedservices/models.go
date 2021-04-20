@@ -367,6 +367,7 @@ func (future *RegistrationAssignmentsCreateOrUpdateFuture) result(client Registr
 		return
 	}
 	if !done {
+		ra.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("managedservices.RegistrationAssignmentsCreateOrUpdateFuture")
 		return
 	}
@@ -409,6 +410,7 @@ func (future *RegistrationAssignmentsDeleteFuture) result(client RegistrationAss
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("managedservices.RegistrationAssignmentsDeleteFuture")
 		return
 	}
@@ -666,6 +668,7 @@ func (future *RegistrationDefinitionsCreateOrUpdateFuture) result(client Registr
 		return
 	}
 	if !done {
+		rd.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("managedservices.RegistrationDefinitionsCreateOrUpdateFuture")
 		return
 	}

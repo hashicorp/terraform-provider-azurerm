@@ -428,6 +428,7 @@ func (future *AppsCreateOrUpdateFuture) result(client AppsClient) (a App, err er
 		return
 	}
 	if !done {
+		a.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("iotcentral.AppsCreateOrUpdateFuture")
 		return
 	}
@@ -469,6 +470,7 @@ func (future *AppsDeleteFuture) result(client AppsClient) (ar autorest.Response,
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("iotcentral.AppsDeleteFuture")
 		return
 	}
@@ -510,6 +512,7 @@ func (future *AppsUpdateFuture) result(client AppsClient) (a App, err error) {
 		return
 	}
 	if !done {
+		a.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("iotcentral.AppsUpdateFuture")
 		return
 	}

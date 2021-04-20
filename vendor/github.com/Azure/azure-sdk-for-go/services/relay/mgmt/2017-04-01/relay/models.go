@@ -886,6 +886,7 @@ func (future *NamespacesCreateOrUpdateFuture) result(client NamespacesClient) (n
 		return
 	}
 	if !done {
+		n.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("relay.NamespacesCreateOrUpdateFuture")
 		return
 	}
@@ -928,6 +929,7 @@ func (future *NamespacesDeleteFuture) result(client NamespacesClient) (ar autore
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("relay.NamespacesDeleteFuture")
 		return
 	}

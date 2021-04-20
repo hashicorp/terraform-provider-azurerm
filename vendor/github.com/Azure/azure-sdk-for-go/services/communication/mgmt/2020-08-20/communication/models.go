@@ -449,6 +449,7 @@ func (future *ServiceCreateOrUpdateFuture) result(client ServiceClient) (sr Serv
 		return
 	}
 	if !done {
+		sr.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("communication.ServiceCreateOrUpdateFuture")
 		return
 	}
@@ -491,6 +492,7 @@ func (future *ServiceDeleteFuture) result(client ServiceClient) (ar autorest.Res
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("communication.ServiceDeleteFuture")
 		return
 	}
