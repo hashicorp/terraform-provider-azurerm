@@ -31,16 +31,8 @@ func resourceEventHubNamespaceAuthorizationRule() *schema.Resource {
 
 		SchemaVersion: 2,
 		StateUpgraders: []schema.StateUpgrader{
-			{
-				Type:    migration.EventHubNamespaceAuthorizationRuleUpgradeV0Schema().CoreConfigSchema().ImpliedType(),
-				Upgrade: migration.EventHubNamespaceAuthorizationRuleUpgradeV0ToV1,
-				Version: 0,
-			},
-			{
-				Type:    migration.EventHubNamespaceAuthorizationRuleUpgradeV1Schema().CoreConfigSchema().ImpliedType(),
-				Upgrade: migration.EventHubNamespaceAuthorizationRuleUpgradeV1ToV2,
-				Version: 1,
-			},
+			migration.NamespaceAuthorizationRuleV0ToV1(),
+			migration.NamespaceAuthorizationRuleV1ToV2(),
 		},
 
 		Timeouts: &schema.ResourceTimeout{
