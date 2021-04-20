@@ -82,7 +82,7 @@ The following arguments are supported:
 
 * `location` - (Required) A location where the container registry should be geo-replicated.
 
-* `tags` - (Optional) A mapping of tags to assign to the container registry replication resource.
+* `tags` - (Optional) A mapping of tags to assign to this replication location.
 
 `network_rule_set` supports the following:
 

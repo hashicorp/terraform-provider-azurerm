@@ -513,7 +513,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
+  name     = "acctestRG-acr-%d"
   location = "%s"
 }
 
@@ -537,7 +537,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
+  name     = "acctestRG-acr-%d"
   location = "%s"
 }
 
@@ -570,7 +570,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
+  name     = "acctestRG-acr-%d"
   location = "%s"
 }
 
@@ -595,7 +595,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
+  name     = "acctestRG-acr-%d"
   location = "%s"
 }
 
@@ -626,7 +626,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
+  name     = "acctestRG-acr-%d"
   location = "%s"
 }
 
@@ -647,7 +647,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
+  name     = "acctestRG-acr-%d"
   location = "%s"
 }
 
@@ -673,7 +673,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
+  name     = "acctestRG-acr-%d"
   location = "%s"
 }
 
@@ -699,7 +699,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
+  name     = "acctestRG-acr-%d"
   location = "%s"
 }
 
@@ -720,7 +720,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
+  name     = "acctestRG-acr-%d"
   location = "%s"
 }
 
@@ -740,7 +740,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
+  name     = "acctestRG-acr-%d"
   location = "%s"
 }
 
@@ -764,7 +764,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
+  name     = "acctestRG-acr-%d"
   location = "%s"
 }
 
