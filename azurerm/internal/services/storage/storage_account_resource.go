@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/migration"
+
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-01-01/storage"
 	azautorest "github.com/Azure/go-autorest/autorest"
 	autorestAzure "github.com/Azure/go-autorest/autorest/azure"
@@ -38,8 +40,11 @@ func resourceStorageAccount() *schema.Resource {
 		Update: resourceStorageAccountUpdate,
 		Delete: resourceStorageAccountDelete,
 
-		MigrateState:  ResourceStorageAccountMigrateState,
 		SchemaVersion: 2,
+		StateUpgraders: []schema.StateUpgrader{
+			migration.AccountV0ToV1(),
+			migration.AccountV1ToV2(),
+		},
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
