@@ -436,11 +436,11 @@ An `ingress_application_gateway` block supports the following:
 
 * `enabled` - (Required) Set to true to deploy the application gateway ingress controller to this cluster.
 
-* `gateway_id` - (Optional) Integrate the application gateway ingress controller with the application gateway with the given ID. See [this](https://docs.microsoft.com/en-us/azure/application-gateway/tutorial-ingress-controller-add-on-existing) page for further details.
+* `gateway_id` - (Optional) The ID of the Application Gateway to integrate with the ingress controller of this Kubernetes Cluster. See [this](https://docs.microsoft.com/en-us/azure/application-gateway/tutorial-ingress-controller-add-on-existing) page for further details.
 
-* `subnet_cidr` - (Optional) Create an application gateway using the subnet CIDR and then integrate the application gateway ingress controller with the gateway. See [this](https://docs.microsoft.com/en-us/azure/application-gateway/tutorial-ingress-controller-add-on-new) page for further details.
+* `subnet_cidr` - (Optional) The subnet CIDR to be used to create an Application Gateway, which in turn will be integrated with the ingress controller of this Kubernetes Cluster. See [this](https://docs.microsoft.com/en-us/azure/application-gateway/tutorial-ingress-controller-add-on-new) page for further details.
 
-* `subnet_id` - (Optional) Create an application gateway on the subnet with the given ID and then integrate the application gateway ingress controller with the gateway. See [this](https://docs.microsoft.com/en-us/azure/application-gateway/tutorial-ingress-controller-add-on-new) page for further details.
+* `subnet_id` - (Optional) The ID of the Subnet on which to create an Application Gateway, which in turn will be integrated with the ingress controller of this Kubernetes Cluster. See [this](https://docs.microsoft.com/en-us/azure/application-gateway/tutorial-ingress-controller-add-on-new) page for further details.
 
 ---
 
@@ -591,7 +591,7 @@ The `addon_profile` block exports the following:
 
 The `ingress_application_gateway` block exports the following:
 
-* `effective_gateway_id` - The ID of the application gateway associated with the application gateway ingress controller deployed to this cluster.
+* `effective_gateway_id` - The ID of the Application Gateway associated with the ingress controller deployed to this Kubernetes Cluster.
 
 ## Timeouts
 
