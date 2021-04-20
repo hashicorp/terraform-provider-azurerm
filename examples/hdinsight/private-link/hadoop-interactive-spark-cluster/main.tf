@@ -89,7 +89,7 @@ resource "azurerm_storage_data_lake_gen2_filesystem" "example" {
 }
 
 resource "azurerm_hdinsight_hadoop_cluster" "example" {
-  depends_on = [azurerm_role_assignment.example, azurerm_nat_gateway.example]
+  depends_on = [azurerm_role_assignment.example, azurerm_nat_gateway.example, azurerm_subnet_network_security_group_association.example]
 
   name                = "${var.prefix}-hadoop"
   resource_group_name = azurerm_resource_group.example.name

@@ -1181,7 +1181,7 @@ resource "azurerm_subnet_network_security_group_association" "test" {
 }
 
 resource "azurerm_hdinsight_hadoop_cluster" "test" {
-  depends_on = [azurerm_role_assignment.test, azurerm_nat_gateway.test]
+  depends_on = [azurerm_role_assignment.test, azurerm_nat_gateway.test, azurerm_subnet_network_security_group_association.test]
 
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
