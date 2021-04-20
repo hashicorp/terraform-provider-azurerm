@@ -108,8 +108,7 @@ func subscriptionTagRead(d *schema.ResourceData, meta interface{}) error {
 			return fmt.Errorf("Failed to Retrieve tags for subscription %q: %+v", subscriptionId, err)
 		}
 	}
-	t := make(map[string]*string)
-	t = *&resp.Properties.Tags
+	t := resp.Properties.Tags
 	d.Set("subscription_id", subscriptionId)
 
 	return tags.FlattenAndSet(d, t)
