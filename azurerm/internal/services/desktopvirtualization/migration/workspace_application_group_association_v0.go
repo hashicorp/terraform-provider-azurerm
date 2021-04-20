@@ -7,7 +7,15 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization/parse"
 )
 
-func WorkspaceApplicationGroupAssociationUpgradeV0Schema() *schema.Resource {
+func WorkspaceApplicationGroupAssociationV0ToV1() schema.StateUpgrader {
+	return schema.StateUpgrader{
+		Type:    WorkspaceApplicationGroupAssociationSchemaForV0().CoreConfigSchema().ImpliedType(),
+		Upgrade: WorkspaceApplicationGroupAssociationUpgradeV0ToV1,
+		Version: 0,
+	}
+}
+
+func WorkspaceApplicationGroupAssociationSchemaForV0() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"workspace_id": {
