@@ -7,7 +7,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func NetworkPacketCaptureV0Schema() *schema.Resource {
+func NetworkPacketCaptureV0ToV1() schema.StateUpgrader {
+	return schema.StateUpgrader{
+		Type:    networkPacketCaptureSchemaForV0().CoreConfigSchema().ImpliedType(),
+		Upgrade: networkPacketCaptureUpgradeV0ToV1,
+		Version: 0,
+	}
+}
+
+func networkPacketCaptureSchemaForV0() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -122,7 +130,7 @@ func NetworkPacketCaptureV0Schema() *schema.Resource {
 	}
 }
 
-func NetworkPacketCaptureV0ToV1(rawState map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
+func networkPacketCaptureUpgradeV0ToV1(rawState map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
 	oldId := rawState["id"].(string)
 	newId := strings.Replace(rawState["id"].(string), "/NetworkPacketCaptures/", "/packetCaptures/", 1)
 

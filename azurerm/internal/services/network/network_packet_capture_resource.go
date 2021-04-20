@@ -30,11 +30,7 @@ func resourceNetworkPacketCapture() *schema.Resource {
 
 		SchemaVersion: 1,
 		StateUpgraders: []schema.StateUpgrader{
-			{
-				Type:    migration.NetworkPacketCaptureV0Schema().CoreConfigSchema().ImpliedType(),
-				Upgrade: migration.NetworkPacketCaptureV0ToV1,
-				Version: 0,
-			},
+			migration.NetworkPacketCaptureV0ToV1(),
 		},
 
 		Timeouts: &schema.ResourceTimeout{
