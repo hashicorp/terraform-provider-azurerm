@@ -12,6 +12,7 @@ ENHANCEMENTS:
 
 * dependencies: updating to `v53.3.0` of `github.com/Azure/azure-sdk-for-go` [GH-11365]
 * `azurerm_container_registry` - deprecating the `georeplication_locations` property in favour of the `georeplications` property GH-11200]
+* `azurerm_kubernetes_cluster` support for the `empty_bulk_delete_max` in the `auto_scaler_profile` block #[GH-11060]
 * `azurerm_hdinsight_interactive_query_cluster` - add support for private link endpoint [GH-11300]
 * `azurerm_hdinsight_hadoop_cluster` - add support for private link endpoint [GH-11300]
 * `azurerm_hdinsight_spark_cluster` - add support for private link endpoint [GH-11300]
