@@ -184,7 +184,7 @@ A `ports` block supports:
 
 * `protocol` - (Required) The network protocol associated with port. Possible values are `TCP` & `UDP`. Changing this forces a new resource to be created.
 
-~> **Note:** If there are no `exposed_port` blocks, then all `ports` blocks will be automatically exposed on the container group level.
+~> **Note:** Omitting these blocks will default the exposed ports on the group to all ports on all containers defined in the `container` blocks of this group.
 
 --
 
