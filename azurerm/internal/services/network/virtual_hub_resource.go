@@ -101,9 +101,8 @@ func resourceVirtualHub() *schema.Resource {
 				},
 			},
 
-			"defaultRouteTable": {
+			"default_route_table": {
 				Type:     schema.TypeList,
-				Optional: false,
 				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
@@ -261,7 +260,7 @@ func resourceVirtualHubCreateUpdate(d *schema.ResourceData, meta interface{}) er
 
 	routeTableParams := network.HubRouteTable{
 		Name:                    utils.String(defaultRouteTable),
-		HubRouteTableProperties: expandDefaultRouteTable(d.Get("defaultRouteTable").(*schema.Set).List()),
+		HubRouteTableProperties: expandDefaultRouteTable(d.Get("default_route_table").(*schema.Set).List()),
 	}
 
 	routeTableFuture, err := routeTableClient.CreateOrUpdate(ctx, resourceGroup, name, defaultRouteTable, routeTableParams)
@@ -324,8 +323,8 @@ func resourceVirtualHubRead(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 	flattenedDefaultRouteTable := flattenDefaultRouteTable(defaultRouteResp.HubRouteTableProperties)
-	if err := d.Set("defaultRouteTable", flattenedDefaultRouteTable); err != nil {
-		return fmt.Errorf("setting `defaultRouteTable` for VirtualHub: %+v", err)
+	if err := d.Set("default_route_table", flattenedDefaultRouteTable); err != nil {
+		return fmt.Errorf("setting `default_route_table` for VirtualHub: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
