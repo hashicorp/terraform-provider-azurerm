@@ -14,6 +14,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_eventgrid_system_topic` - remove strict validation on `topic_type` [GH-11352]
+* `azurerm_linux_virtual_machine_scale_set` - the default value for the `priority` property will no longer force a replacement of the resource [GH-11362]
 
 ## 2.56.0 (April 15, 2021)
 
