@@ -424,11 +424,7 @@ func resourceFrontDoorFirewallPolicy() *schema.Resource {
 
 		SchemaVersion: 1,
 		StateUpgraders: []schema.StateUpgrader{
-			{
-				Type:    migration.WebApplicationFirewallPolicyV0Schema().CoreConfigSchema().ImpliedType(),
-				Upgrade: migration.WebApplicationFirewallPolicyV0ToV1,
-				Version: 0,
-			},
+			migration.WebApplicationFirewallPolicyV0ToV1(),
 		},
 	}
 }
