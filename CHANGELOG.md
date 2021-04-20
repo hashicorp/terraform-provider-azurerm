@@ -2,8 +2,10 @@
 
 FEATURES:
 
+* **Data Source:** `azurerm_postgresql_flexible_server` [GH-11081]
 * **New Resource:** `azurerm_data_factory_dataset_snowflake `  [GH-11116]
 * **New Resource:** `azurerm_mssql_job_agent` [GH-11248]
+* **New Resource:** `azurerm_postgresql_flexible_server` [GH-11081]
 
 ENHANCEMENTS:
 
