@@ -174,10 +174,14 @@ func resourceExpressRouteCircuitConnectionRead(d *schema.ResourceData, meta inte
 
 		if props.AuthorizationKey != nil {
 			d.Set("authorization_key", props.AuthorizationKey)
+		} else {
+			d.Set("authorization_key", "")
 		}
 
 		if props.Ipv6CircuitConnectionConfig != nil && props.Ipv6CircuitConnectionConfig.AddressPrefix != nil {
 			d.Set("address_prefix_ipv6", props.Ipv6CircuitConnectionConfig.AddressPrefix)
+		} else {
+			d.Set("address_prefix_ipv6", "")
 		}
 	}
 

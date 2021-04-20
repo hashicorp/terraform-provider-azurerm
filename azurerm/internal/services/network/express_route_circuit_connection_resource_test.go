@@ -72,7 +72,7 @@ func TestAccExpressRouteCircuitConnection_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("authorization_key"),
+		data.ImportStep(),
 	})
 }
 
@@ -98,14 +98,14 @@ func TestAccExpressRouteCircuitConnection_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("authorization_key"),
+		data.ImportStep(),
 		{
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("authorization_key"),
+		data.ImportStep(),
 	})
 }
 
@@ -172,9 +172,9 @@ func (r ExpressRouteCircuitConnectionResource) requiresImport(data acceptance.Te
 
 resource "azurerm_express_route_circuit_connection" "import" {
   name                = azurerm_express_route_circuit_connection.test.name
-  peering_id          = azurerm_express_route_circuit_peering.test.id
-  peer_peering_id     = azurerm_express_route_circuit_peering.peer_test.id
-  address_prefix_ipv4 = azurerm_express_route_circuit_connection.test.address_prefix
+  peering_id          = azurerm_express_route_circuit_connection.test.peering_id
+  peer_peering_id     = azurerm_express_route_circuit_connection.test.peer_peering_id
+  address_prefix_ipv4 = azurerm_express_route_circuit_connection.test.address_prefix_ipv4
 }
 `, r.basic(data))
 }
@@ -187,8 +187,8 @@ resource "azurerm_express_route_circuit_connection" "test" {
   name                = "acctest-ExpressRouteCircuitConn-%d"
   peering_id          = azurerm_express_route_circuit_peering.test.id
   peer_peering_id     = azurerm_express_route_circuit_peering.peer_test.id
-  address_prefix_ipv4 = "192.169.8.0/29"
-  authorization_key   = "946a1918-b7a2-4917-b43c-8c4cdaee006a"
+  address_prefix_ipv4 = "192.169.9.0/29"
+  authorization_key   = "846a1918-b7a2-4917-b43c-8c4cdaee006a"
   address_prefix_ipv6 = "aa:bb::/125"
 }
 `, r.template(), data.RandomInteger)
@@ -202,9 +202,9 @@ resource "azurerm_express_route_circuit_connection" "test" {
   name                = "acctest-ExpressRouteCircuitConn-%d"
   peering_id          = azurerm_express_route_circuit_peering.test.id
   peer_peering_id     = azurerm_express_route_circuit_peering.peer_test.id
-  address_prefix_ipv4 = "192.169.8.0/29"
-  authorization_key   = "946a1918-b7a2-4917-b43c-8c4cdaee006a"
-  address_prefix_ipv6 = "aa:bb::/125"
+  address_prefix_ipv4 = "192.169.9.0/29"
+  authorization_key   = "846a1918-b7a2-4917-b43c-8c4cdaee006a"
+  address_prefix_ipv6 = "aa:cc::/125"
 }
 `, r.template(), data.RandomInteger)
 }
