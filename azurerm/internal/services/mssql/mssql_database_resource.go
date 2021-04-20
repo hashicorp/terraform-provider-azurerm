@@ -423,7 +423,7 @@ func resourceMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	if v, ok := d.GetOk("creation_source_database_id"); ok {
+	if v, ok := d.GetOk("creation_source_database_id"); ok && d.HasChange("creation_source_database_id") {
 		params.DatabaseProperties.SourceDatabaseID = utils.String(v.(string))
 	}
 
