@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/migration"
+
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -29,12 +31,15 @@ import (
 //       and as such this resource is feature-frozen and new functionality will be added to these new resources instead.
 func resourceVirtualMachineScaleSet() *schema.Resource {
 	return &schema.Resource{
-		Create:        resourceVirtualMachineScaleSetCreateUpdate,
-		Read:          resourceVirtualMachineScaleSetRead,
-		Update:        resourceVirtualMachineScaleSetCreateUpdate,
-		Delete:        resourceVirtualMachineScaleSetDelete,
-		MigrateState:  resourceVirtualMachineScaleSetMigrateState,
+		Create: resourceVirtualMachineScaleSetCreateUpdate,
+		Read:   resourceVirtualMachineScaleSetRead,
+		Update: resourceVirtualMachineScaleSetCreateUpdate,
+		Delete: resourceVirtualMachineScaleSetDelete,
+
 		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			migration.LegacyVMSSV0ToV1(),
+		},
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
