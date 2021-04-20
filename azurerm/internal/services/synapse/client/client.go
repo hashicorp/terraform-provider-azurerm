@@ -11,12 +11,13 @@ import (
 )
 
 type Client struct {
-	FirewallRulesClient                    *synapse.IPFirewallRulesClient
-	SparkPoolClient                        *synapse.BigDataPoolsClient
-	SqlPoolClient                          *synapse.SQLPoolsClient
-	SqlPoolTransparentDataEncryptionClient *synapse.SQLPoolTransparentDataEncryptionsClient
-	WorkspaceClient                        *synapse.WorkspacesClient
-	WorkspaceAadAdminsClient               *synapse.WorkspaceAadAdminsClient
+	FirewallRulesClient                              *synapse.IPFirewallRulesClient
+	SparkPoolClient                                  *synapse.BigDataPoolsClient
+	SqlPoolClient                                    *synapse.SQLPoolsClient
+	SqlPoolTransparentDataEncryptionClient           *synapse.SQLPoolTransparentDataEncryptionsClient
+	WorkspaceClient                                  *synapse.WorkspacesClient
+	WorkspaceAadAdminsClient                         *synapse.WorkspaceAadAdminsClient
+	WorkspaceManagedIdentitySQLControlSettingsClient *synapse.WorkspaceManagedIdentitySQLControlSettingsClient
 
 	synapseAuthorizer autorest.Authorizer
 }
@@ -41,13 +42,17 @@ func NewClient(o *common.ClientOptions) *Client {
 	workspaceAadAdminsClient := synapse.NewWorkspaceAadAdminsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&workspaceAadAdminsClient.Client, o.ResourceManagerAuthorizer)
 
+	workspaceManagedIdentitySQLControlSettingsClient := synapse.NewWorkspaceManagedIdentitySQLControlSettingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&workspaceManagedIdentitySQLControlSettingsClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
-		FirewallRulesClient:                    &firewallRuleClient,
-		SparkPoolClient:                        &sparkPoolClient,
-		SqlPoolClient:                          &sqlPoolClient,
-		SqlPoolTransparentDataEncryptionClient: &sqlPoolTransparentDataEncryptionClient,
-		WorkspaceClient:                        &workspaceClient,
-		WorkspaceAadAdminsClient:               &workspaceAadAdminsClient,
+		FirewallRulesClient:                              &firewallRuleClient,
+		SparkPoolClient:                                  &sparkPoolClient,
+		SqlPoolClient:                                    &sqlPoolClient,
+		SqlPoolTransparentDataEncryptionClient:           &sqlPoolTransparentDataEncryptionClient,
+		WorkspaceClient:                                  &workspaceClient,
+		WorkspaceAadAdminsClient:                         &workspaceAadAdminsClient,
+		WorkspaceManagedIdentitySQLControlSettingsClient: &workspaceManagedIdentitySQLControlSettingsClient,
 
 		synapseAuthorizer: o.SynapseAuthorizer,
 	}
@@ -57,7 +62,7 @@ func (client Client) AccessControlClient(workspaceName, synapseEndpointSuffix st
 	if client.synapseAuthorizer == nil {
 		return nil, fmt.Errorf("Synapse is not supported in this Azure Environment")
 	}
-	endpoint := fmt.Sprintf("https://%s.%s", workspaceName, synapseEndpointSuffix)
+	endpoint := buildEndpoint(workspaceName, synapseEndpointSuffix)
 	accessControlClient := accesscontrol.New(endpoint)
 	accessControlClient.Client.Authorizer = client.synapseAuthorizer
 	return &accessControlClient, nil
@@ -67,8 +72,12 @@ func (client Client) ManagedPrivateEndpointsClient(workspaceName, synapseEndpoin
 	if client.synapseAuthorizer == nil {
 		return nil, fmt.Errorf("Synapse is not supported in this Azure Environment")
 	}
-	endpoint := fmt.Sprintf("https://%s.%s", workspaceName, synapseEndpointSuffix)
+	endpoint := buildEndpoint(workspaceName, synapseEndpointSuffix)
 	managedPrivateEndpointsClient := managedvirtualnetwork.NewManagedPrivateEndpointsClient(endpoint)
 	managedPrivateEndpointsClient.Client.Authorizer = client.synapseAuthorizer
 	return &managedPrivateEndpointsClient, nil
+}
+
+func buildEndpoint(workspaceName string, synapseEndpointSuffix string) string {
+	return fmt.Sprintf("https://%s.%s", workspaceName, synapseEndpointSuffix)
 }

@@ -10,6 +10,8 @@ description: |-
 
 Manages a Managed Kubernetes Cluster (also known as AKS / Azure Kubernetes Service)
 
+-> **Note:** Due to the fast-moving nature of AKS, we recommend using the latest version of the Azure Provider when using AKS - you can find [the latest version of the Azure Provider here](https://registry.terraform.io/providers/hashicorp/azurerm/latest).
+
 ~> **Note:** All arguments including the client secret will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 
 ## Example Usage
@@ -72,6 +74,14 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 ---
 
+* `automatic_channel_upgrade` - (Optional) The upgrade channel for this Kubernetes Cluster. Possible values are `patch`, `rapid`, and `stable`.
+
+!> **Note:** Cluster Auto-Upgrade will update the Kubernetes Cluster (and it's Node Pools) to the latest GA version of Kubernetes automatically - please [see the Azure documentation for more information](https://docs.microsoft.com/en-us/azure/aks/upgrade-cluster#set-auto-upgrade-channel-preview).
+
+-> **Note:** Cluster Auto-Upgrade only updates to GA versions of Kubernetes and will not update to Preview versions.
+
+~> **NOTE:** Auto upgrade channel is in Public Preview - more information and details on how to opt into the Preview [can be found in this article](https://docs.microsoft.com/en-us/azure/aks/upgrade-cluster#set-auto-upgrade-channel-preview).
+
 * `addon_profile` - (Optional) A `addon_profile` block as defined below.
 
 * `api_server_authorized_ip_ranges` - (Optional) The IP ranges to whitelist for incoming traffic to the masters.
@@ -80,7 +90,7 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `disk_encryption_set_id` - (Optional) The ID of the Disk Encryption Set which should be used for the Nodes and Volumes. More information [can be found in the documentation](https://docs.microsoft.com/en-us/azure/aks/azure-disk-customer-managed-keys).
 
-* `identity` - (Optional) A `identity` block as defined below. Changing this forces a new resource to be created.
+* `identity` - (Optional) An `identity` block as defined below. Changing this forces a new resource to be created.
 
 -> **NOTE:** One of either `identity` or `service_principal` must be specified.
 
@@ -98,7 +108,51 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 -> **NOTE:** Azure requires that a new, non-existent Resource Group is used, as otherwise the provisioning of the Kubernetes Service will fail.
 
-* `private_cluster_enabled` Should this Kubernetes Cluster have its API server only exposed on internal IP addresses? This provides a Private IP Address for the Kubernetes API on the Virtual Network where the Kubernetes Cluster is located. Defaults to `false`. Changing this forces a new resource to be created.
+* `private_cluster_enabled` - Should this Kubernetes Cluster have its API server only exposed on internal IP addresses? This provides a Private IP Address for the Kubernetes API on the Virtual Network where the Kubernetes Cluster is located. Defaults to `false`. Changing this forces a new resource to be created.
+
+* `private_dns_zone_id` - (Optional) Either the ID of Private DNS Zone which should be delegated to this Cluster, `System` to have AKS manage this or `None`. In case of `None` you will need to bring your own DNS server and set up resolving, otherwise cluster will have issues after provisioning.
+
+-> **NOTE:** If you use BYO DNS Zone, AKS cluster should either use a User Assigned Identity or a service principal (which is deprecated) with the `Private DNS Zone Contributor` role and access to this Private DNS Zone. If `UserAssigned` identity is used - to prevent improper resource order destruction - cluster should depend on the role assignment, like in this example:
+
+```
+resource "azurerm_resource_group" "example" {
+  name     = "example"
+  location = "West Europe"
+}
+
+resource "azurerm_private_dns_zone" "example" {
+  name                = "privatelink.eastus2.azmk8s.io"
+  resource_group_name = azurerm_resource_group.example.name
+}
+
+resource "azurerm_user_assigned_identity" "example" {
+  name                = "aks-example-identity"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+}
+
+resource "azurerm_role_assignment" "example" {
+  scope                = azurerm_private_dns_zone.example.id
+  role_definition_name = "Private DNS Zone Contributor"
+  principal_id         = azurerm_user_assigned_identity.example.principal_id
+}
+
+resource "azurerm_kubernetes_cluster" "example" {
+  name                    = "aksexamplewithprivatednszone1"
+  location                = azurerm_resource_group.example.location
+  resource_group_name     = azurerm_resource_group.example.name
+  dns_prefix              = "aksexamplednsprefix1"
+  private_cluster_enabled = true
+  private_dns_zone_id     = azurerm_private_dns_zone.example.id
+
+  ... rest of configuration omitted for brevity
+
+  depends_on = [
+    azurerm_role_assignment.example,
+  ]
+}
+
+```
 
 * `role_based_access_control` - (Optional) A `role_based_access_control` block. Changing this forces a new resource to be created.
 
@@ -167,7 +221,11 @@ A `auto_scaler_profile` block supports the following:
 
 * `balance_similar_node_groups` - Detect similar node groups and balance the number of nodes between them. Defaults to `false`.
 
+* `expander` - Expander to use. Possible values are `least-waste`, `priority`, `most-pods` and `random`. Defaults to `random`.
+
 * `max_graceful_termination_sec` - Maximum number of seconds the cluster autoscaler waits for pod termination when trying to scale down a node. Defaults to `600`.
+
+* `new_pod_scale_up_delay` - For scenarios like burst/batch scale where you don't want CA to act before the kubernetes scheduler could schedule all the pods, you can tell CA to ignore unscheduled pods before they're a certain age. Defaults to `10s`.
 
 * `scale_down_delay_after_add` - How long after the scale up of AKS nodes the scale down evaluation resumes. Defaults to `10m`.
 
@@ -182,6 +240,10 @@ A `auto_scaler_profile` block supports the following:
 * `scale_down_unready` - How long an unready node should be unneeded before it is eligible for scale down. Defaults to `20m`.
 
 * `scale_down_utilization_threshold` - Node utilization level, defined as sum of requested resources divided by capacity, below which a node can be considered for scale down. Defaults to `0.5`.
+
+* `skip_nodes_with_local_storage` - If `true` cluster autoscaler will never delete nodes with pods with local storage, for example, EmptyDir or HostPath. Defaults to `true`.
+
+* `skip_nodes_with_system_pods` - If `true` cluster autoscaler will never delete nodes with pods from kube-system (except for DaemonSet or mirror pods). Defaults to `true`.
 
 ---
 
@@ -227,11 +289,15 @@ A `default_node_pool` block supports the following:
 
 -> **NOTE:** If you're using AutoScaling, you may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/docs/configuration/resources.html#ignore_changes) to ignore changes to the `node_count` field.
 
+* `enable_host_encryption` - (Optional) Should the nodes in the Default Node Pool have host encryption enabled? Defaults to `false`.
+
 * `enable_node_public_ip` - (Optional) Should nodes in this Node Pool have a Public IP Address? Defaults to `false`.
 
 * `max_pods` - (Optional) The maximum number of pods that can run on each agent. Changing this forces a new resource to be created.
 
 * `node_labels` - (Optional) A map of Kubernetes labels which should be applied to nodes in the Default Node Pool. Changing this forces a new resource to be created.
+
+* `only_critical_addons_enabled` - (Optional) Enabling this option will taint default node pool with `CriticalAddonsOnly=true:NoSchedule` taint. Changing this forces a new resource to be created.
 
 * `orchestrator_version` - (Optional) Version of Kubernetes used for the Agents. If not specified, the latest recommended version will be used at provisioning time (but won't auto-upgrade)
 
@@ -239,11 +305,15 @@ A `default_node_pool` block supports the following:
 
 * `os_disk_size_gb` - (Optional) The size of the OS Disk which should be used for each agent in the Node Pool. Changing this forces a new resource to be created.
 
+* `os_disk_type` - (Optional) The type of disk which should be used for the Operating System. Possible values are `Ephemeral` and `Managed`. Defaults to `Managed`. Changing this forces a new resource to be created.
+
 * `type` - (Optional) The type of Node Pool which should be created. Possible values are `AvailabilitySet` and `VirtualMachineScaleSets`. Defaults to `VirtualMachineScaleSets`.
 
 * `tags` - (Optional) A mapping of tags to assign to the Node Pool.
 
-~> At this time there's a bug in the AKS API where Tags for a Node Pool are not stored in the correct case - you [may wish to use Terraform's `ignore_changes` functionality to ignore changes to the casing](https://www.terraform.io/docs/configuration/resources.html#ignore_changes) until this is fixed in the AKS API. 
+~> At this time there's a bug in the AKS API where Tags for a Node Pool are not stored in the correct case - you [may wish to use Terraform's `ignore_changes` functionality to ignore changes to the casing](https://www.terraform.io/docs/configuration/resources.html#ignore_changes) until this is fixed in the AKS API.
+
+* `upgrade_settings` - (Optional) A `upgrade_settings` block as documented below.
 
 * `vnet_subnet_id` - (Optional) The ID of a Subnet where the Kubernetes Node Pool should exist. Changing this forces a new resource to be created.
 
@@ -273,9 +343,10 @@ A `http_application_routing` block supports the following:
 
 ---
 
-A `identity` block supports the following:
+An `identity` block supports the following:
 
-* `type` - The type of identity used for the managed cluster. At this time the only supported value is `SystemAssigned`.
+* `type` - The type of identity used for the managed cluster. Possible values are `SystemAssigned` and `UserAssigned`. If `UserAssigned` is set, a `user_assigned_identity_id` must be set as well.
+* `user_assigned_identity_id` - (Optional) The ID of a user assigned identity.
 
 ---
 
@@ -298,6 +369,12 @@ A `network_profile` block supports the following:
 * `network_plugin` - (Required) Network plugin to use for networking. Currently supported values are `azure` and `kubenet`. Changing this forces a new resource to be created.
 
 -> **NOTE:** When `network_plugin` is set to `azure` - the `vnet_subnet_id` field in the `default_node_pool` block must be set and `pod_cidr` must not be set.
+
+* `network_mode` - (Optional) Network mode to be used with Azure CNI. Possible values are `bridge` and `transparent`. Changing this forces a new resource to be created.
+
+~> **Note:** `network_mode` can only be set to `bridge` for existing Kubernetes Clusters and cannot be used to provision new Clusters - this will be removed by Azure in the future.
+
+~> **NOTE:** This property can only be set when `network_plugin` is set to `azure`.
 
 * `network_policy` - (Optional) Sets up network policy to be used with Azure CNI. [Network policy allows us to control the traffic flow between pods](https://docs.microsoft.com/en-us/azure/aks/use-network-policies). Currently supported values are `calico` and `azure`. Changing this forces a new resource to be created.
 
@@ -351,8 +428,6 @@ A `oms_agent` block supports the following:
 
 * `log_analytics_workspace_id` - (Optional) The ID of the Log Analytics Workspace which the OMS Agent should send data to. Must be present if `enabled` is `true`.
 
-* `oms_agent_identity` - An `oms_agent_identity` block as defined below.  
-
 ---
 
 A `role_based_access_control` block supports the following:
@@ -381,8 +456,15 @@ A `windows_profile` block supports the following:
 
 * `admin_username` - (Required) The Admin Username for Windows VMs.
 
-* `admin_password` - (Required) The Admin Password for Windows VMs.
+* `admin_password` - (Required) The Admin Password for Windows VMs. Length must be between 14 and 123 characters.
 
+---
+
+A `upgrade_settings` block supports the following:
+
+* `max_surge` - (Required) The maximum number or percentage of nodes which will be added to the Node Pool size during an upgrade.
+
+-> **Note:** If a percentage is provided, the number of surge nodes is calculated from the `node_count` value on the current cluster. Node surge can allow a cluster to have more nodes than `max_count` during an upgrade. Ensure that your cluster has enough [IP space](https://docs.microsoft.com/en-us/azure/aks/upgrade-cluster#customize-node-surge-upgrade) during an upgrade.
 
 ## Attributes Reference
 
@@ -440,6 +522,12 @@ The `kubelet_identity` block exports the following:
 
 ---
 
+The `oms_agent` block exports the following: 
+
+* `oms_agent_identity` - An `oms_agent_identity` block is exported. The exported attributes are defined below.  
+
+---
+
 The `oms_agent_identity` block exports the following:
 
 * `client_id` - The Client ID of the user-defined Managed Identity used by the OMS Agents.
@@ -468,13 +556,12 @@ The `kube_admin_config` and `kube_config` blocks export the following:
 
 ```
 provider "kubernetes" {
-  load_config_file       = "false"
   host                   = azurerm_kubernetes_cluster.main.kube_config.0.host
   username               = azurerm_kubernetes_cluster.main.kube_config.0.username
   password               = azurerm_kubernetes_cluster.main.kube_config.0.password
-  client_certificate     = "${base64decode(azurerm_kubernetes_cluster.main.kube_config.0.client_certificate)}"
-  client_key             = "${base64decode(azurerm_kubernetes_cluster.main.kube_config.0.client_key)}"
-  cluster_ca_certificate = "${base64decode(azurerm_kubernetes_cluster.main.kube_config.0.cluster_ca_certificate)}"
+  client_certificate     = base64decode(azurerm_kubernetes_cluster.main.kube_config.0.client_certificate)
+  client_key             = base64decode(azurerm_kubernetes_cluster.main.kube_config.0.client_key)
+  cluster_ca_certificate = base64decode(azurerm_kubernetes_cluster.main.kube_config.0.cluster_ca_certificate)
 }
 ```
 

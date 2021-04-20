@@ -10,18 +10,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataFactoryDatasetDelimitedText() *schema.Resource {
+func resourceDataFactoryDatasetDelimitedText() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryDatasetDelimitedTextCreateUpdate,
-		Read:   resourceArmDataFactoryDatasetDelimitedTextRead,
-		Update: resourceArmDataFactoryDatasetDelimitedTextCreateUpdate,
-		Delete: resourceArmDataFactoryDatasetDelimitedTextDelete,
+		Create: resourceDataFactoryDatasetDelimitedTextCreateUpdate,
+		Read:   resourceDataFactoryDatasetDelimitedTextRead,
+		Update: resourceDataFactoryDatasetDelimitedTextCreateUpdate,
+		Delete: resourceDataFactoryDatasetDelimitedTextDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -238,11 +239,35 @@ func resourceArmDataFactoryDatasetDelimitedText() *schema.Resource {
 					},
 				},
 			},
+
+			"compression_codec": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"bzip2",
+					"gzip",
+					"deflate",
+					"ZipDeflate",
+					"TarGzip",
+					"Tar",
+					"snappy",
+					"lz4",
+				}, false),
+			},
+
+			"compression_level": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"Optimal",
+					"Fastest",
+				}, false),
+			},
 		},
 	}
 }
 
-func resourceArmDataFactoryDatasetDelimitedTextCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetDelimitedTextCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -278,6 +303,8 @@ func resourceArmDataFactoryDatasetDelimitedTextCreateUpdate(d *schema.ResourceDa
 		EscapeChar:       d.Get("escape_character").(string),
 		FirstRowAsHeader: d.Get("first_row_as_header").(bool),
 		NullValue:        d.Get("null_value").(string),
+		CompressionLevel: d.Get("compression_level").(string),
+		CompressionCodec: d.Get("compression_codec").(string),
 	}
 
 	linkedServiceName := d.Get("linked_service_name").(string)
@@ -340,39 +367,36 @@ func resourceArmDataFactoryDatasetDelimitedTextCreateUpdate(d *schema.ResourceDa
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDataFactoryDatasetDelimitedTextRead(d, meta)
+	return resourceDataFactoryDatasetDelimitedTextRead(d, meta)
 }
 
-func resourceArmDataFactoryDatasetDelimitedTextRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetDelimitedTextRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.DataSetID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	dataFactoryName := id.Path["factories"]
-	name := id.Path["datasets"]
 
-	resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Data Factory Dataset DelimitedText %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Data Factory Dataset DelimitedText %q (Data Factory %q / Resource Group %q): %s", id.Name, id.FactoryName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("data_factory_name", dataFactoryName)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("data_factory_name", id.FactoryName)
 
 	delimited_textTable, ok := resp.Properties.AsDelimitedTextDataset()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Dataset DelimitedText %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeRelationalTable, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Dataset DelimitedText %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeRelationalTable, *resp.Type)
 	}
 
 	d.Set("additional_properties", delimited_textTable.AdditionalProperties)
@@ -455,6 +479,18 @@ func resourceArmDataFactoryDatasetDelimitedTextRead(d *schema.ResourceData, meta
 		} else {
 			d.Set("null_value", nullValue)
 		}
+		compressionLevel, ok := properties.CompressionLevel.(string)
+		if !ok {
+			log.Printf("[DEBUG] skipping `compression_level` since it's not a string")
+		} else {
+			d.Set("compression_level", compressionLevel)
+		}
+		compressionCodec, ok := properties.CompressionCodec.(string)
+		if !ok {
+			log.Printf("[DEBUG] skipping `compression_codec` since it's not a string")
+		} else {
+			d.Set("compression_codec", compressionCodec)
+		}
 	}
 
 	if folder := delimited_textTable.Folder; folder != nil {
@@ -471,103 +507,22 @@ func resourceArmDataFactoryDatasetDelimitedTextRead(d *schema.ResourceData, meta
 	return nil
 }
 
-func resourceArmDataFactoryDatasetDelimitedTextDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetDelimitedTextDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.DataSetID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	dataFactoryName := id.Path["factories"]
-	name := id.Path["datasets"]
 
-	response, err := client.Delete(ctx, resourceGroup, dataFactoryName, name)
+	response, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("Error deleting Data Factory Dataset DelimitedText %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
+			return fmt.Errorf("Error deleting Data Factory Dataset DelimitedText %q (Data Factory %q / Resource Group %q): %s", id.Name, id.FactoryName, id.ResourceGroup, err)
 		}
 	}
 
 	return nil
-}
-
-func expandDataFactoryDatasetLocation(d *schema.ResourceData) datafactory.BasicDatasetLocation {
-	if _, ok := d.GetOk("http_server_location"); ok {
-		return expandDataFactoryDatasetHttpServerLocation(d)
-	}
-
-	if _, ok := d.GetOk("azure_blob_storage_location"); ok {
-		return expandDataFactoryDatasetAzureBlobStorageLocation(d)
-	}
-
-	return nil
-}
-
-func expandDataFactoryDatasetHttpServerLocation(d *schema.ResourceData) datafactory.BasicDatasetLocation {
-	props := d.Get("http_server_location").([]interface{})[0].(map[string]interface{})
-	relativeUrl := props["relative_url"].(string)
-	path := props["path"].(string)
-	filename := props["filename"].(string)
-
-	httpServerLocation := datafactory.HTTPServerLocation{
-		RelativeURL: relativeUrl,
-		FolderPath:  path,
-		FileName:    filename,
-	}
-	return httpServerLocation
-}
-
-func expandDataFactoryDatasetAzureBlobStorageLocation(d *schema.ResourceData) datafactory.BasicDatasetLocation {
-	props := d.Get("azure_blob_storage_location").([]interface{})[0].(map[string]interface{})
-	container := props["container"].(string)
-	path := props["path"].(string)
-	filename := props["filename"].(string)
-
-	blobStorageLocation := datafactory.AzureBlobStorageLocation{
-		Container:  container,
-		FolderPath: path,
-		FileName:   filename,
-	}
-	return blobStorageLocation
-}
-
-func flattenDataFactoryDatasetHTTPServerLocation(input *datafactory.HTTPServerLocation) []interface{} {
-	if input == nil {
-		return nil
-	}
-	result := make(map[string]interface{})
-
-	if input.RelativeURL != nil {
-		result["relative_url"] = input.RelativeURL
-	}
-	if input.FolderPath != nil {
-		result["path"] = input.FolderPath
-	}
-	if input.FileName != nil {
-		result["filename"] = input.FileName
-	}
-
-	return []interface{}{result}
-}
-
-func flattenDataFactoryDatasetAzureBlobStorageLocation(input *datafactory.AzureBlobStorageLocation) []interface{} {
-	if input == nil {
-		return nil
-	}
-	result := make(map[string]interface{})
-
-	if input.Container != nil {
-		result["container"] = input.Container
-	}
-	if input.FolderPath != nil {
-		result["path"] = input.FolderPath
-	}
-	if input.FileName != nil {
-		result["filename"] = input.FileName
-	}
-
-	return []interface{}{result}
 }

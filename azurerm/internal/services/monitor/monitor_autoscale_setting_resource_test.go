@@ -252,6 +252,42 @@ func TestAccMonitorAutoScaleSetting_fixedDate(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMMonitorAutoScaleSetting_multipleRulesDimensions(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_autoscale_setting", "test")
+	r := MonitorAutoScaleSettingResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.multipleRules(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.multipleRulesDimensions(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.multipleRulesDimensionsUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.multipleRules(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t MonitorAutoScaleSettingResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
@@ -519,6 +555,7 @@ resource "azurerm_monitor_autoscale_setting" "test" {
         time_aggregation   = "Average"
         operator           = "GreaterThan"
         threshold          = 75
+        metric_namespace   = "microsoft.compute/virtualmachinescalesets"
       }
 
       scale_action {
@@ -539,6 +576,7 @@ resource "azurerm_monitor_autoscale_setting" "test" {
         time_aggregation   = "Average"
         operator           = "LessThan"
         threshold          = 25
+        metric_namespace   = "microsoft.compute/virtualmachinescalesets"
       }
 
       scale_action {
@@ -775,6 +813,157 @@ resource "azurerm_monitor_autoscale_setting" "test" {
 `, template, data.RandomInteger)
 }
 
+func (MonitorAutoScaleSettingResource) multipleRulesDimensions(data acceptance.TestData) string {
+	template := MonitorAutoScaleSettingResource{}.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_monitor_autoscale_setting" "test" {
+  name                = "acctestautoscale-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  target_resource_id  = azurerm_virtual_machine_scale_set.test.id
+  enabled             = true
+
+  profile {
+    name = "metricRules"
+
+    capacity {
+      default = 1
+      minimum = 1
+      maximum = 10
+    }
+
+    rule {
+      metric_trigger {
+        metric_name        = "Percentage CPU"
+        metric_resource_id = azurerm_virtual_machine_scale_set.test.id
+        time_grain         = "PT1M"
+        statistic          = "Average"
+        time_window        = "PT5M"
+        time_aggregation   = "Average"
+        operator           = "GreaterThan"
+        threshold          = 75
+        metric_namespace   = "microsoft.compute/virtualmachinescalesets"
+        dimensions {
+          name     = "AppName"
+          operator = "Equals"
+          values   = ["App1"]
+        }
+      }
+
+
+      scale_action {
+        direction = "Increase"
+        type      = "ChangeCount"
+        value     = 1
+        cooldown  = "PT1M"
+      }
+    }
+
+    rule {
+      metric_trigger {
+        metric_name        = "Percentage CPU"
+        metric_resource_id = azurerm_virtual_machine_scale_set.test.id
+        time_grain         = "PT1M"
+        statistic          = "Average"
+        time_window        = "PT5M"
+        time_aggregation   = "Average"
+        operator           = "LessThan"
+        threshold          = 25
+        metric_namespace   = "microsoft.compute/virtualmachinescalesets"
+      }
+
+      scale_action {
+        direction = "Decrease"
+        type      = "ChangeCount"
+        value     = 1
+        cooldown  = "PT1M"
+      }
+    }
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (MonitorAutoScaleSettingResource) multipleRulesDimensionsUpdate(data acceptance.TestData) string {
+	template := MonitorAutoScaleSettingResource{}.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_monitor_autoscale_setting" "test" {
+  name                = "acctestautoscale-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  target_resource_id  = azurerm_virtual_machine_scale_set.test.id
+  enabled             = true
+
+  profile {
+    name = "metricRules"
+
+    capacity {
+      default = 1
+      minimum = 1
+      maximum = 10
+    }
+
+    rule {
+      metric_trigger {
+        metric_name        = "Percentage CPU"
+        metric_resource_id = azurerm_virtual_machine_scale_set.test.id
+        time_grain         = "PT1M"
+        statistic          = "Average"
+        time_window        = "PT5M"
+        time_aggregation   = "Average"
+        operator           = "GreaterThan"
+        threshold          = 75
+        metric_namespace   = "microsoft.compute/virtualmachinescalesets"
+        dimensions {
+          name     = "AppName2"
+          operator = "NotEquals"
+          values   = ["App2"]
+        }
+
+        dimensions {
+          name     = "Deployment"
+          operator = "Equals"
+          values   = ["default"]
+        }
+      }
+
+      scale_action {
+        direction = "Increase"
+        type      = "ChangeCount"
+        value     = 1
+        cooldown  = "PT1M"
+      }
+    }
+
+    rule {
+      metric_trigger {
+        metric_name        = "Percentage CPU"
+        metric_resource_id = azurerm_virtual_machine_scale_set.test.id
+        time_grain         = "PT1M"
+        statistic          = "Average"
+        time_window        = "PT5M"
+        time_aggregation   = "Average"
+        operator           = "LessThan"
+        threshold          = 25
+        metric_namespace   = "microsoft.compute/virtualmachinescalesets"
+      }
+
+      scale_action {
+        direction = "Decrease"
+        type      = "ChangeCount"
+        value     = 1
+        cooldown  = "PT1M"
+      }
+    }
+  }
+}
+`, template, data.RandomInteger)
+}
+
 func (MonitorAutoScaleSettingResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -816,6 +1005,15 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     computer_name_prefix = "testvm-%d"
     admin_username       = "myadmin"
     admin_password       = "Passwword1234"
+  }
+
+  os_profile_linux_config {
+    disable_password_authentication = true
+
+    ssh_keys {
+      path     = "/home/myadmin/.ssh/authorized_keys"
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDCsTcryUl51Q2VSEHqDRNmceUFo55ZtcIwxl2QITbN1RREti5ml/VTytC0yeBOvnZA4x4CFpdw/lCDPk0yrH9Ei5vVkXmOrExdTlT3qI7YaAzj1tUVlBd4S6LX1F7y6VLActvdHuDDuXZXzCDd/97420jrDfWZqJMlUK/EmCE5ParCeHIRIvmBxcEnGfFIsw8xQZl0HphxWOtJil8qsUWSdMyCiJYYQpMoMliO99X40AUc4/AlsyPyT5ddbKk08YrZ+rKDVHF7o29rh4vi5MmHkVgVQHKiKybWlHq+b71gIAUQk9wrJxD+dqt4igrmDSpIjfjwnd+l5UIn5fJSO5DYV4YT/4hwK7OKmuo7OFHD0WyY5YnkYEMtFgzemnRBdE8ulcT60DQpVgRMXFWHvhyCWy0L6sgj1QWDZlLpvsIvNfHsyhKFMG1frLnMt/nP0+YCcfg+v1JYeCKjeoJxB8DWcRBsjzItY0CGmzP8UYZiYKl/2u+2TgFS5r7NWH11bxoUzjKdaa1NLw+ieA8GlBFfCbfWe6YVB9ggUte4VtYFMZGxOjS2bAiYtfgTKFJv+XqORAwExG6+G2eDxIDyo80/OA9IG7Xv/jwQr7D6KDjDuULFcN/iTxuttoKrHeYz1hf5ZQlBdllwJHYx6fK2g8kha6r2JIQKocvsAXiiONqSfw== hello@world.com"
+    }
   }
 
   network_profile {

@@ -32,7 +32,7 @@ func (SentinelAlertRuleDataSource) basic(data acceptance.TestData) string {
 
 data "azurerm_sentinel_alert_rule" "test" {
   name                       = azurerm_sentinel_alert_rule_ms_security_incident.test.name
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
 }
 `, SentinelAlertRuleMsSecurityIncidentResource{}.basic(data))
 }

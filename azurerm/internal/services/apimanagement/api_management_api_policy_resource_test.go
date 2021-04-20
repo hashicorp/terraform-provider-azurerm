@@ -99,7 +99,7 @@ func TestAccApiManagementAPIPolicy_customPolicy(t *testing.T) {
 	})
 }
 
-func (t ApiManagementApiPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (ApiManagementApiPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err

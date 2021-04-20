@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -77,6 +79,7 @@ func dataSourceLogAnalyticsWorkspace() *schema.Resource {
 func dataSourceLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.WorkspacesClient
 	sharedKeysClient := meta.(*clients.Client).LogAnalytics.SharedKeysClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -91,7 +94,8 @@ func dataSourceLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Error making Read request on AzureRM Log Analytics workspaces '%s': %+v", name, err)
 	}
 
-	d.SetId(*resp.ID)
+	id := parse.NewLogAnalyticsWorkspaceID(subscriptionId, resGroup, name)
+	d.SetId(id.ID())
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)

@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -51,7 +50,7 @@ func resourceMsSqlDatabase() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateMsSqlDatabaseName,
+				ValidateFunc: validate.ValidateMsSqlDatabaseName,
 			},
 
 			"server_id": {
@@ -189,6 +188,18 @@ func resourceMsSqlDatabase() *schema.Resource {
 				ValidateFunc: validate.DatabaseID,
 			},
 
+			"storage_account_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  string(sql.GRS),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(sql.GRS),
+					string(sql.LRS),
+					string(sql.ZRS),
+				}, false),
+			},
+
 			"zone_redundant": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -281,11 +292,17 @@ func resourceMsSqlDatabase() *schema.Resource {
 				},
 			},
 
+			"geo_backup_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"tags": tags.Schema(),
 		},
 
 		CustomizeDiff: customdiff.All(
-			customdiff.ForceNewIfChange("sku_name", func(old, new, meta interface{}) bool {
+			customdiff.ForceNewIfChange("sku_name", func(old, new, _ interface{}) bool {
 				// "hyperscale can not change to other sku
 				return strings.HasPrefix(old.(string), "HS") && !strings.HasPrefix(new.(string), "HS")
 			}),
@@ -300,6 +317,8 @@ func resourceMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{})
 	threatClient := meta.(*clients.Client).MSSQL.DatabaseThreatDetectionPoliciesClient
 	longTermRetentionClient := meta.(*clients.Client).MSSQL.BackupLongTermRetentionPoliciesClient
 	shortTermRetentionClient := meta.(*clients.Client).MSSQL.BackupShortTermRetentionPoliciesClient
+	geoBackupPoliciesClient := meta.(*clients.Client).MSSQL.GeoBackupPoliciesClient
+
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -344,14 +363,15 @@ func resourceMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{})
 		Name:     &name,
 		Location: &location,
 		DatabaseProperties: &sql.DatabaseProperties{
-			AutoPauseDelay:   utils.Int32(int32(d.Get("auto_pause_delay_in_minutes").(int))),
-			Collation:        utils.String(d.Get("collation").(string)),
-			ElasticPoolID:    utils.String(d.Get("elastic_pool_id").(string)),
-			LicenseType:      sql.DatabaseLicenseType(d.Get("license_type").(string)),
-			MinCapacity:      utils.Float(d.Get("min_capacity").(float64)),
-			ReadReplicaCount: utils.Int32(int32(d.Get("read_replica_count").(int))),
-			SampleName:       sql.SampleName(d.Get("sample_name").(string)),
-			ZoneRedundant:    utils.Bool(d.Get("zone_redundant").(bool)),
+			AutoPauseDelay:     utils.Int32(int32(d.Get("auto_pause_delay_in_minutes").(int))),
+			Collation:          utils.String(d.Get("collation").(string)),
+			ElasticPoolID:      utils.String(d.Get("elastic_pool_id").(string)),
+			LicenseType:        sql.DatabaseLicenseType(d.Get("license_type").(string)),
+			MinCapacity:        utils.Float(d.Get("min_capacity").(float64)),
+			ReadReplicaCount:   utils.Int32(int32(d.Get("read_replica_count").(int))),
+			SampleName:         sql.SampleName(d.Get("sample_name").(string)),
+			StorageAccountType: sql.StorageAccountType(d.Get("storage_account_type").(string)),
+			ZoneRedundant:      utils.Bool(d.Get("zone_redundant").(bool)),
 		},
 
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -376,6 +396,9 @@ func resourceMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{})
 	}
 
 	if v, ok := d.GetOk("max_size_gb"); ok {
+		if createMode == string(sql.CreateModeOnlineSecondary) || createMode == string(sql.Secondary) {
+			return fmt.Errorf("it is not possible to change maximum size nor advised to configure maximum size on SQL Database %q (Resource Group %q, Server %q) in secondary create mode", name, serverId.ResourceGroup, serverId.Name)
+		}
 		params.DatabaseProperties.MaxSizeBytes = utils.Int64(int64(v.(int) * 1073741824))
 	}
 
@@ -431,6 +454,31 @@ func resourceMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{})
 	}
 
 	d.SetId(*read.ID)
+
+	// For datawarehouse SKUs only
+	if strings.HasPrefix(skuName.(string), "DW") && (d.HasChange("geo_backup_enabled") || d.IsNewResource()) {
+		isEnabled := d.Get("geo_backup_enabled").(bool)
+		var geoBackupPolicyState sql.GeoBackupPolicyState
+
+		// The default geo backup policy configuration for a new resource is 'enabled', so we don't need to set it in that scenario
+		if !(d.IsNewResource() && isEnabled) {
+			if isEnabled {
+				geoBackupPolicyState = sql.GeoBackupPolicyStateEnabled
+			} else {
+				geoBackupPolicyState = sql.GeoBackupPolicyStateDisabled
+			}
+
+			geoBackupPolicy := sql.GeoBackupPolicy{
+				GeoBackupPolicyProperties: &sql.GeoBackupPolicyProperties{
+					State: geoBackupPolicyState,
+				},
+			}
+
+			if _, err := geoBackupPoliciesClient.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, name, geoBackupPolicy); err != nil {
+				return fmt.Errorf("Error issuing create/update request for Sql Server %q (Database %q) Geo backup policies (Resource Group %q): %+v", serverId.Name, name, serverId.ResourceGroup, err)
+			}
+		}
+	}
 
 	if _, err = threatClient.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, name, *expandMsSqlServerThreatDetectionPolicy(d, location)); err != nil {
 		return fmt.Errorf("setting database threat detection policy: %+v", err)
@@ -497,6 +545,7 @@ func resourceMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error {
 	auditingClient := meta.(*clients.Client).MSSQL.DatabaseExtendedBlobAuditingPoliciesClient
 	longTermRetentionClient := meta.(*clients.Client).MSSQL.BackupLongTermRetentionPoliciesClient
 	shortTermRetentionClient := meta.(*clients.Client).MSSQL.BackupShortTermRetentionPoliciesClient
+	geoBackupPoliciesClient := meta.(*clients.Client).MSSQL.GeoBackupPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -544,6 +593,7 @@ func resourceMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error {
 			skuName = *props.CurrentServiceObjectiveName
 		}
 		d.Set("sku_name", props.CurrentServiceObjectiveName)
+		d.Set("storage_account_type", props.StorageAccountType)
 		d.Set("zone_redundant", props.ZoneRedundant)
 	}
 
@@ -563,6 +613,8 @@ func resourceMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error {
 	if err := d.Set("extended_auditing_policy", flattenBlobAuditing); err != nil {
 		return fmt.Errorf("failure in setting `extended_auditing_policy`: %+v", err)
 	}
+
+	geoBackupPolicy := true
 
 	// Hyper Scale SKU's do not currently support LRP and do not honour normal SRP operations
 	if !strings.HasPrefix(skuName, "HS") && !strings.HasPrefix(skuName, "DW") {
@@ -589,6 +641,24 @@ func resourceMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error {
 		zero := make([]interface{}, 0)
 		d.Set("long_term_retention_policy", zero)
 		d.Set("short_term_retention_policy", zero)
+
+		geoPoliciesResponse, err := geoBackupPoliciesClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				d.SetId("")
+				return nil
+			}
+			return fmt.Errorf("reading MsSql Database %s (MsSql Server Name %q / Resource Group %q): %s", id.Name, id.ServerName, id.ResourceGroup, err)
+		}
+
+		// For Datawarehouse SKUs, set the geo-backup policy setting
+		if strings.HasPrefix(skuName, "DW") && geoPoliciesResponse.GeoBackupPolicyProperties.State == sql.GeoBackupPolicyStateDisabled {
+			geoBackupPolicy = false
+		}
+	}
+
+	if err := d.Set("geo_backup_enabled", geoBackupPolicy); err != nil {
+		return fmt.Errorf("failure in setting `geo_backup_enabled`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

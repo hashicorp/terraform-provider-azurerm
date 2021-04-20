@@ -14,12 +14,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	eventhubParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/parse"
 	eventhubValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/validate"
 	logAnalyticsParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 	logAnalyticsValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor/validate"
 	storageParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 	storageValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -62,7 +62,7 @@ func resourceMonitorDiagnosticSetting() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateEventHubName(),
+				ValidateFunc: eventhubValidate.ValidateEventHubName(),
 			},
 
 			"eventhub_authorization_rule_id": {
@@ -75,7 +75,6 @@ func resourceMonitorDiagnosticSetting() *schema.Resource {
 			"log_analytics_workspace_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ForceNew:     true,
 				ValidateFunc: logAnalyticsValidate.LogAnalyticsWorkspaceID,
 			},
 
@@ -318,7 +317,7 @@ func resourceMonitorDiagnosticSettingRead(d *schema.ResourceData, meta interface
 	d.Set("eventhub_name", resp.EventHubName)
 	eventhubAuthorizationRuleId := ""
 	if resp.EventHubAuthorizationRuleID != nil && *resp.EventHubAuthorizationRuleID != "" {
-		parsedId, err := eventhubParse.NamespaceAuthorizationRuleID(*resp.EventHubAuthorizationRuleID)
+		parsedId, err := eventhubParse.NamespaceAuthorizationRuleIDInsensitively(*resp.EventHubAuthorizationRuleID)
 		if err != nil {
 			return err
 		}

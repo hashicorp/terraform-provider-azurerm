@@ -88,11 +88,17 @@ The following arguments are supported:
 
 * `extended_auditing_policy` - (Optional) A `extended_auditing_policy` block as defined below.
 
+* `geo_backup_enabled` - (Optional) A boolean that specifies if the Geo Backup Policy is enabled. 
+
+~> **NOTE** `geo_backup_enabled` is only applicable for DataWarehouse SKUs (DW*). This setting is ignored for all other SKUs.
+
 * `license_type` - (Optional) Specifies the license type applied to this database. Possible values are `LicenseIncluded` and `BasePrice`.
 
 * `long_term_retention_policy` - (Optional) A `long_term_retention_policy` block as defined below.
 
-* `max_size_gb` - (Optional) The max size of the database in gigabytes. 
+* `max_size_gb` - (Optional) The max size of the database in gigabytes.
+
+~> **Note:** This value should not be configured when the `create_mode` is `Secondary` or `OnlineSecondary`, as the sizing of the primary is then used as per [Azure documentation](https://docs.microsoft.com/en-us/azure/azure-sql/database/single-database-scale#geo-replicated-database).
 
 * `min_capacity` - (Optional) Minimal capacity that database will always have allocated, if not paused. This property is only settable for General Purpose Serverless databases.
 
@@ -113,6 +119,8 @@ The following arguments are supported:
 * `sku_name` - (Optional) Specifies the name of the sku used by the database. Changing this forces a new resource to be created. For example, `GP_S_Gen5_2`,`HS_Gen4_1`,`BC_Gen5_2`, `ElasticPool`, `Basic`,`S0`, `P2` ,`DW100c`, `DS100`.
 
 ~> **NOTE** The default sku_name value may differ between Azure locations depending on local availability of Gen4/Gen5 capacity.
+
+* `storage_account_type` - (Optional) Specifies the storage account type used to store backups for this database. Changing this forces a new resource to be created.  Possible values are `GRS`, `LRS` and `ZRS`.  The default value is `GRS`.
 
 * `threat_detection_policy` - (Optional) Threat detection policy configuration. The `threat_detection_policy` block supports fields documented below.
 
@@ -136,10 +144,11 @@ a `threat_detection_policy` block supports the following:
 
 A `extended_auditing_policy` block supports the following:
 
-* `storage_account_access_key` - (Required)  Specifies the access key to use for the auditing storage account.
-* `storage_endpoint` - (Required) Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net).
+* `storage_account_access_key` - (Optional)  Specifies the access key to use for the auditing storage account.
+* `storage_endpoint` - (Optional) Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net).
 * `storage_account_access_key_is_secondary` - (Optional) Specifies whether `storage_account_access_key` value is the storage's secondary key.
 * `retention_in_days` - (Optional) Specifies the number of days to retain logs for in the storage account.
+* `log_monitoring_enabled` - (Optional) Enable audit events to Azure Monitor? To enable audit events to Log Analytics, please refer to the example which can be found in [the `./examples/sql-azure/sql_auditing_log_analytics` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/sql-azure/sql_auditing_log_analytics). To enable audit events to Eventhub, please refer to the example which can be found in [the `./examples/sql-azure/sql_auditing_eventhub` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/sql-azure/sql_auditing_eventhub). 
 
 ---
 

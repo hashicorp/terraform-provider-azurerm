@@ -61,9 +61,11 @@ The following arguments are supported:
 
 * `minimum_tls_version` - (Optional) The minimum TLS version.  Defaults to `1.0`.
 
-* `patch_schedule` - (Optional) A list of `patch_schedule` blocks as defined below - only available for Premium SKU's.
+* `patch_schedule` - (Optional) A list of `patch_schedule` blocks as defined below.
 
 * `private_static_ip_address` - (Optional) The Static IP Address to assign to the Redis Cache when hosted inside the Virtual Network. Changing this forces a new resource to be created.
+
+* `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this Redis Cache. `true` means this resource could be accessed by both public and private endpoint. `false` means only private endpoint access is allowed. Defaults to `true`.
 
 * `redis_configuration` - (Optional) A `redis_configuration` as defined below - with some limitations by SKU - defaults/details are shown below.
 
@@ -73,7 +75,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-* `zones` - (Optional) A list of a single item of the Availability Zone which the Redis Cache should be allocated in.
+* `zones` - (Optional) A list of a one or more Availability Zones, where the Redis Cache should be allocated.
 
 -> **Please Note**: Availability Zones are [in Preview and only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview) - as such you must be opted into the Preview to use this functionality. You can [opt into the Availability Zones Preview in the Azure Portal](http://aka.ms/azenroll).
 

@@ -1,9 +1,11 @@
 package cosmos_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/parse"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/cosmos-db/mgmt/2020-04-01-preview/documentdb"
 
@@ -11,118 +13,68 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMCosmosDbSqlStoredProcedure_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_stored_procedure", "test")
+type CosmosSqlStoredProcedureResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCosmosDbSqlStoredProcedureDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMCosmosDbSqlStoredProcedure_basic(data),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMCosmosDbSqlStoredProcedureExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccCosmosDbSqlStoredProcedure_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_stored_procedure", "test")
+	r := CosmosSqlStoredProcedureResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMCosmosDbSqlStoredProcedure_update(t *testing.T) {
+func TestAccCosmosDbSqlStoredProcedure_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_stored_procedure", "test")
+	r := CosmosSqlStoredProcedureResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCosmosDbSqlStoredProcedureDestroy,
-		Steps: []resource.TestStep{
-			{
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
 
-				Config: testAccAzureRMCosmosDbSqlStoredProcedure_basic(data),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMCosmosDbSqlStoredProcedureExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-
-				Config: testAccAzureRMCosmosDbSqlStoredProcedure_update(data),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMCosmosDbSqlStoredProcedureExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+			Config: r.basic(data),
+			Check: resource.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+
+			Config: r.update(data),
+			Check: resource.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMCosmosDbSqlStoredProcedureDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Cosmos.SqlClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_cosmosdb_sql_stored_procedure" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		accountName := rs.Primary.Attributes["account_name"]
-		resourceGroupName := rs.Primary.Attributes["resource_group_name"]
-		databaseName := rs.Primary.Attributes["database_name"]
-		containerName := rs.Primary.Attributes["container_name"]
-
-		resp, err := client.GetSQLStoredProcedure(ctx, resourceGroupName, accountName, databaseName, containerName, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Error checking destroy for Cosmos SQL Stored Procedure %s (account %s) still exists:\n%v", name, accountName, err)
-			}
-		}
-
-		if !utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Cosmos SQL Stored Procedure %s (account %s) still exists:\n%#v", name, accountName, resp)
-		}
+func (t CosmosSqlStoredProcedureResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.SqlStoredProcedureID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
-}
-
-func testCheckAzureRMCosmosDbSqlStoredProcedureExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Cosmos.SqlClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		accountName := rs.Primary.Attributes["account_name"]
-		resourceGroupName := rs.Primary.Attributes["resource_group_name"]
-		databaseName := rs.Primary.Attributes["database_name"]
-		containerName := rs.Primary.Attributes["container_name"]
-
-		resp, err := client.GetSQLStoredProcedure(ctx, resourceGroupName, accountName, databaseName, containerName, name)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on cosmosAccountsClient: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Cosmos Stored Procedure '%s' (account: '%s') does not exist", name, accountName)
-		}
-
-		return nil
+	resp, err := clients.Cosmos.SqlClient.GetSQLStoredProcedure(ctx, id.ResourceGroup, id.DatabaseAccountName, id.SqlDatabaseName, id.ContainerName, id.StoredProcedureName)
+	if err != nil {
+		return nil, fmt.Errorf("reading Cosmos SQL Stored Procedure (%s): %+v", id.String(), err)
 	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMCosmosDbSqlStoredProcedure_base(data acceptance.TestData) string {
+func (CosmosSqlStoredProcedureResource) base(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -165,9 +117,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
 `, data.Locations.Primary, data.RandomInteger, string(documentdb.GlobalDocumentDB), string(documentdb.Session))
 }
 
-func testAccAzureRMCosmosDbSqlStoredProcedure_basic(data acceptance.TestData) string {
-	template := testAccAzureRMCosmosDbSqlStoredProcedure_base(data)
-
+func (r CosmosSqlStoredProcedureResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -186,12 +136,10 @@ resource "azurerm_cosmosdb_sql_stored_procedure" "test" {
 	}
 BODY
 }
-`, template, data.RandomInteger)
+`, r.base(data), data.RandomInteger)
 }
 
-func testAccAzureRMCosmosDbSqlStoredProcedure_update(data acceptance.TestData) string {
-	template := testAccAzureRMCosmosDbSqlStoredProcedure_base(data)
-
+func (r CosmosSqlStoredProcedureResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -210,5 +158,5 @@ resource "azurerm_cosmosdb_sql_stored_procedure" "test" {
 	}
 BODY
 }
-`, template, data.RandomInteger)
+`, r.base(data), data.RandomInteger)
 }

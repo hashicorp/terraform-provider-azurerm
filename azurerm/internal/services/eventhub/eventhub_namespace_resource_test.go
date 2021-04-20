@@ -140,6 +140,21 @@ func TestAccEventHubNamespace_standardUpdateIdentity(t *testing.T) {
 	})
 }
 
+func TestAccEventHubNamespace_networkrule_iprule_trusted_services(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	r := EventHubNamespaceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.networkrule_iprule_trusted_services(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccEventHubNamespace_networkrule_iprule(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
 	r := EventHubNamespaceResource{}
@@ -374,6 +389,29 @@ func TestAccEventHubNamespace_BasicWithSkuUpdate(t *testing.T) {
 	})
 }
 
+func TestAccEventHubNamespace_SkuDowngradeFromAutoInflateWithMaxThroughput(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	r := EventHubNamespaceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.maximumThroughputUnits(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku").HasValue("Standard"),
+				check.That(data.ResourceName).Key("capacity").HasValue("2"),
+			),
+		},
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku").HasValue("Basic"),
+			),
+		},
+	})
+}
+
 func TestAccEventHubNamespace_maximumThroughputUnitsUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
 	r := EventHubNamespaceResource{}
@@ -479,12 +517,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-ehn-%[1]d"
+  name     = "acctestRG-ehn-%[1]d-1"
   location = "%[2]s"
 }
 
 resource "azurerm_resource_group" "test2" {
-  name     = "acctestRG2-ehn-%[1]d"
+  name     = "acctestRG-ehn-%[1]d"
   location = "%[3]s"
 }
 
@@ -593,6 +631,35 @@ resource "azurerm_eventhub_namespace" "test" {
 
   network_rulesets {
     default_action = "Deny"
+    ip_rule {
+      ip_mask = "10.0.0.0/16"
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (EventHubNamespaceResource) networkrule_iprule_trusted_services(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-eh-%d"
+  location = "%s"
+}
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acctesteventhubnamespace-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+  capacity            = "2"
+
+  network_rulesets {
+    default_action                 = "Deny"
+    trusted_service_access_enabled = true
     ip_rule {
       ip_mask = "10.0.0.0/16"
     }

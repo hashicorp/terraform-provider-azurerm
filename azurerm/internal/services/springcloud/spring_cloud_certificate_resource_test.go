@@ -27,6 +27,7 @@ func TestAccSpringCloudCertificate_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("thumbprint").Exists(),
 			),
 		},
 		data.ImportStep("key_vault_certificate_id"),
@@ -94,6 +95,8 @@ provider "azurerm" {
   features {}
 }
 
+provider "azuread" {}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-spring-%d"
   location = "%s"
@@ -112,19 +115,38 @@ resource "azurerm_key_vault" "test" {
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
   sku_name            = "standard"
+  soft_delete_enabled = true
 
   access_policy {
-    tenant_id               = data.azurerm_client_config.current.tenant_id
-    object_id               = data.azurerm_client_config.current.object_id
-    secret_permissions      = ["set"]
-    certificate_permissions = ["create", "delete", "get", "update"]
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    secret_permissions = [
+      "set",
+    ]
+
+    certificate_permissions = [
+      "create",
+      "delete",
+      "get",
+      "purge",
+      "update",
+    ]
   }
 
   access_policy {
-    tenant_id               = data.azurerm_client_config.current.tenant_id
-    object_id               = data.azuread_service_principal.test.object_id
-    secret_permissions      = ["get", "list"]
-    certificate_permissions = ["get", "list"]
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azuread_service_principal.test.object_id
+
+    secret_permissions = [
+      "get",
+      "list",
+    ]
+
+    certificate_permissions = [
+      "get",
+      "list",
+    ]
   }
 }
 

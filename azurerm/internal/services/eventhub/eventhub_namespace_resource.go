@@ -13,13 +13,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -55,7 +55,7 @@ func resourceEventHubNamespace() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateEventHubNamespaceName(),
+				ValidateFunc: validate.ValidateEventHubNamespaceName(),
 			},
 
 			"location": azure.SchemaLocation(),
@@ -73,10 +73,9 @@ func resourceEventHubNamespace() *schema.Resource {
 			},
 
 			"capacity": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				Default:      1,
-				ValidateFunc: validation.IntBetween(1, 20),
+				Type:     schema.TypeInt,
+				Optional: true,
+				Default:  1,
 			},
 
 			"auto_inflate_enabled": {
@@ -149,6 +148,11 @@ func resourceEventHubNamespace() *schema.Resource {
 								string(eventhub.Allow),
 								string(eventhub.Deny),
 							}, false),
+						},
+
+						"trusted_service_access_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
 						},
 
 						// 128 limit per https://docs.microsoft.com/azure/event-hubs/event-hubs-quotas
@@ -296,6 +300,15 @@ func resourceEventHubNamespaceCreateUpdate(d *schema.ResourceData, meta interfac
 
 	if v, ok := d.GetOk("maximum_throughput_units"); ok {
 		parameters.EHNamespaceProperties.MaximumThroughputUnits = utils.Int32(int32(v.(int)))
+	}
+
+	// @favoretti: if we are downgrading from Standard to Basic SKU and namespace had both autoInflate enabled and
+	// maximumThroughputUnits set - we need to force throughput units back to 0, otherwise downgrade fails
+	//
+	// See: https://github.com/terraform-providers/terraform-provider-azurerm/issues/10244
+	//
+	if parameters.Sku.Tier == eventhub.SkuTierBasic && !autoInflateEnabled {
+		parameters.EHNamespaceProperties.MaximumThroughputUnits = utils.Int32(0)
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, parameters)
@@ -473,6 +486,10 @@ func expandEventHubNamespaceNetworkRuleset(input []interface{}) *eventhub.Networ
 		DefaultAction: eventhub.DefaultAction(block["default_action"].(string)),
 	}
 
+	if v, ok := block["trusted_service_access_enabled"]; ok {
+		ruleset.TrustedServiceAccessEnabled = utils.Bool(v.(bool))
+	}
+
 	if v, ok := block["virtual_network_rule"].([]interface{}); ok {
 		if len(v) > 0 {
 			var rules []eventhub.NWRuleSetVirtualNetworkRules
@@ -547,9 +564,10 @@ func flattenEventHubNamespaceNetworkRuleset(ruleset eventhub.NetworkRuleSet) []i
 	}
 
 	return []interface{}{map[string]interface{}{
-		"default_action":       string(ruleset.DefaultAction),
-		"virtual_network_rule": vnetBlocks,
-		"ip_rule":              ipBlocks,
+		"default_action":                 string(ruleset.DefaultAction),
+		"virtual_network_rule":           vnetBlocks,
+		"ip_rule":                        ipBlocks,
+		"trusted_service_access_enabled": ruleset.TrustedServiceAccessEnabled,
 	}}
 }
 

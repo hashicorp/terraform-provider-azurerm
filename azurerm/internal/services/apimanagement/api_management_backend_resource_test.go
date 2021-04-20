@@ -52,10 +52,10 @@ func TestAccApiManagementBackend_allProperties(t *testing.T) {
 				check.That(data.ResourceName).Key("credentials.0.authorization.0.parameter").HasValue("parameter"),
 				check.That(data.ResourceName).Key("credentials.0.authorization.0.scheme").HasValue("scheme"),
 				check.That(data.ResourceName).Key("credentials.0.certificate.0").Exists(),
-				check.That(data.ResourceName).Key("credentials.0.header.header1").HasValue("header1value1"),
-				check.That(data.ResourceName).Key("credentials.0.header.header2").HasValue("header2value1"),
-				check.That(data.ResourceName).Key("credentials.0.query.query1").HasValue("query1value1"),
-				check.That(data.ResourceName).Key("credentials.0.query.query2").HasValue("query2value1"),
+				check.That(data.ResourceName).Key("credentials.0.header.header1").HasValue("header1value1,header1value2"),
+				check.That(data.ResourceName).Key("credentials.0.header.header2").HasValue("header2value1,header2value2"),
+				check.That(data.ResourceName).Key("credentials.0.query.query1").HasValue("query1value1,query1value2"),
+				check.That(data.ResourceName).Key("credentials.0.query.query2").HasValue("query2value1,query2value2"),
 				check.That(data.ResourceName).Key("proxy.#").HasValue("1"),
 				check.That(data.ResourceName).Key("proxy.0.url").HasValue("http://192.168.1.1:8080"),
 				check.That(data.ResourceName).Key("proxy.0.username").HasValue("username"),
@@ -150,14 +150,12 @@ func TestAccApiManagementBackend_disappears(t *testing.T) {
 	r := ApiManagementAuthorizationBackendResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.basic(data, "disappears"),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckApiManagementBackendDisappears(data.ResourceName),
-			),
-			ExpectNonEmptyPlan: true,
-		},
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config: func(d acceptance.TestData) string {
+				return r.basic(d, "disappears")
+			},
+			TestResource: r,
+		}),
 	})
 }
 
@@ -176,7 +174,7 @@ func TestAccApiManagementBackend_requiresImport(t *testing.T) {
 	})
 }
 
-func (t ApiManagementAuthorizationBackendResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (ApiManagementAuthorizationBackendResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -193,34 +191,24 @@ func (t ApiManagementAuthorizationBackendResource) Exists(ctx context.Context, c
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func testCheckApiManagementBackendDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.BackendClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		serviceName := rs.Primary.Attributes["api_management_name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for backend: %s", name)
-		}
-
-		resp, err := conn.Delete(ctx, resourceGroup, serviceName, name, "")
-		if err != nil {
-			if utils.ResponseWasNotFound(resp) {
-				return nil
-			}
-			return fmt.Errorf("Bad: Delete on BackendClient: %+v", err)
-		}
-
-		return nil
+func (r ApiManagementAuthorizationBackendResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+	resourceGroup := id.ResourceGroup
+	serviceName := id.Path["service"]
+	name := id.Path["backends"]
+
+	resp, err := client.ApiManagement.BackendClient.Delete(ctx, resourceGroup, serviceName, name, "")
+	if err != nil {
+		if utils.ResponseWasNotFound(resp) {
+			return utils.Bool(true), nil
+		}
+		return nil, fmt.Errorf("deleting Backend: %+v", err)
+	}
+
+	return utils.Bool(true), nil
 }
 
 func (r ApiManagementAuthorizationBackendResource) basic(data acceptance.TestData, testName string) string {
@@ -338,8 +326,8 @@ resource "azurerm_api_management_backend" "test" {
     ]
     max_partition_resolution_retries = 5
     server_certificate_thumbprints = [
-      "thumb1",
-      "thumb2",
+      azurerm_api_management_certificate.test.thumbprint,
+      azurerm_api_management_certificate.test.thumbprint,
     ]
   }
 }

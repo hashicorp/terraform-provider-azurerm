@@ -24,7 +24,7 @@ func Flatten(tagMap map[string]*string) map[string]interface{} {
 func FlattenAndSet(d *schema.ResourceData, tagMap map[string]*string) error {
 	flattened := Flatten(tagMap)
 	if err := d.Set("tags", flattened); err != nil {
-		return fmt.Errorf("Error setting `tags`: %s", err)
+		return fmt.Errorf("setting `tags`: %s", err)
 	}
 
 	return nil

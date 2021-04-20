@@ -32,26 +32,6 @@ func TestAccEventHubNamespaceDisasterRecoveryConfig_basic(t *testing.T) {
 	})
 }
 
-func TestAccEventHubNamespaceDisasterRecoveryConfig_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace_disaster_recovery_config", "test")
-
-	// skipping due to there being no way to delete a DRC once an alternate name has been set
-	// sdk bug: https://github.com/Azure/azure-sdk-for-go/issues/5893
-	t.Skip()
-
-	r := EventHubNamespaceDisasterRecoveryConfigResource{}
-
-	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccEventHubNamespaceDisasterRecoveryConfig_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace_disaster_recovery_config", "test")
 	r := EventHubNamespaceDisasterRecoveryConfigResource{}
@@ -124,42 +104,6 @@ resource "azurerm_eventhub_namespace_disaster_recovery_config" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   namespace_name       = azurerm_eventhub_namespace.testa.name
   partner_namespace_id = azurerm_eventhub_namespace.testb.id
-}
-`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
-}
-
-// nolint unused - mistakenly marked as unused
-func (EventHubNamespaceDisasterRecoveryConfigResource) complete(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-eventhub-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_eventhub_namespace" "testa" {
-  name                = "acctest-EHN-%[1]d-a"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Standard"
-}
-
-resource "azurerm_eventhub_namespace" "testb" {
-  name                = "acctest-EHN-%[1]d-b"
-  location            = "%[3]s"
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Standard"
-}
-
-resource "azurerm_eventhub_namespace_disaster_recovery_config" "test" {
-  name                 = "${azurerm_eventhub_namespace.testa.name}-111"
-  resource_group_name  = azurerm_resource_group.test.name
-  namespace_name       = azurerm_eventhub_namespace.testa.name
-  partner_namespace_id = azurerm_eventhub_namespace.testb.id
-  alternate_name       = "acctest-EHN-DRC-%[1]d-alt"
 }
 `, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }

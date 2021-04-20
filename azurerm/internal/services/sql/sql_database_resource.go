@@ -8,17 +8,18 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql"
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/gofrs/uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	uuid "github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql/helper"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -47,7 +48,7 @@ func resourceSqlDatabase() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateMsSqlDatabaseName,
+				ValidateFunc: validate.ValidateMsSqlDatabaseName,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -58,7 +59,7 @@ func resourceSqlDatabase() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateMsSqlServerName,
+				ValidateFunc: validate.ValidateMsSqlServerName,
 			},
 
 			"create_mode": {
@@ -306,6 +307,7 @@ func resourceSqlDatabase() *schema.Resource {
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
+						// TODO - 3.0: Remove this property
 						"use_server_default": {
 							Type:             schema.TypeString,
 							Optional:         true,
@@ -315,6 +317,7 @@ func resourceSqlDatabase() *schema.Resource {
 								string(sql.SecurityAlertPolicyUseServerDefaultDisabled),
 								string(sql.SecurityAlertPolicyUseServerDefaultEnabled),
 							}, true),
+							Deprecated: "This field is now non-functional and thus will be removed in version 3.0 of the Azure Provider",
 						},
 					},
 				},

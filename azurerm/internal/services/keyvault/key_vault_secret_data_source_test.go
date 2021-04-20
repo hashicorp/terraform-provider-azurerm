@@ -38,6 +38,7 @@ func TestAccDataSourceKeyVaultSecret_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("value").HasValue("<rick><morty /></rick>"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.hello").HasValue("world"),
+				check.That(data.ResourceName).Key("versionless_id").HasValue(fmt.Sprintf("https://acctestkv-%s.vault.azure.net/secrets/secret-%s", data.RandomString, data.RandomString)),
 			),
 		},
 	})

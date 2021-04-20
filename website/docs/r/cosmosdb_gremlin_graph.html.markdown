@@ -68,6 +68,8 @@ The following arguments are supported:
 
 * `throughput` - (Optional) The throughput of the Gremlin graph (RU/s). Must be set in increments of `100`. The minimum value is `400`. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply.
 
+* `default_ttl` - (Optional) The default time to live (TTL) of the Gremlin graph. If the value is missing or set to "-1", items don’t expire.
+
 * `autoscale_settings` - (Optional) An `autoscale_settings` block as defined below. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply. Requires `partition_key_path` to be set.
 
 ~> **Note:** Switching between autoscale and manual throughput is not supported via Terraform and must be completed via the Azure Portal and refreshed. 

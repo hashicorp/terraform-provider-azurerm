@@ -2,14 +2,11 @@ package subscription_test
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
 type SubscriptionDataSource struct{}
@@ -21,8 +18,7 @@ func TestAccDataSourceSubscription_current(t *testing.T) {
 		{
 			Config: SubscriptionDataSource{}.currentConfig(),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckAzureRMSubscriptionId(data.ResourceName),
-				check.That(data.ResourceName).Key("subscription_id").Exists(),
+				check.That(data.ResourceName).Key("subscription_id").HasValue(data.Client().SubscriptionID),
 				check.That(data.ResourceName).Key("display_name").Exists(),
 				check.That(data.ResourceName).Key("tenant_id").Exists(),
 				check.That(data.ResourceName).Key("state").HasValue("Enabled"),
@@ -36,10 +32,9 @@ func TestAccDataSourceSubscription_specific(t *testing.T) {
 
 	data.DataSourceTest(t, []resource.TestStep{
 		{
-			Config: SubscriptionDataSource{}.specificConfig(os.Getenv("ARM_SUBSCRIPTION_ID")),
+			Config: SubscriptionDataSource{}.specificConfig(data.Client().SubscriptionID),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckAzureRMSubscriptionId(data.ResourceName),
-				check.That(data.ResourceName).Key("subscription_id").Exists(),
+				check.That(data.ResourceName).Key("subscription_id").HasValue(data.Client().SubscriptionID),
 				check.That(data.ResourceName).Key("display_name").Exists(),
 				check.That(data.ResourceName).Key("tenant_id").Exists(),
 				check.That(data.ResourceName).Key("location_placement_id").Exists(),
@@ -48,25 +43,6 @@ func TestAccDataSourceSubscription_specific(t *testing.T) {
 			),
 		},
 	})
-}
-
-func testCheckAzureRMSubscriptionId(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		attributeName := "subscription_id"
-		subscriptionId := rs.Primary.Attributes[attributeName]
-		client := acceptance.AzureProvider.Meta().(*clients.Client)
-		if subscriptionId != client.Account.SubscriptionId {
-			return fmt.Errorf("%s: Attribute '%s' expected \"%s\", got \"%s\"", resourceName, attributeName, client.Account.SubscriptionId, subscriptionId)
-		}
-
-		return nil
-	}
 }
 
 func (d SubscriptionDataSource) currentConfig() string {

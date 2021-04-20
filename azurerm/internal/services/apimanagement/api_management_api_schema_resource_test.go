@@ -47,7 +47,7 @@ func TestAccApiManagementApiSchema_requiresImport(t *testing.T) {
 	})
 }
 
-func (t ApiManagementApiSchemaResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (ApiManagementApiSchemaResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err

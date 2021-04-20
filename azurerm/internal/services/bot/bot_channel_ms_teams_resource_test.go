@@ -22,7 +22,7 @@ func testAccBotChannelMsTeams_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_ms_teams", "test")
 	r := BotChannelMsTeamsResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []resource.TestStep{
 		{
 			Config: r.basicConfig(data),
 			Check: resource.ComposeTestCheckFunc(
@@ -37,7 +37,7 @@ func testAccBotChannelMsTeams_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_ms_teams", "test")
 	r := BotChannelMsTeamsResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []resource.TestStep{
 		{
 			Config: r.basicConfig(data),
 			Check: resource.ComposeTestCheckFunc(

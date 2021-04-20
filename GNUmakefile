@@ -26,7 +26,7 @@ build: fmtcheck generate
 
 build-docker:
 	mkdir -p bin
-	docker run --rm -v $$(pwd)/bin:/go/bin -v $$(pwd):/go/src/github.com/terraform-providers/terraform-provider-azurerm -w /go/src/github.com/terraform-providers/terraform-provider-azurerm -e GOOS golang:1.13 make build
+	docker run --rm -v $$(pwd)/bin:/go/bin -v $$(pwd):/go/src/github.com/terraform-providers/terraform-provider-azurerm -w /go/src/github.com/terraform-providers/terraform-provider-azurerm -e GOOS golang:1.16 make build
 
 fmt:
 	@echo "==> Fixing source code with gofmt..."
@@ -34,7 +34,7 @@ fmt:
 	find . -name '*.go' | grep -v vendor | xargs gofmt -s -w
 
 fumpt:
-	@echo "==> Fixing source code with gofmt..."
+	@echo "==> Fixing source code with Gofumpt..."
 	# This logic should match the search logic in scripts/gofmtcheck.sh
 	find . -name '*.go' | grep -v vendor | xargs gofumpt -s -w
 
@@ -104,7 +104,7 @@ testacc: fmtcheck
 	TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout $(TESTTIMEOUT) -ldflags="-X=github.com/terraform-providers/terraform-provider-azurerm/version.ProviderVersion=acc"
 
 acctests: fmtcheck
-	TF_ACC=1 go test -v ./azurerm/internal/services/$(SERVICE)/tests/ $(TESTARGS) -timeout $(TESTTIMEOUT) -ldflags="-X=github.com/terraform-providers/terraform-provider-azurerm/version.ProviderVersion=acc"
+	TF_ACC=1 go test -v ./azurerm/internal/services/$(SERVICE) $(TESTARGS) -timeout $(TESTTIMEOUT) -ldflags="-X=github.com/terraform-providers/terraform-provider-azurerm/version.ProviderVersion=acc"
 
 debugacc: fmtcheck
 	TF_ACC=1 dlv test $(TEST) --headless --listen=:2345 --api-version=2 -- -test.v $(TESTARGS)
@@ -126,13 +126,6 @@ endif
 
 scaffold-website:
 	./scripts/scaffold-website.sh
-
-website-test:
-ifeq (,$(wildcard $(GOPATH)/src/$(WEBSITE_REPO)))
-	echo "$(WEBSITE_REPO) not found in your GOPATH (necessary for layouts and assets), get-ting..."
-	git clone https://$(WEBSITE_REPO) $$(go env GOPATH || $$GOPATH)/src/$(WEBSITE_REPO)
-endif
-	@$(MAKE) -C $$(go env GOPATH || $$GOPATH)/src/$(WEBSITE_REPO) website-provider-test PROVIDER_PATH=$(shell pwd) PROVIDER_NAME=$(PKG_NAME)
 
 teamcity-test:
 	@$(MAKE) -C .teamcity tools

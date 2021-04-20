@@ -11,12 +11,15 @@ description: |-
 
 Manages a Function App.
 
+~> **Note:** To connect an Azure Function App and a subnet within the same region `azurerm_app_service_virtual_network_swift_connection` can be used.
+For an example, check the `azurerm_app_service_virtual_network_swift_connection` documentation.
+
 ## Example Usage (with App Service Plan)
 
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "azure-functions-test-rg"
-  location = "westus2"
+  location = "West Europe"
 }
 
 resource "azurerm_storage_account" "example" {
@@ -52,7 +55,7 @@ resource "azurerm_function_app" "example" {
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "azure-functions-cptest-rg"
-  location = "westus2"
+  location = "West Europe"
 }
 
 resource "azurerm_storage_account" "example" {
@@ -89,7 +92,7 @@ resource "azurerm_function_app" "example" {
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "azure-functions-cptest-rg"
-  location = "westus2"
+  location = "West Europe"
 }
 
 resource "azurerm_storage_account" "example" {
@@ -142,6 +145,8 @@ The following arguments are supported:
 * `connection_string` - (Optional) An `connection_string` block as defined below.
 
 * `client_affinity_enabled` - (Optional) Should the Function App send session affinity cookies, which route client requests in the same session to the same instance?
+
+* `client_cert_mode` - (Optional) The mode of the Function App's client certificates requirement for incoming requests. Possible values are `Required` and `Optional`.
 
 * `daily_memory_time_quota` - (Optional) The amount of memory in gigabyte-seconds that your application is allowed to consume per day. Setting this value only affects function apps under the consumption plan. Defaults to `0`.
 
@@ -323,9 +328,11 @@ A `ip_restriction` block supports the following:
 
 * `ip_address` - (Optional) The IP Address used for this IP Restriction in CIDR notation.
 
+* `service_tag` - (Optional) The Service Tag used for this IP Restriction.
+
 * `virtual_network_subnet_id` - (Optional) The Virtual Network Subnet ID used for this IP Restriction.
 
--> **NOTE:** One of either `ip_address` or `virtual_network_subnet_id` must be specified
+-> **NOTE:** One of either `ip_address`, `service_tag` or `virtual_network_subnet_id` must be specified
 
 * `name` - (Optional) The name for this IP Restriction.
 
@@ -339,9 +346,11 @@ A `scm_ip_restriction` block supports the following:
 
 * `ip_address` - (Optional) The IP Address used for this IP Restriction in CIDR notation.
 
+* `service_tag` - (Optional) The Service Tag used for this IP Restriction.
+
 * `virtual_network_subnet_id` - (Optional) The Virtual Network Subnet ID used for this IP Restriction.
 
--> **NOTE:** One of either `ip_address` or `virtual_network_subnet_id` must be specified
+-> **NOTE:** One of either `ip_address`, `service_tag` or `virtual_network_subnet_id` must be specified
 
 * `name` - (Optional) The name for this IP Restriction.
 

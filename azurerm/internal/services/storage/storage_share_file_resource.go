@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 	storageValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
@@ -52,7 +51,7 @@ func resourceStorageShareFile() *schema.Resource {
 				ForceNew:     true,
 				Optional:     true,
 				Default:      "",
-				ValidateFunc: validate.StorageShareDirectoryName,
+				ValidateFunc: storageValidate.StorageShareDirectoryName,
 			},
 
 			"content_type": {

@@ -11,21 +11,21 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/common"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmCosmosDbMongoCollection() *schema.Resource {
+func resourceCosmosDbMongoCollection() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmCosmosDbMongoCollectionCreate,
-		Read:   resourceArmCosmosDbMongoCollectionRead,
-		Update: resourceArmCosmosDbMongoCollectionUpdate,
-		Delete: resourceArmCosmosDbMongoCollectionDelete,
+		Create: resourceCosmosDbMongoCollectionCreate,
+		Read:   resourceCosmosDbMongoCollectionRead,
+		Update: resourceCosmosDbMongoCollectionUpdate,
+		Delete: resourceCosmosDbMongoCollectionDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -137,7 +137,7 @@ func resourceArmCosmosDbMongoCollection() *schema.Resource {
 	}
 }
 
-func resourceArmCosmosDbMongoCollectionCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosDbMongoCollectionCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.MongoDbClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -211,10 +211,10 @@ func resourceArmCosmosDbMongoCollectionCreate(d *schema.ResourceData, meta inter
 
 	d.SetId(*resp.ID)
 
-	return resourceArmCosmosDbMongoCollectionRead(d, meta)
+	return resourceCosmosDbMongoCollectionRead(d, meta)
 }
 
-func resourceArmCosmosDbMongoCollectionUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosDbMongoCollectionUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.MongoDbClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -274,10 +274,10 @@ func resourceArmCosmosDbMongoCollectionUpdate(d *schema.ResourceData, meta inter
 		}
 	}
 
-	return resourceArmCosmosDbMongoCollectionRead(d, meta)
+	return resourceCosmosDbMongoCollectionRead(d, meta)
 }
 
-func resourceArmCosmosDbMongoCollectionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosDbMongoCollectionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.MongoDbClient
 	accClient := meta.(*clients.Client).Cosmos.DatabaseClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -343,22 +343,25 @@ func resourceArmCosmosDbMongoCollectionRead(d *schema.ResourceData, meta interfa
 		}
 	}
 
-	throughputResp, err := client.GetMongoDBCollectionThroughput(ctx, id.ResourceGroup, id.DatabaseAccountName, id.MongodbDatabaseName, id.CollectionName)
-	if err != nil {
-		if !utils.ResponseWasNotFound(throughputResp.Response) {
-			return fmt.Errorf("Error reading Throughput on Cosmos Mongo Collection %q (Account: %q, Database: %q): %+v", id.CollectionName, id.DatabaseAccountName, id.MongodbDatabaseName, err)
+	// if the cosmos account is serverless calling the get throughput api would yield an error
+	if !isServerlessCapacityMode(accResp) {
+		throughputResp, err := client.GetMongoDBCollectionThroughput(ctx, id.ResourceGroup, id.DatabaseAccountName, id.MongodbDatabaseName, id.CollectionName)
+		if err != nil {
+			if !utils.ResponseWasNotFound(throughputResp.Response) {
+				return fmt.Errorf("Error reading Throughput on Cosmos Mongo Collection %q (Account: %q, Database: %q): %+v", id.CollectionName, id.DatabaseAccountName, id.MongodbDatabaseName, err)
+			} else {
+				d.Set("throughput", nil)
+				d.Set("autoscale_settings", nil)
+			}
 		} else {
-			d.Set("throughput", nil)
-			d.Set("autoscale_settings", nil)
+			common.SetResourceDataThroughputFromResponse(throughputResp, d)
 		}
-	} else {
-		common.SetResourceDataThroughputFromResponse(throughputResp, d)
 	}
 
 	return nil
 }
 
-func resourceArmCosmosDbMongoCollectionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosDbMongoCollectionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.MongoDbClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

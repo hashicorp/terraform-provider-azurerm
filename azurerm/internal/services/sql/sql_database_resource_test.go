@@ -792,7 +792,6 @@ resource "azurerm_sql_database" "test" {
     email_account_admins       = "Enabled"
     storage_account_access_key = azurerm_storage_account.test.primary_access_key
     storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
-    use_server_default         = "Disabled"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, state)
@@ -1034,7 +1033,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
+  name     = "acctestRG-sql-%[1]d-p"
   location = "%[2]s"
 }
 
@@ -1059,7 +1058,7 @@ resource "azurerm_sql_database" "test" {
 }
 
 resource "azurerm_resource_group" "test2" {
-  name     = "acctestRG2-%[1]d"
+  name     = "acctestRG-sql-%[1]d-s"
   location = "%[3]s"
 }
 

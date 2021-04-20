@@ -8,9 +8,10 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/operationalinsights"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	keyVaultParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
+	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -46,7 +47,7 @@ func resourceLogAnalyticsClusterCustomerManagedKey() *schema.Resource {
 			"key_vault_key_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: azure.ValidateKeyVaultChildIdVersionOptional,
+				ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
 			},
 		},
 	}
@@ -86,7 +87,7 @@ func resourceLogAnalyticsClusterCustomerManagedKeyUpdate(d *schema.ResourceData,
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	keyId, err := azure.ParseKeyVaultChildIDVersionOptional(d.Get("key_vault_key_id").(string))
+	keyId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(d.Get("key_vault_key_id").(string))
 	if err != nil {
 		return fmt.Errorf("could not parse Key Vault Key ID: %+v", err)
 	}
@@ -159,11 +160,11 @@ func resourceLogAnalyticsClusterCustomerManagedKeyRead(d *schema.ResourceData, m
 			if kvProps.KeyVersion != nil {
 				keyVersion = *kvProps.KeyVersion
 			}
-			keyVaultKeyId, err := azure.NewKeyVaultChildResourceID(keyVaultUri, "keys", keyName, keyVersion)
+			keyVaultKeyId, err := keyVaultParse.NewNestedItemID(keyVaultUri, "keys", keyName, keyVersion)
 			if err != nil {
 				return err
 			}
-			d.Set("key_vault_key_id", keyVaultKeyId)
+			d.Set("key_vault_key_id", keyVaultKeyId.ID())
 		}
 	}
 

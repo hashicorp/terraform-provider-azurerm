@@ -1,128 +1,85 @@
 package datafactory_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMDataFactoryLinkedServiceSFTP_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sftp", "test")
+type LinkedServiceSFTPResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceSFTPDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDataFactoryLinkedServiceSFTP_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryLinkedServiceSFTPExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("password"),
+func TestAccDataFactoryLinkedServiceSFTP_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sftp", "test")
+	r := LinkedServiceSFTPResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("password"),
 	})
 }
 
-func TestAccAzureRMDataFactoryLinkedServiceSFTP_update(t *testing.T) {
+func TestAccDataFactoryLinkedServiceSFTP_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sftp", "test")
+	r := LinkedServiceSFTPResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceSFTPDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDataFactoryLinkedServiceSFTP_update1(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryLinkedServiceSFTPExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "annotations.#", "3"),
-					resource.TestCheckResourceAttr(data.ResourceName, "additional_properties.%", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", "test description"),
-				),
-			},
-			data.ImportStep("password"),
-			{
-				Config: testAccAzureRMDataFactoryLinkedServiceSFTP_update2(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryLinkedServiceSFTPExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "3"),
-					resource.TestCheckResourceAttr(data.ResourceName, "annotations.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "additional_properties.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", "test description 2"),
-				),
-			},
-			data.ImportStep("password"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.update1(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("parameters.%").HasValue("2"),
+				check.That(data.ResourceName).Key("annotations.#").HasValue("3"),
+				check.That(data.ResourceName).Key("additional_properties.%").HasValue("2"),
+				check.That(data.ResourceName).Key("description").HasValue("test description"),
+			),
 		},
+		data.ImportStep("password"),
+		{
+			Config: r.update2(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("parameters.%").HasValue("3"),
+				check.That(data.ResourceName).Key("annotations.#").HasValue("2"),
+				check.That(data.ResourceName).Key("additional_properties.%").HasValue("1"),
+				check.That(data.ResourceName).Key("description").HasValue("test description 2"),
+			),
+		},
+		data.ImportStep("password"),
 	})
 }
 
-func testCheckAzureRMDataFactoryLinkedServiceSFTPExists(name string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.LinkedServiceClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
-		if !ok {
-			return fmt.Errorf("Not found: %s", name)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		dataFactoryName := rs.Primary.Attributes["data_factory_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Data Factory: %s", name)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
-		if err != nil {
-			return fmt.Errorf("Bad: Get on dataFactoryLinkedServiceClient: %+v", err)
-		}
-
-		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Bad: Data Factory Linked Service SFTP %q (data factory name: %q / resource group: %q) does not exist", name, dataFactoryName, resourceGroup)
-		}
-
-		return nil
+func (t LinkedServiceSFTPResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
-}
+	resourceGroup := id.ResourceGroup
+	dataFactoryName := id.Path["factories"]
+	name := id.Path["linkedservices"]
 
-func testCheckAzureRMDataFactoryLinkedServiceSFTPDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.LinkedServiceClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_data_factory_linked_service_sftp" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		dataFactoryName := rs.Primary.Attributes["data_factory_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Data Factory Linked Service SFTP still exists:\n%#v", resp.Properties)
-		}
+	resp, err := clients.DataFactory.LinkedServiceClient.Get(ctx, resourceGroup, dataFactoryName, name, "")
+	if err != nil {
+		return nil, fmt.Errorf("reading Data Factory Linked Service SFTP (%s): %+v", id, err)
 	}
 
-	return nil
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMDataFactoryLinkedServiceSFTP_basic(data acceptance.TestData) string {
+func (LinkedServiceSFTPResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -152,7 +109,7 @@ resource "azurerm_data_factory_linked_service_sftp" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDataFactoryLinkedServiceSFTP_update1(data acceptance.TestData) string {
+func (LinkedServiceSFTPResource) update1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -194,7 +151,7 @@ resource "azurerm_data_factory_linked_service_sftp" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDataFactoryLinkedServiceSFTP_update2(data acceptance.TestData) string {
+func (LinkedServiceSFTPResource) update2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -6,9 +6,8 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2018-06-30-preview/automation"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
+	"github.com/gofrs/uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	uuid "github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -60,10 +59,10 @@ func JobScheduleSchema() *schema.Schema {
 	}
 }
 
-func ExpandAutomationJobSchedule(input []interface{}, runBookName string) map[uuid.UUID]automation.JobScheduleCreateParameters {
+func ExpandAutomationJobSchedule(input []interface{}, runBookName string) (*map[uuid.UUID]automation.JobScheduleCreateParameters, error) {
 	res := make(map[uuid.UUID]automation.JobScheduleCreateParameters)
 	if len(input) == 0 || input[0] == nil {
-		return res
+		return &res, nil
 	}
 
 	for _, v := range input {
@@ -92,11 +91,14 @@ func ExpandAutomationJobSchedule(input []interface{}, runBookName string) map[uu
 			value := v.(string)
 			jobScheduleCreateParameters.JobScheduleCreateProperties.RunOn = &value
 		}
-		jobScheduleUUID := uuid.NewV4()
+		jobScheduleUUID, err := uuid.NewV4()
+		if err != nil {
+			return nil, err
+		}
 		res[jobScheduleUUID] = jobScheduleCreateParameters
 	}
 
-	return res
+	return &res, nil
 }
 
 func FlattenAutomationJobSchedule(jsMap map[uuid.UUID]automation.JobScheduleProperties) *schema.Set {
@@ -140,5 +142,5 @@ func resourceAutomationJobScheduleHash(v interface{}) int {
 		buf.WriteString(fmt.Sprintf("%s-%s-%s-%s", scheduleName, utils.FlattenMapStringPtrString(m.Parameters), runOn, *m.JobScheduleID))
 	}
 
-	return hashcode.String(buf.String())
+	return schema.HashString(buf.String())
 }

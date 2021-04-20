@@ -332,6 +332,22 @@ func TestAccSignalRService_cors(t *testing.T) {
 	})
 }
 
+func TestAccSignalRService_upstreamSetting(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
+	r := SignalRServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withUpstreamEndpoints(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("upstream_endpoint.#").HasValue("4"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r SignalRServiceResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.ServiceID(state.ID)
 	if err != nil {
@@ -480,4 +496,71 @@ resource "azurerm_signalr_service" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, serviceMode)
+}
+
+func (r SignalRServiceResource) withUpstreamEndpoints(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_signalr_service" "test" {
+  name                = "acctestSignalR-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    name     = "Free_F1"
+    capacity = 1
+  }
+
+  features {
+    flag  = "ServiceMode"
+    value = "Serverless"
+  }
+
+  features {
+    flag  = "EnableConnectivityLogs"
+    value = "False"
+  }
+
+  features {
+    flag  = "EnableMessagingLogs"
+    value = "False"
+  }
+
+  upstream_endpoint {
+    category_pattern = ["*"]
+    event_pattern    = ["*"]
+    hub_pattern      = ["*"]
+    url_template     = "http://foo.com/{hub}/api/{category}/{event}"
+  }
+
+  upstream_endpoint {
+    category_pattern = ["connections", "messages"]
+    event_pattern    = ["*"]
+    hub_pattern      = ["hub1"]
+    url_template     = "http://foo.com"
+  }
+
+  upstream_endpoint {
+    category_pattern = ["*"]
+    event_pattern    = ["connect", "disconnect"]
+    hub_pattern      = ["hub1", "hub2"]
+    url_template     = "http://foo3.com"
+  }
+
+  upstream_endpoint {
+    category_pattern = ["connections"]
+    event_pattern    = ["disconnect"]
+    hub_pattern      = ["*"]
+    url_template     = "http://foo4.com"
+  }
+}
+  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

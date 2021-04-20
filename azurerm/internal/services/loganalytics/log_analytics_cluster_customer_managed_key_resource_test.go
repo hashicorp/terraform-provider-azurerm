@@ -3,6 +3,7 @@ package loganalytics_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -18,8 +19,17 @@ type LogAnalyticsClusterCustomerManagedKeyResource struct {
 }
 
 func TestAccLogAnalyticsClusterCustomerManagedKey_basic(t *testing.T) {
+	if true {
+		t.Skip("Skipping due to crash in go-autorest https://github.com/Azure/go-autorest/pull/605")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_cluster_customer_managed_key", "test")
 	r := LogAnalyticsClusterCustomerManagedKeyResource{}
+
+	if os.Getenv("ARM_RUN_TEST_LOG_ANALYTICS_CLUSTERS") == "" {
+		t.Skip("Skipping as ARM_RUN_TEST_LOG_ANALYTICS_CLUSTERS is not specified")
+		return
+	}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -76,7 +86,7 @@ resource "azurerm_key_vault" "test" {
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
 
-  sku_name = "premium"
+  sku_name = "standard"
 
   soft_delete_enabled        = true
   soft_delete_retention_days = 7
@@ -91,8 +101,9 @@ resource "azurerm_key_vault_access_policy" "terraform" {
     "create",
     "delete",
     "get",
-    "update",
     "list",
+    "purge",
+    "update",
   ]
 
   secret_permissions = [

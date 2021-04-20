@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -257,8 +257,11 @@ func resourceFirewallPolicyRuleCollectionGroup() *schema.Resource {
 										Type:     schema.TypeSet,
 										Required: true,
 										Elem: &schema.Schema{
-											Type:         schema.TypeString,
-											ValidateFunc: azValidate.PortOrPortRangeWithin(1, 65535),
+											Type: schema.TypeString,
+											ValidateFunc: validation.Any(
+												azValidate.PortOrPortRangeWithin(1, 65535),
+												validation.StringInSlice([]string{`*`}, false),
+											),
 										},
 									},
 								},

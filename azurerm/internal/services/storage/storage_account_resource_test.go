@@ -957,8 +957,7 @@ resource "azurerm_storage_account" "test" {
     environment = "production"
   }
 }
-
-	`, data.RandomInteger, data.Locations.Primary, data.RandomString, tlsVersion)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, tlsVersion)
 }
 
 func (r StorageAccountResource) allowBlobPublicAccess(data acceptance.TestData) string {
@@ -987,7 +986,7 @@ resource "azurerm_storage_account" "test" {
   }
 }
 
-	`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r StorageAccountResource) disallowBlobPublicAccess(data acceptance.TestData) string {
@@ -1016,7 +1015,7 @@ resource "azurerm_storage_account" "test" {
   }
 }
 
-	`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r StorageAccountResource) isHnsEnabledTrue(data acceptance.TestData) string {
@@ -1538,6 +1537,11 @@ resource "azurerm_storage_account" "test" {
     delete_retention_policy {
       days = 300
     }
+
+    container_delete_retention_policy {
+      days = 7
+    }
+
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
@@ -1580,6 +1584,9 @@ resource "azurerm_storage_account" "test" {
     }
 
     delete_retention_policy {
+    }
+
+    container_delete_retention_policy {
     }
   }
 }

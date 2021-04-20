@@ -3,10 +3,11 @@ package compute
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -185,7 +186,7 @@ func linuxSecretSchema() *schema.Schema {
 							"url": {
 								Type:         schema.TypeString,
 								Required:     true,
-								ValidateFunc: azure.ValidateKeyVaultChildId,
+								ValidateFunc: keyVaultValidate.NestedItemId,
 							},
 						},
 					},
@@ -451,7 +452,7 @@ func winRmListenerSchema() *schema.Schema {
 					Type:         schema.TypeString,
 					Optional:     true,
 					ForceNew:     true,
-					ValidateFunc: azure.ValidateKeyVaultChildId,
+					ValidateFunc: keyVaultValidate.NestedItemId,
 				},
 			},
 		},
@@ -529,7 +530,7 @@ func windowsSecretSchema() *schema.Schema {
 							"url": {
 								Type:         schema.TypeString,
 								Required:     true,
-								ValidateFunc: azure.ValidateKeyVaultChildId,
+								ValidateFunc: keyVaultValidate.NestedItemId,
 							},
 						},
 					},

@@ -493,7 +493,7 @@ func TestAccAppService_completeIpRestriction(t *testing.T) {
 			Config: r.manyCompleteIpRestrictions(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.ip_restriction.#").HasValue("3"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.#").HasValue("4"),
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.ip_address").HasValue("10.10.10.10/32"),
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.name").HasValue("test-restriction"),
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.priority").HasValue("123"),
@@ -506,6 +506,10 @@ func TestAccAppService_completeIpRestriction(t *testing.T) {
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.2.name").HasValue("test-restriction-3"),
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.2.priority").HasValue("65000"),
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.2.action").HasValue("Deny"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.3.service_tag").HasValue("AzureEventGrid"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.3.name").HasValue("test-restriction-4"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.3.priority").HasValue("65000"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.3.action").HasValue("Allow"),
 			),
 		},
 		data.ImportStep(),
@@ -533,6 +537,70 @@ func TestAccAppService_oneVNetSubnetIpRestriction(t *testing.T) {
 			Config: r.oneVNetSubnetIpRestriction(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAppService_multipleVNetSubnetIpRestrictionUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.oneVNetSubnetIpRestriction(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.multipleVNetSubnetIpRestriction(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.#").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.oneVNetSubnetIpRestriction(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAppService_mixedIpRestrictionUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.mixedIpRestrictions(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.#").HasValue("4"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.mixedIpRestrictionsUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.#").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.mixedIpRestrictions(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.#").HasValue("4"),
 			),
 		},
 		data.ImportStep(),
@@ -860,6 +928,52 @@ func TestAccAppService_managedPipelineMode(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.managed_pipeline_mode").HasValue("Classic"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAppService_detailedErrorMessagesLogs(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.detailedErrorMessages(data, true),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("logs.0.detailed_error_messages_enabled").HasValue("true"),
+			),
+		},
+		{
+			Config: r.detailedErrorMessages(data, false),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				resource.TestCheckResourceAttr(data.ResourceName, "logs.0.detailed_error_messages_enabled", "false"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAzureRMAppService_failedRequestTracingLogs(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.failedRequestTracing(data, true),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("logs.0.failed_request_tracing_enabled").HasValue("true"),
+			),
+		},
+		{
+			Config: r.failedRequestTracing(data, false),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("logs.0.failed_request_tracing_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -1312,6 +1426,22 @@ func TestAccAppService_healthCheckPath(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.health_check_path").HasValue("/health"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAppService_numberOfWorkers(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.numberOfWorkers(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.number_of_workers").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -2762,6 +2892,12 @@ resource "azurerm_app_service" "test" {
       name       = "test-restriction-3"
       action     = "Deny"
     }
+
+    ip_restriction {
+      service_tag = "AzureEventGrid"
+      name        = "test-restriction-4"
+      action      = "Allow"
+    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -2816,6 +2952,199 @@ resource "azurerm_app_service" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (r AppServiceResource) multipleVNetSubnetIpRestriction(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.0.2.0/24"
+}
+
+resource "azurerm_subnet" "test2" {
+  name                 = "acctestsubnet%d-2"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.0.3.0/24"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+
+  site_config {
+    ip_restriction {
+      virtual_network_subnet_id = azurerm_subnet.test.id
+    }
+    ip_restriction {
+      virtual_network_subnet_id = azurerm_subnet.test2.id
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (r AppServiceResource) mixedIpRestrictions(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.0.2.0/24"
+}
+
+resource "azurerm_subnet" "test2" {
+  name                 = "acctestsubnet%d-2"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.0.3.0/24"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+
+  site_config {
+    ip_restriction {
+      virtual_network_subnet_id = azurerm_subnet.test.id
+    }
+
+    ip_restriction {
+      virtual_network_subnet_id = azurerm_subnet.test2.id
+    }
+
+    ip_restriction {
+      ip_address = "30.30.0.0/16"
+    }
+
+    ip_restriction {
+      ip_address = "192.168.1.2/24"
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (r AppServiceResource) mixedIpRestrictionsUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.0.2.0/24"
+}
+
+resource "azurerm_subnet" "test2" {
+  name                 = "acctestsubnet%d-2"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.0.3.0/24"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+
+  site_config {
+    ip_restriction {
+      virtual_network_subnet_id = azurerm_subnet.test.id
+    }
+
+    ip_restriction {
+      ip_address = "30.30.0.0/16"
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r AppServiceResource) manyIpRestrictions(data acceptance.TestData) string {
@@ -3482,6 +3811,76 @@ resource "azurerm_app_service" "test" {
 `, template, data.RandomInteger)
 }
 
+func (r AppServiceResource) detailedErrorMessages(data acceptance.TestData, detailedErrorEnabled bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+
+  logs {
+    detailed_error_messages_enabled = %t
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, detailedErrorEnabled)
+}
+
+func (r AppServiceResource) failedRequestTracing(data acceptance.TestData, failedRequestEnabled bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+
+  logs {
+    failed_request_tracing_enabled = %t
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, failedRequestEnabled)
+}
+
 func (r AppServiceResource) managedPipelineMode(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3943,6 +4342,42 @@ resource "azurerm_app_service" "test" {
 
   site_config {
     health_check_path = "/health"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (r AppServiceResource) numberOfWorkers(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  per_site_scaling    = true
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+
+  site_config {
+    number_of_workers = 1
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
