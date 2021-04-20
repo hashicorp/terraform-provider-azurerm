@@ -4,52 +4,54 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/cosmos-db/mgmt/2020-04-01-preview/documentdb"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 )
 
-func ResourceGremlinGraphUpgradeV0Schema() *schema.Resource {
+func GremlinGraphV0ToV1() schema.StateUpgrader {
+	return schema.StateUpgrader{
+		Type:    gremlinGraphSchemaForV0().CoreConfigSchema().ImpliedType(),
+		Upgrade: gremlinGraphV0ToV1,
+		Version: 0,
+	}
+}
+
+func gremlinGraphSchemaForV0() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.CosmosEntityName,
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+			},
 
 			"account_name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.CosmosAccountName,
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
 			},
 
 			"database_name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.CosmosEntityName,
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
 			},
 
 			"throughput": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validate.CosmosThroughput,
+				Type:     schema.TypeInt,
+				Optional: true,
+				Computed: true,
 			},
 
 			"partition_key_path": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
 			},
 
 			"index_policy": {
@@ -65,22 +67,15 @@ func ResourceGremlinGraphUpgradeV0Schema() *schema.Resource {
 						},
 
 						"indexing_mode": {
-							Type:             schema.TypeString,
-							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(documentdb.Consistent),
-								string(documentdb.Lazy),
-								string(documentdb.None),
-							}, false),
+							Type:     schema.TypeString,
+							Required: true,
 						},
 
 						"included_paths": {
 							Type:     schema.TypeSet,
 							Optional: true,
 							Elem: &schema.Schema{
-								Type:         schema.TypeString,
-								ValidateFunc: validation.StringIsNotEmpty,
+								Type: schema.TypeString,
 							},
 							Set: schema.HashString,
 						},
@@ -89,8 +84,7 @@ func ResourceGremlinGraphUpgradeV0Schema() *schema.Resource {
 							Type:     schema.TypeSet,
 							Optional: true,
 							Elem: &schema.Schema{
-								Type:         schema.TypeString,
-								ValidateFunc: validation.StringIsNotEmpty,
+								Type: schema.TypeString,
 							},
 							Set: schema.HashString,
 						},
@@ -107,22 +101,16 @@ func ResourceGremlinGraphUpgradeV0Schema() *schema.Resource {
 						"mode": {
 							Type:     schema.TypeString,
 							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(documentdb.LastWriterWins),
-								string(documentdb.Custom),
-							}, false),
 						},
 
 						"conflict_resolution_path": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							Type:     schema.TypeString,
+							Optional: true,
 						},
 
 						"conflict_resolution_procedure": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							Type:     schema.TypeString,
+							Optional: true,
 						},
 					},
 				},
@@ -139,8 +127,7 @@ func ResourceGremlinGraphUpgradeV0Schema() *schema.Resource {
 							Required: true,
 							ForceNew: true,
 							Elem: &schema.Schema{
-								Type:         schema.TypeString,
-								ValidateFunc: validation.StringIsNotEmpty,
+								Type: schema.TypeString,
 							},
 						},
 					},
@@ -150,7 +137,7 @@ func ResourceGremlinGraphUpgradeV0Schema() *schema.Resource {
 	}
 }
 
-func ResourceGremlinGraphStateUpgradeV0ToV1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+func gremlinGraphV0ToV1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 	oldId := rawState["id"].(string)
 	newId := strings.Replace(rawState["id"].(string), "apis/gremlin/databases", "gremlinDatabases", 1)
 
