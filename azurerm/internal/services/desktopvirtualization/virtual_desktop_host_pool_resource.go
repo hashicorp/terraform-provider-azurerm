@@ -41,11 +41,7 @@ func resourceVirtualDesktopHostPool() *schema.Resource {
 
 		SchemaVersion: 1,
 		StateUpgraders: []schema.StateUpgrader{
-			{
-				Type:    migration.HostPoolUpgradeV0Schema().CoreConfigSchema().ImpliedType(),
-				Upgrade: migration.HostPoolUpgradeV0ToV1,
-				Version: 0,
-			},
+			migration.HostPoolV0ToV1(),
 		},
 
 		Schema: map[string]*schema.Schema{
