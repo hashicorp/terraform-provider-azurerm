@@ -424,7 +424,7 @@ func resourceIotHub() *schema.Resource {
 			},
 
 			"ip_filter_rule": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -1286,7 +1286,7 @@ func validateIoTHubFileNameFormat(v interface{}, k string) (warnings []string, e
 }
 
 func expandIPFilterRules(d *schema.ResourceData) *[]devices.IPFilterRule {
-	ipFilterRuleList := d.Get("ip_filter_rule").(*schema.Set).List()
+	ipFilterRuleList := d.Get("ip_filter_rule").([]interface{})
 	if len(ipFilterRuleList) == 0 {
 		return nil
 	}
