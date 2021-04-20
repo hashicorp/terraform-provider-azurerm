@@ -291,7 +291,7 @@ func expandKubernetesAddOnProfiles(input []interface{}, env azure.Environment) (
 		enabled := value["enabled"].(bool)
 
 		if gatewayId, ok := value["gateway_id"]; ok && gatewayId != "" {
-			config["gatewayId"] = utils.String(gatewayId.(string))
+			config["applicationGatewayId"] = utils.String(gatewayId.(string))
 		}
 
 		if subnetCIDR, ok := value["subnet_cidr"]; ok && subnetCIDR != "" {
