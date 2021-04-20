@@ -467,7 +467,7 @@ func testAccDataSourceKubernetesCluster_addOnProfileIngressApplicationGateway(t 
 				check.That(data.ResourceName).Key("addon_profile.#").HasValue("1"),
 				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.#").HasValue("1"),
 				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.effective_application_gateway_id").Exists(),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.effective_gateway_id").Exists(),
 			),
 		},
 	})

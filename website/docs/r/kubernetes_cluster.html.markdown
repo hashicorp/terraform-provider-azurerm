@@ -216,6 +216,7 @@ A `addon_profile` block supports the following:
 * `oms_agent` - (Optional) A `oms_agent` block as defined below. For more details, please visit [How to onboard Azure Monitor for containers](https://docs.microsoft.com/en-us/azure/monitoring/monitoring-container-insights-onboard).
 
 * `ingress_application_gateway` - (Optional) An `ingress_application_gateway` block as defined below.
+
 ---
 
 A `auto_scaler_profile` block supports the following:
@@ -435,7 +436,7 @@ An `ingress_application_gateway` block supports the following:
 
 * `enabled` - (Required) Set to true to deploy the application gateway ingress controller to this cluster.
 
-* `application_gateway_id` - (Optional) Integrate the application gateway ingress controller with the application gateway with the given ID. See [this](https://docs.microsoft.com/en-us/azure/application-gateway/tutorial-ingress-controller-add-on-existing) page for further details.
+* `gateway_id` - (Optional) Integrate the application gateway ingress controller with the application gateway with the given ID. See [this](https://docs.microsoft.com/en-us/azure/application-gateway/tutorial-ingress-controller-add-on-existing) page for further details.
 
 * `subnet_cidr` - (Optional) Create an application gateway using the subnet CIDR and then integrate the application gateway ingress controller with the gateway. See [this](https://docs.microsoft.com/en-us/azure/application-gateway/tutorial-ingress-controller-add-on-new) page for further details.
 
@@ -590,7 +591,7 @@ The `addon_profile` block exports the following:
 
 The `ingress_application_gateway` block exports the following:
 
-* `effective_application_gateway_id` - The ID of the application gateway associated with the application gateway ingress controller deployed to this cluster.
+* `effective_gateway_id` - The ID of the application gateway associated with the application gateway ingress controller deployed to this cluster.
 
 ## Timeouts
 

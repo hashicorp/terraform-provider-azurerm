@@ -168,12 +168,12 @@ func schemaKubernetesAddOnProfiles() *schema.Schema {
 								Type:     schema.TypeBool,
 								Required: true,
 							},
-							"application_gateway_id": {
+							"gateway_id": {
 								Type:         schema.TypeString,
 								Optional:     true,
 								ValidateFunc: applicationGatewayValidate.ApplicationGatewayID,
 							},
-							"effective_application_gateway_id": {
+							"effective_gateway_id": {
 								Type:     schema.TypeString,
 								Computed: true,
 							},
@@ -290,8 +290,8 @@ func expandKubernetesAddOnProfiles(input []interface{}, env azure.Environment) (
 		config := make(map[string]*string)
 		enabled := value["enabled"].(bool)
 
-		if applicationGatewayId, ok := value["application_gateway_id"]; ok && applicationGatewayId != "" {
-			config["applicationGatewayId"] = utils.String(applicationGatewayId.(string))
+		if gatewayId, ok := value["gateway_id"]; ok && gatewayId != "" {
+			config["gatewayId"] = utils.String(gatewayId.(string))
 		}
 
 		if subnetCIDR, ok := value["subnet_cidr"]; ok && subnetCIDR != "" {
@@ -431,14 +431,14 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 			enabled = *enabledVal
 		}
 
-		applicationGatewayId := ""
+		gatewayId := ""
 		if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "applicationGatewayId"); v != nil {
-			applicationGatewayId = *v
+			gatewayId = *v
 		}
 
-		effectiveApplicationGatewayId := ""
+		effectiveGatewayId := ""
 		if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "effectiveApplicationGatewayId"); v != nil {
-			effectiveApplicationGatewayId = *v
+			effectiveGatewayId = *v
 		}
 
 		subnetCIDR := ""
@@ -452,11 +452,11 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 		}
 
 		ingressApplicationGateways = append(ingressApplicationGateways, map[string]interface{}{
-			"enabled":                          enabled,
-			"application_gateway_id":           applicationGatewayId,
-			"effective_application_gateway_id": effectiveApplicationGatewayId,
-			"subnet_cidr":                      subnetCIDR,
-			"subnet_id":                        subnetId,
+			"enabled":              enabled,
+			"gateway_id":           gatewayId,
+			"effective_gateway_id": effectiveGatewayId,
+			"subnet_cidr":          subnetCIDR,
+			"subnet_id":            subnetId,
 		})
 	}
 

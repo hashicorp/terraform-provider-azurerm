@@ -128,11 +128,11 @@ func dataSourceKubernetesCluster() *schema.Resource {
 										Type:     schema.TypeBool,
 										Computed: true,
 									},
-									"application_gateway_id": {
+									"gateway_id": {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
-									"effective_application_gateway_id": {
+									"effective_gateway_id": {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
@@ -863,14 +863,14 @@ func flattenKubernetesClusterDataSourceAddonProfiles(profile map[string]*contain
 			enabled = *enabledVal
 		}
 
-		applicationGatewayId := ""
+		gatewayId := ""
 		if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "applicationGatewayId"); v != nil {
-			applicationGatewayId = *v
+			gatewayId = *v
 		}
 
-		effectiveApplicationGatewayId := ""
+		effectiveGatewayId := ""
 		if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "effectiveApplicationGatewayId"); v != nil {
-			effectiveApplicationGatewayId = *v
+			effectiveGatewayId = *v
 		}
 
 		subnetCIDR := ""
@@ -884,11 +884,11 @@ func flattenKubernetesClusterDataSourceAddonProfiles(profile map[string]*contain
 		}
 
 		output := map[string]interface{}{
-			"enabled":                          enabled,
-			"application_gateway_id":           applicationGatewayId,
-			"effective_application_gateway_id": effectiveApplicationGatewayId,
-			"subnet_cidr":                      subnetCIDR,
-			"subnet_id":                        subnetId,
+			"enabled":              enabled,
+			"gateway_id":           gatewayId,
+			"effective_gateway_id": effectiveGatewayId,
+			"subnet_cidr":          subnetCIDR,
+			"subnet_id":            subnetId,
 		}
 		ingressApplicationGateways = append(ingressApplicationGateways, output)
 	}

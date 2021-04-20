@@ -262,7 +262,7 @@ An `ingress_application_gateway` block supports the following:
 
 * `enabled` -  Has this cluster been integrated with an application gateway.
 
-* `effective_application_gateway_id` - The ID of the application gateway associated with the application gateway ingress controller deployed to this cluster.
+* `effective_gateway_id` - The ID of the application gateway associated with the application gateway ingress controller deployed to this cluster.
 
 
 ---

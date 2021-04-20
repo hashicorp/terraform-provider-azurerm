@@ -747,7 +747,7 @@ func testAccKubernetesCluster_addonProfileIngressApplicationGateway_appGatewayId
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.#").HasValue("1"),
 				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.effective_application_gateway_id").Exists(),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.effective_gateway_id").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -880,8 +880,8 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   addon_profile {
     ingress_application_gateway {
-      enabled                = true
-      application_gateway_id = azurerm_application_gateway.test.id
+      enabled    = true
+      gateway_id = azurerm_application_gateway.test.id
     }
     kube_dashboard {
       enabled = false
@@ -911,7 +911,7 @@ func testAccKubernetesCluster_addonProfileIngressApplicationGateway_subnetCIDR(t
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.#").HasValue("1"),
 				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.effective_application_gateway_id").Exists(),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.effective_gateway_id").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -921,7 +921,7 @@ func testAccKubernetesCluster_addonProfileIngressApplicationGateway_subnetCIDR(t
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.#").HasValue("1"),
 				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.effective_application_gateway_id").HasValue(""),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.effective_gateway_id").HasValue(""),
 			),
 		},
 	})
@@ -1038,7 +1038,7 @@ func testAccKubernetesCluster_addonProfileIngressApplicationGateway_subnetId(t *
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.#").HasValue("1"),
 				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.effective_application_gateway_id").Exists(),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.effective_gateway_id").Exists(),
 			),
 		},
 		data.ImportStep(),
