@@ -307,7 +307,7 @@ func resourceApiManagementApiDiagnosticDelete(d *schema.ResourceData, meta inter
 }
 
 func expandApiManagementApiDiagnosticHTTPMessageDiagnostic(input []interface{}) *apimanagement.HTTPMessageDiagnostic {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
