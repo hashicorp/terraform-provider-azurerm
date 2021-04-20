@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake/migration"
+
 	"github.com/Azure/azure-sdk-for-go/services/datalake/store/2016-11-01/filesystem"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -21,13 +23,17 @@ import (
 
 func resourceDataLakeStoreFile() *schema.Resource {
 	return &schema.Resource{
-		Create:        resourceDataLakeStoreFileCreate,
-		Read:          resourceDataLakeStoreFileRead,
-		Delete:        resourceDataLakeStoreFileDelete,
-		MigrateState:  ResourceDataLakeStoreFileMigrateState,
-		SchemaVersion: 1,
+		Create: resourceDataLakeStoreFileCreate,
+		Read:   resourceDataLakeStoreFileRead,
+		Delete: resourceDataLakeStoreFileDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			migration.StoreFileV0ToV1(),
 		},
 
 		Timeouts: &schema.ResourceTimeout{
