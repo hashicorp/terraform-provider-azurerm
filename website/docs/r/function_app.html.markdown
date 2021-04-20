@@ -338,6 +338,8 @@ A `ip_restriction` block supports the following:
 
 * `action` - (Optional) Does this restriction `Allow` or `Deny` access for this IP range. Defaults to `Allow`.  
 
+* `headers` - (Optional) The headers for this specific `ip_restriction` as defined below.
+
 ---
 
 A `scm_ip_restriction` block supports the following:
@@ -354,7 +356,22 @@ A `scm_ip_restriction` block supports the following:
 
 * `priority` - (Optional) The priority for this IP Restriction. Restrictions are enforced in priority order. By default, priority is set to 65000 if not specified.  
 
-* `action` - (Optional) Allow or Deny access for this IP range. Defaults to Allow.  
+* `action` - (Optional) Allow or Deny access for this IP range. Defaults to Allow.
+
+* `headers` - (Optional) The headers for this specific `scm_ip_restriction` as defined below.
+
+---
+
+A `headers` block supports the following:
+
+* `x_azure_fdid` - (Optional) A list of allowed Azure FrontDoor IDs.
+
+* `x_fd_health_probe` - (Optional) A list to allow the Azure FrontDoor health probe header
+
+* `x_forwarded_for` - (Optional) A list of allowed 'X-Forwarded-For' IPs.
+
+* `x_forwarded_host` - (Optional) A list of allowed 'X-Forwarded-Host' domains.
+
 
 ---
 
