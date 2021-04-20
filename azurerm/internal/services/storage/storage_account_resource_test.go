@@ -1116,7 +1116,7 @@ resource "azurerm_storage_account" "test" {
   account_kind              = "BlockBlobStorage"
   account_replication_type  = "LRS"
   is_hns_enabled            = true
-  is_nfsv3_enabled          = true
+  nfsv3_enabled             = true
   enable_https_traffic_only = false
   network_rules {
     default_action             = "Deny"
