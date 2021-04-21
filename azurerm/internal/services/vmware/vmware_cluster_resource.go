@@ -51,7 +51,7 @@ func resourceVmwareCluster() *schema.Resource {
 				ValidateFunc: validate.PrivateCloudID,
 			},
 
-			"cluster_size": {
+			"cluster_node_count": {
 				Type:         schema.TypeInt,
 				Required:     true,
 				ValidateFunc: validation.IntBetween(3, 16),
@@ -112,7 +112,7 @@ func resourceVmwareClusterCreate(d *schema.ResourceData, meta interface{}) error
 			Name: utils.String(d.Get("sku_name").(string)),
 		},
 		ClusterProperties: &avs.ClusterProperties{
-			ClusterSize: utils.Int32(int32(d.Get("cluster_size").(int))),
+			ClusterSize: utils.Int32(int32(d.Get("cluster_node_count").(int))),
 		},
 	}
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.PrivateCloudName, id.Name, cluster)
@@ -153,7 +153,7 @@ func resourceVmwareClusterRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("vmware_cloud_id", parse.NewPrivateCloudID(subscriptionId, id.ResourceGroup, id.PrivateCloudName).ID())
 	d.Set("sku_name", resp.Sku.Name)
 	if props := resp.ClusterProperties; props != nil {
-		d.Set("cluster_size", props.ClusterSize)
+		d.Set("cluster_node_count", props.ClusterSize)
 		d.Set("cluster_number", props.ClusterID)
 		d.Set("hosts", utils.FlattenStringSlice(props.Hosts))
 	}
@@ -173,8 +173,8 @@ func resourceVmwareClusterUpdate(d *schema.ResourceData, meta interface{}) error
 	clusterUpdate := avs.ClusterUpdate{
 		ClusterUpdateProperties: &avs.ClusterUpdateProperties{},
 	}
-	if d.HasChange("cluster_size") {
-		clusterUpdate.ClusterUpdateProperties.ClusterSize = utils.Int32(int32(d.Get("cluster_size").(int)))
+	if d.HasChange("cluster_node_count") {
+		clusterUpdate.ClusterUpdateProperties.ClusterSize = utils.Int32(int32(d.Get("cluster_node_count").(int)))
 	}
 
 	future, err := client.Update(ctx, id.ResourceGroup, id.PrivateCloudName, id.Name, clusterUpdate)
