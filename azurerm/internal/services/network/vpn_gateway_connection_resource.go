@@ -625,10 +625,10 @@ func flattenVpnGatewayConnectionRoutingConfiguration(input *network.RoutingConfi
 
 	propagatedRouteTables := []interface{}{}
 	if input.PropagatedRouteTables != nil && input.PropagatedRouteTables.Ids != nil {
-		for _, subresource := range *input.PropagatedRouteTables.Ids {
+		for _, routeTableId := range *input.PropagatedRouteTables.Ids {
 			id := ""
-			if subresource.ID != nil {
-				id = *subresource.ID
+			if routeTableId.ID != nil {
+				id = *routeTableId.ID
 			}
 			propagatedRouteTables = append(propagatedRouteTables, id)
 		}
