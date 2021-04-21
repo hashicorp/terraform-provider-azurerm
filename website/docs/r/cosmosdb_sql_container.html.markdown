@@ -56,9 +56,7 @@ The following arguments are supported:
 
 * `database_name` - (Required) The name of the Cosmos DB SQL Database to create the container within. Changing this forces a new resource to be created.
 
-* `partition_key_path` - (Optional) Define a partition key. Changing this forces a new resource to be created.
-
-~> **NOTE:** There'll be a default value `/_partitionKey` for `partition_key_path` to solve `partition_key_path` becomes `Required` in the new service version.
+* `partition_key_path` - (Required) Define a partition key. Changing this forces a new resource to be created.
 
 * `partition_key_version` - (Optional) Define a partition key version. Changing this forces a new resource to be created. Possible values are `1 `and `2`. This should be set to `2` in order to use large partition keys.
 

@@ -92,13 +92,6 @@ func DatabaseAutoscaleSettingsSchema() *schema.Schema {
 	}
 }
 
-func ContainerAutoscaleSettingsSchema() *schema.Schema {
-	autoscaleSettingsDatabaseSchema := DatabaseAutoscaleSettingsSchema()
-	autoscaleSettingsDatabaseSchema.RequiredWith = []string{"partition_key_path"}
-
-	return autoscaleSettingsDatabaseSchema
-}
-
 func MongoCollectionAutoscaleSettingsSchema() *schema.Schema {
 	autoscaleSettingsDatabaseSchema := DatabaseAutoscaleSettingsSchema()
 	autoscaleSettingsDatabaseSchema.RequiredWith = []string{"shard_key"}
@@ -115,15 +108,16 @@ func CosmosDbIndexingPolicySchema() *schema.Schema {
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				// `automatic` is excluded as it is deprecated; see https://stackoverflow.com/a/58721386
+				// `indexing_mode` case changes from 2020-04-01 to 2021-01-15 issue https://github.com/Azure/azure-rest-api-specs/issues/14051
 				"indexing_mode": {
 					Type:             schema.TypeString,
 					Optional:         true,
 					Default:          documentdb.Consistent,
 					DiffSuppressFunc: suppress.CaseDifference, // Open issue https://github.com/Azure/azure-sdk-for-go/issues/6603
 					ValidateFunc: validation.StringInSlice([]string{
-						string(documentdb.Consistent),
-						string(documentdb.None),
-					}, true),
+						"Consistent",
+						"None",
+					}, false),
 				},
 
 				"included_path": {
@@ -170,6 +164,7 @@ func CosmosDbIndexingPolicySchema() *schema.Schema {
 											Required:     true,
 											ValidateFunc: validation.StringIsNotEmpty,
 										},
+										// `order` case changes from 2020-04-01 to 2021-01-15, issue opened:https://github.com/Azure/azure-rest-api-specs/issues/14051
 										"order": {
 											Type:     schema.TypeString,
 											Required: true,
@@ -177,9 +172,9 @@ func CosmosDbIndexingPolicySchema() *schema.Schema {
 											DiffSuppressFunc: suppress.CaseDifference,
 											ValidateFunc: validation.StringInSlice(
 												[]string{
-													string(documentdb.Ascending),
-													string(documentdb.Descending),
-												}, true),
+													"Ascending",
+													"Descending",
+												}, false),
 										},
 									},
 								},

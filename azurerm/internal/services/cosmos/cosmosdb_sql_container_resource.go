@@ -73,10 +73,9 @@ func resourceCosmosDbSQLContainer() *schema.Resource {
 
 			"partition_key_path": {
 				Type:         schema.TypeString,
-				Optional:     true,
+				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
-				Default:      "/_partitionKey",
 			},
 
 			"partition_key_version": {
@@ -93,7 +92,7 @@ func resourceCosmosDbSQLContainer() *schema.Resource {
 				ValidateFunc: validate.CosmosThroughput,
 			},
 
-			"autoscale_settings": common.ContainerAutoscaleSettingsSchema(),
+			"autoscale_settings": common.DatabaseAutoscaleSettingsSchema(),
 
 			"default_ttl": {
 				Type:         schema.TypeInt,
