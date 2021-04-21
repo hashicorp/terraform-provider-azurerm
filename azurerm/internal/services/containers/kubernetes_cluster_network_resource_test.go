@@ -1265,31 +1265,36 @@ func (KubernetesClusterResource) privateClusterWithPrivateDNSZoneSubDomain(data 
 provider "azurerm" {
   features {}
 }
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-aks-%d"
   location = "%s"
 }
+
 resource "azurerm_private_dns_zone" "test" {
   name                = "privatelink.%s.azmk8s.io"
   resource_group_name = azurerm_resource_group.test.name
 }
+
 resource "azurerm_user_assigned_identity" "test" {
   name                = "acctestRG-aks-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
+
 resource "azurerm_role_assignment" "test" {
   scope                = azurerm_private_dns_zone.test.id
   role_definition_name = "Private DNS Zone Contributor"
   principal_id         = azurerm_user_assigned_identity.test.principal_id
 }
+
 resource "azurerm_kubernetes_cluster" "test" {
-  name                              = "acctestaks%d"
-  location                          = azurerm_resource_group.test.location
-  resource_group_name               = azurerm_resource_group.test.name
-  private_cluster_enabled           = true
-  private_dns_zone_id               = azurerm_private_dns_zone.test.id
-  private_cluster_custom_dns_prefix = "prefix"
+  name                       = "acctestaks%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  private_cluster_enabled    = true
+  private_dns_zone_id        = azurerm_private_dns_zone.test.id
+  dns_prefix_private_cluster = "prefix"
 
   linux_profile {
     admin_username = "acctestuser%d"

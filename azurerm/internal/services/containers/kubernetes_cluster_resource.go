@@ -72,15 +72,15 @@ func resourceKubernetesCluster() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ExactlyOneOf: []string{"dns_prefix", "private_cluster_custom_dns_prefix"},
+				ExactlyOneOf: []string{"dns_prefix", "dns_prefix_private_cluster"},
 				ValidateFunc: containerValidate.KubernetesDNSPrefix,
 			},
 
-			"private_cluster_custom_dns_prefix": {
+			"dns_prefix_private_cluster": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ExactlyOneOf: []string{"dns_prefix", "private_cluster_custom_dns_prefix"},
+				ExactlyOneOf: []string{"dns_prefix", "dns_prefix_private_cluster"},
 			},
 
 			"kubernetes_version": {
@@ -884,9 +884,9 @@ func resourceKubernetesClusterCreate(d *schema.ResourceData, meta interface{}) e
 		apiAccessProfile.PrivateDNSZone = utils.String(v.(string))
 	}
 
-	if v, ok := d.GetOk("private_cluster_custom_dns_prefix"); ok {
+	if v, ok := d.GetOk("dns_prefix_private_cluster"); ok {
 		if !enablePrivateCluster || apiAccessProfile.PrivateDNSZone == nil || *apiAccessProfile.PrivateDNSZone == "System" || *apiAccessProfile.PrivateDNSZone == "None" {
-			return fmt.Errorf("`private_cluster_custom_dns_prefix` should only be set for private cluster with custom private dns zone")
+			return fmt.Errorf("`dns_prefix_private_cluster` should only be set for private cluster with custom private dns zone")
 		}
 		parameters.FqdnSubdomain = utils.String(v.(string))
 	}
@@ -1289,8 +1289,8 @@ func resourceKubernetesClusterRead(d *schema.ResourceData, meta interface{}) err
 
 	if props := resp.ManagedClusterProperties; props != nil {
 		d.Set("dns_prefix", props.DNSPrefix)
+		d.Set("dns_prefix_private_cluster", props.FqdnSubdomain)
 		d.Set("fqdn", props.Fqdn)
-		d.Set("private_cluster_custom_dns_prefix", props.FqdnSubdomain)
 		d.Set("private_fqdn", props.PrivateFQDN)
 		d.Set("disk_encryption_set_id", props.DiskEncryptionSetID)
 		d.Set("kubernetes_version", props.KubernetesVersion)
