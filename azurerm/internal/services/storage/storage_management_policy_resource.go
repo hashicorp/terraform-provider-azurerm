@@ -364,7 +364,6 @@ func expandStorageManagementPolicyRule(d *schema.ResourceData, ruleIndex int) st
 			definition.Filters.BlobTypes = &blobTypes
 
 			definition.Filters.BlobIndexMatch = expandAzureRmStorageBlobIndexMatch(filterRef["match_blob_index_tag"].(*schema.Set).List())
-
 		}
 	}
 	if _, ok := d.GetOk(fmt.Sprintf("rule.%d.actions", ruleIndex)); ok {
