@@ -37,20 +37,8 @@ func resourceFrontDoor() *schema.Resource {
 
 		SchemaVersion: 2,
 		StateUpgraders: []schema.StateUpgrader{
-			{
-				// this resource was set to "schema version 1" unintentionally.. so we're adding
-				// a "fake" upgrade here to account for it
-				Type: migration.FrontDoorV0V1Schema().CoreConfigSchema().ImpliedType(),
-				Upgrade: func(rawState map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
-					return rawState, nil
-				},
-				Version: 0,
-			},
-			{
-				Type:    migration.FrontDoorV0V1Schema().CoreConfigSchema().ImpliedType(),
-				Upgrade: migration.FrontDoorV1ToV2,
-				Version: 1,
-			},
+			migration.FrontDoorUpgradeV0ToV1(),
+			migration.FrontDoorUpgradeV1ToV2(),
 		},
 
 		Timeouts: &schema.ResourceTimeout{

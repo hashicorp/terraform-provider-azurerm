@@ -39,11 +39,7 @@ func resourceVirtualDesktopWorkspaceApplicationGroupAssociation() *schema.Resour
 
 		SchemaVersion: 1,
 		StateUpgraders: []schema.StateUpgrader{
-			{
-				Type:    migration.WorkspaceApplicationGroupAssociationUpgradeV0Schema().CoreConfigSchema().ImpliedType(),
-				Upgrade: migration.WorkspaceApplicationGroupAssociationUpgradeV0ToV1,
-				Version: 0,
-			},
+			migration.WorkspaceApplicationGroupAssociationV0ToV1(),
 		},
 
 		Schema: map[string]*schema.Schema{

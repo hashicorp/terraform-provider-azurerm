@@ -12,12 +12,12 @@ import (
 func AdvancedThreatProtectionV0ToV1() schema.StateUpgrader {
 	return schema.StateUpgrader{
 		Version: 0,
-		Type:    advancedThreatProtectionV0Schema().CoreConfigSchema().ImpliedType(),
-		Upgrade: advancedThreadProtectionV0toV1Upgrade,
+		Type:    advancedThreatProtectionSchemaForV0().CoreConfigSchema().ImpliedType(),
+		Upgrade: advancedThreadProtectionUpgradeV0toV1,
 	}
 }
 
-func advancedThreatProtectionV0Schema() *schema.Resource {
+func advancedThreatProtectionSchemaForV0() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"target_resource_id": {
@@ -34,7 +34,7 @@ func advancedThreatProtectionV0Schema() *schema.Resource {
 	}
 }
 
-func advancedThreadProtectionV0toV1Upgrade(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+func advancedThreadProtectionUpgradeV0toV1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 	oldId := rawState["id"].(string)
 
 	// remove the existing `/` if it's present (2.42+) which'll do nothing if it wasn't (2.38)

@@ -3,14 +3,18 @@ package migration
 import (
 	"log"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
-
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2019-04-15/cdn"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 )
+
+func CdnEndpointV0ToV1() schema.StateUpgrader {
+	return schema.StateUpgrader{
+		Type:    CdnEndpointV0Schema().CoreConfigSchema().ImpliedType(),
+		Upgrade: CdnEndpointUpgradeV0ToV1,
+		Version: 0,
+	}
+}
 
 func CdnEndpointV0Schema() *schema.Resource {
 	return &schema.Resource{
@@ -22,11 +26,9 @@ func CdnEndpointV0Schema() *schema.Resource {
 			},
 
 			"location": {
-				Type:             schema.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				StateFunc:        location.StateFunc,
-				DiffSuppressFunc: location.DiffSuppressFunc,
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
 			},
 
 			"resource_group_name": {
@@ -102,7 +104,7 @@ func CdnEndpointV0Schema() *schema.Resource {
 			"querystring_caching_behaviour": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  string(cdn.IgnoreQueryString),
+				Default:  "IgnoreQueryString",
 			},
 
 			"content_types_to_compress": {
@@ -136,9 +138,8 @@ func CdnEndpointV0Schema() *schema.Resource {
 							Required: true,
 						},
 						"action": {
-							Type:             schema.TypeString,
-							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
+							Type:     schema.TypeString,
+							Required: true,
 						},
 						"country_codes": {
 							Type:     schema.TypeList,
@@ -152,9 +153,8 @@ func CdnEndpointV0Schema() *schema.Resource {
 			},
 
 			"optimization_type": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 
 			"host_name": {
@@ -266,7 +266,7 @@ func CdnEndpointV0Schema() *schema.Resource {
 									"protocol": {
 										Type:     schema.TypeString,
 										Optional: true,
-										Default:  string(cdn.MatchRequest),
+										Default:  "MatchRequest",
 									},
 
 									"hostname": {
@@ -919,7 +919,7 @@ func CdnEndpointV0Schema() *schema.Resource {
 									"protocol": {
 										Type:     schema.TypeString,
 										Optional: true,
-										Default:  string(cdn.MatchRequest),
+										Default:  "MatchRequest",
 									},
 
 									"hostname": {
@@ -984,7 +984,7 @@ func CdnEndpointV0Schema() *schema.Resource {
 	}
 }
 
-func CdnEndpointV0ToV1(rawState map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
+func CdnEndpointUpgradeV0ToV1(rawState map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
 	// old
 	// 	/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/Microsoft.Cdn/profiles/{profileName}/endpoints/{endpointName}
 	// new:

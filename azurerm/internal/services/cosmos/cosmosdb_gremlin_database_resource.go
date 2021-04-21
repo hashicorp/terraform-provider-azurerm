@@ -32,11 +32,7 @@ func resourceCosmosGremlinDatabase() *schema.Resource {
 
 		SchemaVersion: 1,
 		StateUpgraders: []schema.StateUpgrader{
-			{
-				Type:    migration.ResourceGremlinDatabaseUpgradeV0Schema().CoreConfigSchema().ImpliedType(),
-				Upgrade: migration.ResourceGremlinDatabaseStateUpgradeV0ToV1,
-				Version: 0,
-			},
+			migration.GremlinDatabaseV0ToV1(),
 		},
 
 		Timeouts: &schema.ResourceTimeout{

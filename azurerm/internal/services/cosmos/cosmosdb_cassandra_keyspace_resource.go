@@ -32,11 +32,7 @@ func resourceCosmosDbCassandraKeyspace() *schema.Resource {
 
 		SchemaVersion: 1,
 		StateUpgraders: []schema.StateUpgrader{
-			{
-				Type:    migration.ResourceCassandraKeyspaceUpgradeV0Schema().CoreConfigSchema().ImpliedType(),
-				Upgrade: migration.ResourceCassandraKeyspaceStateUpgradeV0ToV1,
-				Version: 0,
-			},
+			migration.CassandraKeyspaceV0ToV1(),
 		},
 
 		Timeouts: &schema.ResourceTimeout{

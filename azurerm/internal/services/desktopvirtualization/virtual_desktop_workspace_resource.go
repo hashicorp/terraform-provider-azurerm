@@ -43,11 +43,7 @@ func resourceArmDesktopVirtualizationWorkspace() *schema.Resource {
 
 		SchemaVersion: 1,
 		StateUpgraders: []schema.StateUpgrader{
-			{
-				Type:    migration.WorkspaceUpgradeV0Schema().CoreConfigSchema().ImpliedType(),
-				Upgrade: migration.WorkspaceUpgradeV0ToV1,
-				Version: 0,
-			},
+			migration.WorkspaceV0ToV1(),
 		},
 
 		Schema: map[string]*schema.Schema{

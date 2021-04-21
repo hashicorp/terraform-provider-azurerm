@@ -38,7 +38,7 @@ func resourceIoTTimeSeriesInsightsAccessPolicy() *schema.Resource {
 
 		SchemaVersion: 1,
 		StateUpgraders: []schema.StateUpgrader{
-			migration.TimeSeriesInsightsAccessPolicyV0(),
+			migration.StandardEnvironmentAccessPolicyV0ToV1(),
 		},
 
 		Schema: map[string]*schema.Schema{
