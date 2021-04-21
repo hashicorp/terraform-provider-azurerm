@@ -30,6 +30,7 @@ BUG FIXES:
 * `azurerm_iothub` - change `filter_rule` from TypeSet to TypeList to resolve an ordering issue [GH-10341]
 * `azurerm_linux_virtual_machine_scale_set` - the default value for the `priority` property will no longer force a replacement of the resource [GH-11362]
 * `azurerm_monitor_activity_log_alert` - fix a persistent diff for the `service_health` block [GH-11383]
+* `azurerm_mssql_database ` - error when secondary database uses `max_size_gb` [GH-11401]
 
 ## 2.56.0 (April 15, 2021)
 
