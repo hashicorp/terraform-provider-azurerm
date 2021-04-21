@@ -14,7 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicefabric/parse"
-	sfcValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicefabric/validate"
+	serviceFabricValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicefabric/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -322,37 +322,37 @@ func resourceServiceFabricCluster() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Default:      "00:45:00",
-							ValidateFunc: sfcValidate.UpgradeTimeout,
+							ValidateFunc: serviceFabricValidate.UpgradeTimeout,
 						},
 						"health_check_stable_duration": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Default:      "00:01:00",
-							ValidateFunc: sfcValidate.UpgradeTimeout,
+							ValidateFunc: serviceFabricValidate.UpgradeTimeout,
 						},
 						"health_check_wait_duration": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Default:      "00:00:30",
-							ValidateFunc: sfcValidate.UpgradeTimeout,
+							ValidateFunc: serviceFabricValidate.UpgradeTimeout,
 						},
 						"upgrade_domain_timeout": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Default:      "02:00:00",
-							ValidateFunc: sfcValidate.UpgradeTimeout,
+							ValidateFunc: serviceFabricValidate.UpgradeTimeout,
 						},
 						"upgrade_replica_set_check_timeout": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Default:      "10675199.02:48:05.4775807",
-							ValidateFunc: sfcValidate.UpgradeTimeout,
+							ValidateFunc: serviceFabricValidate.UpgradeTimeout,
 						},
 						"upgrade_timeout": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Default:      "12:00:00",
-							ValidateFunc: sfcValidate.UpgradeTimeout,
+							ValidateFunc: serviceFabricValidate.UpgradeTimeout,
 						},
 						"health_policy": {
 							Type:     schema.TypeList,
