@@ -31,6 +31,7 @@ function updateCode {
   # `resource.` can become `pluginsdk`.
   find "$SERVICE_DIRECTORY" -type f -iname "*.go"  -exec sed -i '' -e 's/github\.com\/hashicorp\/terraform-plugin-sdk\/helper\/resource/github\.com\/terraform-providers\/terraform-provider-azurerm\/azurerm\/internal\/tf\/pluginsdk/g' {} \;
   find "$SERVICE_DIRECTORY" -type f -iname "*.go"  -exec sed -i '' -e 's/resource\./pluginsdk\./g' {} \;
+  find "$SERVICE_DIRECTORY" -type f -iname "*.go"  -exec sed -i '' -e 's/\&resource\./\&pluginsdk\./g' {} \;
 
   # import functions should use the pluginsdk function
   find "$SERVICE_DIRECTORY" -type f -iname "*.go"  -exec sed -i '' -e 's/azSchema\.ValidateResourceIDPriorToImportThen/pluginsdk\.ImporterValidatingResourceIdThen/g' {} \;
@@ -42,8 +43,6 @@ function revertValidationFuncs {
   git checkout -- "$SERVICE_DIRECTORY/client" &> /dev/null
   echo "Reverting unintentional changes to parse functions.."
   git checkout -- "$SERVICE_DIRECTORY/parse" &> /dev/null
-  echo "Reverting unintentional changes to validation functions.."
-  git checkout -- "$SERVICE_DIRECTORY/validate" &> /dev/null
 }
 
 function format {
