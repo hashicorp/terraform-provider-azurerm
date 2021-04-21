@@ -16,7 +16,7 @@ type ResourceData = schema.ResourceData
 type ResourceDiff = schema.ResourceDiff
 type SchemaDiffSuppressFunc = schema.SchemaDiffSuppressFunc
 type StateUpgrader = schema.StateUpgrader
-type SchemaValidateFunc schema.SchemaValidateFunc
+type SchemaValidateFunc = schema.SchemaValidateFunc
 type ValueType = schema.ValueType
 
 // ImportStatePassthrough is an implementation of StateFunc that can be
