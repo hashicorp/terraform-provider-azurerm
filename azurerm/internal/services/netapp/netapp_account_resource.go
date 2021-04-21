@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	netAppValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp/validate"
+
 	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2020-09-01/netapp"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -45,7 +47,7 @@ func resourceNetAppAccount() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateNetAppAccountName,
+				ValidateFunc: netAppValidate.AccountName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),

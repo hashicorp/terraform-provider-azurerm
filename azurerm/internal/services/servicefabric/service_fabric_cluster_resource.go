@@ -3,7 +3,6 @@ package servicefabric
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/servicefabric/mgmt/2018-02-01-preview/servicefabric"
@@ -15,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicefabric/parse"
+	serviceFabricValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicefabric/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -322,37 +322,37 @@ func resourceServiceFabricCluster() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Default:      "00:45:00",
-							ValidateFunc: ServiceFabricClusterUpgradeTimeout(),
+							ValidateFunc: serviceFabricValidate.UpgradeTimeout,
 						},
 						"health_check_stable_duration": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Default:      "00:01:00",
-							ValidateFunc: ServiceFabricClusterUpgradeTimeout(),
+							ValidateFunc: serviceFabricValidate.UpgradeTimeout,
 						},
 						"health_check_wait_duration": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Default:      "00:00:30",
-							ValidateFunc: ServiceFabricClusterUpgradeTimeout(),
+							ValidateFunc: serviceFabricValidate.UpgradeTimeout,
 						},
 						"upgrade_domain_timeout": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Default:      "02:00:00",
-							ValidateFunc: ServiceFabricClusterUpgradeTimeout(),
+							ValidateFunc: serviceFabricValidate.UpgradeTimeout,
 						},
 						"upgrade_replica_set_check_timeout": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Default:      "10675199.02:48:05.4775807",
-							ValidateFunc: ServiceFabricClusterUpgradeTimeout(),
+							ValidateFunc: serviceFabricValidate.UpgradeTimeout,
 						},
 						"upgrade_timeout": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Default:      "12:00:00",
-							ValidateFunc: ServiceFabricClusterUpgradeTimeout(),
+							ValidateFunc: serviceFabricValidate.UpgradeTimeout,
 						},
 						"health_policy": {
 							Type:     schema.TypeList,
@@ -1502,11 +1502,4 @@ func flattenServiceFabricClusterNodeTypes(input *[]servicefabric.NodeTypeDescrip
 	}
 
 	return results
-}
-
-func ServiceFabricClusterUpgradeTimeout() schema.SchemaValidateFunc {
-	return validation.StringMatch(
-		regexp.MustCompile(`^(\d+\.)?([0-1][0-9]|[2][0-3]):[0-5][0-9]:[0-5][0-9](\.[0-9][0-9])?$`),
-		"The timeout duration must be in this format [d.]hh:mm:ss[.ms].",
-	)
 }

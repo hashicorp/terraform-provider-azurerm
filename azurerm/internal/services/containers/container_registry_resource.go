@@ -3,7 +3,6 @@ package containers
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"strings"
 	"time"
 
@@ -16,6 +15,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/migration"
+	validate2 "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -28,11 +29,16 @@ func resourceContainerRegistry() *schema.Resource {
 		Read:   resourceContainerRegistryRead,
 		Update: resourceContainerRegistryUpdate,
 		Delete: resourceContainerRegistryDelete,
+
+		SchemaVersion: 2,
+		StateUpgraders: []schema.StateUpgrader{
+			migration.RegistryV0ToV1(),
+			migration.RegistryV1ToV2(),
+		},
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
-		MigrateState:  ResourceContainerRegistryMigrateState,
-		SchemaVersion: 2,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -46,7 +52,7 @@ func resourceContainerRegistry() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateContainerRegistryName,
+				ValidateFunc: validate2.ContainerRegistryName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -711,24 +717,6 @@ func resourceContainerRegistryDelete(d *schema.ResourceData, meta interface{}) e
 	}
 
 	return nil
-}
-
-func ValidateContainerRegistryName(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-	if !regexp.MustCompile(`^[a-zA-Z0-9]+$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf(
-			"alpha numeric characters only are allowed in %q: %q", k, value))
-	}
-
-	if 5 > len(value) {
-		errors = append(errors, fmt.Errorf("%q cannot be less than 5 characters: %q", k, value))
-	}
-
-	if len(value) >= 50 {
-		errors = append(errors, fmt.Errorf("%q cannot be longer than 50 characters: %q %d", k, value, len(value)))
-	}
-
-	return warnings, errors
 }
 
 func expandNetworkRuleSet(profiles []interface{}) *containerregistry.NetworkRuleSet {

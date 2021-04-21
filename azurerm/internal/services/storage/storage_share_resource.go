@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/migration"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -26,17 +28,8 @@ func resourceStorageShare() *schema.Resource {
 		},
 		SchemaVersion: 2,
 		StateUpgraders: []schema.StateUpgrader{
-			{
-				// this should have been applied from pre-0.12 migration system; backporting just in-case
-				Type:    resourceStorageShareStateResourceV0V1().CoreConfigSchema().ImpliedType(),
-				Upgrade: ResourceStorageShareStateUpgradeV0ToV1,
-				Version: 0,
-			},
-			{
-				Type:    resourceStorageShareStateResourceV0V1().CoreConfigSchema().ImpliedType(),
-				Upgrade: ResourceStorageShareStateUpgradeV1ToV2,
-				Version: 1,
-			},
+			migration.ShareV0ToV1(),
+			migration.ShareV1ToV2(),
 		},
 
 		Timeouts: &schema.ResourceTimeout{

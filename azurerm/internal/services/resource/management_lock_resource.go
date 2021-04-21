@@ -3,9 +3,10 @@ package resource
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"strings"
 	"time"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/validate"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-09-01/locks"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -37,7 +38,7 @@ func resourceManagementLock() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateManagementLockName,
+				ValidateFunc: validate.ManagementLockName,
 			},
 
 			"scope": {
@@ -185,18 +186,4 @@ func ParseAzureRMLockId(id string) (*AzureManagementLockId, error) {
 		Name:  name,
 	}
 	return &lockId, nil
-}
-
-func validateManagementLockName(v interface{}, k string) (warnings []string, errors []error) {
-	input := v.(string)
-
-	if !regexp.MustCompile(`[A-Za-z0-9-_]`).MatchString(input) {
-		errors = append(errors, fmt.Errorf("%s can only consist of alphanumeric characters, dashes and underscores", k))
-	}
-
-	if len(input) >= 260 {
-		errors = append(errors, fmt.Errorf("%s can only be a maximum of 260 characters", k))
-	}
-
-	return warnings, errors
 }

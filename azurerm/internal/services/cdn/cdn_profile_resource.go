@@ -29,6 +29,11 @@ func resourceCdnProfile() *schema.Resource {
 		Update: resourceCdnProfileUpdate,
 		Delete: resourceCdnProfileDelete,
 
+		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			migration.CdnProfileV0ToV1(),
+		},
+
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
@@ -67,15 +72,6 @@ func resourceCdnProfile() *schema.Resource {
 			},
 
 			"tags": tags.Schema(),
-		},
-
-		SchemaVersion: 1,
-		StateUpgraders: []schema.StateUpgrader{
-			{
-				Type:    migration.CdnProfileV0Schema().CoreConfigSchema().ImpliedType(),
-				Upgrade: migration.CdnProfileV0ToV1,
-				Version: 0,
-			},
 		},
 	}
 }

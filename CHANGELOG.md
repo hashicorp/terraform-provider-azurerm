@@ -7,21 +7,27 @@ FEATURES:
 * **New Resource:** `azurerm_mssql_job_agent` [GH-11248]
 * **New Resource:** `azurerm_mssql_transparent_data_encryption` [GH-11148]
 * **New Resource:** `azurerm_postgresql_flexible_server` [GH-11081]
+* **New Resource:** `azurerm_sentinel_data_connector_microsoft_defender_advanced_threat_protection` [GH-10669]
 
 ENHANCEMENTS:
 
 * dependencies: updating to `v53.3.0` of `github.com/Azure/azure-sdk-for-go` [GH-11365]
 * `azurerm_container_registry` - deprecating the `georeplication_locations` property in favour of the `georeplications` property GH-11200]
-* `azurerm_kubernetes_cluster` support for the `empty_bulk_delete_max` in the `auto_scaler_profile` block #[GH-11060]
+* `azurerm_database_migration` - switching to using an ID Formatter [GH-11378]
+* `azurerm_database_migration_project` - switching to using an ID Formatter [GH-11378]
+* `azurerm_databricks_workspace` - switching to using an ID Formatter [GH-11378]
 * `azurerm_hdinsight_interactive_query_cluster` - add support for private link endpoint [GH-11300]
 * `azurerm_hdinsight_hadoop_cluster` - add support for private link endpoint [GH-11300]
 * `azurerm_hdinsight_spark_cluster` - add support for private link endpoint [GH-11300]
-* `azurerm_redis_enterprise_cluster` - support for the `minimum_tls_version` and `hostname` properties [GH-11203]
+* `azurerm_kubernetes_cluster` support for the `empty_bulk_delete_max` in the `auto_scaler_profile` block #[GH-11060]
 * `azurerm_lighthouse_definition` - support for the `delegated_role_definition_ids` property [GH-11269]
+* `azurerm_redis_enterprise_cluster` - support for the `minimum_tls_version` and `hostname` properties [GH-11203]
 
 BUG FIXES:
 
+* `azurerm_api_management_diagnostic` - fix a crash with the `frontend_request`, `frontend_response`, `backend_request`, `backend_response` blocks [GH-11402]
 * `azurerm_eventgrid_system_topic` - remove strict validation on `topic_type` [GH-11352]
+* `azurerm_iothub` - change `filter_rule` from TypeSet to TypeList to resolve an ordering issue [GH-10341]
 * `azurerm_linux_virtual_machine_scale_set` - the default value for the `priority` property will no longer force a replacement of the resource [GH-11362]
 * `azurerm_monitor_activity_log_alert` - fix a persistent diff for the `service_health` block [GH-11383]
 

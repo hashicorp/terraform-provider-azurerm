@@ -36,7 +36,7 @@ func TestCdnEndpointV1ToV2(t *testing.T) {
 	}
 	for _, test := range testData {
 		t.Logf("Testing %q..", test.name)
-		result, err := CdnEndpointV0ToV1(test.input, nil)
+		result, err := CdnEndpointUpgradeV0ToV1(test.input, nil)
 		if err != nil && test.expected == nil {
 			continue
 		} else {

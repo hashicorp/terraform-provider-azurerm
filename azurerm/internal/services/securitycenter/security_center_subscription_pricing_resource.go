@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter/migration"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -36,11 +38,7 @@ func resourceSecurityCenterSubscriptionPricing() *schema.Resource {
 
 		SchemaVersion: 1,
 		StateUpgraders: []schema.StateUpgrader{
-			{
-				Type:    ResourceSecurityCenterSubscriptionPricingV0().CoreConfigSchema().ImpliedType(),
-				Upgrade: ResourceSecurityCenterSubscriptionPricingUpgradeV0ToV1,
-				Version: 0,
-			},
+			migration.SubscriptionPricingV0ToV1(),
 		},
 
 		Schema: map[string]*schema.Schema{

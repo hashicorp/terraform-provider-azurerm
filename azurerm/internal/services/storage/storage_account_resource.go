@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"regexp"
 	"strings"
 	"time"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/migration"
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-01-01/storage"
 	azautorest "github.com/Azure/go-autorest/autorest"
@@ -38,8 +39,11 @@ func resourceStorageAccount() *schema.Resource {
 		Update: resourceStorageAccountUpdate,
 		Delete: resourceStorageAccountDelete,
 
-		MigrateState:  ResourceStorageAccountMigrateState,
 		SchemaVersion: 2,
+		StateUpgraders: []schema.StateUpgrader{
+			migration.AccountV0ToV1(),
+			migration.AccountV1ToV2(),
+		},
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -57,7 +61,7 @@ func resourceStorageAccount() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateStorageAccountName,
+				ValidateFunc: validate.StorageAccountName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -578,7 +582,7 @@ func resourceStorageAccount() *schema.Resource {
 			"tags": {
 				Type:         schema.TypeMap,
 				Optional:     true,
-				ValidateFunc: validateAzureRMStorageAccountTags,
+				ValidateFunc: validate.StorageAccountTags,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
@@ -606,29 +610,6 @@ func resourceStorageAccount() *schema.Resource {
 			return nil
 		},
 	}
-}
-
-func validateAzureRMStorageAccountTags(v interface{}, _ string) (warnings []string, errors []error) {
-	tagsMap := v.(map[string]interface{})
-
-	if len(tagsMap) > 50 {
-		errors = append(errors, fmt.Errorf("a maximum of 50 tags can be applied to storage account ARM resource"))
-	}
-
-	for k, v := range tagsMap {
-		if len(k) > 128 {
-			errors = append(errors, fmt.Errorf("the maximum length for a tag key is 128 characters: %q is %d characters", k, len(k)))
-		}
-
-		value, err := tags.TagValueToString(v)
-		if err != nil {
-			errors = append(errors, err)
-		} else if len(value) > 256 {
-			errors = append(errors, fmt.Errorf("the maximum length for a tag value is 256 characters: the value for %q is %d characters", k, len(value)))
-		}
-	}
-
-	return warnings, errors
 }
 
 func resourceStorageAccountCreate(d *schema.ResourceData, meta interface{}) error {
@@ -1978,16 +1959,6 @@ func flattenStorageAccountBypass(input storage.Bypass) []interface{} {
 	}
 
 	return bypass
-}
-
-func ValidateStorageAccountName(v interface{}, _ string) (warnings []string, errors []error) {
-	input := v.(string)
-
-	if !regexp.MustCompile(`\A([a-z0-9]{3,24})\z`).MatchString(input) {
-		errors = append(errors, fmt.Errorf("name (%q) can only consist of lowercase letters and numbers, and must be between 3 and 24 characters long", input))
-	}
-
-	return warnings, errors
 }
 
 func expandAzureRmStorageAccountIdentity(d *schema.ResourceData) *storage.Identity {

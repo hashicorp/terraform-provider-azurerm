@@ -54,7 +54,7 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateVmName,
+				ValidateFunc: computeValidate.VirtualMachineName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -131,7 +131,7 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 				Computed: true,
 				ForceNew: true,
 
-				ValidateFunc: ValidateWindowsComputerNameFull,
+				ValidateFunc: computeValidate.WindowsComputerNameFull,
 			},
 
 			"custom_data": base64.OptionalSchema(true),
@@ -370,7 +370,7 @@ func resourceWindowsVirtualMachineCreate(d *schema.ResourceData, meta interface{
 	if v, ok := d.GetOk("computer_name"); ok && len(v.(string)) > 0 {
 		computerName = v.(string)
 	} else {
-		_, errs := ValidateWindowsComputerNameFull(d.Get("name"), "computer_name")
+		_, errs := computeValidate.WindowsComputerNameFull(d.Get("name"), "computer_name")
 		if len(errs) > 0 {
 			return fmt.Errorf("unable to assume default computer name %s. Please adjust the %q, or specify an explicit %q", errs[0], "name", "computer_name")
 		}

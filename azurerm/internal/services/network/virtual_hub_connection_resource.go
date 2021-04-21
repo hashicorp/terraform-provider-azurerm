@@ -40,7 +40,7 @@ func resourceVirtualHubConnection() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateVirtualHubConnectionName,
+				ValidateFunc: validate.VirtualHubConnectionName,
 			},
 
 			"virtual_hub_id": {

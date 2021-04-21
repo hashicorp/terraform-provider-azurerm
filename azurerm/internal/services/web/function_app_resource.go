@@ -6,13 +6,14 @@ import (
 	"strings"
 	"time"
 
+	storageValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
+
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
 	webValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -168,7 +169,7 @@ func resourceFunctionApp() *schema.Resource {
 				Optional:      true,
 				Computed:      true, // Remove this in 3.0
 				ForceNew:      true,
-				ValidateFunc:  storage.ValidateStorageAccountName,
+				ValidateFunc:  storageValidate.StorageAccountName,
 				ConflictsWith: []string{"storage_connection_string"},
 			},
 

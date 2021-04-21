@@ -68,11 +68,7 @@ func resourceFrontDoorCustomHttpsConfiguration() *schema.Resource {
 
 		SchemaVersion: 1,
 		StateUpgraders: []schema.StateUpgrader{
-			{
-				Type:    migration.CustomHttpsConfigurationV0Schema().CoreConfigSchema().ImpliedType(),
-				Upgrade: migration.CustomHttpsConfigurationV0ToV1,
-				Version: 0,
-			},
+			migration.CustomHttpsConfigurationV0ToV1(),
 		},
 	}
 }

@@ -45,7 +45,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateOrchestratedVMSSName,
+				ValidateFunc: validate.VirtualMachineName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),

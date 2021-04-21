@@ -6,6 +6,8 @@ import (
 	"log"
 	"time"
 
+	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
+
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -43,7 +45,7 @@ func resourcePrivateLinkService() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidatePrivateLinkName,
+				ValidateFunc: networkValidate.PrivateLinkName,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -88,7 +90,7 @@ func resourcePrivateLinkService() *schema.Resource {
 							Type:         schema.TypeString,
 							Required:     true,
 							ForceNew:     true,
-							ValidateFunc: ValidatePrivateLinkName,
+							ValidateFunc: networkValidate.PrivateLinkName,
 						},
 						"private_ip_address": {
 							Type:         schema.TypeString,
@@ -139,7 +141,7 @@ func resourcePrivateLinkService() *schema.Resource {
 		},
 
 		CustomizeDiff: func(d *schema.ResourceDiff, v interface{}) error {
-			if err := ValidatePrivateLinkNatIpConfiguration(d); err != nil {
+			if err := validatePrivateLinkNatIpConfiguration(d); err != nil {
 				return err
 			}
 
@@ -457,4 +459,33 @@ func privateLinkServiceWaitForReadyRefreshFunc(ctx context.Context, client *netw
 
 		return res, "Pending", nil
 	}
+}
+func validatePrivateLinkNatIpConfiguration(d *schema.ResourceDiff) error {
+	name := d.Get("name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
+	ipConfigurations := d.Get("nat_ip_configuration").([]interface{})
+
+	for i, item := range ipConfigurations {
+		v := item.(map[string]interface{})
+		p := fmt.Sprintf("nat_ip_configuration.%d.private_ip_address", i)
+		s := fmt.Sprintf("nat_ip_configuration.%d.subnet_id", i)
+		isPrimary := v["primary"].(bool)
+		in := v["name"].(string)
+
+		if d.HasChange(p) {
+			o, n := d.GetChange(p)
+			if o != "" && n == "" {
+				return fmt.Errorf("Private Link Service %q (Resource Group %q) nat_ip_configuration %q private_ip_address once assigned can not be removed", name, resourceGroup, in)
+			}
+		}
+
+		if isPrimary && d.HasChange(s) {
+			o, _ := d.GetChange(s)
+			if o != "" {
+				return fmt.Errorf("Private Link Service %q (Resource Group %q) nat_ip_configuration %q primary subnet_id once assigned can not be changed", name, resourceGroup, in)
+			}
+		}
+	}
+
+	return nil
 }

@@ -36,7 +36,7 @@ func resourceIotCentralApplication() *schema.Resource {
 
 		SchemaVersion: 1,
 		StateUpgraders: []schema.StateUpgrader{
-			migration.IoTCentralApplicationV0ToV1(),
+			migration.ApplicationV0ToV1(),
 		},
 
 		Timeouts: &schema.ResourceTimeout{
