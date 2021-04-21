@@ -8,11 +8,11 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/analysisservices/mgmt/2017-08-01/analysisservices"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/analysisservices/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -498,7 +498,7 @@ resource "azurerm_analysis_services_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (t AnalysisServicesServerResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t AnalysisServicesServerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ServerID(state.ID)
 	if err != nil {
 		return nil, err
@@ -512,7 +512,7 @@ func (t AnalysisServicesServerResource) Exists(ctx context.Context, clients *cli
 	return utils.Bool(resp.ServerProperties != nil), nil
 }
 
-func (t AnalysisServicesServerResource) suspend(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+func (t AnalysisServicesServerResource) suspend(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 	client := clients.AnalysisServices.ServerClient
 
 	id, err := parse.ServerID(state.ID)
@@ -534,7 +534,7 @@ func (t AnalysisServicesServerResource) suspend(ctx context.Context, clients *cl
 }
 
 func (t AnalysisServicesServerResource) checkState(serverState analysisservices.State) acceptance.ClientCheckFunc {
-	return func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 		client := clients.AnalysisServices.ServerClient
 
 		id, err := parse.ServerID(state.ID)
