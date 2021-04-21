@@ -203,7 +203,8 @@ func resourceDatabricksWorkspaceCreateUpdate(d *schema.ResourceData, meta interf
 
 	// Only call Update(e.g. PATCH) if it is not a new resource and the Tags have changed
 	// this will cause the updated tags to be propagated to all of the connected
-	// workspace resources
+	// workspace resources.
+	// TODO: can be removed once https://github.com/Azure/azure-sdk-for-go/issues/14571 is fixed
 	if !d.IsNewResource() && d.HasChange("tags") {
 		workspaceUpdate := databricks.WorkspaceUpdate{
 			Tags: expandedTags,
