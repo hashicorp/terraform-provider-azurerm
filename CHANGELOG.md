@@ -22,6 +22,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_api_management_diagnostic` - fix a crash with the `frontend_request`, `frontend_response`, `backend_request`, `backend_response` blocks [GH-11402]
 * `azurerm_eventgrid_system_topic` - remove strict validation on `topic_type` [GH-11352]
 * `azurerm_linux_virtual_machine_scale_set` - the default value for the `priority` property will no longer force a replacement of the resource [GH-11362]
 * `azurerm_monitor_activity_log_alert` - fix a persistent diff for the `service_health` block [GH-11383]
