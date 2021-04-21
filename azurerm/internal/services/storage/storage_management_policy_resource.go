@@ -317,6 +317,9 @@ func expandStorageManagementPolicyRules(inputs []interface{}) (*[]storage.Manage
 	}
 
 	for _, input := range inputs {
+		if input == nil {
+			continue
+		}
 		v := input.(map[string]interface{})
 		rule := storage.ManagementPolicyRule{
 			Name:    utils.String(v["name"].(string)),
@@ -336,7 +339,7 @@ func expandStorageManagementPolicyRules(inputs []interface{}) (*[]storage.Manage
 }
 
 func expandStorageManagementPolicyFilters(inputs []interface{}) *storage.ManagementPolicyFilter {
-	if len(inputs) == 0 {
+	if len(inputs) == 0 || inputs[0] == nil {
 		return nil
 	}
 	input := inputs[0].(map[string]interface{})
@@ -349,7 +352,7 @@ func expandStorageManagementPolicyFilters(inputs []interface{}) *storage.Managem
 }
 
 func expandStorageManagementPolicyActions(inputs []interface{}) *storage.ManagementPolicyAction {
-	if len(inputs) == 0 {
+	if len(inputs) == 0 || inputs[0] == nil {
 		return nil
 	}
 	input := inputs[0].(map[string]interface{})
@@ -362,7 +365,7 @@ func expandStorageManagementPolicyActions(inputs []interface{}) *storage.Managem
 }
 
 func expandStorageManagementPolicyActionsBaseBlob(inputs []interface{}) *storage.ManagementPolicyBaseBlob {
-	if len(inputs) == 0 {
+	if len(inputs) == 0 || inputs[0] == nil {
 		return nil
 	}
 	input := inputs[0].(map[string]interface{})
@@ -388,7 +391,7 @@ func expandStorageManagementPolicyActionsBaseBlob(inputs []interface{}) *storage
 }
 
 func expandStorageManagementPolicyActionsSnapshot(inputs []interface{}) *storage.ManagementPolicySnapShot {
-	if len(inputs) == 0 {
+	if len(inputs) == 0 || inputs[0] == nil {
 		return nil
 	}
 	input := inputs[0].(map[string]interface{})
@@ -415,7 +418,7 @@ func expandStorageManagementPolicyActionsSnapshot(inputs []interface{}) *storage
 }
 
 func expandStorageManagementPolicyActionsVersion(inputs []interface{}) *storage.ManagementPolicyVersion {
-	if len(inputs) == 0 {
+	if len(inputs) == 0 || inputs[0] == nil {
 		return nil
 	}
 	input := inputs[0].(map[string]interface{})
