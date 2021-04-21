@@ -122,6 +122,10 @@ The following arguments are supported:
 
 * `managed_rules` - (Required) A `managed_rules` blocks as defined below.
 
+* `http_listener_ids` - (Optional) A list of HTTP Listener IDs from an `azurerm_application_gateway`.
+
+* `path_based_rule_ids` - (Optional) A list of URL Path Map Path Rule IDs from an `azurerm_application_gateway`.
+
 * `tags` - (Optional) A mapping of tags to assign to the Web Application Firewall Policy.
 
 ---
@@ -198,7 +202,7 @@ The `managed_rule_set` block supports the following:
 
 * `type` - (Optional) The rule set type. Possible values: `Microsoft_BotManagerRuleSet` and `OWASP`.
 
-* `version` - (Required) The rule set version. Possible values: `0.1`, `1.0`, `2.2.9`, `3.0` and `3.1`.
+* `version` - (Required) The rule set version. Possible values: `0.1`, `1.0`, `2.2.9`, `3.0`, `3.1` and `3.2`.
 
 * `rule_group_override` - (Optional) One or more `rule_group_override` block defined below.
 

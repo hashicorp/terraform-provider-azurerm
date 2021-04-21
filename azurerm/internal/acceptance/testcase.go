@@ -24,6 +24,7 @@ func (td TestData) DataSourceTest(t *testing.T, steps []resource.TestStep) {
 	td.runAcceptanceTest(t, testCase)
 }
 
+// lintignore:AT001
 func (td TestData) DataSourceTestInSequence(t *testing.T, steps []resource.TestStep) {
 	// DataSources don't need a check destroy - however since this is a wrapper function
 	// and not matching the ignore pattern `XXX_data_source_test.go`, this needs to be explicitly opted out

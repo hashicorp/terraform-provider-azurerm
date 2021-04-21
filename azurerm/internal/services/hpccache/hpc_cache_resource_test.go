@@ -65,13 +65,20 @@ func TestAccHPCCache_mtu(t *testing.T) {
 	})
 }
 
-func TestAccHPCCache_rootSquash(t *testing.T) {
+func TestAccHPCCache_ntpServer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache", "test")
 	r := HPCCacheResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.rootSquash(data, false),
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.ntpServer(data, "time.microsoft.com"),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("mount_addresses.#").Exists(),
@@ -79,7 +86,30 @@ func TestAccHPCCache_rootSquash(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.rootSquash(data, true),
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("mount_addresses.#").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccHPCCache_dnsSetting(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hpc_cache", "test")
+	r := HPCCacheResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.dnsSetting(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("mount_addresses.#").Exists(),
@@ -87,7 +117,43 @@ func TestAccHPCCache_rootSquash(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.rootSquash(data, true),
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("mount_addresses.#").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccHPCCache_rootSquashDeprecated(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hpc_cache", "test")
+	r := HPCCacheResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.rootSquashDeprecated(data, false),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("mount_addresses.#").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.rootSquashDeprecated(data, true),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("mount_addresses.#").Exists(),
+			),
+		},
+		// Following import verification will cause diff given we simply set whatever is in cfg to state for "root_squash_enabled", since there is no
+		// "cfg" during import verification, the state of the "root_squash_enabled" is always false.
+		// The clarification is that since this is a deprecated property, users shouldn't import an existing resource to a new .tf file whilst using that
+		// deprecated property.
+		// data.ImportStep(),
+		{
+			Config: r.rootSquashDeprecated(data, false),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("mount_addresses.#").Exists(),
@@ -108,6 +174,66 @@ func TestAccHPCCache_requiresImport(t *testing.T) {
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func TestAccHPCCache_defaultAccessPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hpc_cache", "test")
+	r := HPCCacheResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.defaultAccessPolicyBasic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.defaultAccessPolicyComplete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.defaultAccessPolicyBasic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccHPCCache_updateTags(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hpc_cache", "test")
+	r := HPCCacheResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("mount_addresses.#").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateTags(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("mount_addresses.#").Exists(),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -136,6 +262,27 @@ resource "azurerm_hpc_cache" "test" {
   cache_size_in_gb    = 3072
   subnet_id           = azurerm_subnet.test.id
   sku_name            = "Standard_2G"
+  tags = {
+    environment = "Production"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r HPCCacheResource) updateTags(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_hpc_cache" "test" {
+  name                = "acctest-HPCC-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cache_size_in_gb    = 3072
+  subnet_id           = azurerm_subnet.test.id
+  sku_name            = "Standard_2G"
+  tags = {
+    environment = "Test"
+  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -171,7 +318,7 @@ resource "azurerm_hpc_cache" "test" {
 `, r.template(data), data.RandomInteger, mtu)
 }
 
-func (r HPCCacheResource) rootSquash(data acceptance.TestData, enable bool) string {
+func (r HPCCacheResource) rootSquashDeprecated(data acceptance.TestData, enable bool) string {
 	return fmt.Sprintf(`
 %s
 
@@ -185,6 +332,100 @@ resource "azurerm_hpc_cache" "test" {
   root_squash_enabled = %t
 }
 `, r.template(data), data.RandomInteger, enable)
+}
+
+func (r HPCCacheResource) defaultAccessPolicyBasic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_hpc_cache" "test" {
+  name                = "acctest-HPCC-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cache_size_in_gb    = 3072
+  subnet_id           = azurerm_subnet.test.id
+  sku_name            = "Standard_2G"
+  default_access_policy {
+    access_rule {
+      scope  = "default"
+      access = "rw"
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r HPCCacheResource) defaultAccessPolicyComplete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_hpc_cache" "test" {
+  name                = "acctest-HPCC-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cache_size_in_gb    = 3072
+  subnet_id           = azurerm_subnet.test.id
+  sku_name            = "Standard_2G"
+  default_access_policy {
+    access_rule {
+      scope  = "default"
+      access = "ro"
+    }
+
+    access_rule {
+      scope                   = "network"
+      access                  = "rw"
+      filter                  = "10.0.0.0/24"
+      suid_enabled            = true
+      submount_access_enabled = true
+      root_squash_enabled     = true
+      anonymous_uid           = 123
+      anonymous_gid           = 123
+    }
+
+    access_rule {
+      scope  = "host"
+      access = "no"
+      filter = "10.0.0.1"
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r HPCCacheResource) ntpServer(data acceptance.TestData, server string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_hpc_cache" "test" {
+  name                = "acctest-HPCC-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cache_size_in_gb    = 3072
+  subnet_id           = azurerm_subnet.test.id
+  sku_name            = "Standard_2G"
+  ntp_server          = %q
+}
+`, r.template(data), data.RandomInteger, server)
+}
+
+func (r HPCCacheResource) dnsSetting(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_hpc_cache" "test" {
+  name                = "acctest-HPCC-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cache_size_in_gb    = 3072
+  subnet_id           = azurerm_subnet.test.id
+  sku_name            = "Standard_2G"
+  dns {
+    servers       = ["8.8.8.8"]
+    search_domain = "foo.com"
+  }
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (HPCCacheResource) template(data acceptance.TestData) string {

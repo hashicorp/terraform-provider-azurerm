@@ -57,6 +57,11 @@ func dataSourceKeyVaultKey() *schema.Resource {
 				Computed: true,
 			},
 
+			"versionless_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"n": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -106,6 +111,7 @@ func dataSourceKeyVaultKeyRead(d *schema.ResourceData, meta interface{}) error {
 
 	d.SetId(id)
 	d.Set("key_vault_id", keyVaultId.ID())
+	d.Set("versionless_id", parsedId.VersionlessID())
 
 	if key := resp.Key; key != nil {
 		d.Set("key_type", string(key.Kty))

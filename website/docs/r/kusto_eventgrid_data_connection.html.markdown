@@ -90,6 +90,10 @@ resource "azurerm_kusto_eventgrid_data_connection" "example" {
   eventhub_id                  = azurerm_eventhub.example.id
   eventhub_consumer_group_name = azurerm_eventhub_consumer_group.example.name
 
+  table_name        = "my-table"         #(Optional)
+  mapping_rule_name = "my-table-mapping" #(Optional)
+  data_format       = "JSON"             #(Optional)
+
   depends_on = [azurerm_eventgrid_event_subscription.example]
 }
 ```
@@ -120,7 +124,15 @@ The following arguments are supported:
   Values are `Microsoft.Storage.BlobCreated` and `Microsoft.Storage.BlobRenamed`. Defaults
   to `Microsoft.Storage.BlobCreated`.
 
+* `data_format` - (Optional) Specifies the data format of the EventHub messages. Allowed values: `AVRO`, `CSV`, `JSON`, `MULTIJSON`, `PSV`, `RAW`, `SCSV`, `SINGLEJSON`, `SOHSV`, `TSV` and `TXT`
+
+* `mapping_rule_name` - (Optional) Specifies the mapping rule used for the message ingestion. Mapping rule must exist before resource is created.
+
+* `table_name` - (Optional) Specifies the target table name used for the message ingestion. Table must exist before resource is created.
+
 * `skip_first_record` - (Optional) is the first record of every file ignored? Defaults to `false`.
+
+
 
 ## Attributes Reference
 
