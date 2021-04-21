@@ -70,18 +70,17 @@ The following arguments are supported:
 
 `snapshot` supports the following:
 
-* `delete_after_days_since_creation_greater_than` - The age in days after creation to delete the blob snapshot.
 * `change_tier_to_archive_after_days_since_creation` - The age in days after creation to tier blob snapshot to archive storage.
 * `change_tier_to_cool_after_days_since_creation` - The age in days after creation to tier blob snapshot to cool storage.
+* `delete_after_days_since_creation_greater_than` - The age in days after creation to delete the blob snapshot.
 
 ---
 
 `version` supports the following:
 
-* `delete_after_days_since_creation` - The age in days after creation to delete the blob version.
 * `change_tier_to_archive_after_days_since_creation` - The age in days after creation to tier blob version to archive storage.
 * `change_tier_to_cool_after_days_since_creation` - The age in days creation create to  tier blob version to cool storage.
-
+* `delete_after_days_since_creation` - The age in days after creation to delete the blob version.
 
 ---
 

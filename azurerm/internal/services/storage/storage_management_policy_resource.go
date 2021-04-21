@@ -322,7 +322,7 @@ func expandStorageManagementPolicyRules(d *schema.ResourceData) (*[]storage.Mana
 			_, blobIndexExist := d.GetOk(fmt.Sprintf("rule.%d.filters.0.match_blob_index_tag", k))
 			_, snapshotExist := d.GetOk(fmt.Sprintf("rule.%d.actions.0.snapshot", k))
 			_, versionExist := d.GetOk(fmt.Sprintf("rule.%d.actions.0.version", k))
-			if blobIndexExist && snapshotExist && versionExist {
+			if blobIndexExist && (snapshotExist || versionExist) {
 				return nil, fmt.Errorf("`match_blob_index_tag` is not supported as a filter for versions and snapshots")
 			}
 			result = append(result, rule)
