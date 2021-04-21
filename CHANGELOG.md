@@ -7,7 +7,7 @@ FEATURES:
 * **New Resource:** `azurerm_mssql_job_agent` [GH-11248]
 * **New Resource:** `azurerm_mssql_transparent_data_encryption` [GH-11148]
 * **New Resource:** `azurerm_postgresql_flexible_server` [GH-11081]
-* **New Resource:** new resource: `azurerm_sentinel_data_connector_microsoft_defender_advanced_threat_protection` [GH-10669]
+* **New Resource:** `azurerm_sentinel_data_connector_microsoft_defender_advanced_threat_protection` [GH-10669]
 
 ENHANCEMENTS:
 
