@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -130,9 +129,8 @@ func webApplicationFirewallPolicySchemaForV0() *schema.Resource {
 									},
 
 									"selector": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
+										Type:     schema.TypeString,
+										Optional: true,
 									},
 
 									"negation_condition": {

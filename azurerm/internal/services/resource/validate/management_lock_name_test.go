@@ -1,4 +1,4 @@
-package resource
+package validate
 
 import (
 	"testing"
@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 )
 
-func TestValidateManagementLockName(t *testing.T) {
+func TestManagementLockName(t *testing.T) {
 	str := acctest.RandString(259)
 	testCases := []struct {
 		input       string
@@ -25,7 +25,7 @@ func TestValidateManagementLockName(t *testing.T) {
 	}
 
 	for _, test := range testCases {
-		_, es := validateManagementLockName(test.input, "name")
+		_, es := ManagementLockName(test.input, "name")
 
 		if test.shouldError && len(es) == 0 {
 			t.Fatalf("Expected validating name %q to fail", test.input)

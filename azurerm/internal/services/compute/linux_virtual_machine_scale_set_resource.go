@@ -49,7 +49,7 @@ func resourceLinuxVirtualMachineScaleSet() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateVmName,
+				ValidateFunc: validate.VirtualMachineName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -107,7 +107,7 @@ func resourceLinuxVirtualMachineScaleSet() *schema.Resource {
 				Computed: true,
 				ForceNew: true,
 
-				ValidateFunc: ValidateLinuxComputerNamePrefix,
+				ValidateFunc: validate.LinuxComputerNamePrefix,
 			},
 
 			"custom_data": base64.OptionalSchema(false),
@@ -368,7 +368,7 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *schema.ResourceData, meta inte
 	if v, ok := d.GetOk("computer_name_prefix"); ok && len(v.(string)) > 0 {
 		computerNamePrefix = v.(string)
 	} else {
-		_, errs := ValidateLinuxComputerNamePrefix(d.Get("name"), "computer_name_prefix")
+		_, errs := validate.LinuxComputerNamePrefix(d.Get("name"), "computer_name_prefix")
 		if len(errs) > 0 {
 			return fmt.Errorf("unable to assume default computer name prefix %s. Please adjust the %q, or specify an explicit %q", errs[0], "name", "computer_name_prefix")
 		}

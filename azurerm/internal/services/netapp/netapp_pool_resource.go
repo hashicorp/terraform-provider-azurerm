@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp/validate"
+
 	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2020-09-01/netapp"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -44,7 +46,7 @@ func resourceNetAppPool() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateNetAppPoolName,
+				ValidateFunc: validate.PoolName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -55,7 +57,7 @@ func resourceNetAppPool() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateNetAppAccountName,
+				ValidateFunc: validate.AccountName,
 			},
 
 			"service_level": {
