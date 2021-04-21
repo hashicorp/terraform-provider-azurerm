@@ -178,6 +178,8 @@ func resourceDatabricksWorkspaceCreateUpdate(d *schema.ResourceData, meta interf
 	customParamsRaw := d.Get("custom_parameters").([]interface{})
 	customParams := expandWorkspaceCustomParameters(customParamsRaw)
 
+	// Including the Tags in the workspace parameters will update the tags on
+	// the workspace only
 	workspace := databricks.Workspace{
 		Sku: &databricks.Sku{
 			Name: utils.String(skuName),
@@ -197,6 +199,25 @@ func resourceDatabricksWorkspaceCreateUpdate(d *schema.ResourceData, meta interf
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for create/update of %s: %+v", id, err)
+	}
+
+	// Only call Update(e.g. PATCH) if it is not a new resource and the Tags have changed
+	// this will cause the updated tags to be propagated to all of the connected
+	// workspace resources.
+	// TODO: can be removed once https://github.com/Azure/azure-sdk-for-go/issues/14571 is fixed
+	if !d.IsNewResource() && d.HasChange("tags") {
+		workspaceUpdate := databricks.WorkspaceUpdate{
+			Tags: expandedTags,
+		}
+
+		future, err := client.Update(ctx, workspaceUpdate, id.ResourceGroup, id.Name)
+		if err != nil {
+			return fmt.Errorf("updating %s Tags: %+v", id, err)
+		}
+
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for %s Tags to be updated: %+v", id, err)
+		}
 	}
 
 	d.SetId(id.ID())
