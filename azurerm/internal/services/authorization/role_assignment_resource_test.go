@@ -39,7 +39,7 @@ func TestAccRoleAssignment_roleName(t *testing.T) {
 
 	r := RoleAssignmentResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []resource.TestStep{
 		{
 			Config: r.roleNameConfig(id),
 			Check: resource.ComposeTestCheckFunc(
@@ -58,7 +58,7 @@ func TestAccRoleAssignment_requiresImport(t *testing.T) {
 
 	r := RoleAssignmentResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []resource.TestStep{
 		{
 			Config: r.roleNameConfig(id),
 			Check: resource.ComposeTestCheckFunc(

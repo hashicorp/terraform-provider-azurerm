@@ -69,7 +69,7 @@ func resourceDataFactory() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								"SystemAssigned",
+								string(datafactory.SystemAssigned),
 							}, false),
 						},
 						"principal_id": {
@@ -210,7 +210,7 @@ func resourceDataFactoryCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	if v, ok := d.GetOk("identity.0.type"); ok {
 		identityType := v.(string)
 		dataFactory.Identity = &datafactory.FactoryIdentity{
-			Type: &identityType,
+			Type: datafactory.FactoryIdentityType(identityType),
 		}
 	}
 
@@ -413,19 +413,23 @@ func flattenDataFactoryRepoConfiguration(factory *datafactory.Factory) (datafact
 
 func flattenDataFactoryIdentity(identity *datafactory.FactoryIdentity) interface{} {
 	if identity == nil {
-		return make([]interface{}, 0)
+		return []interface{}{}
 	}
 
-	result := make(map[string]interface{})
-	if identity.Type != nil {
-		result["type"] = *identity.Type
-	}
+	principalId := ""
 	if identity.PrincipalID != nil {
-		result["principal_id"] = identity.PrincipalID.String()
+		principalId = identity.PrincipalID.String()
 	}
+	tenantId := ""
 	if identity.TenantID != nil {
-		result["tenant_id"] = identity.TenantID.String()
+		tenantId = identity.TenantID.String()
 	}
 
-	return []interface{}{result}
+	return []interface{}{
+		map[string]interface{}{
+			"principal_id": principalId,
+			"tenant_id":    tenantId,
+			"type":         string(identity.Type),
+		},
+	}
 }

@@ -221,7 +221,7 @@ func resourceApiManagementService() *schema.Resource {
 
 						"certificate_password": {
 							Type:      schema.TypeString,
-							Required:  true,
+							Optional:  true,
 							Sensitive: true,
 						},
 
@@ -1111,13 +1111,15 @@ func expandAzureRmApiManagementCertificates(d *schema.ResourceData) *[]apimanage
 		config := v.(map[string]interface{})
 
 		certBase64 := config["encoded_certificate"].(string)
-		certificatePassword := config["certificate_password"].(string)
 		storeName := apimanagement.StoreName(config["store_name"].(string))
 
 		cert := apimanagement.CertificateConfiguration{
-			EncodedCertificate:  utils.String(certBase64),
-			CertificatePassword: utils.String(certificatePassword),
-			StoreName:           storeName,
+			EncodedCertificate: utils.String(certBase64),
+			StoreName:          storeName,
+		}
+
+		if certPassword := config["certificate_password"]; certPassword != nil {
+			cert.CertificatePassword = utils.String(certPassword.(string))
 		}
 
 		results = append(results, cert)

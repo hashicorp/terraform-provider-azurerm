@@ -5,6 +5,16 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
+func SchemaZoneComputed() *schema.Schema {
+	return &schema.Schema{
+		Type:         schema.TypeString,
+		Optional:     true,
+		Computed:     true,
+		ForceNew:     true,
+		ValidateFunc: validation.StringIsNotEmpty,
+	}
+}
+
 func SchemaZones() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
