@@ -194,7 +194,7 @@ func resourceDatabricksWorkspaceCreateUpdate(d *schema.ResourceData, meta interf
 
 	future, err := client.CreateOrUpdate(ctx, workspace, id.ResourceGroup, id.Name)
 	if err != nil {
- 		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
