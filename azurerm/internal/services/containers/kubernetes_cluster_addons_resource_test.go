@@ -847,17 +847,11 @@ resource "azurerm_application_gateway" "test" {
   name                = "acctestappgw%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  enable_http2        = true
-  zones               = ["1"]
 
   sku {
-    name = "Standard_V2"
-    tier = "Standard_V2"
-  }
-
-  autoscale_configuration {
-    min_capacity = 1
-    max_capacity = 3
+    name     = "Standard_V2"
+    tier     = "Standard_V2"
+    capacity = 2
   }
 
   gateway_ip_configuration {
@@ -879,23 +873,13 @@ resource "azurerm_application_gateway" "test" {
     name = "backendaddresspool"
   }
 
-  ssl_policy {
-    policy_type = "Predefined"
-    policy_name = "AppGwSslPolicy20170401"
-  }
-
   backend_http_settings {
     name                  = "backendhttpsettings"
     cookie_based_affinity = "Disabled"
     path                  = "/"
     port                  = 80
     protocol              = "Http"
-    request_timeout       = 1
-
-    connection_draining {
-      enabled           = true
-      drain_timeout_sec = 60
-    }
+    request_timeout       = 60
   }
 
   http_listener {
