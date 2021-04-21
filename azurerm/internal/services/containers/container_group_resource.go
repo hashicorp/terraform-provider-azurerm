@@ -980,20 +980,27 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 	// Determine ports to be exposed on the group level, based on exposed_ports
 	// and on what ports have been exposed on individual containers.
 	if v, ok := d.Get("exposed_port").(*schema.Set); ok && len(v.List()) > 0 {
-		cgpMap := make(map[int32]bool)
+		cgpMap := make(map[int32]map[containerinstance.ContainerGroupNetworkProtocol]bool)
 		for _, p := range containerInstancePorts {
-			cgpMap[*p.Port] = true
+			if val, ok := cgpMap[*p.Port]; ok {
+				val[p.Protocol] = true
+				cgpMap[*p.Port] = val
+			} else {
+				protoMap := map[containerinstance.ContainerGroupNetworkProtocol]bool{p.Protocol: true}
+				cgpMap[*p.Port] = protoMap
+			}
 		}
 
 		for _, p := range v.List() {
 			portConfig := p.(map[string]interface{})
 			port := int32(portConfig["port"].(int))
-			if !cgpMap[port] {
-				return nil, nil, nil, fmt.Errorf("Port %d is set as an exposed_port on the container group.\n"+
-					"For this port to be exposed on the container group level, it must\n"+
-					"also be exposed on an individual container in the group.", port)
-			}
 			proto := portConfig["protocol"].(string)
+			if !cgpMap[port][containerinstance.ContainerGroupNetworkProtocol(proto)] {
+				return nil, nil, nil, fmt.Errorf("Port %d/%s is not exposed on any individual container in the container group.\n"+
+					"An exposed_ports block contains %d/%s, but no individual container has a ports block with the same port "+
+					"and protocol. Any ports exposed on the container group must also be exposed on an individual container.",
+					port, proto, port, proto)
+			}
 			containerGroupPorts = append(containerGroupPorts, containerinstance.Port{
 				Port:     &port,
 				Protocol: containerinstance.ContainerGroupNetworkProtocol(proto),
