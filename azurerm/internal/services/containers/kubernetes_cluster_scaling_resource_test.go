@@ -551,7 +551,10 @@ resource "azurerm_kubernetes_cluster" "test" {
     balance_similar_node_groups      = true
     expander                         = "least-waste"
     max_graceful_termination_sec     = 15
+    max_node_provision_time          = "10m"
+    max_total_unready_percentage     = "50"
     new_pod_scale_up_delay           = "10s"
+    ok_total_unready_count           = "5"
     scan_interval                    = "10s"
     scale_down_delay_after_add       = "10m"
     scale_down_delay_after_delete    = "10s"
@@ -568,5 +571,5 @@ resource "azurerm_kubernetes_cluster" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, currentKubernetesVersion)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, olderKubernetesVersion)
 }
