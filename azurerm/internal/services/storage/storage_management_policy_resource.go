@@ -330,7 +330,7 @@ func expandStorageManagementPolicyRules(inputs []interface{}) (*[]storage.Manage
 				Filters: expandStorageManagementPolicyFilters(v["filters"].([]interface{})),
 			},
 		}
-		if (rule.Definition.Actions.Version != nil || rule.Definition.Actions.Snapshot != nil) && rule.Definition.Filters.BlobIndexMatch != nil {
+		if rule.Definition.Actions != nil && rule.Definition.Filters != nil && (rule.Definition.Actions.Version != nil || rule.Definition.Actions.Snapshot != nil) && rule.Definition.Filters.BlobIndexMatch != nil {
 			return nil, fmt.Errorf("`match_blob_index_tag` is not supported as a filter for versions and snapshots")
 		}
 		result = append(result, rule)
