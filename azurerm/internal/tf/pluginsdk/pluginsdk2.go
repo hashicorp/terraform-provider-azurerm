@@ -11,6 +11,7 @@ This is tracking the changes necessary for Plugin SDKv2
 4. Updating the Customize Diff functions to use the new wrapper
 5. Updating the Import functions to use the new wrappers
 6. Update the `validate` package tests to include `_test` suffix for the package name
+	At the same time, update the slice in the generator to reflect this
 6. Gradually updating each service package to use the new wrappers
 	NOTE: validation functions may need converting over to return the function rather than the type
 7. Upgrade to Plugin SDKv2
