@@ -29,6 +29,7 @@ func TestAccFrontDoorCustomHttpsConfiguration_CustomHttps(t *testing.T) {
 				check.That(data.ResourceName).Key("custom_https_configuration.0.certificate_source").HasValue("FrontDoor"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.CustomHttpsDisabled(data),
 			Check: resource.ComposeTestCheckFunc(
@@ -36,6 +37,7 @@ func TestAccFrontDoorCustomHttpsConfiguration_CustomHttps(t *testing.T) {
 				check.That(data.ResourceName).Key("custom_https_provisioning_enabled").HasValue("false"),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 

@@ -25,16 +25,15 @@ func TestAccFrontDoor_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("backend_pool_health_probe.0.enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("backend_pool_health_probe.0.probe_method").HasValue("GET"),
+				check.That(data.ResourceName).Key("backend_pool_health_probe.#").HasValue("1"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.basicDisabled(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("backend_pool_health_probe.0.enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("backend_pool_health_probe.0.probe_method").HasValue("HEAD"),
+				check.That(data.ResourceName).Key("backend_pool_health_probe.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -115,8 +114,7 @@ func TestAccFrontDoor_multiplePools(t *testing.T) {
 				check.That(data.ResourceName).Key("routing_rule.#").HasValue("2"),
 			),
 		},
-		// @favoretti: Do not import for now, since order changes
-		// data.ImportStep(),
+		data.ImportStep(),
 	})
 }
 
@@ -156,27 +154,23 @@ func TestAccFrontDoor_EnableDisableCache(t *testing.T) {
 			Config: r.EnableCache(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("routing_rule.0.forwarding_configuration.0.cache_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("routing_rule.0.forwarding_configuration.0.cache_use_dynamic_compression").HasValue("false"),
-				check.That(data.ResourceName).Key("routing_rule.0.forwarding_configuration.0.cache_query_parameter_strip_directive").HasValue("StripAll"),
+				check.That(data.ResourceName).Key("routing_rule.#").HasValue("1"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.DisableCache(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("routing_rule.0.forwarding_configuration.0.cache_enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("routing_rule.0.forwarding_configuration.0.cache_use_dynamic_compression").HasValue("false"),
-				check.That(data.ResourceName).Key("routing_rule.0.forwarding_configuration.0.cache_query_parameter_strip_directive").HasValue("StripAll"),
+				check.That(data.ResourceName).Key("routing_rule.#").HasValue("1"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.EnableCache(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("routing_rule.0.forwarding_configuration.0.cache_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("routing_rule.0.forwarding_configuration.0.cache_use_dynamic_compression").HasValue("false"),
-				check.That(data.ResourceName).Key("routing_rule.0.forwarding_configuration.0.cache_query_parameter_strip_directive").HasValue("StripAll"),
+				check.That(data.ResourceName).Key("routing_rule.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -191,18 +185,13 @@ func TestAccFrontDoor_CustomHttps(t *testing.T) {
 			Config: r.CustomHttpsEnabled(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("frontend_endpoint.0.custom_https_provisioning_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("frontend_endpoint.0.custom_https_configuration.0.certificate_source").HasValue("FrontDoor"),
-				check.That(data.ResourceName).Key("frontend_endpoint.0.custom_https_configuration.0.minimum_tls_version").HasValue("1.2"),
-				check.That(data.ResourceName).Key("frontend_endpoint.0.custom_https_configuration.0.provisioning_state").HasValue("Enabled"),
-				check.That(data.ResourceName).Key("frontend_endpoint.0.custom_https_configuration.0.provisioning_substate").HasValue("CertificateDeployed"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.CustomHttpsDisabled(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("frontend_endpoint.0.custom_https_provisioning_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),

@@ -86,11 +86,11 @@ func frontDoorCustomizeDiff(d *schema.ResourceDiff, v interface{}) error {
 }
 
 func frontDoorSettings(d *schema.ResourceDiff) error {
-	routingRules := d.Get("routing_rule").([]interface{})
-	configFrontendEndpoints := d.Get("frontend_endpoint").([]interface{})
-	backendPools := d.Get("backend_pool").([]interface{})
-	loadBalancingSettings := d.Get("backend_pool_load_balancing").([]interface{})
-	healthProbeSettings := d.Get("backend_pool_health_probe").([]interface{})
+	routingRules := d.Get("routing_rule").(*schema.Set).List()
+	configFrontendEndpoints := d.Get("frontend_endpoint").(*schema.Set).List()
+	backendPools := d.Get("backend_pool").(*schema.Set).List()
+	loadBalancingSettings := d.Get("backend_pool_load_balancing").(*schema.Set).List()
+	healthProbeSettings := d.Get("backend_pool_health_probe").(*schema.Set).List()
 
 	if len(configFrontendEndpoints) == 0 {
 		return fmt.Errorf(`"frontend_endpoint": must have at least one "frontend_endpoint" defined, found 0`)
@@ -115,10 +115,12 @@ func frontDoorSettings(d *schema.ResourceDiff) error {
 
 		// Check 2. routing rule is a forwarding_configuration type make sure the backend_pool_name exists in the configuration file
 		if len(forwardConfig) > 0 {
-			fc := forwardConfig[0].(map[string]interface{})
+			if forwardConfig[0] != nil {
+				fc := forwardConfig[0].(map[string]interface{})
 
-			if err := verifyBackendPoolExists(fc["backend_pool_name"].(string), backendPools); err != nil {
-				return fmt.Errorf(`routing_rule %s is invalid. %+v`, routingRuleName, err)
+				if err := verifyBackendPoolExists(fc["backend_pool_name"].(string), backendPools); err != nil {
+					return fmt.Errorf(`routing_rule %s is invalid. %+v`, routingRuleName, err)
+				}
 			}
 		}
 
@@ -157,23 +159,25 @@ func verifyBackendPoolExists(backendPoolName string, backendPools []interface{})
 
 func verifyRoutingRuleFrontendEndpoints(routingRuleFrontends []interface{}, configFrontendEndpoints []interface{}) error {
 	for _, routingRuleFrontend := range routingRuleFrontends {
-		// Get the name of the frontend defined in the routing rule
-		routingRulefrontendName := routingRuleFrontend.(string)
-		found := false
+		if routingRuleFrontend != nil {
+			// Get the name of the frontend defined in the routing rule
+			routingRulefrontendName := routingRuleFrontend.(string)
+			found := false
 
-		// Loop over all of the defined frontend endpoints in the config
-		// seeing if we find the routing rule frontend in the list
-		for _, configFrontendEndpoint := range configFrontendEndpoints {
-			configFrontend := configFrontendEndpoint.(map[string]interface{})
-			configFrontendName := configFrontend["name"]
-			if routingRulefrontendName == configFrontendName {
-				found = true
-				break
+			// Loop over all of the defined frontend endpoints in the config
+			// seeing if we find the routing rule frontend in the list
+			for _, configFrontendEndpoint := range configFrontendEndpoints {
+				configFrontend := configFrontendEndpoint.(map[string]interface{})
+				configFrontendName := configFrontend["name"]
+				if routingRulefrontendName == configFrontendName {
+					found = true
+					break
+				}
 			}
-		}
 
-		if !found {
-			return fmt.Errorf(`"frontend_endpoints":%q was not found in the configuration file. verify you have the "frontend_endpoint":%q defined in the configuration file`, routingRulefrontendName, routingRulefrontendName)
+			if !found {
+				return fmt.Errorf(`"frontend_endpoints":%q was not found in the configuration file. verify you have the "frontend_endpoint":%q defined in the configuration file`, routingRulefrontendName, routingRulefrontendName)
+			}
 		}
 	}
 

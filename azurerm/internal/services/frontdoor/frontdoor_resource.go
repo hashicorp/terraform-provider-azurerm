@@ -103,7 +103,7 @@ func resourceFrontDoor() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"routing_rule": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				MaxItems: 100,
 				Required: true,
 				Elem: &schema.Resource{
@@ -248,7 +248,7 @@ func resourceFrontDoor() *schema.Resource {
 			},
 
 			"backend_pool_load_balancing": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				MaxItems: 5000,
 				Required: true,
 				Elem: &schema.Resource{
@@ -282,7 +282,7 @@ func resourceFrontDoor() *schema.Resource {
 			},
 
 			"backend_pool_health_probe": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				MaxItems: 5000,
 				Required: true,
 				Elem: &schema.Resource{
@@ -334,7 +334,7 @@ func resourceFrontDoor() *schema.Resource {
 			},
 
 			"backend_pool": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -404,7 +404,7 @@ func resourceFrontDoor() *schema.Resource {
 			},
 
 			"frontend_endpoint": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				MaxItems: 100,
 				Required: true,
 				Elem: &schema.Resource{
@@ -551,11 +551,11 @@ func resourceFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) err
 	}
 
 	friendlyName := d.Get("friendly_name").(string)
-	routingRules := d.Get("routing_rule").([]interface{})
-	loadBalancingSettings := d.Get("backend_pool_load_balancing").([]interface{})
-	healthProbeSettings := d.Get("backend_pool_health_probe").([]interface{})
-	backendPools := d.Get("backend_pool").([]interface{})
-	frontendEndpoints := d.Get("frontend_endpoint").([]interface{})
+	routingRules := d.Get("routing_rule").(*schema.Set).List()
+	loadBalancingSettings := d.Get("backend_pool_load_balancing").(*schema.Set).List()
+	healthProbeSettings := d.Get("backend_pool_health_probe").(*schema.Set).List()
+	backendPools := d.Get("backend_pool").(*schema.Set).List()
+	frontendEndpoints := d.Get("frontend_endpoint").(*schema.Set).List()
 	backendPoolsSettings := d.Get("enforce_backend_pools_certificate_name_check").(bool)
 	backendPoolsSendReceiveTimeoutSeconds := int32(d.Get("backend_pools_send_receive_timeout_seconds").(int))
 	enabledState := d.Get("load_balancer_enabled").(bool)
