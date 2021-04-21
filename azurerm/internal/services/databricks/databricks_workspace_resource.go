@@ -155,7 +155,7 @@ func resourceDatabricksWorkspaceCreateUpdate(d *schema.ResourceData, meta interf
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Databricks Workspace %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Databricks Workspace %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
@@ -184,6 +184,8 @@ func resourceDatabricksWorkspaceCreateUpdate(d *schema.ResourceData, meta interf
 	customParamsRaw := d.Get("custom_parameters").([]interface{})
 	customParams := expandWorkspaceCustomParameters(customParamsRaw)
 
+	// Including the Tags in the workspace parameters will update the tags on
+	// the workspace only
 	workspace := databricks.Workspace{
 		Sku: &databricks.Sku{
 			Name: utils.String(skuName),
@@ -198,16 +200,34 @@ func resourceDatabricksWorkspaceCreateUpdate(d *schema.ResourceData, meta interf
 
 	future, err := client.CreateOrUpdate(ctx, workspace, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error creating/updating Databricks Workspace %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating Databricks Workspace %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for the completion of the creating/updating of Databricks Workspace %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for the completion of the creating/updating of Databricks Workspace %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	// Only call Update(e.g. PATCH) if it is not a new resource and the Tags have changed
+	// this will cause the updated tags to be propagated to all of the connected
+	// workspace resources
+	if !d.IsNewResource() && d.HasChange("tags") {
+		workspaceUpdate := databricks.WorkspaceUpdate{
+			Tags: expandedTags,
+		}
+
+		future, err := client.Update(ctx, workspaceUpdate, resourceGroup, name)
+		if err != nil {
+			return fmt.Errorf("updating Databricks Workspace %q (Resource Group %q) Tags: %+v", name, resourceGroup, err)
+		}
+
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for Databricks Workspace %q (Resource Group %q) Tags to be updated: %+v", name, resourceGroup, err)
+		}
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Databricks Workspace %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Databricks Workspace %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read Databricks Workspace %q (Resource Group %q) ID", name, resourceGroup)
@@ -236,7 +256,7 @@ func resourceDatabricksWorkspaceRead(d *schema.ResourceData, meta interface{}) e
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Azure Databricks Workspace %s: %s", id.Name, err)
+		return fmt.Errorf("making Read request on Azure Databricks Workspace %s: %s", id.Name, err)
 	}
 
 	d.Set("name", id.Name)
@@ -281,12 +301,12 @@ func resourceDatabricksWorkspaceDelete(d *schema.ResourceData, meta interface{})
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Databricks Workspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Databricks Workspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error waiting for deletion of Databricks Workspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for deletion of Databricks Workspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 	}
 
