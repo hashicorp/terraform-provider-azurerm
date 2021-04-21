@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/go-multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 type CustomizeDiffFunc = func(context.Context, *ResourceDiff, interface{}) error
@@ -35,10 +35,10 @@ func CustomDiffWithAll(funcs ...CustomizeDiffFunc) CustomizeDiffFunc {
 // an error and returning that error.
 //
 // If all functions succeed, the combined function also succeeds.
-func CustomDiffInSequence(funcs ...schema.CustomizeDiffFunc) schema.CustomizeDiffFunc {
-	return func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+func CustomDiffInSequence(funcs ...CustomizeDiffFunc) schema.CustomizeDiffFunc {
+	return func(d *schema.ResourceDiff, meta interface{}) error {
 		for _, f := range funcs {
-			err := f(ctx, d, meta)
+			err := f(context.TODO(), d, meta)
 			if err != nil {
 				return err
 			}
@@ -58,9 +58,9 @@ func CustomDiffInSequence(funcs ...schema.CustomizeDiffFunc) schema.CustomizeDif
 // and explicit code in the common case where the decision can be made with
 // only the specific field value.
 func ForceNewIfChange(key string, f ValueChangeConditionFunc) schema.CustomizeDiffFunc {
-	return func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+	return func(d *schema.ResourceDiff, meta interface{}) error {
 		old, new := d.GetChange(key)
-		if f(ctx, old, new, meta) {
+		if f(context.TODO(), old, new, meta) {
 			d.ForceNew(key)
 		}
 		return nil
