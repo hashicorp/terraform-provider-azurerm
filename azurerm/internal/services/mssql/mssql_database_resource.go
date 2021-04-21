@@ -396,10 +396,14 @@ func resourceMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{})
 	}
 
 	if v, ok := d.GetOk("max_size_gb"); ok {
-		if createMode == string(sql.CreateModeOnlineSecondary) || createMode == string(sql.Secondary) {
+		// `max_size_gb` is Computed, so has a value after the first run
+		if createMode != string(sql.CreateModeOnlineSecondary) && createMode != string(sql.Secondary) {
+			params.DatabaseProperties.MaxSizeBytes = utils.Int64(int64(v.(int) * 1073741824))
+		}
+		// `max_size_gb` only has change if it is configured
+		if d.HasChange("max_size_gb") && (createMode == string(sql.CreateModeOnlineSecondary) || createMode == string(sql.Secondary)) {
 			return fmt.Errorf("it is not possible to change maximum size nor advised to configure maximum size on SQL Database %q (Resource Group %q, Server %q) in secondary create mode", name, serverId.ResourceGroup, serverId.Name)
 		}
-		params.DatabaseProperties.MaxSizeBytes = utils.Int64(int64(v.(int) * 1073741824))
 	}
 
 	readScale := sql.DatabaseReadScaleDisabled
