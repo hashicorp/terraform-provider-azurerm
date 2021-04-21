@@ -10,7 +10,15 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/parse"
 )
 
-func CustomHttpsConfigurationV0Schema() *schema.Resource {
+func CustomHttpsConfigurationV0ToV1() schema.StateUpgrader {
+	return schema.StateUpgrader{
+		Type:    customHttpsConfigurationSchemaToV0().CoreConfigSchema().ImpliedType(),
+		Upgrade: customHttpsConfigurationUpgradeV0ToV1,
+		Version: 0,
+	}
+}
+
+func customHttpsConfigurationSchemaToV0() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"frontend_endpoint_id": {
@@ -70,7 +78,7 @@ func CustomHttpsConfigurationV0Schema() *schema.Resource {
 	}
 }
 
-func CustomHttpsConfigurationV0ToV1(rawState map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
+func customHttpsConfigurationUpgradeV0ToV1(rawState map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
 	// this was: fmt.Sprintf("%s/customHttpsConfiguration/%s", frontEndEndpointId, frontendEndpointName
 	oldId := rawState["id"].(string)
 	oldParsedId, err := azure.ParseAzureResourceID(oldId)

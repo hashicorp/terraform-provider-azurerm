@@ -32,11 +32,7 @@ func resourceCosmosDbTable() *schema.Resource {
 
 		SchemaVersion: 1,
 		StateUpgraders: []schema.StateUpgrader{
-			{
-				Type:    migration.ResourceTableUpgradeV0Schema().CoreConfigSchema().ImpliedType(),
-				Upgrade: migration.ResourceTableStateUpgradeV0ToV1,
-				Version: 0,
-			},
+			migration.TableV0ToV1(),
 		},
 
 		Timeouts: &schema.ResourceTimeout{

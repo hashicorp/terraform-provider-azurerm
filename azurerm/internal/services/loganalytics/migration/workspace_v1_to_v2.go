@@ -13,7 +13,7 @@ func WorkspaceV1ToV2() schema.StateUpgrader {
 	// used in place of `resource_group_name` - ergo using the same schema is fine.
 	return schema.StateUpgrader{
 		Version: 1,
-		Type:    workspaceV0V1Schema().CoreConfigSchema().ImpliedType(),
+		Type:    workspaceSchemaForV0AndV1().CoreConfigSchema().ImpliedType(),
 		Upgrade: workspaceUpgradeV1ToV2,
 	}
 }

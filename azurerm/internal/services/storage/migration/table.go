@@ -1,17 +1,33 @@
-package storage
+package migration
 
 import (
 	"fmt"
 	"log"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
+func TableV0ToV1() schema.StateUpgrader {
+	return schema.StateUpgrader{
+		// this should have been applied from pre-0.12 migration system; backporting just in-case
+		Type:    tableSchemaV0AndV1().CoreConfigSchema().ImpliedType(),
+		Upgrade: tableStateUpgradeV0ToV1,
+		Version: 0,
+	}
+}
+
+func TableV1ToV2() schema.StateUpgrader {
+	return schema.StateUpgrader{
+		// this should have been applied from pre-0.12 migration system; backporting just in-case
+		Type:    tableSchemaV0AndV1().CoreConfigSchema().ImpliedType(),
+		Upgrade: tableStateUpgradeV1ToV2,
+		Version: 1,
+	}
+}
+
 // the schema schema was used for both V0 and V1
-func ResourceStorageTableStateResourceV0V1() *schema.Resource {
+func tableSchemaV0AndV1() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -20,21 +36,25 @@ func ResourceStorageTableStateResourceV0V1() *schema.Resource {
 				ForceNew: true,
 			},
 			"storage_account_name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: ValidateStorageAccountName,
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
 			},
-			"resource_group_name": azure.SchemaResourceGroupName(),
+
+			"resource_group_name": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+			},
+
 			"acl": {
 				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringLenBetween(1, 64),
+							Type:     schema.TypeString,
+							Required: true,
 						},
 						"access_policy": {
 							Type:     schema.TypeList,
@@ -42,19 +62,16 @@ func ResourceStorageTableStateResourceV0V1() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"start": {
-										Type:         schema.TypeString,
-										Required:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
+										Type:     schema.TypeString,
+										Required: true,
 									},
 									"expiry": {
-										Type:         schema.TypeString,
-										Required:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
+										Type:     schema.TypeString,
+										Required: true,
 									},
 									"permissions": {
-										Type:         schema.TypeString,
-										Required:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
+										Type:     schema.TypeString,
+										Required: true,
 									},
 								},
 							},
@@ -66,7 +83,7 @@ func ResourceStorageTableStateResourceV0V1() *schema.Resource {
 	}
 }
 
-func ResourceStorageTableStateUpgradeV0ToV1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+func tableStateUpgradeV0ToV1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 	tableName := rawState["name"].(string)
 	accountName := rawState["storage_account_name"].(string)
 	environment := meta.(*clients.Client).Account.Environment
@@ -79,7 +96,7 @@ func ResourceStorageTableStateUpgradeV0ToV1(rawState map[string]interface{}, met
 	return rawState, nil
 }
 
-func ResourceStorageTableStateUpgradeV1ToV2(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+func tableStateUpgradeV1ToV2(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 	tableName := rawState["name"].(string)
 	accountName := rawState["storage_account_name"].(string)
 	environment := meta.(*clients.Client).Account.Environment

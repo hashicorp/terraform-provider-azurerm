@@ -7,15 +7,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func TimeSeriesInsightsAccessPolicyV0() schema.StateUpgrader {
+func StandardEnvironmentAccessPolicyV0ToV1() schema.StateUpgrader {
 	return schema.StateUpgrader{
-		Type:    timeSeriesInsightsAccessPolicyV0StateMigration().CoreConfigSchema().ImpliedType(),
-		Upgrade: timeSeriesInsightsAccessPolicyV0StateUpgradeV0ToV1,
+		Type:    standardEnvironmentAccessPolicySchemaForV0().CoreConfigSchema().ImpliedType(),
+		Upgrade: standardEnvironmentAccessPolicyUpgradeV0ToV1,
 		Version: 0,
 	}
 }
 
-func timeSeriesInsightsAccessPolicyV0StateMigration() *schema.Resource {
+func standardEnvironmentAccessPolicySchemaForV0() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -52,7 +52,7 @@ func timeSeriesInsightsAccessPolicyV0StateMigration() *schema.Resource {
 	}
 }
 
-func timeSeriesInsightsAccessPolicyV0StateUpgradeV0ToV1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+func standardEnvironmentAccessPolicyUpgradeV0ToV1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 	log.Println("[DEBUG] Migrating ResourceType from v0 to v1 format")
 	oldId := rawState["id"].(string)
 	newId := strings.Replace(oldId, "/accesspolicies/", "/accessPolicies/", 1)

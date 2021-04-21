@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/migration"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2020-11-01-preview/containerregistry"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -28,11 +30,16 @@ func resourceContainerRegistry() *schema.Resource {
 		Read:   resourceContainerRegistryRead,
 		Update: resourceContainerRegistryUpdate,
 		Delete: resourceContainerRegistryDelete,
+
+		SchemaVersion: 2,
+		StateUpgraders: []schema.StateUpgrader{
+			migration.RegistryV0ToV1(),
+			migration.RegistryV1ToV2(),
+		},
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
-		MigrateState:  ResourceContainerRegistryMigrateState,
-		SchemaVersion: 2,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),

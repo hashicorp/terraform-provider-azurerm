@@ -26,11 +26,7 @@ func resourceDataFactory() *schema.Resource {
 
 		SchemaVersion: 1,
 		StateUpgraders: []schema.StateUpgrader{
-			{
-				Type:    migration.DataFactoryUpgradeV0Schema().CoreConfigSchema().ImpliedType(),
-				Upgrade: migration.DataFactoryUpgradeV0ToV1,
-				Version: 0,
-			},
+			migration.DataFactoryV0ToV1(),
 		},
 
 		Importer: &schema.ResourceImporter{
