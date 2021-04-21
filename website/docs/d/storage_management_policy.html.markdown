@@ -79,7 +79,7 @@ The following arguments are supported:
 `version` supports the following:
 
 * `change_tier_to_archive_after_days_since_creation` - The age in days after creation to tier blob version to archive storage.
-* `change_tier_to_cool_after_days_since_creation` - The age in days creation create to  tier blob version to cool storage.
+* `change_tier_to_cool_after_days_since_creation` - The age in days after creation to tier blob version to cool storage.
 * `delete_after_days_since_creation` - The age in days after creation to delete the blob version.
 
 ---
