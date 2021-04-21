@@ -116,7 +116,7 @@ func resourceFrontDoor() *schema.Resource {
 
 			"routing_rule": {
 				Type:     schema.TypeList,
-				MaxItems: 100,
+				MaxItems: 500,
 				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -158,7 +158,7 @@ func resourceFrontDoor() *schema.Resource {
 						"frontend_endpoints": {
 							Type:     schema.TypeList,
 							Required: true,
-							MaxItems: 100,
+							MaxItems: 500,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
@@ -352,7 +352,7 @@ func resourceFrontDoor() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"backend": {
 							Type:     schema.TypeList,
-							MaxItems: 100,
+							MaxItems: 500,
 							Required: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
@@ -417,7 +417,7 @@ func resourceFrontDoor() *schema.Resource {
 
 			"frontend_endpoint": {
 				Type:     schema.TypeList,
-				MaxItems: 100,
+				MaxItems: 500,
 				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
