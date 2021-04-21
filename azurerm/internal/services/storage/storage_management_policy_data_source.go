@@ -54,7 +54,7 @@ func dataSourceStorageManagementPolicy() *schema.Resource {
 										Set:      schema.HashString,
 									},
 
-									"blob_index_match_tag": {
+									"match_blob_index_tag": {
 										Type:     schema.TypeList,
 										Computed: true,
 										Elem: &schema.Resource{
@@ -109,17 +109,17 @@ func dataSourceStorageManagementPolicy() *schema.Resource {
 										Computed: true,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
-												"delete_after_days_since_creation_greater_than": {
+												"change_tier_to_archive_after_days_since_creation": {
 													Type:     schema.TypeInt,
 													Computed: true,
 												},
-												"tier_to_archive_after_days_since_creation_greater_than": {
-													Type:     schema.TypeInt,
-													Computed: true,
-												},
-												"tier_to_cool_after_days_since_creation_greater_than": {
+												"change_tier_to_cool_after_days_since_creation": {
 													Type:     schema.TypeInt,
 													Optional: true,
+													Computed: true,
+												},
+												"delete_after_days_since_creation_greater_than": {
+													Type:     schema.TypeInt,
 													Computed: true,
 												},
 											},
@@ -130,15 +130,15 @@ func dataSourceStorageManagementPolicy() *schema.Resource {
 										Computed: true,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
-												"delete_after_days_since_creation_greater_than": {
+												"change_tier_to_archive_after_days_since_creation": {
 													Type:     schema.TypeInt,
 													Computed: true,
 												},
-												"tier_to_archive_after_days_since_creation_greater_than": {
+												"change_tier_to_cool_after_days_since_creation": {
 													Type:     schema.TypeInt,
 													Computed: true,
 												},
-												"tier_to_cool_after_days_since_creation_greater_than": {
+												"delete_after_days_since_creation": {
 													Type:     schema.TypeInt,
 													Computed: true,
 												},

@@ -710,12 +710,12 @@ resource "azurerm_storage_management_policy" "test" {
       prefix_match = ["container1/prefix1"]
       blob_types   = ["blockBlob"]
 
-      blob_index_match_tag {
+      match_blob_index_tag {
         name  = "tag1"
         value = "val1"
       }
 
-      blob_index_match_tag {
+      match_blob_index_tag {
         name      = "tag2"
         operation = "=="
         value     = "val2"
@@ -801,14 +801,14 @@ resource "azurerm_storage_management_policy" "test" {
         delete_after_days_since_modification_greater_than          = 100
       }
       snapshot {
-        delete_after_days_since_creation_greater_than          = 30
-        tier_to_archive_after_days_since_creation_greater_than = 90
-        tier_to_cool_after_days_since_creation_greater_than    = 23
+        change_tier_to_archive_after_days_since_creation = 90
+        change_tier_to_cool_after_days_since_creation    = 23
+        delete_after_days_since_creation_greater_than    = 30
       }
       version {
-        delete_after_days_since_creation_greater_than          = 3
-        tier_to_archive_after_days_since_creation_greater_than = 9
-        tier_to_cool_after_days_since_creation_greater_than    = 90
+        change_tier_to_archive_after_days_since_creation = 9
+        change_tier_to_cool_after_days_since_creation    = 90
+        delete_after_days_since_creation                 = 3
       }
     }
   }
@@ -854,14 +854,14 @@ resource "azurerm_storage_management_policy" "test" {
         delete_after_days_since_modification_greater_than          = 101
       }
       snapshot {
-        delete_after_days_since_creation_greater_than          = 31
-        tier_to_archive_after_days_since_creation_greater_than = 91
-        tier_to_cool_after_days_since_creation_greater_than    = 24
+        change_tier_to_archive_after_days_since_creation = 91
+        change_tier_to_cool_after_days_since_creation    = 24
+        delete_after_days_since_creation_greater_than    = 31
       }
       version {
-        delete_after_days_since_creation_greater_than          = 4
-        tier_to_archive_after_days_since_creation_greater_than = 10
-        tier_to_cool_after_days_since_creation_greater_than    = 91
+        change_tier_to_archive_after_days_since_creation = 10
+        change_tier_to_cool_after_days_since_creation    = 91
+        delete_after_days_since_creation                 = 4
       }
     }
   }
