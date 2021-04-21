@@ -200,7 +200,7 @@ func resourceDatabricksWorkspaceCreateUpdate(d *schema.ResourceData, meta interf
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for create/update of %s: %+v", id, err)
 	}
-  
+
 	// Only call Update(e.g. PATCH) if it is not a new resource and the Tags have changed
 	// this will cause the updated tags to be propagated to all of the connected
 	// workspace resources
@@ -209,13 +209,13 @@ func resourceDatabricksWorkspaceCreateUpdate(d *schema.ResourceData, meta interf
 			Tags: expandedTags,
 		}
 
-		future, err := client.Update(ctx, workspaceUpdate, resourceGroup, name)
+		future, err := client.Update(ctx, workspaceUpdate, id.ResourceGroup, id.Name)
 		if err != nil {
-			return fmt.Errorf("updating Databricks Workspace %q (Resource Group %q) Tags: %+v", name, resourceGroup, err)
+			return fmt.Errorf("updating %s Tags: %+v", id, err)
 		}
 
 		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting for Databricks Workspace %q (Resource Group %q) Tags to be updated: %+v", name, resourceGroup, err)
+			return fmt.Errorf("waiting for %s Tags to be updated: %+v", id, err)
 		}
 	}
 
