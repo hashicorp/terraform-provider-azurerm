@@ -31,6 +31,10 @@ function updateCode {
   # `resource.` can become `pluginsdk`.
   find "$SERVICE_DIRECTORY" -type f -iname "*.go"  -exec sed -i '' -e 's/github\.com\/hashicorp\/terraform-plugin-sdk\/helper\/resource/github\.com\/terraform-providers\/terraform-provider-azurerm\/azurerm\/internal\/tf\/pluginsdk/g' {} \;
   find "$SERVICE_DIRECTORY" -type f -iname "*.go"  -exec sed -i '' -e 's/resource\./pluginsdk\./g' {} \;
+
+  # import functions should use the pluginsdk function
+  find "$SERVICE_DIRECTORY" -type f -iname "*.go"  -exec sed -i '' -e 's/azSchema\.ValidateResourceIDPriorToImportThen\(/pluginsdk\.ImporterValidatingResourceIdThen\(/g' {} \;
+  find "$SERVICE_DIRECTORY" -type f -iname "*.go"  -exec sed -i '' -e 's/azSchema\.ValidateResourceIDPriorToImport\(/pluginsdk\.ImporterValidatingResourceId\(/g' {} \;
 }
 
 function revertValidationFuncs {
