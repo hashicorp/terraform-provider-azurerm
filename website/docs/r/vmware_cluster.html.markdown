@@ -18,7 +18,7 @@ Manages a Vmware Cluster.
 provider "azurerm" {
   features {}
   disable_correlation_request_id = true
-  # In Vmware Acctest (or continous operations in one build), we need to disable correlation request id to prevent following operations are not triggered 
+  # In Vmware Acctest (or continuous operations in one build), we need to disable correlation request id to prevent following operations are not triggered 
 }
 
 resource "azurerm_resource_group" "example" {
