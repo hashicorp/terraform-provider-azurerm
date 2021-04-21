@@ -14,7 +14,6 @@ type MapFieldWriter = schema.MapFieldWriter
 type Resource = schema.Resource
 type ResourceData = schema.ResourceData
 type ResourceDiff = schema.ResourceDiff
-type ResourceImporter = schema.ResourceImporter
 type SchemaDiffSuppressFunc = schema.SchemaDiffSuppressFunc
 type StateUpgrader = schema.StateUpgrader
 type SchemaValidateFunc schema.SchemaValidateFunc
