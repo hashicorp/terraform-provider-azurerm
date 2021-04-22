@@ -139,7 +139,7 @@ func TestAccSynapseWorkspace_customerManagedKey(t *testing.T) {
 			Config: r.customerManagedKey(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("customer_managed_key").Exists(),
+				check.That(data.ResourceName).Key("customer_managed_key_versionless_id").Exists(),
 			),
 		},
 		data.ImportStep("sql_administrator_login_password"),
@@ -341,7 +341,7 @@ resource "azurerm_synapse_workspace" "test" {
   storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
   sql_administrator_login              = "sqladminuser"
   sql_administrator_login_password     = "H@Sh1CoR3!"
-  customer_managed_key                 = azurerm_key_vault_key.test.versionless_id
+  customer_managed_key_versionless_id  = azurerm_key_vault_key.test.versionless_id
 }
 `, template, data.RandomInteger, data.RandomInteger)
 }
@@ -349,11 +349,6 @@ resource "azurerm_synapse_workspace" "test" {
 func (r SynapseWorkspaceResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {
-    key_vault {
-      purge_soft_delete_on_destroy = false
-    }
-  }
 }
 
 resource "azurerm_resource_group" "test" {

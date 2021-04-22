@@ -229,7 +229,7 @@ func resourceSynapseWorkspace() *schema.Resource {
 				Optional: true,
 			},
 
-			"customer_managed_key": {
+			"customer_managed_key_versionless_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: keyVaultValidate.VersionlessNestedItemId,
@@ -365,7 +365,7 @@ func resourceSynapseWorkspaceRead(d *schema.ResourceData, meta interface{}) erro
 		d.Set("sql_administrator_login", props.SQLAdministratorLogin)
 		d.Set("managed_resource_group_name", props.ManagedResourceGroupName)
 		d.Set("connectivity_endpoints", utils.FlattenMapStringPtrString(props.ConnectivityEndpoints))
-		d.Set("customer_managed_key", flattenEncryptionDetails(props.Encryption))
+		d.Set("customer_managed_key_versionless_id", flattenEncryptionDetails(props.Encryption))
 
 		repoType, repo := flattenWorkspaceRepositoryConfiguration(props.WorkspaceRepositoryConfiguration)
 		if repoType == workspaceVSTSConfiguration {
@@ -400,7 +400,7 @@ func resourceSynapseWorkspaceUpdate(d *schema.ResourceData, meta interface{}) er
 		return err
 	}
 
-	if d.HasChanges("tags", "sql_administrator_login_password", "github_repo", "azure_devops_repo", "customer_managed_key") {
+	if d.HasChanges("tags", "sql_administrator_login_password", "github_repo", "azure_devops_repo", "customer_managed_key_versionless_id") {
 		workspacePatchInfo := synapse.WorkspacePatchInfo{
 			Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 			WorkspacePatchProperties: &synapse.WorkspacePatchProperties{
@@ -547,7 +547,7 @@ func expandIdentityControlSQLSettings(enabled bool) *synapse.ManagedIdentitySQLC
 }
 
 func expandEncryptionDetails(d *schema.ResourceData) *synapse.EncryptionDetails {
-	if key, ok := d.GetOk("customer_managed_key"); ok {
+	if key, ok := d.GetOk("customer_managed_key_versionless_id"); ok {
 		return &synapse.EncryptionDetails{
 			Cmk: &synapse.CustomerManagedKeyDetails{
 				Key: &synapse.WorkspaceKeyDetails{
@@ -661,13 +661,11 @@ func flattenIdentityControlSQLSettings(settings synapse.ManagedIdentitySQLContro
 	return false
 }
 
-func flattenEncryptionDetails(encryption *synapse.EncryptionDetails) string {
+func flattenEncryptionDetails(encryption *synapse.EncryptionDetails) *string {
 	if cmk := encryption.Cmk; cmk != nil {
 		if key := cmk.Key; key != nil {
-			if keyVaultUrl := key.KeyVaultURL; keyVaultUrl != nil {
-				return *keyVaultUrl
-			}
+			return key.KeyVaultURL
 		}
 	}
-	return ""
+	return nil
 }
