@@ -3,7 +3,9 @@
 FEATURES:
 
 * **Data Source:** `azurerm_postgresql_flexible_server` [GH-11081]
+* **Data Source:** `azurerm_key_vault_managed_hardware_security_module` [GH-10873]
 * **New Resource:** `azurerm_data_factory_dataset_snowflake `  [GH-11116]
+* **New Resource:** `azurerm_key_vault_managed_hardware_security_module `  [GH-10873]
 * **New Resource:** `azurerm_mssql_job_agent` [GH-11248]
 * **New Resource:** `azurerm_mssql_transparent_data_encryption` [GH-11148]
 * **New Resource:** `azurerm_postgresql_flexible_server` [GH-11081]
