@@ -14,8 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datashare/helper"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datashare/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datashare/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
-	validate2 "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
+	storageValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -57,7 +56,7 @@ func resourceDataShareDataSetBlobStorage() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate2.StorageContainerName,
+				ValidateFunc: storageValidate.StorageContainerName,
 			},
 
 			"storage_account": {
@@ -72,7 +71,7 @@ func resourceDataShareDataSetBlobStorage() *schema.Resource {
 							Type:         schema.TypeString,
 							Required:     true,
 							ForceNew:     true,
-							ValidateFunc: storage.ValidateStorageAccountName,
+							ValidateFunc: storageValidate.StorageAccountName,
 						},
 
 						"resource_group_name": azure.SchemaResourceGroupName(),

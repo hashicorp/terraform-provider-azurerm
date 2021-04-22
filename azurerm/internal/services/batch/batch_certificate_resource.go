@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch/validate"
+
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2020-03-01/batch"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -48,7 +50,7 @@ func resourceBatchCertificate() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateAzureRMBatchAccountName,
+				ValidateFunc: validate.AccountName,
 			},
 
 			// TODO: make this case sensitive once this API bug has been fixed:

@@ -45,11 +45,7 @@ func resourceVirtualDesktopApplicationGroup() *schema.Resource {
 
 		SchemaVersion: 1,
 		StateUpgraders: []schema.StateUpgrader{
-			{
-				Type:    migration.ApplicationGroupUpgradeV0Schema().CoreConfigSchema().ImpliedType(),
-				Upgrade: migration.ApplicationGroupUpgradeV0ToV1,
-				Version: 0,
-			},
+			migration.ApplicationGroupV0ToV1(),
 		},
 
 		Schema: map[string]*schema.Schema{

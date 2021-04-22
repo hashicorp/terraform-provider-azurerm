@@ -6,23 +6,19 @@ import (
 	"log"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 )
 
 func DnsZoneV0ToV1() schema.StateUpgrader {
 	return schema.StateUpgrader{
 		Version: 0,
-		Type:    DnsZoneV0Schema().CoreConfigSchema().ImpliedType(),
-		Upgrade: DnsZoneUpgradeV0ToV1,
+		Type:    dnsZoneSchemaForV0().CoreConfigSchema().ImpliedType(),
+		Upgrade: dnsZoneUpgradeV0ToV1,
 	}
 }
 
-func DnsZoneV0Schema() *schema.Resource {
+func dnsZoneSchemaForV0() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -31,7 +27,11 @@ func DnsZoneV0Schema() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
+			"resource_group_name": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+			},
 
 			"number_of_record_sets": {
 				Type:     schema.TypeInt,
@@ -59,60 +59,58 @@ func DnsZoneV0Schema() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"email": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validate.DnsZoneSOARecordEmail,
+							Type:     schema.TypeString,
+							Required: true,
 						},
 
 						"host_name": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							Type:     schema.TypeString,
+							Required: true,
 						},
 
 						"expire_time": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							Default:      2419200,
-							ValidateFunc: validation.IntAtLeast(0),
+							Type:     schema.TypeInt,
+							Optional: true,
+							Default:  2419200,
 						},
 
 						"minimum_ttl": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							Default:      300,
-							ValidateFunc: validation.IntAtLeast(0),
+							Type:     schema.TypeInt,
+							Optional: true,
+							Default:  300,
 						},
 
 						"refresh_time": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							Default:      3600,
-							ValidateFunc: validation.IntAtLeast(0),
+							Type:     schema.TypeInt,
+							Optional: true,
+							Default:  3600,
 						},
 
 						"retry_time": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							Default:      300,
-							ValidateFunc: validation.IntAtLeast(0),
+							Type:     schema.TypeInt,
+							Optional: true,
+							Default:  300,
 						},
 
 						"serial_number": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							Default:      1,
-							ValidateFunc: validation.IntAtLeast(0),
+							Type:     schema.TypeInt,
+							Optional: true,
+							Default:  1,
 						},
 
 						"ttl": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							Default:      3600,
-							ValidateFunc: validation.IntBetween(0, 2147483647),
+							Type:     schema.TypeInt,
+							Optional: true,
+							Default:  3600,
 						},
 
-						"tags": tags.Schema(),
+						"tags": {
+							Type:     schema.TypeMap,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
 
 						"fqdn": {
 							Type:     schema.TypeString,
@@ -122,12 +120,18 @@ func DnsZoneV0Schema() *schema.Resource {
 				},
 			},
 
-			"tags": tags.Schema(),
+			"tags": {
+				Type:     schema.TypeMap,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 		},
 	}
 }
 
-func DnsZoneUpgradeV0ToV1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+func dnsZoneUpgradeV0ToV1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 	ctx := context.TODO()
 	groupsClient := meta.(*clients.Client).Resource.GroupsClient
 	oldId := rawState["id"].(string)

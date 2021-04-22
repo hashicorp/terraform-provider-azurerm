@@ -335,6 +335,7 @@ func (future *AccountsCreateFuture) result(client AccountsClient) (a Account, er
 		return
 	}
 	if !done {
+		a.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("datashare.AccountsCreateFuture")
 		return
 	}
@@ -377,6 +378,7 @@ func (future *AccountsDeleteFuture) result(client AccountsClient) (or OperationR
 		return
 	}
 	if !done {
+		or.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("datashare.AccountsDeleteFuture")
 		return
 	}
@@ -4413,6 +4415,7 @@ func (future *DataSetsDeleteFuture) result(client DataSetsClient) (ar autorest.R
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("datashare.DataSetsDeleteFuture")
 		return
 	}
@@ -6063,6 +6066,7 @@ func (future *ProviderShareSubscriptionsRevokeFuture) result(client ProviderShar
 		return
 	}
 	if !done {
+		pss.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("datashare.ProviderShareSubscriptionsRevokeFuture")
 		return
 	}
@@ -6720,6 +6724,7 @@ func (future *SharesDeleteFuture) result(client SharesClient) (or OperationRespo
 		return
 	}
 	if !done {
+		or.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("datashare.SharesDeleteFuture")
 		return
 	}
@@ -7038,6 +7043,7 @@ func (future *ShareSubscriptionsCancelSynchronizationFuture) result(client Share
 		return
 	}
 	if !done {
+		sss.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("datashare.ShareSubscriptionsCancelSynchronizationFuture")
 		return
 	}
@@ -7080,6 +7086,7 @@ func (future *ShareSubscriptionsDeleteFuture) result(client ShareSubscriptionsCl
 		return
 	}
 	if !done {
+		or.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("datashare.ShareSubscriptionsDeleteFuture")
 		return
 	}
@@ -7122,6 +7129,7 @@ func (future *ShareSubscriptionsSynchronizeMethodFuture) result(client ShareSubs
 		return
 	}
 	if !done {
+		sss.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("datashare.ShareSubscriptionsSynchronizeMethodFuture")
 		return
 	}
@@ -9069,6 +9077,7 @@ func (future *SynchronizationSettingsDeleteFuture) result(client Synchronization
 		return
 	}
 	if !done {
+		or.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("datashare.SynchronizationSettingsDeleteFuture")
 		return
 	}
@@ -9406,6 +9415,7 @@ func (future *TriggersCreateFuture) result(client TriggersClient) (tm TriggerMod
 		return
 	}
 	if !done {
+		tm.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("datashare.TriggersCreateFuture")
 		return
 	}
@@ -9448,6 +9458,7 @@ func (future *TriggersDeleteFuture) result(client TriggersClient) (or OperationR
 		return
 	}
 	if !done {
+		or.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("datashare.TriggersDeleteFuture")
 		return
 	}

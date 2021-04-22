@@ -8,10 +8,25 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 )
 
-func FrontDoorV0V1Schema() *schema.Resource {
+func FrontDoorUpgradeV0ToV1() schema.StateUpgrader {
+	return schema.StateUpgrader{
+		Type:    frontDoorSchemaForV0AndV1().CoreConfigSchema().ImpliedType(),
+		Upgrade: frontDoorUpgradeV0ToV1,
+		Version: 0,
+	}
+}
+
+func FrontDoorUpgradeV1ToV2() schema.StateUpgrader {
+	return schema.StateUpgrader{
+		Type:    frontDoorSchemaForV0AndV1().CoreConfigSchema().ImpliedType(),
+		Upgrade: frontDoorUpgradeV1ToV2,
+		Version: 1,
+	}
+}
+
+func frontDoorSchemaForV0AndV1() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -382,12 +397,24 @@ func FrontDoorV0V1Schema() *schema.Resource {
 				},
 			},
 
-			"tags": tags.Schema(),
+			"tags": {
+				Type:     schema.TypeMap,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 		},
 	}
 }
 
-func FrontDoorV1ToV2(rawState map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
+func frontDoorUpgradeV0ToV1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	// this resource was set to "schema version 1" unintentionally.. so we're adding
+	// a "fake" upgrade here to account for it
+	return rawState, nil
+}
+
+func frontDoorUpgradeV1ToV2(rawState map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
 	// old
 	// 	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/frontdoors/{frontDoorName}
 	// new:

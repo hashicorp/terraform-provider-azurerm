@@ -290,7 +290,7 @@ func resourceIotHub() *schema.Resource {
 						"file_name_format": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validateIoTHubFileNameFormat,
+							ValidateFunc: iothubValidate.FileNameFormat,
 						},
 
 						"resource_group_name": azure.SchemaResourceGroupNameOptional(),
@@ -424,7 +424,7 @@ func resourceIotHub() *schema.Resource {
 			},
 
 			"ip_filter_rule": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -1263,30 +1263,8 @@ func flattenIoTHubFallbackRoute(input *devices.RoutingProperties) []interface{} 
 	return []interface{}{output}
 }
 
-func validateIoTHubFileNameFormat(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-
-	requiredComponents := []string{
-		"{iothub}",
-		"{partition}",
-		"{YYYY}",
-		"{MM}",
-		"{DD}",
-		"{HH}",
-		"{mm}",
-	}
-
-	for _, component := range requiredComponents {
-		if !strings.Contains(value, component) {
-			errors = append(errors, fmt.Errorf("%s needs to contain %q", k, component))
-		}
-	}
-
-	return warnings, errors
-}
-
 func expandIPFilterRules(d *schema.ResourceData) *[]devices.IPFilterRule {
-	ipFilterRuleList := d.Get("ip_filter_rule").(*schema.Set).List()
+	ipFilterRuleList := d.Get("ip_filter_rule").([]interface{})
 	if len(ipFilterRuleList) == 0 {
 		return nil
 	}

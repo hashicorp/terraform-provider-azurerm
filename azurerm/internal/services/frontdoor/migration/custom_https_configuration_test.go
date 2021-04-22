@@ -43,7 +43,7 @@ func TestCustomHttpsConfigurationV0ToV1(t *testing.T) {
 	}
 	for _, test := range testData {
 		t.Logf("Testing %q..", test.name)
-		result, err := CustomHttpsConfigurationV0ToV1(test.input, nil)
+		result, err := customHttpsConfigurationUpgradeV0ToV1(test.input, nil)
 		if err != nil && test.expected == nil {
 			continue
 		} else {

@@ -15,19 +15,25 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake/migration"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceDataLakeStoreFile() *schema.Resource {
 	return &schema.Resource{
-		Create:        resourceDataLakeStoreFileCreate,
-		Read:          resourceDataLakeStoreFileRead,
-		Delete:        resourceDataLakeStoreFileDelete,
-		MigrateState:  ResourceDataLakeStoreFileMigrateState,
-		SchemaVersion: 1,
+		Create: resourceDataLakeStoreFileCreate,
+		Read:   resourceDataLakeStoreFileRead,
+		Delete: resourceDataLakeStoreFileDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			migration.StoreFileV0ToV1(),
 		},
 
 		Timeouts: &schema.ResourceTimeout{
@@ -48,7 +54,7 @@ func resourceDataLakeStoreFile() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateDataLakeStoreRemoteFilePath(),
+				ValidateFunc: validate.RemoteFilePath,
 			},
 
 			"local_file_path": {
@@ -192,16 +198,4 @@ func ParseDataLakeStoreFileId(input string, suffix string) (*dataLakeStoreFileId
 		FilePath:           uri.Path,
 	}
 	return &file, nil
-}
-
-func ValidateDataLakeStoreRemoteFilePath() schema.SchemaValidateFunc {
-	return func(v interface{}, k string) (warnings []string, errors []error) {
-		val := v.(string)
-
-		if !strings.HasPrefix(val, "/") {
-			errors = append(errors, fmt.Errorf("%q must start with `/`", k))
-		}
-
-		return warnings, errors
-	}
 }

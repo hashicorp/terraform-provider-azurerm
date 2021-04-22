@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -26,11 +27,7 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociation() *schema.Resou
 
 		SchemaVersion: 1,
 		StateUpgraders: []schema.StateUpgrader{
-			{
-				Type:    resourceNetworkInterfaceApplicationSecurityGroupAssociationUpgradeV0Schema().CoreConfigSchema().ImpliedType(),
-				Upgrade: resourceNetworkInterfaceApplicationSecurityGroupAssociationUpgradeV0ToV1,
-				Version: 0,
-			},
+			migration.NetworkInterfaceApplicationSecurityGroupAssociationV0ToV1(),
 		},
 
 		Timeouts: &schema.ResourceTimeout{

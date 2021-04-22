@@ -5,18 +5,36 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
 )
 
-func ApiVersionSetUpgradeV0Schema() *schema.Resource {
+func ApiVersionSetV0ToV1() schema.StateUpgrader {
+	return schema.StateUpgrader{
+		Type:    apiVersionSetSchemaForV0().CoreConfigSchema().ImpliedType(),
+		Upgrade: apiVersionSetUpgradeV0ToV1,
+		Version: 0,
+	}
+}
+
+func apiVersionSetSchemaForV0() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
-			"name": schemaz.SchemaApiManagementChildName(),
+			"name": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+			},
 
-			"api_management_name": schemaz.SchemaApiManagementName(),
+			"api_management_name": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+			},
 
 			"display_name": {
 				Type:     schema.TypeString,
@@ -46,7 +64,7 @@ func ApiVersionSetUpgradeV0Schema() *schema.Resource {
 	}
 }
 
-func ApiVersionSetUpgradeV0ToV1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+func apiVersionSetUpgradeV0ToV1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 	oldId := rawState["id"].(string)
 	newId := strings.Replace(rawState["id"].(string), "/api-version-set/", "/apiVersionSets/", 1)
 

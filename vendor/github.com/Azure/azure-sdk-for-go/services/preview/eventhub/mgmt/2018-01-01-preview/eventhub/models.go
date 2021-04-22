@@ -935,6 +935,7 @@ func (future *ClustersCreateOrUpdateFuture) result(client ClustersClient) (c Clu
 		return
 	}
 	if !done {
+		c.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("eventhub.ClustersCreateOrUpdateFuture")
 		return
 	}
@@ -977,6 +978,7 @@ func (future *ClustersDeleteFuture) result(client ClustersClient) (ar autorest.R
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("eventhub.ClustersDeleteFuture")
 		return
 	}
@@ -1021,6 +1023,7 @@ func (future *ClustersUpdateFuture) result(client ClustersClient) (c Cluster, er
 		return
 	}
 	if !done {
+		c.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("eventhub.ClustersUpdateFuture")
 		return
 	}
@@ -2455,6 +2458,7 @@ func (future *NamespacesCreateOrUpdateFuture) result(client NamespacesClient) (e
 		return
 	}
 	if !done {
+		en.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("eventhub.NamespacesCreateOrUpdateFuture")
 		return
 	}
@@ -2497,6 +2501,7 @@ func (future *NamespacesDeleteFuture) result(client NamespacesClient) (ar autore
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("eventhub.NamespacesDeleteFuture")
 		return
 	}
@@ -3070,6 +3075,7 @@ func (future *PrivateEndpointConnectionsDeleteFuture) result(client PrivateEndpo
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("eventhub.PrivateEndpointConnectionsDeleteFuture")
 		return
 	}

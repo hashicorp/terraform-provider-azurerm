@@ -90,9 +90,8 @@ func subscriptionTemplateDeploymentResource() *schema.Resource {
 
 			// Computed
 			"output_content": {
-				Type:      schema.TypeString,
-				Computed:  true,
-				StateFunc: utils.NormalizeJson,
+				Type:     schema.TypeString,
+				Computed: true,
 				// NOTE:  outputs can be strings, ints, objects etc - whilst using a nested object was considered
 				// parsing the JSON using `jsondecode` allows the users to interact with/map objects as required
 			},

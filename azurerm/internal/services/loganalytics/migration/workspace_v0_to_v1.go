@@ -4,21 +4,19 @@ import (
 	"log"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 )
 
 func WorkspaceV0ToV1() schema.StateUpgrader {
 	return schema.StateUpgrader{
 		Version: 0,
-		Type:    workspaceV0V1Schema().CoreConfigSchema().ImpliedType(),
+		Type:    workspaceSchemaForV0AndV1().CoreConfigSchema().ImpliedType(),
 		Upgrade: workspaceUpgradeV0ToV1,
 	}
 }
 
-func workspaceV0V1Schema() *schema.Resource {
+func workspaceSchemaForV0AndV1() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -27,9 +25,17 @@ func workspaceV0V1Schema() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
+			"resource_group_name": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+			},
 
 			"internet_ingestion_enabled": {
 				Type:     schema.TypeBool,
@@ -83,7 +89,13 @@ func workspaceV0V1Schema() *schema.Resource {
 				Sensitive: true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": {
+				Type:     schema.TypeMap,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 		},
 	}
 }

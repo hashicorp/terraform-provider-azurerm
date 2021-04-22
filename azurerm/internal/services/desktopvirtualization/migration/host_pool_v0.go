@@ -9,7 +9,15 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 )
 
-func HostPoolUpgradeV0Schema() *schema.Resource {
+func HostPoolV0ToV1() schema.StateUpgrader {
+	return schema.StateUpgrader{
+		Type:    hostPoolSchemaForV0().CoreConfigSchema().ImpliedType(),
+		Upgrade: hostPoolUpgradeV0ToV1,
+		Version: 0,
+	}
+}
+
+func hostPoolSchemaForV0() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -99,7 +107,7 @@ func HostPoolUpgradeV0Schema() *schema.Resource {
 	}
 }
 
-func HostPoolUpgradeV0ToV1(rawState map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
+func hostPoolUpgradeV0ToV1(rawState map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
 	oldId := rawState["id"].(string)
 
 	id, err := parse.HostPoolIDInsensitively(oldId)

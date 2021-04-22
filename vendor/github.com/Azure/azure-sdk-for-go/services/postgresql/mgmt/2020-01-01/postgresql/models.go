@@ -175,6 +175,7 @@ func (future *ConfigurationsCreateOrUpdateFuture) result(client ConfigurationsCl
 		return
 	}
 	if !done {
+		c.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("postgresql.ConfigurationsCreateOrUpdateFuture")
 		return
 	}
@@ -305,6 +306,7 @@ func (future *DatabasesCreateOrUpdateFuture) result(client DatabasesClient) (d D
 		return
 	}
 	if !done {
+		d.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("postgresql.DatabasesCreateOrUpdateFuture")
 		return
 	}
@@ -347,6 +349,7 @@ func (future *DatabasesDeleteFuture) result(client DatabasesClient) (ar autorest
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("postgresql.DatabasesDeleteFuture")
 		return
 	}
@@ -494,6 +497,7 @@ func (future *FirewallRulesCreateOrUpdateFuture) result(client FirewallRulesClie
 		return
 	}
 	if !done {
+		fr.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("postgresql.FirewallRulesCreateOrUpdateFuture")
 		return
 	}
@@ -536,6 +540,7 @@ func (future *FirewallRulesDeleteFuture) result(client FirewallRulesClient) (ar 
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("postgresql.FirewallRulesDeleteFuture")
 		return
 	}
@@ -1026,6 +1031,7 @@ func (future *PrivateEndpointConnectionsCreateOrUpdateFuture) result(client Priv
 		return
 	}
 	if !done {
+		pec.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("postgresql.PrivateEndpointConnectionsCreateOrUpdateFuture")
 		return
 	}
@@ -1068,6 +1074,7 @@ func (future *PrivateEndpointConnectionsDeleteFuture) result(client PrivateEndpo
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("postgresql.PrivateEndpointConnectionsDeleteFuture")
 		return
 	}
@@ -1104,6 +1111,7 @@ func (future *PrivateEndpointConnectionsUpdateTagsFuture) result(client PrivateE
 		return
 	}
 	if !done {
+		pec.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("postgresql.PrivateEndpointConnectionsUpdateTagsFuture")
 		return
 	}
@@ -1634,6 +1642,7 @@ func (future *ServerAdministratorsCreateOrUpdateFuture) result(client ServerAdmi
 		return
 	}
 	if !done {
+		sar.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("postgresql.ServerAdministratorsCreateOrUpdateFuture")
 		return
 	}
@@ -1676,6 +1685,7 @@ func (future *ServerAdministratorsDeleteFuture) result(client ServerAdministrato
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("postgresql.ServerAdministratorsDeleteFuture")
 		return
 	}
@@ -2069,6 +2079,7 @@ func (future *ServerKeysCreateOrUpdateFuture) result(client ServerKeysClient) (s
 		return
 	}
 	if !done {
+		sk.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("postgresql.ServerKeysCreateOrUpdateFuture")
 		return
 	}
@@ -2111,6 +2122,7 @@ func (future *ServerKeysDeleteFuture) result(client ServerKeysClient) (ar autore
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("postgresql.ServerKeysDeleteFuture")
 		return
 	}
@@ -2754,6 +2766,7 @@ func (future *ServersCreateFuture) result(client ServersClient) (s Server, err e
 		return
 	}
 	if !done {
+		s.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("postgresql.ServersCreateFuture")
 		return
 	}
@@ -2796,6 +2809,7 @@ func (future *ServersDeleteFuture) result(client ServersClient) (ar autorest.Res
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("postgresql.ServersDeleteFuture")
 		return
 	}
@@ -2832,6 +2846,7 @@ func (future *ServerSecurityAlertPoliciesCreateOrUpdateFuture) result(client Ser
 		return
 	}
 	if !done {
+		ssap.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("postgresql.ServerSecurityAlertPoliciesCreateOrUpdateFuture")
 		return
 	}
@@ -2947,6 +2962,7 @@ func (future *ServersRestartFuture) result(client ServersClient) (ar autorest.Re
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("postgresql.ServersRestartFuture")
 		return
 	}
@@ -2983,6 +2999,7 @@ func (future *ServersUpdateFuture) result(client ServersClient) (s Server, err e
 		return
 	}
 	if !done {
+		s.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("postgresql.ServersUpdateFuture")
 		return
 	}
@@ -3446,6 +3463,7 @@ func (future *VirtualNetworkRulesCreateOrUpdateFuture) result(client VirtualNetw
 		return
 	}
 	if !done {
+		vnr.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("postgresql.VirtualNetworkRulesCreateOrUpdateFuture")
 		return
 	}
@@ -3488,6 +3506,7 @@ func (future *VirtualNetworkRulesDeleteFuture) result(client VirtualNetworkRules
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("postgresql.VirtualNetworkRulesDeleteFuture")
 		return
 	}

@@ -40,8 +40,10 @@ func resourceServiceBusNamespace() *schema.Resource {
 			return err
 		}),
 
-		MigrateState:  migration.ServiceBusNamespaceResourceMigrateState,
 		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			migration.NamespaceV0ToV1(),
+		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),

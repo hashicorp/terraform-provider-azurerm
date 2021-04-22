@@ -884,6 +884,7 @@ func (future *DomainsCreateOrUpdateFuture) result(client DomainsClient) (d Domai
 		return
 	}
 	if !done {
+		d.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("eventgrid.DomainsCreateOrUpdateFuture")
 		return
 	}
@@ -926,6 +927,7 @@ func (future *DomainsDeleteFuture) result(client DomainsClient) (ar autorest.Res
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("eventgrid.DomainsDeleteFuture")
 		return
 	}
@@ -1130,6 +1132,7 @@ func (future *DomainsUpdateFuture) result(client DomainsClient) (d Domain, err e
 		return
 	}
 	if !done {
+		d.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("eventgrid.DomainsUpdateFuture")
 		return
 	}
@@ -1251,6 +1254,7 @@ func (future *DomainTopicsCreateOrUpdateFuture) result(client DomainTopicsClient
 		return
 	}
 	if !done {
+		dt.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("eventgrid.DomainTopicsCreateOrUpdateFuture")
 		return
 	}
@@ -1293,6 +1297,7 @@ func (future *DomainTopicsDeleteFuture) result(client DomainTopicsClient) (ar au
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("eventgrid.DomainTopicsDeleteFuture")
 		return
 	}
@@ -1733,6 +1738,7 @@ func (future *EventChannelsDeleteFuture) result(client EventChannelsClient) (ar 
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("eventgrid.EventChannelsDeleteFuture")
 		return
 	}
@@ -2511,6 +2517,7 @@ func (future *EventSubscriptionsCreateOrUpdateFuture) result(client EventSubscri
 		return
 	}
 	if !done {
+		es.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("eventgrid.EventSubscriptionsCreateOrUpdateFuture")
 		return
 	}
@@ -2553,6 +2560,7 @@ func (future *EventSubscriptionsDeleteFuture) result(client EventSubscriptionsCl
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("eventgrid.EventSubscriptionsDeleteFuture")
 		return
 	}
@@ -2748,6 +2756,7 @@ func (future *EventSubscriptionsUpdateFuture) result(client EventSubscriptionsCl
 		return
 	}
 	if !done {
+		es.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("eventgrid.EventSubscriptionsUpdateFuture")
 		return
 	}
@@ -4149,6 +4158,7 @@ func (future *PartnerNamespacesCreateOrUpdateFuture) result(client PartnerNamesp
 		return
 	}
 	if !done {
+		pn.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("eventgrid.PartnerNamespacesCreateOrUpdateFuture")
 		return
 	}
@@ -4191,6 +4201,7 @@ func (future *PartnerNamespacesDeleteFuture) result(client PartnerNamespacesClie
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("eventgrid.PartnerNamespacesDeleteFuture")
 		return
 	}
@@ -4395,6 +4406,7 @@ func (future *PartnerNamespacesUpdateFuture) result(client PartnerNamespacesClie
 		return
 	}
 	if !done {
+		pn.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("eventgrid.PartnerNamespacesUpdateFuture")
 		return
 	}
@@ -4951,6 +4963,7 @@ func (future *PartnerTopicEventSubscriptionsCreateOrUpdateFuture) result(client 
 		return
 	}
 	if !done {
+		es.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("eventgrid.PartnerTopicEventSubscriptionsCreateOrUpdateFuture")
 		return
 	}
@@ -4993,6 +5006,7 @@ func (future *PartnerTopicEventSubscriptionsDeleteFuture) result(client PartnerT
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("eventgrid.PartnerTopicEventSubscriptionsDeleteFuture")
 		return
 	}
@@ -5029,6 +5043,7 @@ func (future *PartnerTopicEventSubscriptionsUpdateFuture) result(client PartnerT
 		return
 	}
 	if !done {
+		es.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("eventgrid.PartnerTopicEventSubscriptionsUpdateFuture")
 		return
 	}
@@ -5105,6 +5120,7 @@ func (future *PartnerTopicsDeleteFuture) result(client PartnerTopicsClient) (ar 
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("eventgrid.PartnerTopicsDeleteFuture")
 		return
 	}
@@ -5662,6 +5678,7 @@ func (future *PrivateEndpointConnectionsDeleteFuture) result(client PrivateEndpo
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("eventgrid.PrivateEndpointConnectionsDeleteFuture")
 		return
 	}
@@ -5698,6 +5715,7 @@ func (future *PrivateEndpointConnectionsUpdateFuture) result(client PrivateEndpo
 		return
 	}
 	if !done {
+		pec.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("eventgrid.PrivateEndpointConnectionsUpdateFuture")
 		return
 	}
@@ -6994,6 +7012,7 @@ func (future *SystemTopicEventSubscriptionsCreateOrUpdateFuture) result(client S
 		return
 	}
 	if !done {
+		es.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("eventgrid.SystemTopicEventSubscriptionsCreateOrUpdateFuture")
 		return
 	}
@@ -7036,6 +7055,7 @@ func (future *SystemTopicEventSubscriptionsDeleteFuture) result(client SystemTop
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("eventgrid.SystemTopicEventSubscriptionsDeleteFuture")
 		return
 	}
@@ -7072,6 +7092,7 @@ func (future *SystemTopicEventSubscriptionsUpdateFuture) result(client SystemTop
 		return
 	}
 	if !done {
+		es.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("eventgrid.SystemTopicEventSubscriptionsUpdateFuture")
 		return
 	}
@@ -7138,6 +7159,7 @@ func (future *SystemTopicsCreateOrUpdateFuture) result(client SystemTopicsClient
 		return
 	}
 	if !done {
+		st.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("eventgrid.SystemTopicsCreateOrUpdateFuture")
 		return
 	}
@@ -7180,6 +7202,7 @@ func (future *SystemTopicsDeleteFuture) result(client SystemTopicsClient) (ar au
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("eventgrid.SystemTopicsDeleteFuture")
 		return
 	}
@@ -7375,6 +7398,7 @@ func (future *SystemTopicsUpdateFuture) result(client SystemTopicsClient) (st Sy
 		return
 	}
 	if !done {
+		st.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("eventgrid.SystemTopicsUpdateFuture")
 		return
 	}
@@ -7692,6 +7716,7 @@ func (future *TopicsCreateOrUpdateFuture) result(client TopicsClient) (t Topic, 
 		return
 	}
 	if !done {
+		t.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("eventgrid.TopicsCreateOrUpdateFuture")
 		return
 	}
@@ -7733,6 +7758,7 @@ func (future *TopicsDeleteFuture) result(client TopicsClient) (ar autorest.Respo
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("eventgrid.TopicsDeleteFuture")
 		return
 	}
@@ -7936,6 +7962,7 @@ func (future *TopicsUpdateFuture) result(client TopicsClient) (t Topic, err erro
 		return
 	}
 	if !done {
+		t.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("eventgrid.TopicsUpdateFuture")
 		return
 	}

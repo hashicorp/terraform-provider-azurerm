@@ -207,6 +207,7 @@ func (future *IotDpsResourceCreateOrUpdateFuture) result(client IotDpsResourceCl
 		return
 	}
 	if !done {
+		psd.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("iothub.IotDpsResourceCreateOrUpdateFuture")
 		return
 	}
@@ -249,6 +250,7 @@ func (future *IotDpsResourceDeleteFuture) result(client IotDpsResourceClient) (a
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("iothub.IotDpsResourceDeleteFuture")
 		return
 	}
@@ -285,6 +287,7 @@ func (future *IotDpsResourceUpdateFuture) result(client IotDpsResourceClient) (p
 		return
 	}
 	if !done {
+		psd.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("iothub.IotDpsResourceUpdateFuture")
 		return
 	}

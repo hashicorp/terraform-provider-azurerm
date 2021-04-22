@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/migration"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -26,17 +28,8 @@ func resourceStorageTable() *schema.Resource {
 		},
 		SchemaVersion: 2,
 		StateUpgraders: []schema.StateUpgrader{
-			{
-				// this should have been applied from pre-0.12 migration system; backporting just in-case
-				Type:    ResourceStorageTableStateResourceV0V1().CoreConfigSchema().ImpliedType(),
-				Upgrade: ResourceStorageTableStateUpgradeV0ToV1,
-				Version: 0,
-			},
-			{
-				Type:    ResourceStorageTableStateResourceV0V1().CoreConfigSchema().ImpliedType(),
-				Upgrade: ResourceStorageTableStateUpgradeV1ToV2,
-				Version: 1,
-			},
+			migration.TableV0ToV1(),
+			migration.TableV1ToV2(),
 		},
 
 		Timeouts: &schema.ResourceTimeout{
@@ -58,7 +51,7 @@ func resourceStorageTable() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateStorageAccountName,
+				ValidateFunc: validate.StorageAccountName,
 			},
 
 			"acl": {

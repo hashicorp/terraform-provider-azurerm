@@ -20018,6 +20018,7 @@ func (future *ReplicationFabricsCheckConsistencyFuture) result(client Replicatio
 		return
 	}
 	if !done {
+		f.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationFabricsCheckConsistencyFuture")
 		return
 	}
@@ -20060,6 +20061,7 @@ func (future *ReplicationFabricsCreateFuture) result(client ReplicationFabricsCl
 		return
 	}
 	if !done {
+		f.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationFabricsCreateFuture")
 		return
 	}
@@ -20102,6 +20104,7 @@ func (future *ReplicationFabricsDeleteFuture) result(client ReplicationFabricsCl
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationFabricsDeleteFuture")
 		return
 	}
@@ -20138,6 +20141,7 @@ func (future *ReplicationFabricsMigrateToAadFuture) result(client ReplicationFab
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationFabricsMigrateToAadFuture")
 		return
 	}
@@ -20174,6 +20178,7 @@ func (future *ReplicationFabricsPurgeFuture) result(client ReplicationFabricsCli
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationFabricsPurgeFuture")
 		return
 	}
@@ -20210,6 +20215,7 @@ func (future *ReplicationFabricsReassociateGatewayFuture) result(client Replicat
 		return
 	}
 	if !done {
+		f.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationFabricsReassociateGatewayFuture")
 		return
 	}
@@ -20252,6 +20258,7 @@ func (future *ReplicationFabricsRenewCertificateFuture) result(client Replicatio
 		return
 	}
 	if !done {
+		f.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationFabricsRenewCertificateFuture")
 		return
 	}
@@ -20340,6 +20347,7 @@ func (future *ReplicationJobsCancelFuture) result(client ReplicationJobsClient) 
 		return
 	}
 	if !done {
+		j.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationJobsCancelFuture")
 		return
 	}
@@ -20382,6 +20390,7 @@ func (future *ReplicationJobsExportFuture) result(client ReplicationJobsClient) 
 		return
 	}
 	if !done {
+		j.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationJobsExportFuture")
 		return
 	}
@@ -20424,6 +20433,7 @@ func (future *ReplicationJobsRestartFuture) result(client ReplicationJobsClient)
 		return
 	}
 	if !done {
+		j.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationJobsRestartFuture")
 		return
 	}
@@ -20466,6 +20476,7 @@ func (future *ReplicationJobsResumeFuture) result(client ReplicationJobsClient) 
 		return
 	}
 	if !done {
+		j.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationJobsResumeFuture")
 		return
 	}
@@ -20508,6 +20519,7 @@ func (future *ReplicationMigrationItemsCreateFuture) result(client ReplicationMi
 		return
 	}
 	if !done {
+		mi.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationMigrationItemsCreateFuture")
 		return
 	}
@@ -20550,6 +20562,7 @@ func (future *ReplicationMigrationItemsDeleteFuture) result(client ReplicationMi
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationMigrationItemsDeleteFuture")
 		return
 	}
@@ -20586,6 +20599,7 @@ func (future *ReplicationMigrationItemsMigrateFuture) result(client ReplicationM
 		return
 	}
 	if !done {
+		mi.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationMigrationItemsMigrateFuture")
 		return
 	}
@@ -20628,6 +20642,7 @@ func (future *ReplicationMigrationItemsTestMigrateCleanupFuture) result(client R
 		return
 	}
 	if !done {
+		mi.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationMigrationItemsTestMigrateCleanupFuture")
 		return
 	}
@@ -20670,6 +20685,7 @@ func (future *ReplicationMigrationItemsTestMigrateFuture) result(client Replicat
 		return
 	}
 	if !done {
+		mi.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationMigrationItemsTestMigrateFuture")
 		return
 	}
@@ -20712,6 +20728,7 @@ func (future *ReplicationMigrationItemsUpdateFuture) result(client ReplicationMi
 		return
 	}
 	if !done {
+		mi.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationMigrationItemsUpdateFuture")
 		return
 	}
@@ -20754,6 +20771,7 @@ func (future *ReplicationNetworkMappingsCreateFuture) result(client ReplicationN
 		return
 	}
 	if !done {
+		nm.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationNetworkMappingsCreateFuture")
 		return
 	}
@@ -20796,6 +20814,7 @@ func (future *ReplicationNetworkMappingsDeleteFuture) result(client ReplicationN
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationNetworkMappingsDeleteFuture")
 		return
 	}
@@ -20832,6 +20851,7 @@ func (future *ReplicationNetworkMappingsUpdateFuture) result(client ReplicationN
 		return
 	}
 	if !done {
+		nm.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationNetworkMappingsUpdateFuture")
 		return
 	}
@@ -20874,6 +20894,7 @@ func (future *ReplicationPoliciesCreateFuture) result(client ReplicationPolicies
 		return
 	}
 	if !done {
+		p.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationPoliciesCreateFuture")
 		return
 	}
@@ -20916,6 +20937,7 @@ func (future *ReplicationPoliciesDeleteFuture) result(client ReplicationPolicies
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationPoliciesDeleteFuture")
 		return
 	}
@@ -20952,6 +20974,7 @@ func (future *ReplicationPoliciesUpdateFuture) result(client ReplicationPolicies
 		return
 	}
 	if !done {
+		p.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationPoliciesUpdateFuture")
 		return
 	}
@@ -21496,6 +21519,7 @@ func (future *ReplicationProtectedItemsAddDisksFuture) result(client Replication
 		return
 	}
 	if !done {
+		rpi.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectedItemsAddDisksFuture")
 		return
 	}
@@ -21538,6 +21562,7 @@ func (future *ReplicationProtectedItemsApplyRecoveryPointFuture) result(client R
 		return
 	}
 	if !done {
+		rpi.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectedItemsApplyRecoveryPointFuture")
 		return
 	}
@@ -21580,6 +21605,7 @@ func (future *ReplicationProtectedItemsCreateFuture) result(client ReplicationPr
 		return
 	}
 	if !done {
+		rpi.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectedItemsCreateFuture")
 		return
 	}
@@ -21622,6 +21648,7 @@ func (future *ReplicationProtectedItemsDeleteFuture) result(client ReplicationPr
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectedItemsDeleteFuture")
 		return
 	}
@@ -21658,6 +21685,7 @@ func (future *ReplicationProtectedItemsFailoverCommitFuture) result(client Repli
 		return
 	}
 	if !done {
+		rpi.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectedItemsFailoverCommitFuture")
 		return
 	}
@@ -21700,6 +21728,7 @@ func (future *ReplicationProtectedItemsPlannedFailoverFuture) result(client Repl
 		return
 	}
 	if !done {
+		rpi.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectedItemsPlannedFailoverFuture")
 		return
 	}
@@ -21742,6 +21771,7 @@ func (future *ReplicationProtectedItemsPurgeFuture) result(client ReplicationPro
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectedItemsPurgeFuture")
 		return
 	}
@@ -21778,6 +21808,7 @@ func (future *ReplicationProtectedItemsRemoveDisksFuture) result(client Replicat
 		return
 	}
 	if !done {
+		rpi.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectedItemsRemoveDisksFuture")
 		return
 	}
@@ -21820,6 +21851,7 @@ func (future *ReplicationProtectedItemsRepairReplicationFuture) result(client Re
 		return
 	}
 	if !done {
+		rpi.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectedItemsRepairReplicationFuture")
 		return
 	}
@@ -21862,6 +21894,7 @@ func (future *ReplicationProtectedItemsReprotectFuture) result(client Replicatio
 		return
 	}
 	if !done {
+		rpi.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectedItemsReprotectFuture")
 		return
 	}
@@ -21904,6 +21937,7 @@ func (future *ReplicationProtectedItemsResolveHealthErrorsFuture) result(client 
 		return
 	}
 	if !done {
+		rpi.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectedItemsResolveHealthErrorsFuture")
 		return
 	}
@@ -21946,6 +21980,7 @@ func (future *ReplicationProtectedItemsTestFailoverCleanupFuture) result(client 
 		return
 	}
 	if !done {
+		rpi.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectedItemsTestFailoverCleanupFuture")
 		return
 	}
@@ -21988,6 +22023,7 @@ func (future *ReplicationProtectedItemsTestFailoverFuture) result(client Replica
 		return
 	}
 	if !done {
+		rpi.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectedItemsTestFailoverFuture")
 		return
 	}
@@ -22030,6 +22066,7 @@ func (future *ReplicationProtectedItemsUnplannedFailoverFuture) result(client Re
 		return
 	}
 	if !done {
+		rpi.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectedItemsUnplannedFailoverFuture")
 		return
 	}
@@ -22072,6 +22109,7 @@ func (future *ReplicationProtectedItemsUpdateFuture) result(client ReplicationPr
 		return
 	}
 	if !done {
+		rpi.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectedItemsUpdateFuture")
 		return
 	}
@@ -22114,6 +22152,7 @@ func (future *ReplicationProtectedItemsUpdateMobilityServiceFuture) result(clien
 		return
 	}
 	if !done {
+		rpi.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectedItemsUpdateMobilityServiceFuture")
 		return
 	}
@@ -22156,6 +22195,7 @@ func (future *ReplicationProtectionContainerMappingsCreateFuture) result(client 
 		return
 	}
 	if !done {
+		pcm.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectionContainerMappingsCreateFuture")
 		return
 	}
@@ -22198,6 +22238,7 @@ func (future *ReplicationProtectionContainerMappingsDeleteFuture) result(client 
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectionContainerMappingsDeleteFuture")
 		return
 	}
@@ -22234,6 +22275,7 @@ func (future *ReplicationProtectionContainerMappingsPurgeFuture) result(client R
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectionContainerMappingsPurgeFuture")
 		return
 	}
@@ -22270,6 +22312,7 @@ func (future *ReplicationProtectionContainerMappingsUpdateFuture) result(client 
 		return
 	}
 	if !done {
+		pcm.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectionContainerMappingsUpdateFuture")
 		return
 	}
@@ -22312,6 +22355,7 @@ func (future *ReplicationProtectionContainersCreateFuture) result(client Replica
 		return
 	}
 	if !done {
+		pc.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectionContainersCreateFuture")
 		return
 	}
@@ -22354,6 +22398,7 @@ func (future *ReplicationProtectionContainersDeleteFuture) result(client Replica
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectionContainersDeleteFuture")
 		return
 	}
@@ -22390,6 +22435,7 @@ func (future *ReplicationProtectionContainersDiscoverProtectableItemFuture) resu
 		return
 	}
 	if !done {
+		pc.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectionContainersDiscoverProtectableItemFuture")
 		return
 	}
@@ -22432,6 +22478,7 @@ func (future *ReplicationProtectionContainersSwitchProtectionFuture) result(clie
 		return
 	}
 	if !done {
+		pc.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectionContainersSwitchProtectionFuture")
 		return
 	}
@@ -23222,6 +23269,7 @@ func (future *ReplicationRecoveryPlansCreateFuture) result(client ReplicationRec
 		return
 	}
 	if !done {
+		rp.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationRecoveryPlansCreateFuture")
 		return
 	}
@@ -23264,6 +23312,7 @@ func (future *ReplicationRecoveryPlansDeleteFuture) result(client ReplicationRec
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationRecoveryPlansDeleteFuture")
 		return
 	}
@@ -23300,6 +23349,7 @@ func (future *ReplicationRecoveryPlansFailoverCommitFuture) result(client Replic
 		return
 	}
 	if !done {
+		rp.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationRecoveryPlansFailoverCommitFuture")
 		return
 	}
@@ -23342,6 +23392,7 @@ func (future *ReplicationRecoveryPlansPlannedFailoverFuture) result(client Repli
 		return
 	}
 	if !done {
+		rp.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationRecoveryPlansPlannedFailoverFuture")
 		return
 	}
@@ -23384,6 +23435,7 @@ func (future *ReplicationRecoveryPlansReprotectFuture) result(client Replication
 		return
 	}
 	if !done {
+		rp.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationRecoveryPlansReprotectFuture")
 		return
 	}
@@ -23426,6 +23478,7 @@ func (future *ReplicationRecoveryPlansTestFailoverCleanupFuture) result(client R
 		return
 	}
 	if !done {
+		rp.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationRecoveryPlansTestFailoverCleanupFuture")
 		return
 	}
@@ -23468,6 +23521,7 @@ func (future *ReplicationRecoveryPlansTestFailoverFuture) result(client Replicat
 		return
 	}
 	if !done {
+		rp.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationRecoveryPlansTestFailoverFuture")
 		return
 	}
@@ -23510,6 +23564,7 @@ func (future *ReplicationRecoveryPlansUnplannedFailoverFuture) result(client Rep
 		return
 	}
 	if !done {
+		rp.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationRecoveryPlansUnplannedFailoverFuture")
 		return
 	}
@@ -23552,6 +23607,7 @@ func (future *ReplicationRecoveryPlansUpdateFuture) result(client ReplicationRec
 		return
 	}
 	if !done {
+		rp.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationRecoveryPlansUpdateFuture")
 		return
 	}
@@ -23594,6 +23650,7 @@ func (future *ReplicationRecoveryServicesProvidersCreateFuture) result(client Re
 		return
 	}
 	if !done {
+		rsp.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationRecoveryServicesProvidersCreateFuture")
 		return
 	}
@@ -23636,6 +23693,7 @@ func (future *ReplicationRecoveryServicesProvidersDeleteFuture) result(client Re
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationRecoveryServicesProvidersDeleteFuture")
 		return
 	}
@@ -23672,6 +23730,7 @@ func (future *ReplicationRecoveryServicesProvidersPurgeFuture) result(client Rep
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationRecoveryServicesProvidersPurgeFuture")
 		return
 	}
@@ -23708,6 +23767,7 @@ func (future *ReplicationRecoveryServicesProvidersRefreshProviderFuture) result(
 		return
 	}
 	if !done {
+		rsp.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationRecoveryServicesProvidersRefreshProviderFuture")
 		return
 	}
@@ -23750,6 +23810,7 @@ func (future *ReplicationStorageClassificationMappingsCreateFuture) result(clien
 		return
 	}
 	if !done {
+		scm.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationStorageClassificationMappingsCreateFuture")
 		return
 	}
@@ -23792,6 +23853,7 @@ func (future *ReplicationStorageClassificationMappingsDeleteFuture) result(clien
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationStorageClassificationMappingsDeleteFuture")
 		return
 	}
@@ -23828,6 +23890,7 @@ func (future *ReplicationVaultHealthRefreshFuture) result(client ReplicationVaul
 		return
 	}
 	if !done {
+		vhd.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationVaultHealthRefreshFuture")
 		return
 	}
@@ -23870,6 +23933,7 @@ func (future *ReplicationvCentersCreateFuture) result(client ReplicationvCenters
 		return
 	}
 	if !done {
+		vc.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationvCentersCreateFuture")
 		return
 	}
@@ -23912,6 +23976,7 @@ func (future *ReplicationvCentersDeleteFuture) result(client ReplicationvCenters
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationvCentersDeleteFuture")
 		return
 	}
@@ -23948,6 +24013,7 @@ func (future *ReplicationvCentersUpdateFuture) result(client ReplicationvCenters
 		return
 	}
 	if !done {
+		vc.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationvCentersUpdateFuture")
 		return
 	}

@@ -330,6 +330,7 @@ func (future *ApplicationsCreateFuture) result(client ApplicationsClient) (a App
 		return
 	}
 	if !done {
+		a.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("hdinsight.ApplicationsCreateFuture")
 		return
 	}
@@ -372,6 +373,7 @@ func (future *ApplicationsDeleteFuture) result(client ApplicationsClient) (ar au
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("hdinsight.ApplicationsDeleteFuture")
 		return
 	}
@@ -1040,6 +1042,7 @@ func (future *ClustersCreateFuture) result(client ClustersClient) (c Cluster, er
 		return
 	}
 	if !done {
+		c.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("hdinsight.ClustersCreateFuture")
 		return
 	}
@@ -1082,6 +1085,7 @@ func (future *ClustersDeleteFuture) result(client ClustersClient) (ar autorest.R
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("hdinsight.ClustersDeleteFuture")
 		return
 	}
@@ -1118,6 +1122,7 @@ func (future *ClustersExecuteScriptActionsFuture) result(client ClustersClient) 
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("hdinsight.ClustersExecuteScriptActionsFuture")
 		return
 	}
@@ -1154,6 +1159,7 @@ func (future *ClustersResizeFuture) result(client ClustersClient) (ar autorest.R
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("hdinsight.ClustersResizeFuture")
 		return
 	}
@@ -1190,6 +1196,7 @@ func (future *ClustersRotateDiskEncryptionKeyFuture) result(client ClustersClien
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("hdinsight.ClustersRotateDiskEncryptionKeyFuture")
 		return
 	}
@@ -1226,6 +1233,7 @@ func (future *ClustersUpdateAutoScaleConfigurationFuture) result(client Clusters
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("hdinsight.ClustersUpdateAutoScaleConfigurationFuture")
 		return
 	}
@@ -1262,6 +1270,7 @@ func (future *ClustersUpdateGatewaySettingsFuture) result(client ClustersClient)
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("hdinsight.ClustersUpdateGatewaySettingsFuture")
 		return
 	}
@@ -1312,6 +1321,7 @@ func (future *ConfigurationsUpdateFuture) result(client ConfigurationsClient) (a
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("hdinsight.ConfigurationsUpdateFuture")
 		return
 	}
@@ -1466,6 +1476,7 @@ func (future *ExtensionsCreateFuture) result(client ExtensionsClient) (ar autore
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("hdinsight.ExtensionsCreateFuture")
 		return
 	}
@@ -1502,6 +1513,7 @@ func (future *ExtensionsDeleteFuture) result(client ExtensionsClient) (ar autore
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("hdinsight.ExtensionsDeleteFuture")
 		return
 	}
@@ -1538,6 +1550,7 @@ func (future *ExtensionsDisableMonitoringFuture) result(client ExtensionsClient)
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("hdinsight.ExtensionsDisableMonitoringFuture")
 		return
 	}
@@ -1574,6 +1587,7 @@ func (future *ExtensionsEnableMonitoringFuture) result(client ExtensionsClient) 
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("hdinsight.ExtensionsEnableMonitoringFuture")
 		return
 	}
@@ -2601,6 +2615,7 @@ func (future *VirtualMachinesRestartHostsFuture) result(client VirtualMachinesCl
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("hdinsight.VirtualMachinesRestartHostsFuture")
 		return
 	}

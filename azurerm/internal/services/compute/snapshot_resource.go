@@ -3,8 +3,9 @@ package compute
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"time"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -40,7 +41,7 @@ func resourceSnapshot() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateSnapshotName,
+				ValidateFunc: validate.SnapshotName,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -238,20 +239,4 @@ func resourceSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	return nil
-}
-
-func ValidateSnapshotName(v interface{}, _ string) (warnings []string, errors []error) {
-	// a-z, A-Z, 0-9, _ and -. The max name length is 80
-	value := v.(string)
-
-	if !regexp.MustCompile("^[A-Za-z0-9_-]+$").MatchString(value) {
-		errors = append(errors, fmt.Errorf("Snapshot Names can only contain alphanumeric characters and underscores."))
-	}
-
-	length := len(value)
-	if length > 80 {
-		errors = append(errors, fmt.Errorf("Snapshot Name can be up to 80 characters, currently %d.", length))
-	}
-
-	return warnings, errors
 }

@@ -8,12 +8,11 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/analysisservices/mgmt/2017-08-01/analysisservices"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/analysisservices/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -24,10 +23,10 @@ func TestAccAnalysisServicesServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
 	r := AnalysisServicesServerResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -39,10 +38,10 @@ func TestAccAnalysisServicesServer_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
 	r := AnalysisServicesServerResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withTags(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.label").HasValue("test"),
@@ -51,7 +50,7 @@ func TestAccAnalysisServicesServer_withTags(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.withTagsUpdate(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
 				check.That(data.ResourceName).Key("tags.label").HasValue("test1"),
@@ -66,10 +65,10 @@ func TestAccAnalysisServicesServer_querypoolConnectionMode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
 	r := AnalysisServicesServerResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.querypoolConnectionMode(data, "All"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("querypool_connection_mode").HasValue("All"),
 			),
@@ -77,7 +76,7 @@ func TestAccAnalysisServicesServer_querypoolConnectionMode(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.querypoolConnectionMode(data, "ReadOnly"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("querypool_connection_mode").HasValue("ReadOnly"),
 			),
@@ -90,10 +89,10 @@ func TestAccAnalysisServicesServer_firewallSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
 	r := AnalysisServicesServerResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.firewallSettings1(data, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enable_power_bi_service").HasValue("true"),
 				check.That(data.ResourceName).Key("ipv4_firewall_rule.#").HasValue("0"),
@@ -102,7 +101,7 @@ func TestAccAnalysisServicesServer_firewallSettings(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.firewallSettings2(data, false),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enable_power_bi_service").HasValue("false"),
 				check.That(data.ResourceName).Key("ipv4_firewall_rule.#").HasValue("1"),
@@ -111,7 +110,7 @@ func TestAccAnalysisServicesServer_firewallSettings(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.firewallSettings3(data, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enable_power_bi_service").HasValue("true"),
 				check.That(data.ResourceName).Key("ipv4_firewall_rule.#").HasValue("2"),
@@ -139,17 +138,17 @@ func TestAccAzureRMAnalysisServicesServer_adminUsers(t *testing.T) {
 	postAdminUsers := []string{email1, email2}
 
 	r := AnalysisServicesServerResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.adminUsers(data, preAdminUsers),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.adminUsers(data, postAdminUsers),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -160,10 +159,10 @@ func TestAccAzureRMAnalysisServicesServer_adminUsers(t *testing.T) {
 func TestAccAzureRMAnalysisServicesServer_serverFullName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
 	r := AnalysisServicesServerResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.serverFullName(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("server_full_name").Exists(),
 			),
@@ -175,10 +174,10 @@ func TestAccAzureRMAnalysisServicesServer_serverFullName(t *testing.T) {
 func TestAccAzureRMAnalysisServicesServer_backupBlobContainerUri(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
 	r := AnalysisServicesServerResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.backupBlobContainerUri(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("backup_blob_container_uri").Exists(),
 			),
@@ -190,10 +189,10 @@ func TestAccAzureRMAnalysisServicesServer_backupBlobContainerUri(t *testing.T) {
 func TestAccAzureRMAnalysisServicesServer_suspended(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
 	r := AnalysisServicesServerResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				data.CheckWithClient(r.suspend),
 				data.CheckWithClient(r.checkState(analysisservices.StatePaused)),
@@ -202,7 +201,7 @@ func TestAccAzureRMAnalysisServicesServer_suspended(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.scale(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku").HasValue("B2"),
 				data.CheckWithClient(r.checkState(analysisservices.StatePaused)),
@@ -499,7 +498,7 @@ resource "azurerm_analysis_services_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (t AnalysisServicesServerResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t AnalysisServicesServerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ServerID(state.ID)
 	if err != nil {
 		return nil, err
@@ -513,7 +512,7 @@ func (t AnalysisServicesServerResource) Exists(ctx context.Context, clients *cli
 	return utils.Bool(resp.ServerProperties != nil), nil
 }
 
-func (t AnalysisServicesServerResource) suspend(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+func (t AnalysisServicesServerResource) suspend(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 	client := clients.AnalysisServices.ServerClient
 
 	id, err := parse.ServerID(state.ID)
@@ -535,7 +534,7 @@ func (t AnalysisServicesServerResource) suspend(ctx context.Context, clients *cl
 }
 
 func (t AnalysisServicesServerResource) checkState(serverState analysisservices.State) acceptance.ClientCheckFunc {
-	return func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 		client := clients.AnalysisServices.ServerClient
 
 		id, err := parse.ServerID(state.ID)

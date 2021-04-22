@@ -6,13 +6,20 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 )
 
-func WebApplicationFirewallPolicyV0Schema() *schema.Resource {
+func WebApplicationFirewallPolicyV0ToV1() schema.StateUpgrader {
+	return schema.StateUpgrader{
+		Type:    webApplicationFirewallPolicySchemaForV0().CoreConfigSchema().ImpliedType(),
+		Upgrade: webApplicationFirewallPolicyUpgradeV0ToV1,
+		Version: 0,
+	}
+}
+
+func webApplicationFirewallPolicySchemaForV0() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -122,9 +129,8 @@ func WebApplicationFirewallPolicyV0Schema() *schema.Resource {
 									},
 
 									"selector": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
+										Type:     schema.TypeString,
+										Optional: true,
 									},
 
 									"negation_condition": {
@@ -284,7 +290,7 @@ func WebApplicationFirewallPolicyV0Schema() *schema.Resource {
 	}
 }
 
-func WebApplicationFirewallPolicyV0ToV1(rawState map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
+func webApplicationFirewallPolicyUpgradeV0ToV1(rawState map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
 	// old
 	// 	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/frontdoorwebapplicationfirewallpolicies/{policyName}
 	// new:
