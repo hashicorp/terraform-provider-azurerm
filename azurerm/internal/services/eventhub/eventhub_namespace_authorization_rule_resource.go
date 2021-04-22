@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/eventhub/mgmt/2018-01-01-preview/eventhub"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -30,10 +32,10 @@ func resourceEventHubNamespaceAuthorizationRule() *schema.Resource {
 		},
 
 		SchemaVersion: 2,
-		StateUpgraders: []schema.StateUpgrader{
-			migration.NamespaceAuthorizationRuleV0ToV1(),
-			migration.NamespaceAuthorizationRuleV1ToV2(),
-		},
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.NamespaceAuthorizationRuleV0ToV1{},
+			1: migration.NamespaceAuthorizationRuleV1ToV2{},
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
