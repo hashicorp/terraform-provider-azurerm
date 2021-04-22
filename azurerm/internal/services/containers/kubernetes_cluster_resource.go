@@ -127,13 +127,14 @@ func resourceKubernetesCluster() *schema.Resource {
 						"max_node_provision_time": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Default:      "15m",
 							ValidateFunc: containerValidate.Duration,
 						},
 						"max_total_unready_percentage": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
+							Type:         schema.TypeFloat,
+							Optional:     true,
+							Default:      45,
+							ValidateFunc: validation.FloatBetween(0, 100),
 						},
 						"new_pod_scale_up_delay": {
 							Type:         schema.TypeString,
@@ -142,9 +143,10 @@ func resourceKubernetesCluster() *schema.Resource {
 							ValidateFunc: containerValidate.Duration,
 						},
 						"ok_total_unready_count": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      3,
+							ValidateFunc: validation.IntAtLeast(0),
 						},
 						"scan_interval": {
 							Type:         schema.TypeString,
@@ -1321,7 +1323,10 @@ func resourceKubernetesClusterRead(d *schema.ResourceData, meta interface{}) err
 			return fmt.Errorf("setting `addon_profile`: %+v", err)
 		}
 
-		autoScalerProfile := flattenKubernetesClusterAutoScalerProfile(props.AutoScalerProfile)
+		autoScalerProfile, err := flattenKubernetesClusterAutoScalerProfile(props.AutoScalerProfile)
+		if err != nil {
+			return err
+		}
 		if err := d.Set("auto_scaler_profile", autoScalerProfile); err != nil {
 			return fmt.Errorf("setting `auto_scaler_profile`: %+v", err)
 		}
@@ -2059,9 +2064,9 @@ func flattenKubernetesClusterManagedClusterIdentity(input *containerservice.Mana
 	return []interface{}{identity}, nil
 }
 
-func flattenKubernetesClusterAutoScalerProfile(profile *containerservice.ManagedClusterPropertiesAutoScalerProfile) []interface{} {
+func flattenKubernetesClusterAutoScalerProfile(profile *containerservice.ManagedClusterPropertiesAutoScalerProfile) ([]interface{}, error) {
 	if profile == nil {
-		return []interface{}{}
+		return []interface{}{}, nil
 	}
 
 	balanceSimilarNodeGroups := false
@@ -2081,9 +2086,13 @@ func flattenKubernetesClusterAutoScalerProfile(profile *containerservice.Managed
 		maxNodeProvisionTime = *profile.MaxNodeProvisionTime
 	}
 
-	maxTotalUnreadyPercentage := ""
+	maxTotalUnreadyPercentage := 0.0
 	if profile.MaxTotalUnreadyPercentage != nil {
-		maxTotalUnreadyPercentage = *profile.MaxTotalUnreadyPercentage
+		var err error
+		maxTotalUnreadyPercentage, err = strconv.ParseFloat(*profile.MaxTotalUnreadyPercentage, 64)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	newPodScaleUpDelay := ""
@@ -2091,9 +2100,13 @@ func flattenKubernetesClusterAutoScalerProfile(profile *containerservice.Managed
 		newPodScaleUpDelay = *profile.NewPodScaleUpDelay
 	}
 
-	okTotalUnreadyCount := ""
+	okTotalUnreadyCount := 0
 	if profile.OkTotalUnreadyCount != nil {
-		okTotalUnreadyCount = *profile.OkTotalUnreadyCount
+		var err error
+		okTotalUnreadyCount, err = strconv.Atoi(*profile.OkTotalUnreadyCount)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	scaleDownDelayAfterAdd := ""
@@ -2166,7 +2179,7 @@ func flattenKubernetesClusterAutoScalerProfile(profile *containerservice.Managed
 			"skip_nodes_with_local_storage":    skipNodesWithLocalStorage,
 			"skip_nodes_with_system_pods":      skipNodesWithSystemPods,
 		},
-	}
+	}, nil
 }
 
 func expandKubernetesClusterAutoScalerProfile(input []interface{}) *containerservice.ManagedClusterPropertiesAutoScalerProfile {
@@ -2180,9 +2193,9 @@ func expandKubernetesClusterAutoScalerProfile(input []interface{}) *containerser
 	expander := config["expander"].(string)
 	maxGracefulTerminationSec := config["max_graceful_termination_sec"].(string)
 	maxNodeProvisionTime := config["max_node_provision_time"].(string)
-	maxTotalUnreadyPercentage := config["max_total_unready_percentage"].(string)
+	maxTotalUnreadyPercentage := fmt.Sprint(config["max_total_unready_percentage"].(float64))
 	newPodScaleUpDelay := config["new_pod_scale_up_delay"].(string)
-	okTotalUnreadyCount := config["ok_total_unready_count"].(string)
+	okTotalUnreadyCount := fmt.Sprint(config["ok_total_unready_count"].(int))
 	scaleDownDelayAfterAdd := config["scale_down_delay_after_add"].(string)
 	scaleDownDelayAfterDelete := config["scale_down_delay_after_delete"].(string)
 	scaleDownDelayAfterFailure := config["scale_down_delay_after_failure"].(string)
