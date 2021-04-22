@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/migration"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -27,10 +29,10 @@ func resourceStorageShare() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 		SchemaVersion: 2,
-		StateUpgraders: []schema.StateUpgrader{
-			migration.ShareV0ToV1(),
-			migration.ShareV1ToV2(),
-		},
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.ShareV0ToV1{},
+			1: migration.ShareV1ToV2{},
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
