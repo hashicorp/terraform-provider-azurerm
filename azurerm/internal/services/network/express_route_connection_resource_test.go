@@ -46,7 +46,7 @@ func testAccExpressRouteConnection_basic(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That("azurerm_express_route_connection.test").Key("routing.0.associated_route_table_id").Exists(),
-				check.That("azurerm_express_route_connection.test").Key("routing.0.propagated_route_table").Exists(),
+				check.That("azurerm_express_route_connection.test").Key("routing.0.propagated_route_table.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),

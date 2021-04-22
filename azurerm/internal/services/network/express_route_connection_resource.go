@@ -211,24 +211,14 @@ func resourceExpressRouteConnectionRead(d *schema.ResourceData, meta interface{}
 
 	if props := resp.ExpressRouteConnectionProperties; props != nil {
 		d.Set("routing_weight", props.RoutingWeight)
+		d.Set("authorization_key", props.AuthorizationKey)
+		d.Set("enable_internet_security", props.EnableInternetSecurity)
 
 		circuitPeeringID := ""
 		if v := props.ExpressRouteCircuitPeering; v != nil {
 			circuitPeeringID = *v.ID
 		}
 		d.Set("express_route_circuit_peering_id", circuitPeeringID)
-
-		authorizationKey := ""
-		if v := props.AuthorizationKey; v != nil {
-			authorizationKey = *v
-		}
-		d.Set("authorization_key", authorizationKey)
-
-		var enableInternetSecurity bool
-		if v := props.EnableInternetSecurity; v != nil {
-			enableInternetSecurity = *v
-		}
-		d.Set("enable_internet_security", enableInternetSecurity)
 
 		if err := d.Set("routing", flattenExpressRouteConnectionRouting(props.RoutingConfiguration)); err != nil {
 			return fmt.Errorf("setting `routing`: %+v", err)
