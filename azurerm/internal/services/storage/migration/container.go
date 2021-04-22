@@ -44,6 +44,9 @@ func containerSchemaForV0() *schema.Resource {
 			"properties": {
 				Type:     schema.TypeMap,
 				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 		},
 	}
