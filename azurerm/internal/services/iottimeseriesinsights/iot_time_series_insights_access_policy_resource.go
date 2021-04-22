@@ -5,6 +5,8 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/Azure/azure-sdk-for-go/services/timeseriesinsights/mgmt/2020-05-15/timeseriesinsights"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -37,9 +39,9 @@ func resourceIoTTimeSeriesInsightsAccessPolicy() *schema.Resource {
 		},
 
 		SchemaVersion: 1,
-		StateUpgraders: []schema.StateUpgrader{
-			migration.StandardEnvironmentAccessPolicyV0ToV1(),
-		},
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.StandardEnvironmentAccessPolicyV0ToV1{},
+		}),
 
 		Schema: map[string]*schema.Schema{
 			"name": {
