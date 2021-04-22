@@ -87,8 +87,8 @@ func resourceMsSqlJobCredentialCreateUpdate(d *schema.ResourceData, meta interfa
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_mssql_job_credential", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_mssql_job_credential", jobCredentialId.ID())
 		}
 	}
 
