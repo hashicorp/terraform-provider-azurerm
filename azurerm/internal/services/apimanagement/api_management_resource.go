@@ -941,6 +941,9 @@ func expandAzureRmApiManagementHostnameConfigurations(d *schema.ResourceData) *[
 	hostnameVs := vs.([]interface{})
 
 	for _, hostnameRawVal := range hostnameVs {
+		if hostnameRawVal == nil {
+			continue
+		}
 		hostnameV := hostnameRawVal.(map[string]interface{})
 
 		managementVs := hostnameV["management"].([]interface{})
