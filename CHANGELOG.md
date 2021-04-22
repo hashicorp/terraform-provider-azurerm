@@ -31,6 +31,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_api_management` - will no longer panic with an empty `hostname_configuration` [GH-11426]
 * `azurerm_api_management_diagnostic` - fix a crash with the `frontend_request`, `frontend_response`, `backend_request`, `backend_response` blocks [GH-11402]
 * `azurerm_eventgrid_system_topic` - remove strict validation on `topic_type` [GH-11352]
 * `azurerm_iothub` - change `filter_rule` from TypeSet to TypeList to resolve an ordering issue [GH-10341]
