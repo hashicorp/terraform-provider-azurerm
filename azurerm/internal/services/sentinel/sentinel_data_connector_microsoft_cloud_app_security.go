@@ -136,7 +136,7 @@ func resourceSentinelDataConnectorMicrosoftCloudAppSecurityCreateUpdate(d *schem
 				},
 			},
 		},
-		Kind: securityinsight.KindMicrosoftCloudAppSecurity,
+		Kind: securityinsight.KindBasicDataConnectorKindMicrosoftCloudAppSecurity,
 	}
 
 	// Service avoid concurrent updates of this resource via checking the "etag" to guarantee it is the same value as last Read.

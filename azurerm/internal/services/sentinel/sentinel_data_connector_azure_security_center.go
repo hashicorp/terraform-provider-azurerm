@@ -101,7 +101,7 @@ func resourceSentinelDataConnectorAzureSecurityCenterCreate(d *schema.ResourceDa
 				},
 			},
 		},
-		Kind: securityinsight.KindAzureSecurityCenter,
+		Kind: securityinsight.KindBasicDataConnectorKindAzureSecurityCenter,
 	}
 
 	if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.Name, param); err != nil {

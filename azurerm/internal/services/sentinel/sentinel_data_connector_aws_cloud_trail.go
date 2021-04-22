@@ -96,7 +96,7 @@ func resourceSentinelDataConnectorAwsCloudTrailCreateUpdate(d *schema.ResourceDa
 				},
 			},
 		},
-		Kind: securityinsight.KindAmazonWebServicesCloudTrail,
+		Kind: securityinsight.KindBasicDataConnectorKindAmazonWebServicesCloudTrail,
 	}
 
 	// Service avoid concurrent updates of this resource via checking the "etag" to guarantee it is the same value as last Read.
