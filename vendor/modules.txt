@@ -323,7 +323,7 @@ github.com/hashicorp/terraform-exec/tfexec
 github.com/hashicorp/terraform-exec/tfinstall
 # github.com/hashicorp/terraform-json v0.9.0
 github.com/hashicorp/terraform-json
-# github.com/hashicorp/terraform-plugin-sdk v1.17.0
+# github.com/hashicorp/terraform-plugin-sdk v1.17.1
 ## explicit
 github.com/hashicorp/terraform-plugin-sdk/acctest
 github.com/hashicorp/terraform-plugin-sdk/helper/acctest

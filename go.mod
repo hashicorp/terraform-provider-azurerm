@@ -16,7 +16,7 @@ require (
 	github.com/hashicorp/go-uuid v1.0.1
 	github.com/hashicorp/go-version v1.2.1
 	github.com/hashicorp/hcl v1.0.0 // indirect
-	github.com/hashicorp/terraform-plugin-sdk v1.17.0
+	github.com/hashicorp/terraform-plugin-sdk v1.17.1
 	github.com/rickb777/date v1.12.5-0.20200422084442-6300e543c4d9
 	github.com/sergi/go-diff v1.1.0
 	github.com/terraform-providers/terraform-provider-azuread v0.9.0
