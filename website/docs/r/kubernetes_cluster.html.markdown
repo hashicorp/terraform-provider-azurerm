@@ -434,7 +434,7 @@ A `oms_agent` block supports the following:
 
 An `ingress_application_gateway` block supports the following:
 
-* `enabled` - (Required) Set to true to deploy the application gateway ingress controller to this cluster.
+* `enabled` - (Required) Whether to deploy the Application Gateway ingress controller to this Kubernetes Cluster?
 
 * `gateway_id` - (Optional) The ID of the Application Gateway to integrate with the ingress controller of this Kubernetes Cluster. See [this](https://docs.microsoft.com/en-us/azure/application-gateway/tutorial-ingress-controller-add-on-existing) page for further details.
 
