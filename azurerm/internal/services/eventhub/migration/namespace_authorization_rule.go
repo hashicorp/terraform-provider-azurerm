@@ -1,72 +1,76 @@
 package migration
 
 import (
+	"context"
 	"log"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
-func NamespaceAuthorizationRuleV0ToV1() schema.StateUpgrader {
-	return schema.StateUpgrader{
-		Type:    namespaceAuthorizationRuleSchemaForV0AndV1().CoreConfigSchema().ImpliedType(),
-		Upgrade: namespaceAuthorizationRuleUpgradeV0ToV1,
-		Version: 0,
+var _ pluginsdk.StateUpgrade = NamespaceAuthorizationRuleV0ToV1{}
+
+type NamespaceAuthorizationRuleV0ToV1 struct{}
+
+func (NamespaceAuthorizationRuleV0ToV1) Schema() map[string]*pluginsdk.Schema {
+	return authorizationRuleSchemaForV0AndV1()
+}
+
+func (NamespaceAuthorizationRuleV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
+	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+		oldId := rawState["id"].(string)
+
+		newId := strings.Replace(rawState["id"].(string), "/authorizationRules/", "/AuthorizationRules/", 1)
+
+		log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId)
+
+		rawState["id"] = newId
+
+		return rawState, nil
 	}
 }
 
-func NamespaceAuthorizationRuleV1ToV2() schema.StateUpgrader {
-	return schema.StateUpgrader{
-		Type:    namespaceAuthorizationRuleSchemaForV0AndV1().CoreConfigSchema().ImpliedType(),
-		Upgrade: namespaceAuthorizationRuleUpgradeV1ToV2,
-		Version: 1,
+var _ pluginsdk.StateUpgrade = NamespaceAuthorizationRuleV1ToV2{}
+
+type NamespaceAuthorizationRuleV1ToV2 struct{}
+
+func (NamespaceAuthorizationRuleV1ToV2) Schema() map[string]*pluginsdk.Schema {
+	return authorizationRuleSchemaForV0AndV1()
+}
+
+func (NamespaceAuthorizationRuleV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
+	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+		oldId := rawState["id"].(string)
+
+		newId := strings.Replace(rawState["id"].(string), "/AuthorizationRules/", "/authorizationRules/", 1)
+
+		log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId)
+
+		rawState["id"] = newId
+
+		return rawState, nil
 	}
 }
 
-func namespaceAuthorizationRuleSchemaForV0AndV1() *schema.Resource {
-	return &schema.Resource{
-		Schema: map[string]*schema.Schema{
-			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+func authorizationRuleSchemaForV0AndV1() map[string]*pluginsdk.Schema {
+	return map[string]*schema.Schema{
+		"name": {
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
 
-			"namespace_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+		"namespace_name": {
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+		"resource_group_name": {
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
 		},
 	}
-}
-
-func namespaceAuthorizationRuleUpgradeV0ToV1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
-	oldId := rawState["id"].(string)
-
-	newId := strings.Replace(rawState["id"].(string), "/authorizationRules/", "/AuthorizationRules/", 1)
-
-	log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId)
-
-	rawState["id"] = newId
-
-	return rawState, nil
-}
-
-func namespaceAuthorizationRuleUpgradeV1ToV2(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
-	oldId := rawState["id"].(string)
-
-	newId := strings.Replace(rawState["id"].(string), "/AuthorizationRules/", "/authorizationRules/", 1)
-
-	log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId)
-
-	rawState["id"] = newId
-
-	return rawState, nil
 }
