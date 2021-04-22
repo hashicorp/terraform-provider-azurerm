@@ -19,7 +19,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2019-09-01/keyvault"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/keyvault/mgmt/2020-04-01-preview/keyvault"
 
 // AccessPolicyEntry an identity that have access to the key vault. All identities in the array must use
 // the same tenant ID as the key vault's tenant ID.
@@ -32,37 +32,6 @@ type AccessPolicyEntry struct {
 	ApplicationID *uuid.UUID `json:"applicationId,omitempty"`
 	// Permissions - Permissions the identity has for keys, secrets and certificates.
 	Permissions *Permissions `json:"permissions,omitempty"`
-}
-
-// Attributes the object attributes managed by the Azure Key Vault service.
-type Attributes struct {
-	// Enabled - Determines whether or not the object is enabled.
-	Enabled *bool `json:"enabled,omitempty"`
-	// NotBefore - Not before date in seconds since 1970-01-01T00:00:00Z.
-	NotBefore *int64 `json:"nbf,omitempty"`
-	// Expires - Expiry date in seconds since 1970-01-01T00:00:00Z.
-	Expires *int64 `json:"exp,omitempty"`
-	// Created - READ-ONLY; Creation time in seconds since 1970-01-01T00:00:00Z.
-	Created *int64 `json:"created,omitempty"`
-	// Updated - READ-ONLY; Last updated time in seconds since 1970-01-01T00:00:00Z.
-	Updated *int64 `json:"updated,omitempty"`
-	// RecoveryLevel - READ-ONLY; The deletion recovery level currently in effect for the object. If it contains 'Purgeable', then the object can be permanently deleted by a privileged user; otherwise, only the system can purge the object at the end of the retention interval. Possible values include: 'Purgeable', 'RecoverablePurgeable', 'Recoverable', 'RecoverableProtectedSubscription'
-	RecoveryLevel DeletionRecoveryLevel `json:"recoveryLevel,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for Attributes.
-func (a Attributes) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if a.Enabled != nil {
-		objectMap["enabled"] = a.Enabled
-	}
-	if a.NotBefore != nil {
-		objectMap["nbf"] = a.NotBefore
-	}
-	if a.Expires != nil {
-		objectMap["exp"] = a.Expires
-	}
-	return json.Marshal(objectMap)
 }
 
 // CheckNameAvailabilityResult the CheckNameAvailability operation response.
@@ -290,178 +259,95 @@ func (dvp DeletedVaultProperties) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
+// Error the server error.
+type Error struct {
+	// Code - READ-ONLY; The error code.
+	Code *string `json:"code,omitempty"`
+	// Message - READ-ONLY; The error message.
+	Message *string `json:"message,omitempty"`
+	// InnerError - READ-ONLY; The inner error, contains a more specific error code.
+	InnerError *Error `json:"innererror,omitempty"`
+}
+
 // IPRule a rule governing the accessibility of a vault from a specific ip address or ip range.
 type IPRule struct {
 	// Value - An IPv4 address range in CIDR notation, such as '124.56.78.91' (simple IP address) or '124.56.78.0/24' (all addresses that start with 124.56.78).
 	Value *string `json:"value,omitempty"`
 }
 
-// Key the key resource.
-type Key struct {
-	autorest.Response `json:"-"`
-	// KeyProperties - The properties of the key.
-	*KeyProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Fully qualified identifier of the key vault resource.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Name of the key vault resource.
+// LogSpecification log specification of operation.
+type LogSpecification struct {
+	// Name - Name of log specification.
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Resource type of the key vault resource.
-	Type *string `json:"type,omitempty"`
-	// Location - READ-ONLY; Azure location of the key vault resource.
-	Location *string `json:"location,omitempty"`
-	// Tags - READ-ONLY; Tags assigned to the key vault resource.
-	Tags map[string]*string `json:"tags"`
+	// DisplayName - Display name of log specification.
+	DisplayName *string `json:"displayName,omitempty"`
+	// BlobDuration - Blob duration of specification.
+	BlobDuration *string `json:"blobDuration,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for Key.
-func (kVar Key) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if kVar.KeyProperties != nil {
-		objectMap["properties"] = kVar.KeyProperties
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for Key struct.
-func (kVar *Key) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var keyProperties KeyProperties
-				err = json.Unmarshal(*v, &keyProperties)
-				if err != nil {
-					return err
-				}
-				kVar.KeyProperties = &keyProperties
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				kVar.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				kVar.Name = &name
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				kVar.Type = &typeVar
-			}
-		case "location":
-			if v != nil {
-				var location string
-				err = json.Unmarshal(*v, &location)
-				if err != nil {
-					return err
-				}
-				kVar.Location = &location
-			}
-		case "tags":
-			if v != nil {
-				var tags map[string]*string
-				err = json.Unmarshal(*v, &tags)
-				if err != nil {
-					return err
-				}
-				kVar.Tags = tags
-			}
-		}
-	}
-
-	return nil
-}
-
-// KeyAttributes the attributes of the key.
-type KeyAttributes struct {
-	// Enabled - Determines whether or not the object is enabled.
-	Enabled *bool `json:"enabled,omitempty"`
-	// NotBefore - Not before date in seconds since 1970-01-01T00:00:00Z.
-	NotBefore *int64 `json:"nbf,omitempty"`
-	// Expires - Expiry date in seconds since 1970-01-01T00:00:00Z.
-	Expires *int64 `json:"exp,omitempty"`
-	// Created - READ-ONLY; Creation time in seconds since 1970-01-01T00:00:00Z.
-	Created *int64 `json:"created,omitempty"`
-	// Updated - READ-ONLY; Last updated time in seconds since 1970-01-01T00:00:00Z.
-	Updated *int64 `json:"updated,omitempty"`
-	// RecoveryLevel - READ-ONLY; The deletion recovery level currently in effect for the object. If it contains 'Purgeable', then the object can be permanently deleted by a privileged user; otherwise, only the system can purge the object at the end of the retention interval. Possible values include: 'Purgeable', 'RecoverablePurgeable', 'Recoverable', 'RecoverableProtectedSubscription'
-	RecoveryLevel DeletionRecoveryLevel `json:"recoveryLevel,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for KeyAttributes.
-func (ka KeyAttributes) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if ka.Enabled != nil {
-		objectMap["enabled"] = ka.Enabled
-	}
-	if ka.NotBefore != nil {
-		objectMap["nbf"] = ka.NotBefore
-	}
-	if ka.Expires != nil {
-		objectMap["exp"] = ka.Expires
-	}
-	return json.Marshal(objectMap)
-}
-
-// KeyCreateParameters the parameters used to create a key.
-type KeyCreateParameters struct {
-	// Tags - The tags that will be assigned to the key.
-	Tags map[string]*string `json:"tags"`
-	// Properties - The properties of the key to be created.
-	Properties *KeyProperties `json:"properties,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for KeyCreateParameters.
-func (kcp KeyCreateParameters) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if kcp.Tags != nil {
-		objectMap["tags"] = kcp.Tags
-	}
-	if kcp.Properties != nil {
-		objectMap["properties"] = kcp.Properties
-	}
-	return json.Marshal(objectMap)
-}
-
-// KeyListResult the page of keys.
-type KeyListResult struct {
+// ManagedHsm resource information with extended details.
+type ManagedHsm struct {
 	autorest.Response `json:"-"`
-	// Value - The key resources.
-	Value *[]Key `json:"value,omitempty"`
-	// NextLink - The URL to get the next page of keys.
+	// Properties - Properties of the managed HSM
+	Properties *ManagedHsmProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; The Azure Resource Manager resource ID for the managed HSM Pool.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the managed HSM Pool.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The resource type of the managed HSM Pool.
+	Type *string `json:"type,omitempty"`
+	// Location - The supported Azure location where the managed HSM Pool should be created.
+	Location *string `json:"location,omitempty"`
+	// Sku - SKU details
+	Sku *ManagedHsmSku `json:"sku,omitempty"`
+	// Tags - Resource tags
+	Tags map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for ManagedHsm.
+func (mh ManagedHsm) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mh.Properties != nil {
+		objectMap["properties"] = mh.Properties
+	}
+	if mh.Location != nil {
+		objectMap["location"] = mh.Location
+	}
+	if mh.Sku != nil {
+		objectMap["sku"] = mh.Sku
+	}
+	if mh.Tags != nil {
+		objectMap["tags"] = mh.Tags
+	}
+	return json.Marshal(objectMap)
+}
+
+// ManagedHsmError the error exception.
+type ManagedHsmError struct {
+	// Error - READ-ONLY; The server error.
+	Error *Error `json:"error,omitempty"`
+}
+
+// ManagedHsmListResult list of managed HSM Pools
+type ManagedHsmListResult struct {
+	autorest.Response `json:"-"`
+	// Value - The list of managed HSM Pools.
+	Value *[]ManagedHsm `json:"value,omitempty"`
+	// NextLink - The URL to get the next set of managed HSM Pools.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// KeyListResultIterator provides access to a complete listing of Key values.
-type KeyListResultIterator struct {
+// ManagedHsmListResultIterator provides access to a complete listing of ManagedHsm values.
+type ManagedHsmListResultIterator struct {
 	i    int
-	page KeyListResultPage
+	page ManagedHsmListResultPage
 }
 
 // NextWithContext advances to the next value.  If there was an error making
 // the request the iterator does not advance and the error is returned.
-func (iter *KeyListResultIterator) NextWithContext(ctx context.Context) (err error) {
+func (iter *ManagedHsmListResultIterator) NextWithContext(ctx context.Context) (err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/KeyListResultIterator.NextWithContext")
+		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedHsmListResultIterator.NextWithContext")
 		defer func() {
 			sc := -1
 			if iter.Response().Response.Response != nil {
@@ -486,67 +372,67 @@ func (iter *KeyListResultIterator) NextWithContext(ctx context.Context) (err err
 // Next advances to the next value.  If there was an error making
 // the request the iterator does not advance and the error is returned.
 // Deprecated: Use NextWithContext() instead.
-func (iter *KeyListResultIterator) Next() error {
+func (iter *ManagedHsmListResultIterator) Next() error {
 	return iter.NextWithContext(context.Background())
 }
 
 // NotDone returns true if the enumeration should be started or is not yet complete.
-func (iter KeyListResultIterator) NotDone() bool {
+func (iter ManagedHsmListResultIterator) NotDone() bool {
 	return iter.page.NotDone() && iter.i < len(iter.page.Values())
 }
 
 // Response returns the raw server response from the last page request.
-func (iter KeyListResultIterator) Response() KeyListResult {
+func (iter ManagedHsmListResultIterator) Response() ManagedHsmListResult {
 	return iter.page.Response()
 }
 
 // Value returns the current value or a zero-initialized value if the
 // iterator has advanced beyond the end of the collection.
-func (iter KeyListResultIterator) Value() Key {
+func (iter ManagedHsmListResultIterator) Value() ManagedHsm {
 	if !iter.page.NotDone() {
-		return Key{}
+		return ManagedHsm{}
 	}
 	return iter.page.Values()[iter.i]
 }
 
-// Creates a new instance of the KeyListResultIterator type.
-func NewKeyListResultIterator(page KeyListResultPage) KeyListResultIterator {
-	return KeyListResultIterator{page: page}
+// Creates a new instance of the ManagedHsmListResultIterator type.
+func NewManagedHsmListResultIterator(page ManagedHsmListResultPage) ManagedHsmListResultIterator {
+	return ManagedHsmListResultIterator{page: page}
 }
 
 // IsEmpty returns true if the ListResult contains no values.
-func (klr KeyListResult) IsEmpty() bool {
-	return klr.Value == nil || len(*klr.Value) == 0
+func (mhlr ManagedHsmListResult) IsEmpty() bool {
+	return mhlr.Value == nil || len(*mhlr.Value) == 0
 }
 
 // hasNextLink returns true if the NextLink is not empty.
-func (klr KeyListResult) hasNextLink() bool {
-	return klr.NextLink != nil && len(*klr.NextLink) != 0
+func (mhlr ManagedHsmListResult) hasNextLink() bool {
+	return mhlr.NextLink != nil && len(*mhlr.NextLink) != 0
 }
 
-// keyListResultPreparer prepares a request to retrieve the next set of results.
+// managedHsmListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
-func (klr KeyListResult) keyListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if !klr.hasNextLink() {
+func (mhlr ManagedHsmListResult) managedHsmListResultPreparer(ctx context.Context) (*http.Request, error) {
+	if !mhlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
 		autorest.AsJSON(),
 		autorest.AsGet(),
-		autorest.WithBaseURL(to.String(klr.NextLink)))
+		autorest.WithBaseURL(to.String(mhlr.NextLink)))
 }
 
-// KeyListResultPage contains a page of Key values.
-type KeyListResultPage struct {
-	fn  func(context.Context, KeyListResult) (KeyListResult, error)
-	klr KeyListResult
+// ManagedHsmListResultPage contains a page of ManagedHsm values.
+type ManagedHsmListResultPage struct {
+	fn   func(context.Context, ManagedHsmListResult) (ManagedHsmListResult, error)
+	mhlr ManagedHsmListResult
 }
 
 // NextWithContext advances to the next page of values.  If there was an error making
 // the request the page does not advance and the error is returned.
-func (page *KeyListResultPage) NextWithContext(ctx context.Context) (err error) {
+func (page *ManagedHsmListResultPage) NextWithContext(ctx context.Context) (err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/KeyListResultPage.NextWithContext")
+		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedHsmListResultPage.NextWithContext")
 		defer func() {
 			sc := -1
 			if page.Response().Response.Response != nil {
@@ -556,11 +442,11 @@ func (page *KeyListResultPage) NextWithContext(ctx context.Context) (err error) 
 		}()
 	}
 	for {
-		next, err := page.fn(ctx, page.klr)
+		next, err := page.fn(ctx, page.mhlr)
 		if err != nil {
 			return err
 		}
-		page.klr = next
+		page.mhlr = next
 		if !next.hasNextLink() || !next.IsEmpty() {
 			break
 		}
@@ -571,82 +457,245 @@ func (page *KeyListResultPage) NextWithContext(ctx context.Context) (err error) 
 // Next advances to the next page of values.  If there was an error making
 // the request the page does not advance and the error is returned.
 // Deprecated: Use NextWithContext() instead.
-func (page *KeyListResultPage) Next() error {
+func (page *ManagedHsmListResultPage) Next() error {
 	return page.NextWithContext(context.Background())
 }
 
 // NotDone returns true if the page enumeration should be started or is not yet complete.
-func (page KeyListResultPage) NotDone() bool {
-	return !page.klr.IsEmpty()
+func (page ManagedHsmListResultPage) NotDone() bool {
+	return !page.mhlr.IsEmpty()
 }
 
 // Response returns the raw server response from the last page request.
-func (page KeyListResultPage) Response() KeyListResult {
-	return page.klr
+func (page ManagedHsmListResultPage) Response() ManagedHsmListResult {
+	return page.mhlr
 }
 
 // Values returns the slice of values for the current page or nil if there are no values.
-func (page KeyListResultPage) Values() []Key {
-	if page.klr.IsEmpty() {
+func (page ManagedHsmListResultPage) Values() []ManagedHsm {
+	if page.mhlr.IsEmpty() {
 		return nil
 	}
-	return *page.klr.Value
+	return *page.mhlr.Value
 }
 
-// Creates a new instance of the KeyListResultPage type.
-func NewKeyListResultPage(cur KeyListResult, getNextPage func(context.Context, KeyListResult) (KeyListResult, error)) KeyListResultPage {
-	return KeyListResultPage{
-		fn:  getNextPage,
-		klr: cur,
+// Creates a new instance of the ManagedHsmListResultPage type.
+func NewManagedHsmListResultPage(cur ManagedHsmListResult, getNextPage func(context.Context, ManagedHsmListResult) (ManagedHsmListResult, error)) ManagedHsmListResultPage {
+	return ManagedHsmListResultPage{
+		fn:   getNextPage,
+		mhlr: cur,
 	}
 }
 
-// KeyProperties the properties of the key.
-type KeyProperties struct {
-	// Attributes - The attributes of the key.
-	Attributes *KeyAttributes `json:"attributes,omitempty"`
-	// Kty - The type of the key. For valid values, see JsonWebKeyType. Possible values include: 'EC', 'ECHSM', 'RSA', 'RSAHSM'
-	Kty    JSONWebKeyType         `json:"kty,omitempty"`
-	KeyOps *[]JSONWebKeyOperation `json:"keyOps,omitempty"`
-	// KeySize - The key size in bits. For example: 2048, 3072, or 4096 for RSA.
-	KeySize *int32 `json:"keySize,omitempty"`
-	// CurveName - The elliptic curve name. For valid values, see JsonWebKeyCurveName. Possible values include: 'P256', 'P384', 'P521', 'P256K'
-	CurveName JSONWebKeyCurveName `json:"curveName,omitempty"`
-	// KeyURI - READ-ONLY; The URI to retrieve the current version of the key.
-	KeyURI *string `json:"keyUri,omitempty"`
-	// KeyURIWithVersion - READ-ONLY; The URI to retrieve the specific version of the key.
-	KeyURIWithVersion *string `json:"keyUriWithVersion,omitempty"`
+// ManagedHsmProperties properties of the managed HSM Pool
+type ManagedHsmProperties struct {
+	// TenantID - The Azure Active Directory tenant ID that should be used for authenticating requests to the managed HSM pool.
+	TenantID *uuid.UUID `json:"tenantId,omitempty"`
+	// InitialAdminObjectIds - Array of initial administrators object ids for this managed hsm pool.
+	InitialAdminObjectIds *[]string `json:"initialAdminObjectIds,omitempty"`
+	// HsmURI - The URI of the managed hsm pool for performing operations on keys.
+	HsmURI *string `json:"hsmUri,omitempty"`
+	// EnableSoftDelete - Property to specify whether the 'soft delete' functionality is enabled for this managed HSM pool. If it's not set to any value(true or false) when creating new managed HSM pool, it will be set to true by default. Once set to true, it cannot be reverted to false.
+	EnableSoftDelete *bool `json:"enableSoftDelete,omitempty"`
+	// SoftDeleteRetentionInDays - softDelete data retention days. It accepts >=7 and <=90.
+	SoftDeleteRetentionInDays *int32 `json:"softDeleteRetentionInDays,omitempty"`
+	// EnablePurgeProtection - Property specifying whether protection against purge is enabled for this managed HSM pool. Setting this property to true activates protection against purge for this managed HSM pool and its content - only the Managed HSM service may initiate a hard, irrecoverable deletion. The setting is effective only if soft delete is also enabled. Enabling this functionality is irreversible.
+	EnablePurgeProtection *bool `json:"enablePurgeProtection,omitempty"`
+	// CreateMode - The create mode to indicate whether the resource is being created or is being recovered from a deleted resource. Possible values include: 'CreateModeRecover', 'CreateModeDefault'
+	CreateMode CreateMode `json:"createMode,omitempty"`
+	// StatusMessage - READ-ONLY; Resource Status Message.
+	StatusMessage *string `json:"statusMessage,omitempty"`
+	// ProvisioningState - READ-ONLY; Provisioning state. Possible values include: 'ProvisioningStateSucceeded', 'ProvisioningStateProvisioning', 'ProvisioningStateFailed', 'ProvisioningStateUpdating', 'ProvisioningStateDeleting', 'ProvisioningStateActivated', 'ProvisioningStateSecurityDomainRestore', 'ProvisioningStateRestoring'
+	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for KeyProperties.
-func (kp KeyProperties) MarshalJSON() ([]byte, error) {
+// MarshalJSON is the custom marshaler for ManagedHsmProperties.
+func (mhp ManagedHsmProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if kp.Attributes != nil {
-		objectMap["attributes"] = kp.Attributes
+	if mhp.TenantID != nil {
+		objectMap["tenantId"] = mhp.TenantID
 	}
-	if kp.Kty != "" {
-		objectMap["kty"] = kp.Kty
+	if mhp.InitialAdminObjectIds != nil {
+		objectMap["initialAdminObjectIds"] = mhp.InitialAdminObjectIds
 	}
-	if kp.KeyOps != nil {
-		objectMap["keyOps"] = kp.KeyOps
+	if mhp.HsmURI != nil {
+		objectMap["hsmUri"] = mhp.HsmURI
 	}
-	if kp.KeySize != nil {
-		objectMap["keySize"] = kp.KeySize
+	if mhp.EnableSoftDelete != nil {
+		objectMap["enableSoftDelete"] = mhp.EnableSoftDelete
 	}
-	if kp.CurveName != "" {
-		objectMap["curveName"] = kp.CurveName
+	if mhp.SoftDeleteRetentionInDays != nil {
+		objectMap["softDeleteRetentionInDays"] = mhp.SoftDeleteRetentionInDays
+	}
+	if mhp.EnablePurgeProtection != nil {
+		objectMap["enablePurgeProtection"] = mhp.EnablePurgeProtection
+	}
+	if mhp.CreateMode != "" {
+		objectMap["createMode"] = mhp.CreateMode
 	}
 	return json.Marshal(objectMap)
 }
 
-// LogSpecification log specification of operation.
-type LogSpecification struct {
-	// Name - Name of log specification.
+// ManagedHsmResource managed HSM resource
+type ManagedHsmResource struct {
+	// ID - READ-ONLY; The Azure Resource Manager resource ID for the managed HSM Pool.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the managed HSM Pool.
 	Name *string `json:"name,omitempty"`
-	// DisplayName - Display name of log specification.
-	DisplayName *string `json:"displayName,omitempty"`
-	// BlobDuration - Blob duration of specification.
-	BlobDuration *string `json:"blobDuration,omitempty"`
+	// Type - READ-ONLY; The resource type of the managed HSM Pool.
+	Type *string `json:"type,omitempty"`
+	// Location - The supported Azure location where the managed HSM Pool should be created.
+	Location *string `json:"location,omitempty"`
+	// Sku - SKU details
+	Sku *ManagedHsmSku `json:"sku,omitempty"`
+	// Tags - Resource tags
+	Tags map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for ManagedHsmResource.
+func (mhr ManagedHsmResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mhr.Location != nil {
+		objectMap["location"] = mhr.Location
+	}
+	if mhr.Sku != nil {
+		objectMap["sku"] = mhr.Sku
+	}
+	if mhr.Tags != nil {
+		objectMap["tags"] = mhr.Tags
+	}
+	return json.Marshal(objectMap)
+}
+
+// ManagedHsmsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type ManagedHsmsCreateOrUpdateFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ManagedHsmsClient) (ManagedHsm, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *ManagedHsmsCreateOrUpdateFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for ManagedHsmsCreateOrUpdateFuture.Result.
+func (future *ManagedHsmsCreateOrUpdateFuture) result(client ManagedHsmsClient) (mh ManagedHsm, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.ManagedHsmsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		mh.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("keyvault.ManagedHsmsCreateOrUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if mh.Response.Response, err = future.GetResult(sender); err == nil && mh.Response.Response.StatusCode != http.StatusNoContent {
+		mh, err = client.CreateOrUpdateResponder(mh.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "keyvault.ManagedHsmsCreateOrUpdateFuture", "Result", mh.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// ManagedHsmsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type ManagedHsmsDeleteFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ManagedHsmsClient) (autorest.Response, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *ManagedHsmsDeleteFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for ManagedHsmsDeleteFuture.Result.
+func (future *ManagedHsmsDeleteFuture) result(client ManagedHsmsClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.ManagedHsmsDeleteFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		ar.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("keyvault.ManagedHsmsDeleteFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// ManagedHsmSku SKU details
+type ManagedHsmSku struct {
+	// Family - SKU Family of the managed HSM Pool
+	Family *string `json:"family,omitempty"`
+	// Name - SKU of the managed HSM Pool. Possible values include: 'StandardB1', 'CustomB32'
+	Name ManagedHsmSkuName `json:"name,omitempty"`
+}
+
+// ManagedHsmsUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type ManagedHsmsUpdateFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ManagedHsmsClient) (ManagedHsm, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *ManagedHsmsUpdateFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for ManagedHsmsUpdateFuture.Result.
+func (future *ManagedHsmsUpdateFuture) result(client ManagedHsmsClient) (mh ManagedHsm, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.ManagedHsmsUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		mh.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("keyvault.ManagedHsmsUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if mh.Response.Response, err = future.GetResult(sender); err == nil && mh.Response.Response.StatusCode != http.StatusNoContent {
+		mh, err = client.UpdateResponder(mh.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "keyvault.ManagedHsmsUpdateFuture", "Result", mh.Response.Response, "Failure responding to request")
+		}
+	}
+	return
 }
 
 // NetworkRuleSet a set of rules governing the network accessibility of a vault.
