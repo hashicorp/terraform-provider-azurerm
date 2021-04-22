@@ -1,8 +1,9 @@
-package azure
+package azure_test
 
 import (
 	"testing"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
@@ -58,7 +59,7 @@ func TestValidateResourceGroupName(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := validateResourceGroupName(tc.Value, "azurerm_resource_group")
+		_, errors := azure.ValidateResourceGroupName(tc.Value, "azurerm_resource_group")
 
 		if len(errors) != tc.ErrCount {
 			t.Fatalf("Expected "+
