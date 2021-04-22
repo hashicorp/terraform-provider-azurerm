@@ -586,38 +586,6 @@ func resourceFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) err
 
 	d.SetId(frontDoorId.ID())
 
-	// Now loop through the FrontendEndpoints and enable/disable Custom Domain HTTPS
-	// on each individual Frontend Endpoint if required
-	feClient := meta.(*clients.Client).Frontdoor.FrontDoorsFrontendClient
-
-	for _, v := range frontendEndpoints {
-		frontendEndpoint := v.(map[string]interface{})
-		// customHttpsProvisioningEnabled := frontendEndpoint["custom_https_provisioning_enabled"].(bool)
-		endpointName := frontendEndpoint["name"].(string)
-
-		// Get current state of endpoint from Azure
-		resp, err := feClient.Get(ctx, resourceGroup, name, endpointName)
-		if err != nil {
-			return fmt.Errorf("retrieving Front Door Frontend Endpoint %q (Resource Group %q): %+v", endpointName, resourceGroup, err)
-		}
-
-		if properties := resp.FrontendEndpointProperties; properties != nil {
-			frontendClient := meta.(*clients.Client).Frontdoor.FrontDoorsFrontendClient
-			// customHttpsConfigurationNew := frontendEndpoint["custom_https_configuration"].([]interface{})
-			frontendInputId := parse.NewFrontendEndpointID(frontDoorId.SubscriptionId, frontDoorId.ResourceGroup, frontDoorId.Name, endpointName)
-			input := customHttpsConfigurationUpdateInput{
-				customHttpsConfigurationCurrent: properties.CustomHTTPSConfiguration,
-				// customHttpsConfigurationNew:     customHttpsConfigurationNew,
-				// customHttpsProvisioningEnabled:  customHttpsProvisioningEnabled,
-				frontendEndpointId: frontendInputId,
-				provisioningState:  properties.CustomHTTPSProvisioningState,
-			}
-			if err := updateCustomHttpsConfiguration(ctx, frontendClient, input); err != nil {
-				return fmt.Errorf("updating Custom HTTPS configuration for Frontend Endpoint %q (Front Door %q / Resource Group %q): %+v", endpointName, name, resourceGroup, err)
-			}
-		}
-	}
-
 	return resourceFrontDoorRead(d, meta)
 }
 
