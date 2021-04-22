@@ -256,7 +256,11 @@ func (s *GRPCProviderServer) UpgradeResourceState(_ context.Context, req *proto.
 		}
 	// if there's a JSON state, we need to decode it.
 	case len(req.RawState.Json) > 0:
-		err = json.Unmarshal(req.RawState.Json, &jsonMap)
+		if res.UseJSONNumber {
+			err = unmarshalJSON(req.RawState.Json, &jsonMap)
+		} else {
+			err = json.Unmarshal(req.RawState.Json, &jsonMap)
+		}
 		if err != nil {
 			resp.Diagnostics = convert.AppendProtoDiag(resp.Diagnostics, err)
 			return resp, nil
@@ -380,7 +384,13 @@ func (s *GRPCProviderServer) upgradeFlatmapState(version int, m map[string]strin
 		return nil, 0, err
 	}
 
-	jsonMap, err := schema.StateValueToJSONMap(newConfigVal, schemaType)
+	var jsonMap map[string]interface{}
+	if res.UseJSONNumber {
+		jsonMap, err = schema.StateValueToJSONMapJSONNumber(newConfigVal, schemaType)
+	} else {
+		jsonMap, err = schema.StateValueToJSONMap(newConfigVal, schemaType)
+	}
+
 	return jsonMap, upgradedVersion, err
 }
 
@@ -515,7 +525,7 @@ func (s *GRPCProviderServer) ReadResource(_ context.Context, req *proto.ReadReso
 
 	private := make(map[string]interface{})
 	if len(req.Private) > 0 {
-		if err := json.Unmarshal(req.Private, &private); err != nil {
+		if err := unmarshalJSON(req.Private, &private); err != nil {
 			resp.Diagnostics = convert.AppendProtoDiag(resp.Diagnostics, err)
 			return resp, nil
 		}
@@ -613,7 +623,7 @@ func (s *GRPCProviderServer) PlanResourceChange(_ context.Context, req *proto.Pl
 	}
 	priorPrivate := make(map[string]interface{})
 	if len(req.PriorPrivate) > 0 {
-		if err := json.Unmarshal(req.PriorPrivate, &priorPrivate); err != nil {
+		if err := unmarshalJSON(req.PriorPrivate, &priorPrivate); err != nil {
 			resp.Diagnostics = convert.AppendProtoDiag(resp.Diagnostics, err)
 			return resp, nil
 		}
@@ -817,7 +827,7 @@ func (s *GRPCProviderServer) ApplyResourceChange(_ context.Context, req *proto.A
 
 	private := make(map[string]interface{})
 	if len(req.PlannedPrivate) > 0 {
-		if err := json.Unmarshal(req.PlannedPrivate, &private); err != nil {
+		if err := unmarshalJSON(req.PlannedPrivate, &private); err != nil {
 			resp.Diagnostics = convert.AppendProtoDiag(resp.Diagnostics, err)
 			return resp, nil
 		}

@@ -14,7 +14,7 @@ import (
 	tftest "github.com/hashicorp/terraform-plugin-test/v2"
 )
 
-func runPostTestDestroy(t *testing.T, c TestCase, wd *tftest.WorkingDir, factories map[string]terraform.ResourceProviderFactory) error {
+func runPostTestDestroy(t *testing.T, c TestCase, wd *tftest.WorkingDir, factories map[string]terraform.ResourceProviderFactory, statePreDestroy *terraform.State) error {
 	t.Helper()
 
 	err := runProviderCommand(t, func() error {
@@ -26,16 +26,7 @@ func runPostTestDestroy(t *testing.T, c TestCase, wd *tftest.WorkingDir, factori
 	}
 
 	if c.CheckDestroy != nil {
-		var statePostDestroy *terraform.State
-		err := runProviderCommand(t, func() error {
-			statePostDestroy = getState(t, wd)
-			return nil
-		}, wd, factories)
-		if err != nil {
-			return err
-		}
-
-		if err := c.CheckDestroy(statePostDestroy); err != nil {
+		if err := c.CheckDestroy(statePreDestroy); err != nil {
 			return err
 		}
 	}
@@ -62,7 +53,7 @@ func RunNewTest(t *testing.T, c TestCase, providers map[string]terraform.Resourc
 		}
 
 		if !stateIsEmpty(statePreDestroy) {
-			err := runPostTestDestroy(t, c, wd, c.ProviderFactories)
+			err := runPostTestDestroy(t, c, wd, c.ProviderFactories, statePreDestroy)
 			if err != nil {
 				t.Fatalf("Error running post-test destroy, there may be dangling resources: %s", err.Error())
 			}
