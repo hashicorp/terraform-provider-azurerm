@@ -1,6 +1,7 @@
 package migration
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"testing"
@@ -36,7 +37,7 @@ func TestContainerV0ToV1(t *testing.T) {
 			"storage_account_name": "some-account",
 		}
 
-		actual, err := containerUpgradeV0ToV1(input, meta)
+		actual, err := ContainerV0ToV1{}.UpgradeFunc()(context.TODO(), input, meta)
 		if err != nil {
 			t.Fatalf("Expected no error but got: %s", err)
 		}
