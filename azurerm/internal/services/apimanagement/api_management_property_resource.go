@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/migration"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
@@ -41,9 +43,9 @@ func resourceApiManagementProperty() *schema.Resource {
 		},
 
 		SchemaVersion: 1,
-		StateUpgraders: []schema.StateUpgrader{
-			migration.ApiPropertyV0ToV1(),
-		},
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.ApiPropertyV0ToV1{},
+		}),
 
 		Schema: map[string]*schema.Schema{
 			"name": schemaz.SchemaApiManagementChildName(),
