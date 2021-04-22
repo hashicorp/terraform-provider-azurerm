@@ -68,6 +68,7 @@ func resourceExpressRouteConnection() *schema.Resource {
 				Optional: true,
 			},
 
+			// Note: when `routing` isn't specified, `associated_route_table_id` and `propagated_route_table` would be set with the default value
 			"routing": {
 				Type:     schema.TypeList,
 				Optional: true,

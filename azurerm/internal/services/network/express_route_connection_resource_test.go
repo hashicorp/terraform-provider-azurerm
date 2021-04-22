@@ -28,12 +28,10 @@ func TestAccExpressRouteConnection(t *testing.T) {
 	// And there can be only one Express Route Connection on the same Express Route Circuit, otherwise tests will conflict if run at the same time.
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"Resource": {
-			"basic":                testAccExpressRouteConnection_basic,
-			"requiresImport":       testAccExpressRouteConnection_requiresImport,
-			"complete":             testAccExpressRouteConnection_complete,
-			"update":               testAccExpressRouteConnection_update,
-			"associatedRouteTable": testAccExpressRouteConnection_associatedRouteTable,
-			"propagatedRouteTable": testAccExpressRouteConnection_propagatedRouteTable,
+			"basic":          testAccExpressRouteConnection_basic,
+			"requiresImport": testAccExpressRouteConnection_requiresImport,
+			"complete":       testAccExpressRouteConnection_complete,
+			"update":         testAccExpressRouteConnection_update,
 		},
 	})
 }
@@ -47,6 +45,8 @@ func testAccExpressRouteConnection_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That("azurerm_express_route_connection.test").Key("routing.0.associated_route_table_id").Exists(),
+				check.That("azurerm_express_route_connection.test").Key("routing.0.propagated_route_table").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -97,36 +97,6 @@ func testAccExpressRouteConnection_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func testAccExpressRouteConnection_associatedRouteTable(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_express_route_connection", "test")
-	r := ExpressRouteConnectionResource{}
-
-	data.ResourceSequentialTest(t, r, []resource.TestStep{
-		{
-			Config: r.associatedRouteTable(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func testAccExpressRouteConnection_propagatedRouteTable(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_express_route_connection", "test")
-	r := ExpressRouteConnectionResource{}
-
-	data.ResourceSequentialTest(t, r, []resource.TestStep{
-		{
-			Config: r.propagatedRouteTable(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -199,57 +169,6 @@ resource "azurerm_express_route_connection" "test" {
   routing {
     associated_route_table_id = azurerm_virtual_hub_route_table.test.id
 
-    propagated_route_table {
-      labels          = ["label1"]
-      route_table_ids = [azurerm_virtual_hub_route_table.test.id]
-    }
-  }
-}
-`, r.template(data), data.RandomInteger, data.RandomInteger)
-}
-
-func (r ExpressRouteConnectionResource) associatedRouteTable(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_virtual_hub_route_table" "test" {
-  name           = "acctest-VHUBRT-%d"
-  virtual_hub_id = azurerm_virtual_hub.test.id
-}
-
-resource "azurerm_express_route_connection" "test" {
-  name                             = "acctest-ExpressRouteConnection-%d"
-  express_route_gateway_id         = azurerm_express_route_gateway.test.id
-  express_route_circuit_peering_id = azurerm_express_route_circuit_peering.test.id
-  routing_weight                   = 2
-  authorization_key                = "90f8db47-e25b-4b65-a68b-7743ced2a16b"
-  enable_internet_security         = true
-
-  routing {
-    associated_route_table_id = azurerm_virtual_hub_route_table.test.id
-  }
-}
-`, r.template(data), data.RandomInteger, data.RandomInteger)
-}
-
-func (r ExpressRouteConnectionResource) propagatedRouteTable(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_virtual_hub_route_table" "test" {
-  name           = "acctest-VHUBRT-%d"
-  virtual_hub_id = azurerm_virtual_hub.test.id
-}
-
-resource "azurerm_express_route_connection" "test" {
-  name                             = "acctest-ExpressRouteConnection-%d"
-  express_route_gateway_id         = azurerm_express_route_gateway.test.id
-  express_route_circuit_peering_id = azurerm_express_route_circuit_peering.test.id
-  routing_weight                   = 2
-  authorization_key                = "90f8db47-e25b-4b65-a68b-7743ced2a16b"
-  enable_internet_security         = true
-
-  routing {
     propagated_route_table {
       labels          = ["label1"]
       route_table_ids = [azurerm_virtual_hub_route_table.test.id]
