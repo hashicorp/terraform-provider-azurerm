@@ -1,57 +1,55 @@
 package migration
 
 import (
+	"context"
 	"log"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
-func GremlinDatabaseV0ToV1() schema.StateUpgrader {
-	return schema.StateUpgrader{
-		Type:    gremlinDatabaseSchemaForV0().CoreConfigSchema().ImpliedType(),
-		Upgrade: gremlinDatabaseUpgradeV0ToV1,
-		Version: 0,
-	}
-}
+var _ pluginsdk.StateUpgrade = GremlinDatabaseV0ToV1{}
 
-func gremlinDatabaseSchemaForV0() *schema.Resource {
-	return &schema.Resource{
-		Schema: map[string]*schema.Schema{
-			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+type GremlinDatabaseV0ToV1 struct{}
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+func (GremlinDatabaseV0ToV1) Schema() map[string]*pluginsdk.Schema {
+	return map[string]*schema.Schema{
+		"name": {
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
 
-			"account_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+		"resource_group_name": {
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
 
-			"throughput": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Computed: true,
-			},
+		"account_name": {
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
+
+		"throughput": {
+			Type:     schema.TypeInt,
+			Optional: true,
+			Computed: true,
 		},
 	}
 }
 
-func gremlinDatabaseUpgradeV0ToV1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
-	oldId := rawState["id"].(string)
-	newId := strings.Replace(rawState["id"].(string), "apis/gremlin/databases", "gremlinDatabases", 1)
+func (GremlinDatabaseV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
+	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+		oldId := rawState["id"].(string)
+		newId := strings.Replace(rawState["id"].(string), "apis/gremlin/databases", "gremlinDatabases", 1)
 
-	log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId)
+		log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId)
 
-	rawState["id"] = newId
+		rawState["id"] = newId
 
-	return rawState, nil
+		return rawState, nil
+	}
 }
