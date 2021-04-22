@@ -59,6 +59,13 @@ func resourceDedicatedHostGroup() *schema.Resource {
 				ValidateFunc: validation.IntBetween(1, 3),
 			},
 
+			"automatic_placement_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				ForceNew: true,
+				Default:  false,
+			},
+
 			// Currently only one endpoint is allowed.
 			// we'll leave this open to enhancement when they add multiple zones support.
 			"zones": azure.SchemaSingleZone(),
@@ -101,6 +108,10 @@ func resourceDedicatedHostGroupCreate(d *schema.ResourceData, meta interface{}) 
 	}
 	if zones, ok := d.GetOk("zones"); ok {
 		parameters.Zones = utils.ExpandStringSlice(zones.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("automatic_placement_enabled"); ok {
+		parameters.DedicatedHostGroupProperties.SupportAutomaticPlacement = utils.Bool(v.(bool))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroupName, name, parameters); err != nil {
@@ -152,6 +163,8 @@ func resourceDedicatedHostGroupRead(d *schema.ResourceData, meta interface{}) er
 			platformFaultDomainCount = int(*props.PlatformFaultDomainCount)
 		}
 		d.Set("platform_fault_domain_count", platformFaultDomainCount)
+
+		d.Set("automatic_placement_enabled", props.SupportAutomaticPlacement)
 	}
 	d.Set("zones", utils.FlattenStringSlice(resp.Zones))
 
