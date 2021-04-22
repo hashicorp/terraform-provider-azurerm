@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -184,7 +186,7 @@ func (r ResourceProviderRegistrationResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r ResourceProviderRegistrationResource) IDValidationFunc() schema.SchemaValidateFunc {
+func (r ResourceProviderRegistrationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.ResourceProviderID
 }
 

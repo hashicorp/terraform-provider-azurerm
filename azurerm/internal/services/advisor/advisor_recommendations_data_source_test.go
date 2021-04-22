@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -14,10 +13,10 @@ type AdvisorRecommendationsDataSourceTests struct{}
 func TestAccAdvisorRecommendationsDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_advisor_recommendations", "test")
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: AdvisorRecommendationsDataSourceTests{}.basicConfig(),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("recommendations.#").Exists(),
 				check.That(data.ResourceName).Key("recommendations.0.category").Exists(),
 				check.That(data.ResourceName).Key("recommendations.0.description").Exists(),
@@ -35,10 +34,10 @@ func TestAccAdvisorRecommendationsDataSource_basic(t *testing.T) {
 func TestAccAdvisorRecommendationsDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_advisor_recommendations", "test")
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: AdvisorRecommendationsDataSourceTests{}.completeConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("recommendations.#").Exists(),
 			),
 		},
@@ -48,10 +47,10 @@ func TestAccAdvisorRecommendationsDataSource_complete(t *testing.T) {
 func TestAccAdvisorRecommendationsDataSource_categoriesFilter(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_advisor_recommendations", "test")
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: AdvisorRecommendationsDataSourceTests{}.categoriesFilterConfig(),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("recommendations.#").Exists(),
 				check.That(data.ResourceName).Key("recommendations.0.category").HasValue("Cost"),
 			),
