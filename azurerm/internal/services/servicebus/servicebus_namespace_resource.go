@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2018-01-01-preview/servicebus"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -41,9 +43,9 @@ func resourceServiceBusNamespace() *schema.Resource {
 		}),
 
 		SchemaVersion: 1,
-		StateUpgraders: []schema.StateUpgrader{
-			migration.NamespaceV0ToV1(),
-		},
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.NamespaceV0ToV1{},
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
