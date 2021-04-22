@@ -102,6 +102,8 @@ A `routing` block supports the following:
 
 * `propagated_route_table` - (Optional)  A `propagated_route_table` block as defined below.
 
+~> **NOTE:** When `routing` isn't specified, `associated_route_table_id` and `propagated_route_table` would be set with the default value.
+
 ---
 
 A `propagated_route_table` block supports the following:
@@ -109,6 +111,8 @@ A `propagated_route_table` block supports the following:
 * `labels` - (Optional) The list of labels to assign to this Virtual Hub Route Table.
 
 * `route_table_ids` - (Optional) A list of IDs of the Virtual Hub Route Table which are associated with the Virtual Hub Connection.
+
+~> **NOTE:** When `propagated_route_table` isn't specified, `labels` and `route_table_ids` would be set with the default value.
 
 ## Attributes Reference
 

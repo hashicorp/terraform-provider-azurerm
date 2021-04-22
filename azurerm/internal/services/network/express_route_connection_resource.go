@@ -130,16 +130,15 @@ func resourceExpressRouteConnectionCreateUpdate(d *schema.ResourceData, meta int
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
 	expressRouteGatewayId, err := parse.ExpressRouteGatewayID(d.Get("express_route_gateway_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewExpressRouteConnectionID(expressRouteGatewayId.SubscriptionId, expressRouteGatewayId.ResourceGroup, expressRouteGatewayId.Name, name)
+	id := parse.NewExpressRouteConnectionID(expressRouteGatewayId.SubscriptionId, expressRouteGatewayId.ResourceGroup, expressRouteGatewayId.Name, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.ExpressRouteGatewayName, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.ExpressRouteGatewayName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -152,7 +151,7 @@ func resourceExpressRouteConnectionCreateUpdate(d *schema.ResourceData, meta int
 	}
 
 	expressRouteConnectionParameters := network.ExpressRouteConnection{
-		Name: utils.String(d.Get("name").(string)),
+		Name: utils.String(id.Name),
 		ExpressRouteConnectionProperties: &network.ExpressRouteConnectionProperties{
 			ExpressRouteCircuitPeering: &network.ExpressRouteCircuitPeeringID{
 				ID: utils.String(d.Get("express_route_circuit_peering_id").(string)),
@@ -173,7 +172,7 @@ func resourceExpressRouteConnectionCreateUpdate(d *schema.ResourceData, meta int
 		expressRouteConnectionParameters.ExpressRouteConnectionProperties.RoutingConfiguration = expandExpressRouteConnectionRouting(v.([]interface{}))
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ExpressRouteGatewayName, name, expressRouteConnectionParameters)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ExpressRouteGatewayName, id.Name, expressRouteConnectionParameters)
 	if err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
