@@ -14,7 +14,7 @@ func SchemaResourceGroupName() *pluginsdk.Schema {
 		Type:         pluginsdk.TypeString,
 		Required:     true,
 		ForceNew:     true,
-		ValidateFunc: validateResourceGroupName,
+		ValidateFunc: ValidateResourceGroupName,
 	}
 }
 
@@ -22,7 +22,7 @@ func SchemaResourceGroupNameDeprecated() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:         pluginsdk.TypeString,
 		Optional:     true,
-		ValidateFunc: validateResourceGroupName,
+		ValidateFunc: ValidateResourceGroupName,
 		Deprecated:   "This field is no longer used and will be removed in the next major version of the Azure Provider",
 	}
 }
@@ -32,7 +32,7 @@ func SchemaResourceGroupNameDeprecatedComputed() *pluginsdk.Schema {
 		Type:         pluginsdk.TypeString,
 		Optional:     true,
 		Computed:     true,
-		ValidateFunc: validateResourceGroupName,
+		ValidateFunc: ValidateResourceGroupName,
 		Deprecated:   "This field is no longer used and will be removed in the next major version of the Azure Provider",
 	}
 }
@@ -43,7 +43,7 @@ func SchemaResourceGroupNameDiffSuppress() *pluginsdk.Schema {
 		Required:         true,
 		ForceNew:         true,
 		DiffSuppressFunc: suppress.CaseDifference,
-		ValidateFunc:     validateResourceGroupName,
+		ValidateFunc:     ValidateResourceGroupName,
 	}
 }
 
@@ -51,7 +51,7 @@ func SchemaResourceGroupNameForDataSource() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:         pluginsdk.TypeString,
 		Required:     true,
-		ValidateFunc: validateResourceGroupName,
+		ValidateFunc: ValidateResourceGroupName,
 	}
 }
 
@@ -61,7 +61,7 @@ func SchemaResourceGroupNameOptionalComputed() *pluginsdk.Schema {
 		ForceNew:     true,
 		Optional:     true,
 		Computed:     true,
-		ValidateFunc: validateResourceGroupName,
+		ValidateFunc: ValidateResourceGroupName,
 	}
 }
 
@@ -69,7 +69,7 @@ func SchemaResourceGroupNameOptional() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:         pluginsdk.TypeString,
 		Optional:     true,
-		ValidateFunc: validateResourceGroupName,
+		ValidateFunc: ValidateResourceGroupName,
 	}
 }
 
@@ -79,12 +79,12 @@ func SchemaResourceGroupNameSetOptional() *pluginsdk.Schema {
 		Optional: true,
 		Elem: &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
-			ValidateFunc: validateResourceGroupName,
+			ValidateFunc: ValidateResourceGroupName,
 		},
 	}
 }
 
-func validateResourceGroupName(v interface{}, k string) (warnings []string, errors []error) {
+func ValidateResourceGroupName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if len(value) > 90 {
