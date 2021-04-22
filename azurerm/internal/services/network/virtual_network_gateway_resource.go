@@ -379,7 +379,6 @@ func resourceVirtualNetworkGateway() *schema.Resource {
 						"address_prefixes": {
 							Type:     schema.TypeSet,
 							Optional: true,
-							ForceNew: true,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},
