@@ -205,10 +205,10 @@ resource "azurerm_key_vault_certificate" "test" {
       ]
 
       subject_alternative_names {
-        dns_names = ["internal.contoso.com", "domain.hello.world"]
+        dns_names = [azurerm_frontdoor.test.cname]
       }
 
-      subject            = "CN=hello-world"
+      subject            = "CN=test"
       validity_in_months = 12
     }
   }
