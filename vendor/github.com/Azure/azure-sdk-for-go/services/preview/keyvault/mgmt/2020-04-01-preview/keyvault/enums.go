@@ -83,88 +83,6 @@ func PossibleCreateModeValues() []CreateMode {
 	return []CreateMode{CreateModeDefault, CreateModeRecover}
 }
 
-// DeletionRecoveryLevel enumerates the values for deletion recovery level.
-type DeletionRecoveryLevel string
-
-const (
-	// Purgeable ...
-	Purgeable DeletionRecoveryLevel = "Purgeable"
-	// Recoverable ...
-	Recoverable DeletionRecoveryLevel = "Recoverable"
-	// RecoverableProtectedSubscription ...
-	RecoverableProtectedSubscription DeletionRecoveryLevel = "Recoverable+ProtectedSubscription"
-	// RecoverablePurgeable ...
-	RecoverablePurgeable DeletionRecoveryLevel = "Recoverable+Purgeable"
-)
-
-// PossibleDeletionRecoveryLevelValues returns an array of possible values for the DeletionRecoveryLevel const type.
-func PossibleDeletionRecoveryLevelValues() []DeletionRecoveryLevel {
-	return []DeletionRecoveryLevel{Purgeable, Recoverable, RecoverableProtectedSubscription, RecoverablePurgeable}
-}
-
-// JSONWebKeyCurveName enumerates the values for json web key curve name.
-type JSONWebKeyCurveName string
-
-const (
-	// P256 ...
-	P256 JSONWebKeyCurveName = "P-256"
-	// P256K ...
-	P256K JSONWebKeyCurveName = "P-256K"
-	// P384 ...
-	P384 JSONWebKeyCurveName = "P-384"
-	// P521 ...
-	P521 JSONWebKeyCurveName = "P-521"
-)
-
-// PossibleJSONWebKeyCurveNameValues returns an array of possible values for the JSONWebKeyCurveName const type.
-func PossibleJSONWebKeyCurveNameValues() []JSONWebKeyCurveName {
-	return []JSONWebKeyCurveName{P256, P256K, P384, P521}
-}
-
-// JSONWebKeyOperation enumerates the values for json web key operation.
-type JSONWebKeyOperation string
-
-const (
-	// JSONWebKeyOperationDecrypt ...
-	JSONWebKeyOperationDecrypt JSONWebKeyOperation = "decrypt"
-	// JSONWebKeyOperationEncrypt ...
-	JSONWebKeyOperationEncrypt JSONWebKeyOperation = "encrypt"
-	// JSONWebKeyOperationImport ...
-	JSONWebKeyOperationImport JSONWebKeyOperation = "import"
-	// JSONWebKeyOperationSign ...
-	JSONWebKeyOperationSign JSONWebKeyOperation = "sign"
-	// JSONWebKeyOperationUnwrapKey ...
-	JSONWebKeyOperationUnwrapKey JSONWebKeyOperation = "unwrapKey"
-	// JSONWebKeyOperationVerify ...
-	JSONWebKeyOperationVerify JSONWebKeyOperation = "verify"
-	// JSONWebKeyOperationWrapKey ...
-	JSONWebKeyOperationWrapKey JSONWebKeyOperation = "wrapKey"
-)
-
-// PossibleJSONWebKeyOperationValues returns an array of possible values for the JSONWebKeyOperation const type.
-func PossibleJSONWebKeyOperationValues() []JSONWebKeyOperation {
-	return []JSONWebKeyOperation{JSONWebKeyOperationDecrypt, JSONWebKeyOperationEncrypt, JSONWebKeyOperationImport, JSONWebKeyOperationSign, JSONWebKeyOperationUnwrapKey, JSONWebKeyOperationVerify, JSONWebKeyOperationWrapKey}
-}
-
-// JSONWebKeyType enumerates the values for json web key type.
-type JSONWebKeyType string
-
-const (
-	// EC ...
-	EC JSONWebKeyType = "EC"
-	// ECHSM ...
-	ECHSM JSONWebKeyType = "EC-HSM"
-	// RSA ...
-	RSA JSONWebKeyType = "RSA"
-	// RSAHSM ...
-	RSAHSM JSONWebKeyType = "RSA-HSM"
-)
-
-// PossibleJSONWebKeyTypeValues returns an array of possible values for the JSONWebKeyType const type.
-func PossibleJSONWebKeyTypeValues() []JSONWebKeyType {
-	return []JSONWebKeyType{EC, ECHSM, RSA, RSAHSM}
-}
-
 // KeyPermissions enumerates the values for key permissions.
 type KeyPermissions string
 
@@ -208,6 +126,21 @@ const (
 // PossibleKeyPermissionsValues returns an array of possible values for the KeyPermissions const type.
 func PossibleKeyPermissionsValues() []KeyPermissions {
 	return []KeyPermissions{KeyPermissionsAll, KeyPermissionsBackup, KeyPermissionsCreate, KeyPermissionsDecrypt, KeyPermissionsDelete, KeyPermissionsEncrypt, KeyPermissionsGet, KeyPermissionsImport, KeyPermissionsList, KeyPermissionsPurge, KeyPermissionsRecover, KeyPermissionsRestore, KeyPermissionsSign, KeyPermissionsUnwrapKey, KeyPermissionsUpdate, KeyPermissionsVerify, KeyPermissionsWrapKey}
+}
+
+// ManagedHsmSkuName enumerates the values for managed hsm sku name.
+type ManagedHsmSkuName string
+
+const (
+	// CustomB32 ...
+	CustomB32 ManagedHsmSkuName = "Custom_B32"
+	// StandardB1 ...
+	StandardB1 ManagedHsmSkuName = "Standard_B1"
+)
+
+// PossibleManagedHsmSkuNameValues returns an array of possible values for the ManagedHsmSkuName const type.
+func PossibleManagedHsmSkuNameValues() []ManagedHsmSkuName {
+	return []ManagedHsmSkuName{CustomB32, StandardB1}
 }
 
 // NetworkRuleAction enumerates the values for network rule action.
@@ -281,6 +214,34 @@ const (
 // PossiblePrivateEndpointServiceConnectionStatusValues returns an array of possible values for the PrivateEndpointServiceConnectionStatus const type.
 func PossiblePrivateEndpointServiceConnectionStatusValues() []PrivateEndpointServiceConnectionStatus {
 	return []PrivateEndpointServiceConnectionStatus{PrivateEndpointServiceConnectionStatusApproved, PrivateEndpointServiceConnectionStatusDisconnected, PrivateEndpointServiceConnectionStatusPending, PrivateEndpointServiceConnectionStatusRejected}
+}
+
+// ProvisioningState enumerates the values for provisioning state.
+type ProvisioningState string
+
+const (
+	// ProvisioningStateActivated The managed HSM pool is ready for normal use.
+	ProvisioningStateActivated ProvisioningState = "Activated"
+	// ProvisioningStateDeleting The managed HSM Pool is currently being deleted.
+	ProvisioningStateDeleting ProvisioningState = "Deleting"
+	// ProvisioningStateFailed Provisioning of the managed HSM Pool has failed.
+	ProvisioningStateFailed ProvisioningState = "Failed"
+	// ProvisioningStateProvisioning The managed HSM Pool is currently being provisioned.
+	ProvisioningStateProvisioning ProvisioningState = "Provisioning"
+	// ProvisioningStateRestoring The managed HSM pool is being restored from full HSM backup.
+	ProvisioningStateRestoring ProvisioningState = "Restoring"
+	// ProvisioningStateSecurityDomainRestore The managed HSM pool is waiting for a security domain restore
+	// action.
+	ProvisioningStateSecurityDomainRestore ProvisioningState = "SecurityDomainRestore"
+	// ProvisioningStateSucceeded The managed HSM Pool has been full provisioned.
+	ProvisioningStateSucceeded ProvisioningState = "Succeeded"
+	// ProvisioningStateUpdating The managed HSM Pool is currently being updated.
+	ProvisioningStateUpdating ProvisioningState = "Updating"
+)
+
+// PossibleProvisioningStateValues returns an array of possible values for the ProvisioningState const type.
+func PossibleProvisioningStateValues() []ProvisioningState {
+	return []ProvisioningState{ProvisioningStateActivated, ProvisioningStateDeleting, ProvisioningStateFailed, ProvisioningStateProvisioning, ProvisioningStateRestoring, ProvisioningStateSecurityDomainRestore, ProvisioningStateSucceeded, ProvisioningStateUpdating}
 }
 
 // Reason enumerates the values for reason.
