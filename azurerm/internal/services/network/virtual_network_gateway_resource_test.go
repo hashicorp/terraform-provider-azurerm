@@ -1228,7 +1228,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 
   custom_route {
     address_prefixes = [
-      "101.168.0.6/32", 
+      "101.168.0.6/32",
       "101.168.0.7/32"
     ]
   }
