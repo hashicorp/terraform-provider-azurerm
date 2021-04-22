@@ -16,7 +16,113 @@ type KeyVaultV0ToV1 struct{}
 
 func (KeyVaultV0ToV1) Schema() map[string]*pluginsdk.Schema {
 	return map[string]*schema.Schema{
-		// TODO: dig this out
+		"name": {
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
+
+		"location": {
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
+
+		"resource_group_name": {
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
+
+		"sku": {
+			Type:     schema.TypeList,
+			Required: true,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"name": {
+						Type:     schema.TypeString,
+						Required: true,
+					},
+				},
+			},
+		},
+
+		"vault_uri": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+
+		"tenant_id": {
+			Type:     schema.TypeString,
+			Required: true,
+		},
+
+		"access_policy": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MinItems: 1,
+			MaxItems: 16,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"tenant_id": {
+						Type:     schema.TypeString,
+						Required: true,
+					},
+					"object_id": {
+						Type:     schema.TypeString,
+						Required: true,
+					},
+					"application_id": {
+						Type:     schema.TypeString,
+						Optional: true,
+					},
+					"certificate_permissions": {
+						Type:     schema.TypeList,
+						Optional: true,
+						Elem: &schema.Schema{
+							Type: schema.TypeString,
+						},
+					},
+					"key_permissions": {
+						Type:     schema.TypeList,
+						Required: true,
+						Elem: &schema.Schema{
+							Type: schema.TypeString,
+						},
+					},
+					"secret_permissions": {
+						Type:     schema.TypeList,
+						Required: true,
+						Elem: &schema.Schema{
+							Type: schema.TypeString,
+						},
+					},
+				},
+			},
+		},
+
+		"enabled_for_deployment": {
+			Type:     schema.TypeBool,
+			Optional: true,
+		},
+
+		"enabled_for_disk_encryption": {
+			Type:     schema.TypeBool,
+			Optional: true,
+		},
+
+		"enabled_for_template_deployment": {
+			Type:     schema.TypeBool,
+			Optional: true,
+		},
+
+		"tags": {
+			Type:     schema.TypeMap,
+			Optional: true,
+			Elem: &schema.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
 	}
 }
 
