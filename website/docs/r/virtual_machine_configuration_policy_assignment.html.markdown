@@ -3,12 +3,12 @@ subcategory: "Policy"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_virtual_machine_configuration_policy_assignment"
 description: |-
-  Manages a Virtual Machine Configuration Policy Assignment.
+  Applies a Configuration Policy to a Virtual Machine.
 ---
 
 # azurerm_virtual_machine_configuration_policy_assignment
 
-Manages a Virtual Machine Configuration Policy Assignment.
+Applies a Configuration Policy to a Virtual Machine.
 
 ## Example Usage
 
@@ -96,15 +96,15 @@ The following arguments are supported:
 
 ---
 
-* `guest_configuration` - (Required)  A `guest_configuration` block as defined below.
+* `configuration` - (Required)  A `configuration` block as defined below.
 
 ---
 
-An `guest_configuration` block supports the following:
+An `configuration` block supports the following:
 
 * `name` - (Required) The name of the Guest Configuration that will be assigned in this Guest Configuration Assignment.
 
-* `parameter` - (Optional) One or more `parameter` blocks as defined below.
+* `parameter` - (Optional) One or more `parameter` blocks which define what configuration parameters and values against.
 
 * `version` - (Optional) The version of the Guest Configuration that will be assigned in this Guest Configuration Assignment.
 
@@ -112,9 +112,9 @@ An `guest_configuration` block supports the following:
 
 An `parameter` block supports the following:
 
-* `name` - (Required) The name of the configuration parameter.
+* `name` - (Required) The name of the configuration parameter to check.
 
-* `value` - (Required) The value of the configuration parameter.
+* `value` - (Required) The value to check the configuration parameter with.
 
 ## Attributes Reference
 

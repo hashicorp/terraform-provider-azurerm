@@ -55,7 +55,7 @@ func resourceVirtualMachineConfigurationPolicyAssignment() *schema.Resource {
 				ValidateFunc: computeValidate.VirtualMachineID,
 			},
 
-			"policy": {
+			"configuration": {
 				Type:     schema.TypeList,
 				Required: true,
 				MaxItems: 1,
@@ -126,7 +126,7 @@ func resourceVirtualMachineConfigurationPolicyAssignmentCreateUpdate(d *schema.R
 		Name:     utils.String(d.Get("name").(string)),
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Properties: &guestconfiguration.AssignmentProperties{
-			GuestConfiguration: expandGuestConfigurationAssignment(d.Get("policy").([]interface{})),
+			GuestConfiguration: expandGuestConfigurationAssignment(d.Get("configuration").([]interface{})),
 		},
 	}
 	if _, err := client.CreateOrUpdate(ctx, id.GuestConfigurationAssignmentName, parameter, id.ResourceGroup, id.VirtualMachineName); err != nil {
@@ -165,8 +165,8 @@ func resourceVirtualMachineConfigurationPolicyAssignmentRead(d *schema.ResourceD
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.Properties; props != nil {
-		if err := d.Set("policy", flattenGuestConfigurationAssignment(props.GuestConfiguration)); err != nil {
-			return fmt.Errorf("setting `policy`: %+v", err)
+		if err := d.Set("configuration", flattenGuestConfigurationAssignment(props.GuestConfiguration)); err != nil {
+			return fmt.Errorf("setting `configuration`: %+v", err)
 		}
 	}
 	return nil

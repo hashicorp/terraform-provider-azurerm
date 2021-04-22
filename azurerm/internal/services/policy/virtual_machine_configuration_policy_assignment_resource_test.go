@@ -138,7 +138,7 @@ resource "azurerm_virtual_machine_configuration_policy_assignment" "test" {
   name               = "acctest-gca-%d"
   location           = azurerm_windows_virtual_machine.test.location
   virtual_machine_id = azurerm_windows_virtual_machine.test.id
-  policy {
+  configuration {
     name    = "WhitelistedApplication"
     version = "1.*"
 
@@ -160,7 +160,7 @@ resource "azurerm_virtual_machine_configuration_policy_assignment" "import" {
   location           = azurerm_virtual_machine_configuration_policy_assignment.test.location
   virtual_machine_id = azurerm_virtual_machine_configuration_policy_assignment.test.virtual_machine_id
 
-  policy {
+  configuration {
     name    = "WhitelistedApplication"
     version = "1.*"
 
