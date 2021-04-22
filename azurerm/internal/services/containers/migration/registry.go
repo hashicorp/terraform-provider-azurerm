@@ -54,6 +54,7 @@ func registrySchemaForV0AndV1() *schema.Resource {
 				Default:  false,
 			},
 
+			// lintignore:S018
 			"storage_account": {
 				Type:     schema.TypeSet,
 				Required: true,
@@ -92,6 +93,9 @@ func registrySchemaForV0AndV1() *schema.Resource {
 			"tags": {
 				Type:     schema.TypeMap,
 				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 		},
 	}
