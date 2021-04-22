@@ -372,6 +372,7 @@ func resourceApiManagementService() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: apiManagementResourceHostnameSchema(),
 							},
+							AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
 						},
 						"portal": {
 							Type:     schema.TypeList,
@@ -379,6 +380,7 @@ func resourceApiManagementService() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: apiManagementResourceHostnameSchema(),
 							},
+							AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
 						},
 						"developer_portal": {
 							Type:     schema.TypeList,
@@ -386,6 +388,7 @@ func resourceApiManagementService() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: apiManagementResourceHostnameSchema(),
 							},
+							AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
 						},
 						"proxy": {
 							Type:     schema.TypeList,
@@ -393,6 +396,7 @@ func resourceApiManagementService() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: apiManagementResourceHostnameProxySchema(),
 							},
+							AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
 						},
 						"scm": {
 							Type:     schema.TypeList,
@@ -400,6 +404,7 @@ func resourceApiManagementService() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: apiManagementResourceHostnameSchema(),
 							},
+							AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
 						},
 					},
 				},
@@ -941,9 +946,7 @@ func expandAzureRmApiManagementHostnameConfigurations(d *schema.ResourceData) *[
 	hostnameVs := vs.([]interface{})
 
 	for _, hostnameRawVal := range hostnameVs {
-		if hostnameRawVal == nil {
-			continue
-		}
+		// hostnameRawVal is guaranteed to be non-nil as there is AtLeastOneOf constraint on its containing properties.
 		hostnameV := hostnameRawVal.(map[string]interface{})
 
 		managementVs := hostnameV["management"].([]interface{})
