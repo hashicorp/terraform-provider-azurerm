@@ -246,6 +246,7 @@ func legacyVMSSSchemaForV0() *schema.Resource {
 				},
 			},
 
+			// lintignore:S018
 			"os_profile_windows_config": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -306,6 +307,7 @@ func legacyVMSSSchemaForV0() *schema.Resource {
 				Set: resourceArmVirtualMachineScaleSetOsProfileWindowsConfigHash,
 			},
 
+			// lintignore:S018
 			"os_profile_linux_config": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -491,6 +493,7 @@ func legacyVMSSSchemaForV0() *schema.Resource {
 				},
 			},
 
+			// lintignore:S018
 			"storage_profile_os_disk": {
 				Type:     schema.TypeSet,
 				Required: true,
@@ -577,6 +580,7 @@ func legacyVMSSSchemaForV0() *schema.Resource {
 				},
 			},
 
+			// lintignore:S018
 			"storage_profile_image_reference": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -613,6 +617,7 @@ func legacyVMSSSchemaForV0() *schema.Resource {
 				Set: resourceArmVirtualMachineScaleSetStorageProfileImageReferenceHash,
 			},
 
+			// lintignore:S018
 			"plan": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -685,6 +690,9 @@ func legacyVMSSSchemaForV0() *schema.Resource {
 			"tags": {
 				Type:     schema.TypeMap,
 				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 		},
 	}

@@ -107,6 +107,9 @@ func dnsZoneSchemaForV0() *schema.Resource {
 						"tags": {
 							Type:     schema.TypeMap,
 							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
 						},
 
 						"fqdn": {
@@ -120,6 +123,9 @@ func dnsZoneSchemaForV0() *schema.Resource {
 			"tags": {
 				Type:     schema.TypeMap,
 				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 		},
 	}
