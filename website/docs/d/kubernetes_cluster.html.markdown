@@ -264,6 +264,11 @@ An `ingress_application_gateway` block supports the following:
 
 * `effective_gateway_id` - The ID of the application gateway associated with the application gateway ingress controller deployed to this cluster.
 
+* `gateway_id` - The ID of the Application Gateway integrated with the ingress controller of this Kubernetes Cluster. This attribute is only set when gateway_id is specified when configuring the `ingress_application_gateway` addon.
+
+* `subnet_cidr` - The subnet CIDR used to create an Application Gateway, which in turn will be integrated with the ingress controller of this Kubernetes Cluster. This attribute is only set when `subnet_cidr` is specified when configuring the `ingress_application_gateway` addon.
+
+* `subnet_id` - The ID of the subnet on which to create an Application Gateway, which in turn will be integrated with the ingress controller of this Kubernetes Cluster. This attribute is only set when `subnet_id` is specified when configuring the `ingress_application_gateway` addon.
 
 ---
 
