@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	validate2 "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
@@ -37,9 +39,9 @@ func resourceVirtualMachineScaleSet() *schema.Resource {
 		Delete: resourceVirtualMachineScaleSetDelete,
 
 		SchemaVersion: 1,
-		StateUpgraders: []schema.StateUpgrader{
-			migration.LegacyVMSSV0ToV1(),
-		},
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.LegacyVMSSV0ToV1{},
+		}),
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,

@@ -1,6 +1,7 @@
 package migration
 
 import (
+	"context"
 	"testing"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -36,7 +37,7 @@ func TestCdnProfileV1ToV2(t *testing.T) {
 	}
 	for _, test := range testData {
 		t.Logf("Testing %q..", test.name)
-		result, err := cdnProfileUpgradeV0ToV1(test.input, nil)
+		result, err := CdnProfileV0ToV1{}.UpgradeFunc()(context.TODO(), test.input, nil)
 		if err != nil && test.expected == nil {
 			continue
 		} else {

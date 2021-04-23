@@ -27,7 +27,7 @@ type StateUpgrade interface {
 // which allows us to upgrade the Plugin SDK without breaking all open
 // PR's and attempts to make this interface a little less verbose.
 func StateUpgrades(upgrades map[int]StateUpgrade) []StateUpgrader {
-	versions := make([]int, len(upgrades))
+	versions := make([]int, 0)
 	for version := range versions {
 		versions = append(versions, version)
 	}

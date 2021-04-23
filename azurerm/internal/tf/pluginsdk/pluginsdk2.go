@@ -6,7 +6,7 @@ This is tracking the changes necessary for Plugin SDKv2
 1. (DONE) Base Layer
 2. (DONE) Package validation
 	All validation functions need to be moved into `validation` - since otherwise the test namespace needs fixing
-3. Updating the Migration functions to use the new wrapper
+3. (DONE) Updating the Migration functions to use the new wrapper
 4. Updating the Customize Diff functions to use the new wrapper
 5. Updating the Import functions to use the new wrappers
 6. Updating the Migration wrapper and functions to take `ctx` as the first param
