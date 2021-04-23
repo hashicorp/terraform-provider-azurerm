@@ -311,6 +311,8 @@ func resourceVirtualNetworkGateway() *schema.Resource {
 						"asn": {
 							Type:     schema.TypeInt,
 							Optional: true,
+							AtLeastOneOf: []string{"bgp_settings.0.asn", "bgp_settings.0.peering_address",
+								"bgp_settings.0.peer_weight", "bgp_settings.0.peering_addresses"},
 						},
 
 						// TODO 3.0 - Remove this property
@@ -319,13 +321,18 @@ func resourceVirtualNetworkGateway() *schema.Resource {
 							Optional:   true,
 							Computed:   true,
 							Deprecated: "Deprecated in favor of `bgp_settings.0.peering_addresses.0.default_addresses.0`",
+							AtLeastOneOf: []string{"bgp_settings.0.asn", "bgp_settings.0.peering_address",
+								"bgp_settings.0.peer_weight", "bgp_settings.0.peering_addresses"},
 						},
 
 						"peer_weight": {
 							Type:     schema.TypeInt,
 							Optional: true,
+							AtLeastOneOf: []string{"bgp_settings.0.asn", "bgp_settings.0.peering_address",
+								"bgp_settings.0.peer_weight", "bgp_settings.0.peering_addresses"},
 						},
 
+						//lintignore:XS003
 						"peering_addresses": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -365,11 +372,14 @@ func resourceVirtualNetworkGateway() *schema.Resource {
 									},
 								},
 							},
+							AtLeastOneOf: []string{"bgp_settings.0.asn", "bgp_settings.0.peering_address",
+								"bgp_settings.0.peer_weight", "bgp_settings.0.peering_addresses"},
 						},
 					},
 				},
 			},
 
+			//lintignore:XS003
 			"custom_route": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -656,6 +666,9 @@ func expandVirtualNetworkGatewayBgpPeeringAddresses(id parse.VirtualNetworkGatew
 	}
 
 	for _, e := range input {
+		if e == nil {
+			continue
+		}
 		b := e.(map[string]interface{})
 
 		ipConfigName := b["ip_configuration_name"].(string)
@@ -801,7 +814,7 @@ func expandVirtualNetworkGatewaySku(d *schema.ResourceData) *network.VirtualNetw
 }
 
 func expandVirtualNetworkGatewayAddressSpace(input []interface{}) *network.AddressSpace {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 	v := input[0].(map[string]interface{})

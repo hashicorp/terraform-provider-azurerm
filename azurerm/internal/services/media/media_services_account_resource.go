@@ -75,6 +75,7 @@ func resourceMediaServicesAccount() *schema.Resource {
 				},
 			},
 
+			//lintignore:XS003
 			"identity": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -288,6 +289,9 @@ func flattenMediaServicesAccountStorageAccounts(input *[]media.StorageAccount) [
 
 func expandAzureRmMediaServiceIdentity(d *schema.ResourceData) *media.ServiceIdentity {
 	identities := d.Get("identity").([]interface{})
+	if identities[0] == nil {
+		return nil
+	}
 	identity := identities[0].(map[string]interface{})
 	identityType := identity["type"].(string)
 	return &media.ServiceIdentity{

@@ -41,6 +41,7 @@ func roleDefinitionSchemaForV0() *schema.Resource {
 				Optional: true,
 			},
 
+			//lintignore:XS003
 			"permissions": {
 				Type:     schema.TypeList,
 				Required: true,

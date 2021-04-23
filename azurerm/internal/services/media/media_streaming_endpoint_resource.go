@@ -100,6 +100,7 @@ func resourceMediaStreamingEndpoint() *schema.Resource {
 									},
 								},
 							},
+							AtLeastOneOf: []string{"access_control.0.akamai_signature_header_authentication_key", "access_control.0.ip_allow"},
 						},
 						"ip_allow": {
 							Type:     schema.TypeList,
@@ -122,6 +123,7 @@ func resourceMediaStreamingEndpoint() *schema.Resource {
 									},
 								},
 							},
+							AtLeastOneOf: []string{"access_control.0.akamai_signature_header_authentication_key", "access_control.0.ip_allow"},
 						},
 					},
 				},
@@ -162,6 +164,7 @@ func resourceMediaStreamingEndpoint() *schema.Resource {
 							Computed:     true,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+							AtLeastOneOf: []string{"cross_site_access_policy.0.client_access_policy", "cross_site_access_policy.0.cross_domain_policy"},
 						},
 
 						"cross_domain_policy": {
@@ -169,6 +172,7 @@ func resourceMediaStreamingEndpoint() *schema.Resource {
 							Computed:     true,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+							AtLeastOneOf: []string{"cross_site_access_policy.0.client_access_policy", "cross_site_access_policy.0.cross_domain_policy"},
 						},
 					},
 				},

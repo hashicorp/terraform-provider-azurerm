@@ -355,6 +355,7 @@ func frontDoorSchemaForV0AndV1() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
+						//lintignore:XS003
 						"custom_https_configuration": {
 							Type:     schema.TypeList,
 							Optional: true,

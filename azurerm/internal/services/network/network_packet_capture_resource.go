@@ -91,12 +91,14 @@ func resourceNetworkPacketCapture() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"file_path": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							AtLeastOneOf: []string{"storage_location.0.file_path", "storage_location.0.storage_account_id"},
 						},
 						"storage_account_id": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							AtLeastOneOf: []string{"storage_location.0.file_path", "storage_location.0.storage_account_id"},
 						},
 						"storage_path": {
 							Type:     schema.TypeString,

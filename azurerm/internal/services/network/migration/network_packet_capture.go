@@ -63,6 +63,7 @@ func networkPacketCaptureSchemaForV0() *schema.Resource {
 				Default:  18000,
 			},
 
+			//lintignore:XS003
 			"storage_location": {
 				Type:     schema.TypeList,
 				Required: true,

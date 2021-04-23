@@ -423,6 +423,7 @@ func resourceApiManagementService() *schema.Resource {
 							Optional:         true,
 							Computed:         true,
 							ConflictsWith:    []string{"policy.0.xml_link"},
+							AtLeastOneOf:     []string{"policy.0.xml_content", "policy.0.xml_link"},
 							DiffSuppressFunc: XmlWithDotNetInterpolationsDiffSuppress,
 						},
 
@@ -430,6 +431,7 @@ func resourceApiManagementService() *schema.Resource {
 							Type:          schema.TypeString,
 							Optional:      true,
 							ConflictsWith: []string{"policy.0.xml_content"},
+							AtLeastOneOf:  []string{"policy.0.xml_content", "policy.0.xml_link"},
 						},
 					},
 				},

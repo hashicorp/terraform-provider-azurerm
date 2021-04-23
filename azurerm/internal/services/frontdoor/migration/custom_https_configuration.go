@@ -32,6 +32,7 @@ func customHttpsConfigurationSchemaToV0() *schema.Resource {
 				Required: true,
 			},
 
+			//lintignore:XS003
 			"custom_https_configuration": {
 				Type:     schema.TypeList,
 				Optional: true,

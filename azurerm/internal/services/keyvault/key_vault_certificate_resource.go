@@ -253,6 +253,10 @@ func resourceKeyVaultCertificate() *schema.Resource {
 														Type: schema.TypeString,
 													},
 													Set: schema.HashString,
+													AtLeastOneOf: []string{"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.emails",
+														"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.dns_names",
+														"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.upns",
+													},
 												},
 												"dns_names": {
 													Type:     schema.TypeSet,
@@ -262,6 +266,10 @@ func resourceKeyVaultCertificate() *schema.Resource {
 														Type: schema.TypeString,
 													},
 													Set: schema.HashString,
+													AtLeastOneOf: []string{"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.emails",
+														"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.dns_names",
+														"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.upns",
+													},
 												},
 												"upns": {
 													Type:     schema.TypeSet,
@@ -271,6 +279,10 @@ func resourceKeyVaultCertificate() *schema.Resource {
 														Type: schema.TypeString,
 													},
 													Set: schema.HashString,
+													AtLeastOneOf: []string{"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.emails",
+														"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.dns_names",
+														"certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.upns",
+													},
 												},
 											},
 										},
@@ -687,17 +699,19 @@ func expandKeyVaultCertificatePolicy(d *schema.ResourceData) keyvault.Certificat
 
 		if v, ok := action["trigger"]; ok {
 			triggers := v.([]interface{})
-			trigger := triggers[0].(map[string]interface{})
-			lifetimeAction.Trigger = &keyvault.Trigger{}
+			if triggers[0] != nil {
+				trigger := triggers[0].(map[string]interface{})
+				lifetimeAction.Trigger = &keyvault.Trigger{}
 
-			d := trigger["days_before_expiry"].(int)
-			if d > 0 {
-				lifetimeAction.Trigger.DaysBeforeExpiry = utils.Int32(int32(d))
-			}
+				d := trigger["days_before_expiry"].(int)
+				if d > 0 {
+					lifetimeAction.Trigger.DaysBeforeExpiry = utils.Int32(int32(d))
+				}
 
-			p := trigger["lifetime_percentage"].(int)
-			if p > 0 {
-				lifetimeAction.Trigger.LifetimePercentage = utils.Int32(int32(p))
+				p := trigger["lifetime_percentage"].(int)
+				if p > 0 {
+					lifetimeAction.Trigger.LifetimePercentage = utils.Int32(int32(p))
+				}
 			}
 		}
 

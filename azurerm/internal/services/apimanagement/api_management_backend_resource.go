@@ -65,14 +65,17 @@ func resourceApiManagementBackend() *schema.Resource {
 										Type:         schema.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
+										AtLeastOneOf: []string{"credentials.0.authorization.0.parameter", "credentials.0.authorization.0.scheme"},
 									},
 									"scheme": {
 										Type:         schema.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
+										AtLeastOneOf: []string{"credentials.0.authorization.0.parameter", "credentials.0.authorization.0.scheme"},
 									},
 								},
 							},
+							AtLeastOneOf: []string{"credentials.0.authorization", "credentials.0.certificate", "credentials.0.header", "credentials.0.query"},
 						},
 						"certificate": {
 							Type:     schema.TypeList,
@@ -81,6 +84,7 @@ func resourceApiManagementBackend() *schema.Resource {
 								Type:         schema.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
+							AtLeastOneOf: []string{"credentials.0.authorization", "credentials.0.certificate", "credentials.0.header", "credentials.0.query"},
 						},
 						"header": {
 							Type:     schema.TypeMap,
@@ -89,6 +93,7 @@ func resourceApiManagementBackend() *schema.Resource {
 								Type:         schema.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
+							AtLeastOneOf: []string{"credentials.0.authorization", "credentials.0.certificate", "credentials.0.header", "credentials.0.query"},
 						},
 						"query": {
 							Type:     schema.TypeMap,
@@ -97,6 +102,7 @@ func resourceApiManagementBackend() *schema.Resource {
 								Type:         schema.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
+							AtLeastOneOf: []string{"credentials.0.authorization", "credentials.0.certificate", "credentials.0.header", "credentials.0.query"},
 						},
 					},
 				},
@@ -217,12 +223,14 @@ func resourceApiManagementBackend() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"validate_certificate_chain": {
-							Type:     schema.TypeBool,
-							Optional: true,
+							Type:         schema.TypeBool,
+							Optional:     true,
+							AtLeastOneOf: []string{"tls.0.validate_certificate_chain", "tls.0.validate_certificate_name"},
 						},
 						"validate_certificate_name": {
-							Type:     schema.TypeBool,
-							Optional: true,
+							Type:         schema.TypeBool,
+							Optional:     true,
+							AtLeastOneOf: []string{"tls.0.validate_certificate_chain", "tls.0.validate_certificate_name"},
 						},
 					},
 				},
