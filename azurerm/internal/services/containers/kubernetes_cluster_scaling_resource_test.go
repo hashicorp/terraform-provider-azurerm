@@ -290,10 +290,10 @@ func testAccKubernetesCluster_autoScalingProfile(t *testing.T) {
 				check.That(data.ResourceName).Key("default_node_pool.0.enable_auto_scaling").HasValue("true"),
 				check.That(data.ResourceName).Key("auto_scaler_profile.0.expander").HasValue("least-waste"),
 				check.That(data.ResourceName).Key("auto_scaler_profile.0.max_graceful_termination_sec").HasValue("15"),
-				check.That(data.ResourceName).Key("auto_scaler_profile.0.max_node_provision_time").HasValue("10m"),
-				check.That(data.ResourceName).Key("auto_scaler_profile.0.max_total_unready_percentage").HasValue("50"),
+				check.That(data.ResourceName).Key("auto_scaler_profile.0.max_node_provisioning_time").HasValue("10m"),
+				check.That(data.ResourceName).Key("auto_scaler_profile.0.max_unready_percentage").HasValue("50"),
 				check.That(data.ResourceName).Key("auto_scaler_profile.0.new_pod_scale_up_delay").HasValue("10s"),
-				check.That(data.ResourceName).Key("auto_scaler_profile.0.ok_total_unready_count").HasValue("5"),
+				check.That(data.ResourceName).Key("auto_scaler_profile.0.max_unready_nodes").HasValue("5"),
 				check.That(data.ResourceName).Key("auto_scaler_profile.0.scale_down_delay_after_add").HasValue("10m"),
 				check.That(data.ResourceName).Key("auto_scaler_profile.0.scale_down_delay_after_delete").HasValue("10s"),
 				check.That(data.ResourceName).Key("auto_scaler_profile.0.scale_down_delay_after_failure").HasValue("15m"),
@@ -554,10 +554,10 @@ resource "azurerm_kubernetes_cluster" "test" {
     balance_similar_node_groups      = true
     expander                         = "least-waste"
     max_graceful_termination_sec     = 15
-    max_node_provision_time          = "10m"
-    max_total_unready_percentage     = 50
+    max_node_provisioning_time       = "10m"
+    max_unready_nodes                = 5
+    max_unready_percentage           = 50
     new_pod_scale_up_delay           = "10s"
-    ok_total_unready_count           = 5
     scan_interval                    = "10s"
     scale_down_delay_after_add       = "10m"
     scale_down_delay_after_delete    = "10s"
