@@ -12,7 +12,11 @@ import (
 	"unicode"
 )
 
-var packagesUsingAlias = map[string]struct{}{}
+var packagesUsingAlias = map[string]struct{}{
+        "advisor": {},
+        "analysisservices": {},
+        "appconfiguration": {},
+}
 
 func main() {
 	servicePackagePath := flag.String("path", "", "The relative path to the service package")
