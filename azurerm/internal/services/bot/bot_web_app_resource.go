@@ -1,6 +1,7 @@
 package bot
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -29,10 +30,8 @@ func resourceBotWebApp() *schema.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.BotServiceID(id)
 			return err
-		}, func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
 			client := meta.(*clients.Client).Bot.BotClient
-			ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-			defer cancel()
 
 			id, err := parse.BotServiceID(d.Id())
 			if err != nil {

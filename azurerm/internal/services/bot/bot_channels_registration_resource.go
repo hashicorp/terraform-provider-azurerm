@@ -1,6 +1,7 @@
 package bot
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -37,10 +38,8 @@ func resourceBotChannelsRegistration() *schema.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.BotServiceID(id)
 			return err
-		}, func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
 			client := meta.(*clients.Client).Bot.BotClient
-			ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-			defer cancel()
 
 			id, err := parse.BotServiceID(d.Id())
 			if err != nil {
@@ -59,7 +58,7 @@ func resourceBotChannelsRegistration() *schema.Resource {
 				return nil, fmt.Errorf("Bot %q (Resource Group %q) was not a Channel Registration - got %q", id.Name, id.ResourceGroup, string(resp.Kind))
 			}
 
-			return []*schema.ResourceData{d}, nil
+			return []*pluginsdk.ResourceData{d}, nil
 		}),
 
 		Schema: map[string]*schema.Schema{
