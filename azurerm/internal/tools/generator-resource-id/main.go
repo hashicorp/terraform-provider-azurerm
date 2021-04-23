@@ -13,9 +13,9 @@ import (
 )
 
 var packagesUsingAlias = map[string]struct{}{
-        "advisor": {},
-        "analysisservices": {},
-        "appconfiguration": {},
+	"advisor":          {},
+	"analysisservices": {},
+	"appconfiguration": {},
 }
 
 func main() {
