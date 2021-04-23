@@ -61,7 +61,7 @@ func resourceFrontDoorCustomHttpsConfiguration() *schema.Resource {
 			},
 
 			// TODO: remove in 3.0
-			"resource_group_name": azure.SchemaResourceGroupNameDeprecated(),
+			"resource_group_name": azure.SchemaResourceGroupNameDeprecatedComputed(),
 		},
 
 		CustomizeDiff: customizeHttpsConfigurationCustomizeDiff,
