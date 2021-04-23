@@ -66,7 +66,7 @@ func resourceFrontDoorCustomHttpsConfiguration() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameDeprecated(),
 		},
 
-		CustomizeDiff: customizeHttpsConfigurationCustomizeDiff,
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(customizeHttpsConfigurationCustomizeDiff),
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{

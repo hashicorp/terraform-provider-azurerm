@@ -1,9 +1,12 @@
 package databricks
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks/validate"
 
@@ -124,7 +127,7 @@ func resourceDatabricksWorkspace() *schema.Resource {
 			},
 		},
 
-		CustomizeDiff: func(d *schema.ResourceDiff, v interface{}) error {
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *schema.ResourceDiff, v interface{}) error {
 			if d.HasChange("sku") {
 				sku, changedSKU := d.GetChange("sku")
 
@@ -137,7 +140,7 @@ func resourceDatabricksWorkspace() *schema.Resource {
 			}
 
 			return nil
-		},
+		}),
 	}
 }
 

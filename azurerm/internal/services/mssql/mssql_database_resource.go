@@ -1,15 +1,17 @@
 package mssql
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 
@@ -301,8 +303,8 @@ func resourceMsSqlDatabase() *schema.Resource {
 			"tags": tags.Schema(),
 		},
 
-		CustomizeDiff: customdiff.All(
-			customdiff.ForceNewIfChange("sku_name", func(old, new, _ interface{}) bool {
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.ForceNewIfChange("sku_name", func(ctx context.Context, old, new, _ interface{}) bool {
 				// "hyperscale can not change to other sku
 				return strings.HasPrefix(old.(string), "HS") && !strings.HasPrefix(new.(string), "HS")
 			}),

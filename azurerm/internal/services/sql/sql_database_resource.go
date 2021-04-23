@@ -1,10 +1,13 @@
 package sql
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
 	"time"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql"
 	"github.com/Azure/go-autorest/autorest/date"
@@ -339,7 +342,7 @@ func resourceSqlDatabase() *schema.Resource {
 			"tags": tags.Schema(),
 		},
 
-		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *schema.ResourceDiff, v interface{}) error {
 			threatDetection, hasThreatDetection := diff.GetOk("threat_detection_policy")
 			if hasThreatDetection {
 				if tl := threatDetection.([]interface{}); len(tl) > 0 {
@@ -355,7 +358,7 @@ func resourceSqlDatabase() *schema.Resource {
 			}
 
 			return nil
-		},
+		}),
 	}
 }
 

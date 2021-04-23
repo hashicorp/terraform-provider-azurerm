@@ -8,9 +8,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2019-05-01/logic"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -127,8 +128,8 @@ func resourceIntegrationServiceEnvironment() *schema.Resource {
 			"tags": tags.Schema(),
 		},
 
-		CustomizeDiff: customdiff.All(
-			customdiff.ForceNewIfChange("sku_name", func(old, new, meta interface{}) bool {
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.ForceNewIfChange("sku_name", func(ctx context.Context, old, new, meta interface{}) bool {
 				oldSku := strings.Split(old.(string), "_")
 				newSku := strings.Split(new.(string), "_")
 				// The SKU cannot be changed once integration service environment has been provisioned. -> we need ForceNew
