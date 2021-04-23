@@ -400,6 +400,7 @@ func frontDoorSchemaForV0AndV1() map[string]*pluginsdk.Schema {
 						Type:     schema.TypeString,
 						Optional: true,
 					},
+					//lintignore:XS003
 					"custom_https_configuration": {
 						Type:     schema.TypeList,
 						Optional: true,

@@ -38,6 +38,26 @@ func (CustomHttpsConfigurationV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					"certificate_source": {
 						Type:     schema.TypeString,
 						Optional: true,
+						AtLeastOneOf: []string{"custom_https_configuration.0.certificate_source", "custom_https_configuration.0.azure_key_vault_certificate_secret_name",
+							"custom_https_configuration.0.azure_key_vault_certificate_secret_version", "custom_https_configuration.0.azure_key_vault_certificate_vault_id"},
+					},
+					"azure_key_vault_certificate_secret_name": {
+						Type:     schema.TypeString,
+						Optional: true,
+						AtLeastOneOf: []string{"custom_https_configuration.0.certificate_source", "custom_https_configuration.0.azure_key_vault_certificate_secret_name",
+							"custom_https_configuration.0.azure_key_vault_certificate_secret_version", "custom_https_configuration.0.azure_key_vault_certificate_vault_id"},
+					},
+					"azure_key_vault_certificate_secret_version": {
+						Type:     schema.TypeString,
+						Optional: true,
+						AtLeastOneOf: []string{"custom_https_configuration.0.certificate_source", "custom_https_configuration.0.azure_key_vault_certificate_secret_name",
+							"custom_https_configuration.0.azure_key_vault_certificate_secret_version", "custom_https_configuration.0.azure_key_vault_certificate_vault_id"},
+					},
+					"azure_key_vault_certificate_vault_id": {
+						Type:     schema.TypeString,
+						Optional: true,
+						AtLeastOneOf: []string{"custom_https_configuration.0.certificate_source", "custom_https_configuration.0.azure_key_vault_certificate_secret_name",
+							"custom_https_configuration.0.azure_key_vault_certificate_secret_version", "custom_https_configuration.0.azure_key_vault_certificate_vault_id"},
 					},
 					"minimum_tls_version": {
 						Type:     schema.TypeString,
@@ -50,18 +70,6 @@ func (CustomHttpsConfigurationV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					"provisioning_substate": {
 						Type:     schema.TypeString,
 						Computed: true,
-					},
-					"azure_key_vault_certificate_secret_name": {
-						Type:     schema.TypeString,
-						Optional: true,
-					},
-					"azure_key_vault_certificate_secret_version": {
-						Type:     schema.TypeString,
-						Optional: true,
-					},
-					"azure_key_vault_certificate_vault_id": {
-						Type:     schema.TypeString,
-						Optional: true,
 					},
 				},
 			},
