@@ -54,7 +54,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the resource.
 
-* `bot_management_portal_link` - The management link.
+* `bot_management_portal_url` - The management portal url.
 
 ## Timeouts
 
