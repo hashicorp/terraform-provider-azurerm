@@ -42,12 +42,12 @@ func resourceKubernetesCluster() *schema.Resource {
 			return err
 		}),
 
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(pluginsdk.CustomDiffInSequence(
+		CustomizeDiff: pluginsdk.CustomDiffInSequence(
 			// Downgrade from Paid to Free is not supported and requires rebuild to apply
 			pluginsdk.ForceNewIfChange("sku_tier", func(ctx context.Context, old, new, meta interface{}) bool {
 				return new == "Free"
 			}),
-		)),
+		),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(90 * time.Minute),
