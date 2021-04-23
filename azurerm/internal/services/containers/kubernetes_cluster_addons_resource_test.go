@@ -23,7 +23,10 @@ var kubernetesAddOnTests = map[string]func(t *testing.T){
 	"addonProfileAppGatewaySubnetID":        testAccKubernetesCluster_addonProfileIngressApplicationGateway_subnetId,
 }
 
-var appGatewayIdRegExp = regexp.MustCompile("^/.+/providers/Microsoft.Network/applicationGateways/.+$")
+var addOnAppGatewayIdRegExp = regexp.MustCompile("^/.+/providers/Microsoft.Network/applicationGateways/.+$")
+var addOnAppGatewaySubnetIdRegExp = regexp.MustCompile("^/.+/providers/Microsoft.Network/virtualNetworks/.+/subnets/.+$")
+
+var addOnAppGatewaySubnetCIDR string = "10.241.0.0/16" // AKS will use 10.240.0.0/16 for the aks subnet and 10.241.0.0/16 for the app gateway subnet
 
 func TestAccKubernetesCluster_addonProfileAciConnectorLinux(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
@@ -280,6 +283,8 @@ func testAccKubernetesCluster_addonProfileIngressApplicationGateway_appGatewayId
 				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.effective_gateway_id").MatchesOtherKey(
 					check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.gateway_id"),
 				),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.subnet_cidr").IsEmpty(),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.subnet_id").IsEmpty(),
 			),
 		},
 		data.ImportStep(),
@@ -301,7 +306,10 @@ func testAccKubernetesCluster_addonProfileIngressApplicationGateway_subnetCIDR(t
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.effective_gateway_id").Exists(),
-				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.effective_gateway_id").MatchesRegex(appGatewayIdRegExp),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.effective_gateway_id").MatchesRegex(addOnAppGatewayIdRegExp),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.gateway_id").IsEmpty(),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.subnet_cidr").HasValue(addOnAppGatewaySubnetCIDR),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.subnet_id").IsEmpty(),
 			),
 		},
 		data.ImportStep(),
@@ -311,6 +319,10 @@ func testAccKubernetesCluster_addonProfileIngressApplicationGateway_subnetCIDR(t
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.#").HasValue("1"),
 				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.effective_gateway_id").IsEmpty(),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.gateway_id").IsEmpty(),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.subnet_cidr").IsEmpty(),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.subnet_id").IsEmpty(),
 			),
 		},
 	})
@@ -331,7 +343,10 @@ func testAccKubernetesCluster_addonProfileIngressApplicationGateway_subnetId(t *
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.effective_gateway_id").Exists(),
-				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.effective_gateway_id").MatchesRegex(appGatewayIdRegExp),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.effective_gateway_id").MatchesRegex(addOnAppGatewayIdRegExp),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.gateway_id").IsEmpty(),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.subnet_cidr").IsEmpty(),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.subnet_id").MatchesRegex(addOnAppGatewaySubnetIdRegExp),
 			),
 		},
 		data.ImportStep(),
@@ -832,7 +847,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "172.0.2.0/24"
+  address_prefixes     = ["172.0.2.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {
@@ -876,7 +891,6 @@ resource "azurerm_application_gateway" "test" {
   backend_http_settings {
     name                  = "backendhttpsettings"
     cookie_based_affinity = "Disabled"
-    path                  = "/"
     port                  = 80
     protocol              = "Http"
     request_timeout       = 60
@@ -969,7 +983,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   addon_profile {
     ingress_application_gateway {
       enabled     = true
-      subnet_cidr = "10.241.0.0/16" // AKS will use 10.240.0.0/16 for the aks subnet and 10.241.0.0/16 for the app gateway subnet
+      subnet_cidr = "%s"
     }
     kube_dashboard {
       enabled = false
@@ -980,7 +994,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, addOnAppGatewaySubnetCIDR)
 }
 
 func (KubernetesClusterResource) addonProfileIngressApplicationGatewayDisabledConfig(data acceptance.TestData) string {
@@ -1052,7 +1066,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "172.0.2.0/24"
+  address_prefixes     = ["172.0.2.0/24"]
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
