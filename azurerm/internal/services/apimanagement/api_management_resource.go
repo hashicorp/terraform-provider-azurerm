@@ -410,6 +410,7 @@ func resourceApiManagementService() *schema.Resource {
 				},
 			},
 
+			//lintignore:XS003
 			"policy": {
 				Type:       schema.TypeList,
 				Optional:   true,
@@ -423,7 +424,6 @@ func resourceApiManagementService() *schema.Resource {
 							Optional:         true,
 							Computed:         true,
 							ConflictsWith:    []string{"policy.0.xml_link"},
-							AtLeastOneOf:     []string{"policy.0.xml_content", "policy.0.xml_link"},
 							DiffSuppressFunc: XmlWithDotNetInterpolationsDiffSuppress,
 						},
 
@@ -431,7 +431,6 @@ func resourceApiManagementService() *schema.Resource {
 							Type:          schema.TypeString,
 							Optional:      true,
 							ConflictsWith: []string{"policy.0.xml_content"},
-							AtLeastOneOf:  []string{"policy.0.xml_content", "policy.0.xml_link"},
 						},
 					},
 				},

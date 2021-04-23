@@ -16,12 +16,14 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"recover_soft_deleted_key_vaults": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
+						Type:         pluginsdk.TypeBool,
+						Optional:     true,
+						AtLeastOneOf: []string{"features.0.key_vault.0.recover_soft_deleted_key_vaults", "features.0.key_vault.0.purge_soft_delete_on_destroy"},
 					},
 					"purge_soft_delete_on_destroy": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
+						Type:         pluginsdk.TypeBool,
+						Optional:     true,
+						AtLeastOneOf: []string{"features.0.key_vault.0.recover_soft_deleted_key_vaults", "features.0.key_vault.0.purge_soft_delete_on_destroy"},
 					},
 				},
 			},
@@ -75,12 +77,14 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"delete_os_disk_on_deletion": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
+						Type:         pluginsdk.TypeBool,
+						Optional:     true,
+						AtLeastOneOf: []string{"features.0.virtual_machine.0.delete_os_disk_on_deletion", "features.0.virtual_machine.0.graceful_shutdown"},
 					},
 					"graceful_shutdown": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
+						Type:         pluginsdk.TypeBool,
+						Optional:     true,
+						AtLeastOneOf: []string{"features.0.virtual_machine.0.delete_os_disk_on_deletion", "features.0.virtual_machine.0.graceful_shutdown"},
 					},
 				},
 			},

@@ -78,6 +78,7 @@ func resourceMediaStreamingEndpoint() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						//lintignore:XS003
 						"akamai_signature_header_authentication_key": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -102,6 +103,7 @@ func resourceMediaStreamingEndpoint() *schema.Resource {
 							},
 							AtLeastOneOf: []string{"access_control.0.akamai_signature_header_authentication_key", "access_control.0.ip_allow"},
 						},
+						//lintignore:XS003
 						"ip_allow": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -486,8 +488,11 @@ func expandAccessControl(d *schema.ResourceData) (*media.StreamingEndpointAccess
 	// Get IP information
 	if raw, ok := accessControl["ip_allow"]; ok {
 		ipAllowsList := raw.([]interface{})
-		ipRanges := make([]media.IPRange, len(ipAllowsList))
+		ipRanges := make([]media.IPRange, 0)
 		for index, ipAllow := range ipAllowsList {
+			if ipAllow == nil {
+				continue
+			}
 			allow := ipAllow.(map[string]interface{})
 			address := allow["address"].(string)
 			name := allow["name"].(string)
@@ -509,8 +514,11 @@ func expandAccessControl(d *schema.ResourceData) (*media.StreamingEndpointAccess
 	// Get Akamai information
 	if raw, ok := accessControl["akamai_signature_header_authentication_key"]; ok {
 		akamaiSignatureKeyList := raw.([]interface{})
-		akamaiSignatureHeaderAuthenticationKeyList := make([]media.AkamaiSignatureHeaderAuthenticationKey, len(akamaiSignatureKeyList))
-		for index, akamaiSignatureKey := range akamaiSignatureKeyList {
+		akamaiSignatureHeaderAuthenticationKeyList := make([]media.AkamaiSignatureHeaderAuthenticationKey, 0)
+		for _, akamaiSignatureKey := range akamaiSignatureKeyList {
+			if akamaiSignatureKey == nil {
+				continue
+			}
 			akamaiKey := akamaiSignatureKey.(map[string]interface{})
 			base64Key := akamaiKey["base64_key"].(string)
 			expirationRaw := akamaiKey["expiration"].(string)
@@ -529,7 +537,7 @@ func expandAccessControl(d *schema.ResourceData) (*media.StreamingEndpointAccess
 					Time: expiration,
 				}
 			}
-			akamaiSignatureHeaderAuthenticationKeyList[index] = akamaiSignatureHeaderAuthenticationKey
+			akamaiSignatureHeaderAuthenticationKeyList = append(akamaiSignatureHeaderAuthenticationKeyList, akamaiSignatureHeaderAuthenticationKey)
 			accessControlResult.Akamai = &media.AkamaiAccessControl{
 				AkamaiSignatureHeaderAuthenticationKeyList: &akamaiSignatureHeaderAuthenticationKeyList,
 			}

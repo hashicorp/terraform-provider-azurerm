@@ -70,6 +70,7 @@ func resourceMediaLiveEvent() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						//lintignore:XS003
 						"ip_access_control_allow": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -92,6 +93,9 @@ func resourceMediaLiveEvent() *schema.Resource {
 									},
 								},
 							},
+							AtLeastOneOf: []string{"input.0.ip_access_control_allow", "input.0.access_token", "input.0.endpoint",
+								"input.0.key_frame_interval_duration", "input.0.streaming_protocol",
+							},
 						},
 
 						"access_token": {
@@ -100,6 +104,9 @@ func resourceMediaLiveEvent() *schema.Resource {
 							Computed:     true,
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+							AtLeastOneOf: []string{"input.0.ip_access_control_allow", "input.0.access_token", "input.0.endpoint",
+								"input.0.key_frame_interval_duration", "input.0.streaming_protocol",
+							},
 						},
 
 						"endpoint": {
@@ -117,12 +124,18 @@ func resourceMediaLiveEvent() *schema.Resource {
 									},
 								},
 							},
+							AtLeastOneOf: []string{"input.0.ip_access_control_allow", "input.0.access_token", "input.0.endpoint",
+								"input.0.key_frame_interval_duration", "input.0.streaming_protocol",
+							},
 						},
 
 						"key_frame_interval_duration": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+							AtLeastOneOf: []string{"input.0.ip_access_control_allow", "input.0.access_token", "input.0.endpoint",
+								"input.0.key_frame_interval_duration", "input.0.streaming_protocol",
+							},
 						},
 
 						"streaming_protocol": {
@@ -133,6 +146,9 @@ func resourceMediaLiveEvent() *schema.Resource {
 								string(media.RTMP),
 								string(media.FragmentedMP4),
 							}, false),
+							AtLeastOneOf: []string{"input.0.ip_access_control_allow", "input.0.access_token", "input.0.endpoint",
+								"input.0.key_frame_interval_duration", "input.0.streaming_protocol",
+							},
 						},
 					},
 				},
@@ -148,12 +164,14 @@ func resourceMediaLiveEvent() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+							AtLeastOneOf: []string{"cross_site_access_policy.0.client_access_policy", "cross_site_access_policy.0.cross_domain_policy"},
 						},
 
 						"cross_domain_policy": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+							AtLeastOneOf: []string{"cross_site_access_policy.0.client_access_policy", "cross_site_access_policy.0.cross_domain_policy"},
 						},
 					},
 				},
@@ -224,6 +242,7 @@ func resourceMediaLiveEvent() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						//lintignore:XS003
 						"ip_access_control_allow": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -246,12 +265,18 @@ func resourceMediaLiveEvent() *schema.Resource {
 									},
 								},
 							},
+							AtLeastOneOf: []string{"preview.0.ip_access_control_allow", "preview.0.alternative_media_id", "preview.0.endpoint",
+								"preview.0.preview_locator", "preview.0.streaming_policy_name",
+							},
 						},
 
 						"alternative_media_id": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.IsUUID,
+							AtLeastOneOf: []string{"preview.0.ip_access_control_allow", "preview.0.alternative_media_id", "preview.0.endpoint",
+								"preview.0.preview_locator", "preview.0.streaming_policy_name",
+							},
 						},
 
 						"endpoint": {
@@ -269,6 +294,9 @@ func resourceMediaLiveEvent() *schema.Resource {
 									},
 								},
 							},
+							AtLeastOneOf: []string{"preview.0.ip_access_control_allow", "preview.0.alternative_media_id", "preview.0.endpoint",
+								"preview.0.preview_locator", "preview.0.streaming_policy_name",
+							},
 						},
 
 						"preview_locator": {
@@ -277,6 +305,9 @@ func resourceMediaLiveEvent() *schema.Resource {
 							ForceNew:     true,
 							Computed:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+							AtLeastOneOf: []string{"preview.0.ip_access_control_allow", "preview.0.alternative_media_id", "preview.0.endpoint",
+								"preview.0.preview_locator", "preview.0.streaming_policy_name",
+							},
 						},
 
 						"streaming_policy_name": {
@@ -285,6 +316,9 @@ func resourceMediaLiveEvent() *schema.Resource {
 							Optional:     true,
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+							AtLeastOneOf: []string{"preview.0.ip_access_control_allow", "preview.0.alternative_media_id", "preview.0.endpoint",
+								"preview.0.preview_locator", "preview.0.streaming_policy_name",
+							},
 						},
 					},
 				},
@@ -554,8 +588,11 @@ func expandIPRanges(input []interface{}) []media.IPRange {
 		return nil
 	}
 
-	ipRanges := make([]media.IPRange, len(input))
+	ipRanges := make([]media.IPRange, 0)
 	for index, ipAllow := range input {
+		if ipAllow == nil {
+			continue
+		}
 		allow := ipAllow.(map[string]interface{})
 		address := allow["address"].(string)
 		name := allow["name"].(string)

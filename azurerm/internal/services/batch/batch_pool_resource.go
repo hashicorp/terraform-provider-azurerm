@@ -359,6 +359,7 @@ func resourceBatchPool() *schema.Resource {
 							},
 						},
 
+						//lintignore:XS003
 						"resource_file": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -367,38 +368,26 @@ func resourceBatchPool() *schema.Resource {
 									"auto_storage_container_name": {
 										Type:     schema.TypeString,
 										Optional: true,
-										AtLeastOneOf: []string{"start_task.0.resource_file.0.auto_storage_container_name", "start_task.0.resource_file.0.blob_prefix", "start_task.0.resource_file.0.file_mode",
-											"start_task.0.resource_file.0.file_path", "start_task.0.resource_file.0.http_url", "start_task.0.resource_file.0.storage_container_url"},
 									},
 									"blob_prefix": {
 										Type:     schema.TypeString,
 										Optional: true,
-										AtLeastOneOf: []string{"start_task.0.resource_file.0.auto_storage_container_name", "start_task.0.resource_file.0.blob_prefix", "start_task.0.resource_file.0.file_mode",
-											"start_task.0.resource_file.0.file_path", "start_task.0.resource_file.0.http_url", "start_task.0.resource_file.0.storage_container_url"},
 									},
 									"file_mode": {
 										Type:     schema.TypeString,
 										Optional: true,
-										AtLeastOneOf: []string{"start_task.0.resource_file.0.auto_storage_container_name", "start_task.0.resource_file.0.blob_prefix", "start_task.0.resource_file.0.file_mode",
-											"start_task.0.resource_file.0.file_path", "start_task.0.resource_file.0.http_url", "start_task.0.resource_file.0.storage_container_url"},
 									},
 									"file_path": {
 										Type:     schema.TypeString,
 										Optional: true,
-										AtLeastOneOf: []string{"start_task.0.resource_file.0.auto_storage_container_name", "start_task.0.resource_file.0.blob_prefix", "start_task.0.resource_file.0.file_mode",
-											"start_task.0.resource_file.0.file_path", "start_task.0.resource_file.0.http_url", "start_task.0.resource_file.0.storage_container_url"},
 									},
 									"http_url": {
 										Type:     schema.TypeString,
 										Optional: true,
-										AtLeastOneOf: []string{"start_task.0.resource_file.0.auto_storage_container_name", "start_task.0.resource_file.0.blob_prefix", "start_task.0.resource_file.0.file_mode",
-											"start_task.0.resource_file.0.file_path", "start_task.0.resource_file.0.http_url", "start_task.0.resource_file.0.storage_container_url"},
 									},
 									"storage_container_url": {
 										Type:     schema.TypeString,
 										Optional: true,
-										AtLeastOneOf: []string{"start_task.0.resource_file.0.auto_storage_container_name", "start_task.0.resource_file.0.blob_prefix", "start_task.0.resource_file.0.file_mode",
-											"start_task.0.resource_file.0.file_path", "start_task.0.resource_file.0.http_url", "start_task.0.resource_file.0.storage_container_url"},
 									},
 								},
 							},

@@ -159,6 +159,7 @@ func resourceKeyVaultCertificate() *schema.Resource {
 											},
 										},
 									},
+									//lintignore:XS003
 									"trigger": {
 										Type:     schema.TypeList,
 										Required: true,

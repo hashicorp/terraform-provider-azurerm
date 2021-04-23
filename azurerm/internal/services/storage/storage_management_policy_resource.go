@@ -57,6 +57,7 @@ func resourceStorageManagementPolicy() *schema.Resource {
 							Type:     schema.TypeBool,
 							Required: true,
 						},
+						//lintignore:XS003
 						"filters": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -84,12 +85,14 @@ func resourceStorageManagementPolicy() *schema.Resource {
 								},
 							},
 						},
+						//lintignore:XS003
 						"actions": {
 							Type:     schema.TypeList,
 							Required: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
+									//lintignore:XS003
 									"base_blob": {
 										Type:     schema.TypeList,
 										Optional: true,
@@ -117,6 +120,7 @@ func resourceStorageManagementPolicy() *schema.Resource {
 											},
 										},
 									},
+									//lintignore:XS003
 									"snapshot": {
 										Type:     schema.TypeList,
 										Optional: true,
