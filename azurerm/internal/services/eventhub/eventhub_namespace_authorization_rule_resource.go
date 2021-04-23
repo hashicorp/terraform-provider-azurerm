@@ -27,9 +27,8 @@ func resourceEventHubNamespaceAuthorizationRule() *schema.Resource {
 		Update: resourceEventHubNamespaceAuthorizationRuleCreateUpdate,
 		Delete: resourceEventHubNamespaceAuthorizationRuleDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		SchemaVersion: 2,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{

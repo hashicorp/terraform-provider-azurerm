@@ -44,9 +44,8 @@ func resourceVirtualMachineScaleSet() *schema.Resource {
 			0: migration.LegacyVMSSV0ToV1{},
 		}),
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),
