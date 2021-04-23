@@ -17,10 +17,11 @@ type ValueChangeConditionFunc = func(ctx context.Context, old, new, meta interfa
 // If this is not desirable, use function Sequence instead.
 //
 // If multiple functions returns errors, the result is a multierror.
-func CustomDiffWithAll(funcs ...CustomizeDiffFunc) CustomizeDiffFunc {
-	return func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+func CustomDiffWithAll(funcs ...CustomizeDiffFunc) schema.CustomizeDiffFunc {
+	return func(d *schema.ResourceDiff, meta interface{}) error {
 		var err error
 		for _, f := range funcs {
+			ctx := context.TODO()
 			thisErr := f(ctx, d, meta)
 			if thisErr != nil {
 				err = multierror.Append(err, thisErr)
@@ -57,10 +58,10 @@ func CustomDiffInSequence(funcs ...CustomizeDiffFunc) schema.CustomizeDiffFunc {
 // only the old and new values of the given key, which leads to more compact
 // and explicit code in the common case where the decision can be made with
 // only the specific field value.
-func ForceNewIfChange(key string, f ValueChangeConditionFunc) schema.CustomizeDiffFunc {
-	return func(d *schema.ResourceDiff, meta interface{}) error {
+func ForceNewIfChange(key string, f ValueChangeConditionFunc) CustomizeDiffFunc {
+	return func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
 		old, new := d.GetChange(key)
-		if f(context.TODO(), old, new, meta) {
+		if f(ctx, old, new, meta) {
 			d.ForceNew(key)
 		}
 		return nil
