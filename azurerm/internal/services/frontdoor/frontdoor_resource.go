@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-01-01/frontdoor"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -36,10 +38,10 @@ func resourceFrontDoor() *schema.Resource {
 		}),
 
 		SchemaVersion: 2,
-		StateUpgraders: []schema.StateUpgrader{
-			migration.FrontDoorUpgradeV0ToV1(),
-			migration.FrontDoorUpgradeV1ToV2(),
-		},
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.FrontDoorUpgradeV0ToV1{},
+			1: migration.FrontDoorUpgradeV1ToV2{},
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(6 * time.Hour),
@@ -501,7 +503,7 @@ func resourceFrontDoor() *schema.Resource {
 			"tags": tags.Schema(),
 		},
 
-		CustomizeDiff: frontDoorCustomizeDiff,
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(frontDoorCustomizeDiff),
 	}
 }
 

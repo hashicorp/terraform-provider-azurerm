@@ -101,7 +101,7 @@ func resourceSentinelDataConnectorAzureActiveDirectoryCreate(d *schema.ResourceD
 				},
 			},
 		},
-		Kind: securityinsight.KindAzureActiveDirectory,
+		Kind: securityinsight.KindBasicDataConnectorKindAzureActiveDirectory,
 	}
 
 	if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.Name, param); err != nil {

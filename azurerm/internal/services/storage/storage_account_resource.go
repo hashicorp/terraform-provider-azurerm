@@ -1,13 +1,12 @@
 package storage
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
 	"strings"
 	"time"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/migration"
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-01-01/storage"
 	azautorest "github.com/Azure/go-autorest/autorest"
@@ -21,8 +20,10 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -40,10 +41,10 @@ func resourceStorageAccount() *schema.Resource {
 		Delete: resourceStorageAccountDelete,
 
 		SchemaVersion: 2,
-		StateUpgraders: []schema.StateUpgrader{
-			migration.AccountV0ToV1(),
-			migration.AccountV1ToV2(),
-		},
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.AccountV0ToV1{},
+			1: migration.AccountV1ToV2{},
+		}),
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -590,7 +591,7 @@ func resourceStorageAccount() *schema.Resource {
 				},
 			},
 		},
-		CustomizeDiff: func(d *schema.ResourceDiff, v interface{}) error {
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *schema.ResourceDiff, v interface{}) error {
 			if d.HasChange("account_kind") {
 				accountKind, changedKind := d.GetChange("account_kind")
 
@@ -610,7 +611,7 @@ func resourceStorageAccount() *schema.Resource {
 			}
 
 			return nil
-		},
+		}),
 	}
 }
 

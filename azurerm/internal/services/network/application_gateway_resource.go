@@ -1,10 +1,13 @@
 package network
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
 	"time"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -1357,7 +1360,7 @@ func resourceApplicationGateway() *schema.Resource {
 			"tags": tags.Schema(),
 		},
 
-		CustomizeDiff: ApplicationGatewayCustomizeDiff,
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(applicationGatewayCustomizeDiff),
 	}
 }
 
@@ -3895,7 +3898,7 @@ func flattenApplicationGatewayCustomErrorConfigurations(input *[]network.Applica
 	return results
 }
 
-func ApplicationGatewayCustomizeDiff(d *schema.ResourceDiff, _ interface{}) error {
+func applicationGatewayCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, _ interface{}) error {
 	_, hasAutoscaleConfig := d.GetOk("autoscale_configuration.0")
 	capacity, hasCapacity := d.GetOk("sku.0.capacity")
 	tier := d.Get("sku.0.tier").(string)

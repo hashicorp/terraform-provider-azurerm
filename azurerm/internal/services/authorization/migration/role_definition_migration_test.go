@@ -1,6 +1,7 @@
 package migration
 
 import (
+	"context"
 	"testing"
 )
 
@@ -33,7 +34,7 @@ func TestRoleDefinitionMigrateState(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		newID, _ := roleDefinitionUpgradeV0ToV1(tc.InputAttributes, nil)
+		newID, _ := RoleDefinitionV0ToV1{}.UpgradeFunc()(context.TODO(), tc.InputAttributes, nil)
 
 		if newID["id"].(string) != tc.ExpectedNewID {
 			t.Fatalf("ID migration failed, expected %q, got: %q", tc.ExpectedNewID, newID["id"].(string))

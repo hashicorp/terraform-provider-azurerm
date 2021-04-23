@@ -1,11 +1,14 @@
 package mysql
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 
@@ -406,7 +409,7 @@ func resourceMySqlServer() *schema.Resource {
 			},
 		},
 
-		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *schema.ResourceDiff, v interface{}) error {
 			tier, _ := diff.GetOk("sku_name")
 
 			var storageMB int
@@ -421,7 +424,7 @@ func resourceMySqlServer() *schema.Resource {
 			}
 
 			return nil
-		},
+		}),
 	}
 }
 

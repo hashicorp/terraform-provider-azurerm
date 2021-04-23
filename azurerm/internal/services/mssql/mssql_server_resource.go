@@ -1,9 +1,12 @@
 package mssql
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
 	"github.com/gofrs/uuid"
@@ -174,7 +177,7 @@ func resourceMsSqlServer() *schema.Resource {
 			"tags": tags.Schema(),
 		},
 
-		CustomizeDiff: msSqlMinimumTLSVersionDiff,
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(msSqlMinimumTLSVersionDiff),
 	}
 }
 
@@ -500,7 +503,7 @@ func flattenSqlServerRestorableDatabases(resp sql.RestorableDroppedDatabaseListR
 	return res
 }
 
-func msSqlMinimumTLSVersionDiff(d *schema.ResourceDiff, _ interface{}) (err error) {
+func msSqlMinimumTLSVersionDiff(ctx context.Context, d *schema.ResourceDiff, _ interface{}) (err error) {
 	old, new := d.GetChange("minimum_tls_version")
 	if old != "" && new == "" {
 		err = fmt.Errorf("`minimum_tls_version` cannot be removed once set, please set a valid value for this property")

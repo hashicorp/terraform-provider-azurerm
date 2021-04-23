@@ -1,6 +1,7 @@
 package migration
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"testing"
@@ -40,7 +41,7 @@ func TestShareV0ToV1(t *testing.T) {
 			"quota":                5120,
 		}
 
-		actual, err := shareUpgradeV0ToV1(input, meta)
+		actual, err := ShareV0ToV1{}.UpgradeFunc()(context.TODO(), input, meta)
 		if err != nil {
 			t.Fatalf("Expected no error but got: %s", err)
 		}
@@ -84,7 +85,7 @@ func TestShareV1ToV2(t *testing.T) {
 			"quota":                5120,
 		}
 
-		actual, err := shareUpgradeV1ToV2(input, meta)
+		actual, err := ShareV1ToV2{}.UpgradeFunc()(context.TODO(), input, meta)
 		if err != nil {
 			t.Fatalf("Expected no error but got: %s", err)
 		}

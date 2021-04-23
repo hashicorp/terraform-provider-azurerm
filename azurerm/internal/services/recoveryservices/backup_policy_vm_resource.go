@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/recoveryservices/validate"
 
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2019-05-13/backup"
@@ -261,7 +263,7 @@ func resourceBackupProtectionPolicyVM() *schema.Resource {
 
 		// if daily, we need daily retention
 		// if weekly daily cannot be set, and we need weekly
-		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *schema.ResourceDiff, v interface{}) error {
 			_, hasDaily := diff.GetOk("retention_daily")
 			_, hasWeekly := diff.GetOk("retention_weekly")
 
@@ -286,7 +288,7 @@ func resourceBackupProtectionPolicyVM() *schema.Resource {
 				return fmt.Errorf("Unrecognized value for backup.0.frequency")
 			}
 			return nil
-		},
+		}),
 	}
 }
 
