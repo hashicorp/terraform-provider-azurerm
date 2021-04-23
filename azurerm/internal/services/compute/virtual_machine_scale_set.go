@@ -1342,7 +1342,7 @@ func FlattenVirtualMachineScaleSetAutomaticRepairsPolicy(input *compute.Automati
 
 func VirtualMachineScaleSetExtensionsSchema() *schema.Schema {
 	return &schema.Schema{
-		Type:     schema.TypeList, // TODO -- change this to TypeSet using `name` as keys in provider 3.0 to resolve issue https://github.com/terraform-providers/terraform-provider-azurerm/issues/11367
+		Type:     schema.TypeSet,
 		Optional: true,
 		Computed: true,
 		Elem: &schema.Resource{
@@ -1462,8 +1462,8 @@ func expandVirtualMachineScaleSetExtensions(input []interface{}) (extensionProfi
 	return extensionProfile, hasHealthExtension, nil
 }
 
-func flattenVirtualMachineScaleSetExtensions(input *compute.VirtualMachineScaleSetExtensionProfile, d *schema.ResourceData) ([]map[string]interface{}, error) {
-	result := make([]map[string]interface{}, 0)
+func flattenVirtualMachineScaleSetExtensions(input *compute.VirtualMachineScaleSetExtensionProfile, d *schema.ResourceData) ([]interface{}, error) {
+	result := make([]interface{}, 0)
 	if input == nil || input.Extensions == nil {
 		return result, nil
 	}
