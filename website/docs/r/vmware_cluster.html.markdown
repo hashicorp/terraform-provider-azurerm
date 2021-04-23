@@ -12,13 +12,10 @@ Manages a Vmware Cluster.
 
 ## Example Usage
 
-~> **NOTE :**  Normal `terraform apply` could ignore this note. Please disable correlation request id for continuous operations in one build (like acctest) in Vmware. The continuous operations like `update` or `delete` could not be triggered when it shares the same `correlation-id` with its previous operation in Vmware.
-
 ```hcl
 provider "azurerm" {
   features {}
   disable_correlation_request_id = true
-  # In Vmware Acctest (or continuous operations in one build), we need to disable correlation request id to prevent following operations are not triggered 
 }
 
 resource "azurerm_resource_group" "example" {
@@ -68,7 +65,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Vmware Cluster.
 
-* `cluster_number` - The number of this Vmware Cluster in its Vmware Private Cloud.
+* `cluster_number` - A number that identifies this Vmware Cluster in its Vmware Private Cloud.
 
 * `hosts` - A list of host of the Vmware Cluster.
 
