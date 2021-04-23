@@ -23,9 +23,8 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociation() *schema.Resou
 		Create: resourceNetworkInterfaceApplicationSecurityGroupAssociationCreate,
 		Read:   resourceNetworkInterfaceApplicationSecurityGroupAssociationRead,
 		Delete: resourceNetworkInterfaceApplicationSecurityGroupAssociationDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{

@@ -25,9 +25,8 @@ func resourceStorageShare() *schema.Resource {
 		Read:   resourceStorageShareRead,
 		Update: resourceStorageShareUpdate,
 		Delete: resourceStorageShareDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer:      pluginsdk.DefaultImporter(),
 		SchemaVersion: 2,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
 			0: migration.ShareV0ToV1{},

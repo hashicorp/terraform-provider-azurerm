@@ -27,9 +27,8 @@ func resourceIotHubSharedAccessPolicy() *schema.Resource {
 		Read:   resourceIotHubSharedAccessPolicyRead,
 		Update: resourceIotHubSharedAccessPolicyCreateUpdate,
 		Delete: resourceIotHubSharedAccessPolicyDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
