@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/Azure/azure-sdk-for-go/services/databoxedge/mgmt/2019-08-01/databoxedge"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -255,7 +257,7 @@ func resourceDataboxEdgeOrder() *schema.Resource {
 			},
 		},
 
-		CustomizeDiff: databoxEdgeCustomizeDiff,
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(databoxEdgeCustomizeDiff),
 	}
 }
 func resourceDataboxEdgeOrderCreateUpdate(d *schema.ResourceData, meta interface{}) error {
