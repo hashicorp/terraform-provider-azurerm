@@ -68,26 +68,30 @@ func resourceExpressRouteConnection() *schema.Resource {
 				Optional: true,
 			},
 
-			// Note: when `routing` isn't specified, `associated_route_table_id` and `propagated_route_table` would be set with the default value
+			// Note: when the `routing` property isn't specified, the `associated_route_table_id` property and the `propagated_route_table` property would be set with the default value.
+			// As the `routing` property has default value, so it has to add the `ConfigMode` attribute to roll back to the default value after the `routing` property is specified.
 			"routing": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
+				Type:       schema.TypeList,
+				Optional:   true,
+				Computed:   true,
+				MaxItems:   1,
+				ConfigMode: schema.SchemaConfigModeAttr,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						// Note: When the `associated_route_table_id` property isn't specified, it has default value. So it has to add the `Computed` attribute to ignore the diff.
+						// But if the `Computed` attribute is added, it cannot be rolled back to default value after this property is specified. So the `Computed` attribute has to be removed from schema.
 						"associated_route_table_id": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validate.HubRouteTableID,
+							ValidateFunc: validation.Any(validate.HubRouteTableID, validation.StringIsEmpty),
 						},
 
 						"propagated_route_table": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Computed: true,
-							MaxItems: 1,
+							Type:       schema.TypeList,
+							Optional:   true,
+							Computed:   true,
+							MaxItems:   1,
+							ConfigMode: schema.SchemaConfigModeAttr,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"labels": {
@@ -218,9 +222,17 @@ func resourceExpressRouteConnectionRead(d *schema.ResourceData, meta interface{}
 		if v := props.ExpressRouteCircuitPeering; v != nil {
 			circuitPeeringID = *v.ID
 		}
-		d.Set("express_route_circuit_peering_id", circuitPeeringID)
+		peeringId, err := parse.ExpressRouteCircuitPeeringID(circuitPeeringID)
+		if err != nil {
+			return err
+		}
+		d.Set("express_route_circuit_peering_id", peeringId.ID())
 
-		if err := d.Set("routing", flattenExpressRouteConnectionRouting(props.RoutingConfiguration)); err != nil {
+		routing, err := flattenExpressRouteConnectionRouting(props.RoutingConfiguration)
+		if err != nil {
+			return err
+		}
+		if err := d.Set("routing", routing); err != nil {
 			return fmt.Errorf("setting `routing`: %+v", err)
 		}
 	}
@@ -291,22 +303,26 @@ func expandExpressRouteConnectionPropagatedRouteTable(input []interface{}) *netw
 	return &result
 }
 
-func flattenExpressRouteConnectionRouting(input *network.RoutingConfiguration) []interface{} {
+func flattenExpressRouteConnectionRouting(input *network.RoutingConfiguration) ([]interface{}, error) {
 	if input == nil {
-		return []interface{}{}
+		return []interface{}{}, nil
 	}
 
 	associatedRouteTableId := ""
 	if input.AssociatedRouteTable != nil && input.AssociatedRouteTable.ID != nil {
 		associatedRouteTableId = *input.AssociatedRouteTable.ID
 	}
+	routeTableId, err := parse.HubRouteTableID(associatedRouteTableId)
+	if err != nil {
+		return nil, err
+	}
 
 	return []interface{}{
 		map[string]interface{}{
-			"associated_route_table_id": associatedRouteTableId,
+			"associated_route_table_id": routeTableId.ID(),
 			"propagated_route_table":    flattenExpressRouteConnectionPropagatedRouteTable(input.PropagatedRouteTables),
 		},
-	}
+	}, nil
 }
 
 func flattenExpressRouteConnectionPropagatedRouteTable(input *network.PropagatedRouteTable) []interface{} {
