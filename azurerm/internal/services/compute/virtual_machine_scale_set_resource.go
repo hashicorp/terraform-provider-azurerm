@@ -2,6 +2,7 @@ package compute
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -789,7 +790,7 @@ func resourceVirtualMachineScaleSet() *schema.Resource {
 			"tags": tags.Schema(),
 		},
 
-		CustomizeDiff: azureRmVirtualMachineScaleSetCustomizeDiff,
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(azureRmVirtualMachineScaleSetCustomizeDiff),
 	}
 }
 
@@ -2364,7 +2365,7 @@ func azureRmVirtualMachineScaleSetSuppressRollingUpgradePolicyDiff(k, _, new str
 }
 
 // Make sure rolling_upgrade_policy is default value when upgrade_policy_mode is not Rolling.
-func azureRmVirtualMachineScaleSetCustomizeDiff(d *schema.ResourceDiff, _ interface{}) error {
+func azureRmVirtualMachineScaleSetCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, _ interface{}) error {
 	mode := d.Get("upgrade_policy_mode").(string)
 	if strings.ToLower(mode) != "rolling" {
 		if policyRaw, ok := d.GetOk("rolling_upgrade_policy.0"); ok {
