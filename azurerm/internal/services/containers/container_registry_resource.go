@@ -1,6 +1,7 @@
 package containers
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -255,7 +256,7 @@ func resourceContainerRegistry() *schema.Resource {
 			"tags": tags.Schema(),
 		},
 
-		CustomizeDiff: func(d *schema.ResourceDiff, v interface{}) error {
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
 			sku := d.Get("sku").(string)
 			geoReplicationLocations := d.Get("georeplication_locations").(*schema.Set)
 			geoReplications := d.Get("georeplications").(*schema.Set)
@@ -281,7 +282,7 @@ func resourceContainerRegistry() *schema.Resource {
 			}
 
 			return nil
-		},
+		}),
 	}
 }
 
