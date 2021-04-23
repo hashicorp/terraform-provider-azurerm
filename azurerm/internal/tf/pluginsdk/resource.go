@@ -19,13 +19,6 @@ type StateUpgrader = schema.StateUpgrader
 type SchemaValidateFunc = schema.SchemaValidateFunc
 type ValueType = schema.ValueType
 
-// ImportStatePassthrough is an implementation of StateFunc that can be
-// used to simply pass the ID directly through. This should be used only
-// in the case that an ID-only refresh is possible.
-func ImportStatePassthrough(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
-	return schema.ImportStatePassthrough(d, m)
-}
-
 type StateChangeConf = resource.StateChangeConf
 type StateRefreshFunc = resource.StateRefreshFunc
 

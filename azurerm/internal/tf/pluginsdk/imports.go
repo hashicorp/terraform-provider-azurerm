@@ -1,29 +1,32 @@
 package pluginsdk
 
 import (
+	"context"
 	"fmt"
 	"log"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-type ResourceImporter = schema.ResourceImporter
-
 type IDValidationFunc func(id string) error
 
-// TODO: add context to this in a follow up PR
-type ImporterFunc = func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error)
+type ImporterFunc = func(ctx context.Context, d *ResourceData, meta interface{}) ([]*ResourceData, error)
 
-func DefaultImporter() *ResourceImporter {
-	return &ResourceImporter{
-		State: ImportStatePassthrough,
+// DefaultImporter is a wrapper around the default importer within the Plugin SDK
+// at this point resources should be using ImporterValidatingResourceId, but this
+// is providing a compatibility shim for the moment
+func DefaultImporter() *schema.ResourceImporter {
+	// NOTE: we should do a secondary sweep and move things _off_ of this, since all resources
+	// should be validating the Resource ID at import time at this point forwards
+	return &schema.ResourceImporter{
+		State: schema.ImportStatePassthrough,
 	}
 }
 
 // ImporterValidatingResourceId validates the ID provided at import time is valid
 // using the validateFunc.
-func ImporterValidatingResourceId(validateFunc IDValidationFunc) *ResourceImporter {
-	var thenFunc = func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func ImporterValidatingResourceId(validateFunc IDValidationFunc) *schema.ResourceImporter {
+	var thenFunc = func(ctx context.Context, d *ResourceData, meta interface{}) ([]*ResourceData, error) {
 		return []*ResourceData{d}, nil
 	}
 	return ImporterValidatingResourceIdThen(validateFunc, thenFunc)
@@ -31,17 +34,17 @@ func ImporterValidatingResourceId(validateFunc IDValidationFunc) *ResourceImport
 
 // ImporterValidatingResourceIdThen validates the ID provided at import time is valid
 // using the validateFunc then runs the 'thenFunc', allowing the import to be customised.
-func ImporterValidatingResourceIdThen(validateFunc IDValidationFunc, thenFunc ImporterFunc) *ResourceImporter {
+func ImporterValidatingResourceIdThen(validateFunc IDValidationFunc, thenFunc ImporterFunc) *schema.ResourceImporter {
 	return &schema.ResourceImporter{
-		State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+		State: func(d *ResourceData, meta interface{}) ([]*ResourceData, error) {
 			log.Printf("[DEBUG] Importing Resource - parsing %q", d.Id())
 
 			if err := validateFunc(d.Id()); err != nil {
-				return []*schema.ResourceData{d}, fmt.Errorf("parsing Resource ID %q: %+v", d.Id(), err)
+				return []*ResourceData{d}, fmt.Errorf("parsing Resource ID %q: %+v", d.Id(), err)
 			}
 
-			// TODO: thread through a temp context in v1 prior to the real one in v2
-			return thenFunc(d, meta)
+			ctx := context.TODO()
+			return thenFunc(ctx, d, meta)
 		},
 	}
 }
