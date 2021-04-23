@@ -60,7 +60,7 @@ func resourceHealthbotService() *schema.Resource {
 				}, false),
 			},
 
-			"bot_management_portal_link": {
+			"bot_management_portal_url": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
