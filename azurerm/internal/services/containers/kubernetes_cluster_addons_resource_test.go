@@ -26,7 +26,7 @@ var kubernetesAddOnTests = map[string]func(t *testing.T){
 var addOnAppGatewayIdRegExp = regexp.MustCompile("^/.+/providers/Microsoft.Network/applicationGateways/.+$")
 var addOnAppGatewaySubnetIdRegExp = regexp.MustCompile("^/.+/providers/Microsoft.Network/virtualNetworks/.+/subnets/.+$")
 
-var addOnAppGatewaySubnetCIDR string = "10.241.0.0/16" // AKS will use 10.240.0.0/16 for the aks subnet and 10.241.0.0/16 for the app gateway subnet
+var addOnAppGatewaySubnetCIDR string = "10.241.0.0/16" // AKS will use 10.240.0.0/16 for the aks subnet so use 10.241.0.0/16 for the app gateway subnet
 
 func TestAccKubernetesCluster_addonProfileAciConnectorLinux(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
