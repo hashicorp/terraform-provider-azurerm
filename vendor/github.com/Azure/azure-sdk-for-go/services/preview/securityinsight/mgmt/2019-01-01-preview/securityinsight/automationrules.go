@@ -15,35 +15,34 @@ import (
 	"net/http"
 )
 
-// ActionsClient is the API spec for Microsoft.SecurityInsights (Azure Security Insights) resource provider
-type ActionsClient struct {
+// AutomationRulesClient is the API spec for Microsoft.SecurityInsights (Azure Security Insights) resource provider
+type AutomationRulesClient struct {
 	BaseClient
 }
 
-// NewActionsClient creates an instance of the ActionsClient client.
-func NewActionsClient(subscriptionID string) ActionsClient {
-	return NewActionsClientWithBaseURI(DefaultBaseURI, subscriptionID)
+// NewAutomationRulesClient creates an instance of the AutomationRulesClient client.
+func NewAutomationRulesClient(subscriptionID string) AutomationRulesClient {
+	return NewAutomationRulesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewActionsClientWithBaseURI creates an instance of the ActionsClient client using a custom endpoint.  Use this when
-// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
-func NewActionsClientWithBaseURI(baseURI string, subscriptionID string) ActionsClient {
-	return ActionsClient{NewWithBaseURI(baseURI, subscriptionID)}
+// NewAutomationRulesClientWithBaseURI creates an instance of the AutomationRulesClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
+func NewAutomationRulesClientWithBaseURI(baseURI string, subscriptionID string) AutomationRulesClient {
+	return AutomationRulesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// CreateOrUpdate creates or updates the action of alert rule.
+// CreateOrUpdate creates or updates the automation rule.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
 // insensitive.
 // operationalInsightsResourceProvider - the namespace of workspaces resource provider-
 // Microsoft.OperationalInsights.
 // workspaceName - the name of the workspace.
-// ruleID - alert rule ID
-// actionID - action ID
-// action - the action
-func (client ActionsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, ruleID string, actionID string, action ActionRequest) (result ActionResponse, err error) {
+// automationRuleID - automation rule ID
+// automationRule - the automation rule
+func (client AutomationRulesClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, automationRuleID string, automationRule AutomationRule) (result AutomationRule, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/ActionsClient.CreateOrUpdate")
+		ctx = tracing.StartSpan(ctx, fqdn+"/AutomationRulesClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -62,28 +61,36 @@ func (client ActionsClient) CreateOrUpdate(ctx context.Context, resourceGroupNam
 		{TargetValue: workspaceName,
 			Constraints: []validation.Constraint{{Target: "workspaceName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
-		{TargetValue: action,
-			Constraints: []validation.Constraint{{Target: "action.ActionRequestProperties", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "action.ActionRequestProperties.TriggerURI", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
-		return result, validation.NewError("securityinsight.ActionsClient", "CreateOrUpdate", err.Error())
+		{TargetValue: automationRule,
+			Constraints: []validation.Constraint{{Target: "automationRule.AutomationRuleProperties", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "automationRule.AutomationRuleProperties.DisplayName", Name: validation.Null, Rule: true, Chain: nil},
+					{Target: "automationRule.AutomationRuleProperties.Order", Name: validation.Null, Rule: true, Chain: nil},
+					{Target: "automationRule.AutomationRuleProperties.TriggeringLogic", Name: validation.Null, Rule: true,
+						Chain: []validation.Constraint{{Target: "automationRule.AutomationRuleProperties.TriggeringLogic.IsEnabled", Name: validation.Null, Rule: true, Chain: nil},
+							{Target: "automationRule.AutomationRuleProperties.TriggeringLogic.TriggersOn", Name: validation.Null, Rule: true, Chain: nil},
+							{Target: "automationRule.AutomationRuleProperties.TriggeringLogic.TriggersWhen", Name: validation.Null, Rule: true, Chain: nil},
+						}},
+					{Target: "automationRule.AutomationRuleProperties.Actions", Name: validation.Null, Rule: true, Chain: nil},
+				}}}}}); err != nil {
+		return result, validation.NewError("securityinsight.AutomationRulesClient", "CreateOrUpdate", err.Error())
 	}
 
-	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, operationalInsightsResourceProvider, workspaceName, ruleID, actionID, action)
+	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, operationalInsightsResourceProvider, workspaceName, automationRuleID, automationRule)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "securityinsight.ActionsClient", "CreateOrUpdate", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "securityinsight.AutomationRulesClient", "CreateOrUpdate", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.CreateOrUpdateSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "securityinsight.ActionsClient", "CreateOrUpdate", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "securityinsight.AutomationRulesClient", "CreateOrUpdate", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "securityinsight.ActionsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "securityinsight.AutomationRulesClient", "CreateOrUpdate", resp, "Failure responding to request")
 		return
 	}
 
@@ -91,12 +98,11 @@ func (client ActionsClient) CreateOrUpdate(ctx context.Context, resourceGroupNam
 }
 
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
-func (client ActionsClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, ruleID string, actionID string, action ActionRequest) (*http.Request, error) {
+func (client AutomationRulesClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, automationRuleID string, automationRule AutomationRule) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"actionId":                            autorest.Encode("path", actionID),
+		"automationRuleId":                    autorest.Encode("path", automationRuleID),
 		"operationalInsightsResourceProvider": autorest.Encode("path", operationalInsightsResourceProvider),
 		"resourceGroupName":                   autorest.Encode("path", resourceGroupName),
-		"ruleId":                              autorest.Encode("path", ruleID),
 		"subscriptionId":                      autorest.Encode("path", client.SubscriptionID),
 		"workspaceName":                       autorest.Encode("path", workspaceName),
 	}
@@ -110,21 +116,21 @@ func (client ActionsClient) CreateOrUpdatePreparer(ctx context.Context, resource
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{operationalInsightsResourceProvider}/workspaces/{workspaceName}/providers/Microsoft.SecurityInsights/alertRules/{ruleId}/actions/{actionId}", pathParameters),
-		autorest.WithJSON(action),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{operationalInsightsResourceProvider}/workspaces/{workspaceName}/providers/Microsoft.SecurityInsights/automationRules/{automationRuleId}", pathParameters),
+		autorest.WithJSON(automationRule),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
-func (client ActionsClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
+func (client AutomationRulesClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
 // closes the http.Response Body.
-func (client ActionsClient) CreateOrUpdateResponder(resp *http.Response) (result ActionResponse, err error) {
+func (client AutomationRulesClient) CreateOrUpdateResponder(resp *http.Response) (result AutomationRule, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
@@ -134,18 +140,17 @@ func (client ActionsClient) CreateOrUpdateResponder(resp *http.Response) (result
 	return
 }
 
-// Delete delete the action of alert rule.
+// Delete delete the automation rule.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
 // insensitive.
 // operationalInsightsResourceProvider - the namespace of workspaces resource provider-
 // Microsoft.OperationalInsights.
 // workspaceName - the name of the workspace.
-// ruleID - alert rule ID
-// actionID - action ID
-func (client ActionsClient) Delete(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, ruleID string, actionID string) (result autorest.Response, err error) {
+// automationRuleID - automation rule ID
+func (client AutomationRulesClient) Delete(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, automationRuleID string) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/ActionsClient.Delete")
+		ctx = tracing.StartSpan(ctx, fqdn+"/AutomationRulesClient.Delete")
 		defer func() {
 			sc := -1
 			if result.Response != nil {
@@ -164,25 +169,25 @@ func (client ActionsClient) Delete(ctx context.Context, resourceGroupName string
 		{TargetValue: workspaceName,
 			Constraints: []validation.Constraint{{Target: "workspaceName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("securityinsight.ActionsClient", "Delete", err.Error())
+		return result, validation.NewError("securityinsight.AutomationRulesClient", "Delete", err.Error())
 	}
 
-	req, err := client.DeletePreparer(ctx, resourceGroupName, operationalInsightsResourceProvider, workspaceName, ruleID, actionID)
+	req, err := client.DeletePreparer(ctx, resourceGroupName, operationalInsightsResourceProvider, workspaceName, automationRuleID)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "securityinsight.ActionsClient", "Delete", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "securityinsight.AutomationRulesClient", "Delete", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.DeleteSender(req)
 	if err != nil {
 		result.Response = resp
-		err = autorest.NewErrorWithError(err, "securityinsight.ActionsClient", "Delete", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "securityinsight.AutomationRulesClient", "Delete", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "securityinsight.ActionsClient", "Delete", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "securityinsight.AutomationRulesClient", "Delete", resp, "Failure responding to request")
 		return
 	}
 
@@ -190,12 +195,11 @@ func (client ActionsClient) Delete(ctx context.Context, resourceGroupName string
 }
 
 // DeletePreparer prepares the Delete request.
-func (client ActionsClient) DeletePreparer(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, ruleID string, actionID string) (*http.Request, error) {
+func (client AutomationRulesClient) DeletePreparer(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, automationRuleID string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"actionId":                            autorest.Encode("path", actionID),
+		"automationRuleId":                    autorest.Encode("path", automationRuleID),
 		"operationalInsightsResourceProvider": autorest.Encode("path", operationalInsightsResourceProvider),
 		"resourceGroupName":                   autorest.Encode("path", resourceGroupName),
-		"ruleId":                              autorest.Encode("path", ruleID),
 		"subscriptionId":                      autorest.Encode("path", client.SubscriptionID),
 		"workspaceName":                       autorest.Encode("path", workspaceName),
 	}
@@ -208,20 +212,20 @@ func (client ActionsClient) DeletePreparer(ctx context.Context, resourceGroupNam
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{operationalInsightsResourceProvider}/workspaces/{workspaceName}/providers/Microsoft.SecurityInsights/alertRules/{ruleId}/actions/{actionId}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{operationalInsightsResourceProvider}/workspaces/{workspaceName}/providers/Microsoft.SecurityInsights/automationRules/{automationRuleId}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
-func (client ActionsClient) DeleteSender(req *http.Request) (*http.Response, error) {
+func (client AutomationRulesClient) DeleteSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
 // closes the http.Response Body.
-func (client ActionsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
+func (client AutomationRulesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
@@ -230,18 +234,17 @@ func (client ActionsClient) DeleteResponder(resp *http.Response) (result autores
 	return
 }
 
-// Get gets the action of alert rule.
+// Get gets the automation rule.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
 // insensitive.
 // operationalInsightsResourceProvider - the namespace of workspaces resource provider-
 // Microsoft.OperationalInsights.
 // workspaceName - the name of the workspace.
-// ruleID - alert rule ID
-// actionID - action ID
-func (client ActionsClient) Get(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, ruleID string, actionID string) (result ActionResponse, err error) {
+// automationRuleID - automation rule ID
+func (client AutomationRulesClient) Get(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, automationRuleID string) (result AutomationRule, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/ActionsClient.Get")
+		ctx = tracing.StartSpan(ctx, fqdn+"/AutomationRulesClient.Get")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -260,25 +263,25 @@ func (client ActionsClient) Get(ctx context.Context, resourceGroupName string, o
 		{TargetValue: workspaceName,
 			Constraints: []validation.Constraint{{Target: "workspaceName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("securityinsight.ActionsClient", "Get", err.Error())
+		return result, validation.NewError("securityinsight.AutomationRulesClient", "Get", err.Error())
 	}
 
-	req, err := client.GetPreparer(ctx, resourceGroupName, operationalInsightsResourceProvider, workspaceName, ruleID, actionID)
+	req, err := client.GetPreparer(ctx, resourceGroupName, operationalInsightsResourceProvider, workspaceName, automationRuleID)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "securityinsight.ActionsClient", "Get", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "securityinsight.AutomationRulesClient", "Get", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.GetSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "securityinsight.ActionsClient", "Get", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "securityinsight.AutomationRulesClient", "Get", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.GetResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "securityinsight.ActionsClient", "Get", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "securityinsight.AutomationRulesClient", "Get", resp, "Failure responding to request")
 		return
 	}
 
@@ -286,12 +289,11 @@ func (client ActionsClient) Get(ctx context.Context, resourceGroupName string, o
 }
 
 // GetPreparer prepares the Get request.
-func (client ActionsClient) GetPreparer(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, ruleID string, actionID string) (*http.Request, error) {
+func (client AutomationRulesClient) GetPreparer(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, automationRuleID string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"actionId":                            autorest.Encode("path", actionID),
+		"automationRuleId":                    autorest.Encode("path", automationRuleID),
 		"operationalInsightsResourceProvider": autorest.Encode("path", operationalInsightsResourceProvider),
 		"resourceGroupName":                   autorest.Encode("path", resourceGroupName),
-		"ruleId":                              autorest.Encode("path", ruleID),
 		"subscriptionId":                      autorest.Encode("path", client.SubscriptionID),
 		"workspaceName":                       autorest.Encode("path", workspaceName),
 	}
@@ -304,20 +306,20 @@ func (client ActionsClient) GetPreparer(ctx context.Context, resourceGroupName s
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{operationalInsightsResourceProvider}/workspaces/{workspaceName}/providers/Microsoft.SecurityInsights/alertRules/{ruleId}/actions/{actionId}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{operationalInsightsResourceProvider}/workspaces/{workspaceName}/providers/Microsoft.SecurityInsights/automationRules/{automationRuleId}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
-func (client ActionsClient) GetSender(req *http.Request) (*http.Response, error) {
+func (client AutomationRulesClient) GetSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
-func (client ActionsClient) GetResponder(resp *http.Response) (result ActionResponse, err error) {
+func (client AutomationRulesClient) GetResponder(resp *http.Response) (result AutomationRule, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -327,21 +329,20 @@ func (client ActionsClient) GetResponder(resp *http.Response) (result ActionResp
 	return
 }
 
-// ListByAlertRule gets all actions of alert rule.
+// List gets all automation rules.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
 // insensitive.
 // operationalInsightsResourceProvider - the namespace of workspaces resource provider-
 // Microsoft.OperationalInsights.
 // workspaceName - the name of the workspace.
-// ruleID - alert rule ID
-func (client ActionsClient) ListByAlertRule(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, ruleID string) (result ActionsListPage, err error) {
+func (client AutomationRulesClient) List(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string) (result AutomationRulesListPage, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/ActionsClient.ListByAlertRule")
+		ctx = tracing.StartSpan(ctx, fqdn+"/AutomationRulesClient.List")
 		defer func() {
 			sc := -1
-			if result.al.Response.Response != nil {
-				sc = result.al.Response.Response.StatusCode
+			if result.arl.Response.Response != nil {
+				sc = result.arl.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -356,29 +357,29 @@ func (client ActionsClient) ListByAlertRule(ctx context.Context, resourceGroupNa
 		{TargetValue: workspaceName,
 			Constraints: []validation.Constraint{{Target: "workspaceName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("securityinsight.ActionsClient", "ListByAlertRule", err.Error())
+		return result, validation.NewError("securityinsight.AutomationRulesClient", "List", err.Error())
 	}
 
-	result.fn = client.listByAlertRuleNextResults
-	req, err := client.ListByAlertRulePreparer(ctx, resourceGroupName, operationalInsightsResourceProvider, workspaceName, ruleID)
+	result.fn = client.listNextResults
+	req, err := client.ListPreparer(ctx, resourceGroupName, operationalInsightsResourceProvider, workspaceName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "securityinsight.ActionsClient", "ListByAlertRule", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "securityinsight.AutomationRulesClient", "List", nil, "Failure preparing request")
 		return
 	}
 
-	resp, err := client.ListByAlertRuleSender(req)
+	resp, err := client.ListSender(req)
 	if err != nil {
-		result.al.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "securityinsight.ActionsClient", "ListByAlertRule", resp, "Failure sending request")
+		result.arl.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "securityinsight.AutomationRulesClient", "List", resp, "Failure sending request")
 		return
 	}
 
-	result.al, err = client.ListByAlertRuleResponder(resp)
+	result.arl, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "securityinsight.ActionsClient", "ListByAlertRule", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "securityinsight.AutomationRulesClient", "List", resp, "Failure responding to request")
 		return
 	}
-	if result.al.hasNextLink() && result.al.IsEmpty() {
+	if result.arl.hasNextLink() && result.arl.IsEmpty() {
 		err = result.NextWithContext(ctx)
 		return
 	}
@@ -386,12 +387,11 @@ func (client ActionsClient) ListByAlertRule(ctx context.Context, resourceGroupNa
 	return
 }
 
-// ListByAlertRulePreparer prepares the ListByAlertRule request.
-func (client ActionsClient) ListByAlertRulePreparer(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, ruleID string) (*http.Request, error) {
+// ListPreparer prepares the List request.
+func (client AutomationRulesClient) ListPreparer(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"operationalInsightsResourceProvider": autorest.Encode("path", operationalInsightsResourceProvider),
 		"resourceGroupName":                   autorest.Encode("path", resourceGroupName),
-		"ruleId":                              autorest.Encode("path", ruleID),
 		"subscriptionId":                      autorest.Encode("path", client.SubscriptionID),
 		"workspaceName":                       autorest.Encode("path", workspaceName),
 	}
@@ -404,20 +404,20 @@ func (client ActionsClient) ListByAlertRulePreparer(ctx context.Context, resourc
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{operationalInsightsResourceProvider}/workspaces/{workspaceName}/providers/Microsoft.SecurityInsights/alertRules/{ruleId}/actions", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{operationalInsightsResourceProvider}/workspaces/{workspaceName}/providers/Microsoft.SecurityInsights/automationRules", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// ListByAlertRuleSender sends the ListByAlertRule request. The method will close the
+// ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
-func (client ActionsClient) ListByAlertRuleSender(req *http.Request) (*http.Response, error) {
+func (client AutomationRulesClient) ListSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
-// ListByAlertRuleResponder handles the response to the ListByAlertRule request. The method always
+// ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
-func (client ActionsClient) ListByAlertRuleResponder(resp *http.Response) (result ActionsList, err error) {
+func (client AutomationRulesClient) ListResponder(resp *http.Response) (result AutomationRulesList, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -427,31 +427,31 @@ func (client ActionsClient) ListByAlertRuleResponder(resp *http.Response) (resul
 	return
 }
 
-// listByAlertRuleNextResults retrieves the next set of results, if any.
-func (client ActionsClient) listByAlertRuleNextResults(ctx context.Context, lastResults ActionsList) (result ActionsList, err error) {
-	req, err := lastResults.actionsListPreparer(ctx)
+// listNextResults retrieves the next set of results, if any.
+func (client AutomationRulesClient) listNextResults(ctx context.Context, lastResults AutomationRulesList) (result AutomationRulesList, err error) {
+	req, err := lastResults.automationRulesListPreparer(ctx)
 	if err != nil {
-		return result, autorest.NewErrorWithError(err, "securityinsight.ActionsClient", "listByAlertRuleNextResults", nil, "Failure preparing next results request")
+		return result, autorest.NewErrorWithError(err, "securityinsight.AutomationRulesClient", "listNextResults", nil, "Failure preparing next results request")
 	}
 	if req == nil {
 		return
 	}
-	resp, err := client.ListByAlertRuleSender(req)
+	resp, err := client.ListSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "securityinsight.ActionsClient", "listByAlertRuleNextResults", resp, "Failure sending next results request")
+		return result, autorest.NewErrorWithError(err, "securityinsight.AutomationRulesClient", "listNextResults", resp, "Failure sending next results request")
 	}
-	result, err = client.ListByAlertRuleResponder(resp)
+	result, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "securityinsight.ActionsClient", "listByAlertRuleNextResults", resp, "Failure responding to next results request")
+		err = autorest.NewErrorWithError(err, "securityinsight.AutomationRulesClient", "listNextResults", resp, "Failure responding to next results request")
 	}
 	return
 }
 
-// ListByAlertRuleComplete enumerates all values, automatically crossing page boundaries as required.
-func (client ActionsClient) ListByAlertRuleComplete(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, ruleID string) (result ActionsListIterator, err error) {
+// ListComplete enumerates all values, automatically crossing page boundaries as required.
+func (client AutomationRulesClient) ListComplete(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string) (result AutomationRulesListIterator, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/ActionsClient.ListByAlertRule")
+		ctx = tracing.StartSpan(ctx, fqdn+"/AutomationRulesClient.List")
 		defer func() {
 			sc := -1
 			if result.Response().Response.Response != nil {
@@ -460,6 +460,6 @@ func (client ActionsClient) ListByAlertRuleComplete(ctx context.Context, resourc
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.ListByAlertRule(ctx, resourceGroupName, operationalInsightsResourceProvider, workspaceName, ruleID)
+	result.page, err = client.List(ctx, resourceGroupName, operationalInsightsResourceProvider, workspaceName)
 	return
 }

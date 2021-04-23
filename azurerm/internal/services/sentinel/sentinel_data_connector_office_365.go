@@ -152,7 +152,7 @@ func resourceSentinelDataConnectorOffice365CreateUpdate(d *schema.ResourceData, 
 				},
 			},
 		},
-		Kind: securityinsight.KindOffice365,
+		Kind: securityinsight.KindBasicDataConnectorKindOffice365,
 	}
 
 	// Service avoid concurrent updates of this resource via checking the "etag" to guarantee it is the same value as last Read.

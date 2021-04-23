@@ -101,7 +101,7 @@ func resourceSentinelDataConnectorThreatIntelligenceCreateUpdate(d *schema.Resou
 				},
 			},
 		},
-		Kind: securityinsight.KindThreatIntelligence,
+		Kind: securityinsight.KindBasicDataConnectorKindThreatIntelligence,
 	}
 
 	if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.Name, param); err != nil {
