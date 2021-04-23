@@ -2,9 +2,12 @@ package network
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"log"
 	"time"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 
@@ -32,7 +35,7 @@ func resourceVirtualNetworkGateway() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
-		CustomizeDiff: resourceVirtualNetworkGatewayCustomizeDiff,
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(resourceVirtualNetworkGatewayCustomizeDiff),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),
@@ -1029,7 +1032,7 @@ func validateVirtualNetworkGatewayExpressRouteSku() schema.SchemaValidateFunc {
 	}, true)
 }
 
-func resourceVirtualNetworkGatewayCustomizeDiff(diff *schema.ResourceDiff, _ interface{}) error {
+func resourceVirtualNetworkGatewayCustomizeDiff(ctx context.Context, diff *schema.ResourceDiff, _ interface{}) error {
 	if vpnClient, ok := diff.GetOk("vpn_client_configuration"); ok {
 		if vpnClientConfig, ok := vpnClient.([]interface{})[0].(map[string]interface{}); ok {
 			hasAadTenant := vpnClientConfig["aad_tenant"] != ""
