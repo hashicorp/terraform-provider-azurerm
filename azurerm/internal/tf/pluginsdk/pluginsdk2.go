@@ -8,7 +8,7 @@ This is tracking the changes necessary for Plugin SDKv2
 	All validation functions need to be moved into `validation` - since otherwise the test namespace needs fixing
 3. (DONE) Updating the Migration functions to use the new wrapper
 4. (DONE) Updating the Customize Diff functions to use the new wrapper
-5. Updating the Import functions to use the new wrappers
+5. (DONE) Updating the Import functions to use the new wrappers
 
 6. Update the `validate` package tests to include `_test` suffix for the package name
 	At the same time, add the package name to the generator to reflect this:
