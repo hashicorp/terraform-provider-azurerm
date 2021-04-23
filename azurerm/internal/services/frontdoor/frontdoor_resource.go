@@ -503,7 +503,7 @@ func resourceFrontDoor() *schema.Resource {
 			"tags": tags.Schema(),
 		},
 
-		CustomizeDiff: frontDoorCustomizeDiff,
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(frontDoorCustomizeDiff),
 	}
 }
 
