@@ -1,6 +1,10 @@
-package azure
+package azure_test
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+)
 
 func TestNormalizeLocation(t *testing.T) {
 	cases := []struct {
@@ -22,7 +26,7 @@ func TestNormalizeLocation(t *testing.T) {
 	}
 
 	for _, v := range cases {
-		actual := NormalizeLocation(v.input)
+		actual := azure.NormalizeLocation(v.input)
 		if v.expected != actual {
 			t.Fatalf("Expected %q but got %q", v.expected, actual)
 		}

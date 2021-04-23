@@ -32,6 +32,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_bot_channel_slack":         resourceBotChannelSlack(),
 		"azurerm_bot_channels_registration": resourceBotChannelsRegistration(),
 		"azurerm_bot_connection":            resourceArmBotConnection(),
+		"azurerm_healthbot":                 resourceHealthbotService(),
 		"azurerm_bot_web_app":               resourceBotWebApp(),
 	}
 }

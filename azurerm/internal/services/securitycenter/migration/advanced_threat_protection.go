@@ -1,53 +1,51 @@
 package migration
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
-func AdvancedThreatProtectionV0ToV1() schema.StateUpgrader {
-	return schema.StateUpgrader{
-		Version: 0,
-		Type:    advancedThreatProtectionSchemaForV0().CoreConfigSchema().ImpliedType(),
-		Upgrade: advancedThreadProtectionUpgradeV0toV1,
-	}
-}
+var _ pluginsdk.StateUpgrade = AdvancedThreatProtectionV0ToV1{}
 
-func advancedThreatProtectionSchemaForV0() *schema.Resource {
-	return &schema.Resource{
-		Schema: map[string]*schema.Schema{
-			"target_resource_id": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+type AdvancedThreatProtectionV0ToV1 struct{}
 
-			"enabled": {
-				Type:     schema.TypeBool,
-				Required: true,
-			},
+func (AdvancedThreatProtectionV0ToV1) Schema() map[string]*pluginsdk.Schema {
+	return map[string]*schema.Schema{
+		"target_resource_id": {
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
+
+		"enabled": {
+			Type:     schema.TypeBool,
+			Required: true,
 		},
 	}
 }
 
-func advancedThreadProtectionUpgradeV0toV1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
-	oldId := rawState["id"].(string)
+func (AdvancedThreatProtectionV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
+	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+		oldId := rawState["id"].(string)
 
-	// remove the existing `/` if it's present (2.42+) which'll do nothing if it wasn't (2.38)
-	newId := fmt.Sprintf("/%s", strings.TrimPrefix(oldId, "/"))
+		// remove the existing `/` if it's present (2.42+) which'll do nothing if it wasn't (2.38)
+		newId := fmt.Sprintf("/%s", strings.TrimPrefix(oldId, "/"))
 
-	parsedId, err := parse.AdvancedThreatProtectionID(newId)
-	if err != nil {
-		return nil, err
+		parsedId, err := parse.AdvancedThreatProtectionID(newId)
+		if err != nil {
+			return nil, err
+		}
+
+		newId = parsedId.ID()
+
+		log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId)
+		rawState["id"] = newId
+		return rawState, nil
 	}
-
-	newId = parsedId.ID()
-
-	log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId)
-	rawState["id"] = newId
-	return rawState, nil
 }

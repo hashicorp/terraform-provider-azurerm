@@ -1,10 +1,13 @@
 package loganalytics
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
 	"time"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 
 	"github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/operationalinsights"
 	"github.com/hashicorp/go-azure-helpers/response"
@@ -29,9 +32,8 @@ func resourceLogAnalyticsLinkedService() *schema.Resource {
 		Update: resourceLogAnalyticsLinkedServiceCreateUpdate,
 		Delete: resourceLogAnalyticsLinkedServiceDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -111,7 +113,7 @@ func resourceLogAnalyticsLinkedService() *schema.Resource {
 		},
 
 		// TODO: Remove in 3.0
-		CustomizeDiff: func(d *schema.ResourceDiff, v interface{}) error {
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *schema.ResourceDiff, v interface{}) error {
 			if d.HasChange("linked_service_name") {
 				oldServiceName, newServiceName := d.GetChange("linked_service_name")
 
@@ -194,7 +196,7 @@ func resourceLogAnalyticsLinkedService() *schema.Resource {
 			}
 
 			return nil
-		},
+		}),
 	}
 }
 

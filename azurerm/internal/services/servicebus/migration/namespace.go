@@ -1,90 +1,88 @@
 package migration
 
 import (
+	"context"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 
-	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func NamespaceV0ToV1() schema.StateUpgrader {
-	return schema.StateUpgrader{
-		// this should have been applied from pre-0.12 migration system; backporting just in-case
-		Type:    namespaceSchemaForV0().CoreConfigSchema().ImpliedType(),
-		Upgrade: namespaceUpgradeV0ToV1,
-		Version: 0,
-	}
-}
+var _ pluginsdk.StateUpgrade = NamespaceV0ToV1{}
 
-func namespaceSchemaForV0() *schema.Resource {
-	return &schema.Resource{
-		Schema: map[string]*schema.Schema{
-			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+type NamespaceV0ToV1 struct{}
 
-			"location": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+func (NamespaceV0ToV1) Schema() map[string]*pluginsdk.Schema {
+	return map[string]*schema.Schema{
+		"name": {
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+		"location": {
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
 
-			"sku": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+		"resource_group_name": {
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
 
-			"capacity": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				ForceNew: true,
-			},
+		"sku": {
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
 
-			"default_primary_connection_string": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
+		"capacity": {
+			Type:     schema.TypeInt,
+			Optional: true,
+			ForceNew: true,
+		},
 
-			"default_secondary_connection_string": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
+		"default_primary_connection_string": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
 
-			"default_primary_key": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
+		"default_secondary_connection_string": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
 
-			"default_secondary_key": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
+		"default_primary_key": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
 
-			"tags": {
-				Type:     schema.TypeMap,
-				Optional: true,
+		"default_secondary_key": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+
+		"tags": {
+			Type:     schema.TypeMap,
+			Optional: true,
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
 			},
 		},
 	}
 }
 
-func namespaceUpgradeV0ToV1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
-	skuName := strings.ToLower(rawState["sku"].(string))
-	premiumSku := strings.ToLower(string(servicebus.Premium))
+func (NamespaceV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
+	// this should have been applied from pre-0.12 migration system; backporting just in-case
+	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+		skuName := rawState["sku"].(string)
+		if !strings.EqualFold(skuName, "Premium") {
+			delete(rawState, "capacity")
+		}
 
-	if skuName != premiumSku {
-		delete(rawState, "capacity")
+		return rawState, nil
 	}
-
-	return rawState, nil
 }

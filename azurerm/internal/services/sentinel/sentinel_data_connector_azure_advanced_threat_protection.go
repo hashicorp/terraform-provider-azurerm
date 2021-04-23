@@ -13,7 +13,7 @@ import (
 	loganalyticsParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 	loganalyticsValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sentinel/parse"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -24,7 +24,7 @@ func resourceSentinelDataConnectorAzureAdvancedThreatProtection() *schema.Resour
 		Read:   resourceSentinelDataConnectorAzureAdvancedThreatProtectionRead,
 		Delete: resourceSentinelDataConnectorAzureAdvancedThreatProtectionDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.DataConnectorID(id)
 			return err
 		}, importSentinelDataConnector(securityinsight.DataConnectorKindAzureAdvancedThreatProtection)),
@@ -101,7 +101,7 @@ func resourceSentinelDataConnectorAzureAdvancedThreatProtectionCreate(d *schema.
 				},
 			},
 		},
-		Kind: securityinsight.KindAzureAdvancedThreatProtection,
+		Kind: securityinsight.KindBasicDataConnectorKindAzureAdvancedThreatProtection,
 	}
 
 	if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.Name, param); err != nil {

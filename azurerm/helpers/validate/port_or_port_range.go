@@ -27,7 +27,7 @@ func PortOrPortRangeWithin(min int, max int) schema.SchemaValidateFunc {
 		// Allowed format including: `num` or `num1-num2` (num1 < num2).
 		groups := regexp.MustCompile(`^(\d+)((-)(\d+))?$`).FindStringSubmatch(v)
 		if len(groups) != 5 {
-			errors = append(errors, fmt.Errorf("invalid format of %q", k))
+			errors = append(errors, fmt.Errorf("expected `number` or `num1-num2` but got %q", v))
 			return
 		}
 

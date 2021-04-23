@@ -15,7 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -26,7 +26,7 @@ func subscriptionTemplateDeploymentResource() *schema.Resource {
 		Read:   subscriptionTemplateDeploymentResourceRead,
 		Update: subscriptionTemplateDeploymentResourceUpdate,
 		Delete: subscriptionTemplateDeploymentResourceDelete,
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.SubscriptionTemplateDeploymentID(id)
 			return err
 		}),
@@ -90,9 +90,8 @@ func subscriptionTemplateDeploymentResource() *schema.Resource {
 
 			// Computed
 			"output_content": {
-				Type:      schema.TypeString,
-				Computed:  true,
-				StateFunc: utils.NormalizeJson,
+				Type:     schema.TypeString,
+				Computed: true,
 				// NOTE:  outputs can be strings, ints, objects etc - whilst using a nested object was considered
 				// parsing the JSON using `jsondecode` allows the users to interact with/map objects as required
 			},

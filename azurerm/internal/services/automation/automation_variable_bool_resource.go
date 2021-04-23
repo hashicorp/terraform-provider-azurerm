@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
 func resourceAutomationVariableBool() *schema.Resource {
@@ -13,9 +14,8 @@ func resourceAutomationVariableBool() *schema.Resource {
 		Update: resourceAutomationVariableBoolCreateUpdate,
 		Delete: resourceAutomationVariableBoolDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),

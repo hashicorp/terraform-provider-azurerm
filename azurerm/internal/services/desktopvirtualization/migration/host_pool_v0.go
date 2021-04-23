@@ -1,123 +1,121 @@
 package migration
 
 import (
+	"context"
 	"log"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
-func HostPoolV0ToV1() schema.StateUpgrader {
-	return schema.StateUpgrader{
-		Type:    hostPoolSchemaForV0().CoreConfigSchema().ImpliedType(),
-		Upgrade: hostPoolUpgradeV0ToV1,
-		Version: 0,
-	}
-}
+var _ pluginsdk.StateUpgrade = HostPoolV0ToV1{}
 
-func hostPoolSchemaForV0() *schema.Resource {
-	return &schema.Resource{
-		Schema: map[string]*schema.Schema{
-			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+type HostPoolV0ToV1 struct{}
 
-			"location": azure.SchemaLocation(),
+func (HostPoolV0ToV1) Schema() map[string]*pluginsdk.Schema {
+	return map[string]*schema.Schema{
+		"name": {
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+		"location": azure.SchemaLocation(),
 
-			"type": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+		"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"load_balancer_type": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+		"type": {
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
 
-			"friendly_name": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
+		"load_balancer_type": {
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
 
-			"description": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
+		"friendly_name": {
+			Type:     schema.TypeString,
+			Optional: true,
+		},
 
-			"validate_environment": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
+		"description": {
+			Type:     schema.TypeString,
+			Optional: true,
+		},
 
-			"personal_desktop_assignment_type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-			},
+		"validate_environment": {
+			Type:     schema.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
 
-			"maximum_sessions_allowed": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Default:  999999,
-			},
+		"personal_desktop_assignment_type": {
+			Type:     schema.TypeString,
+			Optional: true,
+			ForceNew: true,
+		},
 
-			"preferred_app_group_type": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				ForceNew:    true,
-				Description: "Preferred App Group type to display",
-			},
+		"maximum_sessions_allowed": {
+			Type:     schema.TypeInt,
+			Optional: true,
+			Default:  999999,
+		},
 
-			"registration_info": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"expiration_date": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
+		"preferred_app_group_type": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			ForceNew:    true,
+			Description: "Preferred App Group type to display",
+		},
 
-						"reset_token": {
-							Type:     schema.TypeBool,
-							Computed: true,
-						},
+		"registration_info": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"expiration_date": {
+						Type:     schema.TypeString,
+						Required: true,
+					},
 
-						"token": {
-							Type:      schema.TypeString,
-							Sensitive: true,
-							Computed:  true,
-						},
+					"reset_token": {
+						Type:     schema.TypeBool,
+						Computed: true,
+					},
+
+					"token": {
+						Type:      schema.TypeString,
+						Sensitive: true,
+						Computed:  true,
 					},
 				},
 			},
-
-			"tags": tags.Schema(),
 		},
+
+		"tags": tags.Schema(),
 	}
 }
 
-func hostPoolUpgradeV0ToV1(rawState map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
-	oldId := rawState["id"].(string)
+func (HostPoolV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
+	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+		oldId := rawState["id"].(string)
 
-	id, err := parse.HostPoolIDInsensitively(oldId)
-	if err != nil {
-		return nil, err
+		id, err := parse.HostPoolIDInsensitively(oldId)
+		if err != nil {
+			return nil, err
+		}
+		newId := id.ID()
+
+		log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId)
+		rawState["id"] = newId
+
+		return rawState, nil
 	}
-	newId := id.ID()
-
-	log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId)
-	rawState["id"] = newId
-
-	return rawState, nil
 }

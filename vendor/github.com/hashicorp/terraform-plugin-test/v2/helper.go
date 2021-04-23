@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	getter "github.com/hashicorp/go-getter"
+	"github.com/hashicorp/terraform-exec/tfexec"
 )
 
 const subprocessCurrentSigil = "4acd63807899403ca4859f5bb948d2c6"
@@ -187,14 +188,21 @@ func (h *Helper) NewWorkingDir() (*WorkingDir, error) {
 		return nil, err
 	}
 
-	// symlink the provider source files into the base directory
+	// symlink the provider source files into the config directory
+	// e.g. testdata
 	err = symlinkDirectoriesOnly(h.sourceDir, dir)
+	if err != nil {
+		return nil, err
+	}
+
+	tf, err := tfexec.NewTerraform(dir, h.terraformExec)
 	if err != nil {
 		return nil, err
 	}
 
 	return &WorkingDir{
 		h:             h,
+		tf:            tf,
 		baseDir:       dir,
 		terraformExec: h.terraformExec,
 	}, nil
