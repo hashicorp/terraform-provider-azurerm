@@ -38,7 +38,7 @@ func resourceDataFactoryLinkedServiceAzureFileStorage() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMDataFactoryLinkedServiceDatasetName,
+				ValidateFunc: validate.LinkedServiceDatasetName,
 			},
 
 			"data_factory_name": {
@@ -94,6 +94,27 @@ func resourceDataFactoryLinkedServiceAzureFileStorage() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"key_vault_password": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"linked_service_name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"secret_name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
 			},
 
 			"parameters": {
@@ -177,6 +198,11 @@ func resourceDataFactoryLinkedServiceAzureFileStorageCreateUpdate(d *schema.Reso
 		fileStorageLinkedService.ConnectVia = expandDataFactoryLinkedServiceIntegrationRuntime(v.(string))
 	}
 
+	if v, ok := d.GetOk("key_vault_password"); ok {
+		password := v.([]interface{})
+		fileStorageProperties.Password = expandAzureKeyVaultPassword(password)
+	}
+
 	if v, ok := d.GetOk("additional_properties"); ok {
 		fileStorageLinkedService.AdditionalProperties = v.(map[string]interface{})
 	}
@@ -242,6 +268,14 @@ func resourceDataFactoryLinkedServiceAzureFileStorageRead(d *schema.ResourceData
 
 	d.Set("additional_properties", fileStorage.AdditionalProperties)
 	d.Set("description", fileStorage.Description)
+
+	if password := fileStorage.Password; password != nil {
+		if keyVaultPassword, ok := password.AsAzureKeyVaultSecretReference(); ok {
+			if err := d.Set("key_vault_password", flattenAzureKeyVaultPassword(keyVaultPassword)); err != nil {
+				return fmt.Errorf("setting `key_vault_password`: %+v", err)
+			}
+		}
+	}
 
 	annotations := flattenDataFactoryAnnotations(fileStorage.Annotations)
 	if err := d.Set("annotations", annotations); err != nil {

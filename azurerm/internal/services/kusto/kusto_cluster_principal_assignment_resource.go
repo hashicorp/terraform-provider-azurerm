@@ -3,7 +3,6 @@ package kusto
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-09-18/kusto"
@@ -49,7 +48,7 @@ func resourceKustoClusterPrincipalAssignment() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMKustoClusterPrincipalAssignmentName,
+				ValidateFunc: validate.ClusterPrincipalAssignmentName,
 			},
 
 			"tenant_id": {
@@ -237,22 +236,4 @@ func resourceKustoClusterPrincipalAssignmentDelete(d *schema.ResourceData, meta 
 	}
 
 	return nil
-}
-
-func validateAzureRMKustoClusterPrincipalAssignmentName(v interface{}, k string) (warnings []string, errors []error) {
-	name := v.(string)
-
-	if regexp.MustCompile(`^[\s]+$`).MatchString(name) {
-		errors = append(errors, fmt.Errorf("%q must not consist of whitespaces only", k))
-	}
-
-	if !regexp.MustCompile(`^[a-zA-Z0-9\s.-]+$`).MatchString(name) {
-		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters, whitespaces, dashes and dots: %q", k, name))
-	}
-
-	if len(name) > 260 {
-		errors = append(errors, fmt.Errorf("%q must be (inclusive) between 4 and 22 characters long but is %d", k, len(name)))
-	}
-
-	return warnings, errors
 }

@@ -1,54 +1,52 @@
 package tags
 
-import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-)
+import "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 
 // SchemaDataSource returns the Schema which should be used for Tags on a Data Source
-func SchemaDataSource() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeMap,
+func SchemaDataSource() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeMap,
 		Computed: true,
-		Elem: &schema.Schema{
-			Type: schema.TypeString,
+		Elem: &pluginsdk.Schema{
+			Type: pluginsdk.TypeString,
 		},
 	}
 }
 
 // ForceNewSchema returns the Schema which should be used for Tags when changes
 // require recreation of the resource
-func ForceNewSchema() *schema.Schema {
-	return &schema.Schema{
-		Type:         schema.TypeMap,
+func ForceNewSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:         pluginsdk.TypeMap,
 		Optional:     true,
 		ForceNew:     true,
 		ValidateFunc: Validate,
-		Elem: &schema.Schema{
-			Type: schema.TypeString,
+		Elem: &pluginsdk.Schema{
+			Type: pluginsdk.TypeString,
 		},
 	}
 }
 
 // Schema returns the Schema used for Tags
-func Schema() *schema.Schema {
-	return &schema.Schema{
-		Type:         schema.TypeMap,
+func Schema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:         pluginsdk.TypeMap,
 		Optional:     true,
 		ValidateFunc: Validate,
-		Elem: &schema.Schema{
-			Type: schema.TypeString,
+		Elem: &pluginsdk.Schema{
+			Type: pluginsdk.TypeString,
 		},
 	}
 }
 
 // Schema returns the Schema used for Tags
-func SchemaEnforceLowerCaseKeys() *schema.Schema {
-	return &schema.Schema{
-		Type:         schema.TypeMap,
+func SchemaEnforceLowerCaseKeys() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:         pluginsdk.TypeMap,
 		Optional:     true,
 		ValidateFunc: EnforceLowerCaseKeys,
-		Elem: &schema.Schema{
-			Type: schema.TypeString,
+		Elem: &pluginsdk.Schema{
+			Type: pluginsdk.TypeString,
 		},
 	}
 }

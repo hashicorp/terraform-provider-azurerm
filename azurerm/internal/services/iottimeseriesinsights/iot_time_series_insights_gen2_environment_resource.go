@@ -171,16 +171,16 @@ func resourceIoTTimeSeriesInsightsGen2EnvironmentCreateUpdate(d *schema.Resource
 		return fmt.Errorf("retrieving IoT Time Series Insights Gen2 Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	resource, ok := resp.Value.AsGen2EnvironmentResource()
+	read, ok := resp.Value.AsGen2EnvironmentResource()
 	if !ok {
 		return fmt.Errorf("resource was not IoT Time Series Insights Gen2 Environment %q (Resource Group %q)", name, resourceGroup)
 	}
 
-	if resource.ID == nil || *resource.ID == "" {
+	if read.ID == nil || *read.ID == "" {
 		return fmt.Errorf("cannot read IoT Time Series Insights Gen2 Environment %q (Resource Group %q) ID", name, resourceGroup)
 	}
 
-	d.SetId(*resource.ID)
+	d.SetId(*read.ID)
 
 	return resourceIoTTimeSeriesInsightsGen2EnvironmentRead(d, meta)
 }

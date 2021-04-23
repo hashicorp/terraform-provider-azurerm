@@ -198,8 +198,8 @@ func resourceCosmosDbSQLStoredProcedureRead(d *schema.ResourceData, meta interfa
 	d.Set("name", id.StoredProcedureName)
 
 	if props := resp.SQLStoredProcedureGetProperties; props != nil {
-		if resource := props.Resource; resource != nil {
-			d.Set("body", resource.Body)
+		if props.Resource != nil {
+			d.Set("body", props.Resource.Body)
 		}
 	}
 

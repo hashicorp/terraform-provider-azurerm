@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/migration"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -25,9 +27,9 @@ func resourceStorageQueue() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 		SchemaVersion: 1,
-		StateUpgraders: []schema.StateUpgrader{
-			migration.QueueV0ToV1(),
-		},
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.QueueV0ToV1{},
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -48,7 +50,7 @@ func resourceStorageQueue() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateStorageAccountName,
+				ValidateFunc: validate.StorageAccountName,
 			},
 
 			"metadata": MetaDataSchema(),

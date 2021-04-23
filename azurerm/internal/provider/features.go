@@ -1,39 +1,39 @@
 package provider
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
-func schemaFeatures(supportLegacyTestSuite bool) *schema.Schema {
+func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 	// NOTE: if there's only one nested field these want to be Required (since there's no point
 	//       specifying the block otherwise) - however for 2+ they should be optional
-	features := map[string]*schema.Schema{
+	features := map[string]*pluginsdk.Schema{
 		"key_vault": {
-			Type:     schema.TypeList,
+			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MaxItems: 1,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
 					"recover_soft_deleted_key_vaults": {
-						Type:     schema.TypeBool,
+						Type:     pluginsdk.TypeBool,
 						Optional: true,
 					},
 					"purge_soft_delete_on_destroy": {
-						Type:     schema.TypeBool,
+						Type:     pluginsdk.TypeBool,
 						Optional: true,
 					},
 				},
 			},
 		},
 		"log_analytics_workspace": {
-			Type:     schema.TypeList,
+			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MaxItems: 1,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
 					"permanently_delete_on_destroy": {
-						Type:     schema.TypeBool,
+						Type:     pluginsdk.TypeBool,
 						Required: true,
 					},
 				},
@@ -41,13 +41,13 @@ func schemaFeatures(supportLegacyTestSuite bool) *schema.Schema {
 		},
 
 		"network": {
-			Type:     schema.TypeList,
+			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MaxItems: 1,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
 					"relaxed_locking": {
-						Type:     schema.TypeBool,
+						Type:     pluginsdk.TypeBool,
 						Required: true,
 					},
 				},
@@ -55,13 +55,13 @@ func schemaFeatures(supportLegacyTestSuite bool) *schema.Schema {
 		},
 
 		"template_deployment": {
-			Type:     schema.TypeList,
+			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MaxItems: 1,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
 					"delete_nested_items_during_deletion": {
-						Type:     schema.TypeBool,
+						Type:     pluginsdk.TypeBool,
 						Required: true,
 					},
 				},
@@ -69,17 +69,17 @@ func schemaFeatures(supportLegacyTestSuite bool) *schema.Schema {
 		},
 
 		"virtual_machine": {
-			Type:     schema.TypeList,
+			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MaxItems: 1,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
 					"delete_os_disk_on_deletion": {
-						Type:     schema.TypeBool,
+						Type:     pluginsdk.TypeBool,
 						Optional: true,
 					},
 					"graceful_shutdown": {
-						Type:     schema.TypeBool,
+						Type:     pluginsdk.TypeBool,
 						Optional: true,
 					},
 				},
@@ -87,13 +87,13 @@ func schemaFeatures(supportLegacyTestSuite bool) *schema.Schema {
 		},
 
 		"virtual_machine_scale_set": {
-			Type:     schema.TypeList,
+			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MaxItems: 1,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
 					"roll_instances_when_required": {
-						Type:     schema.TypeBool,
+						Type:     pluginsdk.TypeBool,
 						Required: true,
 					},
 				},
@@ -104,21 +104,21 @@ func schemaFeatures(supportLegacyTestSuite bool) *schema.Schema {
 	// this is a temporary hack to enable us to gradually add provider blocks to test configurations
 	// rather than doing it as a big-bang and breaking all open PR's
 	if supportLegacyTestSuite {
-		return &schema.Schema{
-			Type:     schema.TypeList,
+		return &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Elem: &schema.Resource{
+			Elem: &pluginsdk.Resource{
 				Schema: features,
 			},
 		}
 	}
 
-	return &schema.Schema{
-		Type:     schema.TypeList,
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		Required: true,
 		MaxItems: 1,
 		MinItems: 1,
-		Elem: &schema.Resource{
+		Elem: &pluginsdk.Resource{
 			Schema: features,
 		},
 	}

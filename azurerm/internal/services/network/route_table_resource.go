@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
+
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -46,7 +48,7 @@ func resourceRouteTable() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateRouteTableName,
+				ValidateFunc: validate.RouteTableName,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -63,7 +65,7 @@ func resourceRouteTable() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: ValidateRouteName,
+							ValidateFunc: validate.RouteName,
 						},
 
 						"address_prefix": {

@@ -53,7 +53,7 @@ func resourceLinuxVirtualMachine() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateVmName,
+				ValidateFunc: computeValidate.VirtualMachineName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -130,7 +130,7 @@ func resourceLinuxVirtualMachine() *schema.Resource {
 				Computed: true,
 				ForceNew: true,
 
-				ValidateFunc: ValidateLinuxComputerNameFull,
+				ValidateFunc: computeValidate.LinuxComputerNameFull,
 			},
 
 			"custom_data": base64.OptionalSchema(true),
@@ -337,7 +337,7 @@ func resourceLinuxVirtualMachineCreate(d *schema.ResourceData, meta interface{})
 	if v, ok := d.GetOk("computer_name"); ok && len(v.(string)) > 0 {
 		computerName = v.(string)
 	} else {
-		_, errs := ValidateLinuxComputerNameFull(d.Get("name"), "computer_name")
+		_, errs := computeValidate.LinuxComputerNameFull(d.Get("name"), "computer_name")
 		if len(errs) > 0 {
 			return fmt.Errorf("unable to assume default computer name %s Please adjust the %q, or specify an explicit %q", errs[0], "name", "computer_name")
 		}

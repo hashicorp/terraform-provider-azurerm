@@ -1,6 +1,7 @@
 package frontdoor
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -9,7 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/parse"
 )
 
-func customizeHttpsConfigurationCustomizeDiff(d *schema.ResourceDiff, v interface{}) error {
+func customizeHttpsConfigurationCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, v interface{}) error {
 	if v, ok := d.GetOk("frontend_endpoint_id"); ok && v.(string) != "" {
 		id, err := parse.FrontendEndpointID(v.(string))
 		if err != nil {
@@ -77,7 +78,7 @@ func azureKeyVaultCertificateHasValues(customHttpsConfiguration map[string]inter
 	return false
 }
 
-func frontDoorCustomizeDiff(d *schema.ResourceDiff, v interface{}) error {
+func frontDoorCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, v interface{}) error {
 	if err := frontDoorSettings(d); err != nil {
 		return fmt.Errorf("validating Front Door %q (Resource Group %q): %+v", d.Get("name").(string), d.Get("resource_group_name").(string), err)
 	}

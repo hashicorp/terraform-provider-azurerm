@@ -10,8 +10,9 @@ import (
 )
 
 const (
-	springCloudAppAssociationTypeMysql = "Microsoft.DBforMySQL"
-	springCloudAppAssociationTypeRedis = "Microsoft.Cache"
+	springCloudAppAssociationTypeCosmosDb = "Microsoft.DocumentDB"
+	springCloudAppAssociationTypeMysql    = "Microsoft.DBforMySQL"
+	springCloudAppAssociationTypeRedis    = "Microsoft.Cache"
 )
 
 func importSpringCloudAppAssociation(resourceType string) func(d *schema.ResourceData, meta interface{}) (data []*schema.ResourceData, err error) {

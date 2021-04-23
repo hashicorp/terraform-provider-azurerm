@@ -2,10 +2,12 @@ package network
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"log"
-	"strings"
 	"time"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 
@@ -33,7 +35,7 @@ func resourceVirtualNetworkGateway() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
-		CustomizeDiff: resourceVirtualNetworkGatewayCustomizeDiff,
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(resourceVirtualNetworkGatewayCustomizeDiff),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),
@@ -151,7 +153,7 @@ func resourceVirtualNetworkGateway() *schema.Resource {
 						"subnet_id": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateFunc:     validateVirtualNetworkGatewaySubnetId,
+							ValidateFunc:     validate.IsGatewaySubnet,
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
@@ -374,14 +376,12 @@ func resourceVirtualNetworkGateway() *schema.Resource {
 			"custom_route": {
 				Type:     schema.TypeList,
 				Optional: true,
-				ForceNew: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"address_prefixes": {
 							Type:     schema.TypeSet,
 							Optional: true,
-							ForceNew: true,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},
@@ -988,32 +988,6 @@ func hashVirtualNetworkGatewayRevokedCert(v interface{}) int {
 	return schema.HashString(buf.String())
 }
 
-func validateVirtualNetworkGatewaySubnetId(i interface{}, k string) (warnings []string, errors []error) {
-	value, ok := i.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-		return
-	}
-
-	id, err := azure.ParseAzureResourceID(value)
-	if err != nil {
-		errors = append(errors, fmt.Errorf("expected %s to be an Azure resource id", k))
-		return
-	}
-
-	subnet, ok := id.Path["subnets"]
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected %s to reference a subnet resource", k))
-		return
-	}
-
-	if strings.ToLower(subnet) != "gatewaysubnet" {
-		errors = append(errors, fmt.Errorf("expected %s to reference a gateway subnet with name GatewaySubnet", k))
-	}
-
-	return warnings, errors
-}
-
 func validateVirtualNetworkGatewayPolicyBasedVpnSku() schema.SchemaValidateFunc {
 	return validation.StringInSlice([]string{
 		string(network.VirtualNetworkGatewaySkuTierBasic),
@@ -1058,7 +1032,7 @@ func validateVirtualNetworkGatewayExpressRouteSku() schema.SchemaValidateFunc {
 	}, true)
 }
 
-func resourceVirtualNetworkGatewayCustomizeDiff(diff *schema.ResourceDiff, _ interface{}) error {
+func resourceVirtualNetworkGatewayCustomizeDiff(ctx context.Context, diff *schema.ResourceDiff, _ interface{}) error {
 	if vpnClient, ok := diff.GetOk("vpn_client_configuration"); ok {
 		if vpnClientConfig, ok := vpnClient.([]interface{})[0].(map[string]interface{}); ok {
 			hasAadTenant := vpnClientConfig["aad_tenant"] != ""

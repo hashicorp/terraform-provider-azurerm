@@ -2,10 +2,15 @@ package compute
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"log"
 	"strings"
 	"time"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
+	validate2 "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -35,9 +40,9 @@ func resourceVirtualMachineScaleSet() *schema.Resource {
 		Delete: resourceVirtualMachineScaleSetDelete,
 
 		SchemaVersion: 1,
-		StateUpgraders: []schema.StateUpgrader{
-			migration.LegacyVMSSV0ToV1(),
-		},
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.LegacyVMSSV0ToV1{},
+		}),
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -631,7 +636,7 @@ func resourceVirtualMachineScaleSet() *schema.Resource {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							Computed:     true,
-							ValidateFunc: validateDiskSizeGB,
+							ValidateFunc: validate2.DiskSizeGB,
 						},
 
 						"managed_disk_type": {
@@ -785,7 +790,7 @@ func resourceVirtualMachineScaleSet() *schema.Resource {
 			"tags": tags.Schema(),
 		},
 
-		CustomizeDiff: azureRmVirtualMachineScaleSetCustomizeDiff,
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(azureRmVirtualMachineScaleSetCustomizeDiff),
 	}
 }
 
@@ -2360,7 +2365,7 @@ func azureRmVirtualMachineScaleSetSuppressRollingUpgradePolicyDiff(k, _, new str
 }
 
 // Make sure rolling_upgrade_policy is default value when upgrade_policy_mode is not Rolling.
-func azureRmVirtualMachineScaleSetCustomizeDiff(d *schema.ResourceDiff, _ interface{}) error {
+func azureRmVirtualMachineScaleSetCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, _ interface{}) error {
 	mode := d.Get("upgrade_policy_mode").(string)
 	if strings.ToLower(mode) != "rolling" {
 		if policyRaw, ok := d.GetOk("rolling_upgrade_policy.0"); ok {

@@ -101,7 +101,7 @@ func resourceSentinelDataConnectorAzureAdvancedThreatProtectionCreate(d *schema.
 				},
 			},
 		},
-		Kind: securityinsight.KindAzureAdvancedThreatProtection,
+		Kind: securityinsight.KindBasicDataConnectorKindAzureAdvancedThreatProtection,
 	}
 
 	if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.Name, param); err != nil {

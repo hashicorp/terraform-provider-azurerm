@@ -6,10 +6,11 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -34,9 +35,9 @@ func resourceExpressRouteCircuit() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
-		CustomizeDiff: customdiff.Sequence(
+		CustomizeDiff: pluginsdk.CustomDiffInSequence(
 			// If bandwidth is reduced force a new resource
-			customdiff.ForceNewIfChange("bandwidth_in_mbps", func(old, new, meta interface{}) bool {
+			pluginsdk.ForceNewIfChange("bandwidth_in_mbps", func(ctx context.Context, old, new, meta interface{}) bool {
 				return new.(int) < old.(int)
 			}),
 		),

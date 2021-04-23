@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/eventhub/mgmt/2018-01-01-preview/eventhub"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -60,7 +62,7 @@ func resourceEventHubAuthorizationRule() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 		}),
 
-		CustomizeDiff: eventHubAuthorizationRuleCustomizeDiff,
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(eventHubAuthorizationRuleCustomizeDiff),
 	}
 }
 
