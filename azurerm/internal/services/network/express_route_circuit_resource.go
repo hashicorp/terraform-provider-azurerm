@@ -31,9 +31,8 @@ func resourceExpressRouteCircuit() *schema.Resource {
 		Read:   resourceExpressRouteCircuitRead,
 		Update: resourceExpressRouteCircuitCreateUpdate,
 		Delete: resourceExpressRouteCircuitDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		CustomizeDiff: pluginsdk.CustomDiffInSequence(
 			// If bandwidth is reduced force a new resource

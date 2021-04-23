@@ -34,9 +34,8 @@ func resourceBackupProtectionPolicyVM() *schema.Resource {
 		Update: resourceBackupProtectionPolicyVMCreateUpdate,
 		Delete: resourceBackupProtectionPolicyVMDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
