@@ -13,7 +13,7 @@ import (
 	cosmosValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/springcloud/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/springcloud/validate"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -38,7 +38,7 @@ func resourceSpringCloudAppCosmosDBAssociation() *schema.Resource {
 		Update: resourceSpringCloudAppCosmosDBAssociationCreateUpdate,
 		Delete: resourceSpringCloudAppCosmosDBAssociationDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.SpringCloudAppAssociationID(id)
 			return err
 		}, importSpringCloudAppAssociation(springCloudAppAssociationTypeCosmosDb)),
