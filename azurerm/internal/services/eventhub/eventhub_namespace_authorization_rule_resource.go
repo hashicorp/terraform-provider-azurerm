@@ -62,7 +62,7 @@ func resourceEventHubNamespaceAuthorizationRule() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 		}),
 
-		CustomizeDiff: eventHubAuthorizationRuleCustomizeDiff,
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(eventHubAuthorizationRuleCustomizeDiff),
 	}
 }
 
