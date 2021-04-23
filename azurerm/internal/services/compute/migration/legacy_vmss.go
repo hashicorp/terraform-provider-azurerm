@@ -701,8 +701,6 @@ func (LegacyVMSSV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		//  essentially a noop there's no reason this shouldn't be the same I guess
 
 		client := meta.(*clients.Client).Compute.VMScaleSetClient
-		ctx, cancel := context.WithTimeout(meta.(*clients.Client).StopContext, 5*time.Minute)
-		defer cancel()
 
 		resGroup := rawState["resource_group_name"].(string)
 		name := rawState["name"].(string)
