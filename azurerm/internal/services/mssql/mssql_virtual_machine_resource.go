@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/sqlvirtualmachine/mgmt/2017-03-01-preview/sqlvirtualmachine"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -34,7 +36,7 @@ func resourceMsSqlVirtualMachine() *schema.Resource {
 		Update: resourceMsSqlVirtualMachineCreateUpdate,
 		Delete: resourceMsSqlVirtualMachineDelete,
 
-		CustomizeDiff: resourceMsSqlVirtualMachineCustomDiff,
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(resourceMsSqlVirtualMachineCustomDiff),
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.SqlVirtualMachineID(id)
@@ -297,7 +299,7 @@ func resourceMsSqlVirtualMachine() *schema.Resource {
 	}
 }
 
-func resourceMsSqlVirtualMachineCustomDiff(d *schema.ResourceDiff, _ interface{}) error {
+func resourceMsSqlVirtualMachineCustomDiff(ctx context.Context, d *schema.ResourceDiff, _ interface{}) error {
 	// ForceNew when removing the auto_backup block.
 	// See https://github.com/Azure/azure-rest-api-specs/issues/12818#issuecomment-773727756
 	old, new := d.GetChange("auto_backup")
