@@ -1,6 +1,7 @@
 package sdk
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -93,18 +94,16 @@ func (rw *ResourceWrapper) Resource() (*schema.Resource, error) {
 			}
 
 			return nil
-		}, func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
 			if v, ok := rw.resource.(ResourceWithCustomImporter); ok {
-				ctx, metaData := runArgs(d, meta, rw.logger)
-				wrappedCtx, cancel := timeouts.ForRead(ctx, d)
-				defer cancel()
+				_, metaData := runArgs(d, meta, rw.logger)
 
-				err := v.CustomImporter()(wrappedCtx, metaData)
+				err := v.CustomImporter()(ctx, metaData)
 				if err != nil {
 					return nil, err
 				}
 
-				return []*schema.ResourceData{metaData.ResourceData}, nil
+				return []*pluginsdk.ResourceData{metaData.ResourceData}, nil
 			}
 
 			return schema.ImportStatePassthrough(d, meta)
