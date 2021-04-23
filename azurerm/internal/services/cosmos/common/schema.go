@@ -109,6 +109,7 @@ func CosmosDbIndexingPolicySchema() *schema.Schema {
 			Schema: map[string]*schema.Schema{
 				// `automatic` is excluded as it is deprecated; see https://stackoverflow.com/a/58721386
 				// `indexing_mode` case changes from 2020-04-01 to 2021-01-15 issue https://github.com/Azure/azure-rest-api-specs/issues/14051
+				// todo: change to SDK constants and remove translation code in 3.0
 				"indexing_mode": {
 					Type:             schema.TypeString,
 					Optional:         true,
@@ -165,6 +166,7 @@ func CosmosDbIndexingPolicySchema() *schema.Schema {
 											ValidateFunc: validation.StringIsNotEmpty,
 										},
 										// `order` case changes from 2020-04-01 to 2021-01-15, issue opened:https://github.com/Azure/azure-rest-api-specs/issues/14051
+										// todo: change to SDK constants and remove translation code in 3.0
 										"order": {
 											Type:     schema.TypeString,
 											Required: true,

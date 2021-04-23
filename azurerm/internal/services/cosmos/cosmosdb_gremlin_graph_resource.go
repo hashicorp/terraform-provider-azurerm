@@ -104,6 +104,7 @@ func resourceCosmosDbGremlinGraph() *schema.Resource {
 						},
 
 						// case change in 2021-01-15, issue https://github.com/Azure/azure-rest-api-specs/issues/14051
+						// todo: change to SDK constants and remove translation code in 3.0
 						"indexing_mode": {
 							Type:             schema.TypeString,
 							Required:         true,
