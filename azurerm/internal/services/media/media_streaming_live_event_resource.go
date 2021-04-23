@@ -589,7 +589,7 @@ func expandIPRanges(input []interface{}) []media.IPRange {
 	}
 
 	ipRanges := make([]media.IPRange, 0)
-	for index, ipAllow := range input {
+	for _, ipAllow := range input {
 		if ipAllow == nil {
 			continue
 		}
@@ -605,7 +605,7 @@ func expandIPRanges(input []interface{}) []media.IPRange {
 		if subnetPrefixLengthRaw != "" {
 			ipRange.SubnetPrefixLength = utils.Int32(int32(subnetPrefixLengthRaw.(int)))
 		}
-		ipRanges[index] = ipRange
+		ipRanges = append(ipRanges, ipRange)
 	}
 
 	return ipRanges

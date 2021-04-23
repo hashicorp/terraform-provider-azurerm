@@ -613,7 +613,7 @@ func expandRestriction(option map[string]interface{}) (media.BasicContentKeyPoli
 		restrictionCount++
 		restrictionType = string(media.OdataTypeMicrosoftMediaContentKeyPolicyOpenRestriction)
 	}
-	if option["token_restriction"] != nil && len(option["token_restriction"].([]interface{})) > 0 {
+	if option["token_restriction"] != nil && len(option["token_restriction"].([]interface{})) > 0 && option["token_restriction"].([]interface{})[0] != nil {
 		restrictionCount++
 		restrictionType = string(media.OdataTypeMicrosoftMediaContentKeyPolicyTokenRestriction)
 	}
@@ -634,9 +634,6 @@ func expandRestriction(option map[string]interface{}) (media.BasicContentKeyPoli
 		return openRestriction, nil
 	case string(media.OdataTypeMicrosoftMediaContentKeyPolicyTokenRestriction):
 		tokenRestrictions := option["token_restriction"].([]interface{})
-		if tokenRestrictions[0] == nil {
-			return nil, nil
-		}
 		tokenRestriction := tokenRestrictions[0].(map[string]interface{})
 		contentKeyPolicyTokenRestriction := &media.ContentKeyPolicyTokenRestriction{
 			OdataType: media.OdataTypeMicrosoftMediaContentKeyPolicyTokenRestriction,
@@ -758,7 +755,7 @@ func expandConfiguration(input map[string]interface{}) (media.BasicContentKeyPol
 		configurationCount++
 		configurationType = string(media.OdataTypeMicrosoftMediaContentKeyPolicyWidevineConfiguration)
 	}
-	if input["fairplay_configuration"] != nil && len(input["fairplay_configuration"].([]interface{})) > 0 {
+	if input["fairplay_configuration"] != nil && len(input["fairplay_configuration"].([]interface{})) > 0 && input["fairplay_configuration"].([]interface{})[0] != nil {
 		configurationCount++
 		configurationType = string(media.OdataTypeMicrosoftMediaContentKeyPolicyFairPlayConfiguration)
 	}
@@ -967,10 +964,6 @@ func flattenRentalConfiguration(input *media.ContentKeyPolicyFairPlayOfflineRent
 func expandFairplayConfiguration(input []interface{}) (*media.ContentKeyPolicyFairPlayConfiguration, error) {
 	fairplayConfiguration := &media.ContentKeyPolicyFairPlayConfiguration{
 		OdataType: media.OdataTypeMicrosoftMediaContentKeyPolicyWidevineConfiguration,
-	}
-
-	if input[0] == nil {
-		return nil, nil
 	}
 
 	fairplay := input[0].(map[string]interface{})
