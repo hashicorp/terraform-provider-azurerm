@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -588,7 +589,7 @@ func resourceStorageAccount() *schema.Resource {
 				},
 			},
 		},
-		CustomizeDiff: func(d *schema.ResourceDiff, v interface{}) error {
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *schema.ResourceDiff, v interface{}) error {
 			if d.HasChange("account_kind") {
 				accountKind, changedKind := d.GetChange("account_kind")
 
@@ -608,7 +609,7 @@ func resourceStorageAccount() *schema.Resource {
 			}
 
 			return nil
-		},
+		}),
 	}
 }
 
