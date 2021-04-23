@@ -49,10 +49,7 @@ func testAccExpressRouteConnection_basic(t *testing.T) {
 				check.That("azurerm_express_route_connection.test").Key("routing.0.propagated_route_table.#").HasValue("1"),
 			),
 		},
-		// Note: When the `associated_route_table_id` property isn't specified, it has default value.
-		// And the `Computed` attribute cannot be added on this property because it cannot be rolled back to default value after this property is specified.
-		// So it has to ignore this property here.
-		data.ImportStep("routing.0.associated_route_table_id"),
+		data.ImportStep(),
 	})
 }
 
@@ -97,10 +94,7 @@ func testAccExpressRouteConnection_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// Note: When the `associated_route_table_id` property isn't specified, it has default value.
-		// And the `Computed` attribute cannot be added on this property because it cannot be rolled back to default value after this property is specified.
-		// So it has to ignore this property here.
-		data.ImportStep("routing.0.associated_route_table_id"),
+		data.ImportStep(),
 		{
 			Config: r.complete(data),
 			Check: resource.ComposeTestCheckFunc(
