@@ -15,6 +15,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: updating to `v53.3.0` of `github.com/Azure/azure-sdk-for-go` [GH-11365]
+* dependencies: updating to `v1.17.1` of `github.com/hashicorp/terraform-plugin-sdk` [GH-11431]
 * `azurerm_container_registry` - deprecating the `georeplication_locations` property in favour of the `georeplications` property GH-11200]
 * `azurerm_database_migration` - switching to using an ID Formatter [GH-11378]
 * `azurerm_database_migration_project` - switching to using an ID Formatter [GH-11378]
