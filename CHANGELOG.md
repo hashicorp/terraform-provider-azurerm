@@ -13,6 +13,7 @@ FEATURES:
 * **New Resource:** `azurerm_postgresql_flexible_server` [GH-11081]
 * **New Resource:** `azurerm_spring_cloud_app_cosmosdb_association` [GH-11307]
 * **New Resource:** `azurerm_sentinel_data_connector_microsoft_defender_advanced_threat_protection` [GH-10669]
+* **New Resource:** `azurerm_virtual_machine_configuration_policy_assignment` [GH-11334]
 * **New Resource:** `azurerm_vmware_cluster` [GH-10848]
 * 
 ENHANCEMENTS:
