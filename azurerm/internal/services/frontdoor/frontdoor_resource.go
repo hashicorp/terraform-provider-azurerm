@@ -433,6 +433,8 @@ func resourceFrontDoor() *schema.Resource {
 							Optional: true,
 							Default:  0,
 						},
+						// if either of these are set in the main FrontDoor config we need to error out
+						// unfortunatly we will need to force end users to use the azurerm_frontdoor_custom_https_configuration
 						"custom_https_provisioning_enabled": {
 							Type:       schema.TypeBool,
 							Optional:   true,
@@ -589,37 +591,45 @@ func resourceFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) err
 
 	// Now loop through the FrontendEndpoints and enable/disable Custom Domain HTTPS
 	// on each individual Frontend Endpoint if required
-	feClient := meta.(*clients.Client).Frontdoor.FrontDoorsFrontendClient
 
-	for _, v := range frontendEndpoints {
-		frontendEndpoint := v.(map[string]interface{})
-		customHttpsProvisioningEnabled := frontendEndpoint["custom_https_provisioning_enabled"].(bool)
-		endpointName := frontendEndpoint["name"].(string)
+	// What I believe is happening is the feClient is being called twice(once from the frontdoor resource and once from the custom_https_configuration resource) which results in the error:
+	// updating Custom HTTPS configuration for Frontend Endpoint "acctest-FD-default-FE" (Front Door "acctest-FD" / Resource Group "jcline-frontdoor-order"):
+	// unable to enable/update Custom Domain HTTPS for Frontend Endpoint "acctest-FD-default-FE" (Resource Group "jcline-frontdoor-order"): enabling
+	// Custom Domain HTTPS for Frontend Endpoint: frontdoor.FrontendEndpointsClient#EnableHTTPS: Failure sending request: StatusCode=0 --
+	// Original Error: Code="BadRequest" Message="That action isn’t allowed in this profile."
+	// Once that happens the API returns resources out of order...
 
-		// Get current state of endpoint from Azure
-		resp, err := feClient.Get(ctx, resourceGroup, name, endpointName)
-		if err != nil {
-			return fmt.Errorf("retrieving Front Door Frontend Endpoint %q (Resource Group %q): %+v", endpointName, resourceGroup, err)
-		}
+	// feClient := meta.(*clients.Client).Frontdoor.FrontDoorsFrontendClient
 
-		if properties := resp.FrontendEndpointProperties; properties != nil {
-			frontendClient := meta.(*clients.Client).Frontdoor.FrontDoorsFrontendClient
-			customHttpsConfigurationNew := frontendEndpoint["custom_https_configuration"].([]interface{})
-			frontendInputId := parse.NewFrontendEndpointID(frontDoorId.SubscriptionId, frontDoorId.ResourceGroup, frontDoorId.Name, endpointName)
+	// for _, v := range frontendEndpoints {
+	// 	frontendEndpoint := v.(map[string]interface{})
+	// 	customHttpsProvisioningEnabled := frontendEndpoint["custom_https_provisioning_enabled"].(bool)
+	// 	endpointName := frontendEndpoint["name"].(string)
 
-			input := customHttpsConfigurationUpdateInput{
-				customHttpsConfigurationCurrent: properties.CustomHTTPSConfiguration,
-				customHttpsConfigurationNew:     customHttpsConfigurationNew,
-				customHttpsProvisioningEnabled:  customHttpsProvisioningEnabled,
-				frontendEndpointId:              frontendInputId,
-				provisioningState:               properties.CustomHTTPSProvisioningState,
-			}
+	// 	// Get current state of endpoint from Azure
+	// 	resp, err := feClient.Get(ctx, resourceGroup, name, endpointName)
+	// 	if err != nil {
+	// 		return fmt.Errorf("retrieving Front Door Frontend Endpoint %q (Resource Group %q): %+v", endpointName, resourceGroup, err)
+	// 	}
 
-			if err := updateCustomHttpsConfiguration(ctx, frontendClient, input); err != nil {
-				return fmt.Errorf("updating Custom HTTPS configuration for Frontend Endpoint %q (Front Door %q / Resource Group %q): %+v", endpointName, name, resourceGroup, err)
-			}
-		}
-	}
+	// 	if properties := resp.FrontendEndpointProperties; properties != nil {
+	// 		frontendClient := meta.(*clients.Client).Frontdoor.FrontDoorsFrontendClient
+	// 		customHttpsConfigurationNew := frontendEndpoint["custom_https_configuration"].([]interface{})
+	// 		frontendInputId := parse.NewFrontendEndpointID(frontDoorId.SubscriptionId, frontDoorId.ResourceGroup, frontDoorId.Name, endpointName)
+
+	// 		input := customHttpsConfigurationUpdateInput{
+	// 			customHttpsConfigurationCurrent: properties.CustomHTTPSConfiguration,
+	// 			customHttpsConfigurationNew:     customHttpsConfigurationNew,
+	// 			customHttpsProvisioningEnabled:  customHttpsProvisioningEnabled,
+	// 			frontendEndpointId:              frontendInputId,
+	// 			provisioningState:               properties.CustomHTTPSProvisioningState,
+	// 		}
+
+	// 		if err := updateCustomHttpsConfiguration(ctx, frontendClient, input); err != nil {
+	// 			return fmt.Errorf("updating Custom HTTPS configuration for Frontend Endpoint %q (Front Door %q / Resource Group %q): %+v", endpointName, name, resourceGroup, err)
+	// 		}
+	// 	}
+	// }
 
 	return resourceFrontDoorRead(d, meta)
 }
@@ -1375,8 +1385,8 @@ func flattenFrontEndEndpoints(input *[]frontdoor.FrontendEndpoint, frontDoorId p
 			name = *item.Name
 		}
 
-		customHTTPSConfiguration := make([]interface{}, 0)
-		customHttpsProvisioningEnabled := false
+		//customHTTPSConfiguration := make([]interface{}, 0)
+		//customHttpsProvisioningEnabled := false
 		hostName := ""
 		sessionAffinityEnabled := false
 		sessionAffinityTlsSeconds := 0
@@ -1404,19 +1414,19 @@ func flattenFrontEndEndpoints(input *[]frontdoor.FrontendEndpoint, frontDoorId p
 				webApplicationFirewallPolicyLinkId = parsed.ID()
 			}
 
-			flattenedHttpsConfig := flattenCustomHttpsConfiguration(props)
-			customHTTPSConfiguration = flattenedHttpsConfig.CustomHTTPSConfiguration
-			customHttpsProvisioningEnabled = flattenedHttpsConfig.CustomHTTPSProvisioningEnabled
+			//flattenedHttpsConfig := flattenCustomHttpsConfiguration(props)
+			//customHTTPSConfiguration = flattenedHttpsConfig.CustomHTTPSConfiguration
+			//customHttpsProvisioningEnabled = flattenedHttpsConfig.CustomHTTPSProvisioningEnabled
 		}
 
 		results = append(results, map[string]interface{}{
-			"custom_https_configuration":        customHTTPSConfiguration,
-			"custom_https_provisioning_enabled": customHttpsProvisioningEnabled,
-			"host_name":                         hostName,
-			"id":                                id,
-			"name":                              name,
-			"session_affinity_enabled":          sessionAffinityEnabled,
-			"session_affinity_ttl_seconds":      sessionAffinityTlsSeconds,
+			//"custom_https_configuration":        customHTTPSConfiguration,
+			//"custom_https_provisioning_enabled": customHttpsProvisioningEnabled,
+			"host_name":                    hostName,
+			"id":                           id,
+			"name":                         name,
+			"session_affinity_enabled":     sessionAffinityEnabled,
+			"session_affinity_ttl_seconds": sessionAffinityTlsSeconds,
 			"web_application_firewall_policy_link_id": webApplicationFirewallPolicyLinkId,
 		})
 	}
