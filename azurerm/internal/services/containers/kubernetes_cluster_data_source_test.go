@@ -495,7 +495,6 @@ func testAccDataSourceKubernetesCluster_addOnProfileIngressApplicationGatewaySub
 				check.That(data.ResourceName).Key("addon_profile.#").HasValue("1"),
 				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.#").HasValue("1"),
 				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.effective_gateway_id").MatchesRegex(addOnAppGatewayIdRegExp),
 				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.gateway_id").IsEmpty(),
 				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.subnet_cidr").HasValue(addOnAppGatewaySubnetCIDR),
 				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.subnet_id").IsEmpty(),
@@ -520,10 +519,8 @@ func testAccDataSourceKubernetesCluster_addOnProfileIngressApplicationGatewaySub
 				check.That(data.ResourceName).Key("addon_profile.#").HasValue("1"),
 				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.#").HasValue("1"),
 				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.effective_gateway_id").MatchesRegex(addOnAppGatewayIdRegExp),
 				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.gateway_id").IsEmpty(),
 				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.subnet_cidr").IsEmpty(),
-				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.subnet_id").MatchesRegex(addOnAppGatewaySubnetIdRegExp),
 			),
 		},
 	})
