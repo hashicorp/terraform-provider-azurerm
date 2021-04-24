@@ -260,9 +260,9 @@ A `azure_policy` block supports the following:
 
 An `ingress_application_gateway` block supports the following:
 
-* `enabled` -  Has this cluster been integrated with an application gateway.
+* `enabled` -  Is the Application Gateway ingress controller integrated with this Kubernetes Cluster?
 
-* `effective_gateway_id` - The ID of the application gateway associated with the application gateway ingress controller deployed to this cluster.
+* `effective_gateway_id` - The ID of the Application Gateway associated with the ingress controller deployed to this Kubernetes Cluster.
 
 * `gateway_id` - The ID of the Application Gateway integrated with the ingress controller of this Kubernetes Cluster. This attribute is only set when gateway_id is specified when configuring the `ingress_application_gateway` addon.
 
