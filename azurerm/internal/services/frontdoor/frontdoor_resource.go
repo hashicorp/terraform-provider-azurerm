@@ -564,6 +564,22 @@ func resourceFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) err
 	enabledState := d.Get("load_balancer_enabled").(bool)
 	t := d.Get("tags").(map[string]interface{})
 
+	// check to see if any custom https setting have been set
+	// if so error out to avoid out of order issue...
+	for _, v := range frontendEndpoints {
+		frontendEndpoint := v.(map[string]interface{})
+		customHttpsProvisioningEnabled := frontendEndpoint["custom_https_provisioning_enabled"].(bool)
+		customHttpsConfigurationNew := frontendEndpoint["custom_https_configuration"].([]interface{})
+
+		if customHttpsProvisioningEnabled {
+			return fmt.Errorf("setting the deprecated 'custom_https_provisioning_enabled' field is no longer supported within the 'azurerm_frontdoor' resource, please use the 'azurerm_frontdoor_custom_https_configuration' resource to set this value.")
+		}
+
+		if customHttpsConfigurationNew != nil {
+			return fmt.Errorf("setting the deprecated 'custom_https_configuration' block is no longer supported within the 'azurerm_frontdoor' resource, please use the 'azurerm_frontdoor_custom_https_configuration' resource to set these values.")
+		}
+	}
+
 	frontDoorParameters := frontdoor.FrontDoor{
 		Location: utils.String(location),
 		Properties: &frontdoor.Properties{
