@@ -175,10 +175,6 @@ func schemaKubernetesAddOnProfiles() *schema.Schema {
 								ConflictsWith: []string{"addon_profile.0.ingress_application_gateway.0.subnet_cidr", "addon_profile.0.ingress_application_gateway.0.subnet_id"},
 								ValidateFunc:  applicationGatewayValidate.ApplicationGatewayID,
 							},
-							"effective_gateway_id": {
-								Type:     schema.TypeString,
-								Computed: true,
-							},
 							"subnet_cidr": {
 								Type:          schema.TypeString,
 								Optional:      true,
@@ -190,6 +186,10 @@ func schemaKubernetesAddOnProfiles() *schema.Schema {
 								Optional:      true,
 								ConflictsWith: []string{"addon_profile.0.ingress_application_gateway.0.gateway_id", "addon_profile.0.ingress_application_gateway.0.subnet_cidr"},
 								ValidateFunc:  subnetValidate.SubnetID,
+							},
+							"effective_gateway_id": {
+								Type:     schema.TypeString,
+								Computed: true,
 							},
 						},
 					},
