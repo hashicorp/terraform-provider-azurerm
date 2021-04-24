@@ -434,7 +434,7 @@ func resourceFrontDoor() *schema.Resource {
 							Default:  0,
 						},
 						// if either of these are set in the main FrontDoor config we need to error out
-						// unfortunatly we will need to force end users to use the azurerm_frontdoor_custom_https_configuration
+						// unfortunately we will need to force end users to use the azurerm_frontdoor_custom_https_configuration
 						"custom_https_provisioning_enabled": {
 							Type:       schema.TypeBool,
 							Optional:   true,
@@ -1401,8 +1401,8 @@ func flattenFrontEndEndpoints(input *[]frontdoor.FrontendEndpoint, frontDoorId p
 			name = *item.Name
 		}
 
-		//customHTTPSConfiguration := make([]interface{}, 0)
-		//customHttpsProvisioningEnabled := false
+		// customHTTPSConfiguration := make([]interface{}, 0)
+		// customHttpsProvisioningEnabled := false
 		hostName := ""
 		sessionAffinityEnabled := false
 		sessionAffinityTlsSeconds := 0
@@ -1430,9 +1430,9 @@ func flattenFrontEndEndpoints(input *[]frontdoor.FrontendEndpoint, frontDoorId p
 				webApplicationFirewallPolicyLinkId = parsed.ID()
 			}
 
-			//flattenedHttpsConfig := flattenCustomHttpsConfiguration(props)
-			//customHTTPSConfiguration = flattenedHttpsConfig.CustomHTTPSConfiguration
-			//customHttpsProvisioningEnabled = flattenedHttpsConfig.CustomHTTPSProvisioningEnabled
+			// flattenedHttpsConfig := flattenCustomHttpsConfiguration(props)
+			// customHTTPSConfiguration = flattenedHttpsConfig.CustomHTTPSConfiguration
+			// customHttpsProvisioningEnabled = flattenedHttpsConfig.CustomHTTPSProvisioningEnabled
 		}
 
 		results = append(results, map[string]interface{}{
