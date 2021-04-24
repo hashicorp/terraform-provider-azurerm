@@ -62,7 +62,7 @@ func resourceFrontDoorCustomHttpsConfiguration() *schema.Resource {
 			},
 
 			// TODO: remove in 3.0
-			"resource_group_name": azure.SchemaResourceGroupNameDeprecated(),
+			"resource_group_name": azure.SchemaResourceGroupNameDeprecatedComputed(),
 		},
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(customizeHttpsConfigurationCustomizeDiff),
@@ -103,6 +103,7 @@ func resourceFrontDoorCustomHttpsConfigurationCreateUpdate(d *schema.ResourceDat
 		frontendEndpointId:              *id,
 		provisioningState:               props.CustomHTTPSProvisioningState,
 	}
+
 	if err := updateCustomHttpsConfiguration(ctx, client, input); err != nil {
 		return fmt.Errorf("updating Custom HTTPS configuration for Frontend Endpoint %q (Front Door %q / Resource Group %q): %+v", id.Name, id.FrontDoorName, id.ResourceGroup, err)
 	}

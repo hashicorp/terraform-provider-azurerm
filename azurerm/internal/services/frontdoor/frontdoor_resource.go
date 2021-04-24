@@ -606,6 +606,7 @@ func resourceFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) err
 			frontendClient := meta.(*clients.Client).Frontdoor.FrontDoorsFrontendClient
 			customHttpsConfigurationNew := frontendEndpoint["custom_https_configuration"].([]interface{})
 			frontendInputId := parse.NewFrontendEndpointID(frontDoorId.SubscriptionId, frontDoorId.ResourceGroup, frontDoorId.Name, endpointName)
+
 			input := customHttpsConfigurationUpdateInput{
 				customHttpsConfigurationCurrent: properties.CustomHTTPSConfiguration,
 				customHttpsConfigurationNew:     customHttpsConfigurationNew,
@@ -613,6 +614,7 @@ func resourceFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) err
 				frontendEndpointId:              frontendInputId,
 				provisioningState:               properties.CustomHTTPSProvisioningState,
 			}
+
 			if err := updateCustomHttpsConfiguration(ctx, frontendClient, input); err != nil {
 				return fmt.Errorf("updating Custom HTTPS configuration for Frontend Endpoint %q (Front Door %q / Resource Group %q): %+v", endpointName, name, resourceGroup, err)
 			}
