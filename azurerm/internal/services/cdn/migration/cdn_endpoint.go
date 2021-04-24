@@ -160,6 +160,7 @@ func (CdnEndpointV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
+		//lintignore:XS003
 		"global_delivery_rule": {
 			Type:     schema.TypeList,
 			Optional: true,
@@ -183,9 +184,6 @@ func (CdnEndpointV0ToV1) Schema() map[string]*pluginsdk.Schema {
 								},
 							},
 						},
-						AtLeastOneOf: []string{"global_delivery_rule.0.cache_expiration_action", "global_delivery_rule.0.cache_key_query_string_action",
-							"global_delivery_rule.0.modify_request_header_action", "global_delivery_rule.0.modify_response_header_action",
-							"global_delivery_rule.0.url_redirect_action", "global_delivery_rule.0.url_rewrite_action"},
 					},
 
 					"cache_key_query_string_action": {
@@ -205,9 +203,6 @@ func (CdnEndpointV0ToV1) Schema() map[string]*pluginsdk.Schema {
 								},
 							},
 						},
-						AtLeastOneOf: []string{"global_delivery_rule.0.cache_expiration_action", "global_delivery_rule.0.cache_key_query_string_action",
-							"global_delivery_rule.0.modify_request_header_action", "global_delivery_rule.0.modify_response_header_action",
-							"global_delivery_rule.0.url_redirect_action", "global_delivery_rule.0.url_rewrite_action"},
 					},
 
 					"modify_request_header_action": {
@@ -231,9 +226,6 @@ func (CdnEndpointV0ToV1) Schema() map[string]*pluginsdk.Schema {
 								},
 							},
 						},
-						AtLeastOneOf: []string{"global_delivery_rule.0.cache_expiration_action", "global_delivery_rule.0.cache_key_query_string_action",
-							"global_delivery_rule.0.modify_request_header_action", "global_delivery_rule.0.modify_response_header_action",
-							"global_delivery_rule.0.url_redirect_action", "global_delivery_rule.0.url_rewrite_action"},
 					},
 
 					"modify_response_header_action": {
@@ -257,9 +249,6 @@ func (CdnEndpointV0ToV1) Schema() map[string]*pluginsdk.Schema {
 								},
 							},
 						},
-						AtLeastOneOf: []string{"global_delivery_rule.0.cache_expiration_action", "global_delivery_rule.0.cache_key_query_string_action",
-							"global_delivery_rule.0.modify_request_header_action", "global_delivery_rule.0.modify_response_header_action",
-							"global_delivery_rule.0.url_redirect_action", "global_delivery_rule.0.url_rewrite_action"},
 					},
 
 					"url_redirect_action": {
@@ -300,9 +289,6 @@ func (CdnEndpointV0ToV1) Schema() map[string]*pluginsdk.Schema {
 								},
 							},
 						},
-						AtLeastOneOf: []string{"global_delivery_rule.0.cache_expiration_action", "global_delivery_rule.0.cache_key_query_string_action",
-							"global_delivery_rule.0.modify_request_header_action", "global_delivery_rule.0.modify_response_header_action",
-							"global_delivery_rule.0.url_redirect_action", "global_delivery_rule.0.url_rewrite_action"},
 					},
 
 					"url_rewrite_action": {
@@ -328,9 +314,6 @@ func (CdnEndpointV0ToV1) Schema() map[string]*pluginsdk.Schema {
 								},
 							},
 						},
-						AtLeastOneOf: []string{"global_delivery_rule.0.cache_expiration_action", "global_delivery_rule.0.cache_key_query_string_action",
-							"global_delivery_rule.0.modify_request_header_action", "global_delivery_rule.0.modify_response_header_action",
-							"global_delivery_rule.0.url_redirect_action", "global_delivery_rule.0.url_rewrite_action"},
 					},
 				},
 			},

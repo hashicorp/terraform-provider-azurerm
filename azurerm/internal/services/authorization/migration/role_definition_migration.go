@@ -39,6 +39,7 @@ func (RoleDefinitionV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Optional: true,
 		},
 
+		//lintignore:XS003
 		"permissions": {
 			Type:     schema.TypeList,
 			Required: true,
@@ -50,7 +51,6 @@ func (RoleDefinitionV0ToV1) Schema() map[string]*pluginsdk.Schema {
 						Elem: &schema.Schema{
 							Type: schema.TypeString,
 						},
-						AtLeastOneOf: []string{"permissions.0.actions", "permissions.0.not_actions", "permissions.0.data_actions", "permissions.0.not_data_actions"},
 					},
 					"not_actions": {
 						Type:     schema.TypeList,
@@ -58,7 +58,6 @@ func (RoleDefinitionV0ToV1) Schema() map[string]*pluginsdk.Schema {
 						Elem: &schema.Schema{
 							Type: schema.TypeString,
 						},
-						AtLeastOneOf: []string{"permissions.0.actions", "permissions.0.not_actions", "permissions.0.data_actions", "permissions.0.not_data_actions"},
 					},
 					"data_actions": {
 						Type:     schema.TypeSet,
@@ -66,8 +65,7 @@ func (RoleDefinitionV0ToV1) Schema() map[string]*pluginsdk.Schema {
 						Elem: &schema.Schema{
 							Type: schema.TypeString,
 						},
-						Set:          schema.HashString,
-						AtLeastOneOf: []string{"permissions.0.actions", "permissions.0.not_actions", "permissions.0.data_actions", "permissions.0.not_data_actions"},
+						Set: schema.HashString,
 					},
 					"not_data_actions": {
 						Type:     schema.TypeSet,
@@ -75,8 +73,7 @@ func (RoleDefinitionV0ToV1) Schema() map[string]*pluginsdk.Schema {
 						Elem: &schema.Schema{
 							Type: schema.TypeString,
 						},
-						Set:          schema.HashString,
-						AtLeastOneOf: []string{"permissions.0.actions", "permissions.0.not_actions", "permissions.0.data_actions", "permissions.0.not_data_actions"},
+						Set: schema.HashString,
 					},
 				},
 			},

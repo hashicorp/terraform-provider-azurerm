@@ -60,6 +60,7 @@ func (NetworkPacketCaptureV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Default:  18000,
 		},
 
+		//lintignore:XS003
 		"storage_location": {
 			Type:     schema.TypeList,
 			Required: true,
@@ -68,15 +69,13 @@ func (NetworkPacketCaptureV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"file_path": {
-						Type:         schema.TypeString,
-						Optional:     true,
-						AtLeastOneOf: []string{"storage_location.0.file_path", "storage_location.0.storage_account_id"},
+						Type:     schema.TypeString,
+						Optional: true,
 					},
 
 					"storage_account_id": {
-						Type:         schema.TypeString,
-						Optional:     true,
-						AtLeastOneOf: []string{"storage_location.0.file_path", "storage_location.0.storage_account_id"},
+						Type:     schema.TypeString,
+						Optional: true,
 					},
 
 					"storage_path": {
