@@ -8,12 +8,13 @@ FEATURES:
 * **New Resource:** `azurerm_healthbot` [GH-11002]
 * **New Resource:** `azurerm_key_vault_managed_hardware_security_module `  [GH-10873]
 * **New Resource:** `azurerm_mssql_job_agent` [GH-11248]
+* **New Resource:** `azurerm_mssql_job_credential` [GH-11363]
 * **New Resource:** `azurerm_mssql_transparent_data_encryption` [GH-11148]
 * **New Resource:** `azurerm_postgresql_flexible_server` [GH-11081]
 * **New Resource:** `azurerm_spring_cloud_app_cosmosdb_association` [GH-11307]
 * **New Resource:** `azurerm_sentinel_data_connector_microsoft_defender_advanced_threat_protection` [GH-10669]
 * **New Resource:** `azurerm_vmware_cluster` [GH-10848]
-
+* 
 ENHANCEMENTS:
 
 * dependencies: updating to `v53.4.0` of `github.com/Azure/azure-sdk-for-go` [GH-11439]
