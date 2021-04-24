@@ -605,6 +605,20 @@ func resourcePostgreSQLServerUpdate(d *schema.ResourceData, meta interface{}) er
 	primaryID := id.String()
 	if mode == postgresql.CreateModeReplica {
 		primaryID = d.Get("creation_source_server_id").(string)
+
+		// Wait for possible restarts triggered by scaling primary (and its replicas)
+		log.Printf("[DEBUG] Waiting for PostgreSQL Server %q (Resource Group %q) to become available", id.Name, id.ResourceGroup)
+		stateConf := &resource.StateChangeConf{
+			Pending:    []string{string(postgresql.ServerStateInaccessible), "Restarting"},
+			Target:     []string{string(postgresql.ServerStateReady)},
+			Refresh:    postgreSqlStateRefreshFunc(ctx, client, id.ResourceGroup, id.Name),
+			MinTimeout: 15 * time.Second,
+			Timeout:    d.Timeout(schema.TimeoutCreate),
+		}
+
+		if _, err = stateConf.WaitForState(); err != nil {
+			return fmt.Errorf("waiting for PostgreSQL Server %q (Resource Group %q)to become available: %+v", id.Name, id.ResourceGroup, err)
+		}
 	}
 	locks.ByID(primaryID)
 	defer locks.UnlockByID(primaryID)
@@ -629,13 +643,17 @@ func resourcePostgreSQLServerUpdate(d *schema.ResourceData, meta interface{}) er
 				Sku: sku,
 			}
 			for _, replica := range *listReplicas.Value {
-				future, err := client.Update(ctx, id.ResourceGroup, *replica.Name, propertiesReplica)
+				replicaId, err := parse.ServerID(*replica.ID)
 				if err != nil {
-					return fmt.Errorf("upscaling PostgreSQL Server Replica %q (Resource Group %q): %+v", *replica.Name, id.ResourceGroup, err)
+					return fmt.Errorf("parsing Postgres Server Replica ID : %v", err)
+				}
+				future, err := client.Update(ctx, replicaId.ResourceGroup, replicaId.Name, propertiesReplica)
+				if err != nil {
+					return fmt.Errorf("upscaling PostgreSQL Server Replica %q (Resource Group %q): %+v", replicaId.Name, replicaId.ResourceGroup, err)
 				}
 
 				if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-					return fmt.Errorf("waiting for update of PostgreSQL Server Replica %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+					return fmt.Errorf("waiting for update of PostgreSQL Server Replica %q (Resource Group %q): %+v", replicaId.Name, replicaId.ResourceGroup, err)
 				}
 			}
 		}
