@@ -752,10 +752,15 @@ func (r PostgreSQLServerResource) createReplica(data acceptance.TestData, sku st
 	return fmt.Sprintf(`
 %[1]s
 
+resource "azurerm_resource_group" "replica" {
+  name     = "acctestRG-psql-%[2]d-replica"
+  location = "%[3]s"
+}  
+
 resource "azurerm_postgresql_server" "replica" {
   name                = "acctest-psql-server-%[2]d-replica"
   location            = "%[3]s"
-  resource_group_name = azurerm_resource_group.test.name
+  resource_group_name = azurerm_resource_group.replica.name
 
   sku_name = "%[4]s"
   version  = "11"
@@ -772,10 +777,15 @@ func (r PostgreSQLServerResource) createReplicas(data acceptance.TestData, sku s
 	return fmt.Sprintf(`
 %[1]s
 
+resource "azurerm_resource_group" "replica1" {
+  name     = "acctestRG-psql-%[2]d-replica1"
+  location = "%[3]s"
+}
+
 resource "azurerm_postgresql_server" "replica1" {
   name                = "acctest-psql-server-%[2]d-replica1"
   location            = "%[3]s"
-  resource_group_name = azurerm_resource_group.test.name
+  resource_group_name = azurerm_resource_group.replica1.name
 
   sku_name = "%[4]s"
   version  = "11"
