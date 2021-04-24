@@ -749,6 +749,7 @@ func resourceApplicationGateway() *schema.Resource {
 				},
 			},
 
+			//lintignore:XS003
 			"ssl_policy": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -766,8 +767,6 @@ func resourceApplicationGateway() *schema.Resource {
 									string(network.TLSv12),
 								}, false),
 							},
-							AtLeastOneOf: []string{"ssl_policy.0.disabled_protocols", "ssl_policy.0.policy_type", "ssl_policy.0.policy_name",
-								"ssl_policy.0.cipher_suites", "ssl_policy.0.min_protocol_version"},
 						},
 
 						"policy_type": {
@@ -777,15 +776,11 @@ func resourceApplicationGateway() *schema.Resource {
 								string(network.Custom),
 								string(network.Predefined),
 							}, false),
-							AtLeastOneOf: []string{"ssl_policy.0.disabled_protocols", "ssl_policy.0.policy_type", "ssl_policy.0.policy_name",
-								"ssl_policy.0.cipher_suites", "ssl_policy.0.min_protocol_version"},
 						},
 
 						"policy_name": {
 							Type:     schema.TypeString,
 							Optional: true,
-							AtLeastOneOf: []string{"ssl_policy.0.disabled_protocols", "ssl_policy.0.policy_type", "ssl_policy.0.policy_name",
-								"ssl_policy.0.cipher_suites", "ssl_policy.0.min_protocol_version"},
 						},
 
 						"cipher_suites": {
@@ -795,8 +790,6 @@ func resourceApplicationGateway() *schema.Resource {
 								Type:         schema.TypeString,
 								ValidateFunc: validation.StringInSlice(possibleApplicationGatewaySslCipherSuiteValues(), false),
 							},
-							AtLeastOneOf: []string{"ssl_policy.0.disabled_protocols", "ssl_policy.0.policy_type", "ssl_policy.0.policy_name",
-								"ssl_policy.0.cipher_suites", "ssl_policy.0.min_protocol_version"},
 						},
 
 						"min_protocol_version": {
@@ -807,8 +800,6 @@ func resourceApplicationGateway() *schema.Resource {
 								string(network.TLSv11),
 								string(network.TLSv12),
 							}, false),
-							AtLeastOneOf: []string{"ssl_policy.0.disabled_protocols", "ssl_policy.0.policy_type", "ssl_policy.0.policy_name",
-								"ssl_policy.0.cipher_suites", "ssl_policy.0.min_protocol_version"},
 						},
 					},
 				},
@@ -2189,7 +2180,7 @@ func expandApplicationGatewaySslPolicy(d *schema.ResourceData) *network.Applicat
 
 	vs := d.Get("ssl_policy").([]interface{})
 
-	if len(vs) > 0 {
+	if len(vs) > 0 && vs[0] != nil {
 		v := vs[0].(map[string]interface{})
 		policyType := network.ApplicationGatewaySslPolicyType(v["policy_type"].(string))
 
