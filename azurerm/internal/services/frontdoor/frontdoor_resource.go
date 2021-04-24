@@ -618,33 +618,33 @@ func resourceFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) err
 	// feClient := meta.(*clients.Client).Frontdoor.FrontDoorsFrontendClient
 
 	// for _, v := range frontendEndpoints {
-	// 	frontendEndpoint := v.(map[string]interface{})
-	// 	customHttpsProvisioningEnabled := frontendEndpoint["custom_https_provisioning_enabled"].(bool)
-	// 	endpointName := frontendEndpoint["name"].(string)
+	// frontendEndpoint := v.(map[string]interface{})
+	// customHttpsProvisioningEnabled := frontendEndpoint["custom_https_provisioning_enabled"].(bool)
+	// endpointName := frontendEndpoint["name"].(string)
 
-	// 	// Get current state of endpoint from Azure
-	// 	resp, err := feClient.Get(ctx, resourceGroup, name, endpointName)
-	// 	if err != nil {
-	// 		return fmt.Errorf("retrieving Front Door Frontend Endpoint %q (Resource Group %q): %+v", endpointName, resourceGroup, err)
-	// 	}
+	// Get current state of endpoint from Azure
+	// resp, err := feClient.Get(ctx, resourceGroup, name, endpointName)
+	// if err != nil {
+	// return fmt.Errorf("retrieving Front Door Frontend Endpoint %q (Resource Group %q): %+v", endpointName, resourceGroup, err)
+	// }
 
-	// 	if properties := resp.FrontendEndpointProperties; properties != nil {
-	// 		frontendClient := meta.(*clients.Client).Frontdoor.FrontDoorsFrontendClient
-	// 		customHttpsConfigurationNew := frontendEndpoint["custom_https_configuration"].([]interface{})
-	// 		frontendInputId := parse.NewFrontendEndpointID(frontDoorId.SubscriptionId, frontDoorId.ResourceGroup, frontDoorId.Name, endpointName)
+	// if properties := resp.FrontendEndpointProperties; properties != nil {
+	// frontendClient := meta.(*clients.Client).Frontdoor.FrontDoorsFrontendClient
+	// customHttpsConfigurationNew := frontendEndpoint["custom_https_configuration"].([]interface{})
+	// frontendInputId := parse.NewFrontendEndpointID(frontDoorId.SubscriptionId, frontDoorId.ResourceGroup, frontDoorId.Name, endpointName)
 
-	// 		input := customHttpsConfigurationUpdateInput{
-	// 			customHttpsConfigurationCurrent: properties.CustomHTTPSConfiguration,
-	// 			customHttpsConfigurationNew:     customHttpsConfigurationNew,
-	// 			customHttpsProvisioningEnabled:  customHttpsProvisioningEnabled,
-	// 			frontendEndpointId:              frontendInputId,
-	// 			provisioningState:               properties.CustomHTTPSProvisioningState,
-	// 		}
+	// input := customHttpsConfigurationUpdateInput{
+	// customHttpsConfigurationCurrent: properties.CustomHTTPSConfiguration,
+	// customHttpsConfigurationNew:     customHttpsConfigurationNew,
+	// customHttpsProvisioningEnabled:  customHttpsProvisioningEnabled,
+	// frontendEndpointId:              frontendInputId,
+	// provisioningState:               properties.CustomHTTPSProvisioningState,
+	// }
 
-	// 		if err := updateCustomHttpsConfiguration(ctx, frontendClient, input); err != nil {
-	// 			return fmt.Errorf("updating Custom HTTPS configuration for Frontend Endpoint %q (Front Door %q / Resource Group %q): %+v", endpointName, name, resourceGroup, err)
-	// 		}
-	// 	}
+	// if err := updateCustomHttpsConfiguration(ctx, frontendClient, input); err != nil {
+	// return fmt.Errorf("updating Custom HTTPS configuration for Frontend Endpoint %q (Front Door %q / Resource Group %q): %+v", endpointName, name, resourceGroup, err)
+	// }
+	// }
 	// }
 
 	return resourceFrontDoorRead(d, meta)
@@ -1436,8 +1436,8 @@ func flattenFrontEndEndpoints(input *[]frontdoor.FrontendEndpoint, frontDoorId p
 		}
 
 		results = append(results, map[string]interface{}{
-			//"custom_https_configuration":        customHTTPSConfiguration,
-			//"custom_https_provisioning_enabled": customHttpsProvisioningEnabled,
+			// "custom_https_configuration":        customHTTPSConfiguration,
+			// "custom_https_provisioning_enabled": customHttpsProvisioningEnabled,
 			"host_name":                    hostName,
 			"id":                           id,
 			"name":                         name,
