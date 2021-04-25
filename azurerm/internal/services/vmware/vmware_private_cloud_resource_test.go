@@ -118,6 +118,7 @@ func (VmwarePrivateCloudResource) template(data acceptance.TestData) string {
 provider "azurerm" {
   features {}
   # In Vmware acctest, please disable correlation request id, else the continuous operations like update or delete will not be triggered
+  # issue https://github.com/Azure/azure-rest-api-specs/issues/14086 
   disable_correlation_request_id = true
 }
 

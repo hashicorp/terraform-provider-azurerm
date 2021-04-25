@@ -34,6 +34,8 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_mssql_database_extended_auditing_policy":               resourceMsSqlDatabaseExtendedAuditingPolicy(),
 		"azurerm_mssql_database_vulnerability_assessment_rule_baseline": resourceMsSqlDatabaseVulnerabilityAssessmentRuleBaseline(),
 		"azurerm_mssql_elasticpool":                                     resourceMsSqlElasticPool(),
+		"azurerm_mssql_job_agent":                                       resourceMsSqlJobAgent(),
+		"azurerm_mssql_job_credential":                                  resourceMsSqlJobCredential(),
 		"azurerm_mssql_firewall_rule":                                   resourceMsSqlFirewallRule(),
 		"azurerm_mssql_server":                                          resourceMsSqlServer(),
 		"azurerm_mssql_server_extended_auditing_policy":                 resourceMsSqlServerExtendedAuditingPolicy(),
@@ -41,5 +43,6 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_mssql_server_vulnerability_assessment":                 resourceMsSqlServerVulnerabilityAssessment(),
 		"azurerm_mssql_virtual_machine":                                 resourceMsSqlVirtualMachine(),
 		"azurerm_mssql_virtual_network_rule":                            resourceMsSqlVirtualNetworkRule(),
+		"azurerm_mssql_server_transparent_data_encryption":              resourceMsSqlTransparentDataEncryption(),
 	}
 }

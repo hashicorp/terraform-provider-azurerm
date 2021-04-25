@@ -17,6 +17,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -28,9 +29,8 @@ func resourceNetworkConnectionMonitor() *schema.Resource {
 		Update: resourceNetworkConnectionMonitorCreateUpdate,
 		Delete: resourceNetworkConnectionMonitorDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -85,6 +85,7 @@ func resourceNetworkConnectionMonitor() *schema.Resource {
 							Computed:     true,
 							ValidateFunc: azure.ValidateResourceID,
 							Deprecated:   "The field belongs to the v1 network connection monitor, which is now deprecated in favour of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
+							AtLeastOneOf: []string{"source.0.virtual_machine_id", "source.0.port"},
 						},
 
 						"port": {
@@ -93,6 +94,7 @@ func resourceNetworkConnectionMonitor() *schema.Resource {
 							Computed:     true,
 							ValidateFunc: validate.PortNumberOrZero,
 							Deprecated:   "The field belongs to the v1 network connection monitor, which is now deprecated in favour of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
+							AtLeastOneOf: []string{"source.0.virtual_machine_id", "source.0.port"},
 						},
 					},
 				},
@@ -113,6 +115,7 @@ func resourceNetworkConnectionMonitor() *schema.Resource {
 							ValidateFunc:  azure.ValidateResourceID,
 							ConflictsWith: []string{"destination.0.address"},
 							Deprecated:    "The field belongs to the v1 network connection monitor, which is now deprecated in favour of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
+							AtLeastOneOf:  []string{"destination.0.virtual_machine_id", "destination.0.address", "destination.0.port"},
 						},
 
 						"address": {
@@ -121,6 +124,7 @@ func resourceNetworkConnectionMonitor() *schema.Resource {
 							Computed:      true,
 							ConflictsWith: []string{"destination.0.virtual_machine_id"},
 							Deprecated:    "The field belongs to the v1 network connection monitor, which is now deprecated in favour of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
+							AtLeastOneOf:  []string{"destination.0.virtual_machine_id", "destination.0.address", "destination.0.port"},
 						},
 
 						"port": {
@@ -129,6 +133,7 @@ func resourceNetworkConnectionMonitor() *schema.Resource {
 							Computed:     true,
 							ValidateFunc: validate.PortNumber,
 							Deprecated:   "The field belongs to the v1 network connection monitor, which is now deprecated in favour of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
+							AtLeastOneOf: []string{"destination.0.virtual_machine_id", "destination.0.address", "destination.0.port"},
 						},
 					},
 				},
@@ -315,6 +320,7 @@ func resourceNetworkConnectionMonitor() *schema.Resource {
 							}, false),
 						},
 
+						//lintignore:XS003
 						"success_threshold": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -721,7 +727,7 @@ func expandNetworkConnectionMonitorIcmpConfiguration(input []interface{}) *netwo
 }
 
 func expandNetworkConnectionMonitorSuccessThreshold(input []interface{}) *network.ConnectionMonitorSuccessThreshold {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 

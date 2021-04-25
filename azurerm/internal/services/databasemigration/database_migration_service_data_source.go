@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databasemigration/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databasemigration/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -25,7 +27,7 @@ func dataSourceDatabaseMigrationService() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validateDatabaseMigrationServiceName,
+				ValidateFunc: validate.ServiceName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
@@ -49,30 +51,22 @@ func dataSourceDatabaseMigrationService() *schema.Resource {
 
 func dataSourceDatabaseMigrationServiceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DatabaseMigration.ServicesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	name := d.Get("name").(string)
-
-	resp, err := client.Get(ctx, resourceGroup, name)
+	id := parse.NewServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: Database Migration Service (Service Name %q / Group Name %q) was not found", name, resourceGroup)
+			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("Error reading Database Migration Service (Service Name %q / Group Name %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("unexpected empty ID retrieved for Database Migration Service (Service Name %q / Group Name %q)", name, resourceGroup)
-	}
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("name", resp.Name)
+	d.Set("location", location.NormalizeNilable(resp.Location))
 	if serviceProperties := resp.ServiceProperties; serviceProperties != nil {
 		d.Set("subnet_id", serviceProperties.VirtualSubnetID)
 	}

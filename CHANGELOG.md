@@ -1,3 +1,81 @@
+## 2.57.0 (Unreleased)
+
+FEATURES:
+
+* **Data Source:** `azurerm_postgresql_flexible_server` [GH-11081]
+* **Data Source:** `azurerm_key_vault_managed_hardware_security_module` [GH-10873]
+* **New Resource:** `azurerm_data_factory_dataset_snowflake `  [GH-11116]
+* **New Resource:** `azurerm_healthbot` [GH-11002]
+* **New Resource:** `azurerm_key_vault_managed_hardware_security_module `  [GH-10873]
+* **New Resource:** `azurerm_mssql_job_agent` [GH-11248]
+* **New Resource:** `azurerm_mssql_job_credential` [GH-11363]
+* **New Resource:** `azurerm_mssql_transparent_data_encryption` [GH-11148]
+* **New Resource:** `azurerm_postgresql_flexible_server` [GH-11081]
+* **New Resource:** `azurerm_spring_cloud_app_cosmosdb_association` [GH-11307]
+* **New Resource:** `azurerm_sentinel_data_connector_microsoft_defender_advanced_threat_protection` [GH-10669]
+* **New Resource:** `azurerm_virtual_machine_configuration_policy_assignment` [GH-11334]
+* **New Resource:** `azurerm_vmware_cluster` [GH-10848]
+* 
+ENHANCEMENTS:
+
+* dependencies: updating to `v53.4.0` of `github.com/Azure/azure-sdk-for-go` [GH-11439]
+* dependencies: updating to `v1.17.1` of `github.com/hashicorp/terraform-plugin-sdk` [GH-11431]
+* `azurerm_container_registry` - deprecating the `georeplication_locations` property in favour of the `georeplications` property GH-11200]
+* `azurerm_database_migration` - switching to using an ID Formatter [GH-11378]
+* `azurerm_database_migration_project` - switching to using an ID Formatter [GH-11378]
+* `azurerm_databricks_workspace` - switching to using an ID Formatter [GH-11378]
+* `azurerm_databricks_workspace` - fixes propagation of tags to connected resources [GH-11405]
+* `azurerm_data_factory_linked_service_azure_file_storage` - support for the `key_vault_password` property [GH-11436]
+* `azurerm_dedicated_host_group` - support for the `automatic_placement_enabled` property [GH-11428]
+* `azurerm_frontdoor` - sync `MaxItems` on various attributes to match azure docs [GH-11421]
+* `azurerm_hdinsight_interactive_query_cluster` - add support for private link endpoint [GH-11300]
+* `azurerm_hdinsight_hadoop_cluster` - add support for private link endpoint [GH-11300]
+* `azurerm_hdinsight_spark_cluster` - add support for private link endpoint [GH-11300]
+* `azurerm_kubernetes_cluster` support for the `empty_bulk_delete_max` in the `auto_scaler_profile` block #[GH-11060]
+* `azurerm_lighthouse_definition` - support for the `delegated_role_definition_ids` property [GH-11269]
+* `azurerm_postgresql_server` - wait for replica restarts when needed [GH-11458]
+* `azurerm_redis_enterprise_cluster` - support for the `minimum_tls_version` and `hostname` properties [GH-11203]
+
+BUG FIXES:
+
+* `azurerm_api_management` - will no longer panic with an empty `hostname_configuration` [GH-11426]
+* `azurerm_api_management_diagnostic` - fix a crash with the `frontend_request`, `frontend_response`, `backend_request`, `backend_response` blocks [GH-11402]
+* `azurerm_eventgrid_system_topic` - remove strict validation on `topic_type` [GH-11352]
+* `azurerm_iothub` - change `filter_rule` from TypeSet to TypeList to resolve an ordering issue [GH-10341]
+* `azurerm_linux_virtual_machine_scale_set` - the default value for the `priority` property will no longer force a replacement of the resource [GH-11362]
+* `azurerm_monitor_activity_log_alert` - fix a persistent diff for the `service_health` block [GH-11383]
+* `azurerm_mssql_database ` - error when secondary database uses `max_size_gb` [GH-11401]
+* `azurerm_virtual_network_gatewa` - updating the `custom_route` block no longer creates a new resource [GH- 11433]
+
+## 2.56.0 (April 15, 2021)
+
+FEATURES:
+
+* **New Resource:** `azurerm_data_factory_linked_service_azure_databricks` ([#10962](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10962))
+* **New Resource:** `azurerm_data_lake_store_virtual_network_rule` ([#10430](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10430))
+* **New Resource:** `azurerm_media_live_event_output` ([#10917](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10917))
+* **New Resource:** `azurerm_spring_cloud_app_mysql_association` ([#11229](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11229))
+
+ENHANCEMENTS:
+
+* dependencies: updating `github.com/Azure/azure-sdk-for-go` to `v53.0.0` ([#11302](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11302))
+* dependencies: updating `containerservice` to API version `2021-02-01` ([#10972](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10972))
+* `azurerm_app_service` - fix broken `ip_restrictions` and `scm_ip_restrictions` ([#11170](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11170))
+* `azurerm_application_gateway` - support for configuring `firewall_policy_id` within the `path_rule` block ([#11239](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11239))
+* `azurerm_firewall_policy_rule_collection_group` - allow `*` for the `network_rule_collection.destination_ports` property ([#11326](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11326))
+* `azurerm_function_app` - fix broken `ip_restrictions` and `scm_ip_restrictions` ([#11170](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11170))
+* `azurerm_data_factory_linked_service_sql_database` - support managed identity and service principal auth and add the `keyvault_password` property ([#10735](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10735))
+* `azurerm_hpc_cache` - support for `tags` ([#11268](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11268))
+* `azurerm_linux_virtual_machine_scale_set` - Support health extension for rolling ugrade mode ([#9136](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9136))
+* `azurerm_monitor_activity_log_alert` - support for `service_health` ([#10978](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10978))
+* `azurerm_mssql_database` - support for the `geo_backup_enabled` property ([#11177](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11177))
+* `azurerm_public_ip` - support for `ip_tags` ([#11270](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11270))
+* `azurerm_windows_virtual_machine_scale_set` - Support health extension for rolling ugrade mode ([#9136](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9136))
+
+BUG FIXES:
+
+* `azurerm_app_service_slot` - fix crash bug when given empty `http_logs` ([#11267](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11267))
+
 ## 2.55.0 (April 08, 2021)
 
 FEATURES:

@@ -5,6 +5,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-01-01/storage"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -22,9 +25,8 @@ func resourceStorageAccountNetworkRules() *schema.Resource {
 		Read:   resourceStorageAccountNetworkRulesRead,
 		Update: resourceStorageAccountNetworkRulesCreateUpdate,
 		Delete: resourceStorageAccountNetworkRulesDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),
@@ -40,7 +42,7 @@ func resourceStorageAccountNetworkRules() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateStorageAccountName,
+				ValidateFunc: validate.StorageAccountName,
 			},
 
 			"bypass": {

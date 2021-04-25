@@ -140,7 +140,7 @@ An `export_policy_rule` block supports the following:
 
 * `unix_read_write` - (Optional) Is the file system on unix read and write?
 
-* `allow_root_access` - (Optional) Is root access permitted to this volume?
+* `root_access_enabled` - (Optional) Is root access permitted to this volume?
 
 ---
 

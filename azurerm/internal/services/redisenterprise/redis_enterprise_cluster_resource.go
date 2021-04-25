@@ -19,7 +19,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redisenterprise/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redisenterprise/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -29,7 +29,7 @@ func resourceRedisEnterpriseCluster() *schema.Resource {
 		Create: resourceRedisEnterpriseClusterCreate,
 		Read:   resourceRedisEnterpriseClusterRead,
 		Delete: resourceRedisEnterpriseClusterDelete,
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.RedisEnterpriseClusterID(id)
 			return err
 		}),
@@ -80,25 +80,21 @@ func resourceRedisEnterpriseCluster() *schema.Resource {
 				},
 			},
 
-			// RP currently does not return this value, but will in the near future (RP defaults to 1.2)
-			// https://github.com/Azure/azure-sdk-for-go/issues/14420
-			// "minimum_tls_version": {
-			// 	Type:     schema.TypeString,
-			// 	Optional: true,
-			// 	Default:  string(redisenterprise.OneFullStopTwo),
-			// 	ValidateFunc: validation.StringInSlice([]string{
-			// 		string(redisenterprise.OneFullStopZero),
-			// 		string(redisenterprise.OneFullStopOne),
-			// 		string(redisenterprise.OneFullStopTwo),
-			// 	}, false),
-			// },
+			"minimum_tls_version": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  string(redisenterprise.OneFullStopTwo),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(redisenterprise.OneFullStopZero),
+					string(redisenterprise.OneFullStopOne),
+					string(redisenterprise.OneFullStopTwo),
+				}, false),
+			},
 
-			// RP currently does not return this value, but will in the near future
-			// https://github.com/Azure/azure-sdk-for-go/issues/14420
 			"hostname": {
-				Type:       schema.TypeString,
-				Computed:   true,
-				Deprecated: "This field currently is not yet being returned from the service API, please see https://github.com/Azure/azure-sdk-for-go/issues/14420 for more information",
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 
 			// RP currently does not return this value, but will in the near future
@@ -149,7 +145,10 @@ func resourceRedisEnterpriseClusterCreate(d *schema.ResourceData, meta interface
 		Name:     utils.String(d.Get("name").(string)),
 		Location: utils.String(location),
 		Sku:      sku,
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		ClusterProperties: &redisenterprise.ClusterProperties{
+			MinimumTLSVersion: redisenterprise.TLSVersion(d.Get("minimum_tls_version").(string)),
+		},
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if v, ok := d.GetOk("zones"); ok {
@@ -157,15 +156,8 @@ func resourceRedisEnterpriseClusterCreate(d *schema.ResourceData, meta interface
 		if err := validate.RedisEnterpriseClusterLocationZoneSupport(location); err != nil {
 			return fmt.Errorf("%s: %s", resourceId, err)
 		}
-
 		parameters.Zones = azure.ExpandZones(v.([]interface{}))
 	}
-
-	// RP currently does not return this value but will in the near future
-	// https://github.com/Azure/azure-sdk-for-go/issues/14420
-	// if v, ok := d.GetOk("minimum_tls_version"); ok {
-	// 	parameters.ClusterProperties.MinimumTLSVersion = redisenterprise.TLSVersion(v.(string))
-	// }
 
 	future, err := client.Create(ctx, resourceId.ResourceGroup, resourceId.RedisEnterpriseName, parameters)
 	if err != nil {
@@ -230,8 +222,7 @@ func resourceRedisEnterpriseClusterRead(d *schema.ResourceData, meta interface{}
 	if props := resp.ClusterProperties; props != nil {
 		d.Set("hostname", props.HostName)
 		d.Set("version", props.RedisVersion)
-		// RP currently does not return this value
-		// d.Set("minimum_tls_version", string(props.MinimumTLSVersion))
+		d.Set("minimum_tls_version", string(props.MinimumTLSVersion))
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

@@ -75,7 +75,7 @@ choco install make golang terraform -y
 refreshenv
 ```
 
-You must run  `Developing the Provider` commands in `bash` because `sh` scrips are invoked as part of these.
+You must run `Developing the Provider` commands in `bash` because `sh` scrips are invoked as part of these.
 
 ## Developing the Provider
 
@@ -115,8 +115,11 @@ $ make test
 The majority of tests in the provider are `Acceptance Tests` - which provisions real resources in Azure. It's possible to run the entire acceptance test suite by running `make testacc` - however it's likely you'll want to run a subset, which you can do using a prefix, by running:
 
 ```sh
-make acctests SERVICE='resource' TESTARGS='-run=TestAccAzureRMResourceGroup' TESTTIMEOUT='60m'
+make acctests SERVICE='<service>' TESTARGS='-run=<nameOfTheTest>' TESTTIMEOUT='60m'
 ```
+
+* `<service>` is the name of the folder which contains the file with the test(s) you want to run. The available folders are found in `azurerm/internal/services/`. So examples are `mssql`, `compute` or `mariadb`
+* `<nameOfTheTest>` should be self-explanatory as it is the name of the test you want to run. An example could be `TestAccMsSqlServerExtendedAuditingPolicy_basic`. Since `-run` can be used with regular expressions you can use it to specify multiple tests like in `TestAccMsSqlServerExtendedAuditingPolicy_` to run all tests that match that expression
 
 The following Environment Variables must be set in your shell prior to running acceptance tests:
 
