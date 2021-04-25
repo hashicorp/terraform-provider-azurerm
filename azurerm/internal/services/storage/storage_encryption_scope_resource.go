@@ -153,10 +153,6 @@ func resourceStorageEncryptionScopeUpdate(d *schema.ResourceData, meta interface
 		},
 	}
 
-	if d.HasChange("require_infrastructure_encryption") {
-		props.EncryptionScopeProperties.RequireInfrastructureEncryption = utils.Bool(d.Get("require_infrastructure_encryption").(bool))
-	}
-
 	if _, err := client.Patch(ctx, id.ResourceGroup, id.StorageAccountName, id.Name, props); err != nil {
 		return fmt.Errorf("updating Storage Encryption Scope %q (Storage Account Name %q / Resource Group %q): %+v", id.Name, id.StorageAccountName, id.ResourceGroup, err)
 	}
