@@ -43,6 +43,7 @@ var unsupportedAddonsForEnvironment = map[string][]string{
 }
 
 func schemaKubernetesAddOnProfiles() *schema.Schema {
+	//lintignore:XS003
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		MaxItems: 1,
@@ -68,10 +69,6 @@ func schemaKubernetesAddOnProfiles() *schema.Schema {
 							},
 						},
 					},
-					AtLeastOneOf: []string{"addon_profile.0.aci_connector_linux", "addon_profile.0.azure_policy",
-						"addon_profile.0.kube_dashboard", "addon_profile.0.http_application_routing",
-						"addon_profile.0.oms_agent",
-					},
 				},
 
 				"azure_policy": {
@@ -86,10 +83,6 @@ func schemaKubernetesAddOnProfiles() *schema.Schema {
 							},
 						},
 					},
-					AtLeastOneOf: []string{"addon_profile.0.aci_connector_linux", "addon_profile.0.azure_policy",
-						"addon_profile.0.kube_dashboard", "addon_profile.0.http_application_routing",
-						"addon_profile.0.oms_agent",
-					},
 				},
 
 				"kube_dashboard": {
@@ -103,10 +96,6 @@ func schemaKubernetesAddOnProfiles() *schema.Schema {
 								Required: true,
 							},
 						},
-					},
-					AtLeastOneOf: []string{"addon_profile.0.aci_connector_linux", "addon_profile.0.azure_policy",
-						"addon_profile.0.kube_dashboard", "addon_profile.0.http_application_routing",
-						"addon_profile.0.oms_agent",
 					},
 				},
 
@@ -125,10 +114,6 @@ func schemaKubernetesAddOnProfiles() *schema.Schema {
 								Computed: true,
 							},
 						},
-					},
-					AtLeastOneOf: []string{"addon_profile.0.aci_connector_linux", "addon_profile.0.azure_policy",
-						"addon_profile.0.kube_dashboard", "addon_profile.0.http_application_routing",
-						"addon_profile.0.oms_agent",
 					},
 				},
 
@@ -169,10 +154,6 @@ func schemaKubernetesAddOnProfiles() *schema.Schema {
 							},
 						},
 					},
-					AtLeastOneOf: []string{"addon_profile.0.aci_connector_linux", "addon_profile.0.azure_policy",
-						"addon_profile.0.kube_dashboard", "addon_profile.0.http_application_routing",
-						"addon_profile.0.oms_agent",
-					},
 				},
 			},
 		},
@@ -192,7 +173,7 @@ func expandKubernetesAddOnProfiles(input []interface{}, env azure.Environment) (
 		omsAgentKey:               &disabled,
 	}
 
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return filterUnsupportedKubernetesAddOns(profiles, env)
 	}
 

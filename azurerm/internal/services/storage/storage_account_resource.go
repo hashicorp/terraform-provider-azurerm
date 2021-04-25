@@ -387,6 +387,7 @@ func resourceStorageAccount() *schema.Resource {
 				},
 			},
 
+			//lintignore:XS003
 			"static_website": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -397,13 +398,11 @@ func resourceStorageAccount() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
-							AtLeastOneOf: []string{"static_website.0.index_document", "static_website.0.error_404_document"},
 						},
 						"error_404_document": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
-							AtLeastOneOf: []string{"static_website.0.index_document", "static_website.0.error_404_document"},
 						},
 					},
 				},

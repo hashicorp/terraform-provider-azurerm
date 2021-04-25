@@ -681,7 +681,7 @@ func expandArmCdnEndpointDeliveryPolicy(globalRulesRaw []interface{}, deliveryRu
 		Rules:       &deliveryRules,
 	}
 
-	if len(globalRulesRaw) > 0 {
+	if len(globalRulesRaw) > 0 && globalRulesRaw[0] != nil {
 		ruleRaw := globalRulesRaw[0].(map[string]interface{})
 		rule, err := expandArmCdnEndpointGlobalDeliveryRule(ruleRaw)
 		if err != nil {
