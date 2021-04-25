@@ -755,7 +755,7 @@ func (r PostgreSQLServerResource) createReplica(data acceptance.TestData, sku st
 resource "azurerm_resource_group" "replica" {
   name     = "acctestRG-psql-%[2]d-replica"
   location = "%[3]s"
-}  
+}
 
 resource "azurerm_postgresql_server" "replica" {
   name                = "acctest-psql-server-%[2]d-replica"
