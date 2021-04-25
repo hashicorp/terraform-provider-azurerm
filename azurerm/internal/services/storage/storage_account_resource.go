@@ -2,7 +2,6 @@ package storage
 
 import (
 	"fmt"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	msiparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
 	"log"
 	"net/http"
@@ -236,12 +235,6 @@ func resourceStorageAccount() *schema.Resource {
 				Default:  false,
 			},
 
-			"allow_shared_key_access": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  true,
-			},
-
 			"network_rules": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -359,10 +352,20 @@ func resourceStorageAccount() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"name": azure.SchemaLocation(),
+						"name": {
+							Type:     schema.TypeString,
+							Required: true,
+							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"microsoftrrdclab1",
+								"microsoftrrdclab2",
+								"microsoftlosangeles1",
+							}, false),
+						},
 						"type": {
 							Type:     schema.TypeString,
 							Required: true,
+							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(storage.EdgeZone),
 							}, false),
@@ -837,8 +840,7 @@ func resourceStorageAccountCreate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	parameters := storage.AccountCreateParameters{
-		Location:         &location,
-		ExtendedLocation: expandStorageAccountExtendedLocation(d.Get("extended_location").([]interface{})),
+		Location: &location,
 		Sku: &storage.Sku{
 			Name: storage.SkuName(storageType),
 		},
@@ -848,7 +850,6 @@ func resourceStorageAccountCreate(d *schema.ResourceData, meta interface{}) erro
 			EnableHTTPSTrafficOnly: &enableHTTPSTrafficOnly,
 			NetworkRuleSet:         expandStorageAccountNetworkRules(d, tenantId),
 			IsHnsEnabled:           &isHnsEnabled,
-			AllowSharedKeyAccess:   utils.Bool(d.Get("allow_shared_key_access").(bool)),
 			EnableNfsV3:            utils.Bool(d.Get("nfs_v3_enabled").(bool)),
 		},
 	}
@@ -922,6 +923,14 @@ func resourceStorageAccountCreate(d *schema.ResourceData, meta interface{}) erro
 
 	if v, ok := d.GetOk("routing_preference"); ok {
 		parameters.RoutingPreference = expandArmStorageAccountRoutingPreference(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("extended_location"); ok {
+		extendedLocation, err := expandStorageAccountExtendedLocation(v.([]interface{}), storageType)
+		if err != nil {
+			return err
+		}
+		parameters.ExtendedLocation = extendedLocation
 	}
 
 	// Create
@@ -1168,18 +1177,6 @@ func resourceStorageAccountUpdate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	if d.HasChange("allow_shared_key_access") {
-		opts := storage.AccountUpdateParameters{
-			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-				AllowSharedKeyAccess: utils.Bool(d.Get("allow_shared_key_access").(bool)),
-			},
-		}
-
-		if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
-			return fmt.Errorf("updating Azure Storage Account allow_shared_key_access %q: %+v", storageAccountName, err)
-		}
-	}
-
 	if d.HasChange("identity") {
 		storageAccountIdentity, err := expandAzureRmStorageAccountIdentity(d.Get("identity").([]interface{}))
 		if err != nil {
@@ -1410,7 +1407,6 @@ func resourceStorageAccountRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("enable_https_traffic_only", props.EnableHTTPSTrafficOnly)
 		d.Set("is_hns_enabled", props.IsHnsEnabled)
 		d.Set("allow_blob_public_access", props.AllowBlobPublicAccess)
-		d.Set("allow_shared_key_access", props.AllowSharedKeyAccess)
 		d.Set("nfs_v3_enabled", props.EnableNfsV3)
 		// For all Clouds except Public and USGovernmentCloud, "min_tls_version" is not returned from Azure so always persist the default values for "min_tls_version".
 		// https://github.com/terraform-providers/terraform-provider-azurerm/issues/7812
@@ -2579,27 +2575,36 @@ func setEndpointAndHost(d *schema.ResourceData, ordinalString string, endpointTy
 	return nil
 }
 
-func expandStorageAccountExtendedLocation(inputs []interface{}) *storage.ExtendedLocation {
+func expandStorageAccountExtendedLocation(inputs []interface{}, storageType string) (*storage.ExtendedLocation, error) {
 	if len(inputs) == 0 || inputs[0] == nil {
-		return nil
+		return nil, nil
 	}
 	input := inputs[0].(map[string]interface{})
 
+	// only supported when sku_name is `Premium_LRS ` or `StandardSSD_LRS`
+	if storageType != string(storage.PremiumLRS) {
+		return nil, fmt.Errorf("`extended_location` is only supported when `account_tier` is `Premium` and `account_replication_type` is `LRS`")
+	}
+
 	extendedLocation := storage.ExtendedLocation{
-		Name: utils.String(location.Normalize(input["name"].(string))),
+		Name: utils.String(input["name"].(string)),
 		Type: storage.ExtendedLocationTypes(input["type"].(string)),
 	}
 
-	return &extendedLocation
+	return &extendedLocation, nil
 }
 
 func flattenStorageAccountExtendedLocation(extendedLocation *storage.ExtendedLocation) []interface{} {
 	if extendedLocation == nil {
 		return []interface{}{}
 	}
+	var name string
+	if extendedLocation.Name != nil {
+		name = *extendedLocation.Name
+	}
 	return []interface{}{
 		map[string]interface{}{
-			"name": location.NormalizeNilable(extendedLocation.Name),
+			"name": name,
 			"type": string(extendedLocation.Type),
 		},
 	}

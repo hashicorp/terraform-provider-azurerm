@@ -270,36 +270,6 @@ func TestAccStorageAccount_allowBlobPublicAccess(t *testing.T) {
 	})
 }
 
-func TestAccStorageAccount_allowSharedKeyAccess(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
-	r := StorageAccountResource{}
-
-	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("allow_shared_key_access").HasValue("true"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.disallowSharedKeyAccess(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("allow_shared_key_access").HasValue("true"),
-			),
-		},
-	})
-}
-
 func TestAccStorageAccount_nfsV3Enabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
@@ -1235,35 +1205,6 @@ resource "azurerm_storage_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r StorageAccountResource) disallowSharedKeyAccess(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-storage-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                = "unlikely23exst2acct%s"
-  resource_group_name = azurerm_resource_group.test.name
-
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-  allow_shared_key_access  = false
-
-  tags = {
-    environment = "production"
-  }
-}
-
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
-}
-
 func (r StorageAccountResource) nfsV3Enabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -1807,9 +1748,6 @@ resource "azurerm_storage_account" "test" {
 
 func (r StorageAccountResource) networkRulesUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
 %s
 
 resource "azurerm_storage_account" "test" {
@@ -2480,11 +2418,11 @@ resource "azurerm_storage_account" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
+  account_tier             = "Premium"
   account_replication_type = "LRS"
 
   extended_location {
-    name = "%s"
+    name = "microsoftrrdclab1"
     type = "EdgeZone"
   }
 
@@ -2492,5 +2430,5 @@ resource "azurerm_storage_account" "test" {
     environment = "production"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.Locations.Secondary)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
