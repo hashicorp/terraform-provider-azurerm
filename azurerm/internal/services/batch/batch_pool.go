@@ -440,6 +440,9 @@ func ExpandBatchPoolStartTask(list []interface{}) (*batch.StartTask, error) {
 	resourceFileList := startTaskValue["resource_file"].([]interface{})
 	resourceFiles := make([]batch.ResourceFile, 0)
 	for _, resourceFileValueTemp := range resourceFileList {
+		if resourceFileValueTemp == nil {
+			continue
+		}
 		resourceFileValue := resourceFileValueTemp.(map[string]interface{})
 		resourceFile := batch.ResourceFile{}
 		if v, ok := resourceFileValue["auto_storage_container_name"]; ok {

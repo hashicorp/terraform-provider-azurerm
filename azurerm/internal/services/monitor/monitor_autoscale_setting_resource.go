@@ -365,6 +365,7 @@ func resourceMonitorAutoScaleSetting() *schema.Resource {
 									},
 								},
 							},
+							AtLeastOneOf: []string{"notification.0.email", "notification.0.webhook"},
 						},
 						"webhook": {
 							Type:     schema.TypeList,
@@ -385,6 +386,7 @@ func resourceMonitorAutoScaleSetting() *schema.Resource {
 									},
 								},
 							},
+							AtLeastOneOf: []string{"notification.0.email", "notification.0.webhook"},
 						},
 					},
 				},

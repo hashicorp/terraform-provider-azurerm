@@ -516,12 +516,20 @@ func resourceKubernetesCluster() *schema.Resource {
 										Type:         schema.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.IsUUID,
+										AtLeastOneOf: []string{"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
+											"role_based_access_control.0.azure_active_directory.0.server_app_secret", "role_based_access_control.0.azure_active_directory.0.tenant_id",
+											"role_based_access_control.0.azure_active_directory.0.managed", "role_based_access_control.0.azure_active_directory.0.admin_group_object_ids",
+										},
 									},
 
 									"server_app_id": {
 										Type:         schema.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.IsUUID,
+										AtLeastOneOf: []string{"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
+											"role_based_access_control.0.azure_active_directory.0.server_app_secret", "role_based_access_control.0.azure_active_directory.0.tenant_id",
+											"role_based_access_control.0.azure_active_directory.0.managed", "role_based_access_control.0.azure_active_directory.0.admin_group_object_ids",
+										},
 									},
 
 									"server_app_secret": {
@@ -529,6 +537,10 @@ func resourceKubernetesCluster() *schema.Resource {
 										Optional:     true,
 										Sensitive:    true,
 										ValidateFunc: validation.StringIsNotEmpty,
+										AtLeastOneOf: []string{"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
+											"role_based_access_control.0.azure_active_directory.0.server_app_secret", "role_based_access_control.0.azure_active_directory.0.tenant_id",
+											"role_based_access_control.0.azure_active_directory.0.managed", "role_based_access_control.0.azure_active_directory.0.admin_group_object_ids",
+										},
 									},
 
 									"tenant_id": {
@@ -537,11 +549,19 @@ func resourceKubernetesCluster() *schema.Resource {
 										Computed: true,
 										// OrEmpty since this can be sourced from the client config if it's not specified
 										ValidateFunc: validation.Any(validation.IsUUID, validation.StringIsEmpty),
+										AtLeastOneOf: []string{"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
+											"role_based_access_control.0.azure_active_directory.0.server_app_secret", "role_based_access_control.0.azure_active_directory.0.tenant_id",
+											"role_based_access_control.0.azure_active_directory.0.managed", "role_based_access_control.0.azure_active_directory.0.admin_group_object_ids",
+										},
 									},
 
 									"managed": {
 										Type:     schema.TypeBool,
 										Optional: true,
+										AtLeastOneOf: []string{"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
+											"role_based_access_control.0.azure_active_directory.0.server_app_secret", "role_based_access_control.0.azure_active_directory.0.tenant_id",
+											"role_based_access_control.0.azure_active_directory.0.managed", "role_based_access_control.0.azure_active_directory.0.admin_group_object_ids",
+										},
 									},
 
 									"admin_group_object_ids": {
@@ -551,6 +571,10 @@ func resourceKubernetesCluster() *schema.Resource {
 										Elem: &schema.Schema{
 											Type:         schema.TypeString,
 											ValidateFunc: validation.IsUUID,
+										},
+										AtLeastOneOf: []string{"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
+											"role_based_access_control.0.azure_active_directory.0.server_app_secret", "role_based_access_control.0.azure_active_directory.0.tenant_id",
+											"role_based_access_control.0.azure_active_directory.0.managed", "role_based_access_control.0.azure_active_directory.0.admin_group_object_ids",
 										},
 									},
 								},

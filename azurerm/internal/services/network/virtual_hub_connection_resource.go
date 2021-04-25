@@ -90,6 +90,7 @@ func resourceVirtualHubConnection() *schema.Resource {
 							Optional:     true,
 							Computed:     true,
 							ValidateFunc: validate.HubRouteTableID,
+							AtLeastOneOf: []string{"routing.0.associated_route_table_id", "routing.0.propagated_route_table", "routing.0.static_vnet_route"},
 						},
 
 						"propagated_route_table": {
@@ -107,6 +108,7 @@ func resourceVirtualHubConnection() *schema.Resource {
 											Type:         schema.TypeString,
 											ValidateFunc: validation.StringIsNotEmpty,
 										},
+										AtLeastOneOf: []string{"routing.0.propagated_route_table.0.labels", "routing.0.propagated_route_table.0.route_table_ids"},
 									},
 
 									"route_table_ids": {
@@ -117,11 +119,14 @@ func resourceVirtualHubConnection() *schema.Resource {
 											Type:         schema.TypeString,
 											ValidateFunc: validate.HubRouteTableID,
 										},
+										AtLeastOneOf: []string{"routing.0.propagated_route_table.0.labels", "routing.0.propagated_route_table.0.route_table_ids"},
 									},
 								},
 							},
+							AtLeastOneOf: []string{"routing.0.associated_route_table_id", "routing.0.propagated_route_table", "routing.0.static_vnet_route"},
 						},
 
+						//lintignore:XS003
 						"static_vnet_route": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -149,6 +154,7 @@ func resourceVirtualHubConnection() *schema.Resource {
 									},
 								},
 							},
+							AtLeastOneOf: []string{"routing.0.associated_route_table_id", "routing.0.propagated_route_table", "routing.0.static_vnet_route"},
 						},
 					},
 				},
@@ -342,6 +348,10 @@ func expandVirtualHubConnectionVnetStaticRoute(input []interface{}) *network.Vne
 	results := make([]network.StaticRoute, 0)
 
 	for _, item := range input {
+		if item == nil {
+			continue
+		}
+
 		v := item.(map[string]interface{})
 
 		result := network.StaticRoute{}

@@ -259,6 +259,7 @@ func resourceMySqlServer() *schema.Resource {
 								string(mysql.StorageAutogrowEnabled),
 								string(mysql.StorageAutogrowDisabled),
 							}, false),
+							AtLeastOneOf: []string{"storage_profile.0.auto_grow", "storage_profile.0.backup_retention_days", "storage_profile.0.geo_redundant_backup", "storage_profile.0.storage_mb"},
 						},
 						"backup_retention_days": {
 							Type:          schema.TypeInt,
@@ -267,6 +268,7 @@ func resourceMySqlServer() *schema.Resource {
 							ConflictsWith: []string{"backup_retention_days"},
 							Deprecated:    "this has been moved to the top level and will be removed in version 3.0 of the provider.",
 							ValidateFunc:  validation.IntBetween(7, 35),
+							AtLeastOneOf:  []string{"storage_profile.0.auto_grow", "storage_profile.0.backup_retention_days", "storage_profile.0.geo_redundant_backup", "storage_profile.0.storage_mb"},
 						},
 						"geo_redundant_backup": {
 							Type:             schema.TypeString,
@@ -279,6 +281,7 @@ func resourceMySqlServer() *schema.Resource {
 								"Enabled",
 								"Disabled",
 							}, true),
+							AtLeastOneOf: []string{"storage_profile.0.auto_grow", "storage_profile.0.backup_retention_days", "storage_profile.0.geo_redundant_backup", "storage_profile.0.storage_mb"},
 						},
 						"storage_mb": {
 							Type:          schema.TypeInt,
@@ -289,6 +292,7 @@ func resourceMySqlServer() *schema.Resource {
 								validation.IntBetween(5120, 4194304),
 								validation.IntDivisibleBy(1024),
 							),
+							AtLeastOneOf: []string{"storage_profile.0.auto_grow", "storage_profile.0.backup_retention_days", "storage_profile.0.geo_redundant_backup", "storage_profile.0.storage_mb"},
 						},
 					},
 				},
@@ -303,6 +307,10 @@ func resourceMySqlServer() *schema.Resource {
 						"enabled": {
 							Type:     schema.TypeBool,
 							Optional: true,
+							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
+								"threat_detection_policy.0.storage_endpoint",
+							},
 						},
 
 						"disabled_alerts": {
@@ -319,11 +327,19 @@ func resourceMySqlServer() *schema.Resource {
 									"Unsafe_Action",
 								}, false),
 							},
+							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
+								"threat_detection_policy.0.storage_endpoint",
+							},
 						},
 
 						"email_account_admins": {
 							Type:     schema.TypeBool,
 							Optional: true,
+							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
+								"threat_detection_policy.0.storage_endpoint",
+							},
 						},
 
 						"email_addresses": {
@@ -334,12 +350,20 @@ func resourceMySqlServer() *schema.Resource {
 								// todo email validation in code
 							},
 							Set: schema.HashString,
+							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
+								"threat_detection_policy.0.storage_endpoint",
+							},
 						},
 
 						"retention_days": {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(0),
+							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
+								"threat_detection_policy.0.storage_endpoint",
+							},
 						},
 
 						"storage_account_access_key": {
@@ -347,12 +371,20 @@ func resourceMySqlServer() *schema.Resource {
 							Optional:     true,
 							Sensitive:    true,
 							ValidateFunc: validation.StringIsNotEmpty,
+							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
+								"threat_detection_policy.0.storage_endpoint",
+							},
 						},
 
 						"storage_endpoint": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
+								"threat_detection_policy.0.storage_endpoint",
+							},
 						},
 					},
 				},

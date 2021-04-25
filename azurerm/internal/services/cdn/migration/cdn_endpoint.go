@@ -160,6 +160,7 @@ func (CdnEndpointV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
+		//lintignore:XS003
 		"global_delivery_rule": {
 			Type:     schema.TypeList,
 			Optional: true,

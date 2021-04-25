@@ -70,6 +70,7 @@ func resourceArmRoleDefinition() *schema.Resource {
 				Optional: true,
 			},
 
+			//lintignore:XS003
 			"permissions": {
 				Type:     schema.TypeList,
 				Optional: true,

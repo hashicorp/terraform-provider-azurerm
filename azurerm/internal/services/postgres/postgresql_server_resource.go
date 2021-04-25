@@ -324,6 +324,10 @@ func resourcePostgreSQLServer() *schema.Resource {
 						"enabled": {
 							Type:     schema.TypeBool,
 							Optional: true,
+							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
+								"threat_detection_policy.0.storage_endpoint",
+							},
 						},
 
 						"disabled_alerts": {
@@ -340,11 +344,19 @@ func resourcePostgreSQLServer() *schema.Resource {
 									"Unsafe_Action",
 								}, false),
 							},
+							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
+								"threat_detection_policy.0.storage_endpoint",
+							},
 						},
 
 						"email_account_admins": {
 							Type:     schema.TypeBool,
 							Optional: true,
+							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
+								"threat_detection_policy.0.storage_endpoint",
+							},
 						},
 
 						"email_addresses": {
@@ -355,12 +367,20 @@ func resourcePostgreSQLServer() *schema.Resource {
 								// todo email validation in code
 							},
 							Set: schema.HashString,
+							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
+								"threat_detection_policy.0.storage_endpoint",
+							},
 						},
 
 						"retention_days": {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(0),
+							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
+								"threat_detection_policy.0.storage_endpoint",
+							},
 						},
 
 						"storage_account_access_key": {
@@ -368,12 +388,20 @@ func resourcePostgreSQLServer() *schema.Resource {
 							Optional:     true,
 							Sensitive:    true,
 							ValidateFunc: validation.StringIsNotEmpty,
+							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
+								"threat_detection_policy.0.storage_endpoint",
+							},
 						},
 
 						"storage_endpoint": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
+								"threat_detection_policy.0.storage_endpoint",
+							},
 						},
 					},
 				},

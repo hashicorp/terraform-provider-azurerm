@@ -68,6 +68,10 @@ func schemaKubernetesAddOnProfiles() *schema.Schema {
 							},
 						},
 					},
+					AtLeastOneOf: []string{"addon_profile.0.aci_connector_linux", "addon_profile.0.azure_policy",
+						"addon_profile.0.kube_dashboard", "addon_profile.0.http_application_routing",
+						"addon_profile.0.oms_agent",
+					},
 				},
 
 				"azure_policy": {
@@ -82,6 +86,10 @@ func schemaKubernetesAddOnProfiles() *schema.Schema {
 							},
 						},
 					},
+					AtLeastOneOf: []string{"addon_profile.0.aci_connector_linux", "addon_profile.0.azure_policy",
+						"addon_profile.0.kube_dashboard", "addon_profile.0.http_application_routing",
+						"addon_profile.0.oms_agent",
+					},
 				},
 
 				"kube_dashboard": {
@@ -95,6 +103,10 @@ func schemaKubernetesAddOnProfiles() *schema.Schema {
 								Required: true,
 							},
 						},
+					},
+					AtLeastOneOf: []string{"addon_profile.0.aci_connector_linux", "addon_profile.0.azure_policy",
+						"addon_profile.0.kube_dashboard", "addon_profile.0.http_application_routing",
+						"addon_profile.0.oms_agent",
 					},
 				},
 
@@ -113,6 +125,10 @@ func schemaKubernetesAddOnProfiles() *schema.Schema {
 								Computed: true,
 							},
 						},
+					},
+					AtLeastOneOf: []string{"addon_profile.0.aci_connector_linux", "addon_profile.0.azure_policy",
+						"addon_profile.0.kube_dashboard", "addon_profile.0.http_application_routing",
+						"addon_profile.0.oms_agent",
 					},
 				},
 
@@ -152,6 +168,10 @@ func schemaKubernetesAddOnProfiles() *schema.Schema {
 								},
 							},
 						},
+					},
+					AtLeastOneOf: []string{"addon_profile.0.aci_connector_linux", "addon_profile.0.azure_policy",
+						"addon_profile.0.kube_dashboard", "addon_profile.0.http_application_routing",
+						"addon_profile.0.oms_agent",
 					},
 				},
 			},
