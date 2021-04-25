@@ -1,6 +1,7 @@
 package network
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -18,7 +19,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -48,7 +49,7 @@ func resourceApplicationGateway() *schema.Resource {
 		Read:   resourceApplicationGatewayRead,
 		Update: resourceApplicationGatewayCreateUpdate,
 		Delete: resourceApplicationGatewayDelete,
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ApplicationGatewayID(id)
 			return err
 		}),
@@ -1162,6 +1163,12 @@ func resourceApplicationGateway() *schema.Resource {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
+
+									"firewall_policy_id": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: networkValidate.ApplicationGatewayWebApplicationFirewallPolicyID,
+									},
 								},
 							},
 						},
@@ -1340,7 +1347,7 @@ func resourceApplicationGateway() *schema.Resource {
 			"tags": tags.Schema(),
 		},
 
-		CustomizeDiff: ApplicationGatewayCustomizeDiff,
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(applicationGatewayCustomizeDiff),
 	}
 }
 
@@ -3422,6 +3429,7 @@ func expandApplicationGatewayURLPathMaps(d *schema.ResourceData, gatewayID strin
 			backendAddressPoolName := ruleConfigMap["backend_address_pool_name"].(string)
 			backendHTTPSettingsName := ruleConfigMap["backend_http_settings_name"].(string)
 			redirectConfigurationName := ruleConfigMap["redirect_configuration_name"].(string)
+			firewallPolicyID := ruleConfigMap["firewall_policy_id"].(string)
 
 			rulePaths := make([]string, 0)
 			for _, rulePath := range ruleConfigMap["paths"].([]interface{}) {
@@ -3468,6 +3476,12 @@ func expandApplicationGatewayURLPathMaps(d *schema.ResourceData, gatewayID strin
 				rewriteRuleSetID := fmt.Sprintf("%s/rewriteRuleSets/%s", gatewayID, rewriteRuleSetName)
 				rule.ApplicationGatewayPathRulePropertiesFormat.RewriteRuleSet = &network.SubResource{
 					ID: utils.String(rewriteRuleSetID),
+				}
+			}
+
+			if firewallPolicyID != "" && len(firewallPolicyID) > 0 {
+				rule.ApplicationGatewayPathRulePropertiesFormat.FirewallPolicy = &network.SubResource{
+					ID: utils.String(firewallPolicyID),
 				}
 			}
 
@@ -3637,6 +3651,10 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 							rewriteRuleSet := rewriteId.Path["rewriteRuleSets"]
 							ruleOutput["rewrite_rule_set_name"] = rewriteRuleSet
 							ruleOutput["rewrite_rule_set_id"] = *rewrite.ID
+						}
+
+						if fwp := ruleProps.FirewallPolicy; fwp != nil && fwp.ID != nil {
+							ruleOutput["firewall_policy_id"] = *fwp.ID
 						}
 
 						pathOutputs := make([]interface{}, 0)
@@ -3867,7 +3885,7 @@ func flattenApplicationGatewayCustomErrorConfigurations(input *[]network.Applica
 	return results
 }
 
-func ApplicationGatewayCustomizeDiff(d *schema.ResourceDiff, _ interface{}) error {
+func applicationGatewayCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, _ interface{}) error {
 	_, hasAutoscaleConfig := d.GetOk("autoscale_configuration.0")
 	capacity, hasCapacity := d.GetOk("sku.0.capacity")
 	tier := d.Get("sku.0.tier").(string)

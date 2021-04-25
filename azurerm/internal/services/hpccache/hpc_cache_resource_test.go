@@ -213,6 +213,30 @@ func TestAccHPCCache_defaultAccessPolicy(t *testing.T) {
 	})
 }
 
+func TestAccHPCCache_updateTags(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hpc_cache", "test")
+	r := HPCCacheResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("mount_addresses.#").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateTags(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("mount_addresses.#").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (HPCCacheResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.CacheID(state.ID)
 	if err != nil {
@@ -238,6 +262,27 @@ resource "azurerm_hpc_cache" "test" {
   cache_size_in_gb    = 3072
   subnet_id           = azurerm_subnet.test.id
   sku_name            = "Standard_2G"
+  tags = {
+    environment = "Production"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r HPCCacheResource) updateTags(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_hpc_cache" "test" {
+  name                = "acctest-HPCC-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cache_size_in_gb    = 3072
+  subnet_id           = azurerm_subnet.test.id
+  sku_name            = "Standard_2G"
+  tags = {
+    environment = "Test"
+  }
 }
 `, r.template(data), data.RandomInteger)
 }

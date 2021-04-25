@@ -49,3 +49,12 @@ func ValidateLongTermRetentionPoliciesIsoFormat(i interface{}, k string) (_ []st
 	}
 	return nil, nil
 }
+
+// Job Agent name must not contain any of ?<>*%&:\/? and must not end with a space or .
+func ValidateMsSqlJobAgentName(i interface{}, k string) (_ []string, errors []error) {
+	if m, regexErrs := validate.RegExHelper(i, k, `^[^?<>*%&:\/?]{0,127}[^?<>*%&:\/?. ]$`); !m {
+		return nil, append(regexErrs, fmt.Errorf("%q must not contain any of ?<>*%%&:\\/?, must not end with a space or a period and can't have more than 128 characters", k))
+	}
+
+	return nil, nil
+}

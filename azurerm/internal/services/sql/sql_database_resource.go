@@ -1,6 +1,7 @@
 package sql
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -18,7 +19,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql/helper"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -31,7 +32,7 @@ func resourceSqlDatabase() *schema.Resource {
 		Update: resourceSqlDatabaseCreateUpdate,
 		Delete: resourceSqlDatabaseDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.DatabaseID(id)
 			return err
 		}),
@@ -339,7 +340,7 @@ func resourceSqlDatabase() *schema.Resource {
 			"tags": tags.Schema(),
 		},
 
-		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *schema.ResourceDiff, v interface{}) error {
 			threatDetection, hasThreatDetection := diff.GetOk("threat_detection_policy")
 			if hasThreatDetection {
 				if tl := threatDetection.([]interface{}); len(tl) > 0 {
@@ -355,7 +356,7 @@ func resourceSqlDatabase() *schema.Resource {
 			}
 
 			return nil
-		},
+		}),
 	}
 }
 

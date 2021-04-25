@@ -1,15 +1,12 @@
 package mysql
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
-
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2020-01-01/mysql"
 	"github.com/Azure/go-autorest/autorest/date"
@@ -19,9 +16,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -38,16 +37,16 @@ func resourceMySqlServer() *schema.Resource {
 		Update: resourceMySqlServerUpdate,
 		Delete: resourceMySqlServerDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.ServerID(id)
 			return err
-		}, func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
 			d.Set("create_mode", "Default")
 			if v, ok := d.GetOk("create_mode"); ok && v.(string) != "" {
 				d.Set("create_mode", v)
 			}
 
-			return []*schema.ResourceData{d}, nil
+			return []*pluginsdk.ResourceData{d}, nil
 		}),
 
 		Timeouts: &schema.ResourceTimeout{
@@ -374,7 +373,7 @@ func resourceMySqlServer() *schema.Resource {
 			},
 		},
 
-		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *schema.ResourceDiff, v interface{}) error {
 			tier, _ := diff.GetOk("sku_name")
 
 			var storageMB int
@@ -389,7 +388,7 @@ func resourceMySqlServer() *schema.Resource {
 			}
 
 			return nil
-		},
+		}),
 	}
 }
 

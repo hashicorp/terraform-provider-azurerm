@@ -1,16 +1,14 @@
 package containers
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strconv"
 	"strings"
 	"time"
 
-	privateDnsValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns/validate"
-
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-12-01/containerservice"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-02-01/containerservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -23,8 +21,9 @@ import (
 	containerValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/validate"
 	msiparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
 	msivalidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
+	privateDnsValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -37,14 +36,14 @@ func resourceKubernetesCluster() *schema.Resource {
 		Update: resourceKubernetesClusterUpdate,
 		Delete: resourceKubernetesClusterDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ClusterID(id)
 			return err
 		}),
 
-		CustomizeDiff: customdiff.Sequence(
+		CustomizeDiff: pluginsdk.CustomDiffInSequence(
 			// Downgrade from Paid to Free is not supported and requires rebuild to apply
-			customdiff.ForceNewIfChange("sku_tier", func(old, new, meta interface{}) bool {
+			pluginsdk.ForceNewIfChange("sku_tier", func(ctx context.Context, old, new, meta interface{}) bool {
 				return new == "Free"
 			}),
 		),
@@ -167,6 +166,11 @@ func resourceKubernetesCluster() *schema.Resource {
 							ValidateFunc: containerValidate.Duration,
 						},
 						"scale_down_utilization_threshold": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
+						"empty_bulk_delete_max": {
 							Type:     schema.TypeString,
 							Optional: true,
 							Computed: true,
@@ -866,7 +870,7 @@ func resourceKubernetesClusterCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if v, ok := d.GetOk("private_dns_zone_id"); ok {
-		if (parameters.Identity == nil && !servicePrincipalSet) || (v.(string) != "System" && (!servicePrincipalSet && parameters.Identity.Type != containerservice.ResourceIdentityTypeUserAssigned)) {
+		if (parameters.Identity == nil && !servicePrincipalSet) || (v.(string) != "System" && v.(string) != "None" && (!servicePrincipalSet && parameters.Identity.Type != containerservice.ResourceIdentityTypeUserAssigned)) {
 			return fmt.Errorf("a user assigned identity or a service principal must be used when using a custom private dns zone")
 		}
 		apiAccessProfile.PrivateDNSZone = utils.String(v.(string))
@@ -2090,6 +2094,11 @@ func flattenKubernetesClusterAutoScalerProfile(profile *containerservice.Managed
 		scaleDownUtilizationThreshold = *profile.ScaleDownUtilizationThreshold
 	}
 
+	emptyBulkDeleteMax := ""
+	if profile.MaxEmptyBulkDelete != nil {
+		emptyBulkDeleteMax = *profile.MaxEmptyBulkDelete
+	}
+
 	scanInterval := ""
 	if profile.ScanInterval != nil {
 		scanInterval = *profile.ScanInterval
@@ -2117,6 +2126,7 @@ func flattenKubernetesClusterAutoScalerProfile(profile *containerservice.Managed
 			"scale_down_unneeded":              scaleDownUnneededTime,
 			"scale_down_unready":               scaleDownUnreadyTime,
 			"scale_down_utilization_threshold": scaleDownUtilizationThreshold,
+			"empty_bulk_delete_max":            emptyBulkDeleteMax,
 			"scan_interval":                    scanInterval,
 			"skip_nodes_with_local_storage":    skipNodesWithLocalStorage,
 			"skip_nodes_with_system_pods":      skipNodesWithSystemPods,
@@ -2141,6 +2151,7 @@ func expandKubernetesClusterAutoScalerProfile(input []interface{}) *containerser
 	scaleDownUnneededTime := config["scale_down_unneeded"].(string)
 	scaleDownUnreadyTime := config["scale_down_unready"].(string)
 	scaleDownUtilizationThreshold := config["scale_down_utilization_threshold"].(string)
+	emptyBulkDeleteMax := config["empty_bulk_delete_max"].(string)
 	scanInterval := config["scan_interval"].(string)
 	skipNodesWithLocalStorage := config["skip_nodes_with_local_storage"].(bool)
 	skipNodesWithSystemPods := config["skip_nodes_with_system_pods"].(bool)
@@ -2156,6 +2167,7 @@ func expandKubernetesClusterAutoScalerProfile(input []interface{}) *containerser
 		ScaleDownUnneededTime:         utils.String(scaleDownUnneededTime),
 		ScaleDownUnreadyTime:          utils.String(scaleDownUnreadyTime),
 		ScaleDownUtilizationThreshold: utils.String(scaleDownUtilizationThreshold),
+		MaxEmptyBulkDelete:            utils.String(emptyBulkDeleteMax),
 		ScanInterval:                  utils.String(scanInterval),
 		SkipNodesWithLocalStorage:     utils.String(strconv.FormatBool(skipNodesWithLocalStorage)),
 		SkipNodesWithSystemPods:       utils.String(strconv.FormatBool(skipNodesWithSystemPods)),

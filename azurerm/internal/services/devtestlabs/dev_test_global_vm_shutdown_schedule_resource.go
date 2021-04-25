@@ -15,7 +15,7 @@ import (
 	computeValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devtestlabs/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -26,7 +26,7 @@ func resourceDevTestGlobalVMShutdownSchedule() *schema.Resource {
 		Read:   resourceDevTestGlobalVMShutdownScheduleRead,
 		Update: resourceDevTestGlobalVMShutdownScheduleCreateUpdate,
 		Delete: resourceDevTestGlobalVMShutdownScheduleDelete,
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ScheduleID(id)
 			return err
 		}),
