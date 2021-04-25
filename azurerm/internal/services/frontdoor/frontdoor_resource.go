@@ -571,11 +571,13 @@ func resourceFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) err
 		customHttpsProvisioningEnabled := frontendEndpoint["custom_https_provisioning_enabled"].(bool)
 		customHttpsConfigurationNew := frontendEndpoint["custom_https_configuration"].([]interface{})
 
+		log.Printf("\n[INFO] customHttpsConfigurationNew:\n%+v\n", customHttpsConfigurationNew)
+
 		if customHttpsProvisioningEnabled {
 			return fmt.Errorf("setting the deprecated 'custom_https_provisioning_enabled' field is no longer supported within the 'azurerm_frontdoor' resource, please use the 'azurerm_frontdoor_custom_https_configuration' resource to set this value.")
 		}
 
-		if customHttpsConfigurationNew != nil {
+		if len(customHttpsConfigurationNew) > 0 {
 			return fmt.Errorf("setting the deprecated 'custom_https_configuration' block is no longer supported within the 'azurerm_frontdoor' resource, please use the 'azurerm_frontdoor_custom_https_configuration' resource to set these values.")
 		}
 	}
