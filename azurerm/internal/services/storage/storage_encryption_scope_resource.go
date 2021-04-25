@@ -152,7 +152,6 @@ func resourceStorageEncryptionScopeUpdate(d *schema.ResourceData, meta interface
 			},
 		},
 	}
-
 	if _, err := client.Patch(ctx, id.ResourceGroup, id.StorageAccountName, id.Name, props); err != nil {
 		return fmt.Errorf("updating Storage Encryption Scope %q (Storage Account Name %q / Resource Group %q): %+v", id.Name, id.StorageAccountName, id.ResourceGroup, err)
 	}
