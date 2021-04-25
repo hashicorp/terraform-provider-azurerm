@@ -26,6 +26,7 @@ ENHANCEMENTS:
 * `azurerm_databricks_workspace` - switching to using an ID Formatter [GH-11378]
 * `azurerm_databricks_workspace` - fixes propagation of tags to connected resources [GH-11405]
 * `azurerm_data_factory_linked_service_azure_file_storage` - support for the `key_vault_password` property [GH-11436]
+* `azurerm_dedicated_host_group` - support for the `automatic_placement_enabled` property [GH-11428]
 * `azurerm_frontdoor` - sync `MaxItems` on various attributes to match azure docs [GH-11421]
 * `azurerm_hdinsight_interactive_query_cluster` - add support for private link endpoint [GH-11300]
 * `azurerm_hdinsight_hadoop_cluster` - add support for private link endpoint [GH-11300]
