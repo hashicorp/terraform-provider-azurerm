@@ -609,7 +609,7 @@ func resourcePostgreSQLServerCreate(d *schema.ResourceData, meta interface{}) er
 		}
 	}
 
-	// Issue tracking REST API update: https://github.com/Azure/azure-rest-api-specs/issues/14117
+	// Issue tracking the REST API update failure: https://github.com/Azure/azure-rest-api-specs/issues/14117
 	if mode == postgresql.CreateModeReplica {
 		log.Printf("[INFO] changing `public_network_access_enabled` for AzureRM PostgreSQL Server %q (Resource Group %q)", name, resourceGroup)
 		properties := postgresql.ServerUpdateParameters{
