@@ -12,32 +12,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
-
-func TestValidateStorageAccountName(t *testing.T) {
-	testCases := []struct {
-		input       string
-		shouldError bool
-	}{
-		{"ab", true},
-		{"ABC", true},
-		{"abc", false},
-		{"123456789012345678901234", false},
-		{"1234567890123456789012345", true},
-		{"abc12345", false},
-	}
-
-	for _, test := range testCases {
-		_, es := storage.ValidateStorageAccountName(test.input, "name")
-
-		if test.shouldError && len(es) == 0 {
-			t.Fatalf("Expected validating name %q to fail", test.input)
-		}
-	}
-}
 
 type StorageAccountResource struct{}
 
@@ -542,6 +519,8 @@ func TestAccStorageAccount_blobProperties(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("blob_properties.0.cors_rule.#").HasValue("2"),
 				check.That(data.ResourceName).Key("blob_properties.0.delete_retention_policy.0.days").HasValue("7"),
+				check.That(data.ResourceName).Key("blob_properties.0.versioning_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("blob_properties.0.default_service_version").HasValue("2020-06-12"),
 			),
 		},
 		data.ImportStep(),
@@ -1536,6 +1515,13 @@ resource "azurerm_storage_account" "test" {
 
     delete_retention_policy {
       days = 300
+    }
+
+    default_service_version  = "2019-07-07"
+    versioning_enabled       = true
+    last_access_time_enabled = true
+    change_feed {
+      retention_in_days = 3
     }
 
     container_delete_retention_policy {

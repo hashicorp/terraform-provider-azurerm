@@ -6,6 +6,9 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2020-05-01/media"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -13,7 +16,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media/parse"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -30,7 +32,7 @@ func resourceMediaStreamingPolicy() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.StreamingPolicyID(id)
 			return err
 		}),
@@ -52,7 +54,7 @@ func resourceMediaStreamingPolicy() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateMediaServicesAccountName,
+				ValidateFunc: validate.AccountName,
 			},
 
 			"no_encryption_enabled_protocols": enabledProtocolsSchema(),
@@ -85,6 +87,7 @@ func resourceMediaStreamingPolicy() *schema.Resource {
 										Optional:     true,
 										ForceNew:     true,
 										ValidateFunc: validation.IsURLWithHTTPS,
+										AtLeastOneOf: []string{"common_encryption_cenc.0.drm_playready.0.custom_license_acquisition_url_template", "common_encryption_cenc.0.drm_playready.0.custom_attributes"},
 									},
 
 									"custom_attributes": {
@@ -92,6 +95,7 @@ func resourceMediaStreamingPolicy() *schema.Resource {
 										Optional:     true,
 										ForceNew:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
+										AtLeastOneOf: []string{"common_encryption_cenc.0.drm_playready.0.custom_license_acquisition_url_template", "common_encryption_cenc.0.drm_playready.0.custom_attributes"},
 									},
 								},
 							},
@@ -123,12 +127,14 @@ func resourceMediaStreamingPolicy() *schema.Resource {
 										Optional:     true,
 										ForceNew:     true,
 										ValidateFunc: validation.IsURLWithHTTPS,
+										AtLeastOneOf: []string{"common_encryption_cbcs.0.drm_fairplay.0.custom_license_acquisition_url_template", "common_encryption_cbcs.0.drm_fairplay.0.allow_persistent_license"},
 									},
 
 									"allow_persistent_license": {
-										Type:     schema.TypeBool,
-										Optional: true,
-										ForceNew: true,
+										Type:         schema.TypeBool,
+										Optional:     true,
+										ForceNew:     true,
+										AtLeastOneOf: []string{"common_encryption_cbcs.0.drm_fairplay.0.custom_license_acquisition_url_template", "common_encryption_cbcs.0.drm_fairplay.0.allow_persistent_license"},
 									},
 								},
 							},
@@ -263,6 +269,7 @@ func resourceMediaStreamingPolicyDelete(d *schema.ResourceData, meta interface{}
 }
 
 func enabledProtocolsSchema() *schema.Schema {
+	//lintignore:XS003
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
@@ -299,6 +306,7 @@ func enabledProtocolsSchema() *schema.Schema {
 }
 
 func defaultContentKeySchema() *schema.Schema {
+	//lintignore:XS003
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
@@ -325,7 +333,7 @@ func defaultContentKeySchema() *schema.Schema {
 }
 
 func expandNoEncryption(input []interface{}) *media.NoEncryption {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
@@ -379,7 +387,9 @@ func expandCommonEncryptionCenc(input []interface{}) *media.CommonEncryptionCenc
 	var enabledProtocols *media.EnabledProtocols
 	if v := CommonEncryptionCenc["enabled_protocols"]; v != nil {
 		protocols := v.([]interface{})
-		enabledProtocols = expandEnabledProtocols(protocols[0].(map[string]interface{}))
+		if len(protocols) != 0 && protocols[0] != nil {
+			enabledProtocols = expandEnabledProtocols(protocols[0].(map[string]interface{}))
+		}
 	}
 
 	drmWidevineTemplate := ""
@@ -421,7 +431,9 @@ func expandCommonEncryptionCbcs(input []interface{}) *media.CommonEncryptionCbcs
 	var enabledProtocols *media.EnabledProtocols
 	if v := CommonEncryptionCenc["enabled_protocols"]; v != nil {
 		protocols := v.([]interface{})
-		enabledProtocols = expandEnabledProtocols(protocols[0].(map[string]interface{}))
+		if len(protocols) != 0 && protocols[0] != nil {
+			enabledProtocols = expandEnabledProtocols(protocols[0].(map[string]interface{}))
+		}
 	}
 
 	var defaultKey *media.DefaultKey
@@ -469,7 +481,7 @@ func expandPlayReady(input []interface{}) *media.StreamingPolicyPlayReadyConfigu
 }
 
 func expandDefaultKey(input []interface{}) *media.DefaultKey {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 

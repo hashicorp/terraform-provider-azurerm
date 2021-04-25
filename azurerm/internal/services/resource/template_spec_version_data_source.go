@@ -41,9 +41,8 @@ func dataSourceTemplateSpecVersion() *schema.Resource {
 			},
 
 			"template_body": {
-				Type:      schema.TypeString,
-				Computed:  true,
-				StateFunc: utils.NormalizeJson,
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 
 			"tags": tags.SchemaDataSource(),

@@ -1,6 +1,7 @@
 package eventhub
 
 import (
+	"context"
 	"fmt"
 	"log"
 
@@ -108,7 +109,7 @@ func eventHubAuthorizationRuleSchemaFrom(s map[string]*schema.Schema) map[string
 	return azure.MergeSchema(s, authSchema)
 }
 
-func eventHubAuthorizationRuleCustomizeDiff(d *schema.ResourceDiff, _ interface{}) error {
+func eventHubAuthorizationRuleCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, _ interface{}) error {
 	listen, hasListen := d.GetOk("listen")
 	send, hasSend := d.GetOk("send")
 	manage, hasManage := d.GetOk("manage")

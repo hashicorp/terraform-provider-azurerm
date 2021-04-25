@@ -584,6 +584,7 @@ func schemaAppServiceLogsConfig() *schema.Schema {
 									},
 								},
 								ConflictsWith: []string{"logs.0.http_logs.0.azure_blob_storage"},
+								AtLeastOneOf:  []string{"logs.0.http_logs.0.azure_blob_storage", "logs.0.http_logs.0.file_system"},
 							},
 							"azure_blob_storage": {
 								Type:     schema.TypeList,
@@ -603,6 +604,7 @@ func schemaAppServiceLogsConfig() *schema.Schema {
 									},
 								},
 								ConflictsWith: []string{"logs.0.http_logs.0.file_system"},
+								AtLeastOneOf:  []string{"logs.0.http_logs.0.azure_blob_storage", "logs.0.http_logs.0.file_system"},
 							},
 						},
 					},

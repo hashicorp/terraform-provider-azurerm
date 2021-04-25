@@ -9,6 +9,9 @@ import (
 )
 
 func LongTermRetentionPolicySchema() *schema.Schema {
+	atLeastOneOf := []string{"long_term_retention_policy.0.weekly_retention", "long_term_retention_policy.0.monthly_retention",
+		"long_term_retention_policy.0.yearly_retention", "long_term_retention_policy.0.week_of_year",
+	}
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
@@ -22,6 +25,7 @@ func LongTermRetentionPolicySchema() *schema.Schema {
 					Optional:     true,
 					Computed:     true,
 					ValidateFunc: validate.ValidateLongTermRetentionPoliciesIsoFormat,
+					AtLeastOneOf: atLeastOneOf,
 				},
 				// MonthlyRetention - The monthly retention policy for an LTR backup in an ISO 8601 format.
 				"monthly_retention": {
@@ -29,6 +33,7 @@ func LongTermRetentionPolicySchema() *schema.Schema {
 					Optional:     true,
 					Computed:     true,
 					ValidateFunc: validate.ValidateLongTermRetentionPoliciesIsoFormat,
+					AtLeastOneOf: atLeastOneOf,
 				},
 				// YearlyRetention - The yearly retention policy for an LTR backup in an ISO 8601 format.
 				"yearly_retention": {
@@ -36,6 +41,7 @@ func LongTermRetentionPolicySchema() *schema.Schema {
 					Optional:     true,
 					Computed:     true,
 					ValidateFunc: validate.ValidateLongTermRetentionPoliciesIsoFormat,
+					AtLeastOneOf: atLeastOneOf,
 				},
 				// WeekOfYear - The week of year to take the yearly backup in an ISO 8601 format.
 				"week_of_year": {
@@ -43,6 +49,7 @@ func LongTermRetentionPolicySchema() *schema.Schema {
 					Optional:     true,
 					Computed:     true,
 					ValidateFunc: validation.IntBetween(1, 52),
+					AtLeastOneOf: atLeastOneOf,
 				},
 			},
 		},

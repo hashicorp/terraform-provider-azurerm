@@ -10,15 +10,16 @@ import (
 )
 
 var kubernetesAuthTests = map[string]func(t *testing.T){
-	"apiServerAuthorizedIPRanges": testAccKubernetesCluster_apiServerAuthorizedIPRanges,
-	"managedClusterIdentity":      testAccKubernetesCluster_managedClusterIdentity,
-	"userAssignedIdentity":        testAccKubernetesCluster_userAssignedIdentity,
-	"roleBasedAccessControl":      testAccKubernetesCluster_roleBasedAccessControl,
-	"AAD":                         testAccKubernetesCluster_roleBasedAccessControlAAD,
-	"AADUpdateToManaged":          testAccKubernetesCluster_roleBasedAccessControlAADUpdateToManaged,
-	"AADManaged":                  testAccKubernetesCluster_roleBasedAccessControlAADManaged,
-	"AADManagedChange":            testAccKubernetesCluster_roleBasedAccessControlAADManagedChange,
-	"servicePrincipal":            testAccKubernetesCluster_servicePrincipal,
+	"apiServerAuthorizedIPRanges":    testAccKubernetesCluster_apiServerAuthorizedIPRanges,
+	"managedClusterIdentity":         testAccKubernetesCluster_managedClusterIdentity,
+	"userAssignedIdentity":           testAccKubernetesCluster_userAssignedIdentity,
+	"updateWithUserAssignedIdentity": testAccKubernetesCluster_updateWithUserAssignedIdentity,
+	"roleBasedAccessControl":         testAccKubernetesCluster_roleBasedAccessControl,
+	"AAD":                            testAccKubernetesCluster_roleBasedAccessControlAAD,
+	"AADUpdateToManaged":             testAccKubernetesCluster_roleBasedAccessControlAADUpdateToManaged,
+	"AADManaged":                     testAccKubernetesCluster_roleBasedAccessControlAADManaged,
+	"AADManagedChange":               testAccKubernetesCluster_roleBasedAccessControlAADManagedChange,
+	"servicePrincipal":               testAccKubernetesCluster_servicePrincipal,
 }
 
 func TestAccKubernetesCluster_apiServerAuthorizedIPRanges(t *testing.T) {
@@ -95,6 +96,33 @@ func testAccKubernetesCluster_userAssignedIdentity(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
 				check.That(data.ResourceName).Key("identity.0.user_assigned_identity_id").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_updateWithUserAssignedIdentity(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccKubernetesCluster_updateWithUserAssignedIdentity(t)
+}
+
+func testAccKubernetesCluster_updateWithUserAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.userAssignedIdentityConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateWithUserAssignedIdentity(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -501,6 +529,47 @@ resource "azurerm_kubernetes_cluster" "test" {
     user_assigned_identity_id = azurerm_user_assigned_identity.test.id
   }
 
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) updateWithUserAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  name                = "test_identity"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  identity {
+    type                      = "UserAssigned"
+    user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+  }
+
+  tags = {
+    Env = "Test"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

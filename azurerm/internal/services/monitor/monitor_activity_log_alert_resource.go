@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -26,9 +27,8 @@ func resourceMonitorActivityLogAlert() *schema.Resource {
 		Update: resourceMonitorActivityLogAlertCreateUpdate,
 		Delete: resourceMonitorActivityLogAlertDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -151,8 +151,10 @@ func resourceMonitorActivityLogAlert() *schema.Resource {
 							Optional:      true,
 							ConflictsWith: []string{"criteria.0.recommendation_category", "criteria.0.recommendation_impact"},
 						},
+						//lintignore:XS003
 						"service_health": {
 							Type:     schema.TypeList,
+							Computed: true,
 							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
@@ -451,6 +453,9 @@ func expandMonitorActivityLogAlertCriteria(input []interface{}) *insights.AlertR
 
 func expandServiceHealth(serviceHealth []interface{}, conditions []insights.AlertRuleAnyOfOrLeafCondition) []insights.AlertRuleAnyOfOrLeafCondition {
 	for _, serviceItem := range serviceHealth {
+		if serviceItem == nil {
+			continue
+		}
 		vs := serviceItem.(map[string]interface{})
 		rv := vs["locations"].(*schema.Set)
 		if len(rv.List()) > 0 {

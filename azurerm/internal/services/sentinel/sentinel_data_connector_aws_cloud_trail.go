@@ -13,7 +13,7 @@ import (
 	loganalyticsParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 	loganalyticsValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sentinel/parse"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -25,7 +25,7 @@ func resourceSentinelDataConnectorAwsCloudTrail() *schema.Resource {
 		Update: resourceSentinelDataConnectorAwsCloudTrailCreateUpdate,
 		Delete: resourceSentinelDataConnectorAwsCloudTrailDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.DataConnectorID(id)
 			return err
 		}, importSentinelDataConnector(securityinsight.DataConnectorKindAmazonWebServicesCloudTrail)),
@@ -96,7 +96,7 @@ func resourceSentinelDataConnectorAwsCloudTrailCreateUpdate(d *schema.ResourceDa
 				},
 			},
 		},
-		Kind: securityinsight.KindAmazonWebServicesCloudTrail,
+		Kind: securityinsight.KindBasicDataConnectorKindAmazonWebServicesCloudTrail,
 	}
 
 	// Service avoid concurrent updates of this resource via checking the "etag" to guarantee it is the same value as last Read.
