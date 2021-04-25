@@ -609,6 +609,25 @@ func resourcePostgreSQLServerCreate(d *schema.ResourceData, meta interface{}) er
 		}
 	}
 
+	// Issue tracking REST API update: https://github.com/Azure/azure-rest-api-specs/issues/14117
+	if mode == postgresql.CreateModeReplica {
+		log.Printf("[INFO] changing `public_network_access_enabled` for AzureRM PostgreSQL Server %q (Resource Group %q)", name, resourceGroup)
+		properties := postgresql.ServerUpdateParameters{
+			ServerUpdateParametersProperties: &postgresql.ServerUpdateParametersProperties{
+				PublicNetworkAccess: publicAccess,
+			},
+		}
+
+		future, err := client.Update(ctx, resourceGroup, name, properties)
+		if err != nil {
+			return fmt.Errorf("updating PostgreSQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for update of PostgreSQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+	}
+
 	return resourcePostgreSQLServerRead(d, meta)
 }
 
