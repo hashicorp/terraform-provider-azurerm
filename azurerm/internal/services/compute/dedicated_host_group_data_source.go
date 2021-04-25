@@ -40,6 +40,11 @@ func dataSourceDedicatedHostGroup() *schema.Resource {
 				Computed: true,
 			},
 
+			"automatic_placement_enabled": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+
 			"zones": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -82,6 +87,8 @@ func dataSourceDedicatedHostGroupRead(d *schema.ResourceData, meta interface{}) 
 			platformFaultDomainCount = int(*props.PlatformFaultDomainCount)
 		}
 		d.Set("platform_fault_domain_count", platformFaultDomainCount)
+
+		d.Set("automatic_placement_enabled", props.SupportAutomaticPlacement)
 	}
 
 	d.Set("zones", utils.FlattenStringSlice(resp.Zones))
