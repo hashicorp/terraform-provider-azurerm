@@ -33,6 +33,7 @@ ENHANCEMENTS:
 * `azurerm_hdinsight_spark_cluster` - add support for private link endpoint [GH-11300]
 * `azurerm_kubernetes_cluster` support for the `empty_bulk_delete_max` in the `auto_scaler_profile` block #[GH-11060]
 * `azurerm_lighthouse_definition` - support for the `delegated_role_definition_ids` property [GH-11269]
+* `azurerm_postgresql_server` - wait for replica restarts when needed [GH-11458]
 * `azurerm_redis_enterprise_cluster` - support for the `minimum_tls_version` and `hostname` properties [GH-11203]
 
 BUG FIXES:
