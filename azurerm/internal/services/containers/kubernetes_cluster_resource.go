@@ -934,7 +934,13 @@ func resourceKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 
-	normalizeClusterUserAssignedIdentities(&existing)
+	// when update, we should set the value of `Identity.UserAssignedIdentities` empty
+	// otherwise the rest api will report error
+	if existing.Identity != nil && existing.Identity.UserAssignedIdentities != nil {
+		for k := range existing.Identity.UserAssignedIdentities {
+			existing.Identity.UserAssignedIdentities[k] = &containerservice.ManagedClusterIdentityUserAssignedIdentitiesValue{}
+		}
+	}
 
 	if d.HasChange("service_principal") {
 		log.Printf("[DEBUG] Updating the Service Principal for Kubernetes Cluster %q (Resource Group %q)..", id.ManagedClusterName, id.ResourceGroup)
@@ -2173,17 +2179,5 @@ func expandKubernetesClusterAutoScalerProfile(input []interface{}) *containerser
 		ScanInterval:                  utils.String(scanInterval),
 		SkipNodesWithLocalStorage:     utils.String(strconv.FormatBool(skipNodesWithLocalStorage)),
 		SkipNodesWithSystemPods:       utils.String(strconv.FormatBool(skipNodesWithSystemPods)),
-	}
-}
-
-// when update, we should set the value of `Identity.UserAssignedIdentities` empty
-// otherwise the rest api will report error
-func normalizeClusterUserAssignedIdentities(instance *containerservice.ManagedCluster) {
-	if instance == nil || instance.Identity == nil || instance.Identity.UserAssignedIdentities == nil {
-		return
-	}
-
-	for k := range instance.Identity.UserAssignedIdentities {
-		instance.Identity.UserAssignedIdentities[k] = &containerservice.ManagedClusterIdentityUserAssignedIdentitiesValue{}
 	}
 }
