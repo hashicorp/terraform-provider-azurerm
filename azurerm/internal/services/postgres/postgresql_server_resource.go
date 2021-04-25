@@ -64,13 +64,30 @@ func resourcePostgreSQLServer() *schema.Resource {
 
 		Importer: &schema.ResourceImporter{
 			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-				if _, err := parse.ServerID(d.Id()); err != nil {
+				client := meta.(*clients.Client).Postgres.ServersClient
+				ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+				defer cancel()
+
+				id, err := parse.ServerID(d.Id())
+				if err != nil {
 					return []*schema.ResourceData{d}, err
 				}
 
+				resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+				if err != nil {
+					return []*schema.ResourceData{d}, fmt.Errorf("reading PostgreSQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+				}
+
 				d.Set("create_mode", "Default")
-				if v, ok := d.GetOk("create_mode"); ok && v.(string) != "" {
-					d.Set("create_mode", v)
+				d.Set("creation_source_server_id", "")
+				if *resp.ReplicationRole != "Master" && *resp.ReplicationRole != "None" {
+					d.Set("create_mode", *resp.ReplicationRole)
+
+					masterServerId, err := parse.ServerID(*resp.MasterServerID)
+					if err != nil {
+						return []*schema.ResourceData{d}, fmt.Errorf("parsing Postgres Master Server ID : %v", err)
+					}
+					d.Set("creation_source_server_id", masterServerId.ID())
 				}
 
 				return []*schema.ResourceData{d}, nil
@@ -730,6 +747,9 @@ func resourcePostgreSQLServerUpdate(d *schema.ResourceData, meta interface{}) er
 		},
 		Sku:  sku,
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+	if old, new := d.GetChange("create_mode"); postgresql.CreateMode(old.(string)) == postgresql.CreateModeReplica && postgresql.CreateMode(new.(string)) == postgresql.CreateModeDefault {
+		properties.ServerUpdateParametersProperties.ReplicationRole = utils.String("None")
 	}
 
 	future, err := client.Update(ctx, id.ResourceGroup, id.Name, properties)
