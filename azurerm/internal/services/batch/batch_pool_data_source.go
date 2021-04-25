@@ -297,19 +297,16 @@ func dataSourceBatchPool() *schema.Resource {
 			},
 			"network_configuration": {
 				Type:     schema.TypeList,
-				Optional: true,
 				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"subnet_id": {
 							Type:     schema.TypeString,
-							Optional: true,
 							Computed: true,
 						},
 						"endpoint_configuration": {
 							Type:     schema.TypeList,
-							Optional: true,
 							Computed: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
@@ -332,7 +329,6 @@ func dataSourceBatchPool() *schema.Resource {
 									},
 									"network_security_group_rules": {
 										Type:     schema.TypeList,
-										Optional: true,
 										Computed: true,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{

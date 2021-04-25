@@ -83,6 +83,7 @@ func resourceMediaStreamingLocator() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			//lintignore:XS003
 			"content_key": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -320,6 +321,9 @@ func expandContentKeys(input []interface{}) *[]media.StreamingLocatorContentKey 
 	results := make([]media.StreamingLocatorContentKey, 0)
 
 	for _, contentKeyRaw := range input {
+		if contentKeyRaw == nil {
+			continue
+		}
 		contentKey := contentKeyRaw.(map[string]interface{})
 
 		streamingLocatorContentKey := media.StreamingLocatorContentKey{}

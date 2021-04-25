@@ -9,6 +9,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 	// NOTE: if there's only one nested field these want to be Required (since there's no point
 	//       specifying the block otherwise) - however for 2+ they should be optional
 	features := map[string]*pluginsdk.Schema{
+		//lintignore:XS003
 		"key_vault": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -68,6 +69,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			},
 		},
 
+		//lintignore:XS003
 		"virtual_machine": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -136,7 +138,7 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 
 	if raw, ok := val["key_vault"]; ok {
 		items := raw.([]interface{})
-		if len(items) > 0 {
+		if len(items) > 0 && items[0] != nil {
 			keyVaultRaw := items[0].(map[string]interface{})
 			if v, ok := keyVaultRaw["purge_soft_delete_on_destroy"]; ok {
 				features.KeyVault.PurgeSoftDeleteOnDestroy = v.(bool)
@@ -179,7 +181,7 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 
 	if raw, ok := val["virtual_machine"]; ok {
 		items := raw.([]interface{})
-		if len(items) > 0 {
+		if len(items) > 0 && items[0] != nil {
 			virtualMachinesRaw := items[0].(map[string]interface{})
 			if v, ok := virtualMachinesRaw["delete_os_disk_on_deletion"]; ok {
 				features.VirtualMachine.DeleteOSDiskOnDeletion = v.(bool)

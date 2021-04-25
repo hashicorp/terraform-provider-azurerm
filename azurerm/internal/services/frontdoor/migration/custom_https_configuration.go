@@ -29,6 +29,7 @@ func (CustomHttpsConfigurationV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Required: true,
 		},
 
+		//lintignore:XS003
 		"custom_https_configuration": {
 			Type:     schema.TypeList,
 			Optional: true,
@@ -36,6 +37,18 @@ func (CustomHttpsConfigurationV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"certificate_source": {
+						Type:     schema.TypeString,
+						Optional: true,
+					},
+					"azure_key_vault_certificate_secret_name": {
+						Type:     schema.TypeString,
+						Optional: true,
+					},
+					"azure_key_vault_certificate_secret_version": {
+						Type:     schema.TypeString,
+						Optional: true,
+					},
+					"azure_key_vault_certificate_vault_id": {
 						Type:     schema.TypeString,
 						Optional: true,
 					},
@@ -50,18 +63,6 @@ func (CustomHttpsConfigurationV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					"provisioning_substate": {
 						Type:     schema.TypeString,
 						Computed: true,
-					},
-					"azure_key_vault_certificate_secret_name": {
-						Type:     schema.TypeString,
-						Optional: true,
-					},
-					"azure_key_vault_certificate_secret_version": {
-						Type:     schema.TypeString,
-						Optional: true,
-					},
-					"azure_key_vault_certificate_vault_id": {
-						Type:     schema.TypeString,
-						Optional: true,
 					},
 				},
 			},

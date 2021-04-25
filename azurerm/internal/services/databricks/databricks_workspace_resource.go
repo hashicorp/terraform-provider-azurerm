@@ -84,18 +84,27 @@ func resourceDatabricksWorkspace() *schema.Resource {
 							Type:     schema.TypeBool,
 							ForceNew: true,
 							Optional: true,
+							AtLeastOneOf: []string{"custom_parameters.0.no_public_ip", "custom_parameters.0.public_subnet_name",
+								"custom_parameters.0.private_subnet_name", "custom_parameters.0.virtual_network_id",
+							},
 						},
 
 						"public_subnet_name": {
 							Type:     schema.TypeString,
 							ForceNew: true,
 							Optional: true,
+							AtLeastOneOf: []string{"custom_parameters.0.no_public_ip", "custom_parameters.0.public_subnet_name",
+								"custom_parameters.0.private_subnet_name", "custom_parameters.0.virtual_network_id",
+							},
 						},
 
 						"private_subnet_name": {
 							Type:     schema.TypeString,
 							ForceNew: true,
 							Optional: true,
+							AtLeastOneOf: []string{"custom_parameters.0.no_public_ip", "custom_parameters.0.public_subnet_name",
+								"custom_parameters.0.private_subnet_name", "custom_parameters.0.virtual_network_id",
+							},
 						},
 
 						"virtual_network_id": {
@@ -103,6 +112,9 @@ func resourceDatabricksWorkspace() *schema.Resource {
 							ForceNew:     true,
 							Optional:     true,
 							ValidateFunc: azure.ValidateResourceIDOrEmpty,
+							AtLeastOneOf: []string{"custom_parameters.0.no_public_ip", "custom_parameters.0.public_subnet_name",
+								"custom_parameters.0.private_subnet_name", "custom_parameters.0.virtual_network_id",
+							},
 						},
 					},
 				},

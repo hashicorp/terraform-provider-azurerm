@@ -69,6 +69,7 @@ func resourceEventGridTopic() *schema.Resource {
 				}, false),
 			},
 
+			//lintignore:XS003
 			"input_mapping_fields": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -110,6 +111,7 @@ func resourceEventGridTopic() *schema.Resource {
 				},
 			},
 
+			//lintignore:XS003
 			"input_mapping_default_values": {
 				Type:     schema.TypeList,
 				Optional: true,

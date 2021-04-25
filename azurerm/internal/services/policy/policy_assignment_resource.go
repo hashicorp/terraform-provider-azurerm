@@ -78,6 +78,7 @@ func resourceArmPolicyAssignment() *schema.Resource {
 
 			"location": azure.SchemaLocationOptional(),
 
+			//lintignore:XS003
 			"identity": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -350,7 +351,7 @@ func policyAssignmentRefreshFunc(ctx context.Context, client *policy.Assignments
 }
 
 func expandAzureRmPolicyIdentity(input []interface{}) *policy.Identity {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 	identity := input[0].(map[string]interface{})

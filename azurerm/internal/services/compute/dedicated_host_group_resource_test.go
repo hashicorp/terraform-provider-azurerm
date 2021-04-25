@@ -47,6 +47,21 @@ func TestAccDedicatedHostGroup_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccDedicatedHostGroup_automaticPlacementEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dedicated_host_group", "test")
+	r := DedicatedHostGroupResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.automaticPlacementEnabled(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccDedicatedHostGroup_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dedicated_host_group", "test")
 	r := DedicatedHostGroupResource{}
@@ -66,7 +81,7 @@ func TestAccDedicatedHostGroup_complete(t *testing.T) {
 	})
 }
 
-func (t DedicatedHostGroupResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r DedicatedHostGroupResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -134,6 +149,28 @@ resource "azurerm_dedicated_host_group" "test" {
   tags = {
     ENV = "prod"
   }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (DedicatedHostGroupResource) automaticPlacementEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-compute-%d"
+  location = "%s"
+}
+
+resource "azurerm_dedicated_host_group" "test" {
+  name                        = "acctestDHG-compute-%d"
+  resource_group_name         = azurerm_resource_group.test.name
+  location                    = azurerm_resource_group.test.location
+  platform_fault_domain_count = 2
+
+  automatic_placement_enabled = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

@@ -39,6 +39,7 @@ func (RoleDefinitionV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Optional: true,
 		},
 
+		//lintignore:XS003
 		"permissions": {
 			Type:     schema.TypeList,
 			Required: true,

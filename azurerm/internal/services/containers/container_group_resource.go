@@ -209,6 +209,7 @@ func resourceContainerGroup() *schema.Resource {
 							ForceNew: true,
 						},
 
+						//lintignore:XS003
 						"gpu": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -833,6 +834,9 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 		if v, ok := data["gpu"]; ok {
 			gpus := v.([]interface{})
 			for _, gpuRaw := range gpus {
+				if gpuRaw == nil {
+					continue
+				}
 				v := gpuRaw.(map[string]interface{})
 				gpuCount := int32(v["count"].(int))
 				gpuSku := containerinstance.GpuSku(v["sku"].(string))
@@ -1104,6 +1108,9 @@ func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
 	}
 
 	for _, p := range probeRaw {
+		if p == nil {
+			continue
+		}
 		probeConfig := p.(map[string]interface{})
 
 		if v := probeConfig["initial_delay_seconds"].(int); v > 0 {
@@ -1137,6 +1144,9 @@ func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
 		httpRaw := probeConfig["http_get"].([]interface{})
 		if len(httpRaw) > 0 {
 			for _, httpget := range httpRaw {
+				if httpget == nil {
+					continue
+				}
 				x := httpget.(map[string]interface{})
 
 				path := x["path"].(string)

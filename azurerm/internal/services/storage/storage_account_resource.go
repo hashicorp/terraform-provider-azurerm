@@ -387,6 +387,7 @@ func resourceStorageAccount() *schema.Resource {
 				},
 			},
 
+			//lintignore:XS003
 			"static_website": {
 				Type:     schema.TypeList,
 				Optional: true,
