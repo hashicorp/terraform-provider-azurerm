@@ -1540,9 +1540,9 @@ resource "azurerm_storage_account" "test" {
       days = 300
     }
 
-    default_service_version                  = "2019-07-07"
-    versioning_enabled                       = true
-    last_access_time_tracking_policy_enabled = true
+    default_service_version  = "2019-07-07"
+    versioning_enabled       = true
+    last_access_time_enabled = true
     change_feed {
       retention_in_days = 3
     }

@@ -296,7 +296,7 @@ func resourceStorageAccount() *schema.Resource {
 							ValidateFunc: validate.BlobPropertiesDefaultServiceVersion,
 						},
 
-						"last_access_time_tracking_policy_enabled": {
+						"last_access_time_enabled": {
 							Type:     schema.TypeBool,
 							Optional: true,
 							Default:  false,
@@ -1566,7 +1566,7 @@ func expandBlobProperties(input []interface{}, isHnsEnabled bool, accountKind st
 	}
 
 	props.LastAccessTimeTrackingPolicy = &storage.LastAccessTimeTrackingPolicy{
-		Enable: utils.Bool(v["last_access_time_tracking_policy_enabled"].(bool)),
+		Enable: utils.Bool(v["last_access_time_enabled"].(bool)),
 	}
 	return &props, nil
 }
@@ -1884,13 +1884,13 @@ func flattenBlobProperties(input storage.BlobServiceProperties) []interface{} {
 
 	return []interface{}{
 		map[string]interface{}{
-			"cors_rule":                                flattenedCorsRules,
-			"delete_retention_policy":                  flattenedDeletePolicy,
-			"change_feed":                              flattenBlobPropertiesChangeFeed(input.BlobServicePropertiesProperties.ChangeFeed),
-			"versioning_enabled":                       versioning,
-			"default_service_version":                  defaultServiceVersion,
-			"last_access_time_tracking_policy_enabled": LastAccessTimeTrackingPolicy,
-			"container_delete_retention_policy":        flattenedContainerDeletePolicy,
+			"cors_rule":                         flattenedCorsRules,
+			"delete_retention_policy":           flattenedDeletePolicy,
+			"change_feed":                       flattenBlobPropertiesChangeFeed(input.BlobServicePropertiesProperties.ChangeFeed),
+			"versioning_enabled":                versioning,
+			"default_service_version":           defaultServiceVersion,
+			"last_access_time_enabled":          LastAccessTimeTrackingPolicy,
+			"container_delete_retention_policy": flattenedContainerDeletePolicy,
 		},
 	}
 }
