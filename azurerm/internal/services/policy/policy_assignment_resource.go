@@ -19,7 +19,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy/validate"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -31,7 +31,7 @@ func resourceArmPolicyAssignment() *schema.Resource {
 		Read:   resourceArmPolicyAssignmentRead,
 		Delete: resourceArmPolicyAssignmentDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.PolicyAssignmentID(id)
 			return err
 		}),
@@ -78,6 +78,7 @@ func resourceArmPolicyAssignment() *schema.Resource {
 
 			"location": azure.SchemaLocationOptional(),
 
+			//lintignore:XS003
 			"identity": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -350,7 +351,7 @@ func policyAssignmentRefreshFunc(ctx context.Context, client *policy.Assignments
 }
 
 func expandAzureRmPolicyIdentity(input []interface{}) *policy.Identity {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 	identity := input[0].(map[string]interface{})

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -25,13 +27,13 @@ func dataSourceDedicatedHost() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validateDedicatedHostName(),
+				ValidateFunc: validate.DedicatedHostName(),
 			},
 
 			"dedicated_host_group_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validateDedicatedHostGroupName(),
+				ValidateFunc: validate.DedicatedHostGroupName(),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),

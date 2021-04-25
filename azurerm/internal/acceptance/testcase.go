@@ -14,7 +14,7 @@ import (
 )
 
 // lintignore:AT001
-func (td TestData) DataSourceTest(t *testing.T, steps []resource.TestStep) {
+func (td TestData) DataSourceTest(t *testing.T, steps []TestStep) {
 	// DataSources don't need a check destroy - however since this is a wrapper function
 	// and not matching the ignore pattern `XXX_data_source_test.go`, this needs to be explicitly opted out
 	testCase := resource.TestCase{
@@ -25,7 +25,7 @@ func (td TestData) DataSourceTest(t *testing.T, steps []resource.TestStep) {
 }
 
 // lintignore:AT001
-func (td TestData) DataSourceTestInSequence(t *testing.T, steps []resource.TestStep) {
+func (td TestData) DataSourceTestInSequence(t *testing.T, steps []TestStep) {
 	// DataSources don't need a check destroy - however since this is a wrapper function
 	// and not matching the ignore pattern `XXX_data_source_test.go`, this needs to be explicitly opted out
 	testCase := resource.TestCase{
@@ -36,7 +36,7 @@ func (td TestData) DataSourceTestInSequence(t *testing.T, steps []resource.TestS
 	td.runAcceptanceSequentialTest(t, testCase)
 }
 
-func (td TestData) ResourceTest(t *testing.T, testResource types.TestResource, steps []resource.TestStep) {
+func (td TestData) ResourceTest(t *testing.T, testResource types.TestResource, steps []TestStep) {
 	testCase := resource.TestCase{
 		PreCheck: func() { PreCheck(t) },
 		CheckDestroy: func(s *terraform.State) error {
@@ -51,7 +51,7 @@ func (td TestData) ResourceTest(t *testing.T, testResource types.TestResource, s
 	td.runAcceptanceTest(t, testCase)
 }
 
-func (td TestData) ResourceSequentialTest(t *testing.T, testResource types.TestResource, steps []resource.TestStep) {
+func (td TestData) ResourceSequentialTest(t *testing.T, testResource types.TestResource, steps []TestStep) {
 	testCase := resource.TestCase{
 		PreCheck: func() { PreCheck(t) },
 		CheckDestroy: func(s *terraform.State) error {

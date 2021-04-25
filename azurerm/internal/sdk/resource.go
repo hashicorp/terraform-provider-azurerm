@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -59,7 +61,7 @@ type Resource interface {
 
 	// IDValidationFunc returns the SchemaValidateFunc used to validate the ID is valid during
 	// `terraform import` - ensuring users don't inadvertently specify the incorrect Resource ID
-	IDValidationFunc() schema.SchemaValidateFunc
+	IDValidationFunc() pluginsdk.SchemaValidateFunc
 }
 
 // TODO: ResourceWithCustomizeDiff

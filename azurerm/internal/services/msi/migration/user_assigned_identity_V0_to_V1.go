@@ -1,62 +1,67 @@
 package migration
 
 import (
+	"context"
 	"log"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
-func UserAssignedIdentityV0ToV1() schema.StateUpgrader {
-	return schema.StateUpgrader{
-		Version: 0,
-		Type:    userAssignedIdentityV0Schema().CoreConfigSchema().ImpliedType(),
-		Upgrade: userAssignedIdentityUpgradeV0ToV1,
-	}
-}
+var _ pluginsdk.StateUpgrade = UserAssignedIdentityV0ToV1{}
 
-func userAssignedIdentityV0Schema() *schema.Resource {
-	return &schema.Resource{
-		Schema: map[string]*schema.Schema{
-			"name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringLenBetween(3, 128),
-			},
+type UserAssignedIdentityV0ToV1 struct{}
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+func (UserAssignedIdentityV0ToV1) Schema() map[string]*pluginsdk.Schema {
+	return map[string]*schema.Schema{
+		"name": {
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
 
-			"location": azure.SchemaLocation(),
+		"resource_group_name": {
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
 
-			"tags": tags.Schema(),
+		"location": {
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
 
-			"principal_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
+		"tags": {
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
 
-			"client_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
+		"principal_id": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+
+		"client_id": {
+			Type:     schema.TypeString,
+			Computed: true,
 		},
 	}
 }
 
-func userAssignedIdentityUpgradeV0ToV1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
-	oldId := rawState["id"].(string)
-	id, err := parse.UserAssignedIdentityID(oldId)
-	if err != nil {
-		return rawState, err
-	}
+func (UserAssignedIdentityV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
+	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+		oldId := rawState["id"].(string)
+		id, err := parse.UserAssignedIdentityID(oldId)
+		if err != nil {
+			return rawState, err
+		}
 
-	newId := id.ID()
-	log.Printf("Updating `id` from %q to %q", oldId, newId)
-	rawState["id"] = newId
-	return rawState, nil
+		newId := id.ID()
+		log.Printf("Updating `id` from %q to %q", oldId, newId)
+		rawState["id"] = newId
+		return rawState, nil
+	}
 }

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/eventhub/mgmt/2018-01-01-preview/eventhub"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -205,6 +207,6 @@ func (r ConsumerGroupResource) ModelObject() interface{} {
 	return ConsumerGroupObject{}
 }
 
-func (r ConsumerGroupResource) IDValidationFunc() schema.SchemaValidateFunc {
+func (r ConsumerGroupResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.EventHubConsumerGroupID
 }

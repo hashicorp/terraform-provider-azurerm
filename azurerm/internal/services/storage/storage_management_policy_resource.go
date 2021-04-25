@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -21,9 +22,8 @@ func resourceStorageManagementPolicy() *schema.Resource {
 		Read:   resourceStorageManagementPolicyRead,
 		Update: resourceStorageManagementPolicyCreateOrUpdate,
 		Delete: resourceStorageManagementPolicyDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -57,6 +57,7 @@ func resourceStorageManagementPolicy() *schema.Resource {
 							Type:     schema.TypeBool,
 							Required: true,
 						},
+						//lintignore:XS003
 						"filters": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -113,12 +114,14 @@ func resourceStorageManagementPolicy() *schema.Resource {
 								},
 							},
 						},
+						//lintignore:XS003
 						"actions": {
 							Type:     schema.TypeList,
 							Required: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
+									//lintignore:XS003
 									"base_blob": {
 										Type:     schema.TypeList,
 										Optional: true,
@@ -146,6 +149,7 @@ func resourceStorageManagementPolicy() *schema.Resource {
 											},
 										},
 									},
+									//lintignore:XS003
 									"snapshot": {
 										Type:     schema.TypeList,
 										Optional: true,

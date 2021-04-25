@@ -752,12 +752,17 @@ func (r PostgreSQLServerResource) createReplica(data acceptance.TestData, sku st
 	return fmt.Sprintf(`
 %[1]s
 
+resource "azurerm_resource_group" "replica" {
+  name     = "acctestRG-psql-%[2]d-replica"
+  location = "%[3]s"
+}
+
 resource "azurerm_postgresql_server" "replica" {
   name                = "acctest-psql-server-%[2]d-replica"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = "%[3]s"
+  resource_group_name = azurerm_resource_group.replica.name
 
-  sku_name = "%[3]s"
+  sku_name = "%[4]s"
   version  = "11"
 
   create_mode               = "Replica"
@@ -765,19 +770,24 @@ resource "azurerm_postgresql_server" "replica" {
 
   ssl_enforcement_enabled = true
 }
-`, r.template(data, sku, "11"), data.RandomInteger, sku)
+`, r.template(data, sku, "11"), data.RandomInteger, data.Locations.Secondary, sku)
 }
 
 func (r PostgreSQLServerResource) createReplicas(data acceptance.TestData, sku string) string {
 	return fmt.Sprintf(`
 %[1]s
 
+resource "azurerm_resource_group" "replica1" {
+  name     = "acctestRG-psql-%[2]d-replica1"
+  location = "%[3]s"
+}
+
 resource "azurerm_postgresql_server" "replica1" {
   name                = "acctest-psql-server-%[2]d-replica1"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = "%[3]s"
+  resource_group_name = azurerm_resource_group.replica1.name
 
-  sku_name = "%[3]s"
+  sku_name = "%[4]s"
   version  = "11"
 
   create_mode               = "Replica"
@@ -791,7 +801,7 @@ resource "azurerm_postgresql_server" "replica2" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  sku_name = "%[3]s"
+  sku_name = "%[4]s"
   version  = "11"
 
   create_mode               = "Replica"
@@ -799,7 +809,7 @@ resource "azurerm_postgresql_server" "replica2" {
 
   ssl_enforcement_enabled = true
 }
-`, r.template(data, sku, "11"), data.RandomInteger, sku)
+`, r.template(data, sku, "11"), data.RandomInteger, data.Locations.Secondary, sku)
 }
 
 func (r PostgreSQLServerResource) createPointInTimeRestore(data acceptance.TestData, version, restoreTime string) string {

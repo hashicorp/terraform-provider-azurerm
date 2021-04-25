@@ -5,6 +5,9 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -16,9 +19,8 @@ func resourceLogicAppTriggerRecurrence() *schema.Resource {
 		Read:   resourceLogicAppTriggerRecurrenceRead,
 		Update: resourceLogicAppTriggerRecurrenceCreateUpdate,
 		Delete: resourceLogicAppTriggerRecurrenceDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -115,7 +117,7 @@ func resourceLogicAppTriggerRecurrence() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validateLogicAppTriggerRecurrenceTimeZone(),
+				ValidateFunc: validate.TriggerRecurrenceTimeZone(),
 			},
 		},
 	}
@@ -227,107 +229,6 @@ func resourceLogicAppTriggerRecurrenceDelete(d *schema.ResourceData, meta interf
 	}
 
 	return nil
-}
-
-func validateLogicAppTriggerRecurrenceTimeZone() schema.SchemaValidateFunc {
-	// from https://support.microsoft.com/en-us/help/973627/microsoft-time-zone-index-values
-	timeZones := []string{
-		"Dateline Standard Time",
-		"Samoa Standard Time",
-		"Hawaiian Standard Time",
-		"Alaskan Standard Time",
-		"Pacific Standard Time",
-		"Mountain Standard Time",
-		"Mexico Standard Time",
-		"US Mountain Standard Time",
-		"Central Standard Time",
-		"Canada Central Standard Time",
-		"Mexico Standard Time",
-		"Central America Standard Time",
-		"Eastern Standard Time",
-		"US Eastern Standard Time",
-		"SA Pacific Standard Time",
-		"Atlantic Standard Time",
-		"SA Western Standard Time",
-		"Pacific SA Standard Time",
-		"Newfoundland and Labrador Standard Time",
-		"E South America Standard Time",
-		"SA Eastern Standard Time",
-		"Greenland Standard Time",
-		"Mid-Atlantic Standard Time",
-		"Azores Standard Time",
-		"Cape Verde Standard Time",
-		"GMT Standard Time",
-		"Greenwich Standard Time",
-		"Central Europe Standard Time",
-		"Central European Standard Time",
-		"Romance Standard Time",
-		"W Europe Standard Time",
-		"W Central Africa Standard Time",
-		"E Europe Standard Time",
-		"Egypt Standard Time",
-		"FLE Standard Time",
-		"GTB Standard Time",
-		"Israel Standard Time",
-		"South Africa Standard Time",
-		"Russian Standard Time",
-		"Arab Standard Time",
-		"E Africa Standard Time",
-		"Arabic Standard Time",
-		"Iran Standard Time",
-		"Arabian Standard Time",
-		"Caucasus Standard Time",
-		"Transitional Islamic State of Afghanistan Standard Time",
-		"Ekaterinburg Standard Time",
-		"West Asia Standard Time",
-		"India Standard Time",
-		"Nepal Standard Time",
-		"Central Asia Standard Time",
-		"Sri Lanka Standard Time",
-		"N Central Asia Standard Time",
-		"Myanmar Standard Time",
-		"SE Asia Standard Time",
-		"North Asia Standard Time",
-		"China Standard Time",
-		"Singapore Standard Time",
-		"Taipei Standard Time",
-		"W Australia Standard Time",
-		"North Asia East Standard Time",
-		"Korea Standard Time",
-		"Tokyo Standard Time",
-		"Yakutsk Standard Time",
-		"AUS Central Standard Time",
-		"Cen Australia Standard Time",
-		"AUS Eastern Standard Time",
-		"E Australia Standard Time",
-		"Tasmania Standard Time",
-		"Vladivostok Standard Time",
-		"West Pacific Standard Time",
-		"Central Pacific Standard Time",
-		"Fiji Islands Standard Time",
-		"New Zealand Standard Time",
-		"Tonga Standard Time",
-		"Azerbaijan Standard Time",
-		"Middle East Standard Time",
-		"Jordan Standard Time",
-		"Central Standard Time (Mexico)",
-		"Mountain Standard Time (Mexico)",
-		"Pacific Standard Time (Mexico)",
-		"Namibia Standard Time",
-		"Georgian Standard Time",
-		"Central Brazilian Standard Time",
-		"Montevideo Standard Time",
-		"Armenian Standard Time",
-		"Venezuela Standard Time",
-		"Argentina Standard Time",
-		"Morocco Standard Time",
-		"Pakistan Standard Time",
-		"Mauritius Standard Time",
-		"UTC",
-		"Paraguay Standard Time",
-		"Kamchatka Standard Time",
-	}
-	return validation.StringInSlice(timeZones, false)
 }
 
 func expandLogicAppTriggerRecurrenceSchedule(input []interface{}) map[string]interface{} {

@@ -15,7 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -34,7 +34,7 @@ func resourceEventGridTopic() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.TopicID(id)
 			return err
 		}),
@@ -80,31 +80,55 @@ func resourceEventGridTopic() *schema.Resource {
 							Type:     schema.TypeString,
 							ForceNew: true,
 							Optional: true,
+							AtLeastOneOf: []string{"input_mapping_fields.0.id", "input_mapping_fields.0.topic",
+								"input_mapping_fields.0.event_time", "input_mapping_fields.0.event_type",
+								"input_mapping_fields.0.subject", "input_mapping_fields.0.data_version",
+							},
 						},
 						"topic": {
 							Type:     schema.TypeString,
 							ForceNew: true,
 							Optional: true,
+							AtLeastOneOf: []string{"input_mapping_fields.0.id", "input_mapping_fields.0.topic",
+								"input_mapping_fields.0.event_time", "input_mapping_fields.0.event_type",
+								"input_mapping_fields.0.subject", "input_mapping_fields.0.data_version",
+							},
 						},
 						"event_time": {
 							Type:     schema.TypeString,
 							ForceNew: true,
 							Optional: true,
+							AtLeastOneOf: []string{"input_mapping_fields.0.id", "input_mapping_fields.0.topic",
+								"input_mapping_fields.0.event_time", "input_mapping_fields.0.event_type",
+								"input_mapping_fields.0.subject", "input_mapping_fields.0.data_version",
+							},
 						},
 						"event_type": {
 							Type:     schema.TypeString,
 							ForceNew: true,
 							Optional: true,
+							AtLeastOneOf: []string{"input_mapping_fields.0.id", "input_mapping_fields.0.topic",
+								"input_mapping_fields.0.event_time", "input_mapping_fields.0.event_type",
+								"input_mapping_fields.0.subject", "input_mapping_fields.0.data_version",
+							},
 						},
 						"subject": {
 							Type:     schema.TypeString,
 							ForceNew: true,
 							Optional: true,
+							AtLeastOneOf: []string{"input_mapping_fields.0.id", "input_mapping_fields.0.topic",
+								"input_mapping_fields.0.event_time", "input_mapping_fields.0.event_type",
+								"input_mapping_fields.0.subject", "input_mapping_fields.0.data_version",
+							},
 						},
 						"data_version": {
 							Type:     schema.TypeString,
 							ForceNew: true,
 							Optional: true,
+							AtLeastOneOf: []string{"input_mapping_fields.0.id", "input_mapping_fields.0.topic",
+								"input_mapping_fields.0.event_time", "input_mapping_fields.0.event_type",
+								"input_mapping_fields.0.subject", "input_mapping_fields.0.data_version",
+							},
 						},
 					},
 				},
@@ -121,16 +145,25 @@ func resourceEventGridTopic() *schema.Resource {
 							Type:     schema.TypeString,
 							ForceNew: true,
 							Optional: true,
+							AtLeastOneOf: []string{"input_mapping_default_values.0.event_type", "input_mapping_default_values.0.subject",
+								"input_mapping_default_values.0.data_version",
+							},
 						},
 						"subject": {
 							Type:     schema.TypeString,
 							ForceNew: true,
 							Optional: true,
+							AtLeastOneOf: []string{"input_mapping_default_values.0.event_type", "input_mapping_default_values.0.subject",
+								"input_mapping_default_values.0.data_version",
+							},
 						},
 						"data_version": {
 							Type:     schema.TypeString,
 							ForceNew: true,
 							Optional: true,
+							AtLeastOneOf: []string{"input_mapping_default_values.0.event_type", "input_mapping_default_values.0.subject",
+								"input_mapping_default_values.0.data_version",
+							},
 						},
 					},
 				},

@@ -59,6 +59,20 @@ function runGraduallyDeprecatedFunctions {
 done
 }
 
+function checkForUnclearErrorMessages {
+  result=$(grep -R "invalid format of " ./azurerm)
+  if [ "$result" != "" ];
+  then
+    echo "The error messages in these files aren't descriptive, please add more"
+    echo "context for how users can fix these. For example, changing \"invalid"
+    echo "format of 'foo'\" can clearer as \"'foo' must start with letter, can"
+    echo "contain both letters and numbers and must end with a letter\"."
+    echo ""
+    echo "$result"
+    exit 1
+  fi
+}
+
 function runDeprecatedFunctions {
   echo "==> Checking for use of deprecated functions..."
   result=$(grep -Ril "d.setid(\"\")" ./azurerm/internal/services/**/data_source_*.go)
@@ -84,6 +98,7 @@ function main {
 
   runGraduallyDeprecatedFunctions
   runDeprecatedFunctions
+  checkForUnclearErrorMessages
 }
 
 main
