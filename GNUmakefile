@@ -5,8 +5,6 @@ TESTTIMEOUT=180m
 
 .EXPORT_ALL_VARIABLES:
   TF_SCHEMA_PANIC_ON_ERROR=1
-  GO111MODULE=on
-  GOFLAGS=-mod=vendor
 
 default: build
 
