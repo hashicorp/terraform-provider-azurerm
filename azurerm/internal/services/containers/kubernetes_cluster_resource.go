@@ -959,7 +959,7 @@ func resourceKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	// when update, we should set the value of `Identity.UserAssignedIdentities` empty
-	// otherwise the rest api will report error
+	// otherwise the rest api will report error - this is tracked here: https://github.com/Azure/azure-rest-api-specs/issues/13631
 	if existing.Identity != nil && existing.Identity.UserAssignedIdentities != nil {
 		for k := range existing.Identity.UserAssignedIdentities {
 			existing.Identity.UserAssignedIdentities[k] = &containerservice.ManagedClusterIdentityUserAssignedIdentitiesValue{}
