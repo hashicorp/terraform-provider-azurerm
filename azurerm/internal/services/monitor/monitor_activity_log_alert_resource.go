@@ -151,6 +151,7 @@ func resourceMonitorActivityLogAlert() *schema.Resource {
 							Optional:      true,
 							ConflictsWith: []string{"criteria.0.recommendation_category", "criteria.0.recommendation_impact"},
 						},
+						//lintignore:XS003
 						"service_health": {
 							Type:     schema.TypeList,
 							Computed: true,
@@ -452,6 +453,9 @@ func expandMonitorActivityLogAlertCriteria(input []interface{}) *insights.AlertR
 
 func expandServiceHealth(serviceHealth []interface{}, conditions []insights.AlertRuleAnyOfOrLeafCondition) []insights.AlertRuleAnyOfOrLeafCondition {
 	for _, serviceItem := range serviceHealth {
+		if serviceItem == nil {
+			continue
+		}
 		vs := serviceItem.(map[string]interface{})
 		rv := vs["locations"].(*schema.Set)
 		if len(rv.List()) > 0 {

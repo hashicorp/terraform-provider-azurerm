@@ -410,6 +410,7 @@ func resourceApiManagementService() *schema.Resource {
 				},
 			},
 
+			//lintignore:XS003
 			"policy": {
 				Type:       schema.TypeList,
 				Optional:   true,

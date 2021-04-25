@@ -115,6 +115,7 @@ func resourceApiManagementApiDiagnostic() *schema.Resource {
 }
 
 func resourceApiManagementApiDiagnosticAdditionalContentSchema() *schema.Schema {
+	//lintignore:XS003
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		MaxItems: 1,

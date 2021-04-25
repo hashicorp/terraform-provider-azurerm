@@ -747,6 +747,7 @@ func resourceApplicationGateway() *schema.Resource {
 				},
 			},
 
+			//lintignore:XS003
 			"ssl_policy": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -870,6 +871,7 @@ func resourceApplicationGateway() *schema.Resource {
 							Default:  0,
 						},
 
+						//lintignore:XS003
 						"match": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -2176,7 +2178,7 @@ func expandApplicationGatewaySslPolicy(d *schema.ResourceData) *network.Applicat
 
 	vs := d.Get("ssl_policy").([]interface{})
 
-	if len(vs) > 0 {
+	if len(vs) > 0 && vs[0] != nil {
 		v := vs[0].(map[string]interface{})
 		policyType := network.ApplicationGatewaySslPolicyType(v["policy_type"].(string))
 
