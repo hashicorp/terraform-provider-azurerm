@@ -778,7 +778,7 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 
   tags = {
-        %s
+            %s
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, tags)
@@ -1527,10 +1527,6 @@ resource "azurerm_storage_account" "test" {
     default_service_version  = "2019-07-07"
     versioning_enabled       = true
     last_access_time_enabled = true
-    change_feed {
-      retention_in_days = 3
-    }
-
     container_delete_retention_policy {
       days = 7
     }
@@ -1607,7 +1603,6 @@ resource "azurerm_storage_account" "test" {
 
   blob_properties {
     versioning_enabled = true
-    change_feed {}
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
