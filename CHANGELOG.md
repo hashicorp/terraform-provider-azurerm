@@ -31,6 +31,7 @@ ENHANCEMENTS:
 * `azurerm_hdinsight_interactive_query_cluster` - add support for private link endpoint [GH-11300]
 * `azurerm_hdinsight_hadoop_cluster` - add support for private link endpoint [GH-11300]
 * `azurerm_hdinsight_spark_cluster` - add support for private link endpoint [GH-11300]
+* `azurerm_storage_encryption_scope` - support for the `infrastructure_encryption_required` property [GH-11462]
 * `azurerm_kubernetes_cluster` support for the `empty_bulk_delete_max` in the `auto_scaler_profile` block #[GH-11060]
 * `azurerm_lighthouse_definition` - support for the `delegated_role_definition_ids` property [GH-11269]
 * `azurerm_postgresql_server` - wait for replica restarts when needed [GH-11458]
