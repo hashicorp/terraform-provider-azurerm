@@ -505,7 +505,7 @@ resource "azurerm_data_factory" "test" {
     ]
   }
 
-  key_vault_key_id = azurerm_key_vault_key.test.id
+  customer_managed_key_id = azurerm_key_vault_key.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

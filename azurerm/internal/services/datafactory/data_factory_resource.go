@@ -75,7 +75,7 @@ func resourceDataFactory() *schema.Resource {
 						},
 
 						"identity_ids": {
-							Type:     schema.TypeSet,
+							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
@@ -179,7 +179,7 @@ func resourceDataFactory() *schema.Resource {
 				Default:  true,
 			},
 
-			"key_vault_key_id": {
+			"customer_managed_key_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: keyVaultValidate.NestedItemId,
@@ -228,10 +228,10 @@ func resourceDataFactoryCreateUpdate(d *schema.ResourceData, meta interface{}) e
 
 	if v, ok := d.GetOk("identity.0.type"); ok {
 		identityType := v.(string)
-		identityIdsRaw := d.Get("identity.0.identity_ids").(*schema.Set).List()
+		identityIdsRaw := d.Get("identity.0.identity_ids").([]interface{})
 
 		if len(identityIdsRaw) > 0 && identityType != string(datafactory.UserAssigned) {
-			return fmt.Errorf("`identity_ids` can only be specified when `type` is `UserAssigned`")
+			return fmt.Errorf("`identity_ids` can only be specified when `type` is `%s`", string(datafactory.UserAssigned))
 		}
 
 		identityIds := make(map[string]interface{})
@@ -245,7 +245,7 @@ func resourceDataFactoryCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	if keyVaultKeyID, ok := d.GetOk("key_vault_key_id"); ok {
+	if keyVaultKeyID, ok := d.GetOk("customer_managed_key_id"); ok {
 		keyVaultKey, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyVaultKeyID.(string))
 		if err != nil {
 			return fmt.Errorf("could not parse Key Vault Key ID: %+v", err)
@@ -323,8 +323,8 @@ func resourceDataFactoryRead(d *schema.ResourceData, meta interface{}) error {
 		if enc := factoryProps.Encryption; enc != nil {
 			if enc.VaultBaseURL != nil && enc.KeyName != nil && enc.KeyVersion != nil {
 				versionedKey := fmt.Sprintf("%skeys/%s/%s", *enc.VaultBaseURL, *enc.KeyName, *enc.KeyVersion)
-				if err := d.Set("key_vault_key_id", versionedKey); err != nil {
-					return fmt.Errorf("Error setting `key_vault_key_id`: %+v", err)
+				if err := d.Set("customer_managed_key_id", versionedKey); err != nil {
+					return fmt.Errorf("Error setting `customer_managed_key_id`: %+v", err)
 				}
 			}
 		}
