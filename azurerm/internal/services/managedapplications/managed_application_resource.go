@@ -73,11 +73,12 @@ func resourceManagedApplication() *schema.Resource {
 				ValidateFunc: validate.ApplicationDefinitionID,
 			},
 
-			"parameters": { // TODO -- remove this attribute after the deprecation
-				Type:       schema.TypeMap,
-				Optional:   true,
-				Computed:   true,
-				Deprecated: "Deprecated in favour of `parameter_values`",
+			"parameters": {
+				Type:          schema.TypeMap,
+				Optional:      true,
+				Computed:      true,
+				Deprecated:    "Deprecated in favour of `parameter_values`",
+				ConflictsWith: []string{"parameter_values"},
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
@@ -86,9 +87,10 @@ func resourceManagedApplication() *schema.Resource {
 			"parameter_values": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				Computed:         true, // TODO -- remove Computed after the deprecation
+				Computed:         true,
 				ValidateFunc:     validation.StringIsJSON,
 				DiffSuppressFunc: structure.SuppressJsonDiff,
+				ConflictsWith:    []string{"parameters"},
 			},
 
 			"plan": {
@@ -309,10 +311,6 @@ func expandManagedApplicationParameters(d *schema.ResourceData) (*map[string]int
 	if v, ok := d.GetOk("parameters"); ok {
 		params := v.(map[string]interface{})
 
-		if len(newParams) > 0 && len(params) > 0 {
-			return nil, fmt.Errorf("cannot set both `parameters` and `parameter_values`")
-		}
-
 		for key, val := range params {
 			newParams[key] = struct {
 				Value interface{} `json:"value"`
@@ -371,7 +369,7 @@ func flattenManagedApplicationParametersOrOutputs(input interface{}) map[string]
 
 	for k, v := range input.(map[string]interface{}) {
 		if v != nil {
-			results[k] = fmt.Sprintf("%v", v.(map[string]interface{})["value"]) // map in terraform only accepts string as its values, therefore we have to convert the value to string
+			results[k] = v.(map[string]interface{})["value"].(string)
 		}
 	}
 

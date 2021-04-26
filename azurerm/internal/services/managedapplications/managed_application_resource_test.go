@@ -94,6 +94,21 @@ func TestAccManagedApplication_update(t *testing.T) {
 	})
 }
 
+func TestAccManagedApplication_parameterValues(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_application", "test")
+	r := ManagedApplicationResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.parameterValues(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (ManagedApplicationResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.ApplicationID(state.ID)
 	if err != nil {
@@ -120,13 +135,11 @@ resource "azurerm_managed_application" "test" {
   managed_resource_group_name = "infraGroup%d"
   application_definition_id   = azurerm_managed_application_definition.test.id
 
-  parameter_values = <<VALUES
-	{
-        "location": {"value": "${azurerm_resource_group.test.location}"},
-        "storageAccountNamePrefix": {"value": "store%s"},
-        "storageAccountType": {"value": "Standard_LRS"}
-	}
-  VALUES
+  parameters = {
+    location                 = azurerm_resource_group.test.location
+    storageAccountNamePrefix = "store%s"
+    storageAccountType       = "Standard_LRS"
+  }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomString)
 }
@@ -169,27 +182,48 @@ resource "azurerm_managed_application" "test" {
     version   = "1.0.44"
   }
 
-  parameter_values = <<VALUES
-	{
-        "baseUrl": {"value": ""},
-        "location": {"value": "${azurerm_resource_group.test.location}"},
-        "merakiAuthToken": {"value": "f451adfb-d00b-4612-8799-b29294217d4a"},
-        "subnetAddressPrefix": {"value": "10.0.0.0/24"},
-        "subnetName": {"value": "acctestSubnet"},
-        "virtualMachineSize": {"value": "Standard_DS12_v2"},
-        "virtualNetworkAddressPrefix": {"value": "10.0.0.0/16"},
-        "virtualNetworkName": {"value": "acctestVnet"},
-        "virtualNetworkNewOrExisting": {"value": "new"},
-        "virtualNetworkResourceGroup": {"value": "acctestVnetRg"},
-        "vmName": {"value": "acctestVM"}
-	}
-  VALUES
+  parameters = {
+    baseUrl                     = ""
+    location                    = azurerm_resource_group.test.location
+    merakiAuthToken             = "f451adfb-d00b-4612-8799-b29294217d4a"
+    subnetAddressPrefix         = "10.0.0.0/24"
+    subnetName                  = "acctestSubnet"
+    virtualMachineSize          = "Standard_DS12_v2"
+    virtualNetworkAddressPrefix = "10.0.0.0/16"
+    virtualNetworkName          = "acctestVnet"
+    virtualNetworkNewOrExisting = "new"
+    virtualNetworkResourceGroup = "acctestVnetRg"
+    vmName                      = "acctestVM"
+  }
 
   tags = {
     ENV = "Test"
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r ManagedApplicationResource) parameterValues(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_managed_application" "test" {
+  name                        = "acctestManagedApp%d"
+  location                    = azurerm_resource_group.test.location
+  resource_group_name         = azurerm_resource_group.test.name
+  kind                        = "ServiceCatalog"
+  managed_resource_group_name = "infraGroup%d"
+  application_definition_id   = azurerm_managed_application_definition.test.id
+
+  parameter_values = <<VALUES
+	{
+        "location": {"value": "${azurerm_resource_group.test.location}"},
+        "storageAccountNamePrefix": {"value": "store%s"},
+        "storageAccountType": {"value": "Standard_LRS"}
+	}
+  VALUES
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomString)
 }
 
 func (ManagedApplicationResource) template(data acceptance.TestData) string {
