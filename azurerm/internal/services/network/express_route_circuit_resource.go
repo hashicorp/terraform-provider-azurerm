@@ -59,6 +59,31 @@ func resourceExpressRouteCircuit() *schema.Resource {
 
 			"location": azure.SchemaLocation(),
 
+			"service_provider_name": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				ForceNew:         true,
+				DiffSuppressFunc: suppress.CaseDifference,
+				RequiredWith:     []string{"bandwidth_in_mbps", "peering_location"},
+				ConflictsWith:    []string{"bandwidth_in_gbps", "express_route_port_id"},
+			},
+
+			"peering_location": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				ForceNew:         true,
+				DiffSuppressFunc: suppress.CaseDifference,
+				RequiredWith:     []string{"bandwidth_in_mbps", "service_provider_name"},
+				ConflictsWith:    []string{"bandwidth_in_gbps", "express_route_port_id"},
+			},
+
+			"bandwidth_in_mbps": {
+				Type:          schema.TypeInt,
+				Optional:      true,
+				RequiredWith:  []string{"peering_location", "service_provider_name"},
+				ConflictsWith: []string{"bandwidth_in_gbps", "express_route_port_id"},
+			},
+
 			"sku": {
 				Type:     schema.TypeList,
 				Required: true,
@@ -90,22 +115,6 @@ func resourceExpressRouteCircuit() *schema.Resource {
 				},
 			},
 
-			"peering_location": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				ForceNew:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
-				RequiredWith:     []string{"service_provider_name", "bandwidth_in_mbps"},
-			},
-
-			"service_provider_name": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				ForceNew:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
-				RequiredWith:     []string{"peering_location", "bandwidth_in_mbps"},
-			},
-
 			"allow_classic_operations": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -115,20 +124,14 @@ func resourceExpressRouteCircuit() *schema.Resource {
 				Type:          schema.TypeFloat,
 				Optional:      true,
 				RequiredWith:  []string{"express_route_port_id"},
-				ConflictsWith: []string{"service_provider_name", "peering_location", "bandwidth_in_mbps"},
-			},
-
-			"bandwidth_in_mbps": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				RequiredWith: []string{"service_provider_name", "peering_location"},
+				ConflictsWith: []string{"bandwidth_in_mbps", "peering_location", "service_provider_name"},
 			},
 
 			"express_route_port_id": {
 				Type:          schema.TypeString,
 				Optional:      true,
 				RequiredWith:  []string{"bandwidth_in_gbps"},
-				ConflictsWith: []string{"service_provider_name", "peering_location", "bandwidth_in_mbps"},
+				ConflictsWith: []string{"bandwidth_in_mbps", "peering_location", "service_provider_name"},
 				ValidateFunc:  azure.ValidateResourceID,
 			},
 
