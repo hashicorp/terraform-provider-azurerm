@@ -86,6 +86,8 @@ The following arguments are supported:
 
 * `fabric_settings` - (Optional) One or more `fabric_settings` blocks as defined below.
 
+* `upgrade_description` - (optional) A `upgrade_description` block as defined below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -228,6 +230,45 @@ A `ephemeral_ports` block supports the following:
 
 * `end_port` - (Required) The end of the Ephemeral Port Range on this Node Type.
 
+---
+
+A `upgrade description` block supports the following:
+
+* `force_restart` - (Optional) Indicates whether to restart the Service Fabric node even if only dynamic configurations have changed.
+
+* `health_check_retry_timeout` - (Optional) Specifies the duration, in "hh:mm:ss" string format, after which Service Fabric retries the health check if the previous health check fails. Defaults to `00:45:00`.
+
+* `health_check_stable_duration` - (Optional) Specifies the duration, in "hh:mm:ss" string format, that Service Fabric waits in order to verify that the cluster is stable before it continues to the next upgrade domain or completes the upgrade. This wait duration prevents undetected changes of health right after the health check is performed. Defaults to `00:01:00`.
+
+* `health_check_wait_duration` - (Optional) Specifies the duration, in "hh:mm:ss" string format, that Service Fabric waits before it performs the initial health check after it finishes the upgrade on the upgrade domain. Defaults to `00:00:30`.
+
+* `upgrade_domain_timeout` - (Optional) Specifies the duration, in "hh:mm:ss" string format, that Service Fabric takes to upgrade a single upgrade domain. After this period, the upgrade fails. Defaults to `02:00:00`.
+
+* `upgrade_replica_set_check_timeout` - (Optional) Specifies the duration, in "hh:mm:ss" string format, that Service Fabric waits for a replica set to reconfigure into a safe state, if it is not already in a safe state, before Service Fabric proceeds with the upgrade. Defaults to `10675199.02:48:05.4775807`.
+
+* `upgrade_timeout` - (Optional) Specifies the duration, in "hh:mm:ss" string format, that Service Fabric takes for the entire upgrade. After this period, the upgrade fails. Defaults to `12:00:00`.
+
+* `health_policy` - (Optional) A `health_policy` block as defined below
+
+* `delta_health_policy` - (Optional) A `delta_health_policy` block as defined below
+
+---
+
+A `health_policy` block supports the following:
+
+* `max_percent_unhealthy_applications` - (Optional) Specifies the maximum tolerated percentage of applications that can have aggregated health state of error. If the upgrade exceeds this percentage, the cluster is unhealthy. Defaults to `0`.
+
+* `max_percent_unhealthy_nodes` - (Optional) Specifies the maximum tolerated percentage of nodes that can have aggregated health states of error. If an upgrade exceeds this percentage, the cluster is unhealthy. Defaults to `0`.
+
+---
+
+A `delta_health_policy` block supports the following:
+
+* `max_percent_unhealthy_applications` - (Optional) Specifies the maximum tolerated percentage of delta unhealthy applications that can have aggregated health states of error. If the current unhealthy applications do not respect the percentage relative to the state at the beginning of the upgrade, the cluster is unhealthy. Defaults to `0`.
+
+* `max_percent_unhealthy_nodes` - (Optional) Specifies the maximum tolerated percentage of delta unhealthy nodes that can have aggregated health states of error. If the current unhealthy nodes do not respect the percentage relative to the state at the beginning of the upgrade, the cluster is unhealthy. Defaults to `0`.
+
+* `max_percent_upgrade_domain_delta_unhealthy_nodes` - (Optional) Specifies the maximum tolerated percentage of upgrade domain delta unhealthy nodes that can have aggregated health state of error. If there is any upgrade domain where the current unhealthy nodes do not respect the percentage relative to the state at the beginning of the upgrade, the cluster is unhealthy. Defaults to `0`.
 
 ## Attributes Reference
 

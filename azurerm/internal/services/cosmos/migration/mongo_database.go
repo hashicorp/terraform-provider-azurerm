@@ -1,50 +1,55 @@
 package migration
 
 import (
+	"context"
 	"log"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
-func ResourceMongoDbDatabaseUpgradeV0Schema() *schema.Resource {
-	return &schema.Resource{
-		Schema: map[string]*schema.Schema{
-			"name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.CosmosEntityName,
-			},
+var _ pluginsdk.StateUpgrade = MongoDatabaseV0ToV1{}
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+type MongoDatabaseV0ToV1 struct{}
 
-			"account_name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.CosmosAccountName,
-			},
+func (MongoDatabaseV0ToV1) Schema() map[string]*pluginsdk.Schema {
+	return map[string]*schema.Schema{
+		"name": {
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
 
-			"throughput": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validate.CosmosThroughput,
-			},
+		"resource_group_name": {
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
+
+		"account_name": {
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
+
+		"throughput": {
+			Type:     schema.TypeInt,
+			Optional: true,
+			Computed: true,
 		},
 	}
 }
 
-func ResourceMongoDbDatabaseStateUpgradeV0ToV1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
-	oldId := rawState["id"].(string)
-	newId := strings.Replace(rawState["id"].(string), "apis/mongodb/databases", "mongodbDatabases", 1)
+func (MongoDatabaseV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
+	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+		oldId := rawState["id"].(string)
+		newId := strings.Replace(rawState["id"].(string), "apis/mongodb/databases", "mongodbDatabases", 1)
 
-	log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId)
+		log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId)
 
-	rawState["id"] = newId
+		rawState["id"] = newId
 
-	return rawState, nil
+		return rawState, nil
+	}
 }

@@ -18,7 +18,7 @@ Shared access signatures allow fine-grained, ephemeral access control to various
 ```hcl
 resource "azurerm_resource_group" "rg" {
   name     = "resourceGroupName"
-  location = "westus"
+  location = "West Europe"
 }
 
 resource "azurerm_storage_account" "storage" {

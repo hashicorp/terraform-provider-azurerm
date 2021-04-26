@@ -18,13 +18,13 @@ import (
 type BatchCertificateResource struct {
 }
 
-func TestAccBatchCertificate_Pfx(t *testing.T) {
+func TestAccBatchCertificate_PfxWithPassword(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_certificate", "test")
 	r := BatchCertificateResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.pfx(data),
+			Config: r.pfxWithPassword(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("format").HasValue("Pfx"),
@@ -42,9 +42,15 @@ func TestAccBatchCertificate_PfxWithoutPassword(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config:      r.pfxWithoutPassword(data),
-			ExpectError: regexp.MustCompile("Password is required"),
+			Config: r.pfxWithoutPassword(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("format").HasValue("Pfx"),
+				check.That(data.ResourceName).Key("thumbprint").HasValue("42c107874fd0e4a9583292a2f1098e8fe4b2edda"),
+				check.That(data.ResourceName).Key("thumbprint_algorithm").HasValue("sha1"),
+			),
 		},
+		data.ImportStep("certificate"),
 	})
 }
 
@@ -92,7 +98,7 @@ func (t BatchCertificateResource) Exists(ctx context.Context, clients *clients.C
 	return utils.Bool(resp.CertificateProperties != nil), nil
 }
 
-func (BatchCertificateResource) pfx(data acceptance.TestData) string {
+func (BatchCertificateResource) pfxWithPassword(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -113,7 +119,7 @@ resource "azurerm_batch_account" "test" {
 resource "azurerm_batch_certificate" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   account_name         = azurerm_batch_account.test.name
-  certificate          = filebase64("testdata/batch_certificate.pfx")
+  certificate          = filebase64("testdata/batch_certificate_password.pfx")
   format               = "Pfx"
   password             = "terraform"
   thumbprint           = "42c107874fd0e4a9583292a2f1098e8fe4b2edda"
@@ -143,7 +149,7 @@ resource "azurerm_batch_account" "test" {
 resource "azurerm_batch_certificate" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   account_name         = azurerm_batch_account.test.name
-  certificate          = filebase64("testdata/batch_certificate.pfx")
+  certificate          = filebase64("testdata/batch_certificate_nopassword.pfx")
   format               = "Pfx"
   thumbprint           = "42c107874fd0e4a9583292a2f1098e8fe4b2edda"
   thumbprint_algorithm = "SHA1"

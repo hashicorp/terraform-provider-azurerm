@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
@@ -394,8 +394,7 @@ func (WindowsVirtualMachineResource) generalizeVirtualMachine(ctx context.Contex
 		return fmt.Errorf("Bad: Deallocation error: %+v", err)
 	}
 
-	_, err = client.Compute.VMClient.Generalize(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
+	if _, err = client.Compute.VMClient.Generalize(ctx, id.ResourceGroup, id.Name); err != nil {
 		return fmt.Errorf("Bad: Generalizing error: %+v", err)
 	}
 

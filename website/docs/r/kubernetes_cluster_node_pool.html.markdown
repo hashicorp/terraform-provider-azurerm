@@ -10,6 +10,8 @@ description: |-
 
 Manages a Node Pool within a Kubernetes Cluster
 
+-> **Note:** Due to the fast-moving nature of AKS, we recommend using the latest version of the Azure Provider when using AKS - you can find [the latest version of the Azure Provider here](https://registry.terraform.io/providers/hashicorp/azurerm/latest).
+
 ~> **NOTE:** Multiple Node Pools are only supported when the Kubernetes Cluster is using Virtual Machine Scale Sets.
 
 ## Example Usage
@@ -117,6 +119,8 @@ The following arguments are supported:
 
 ~> At this time there's a bug in the AKS API where Tags for a Node Pool are not stored in the correct case - you [may wish to use Terraform's `ignore_changes` functionality to ignore changes to the casing](https://www.terraform.io/docs/configuration/resources.html#ignore_changes) until this is fixed in the AKS API.
 
+* `upgrade_settings` - (Optional) A `upgrade_settings` block as documented below.
+
 * `vnet_subnet_id` - (Optional) The ID of the Subnet where this Node Pool should exist.
 
 -> **NOTE:** At this time the `vnet_subnet_id` must be the same for all node pools in the cluster
@@ -138,6 +142,14 @@ If `enable_auto_scaling` is set to `true`, then the following fields can also be
 If `enable_auto_scaling` is set to `false`, then the following fields can also be configured:
 
 * `node_count` - (Required) The number of nodes which should exist within this Node Pool. Valid values are between `0` and `1000`.
+
+---
+
+A `upgrade_settings` block supports the following:
+
+* `max_surge` - (Required) The maximum number or percentage of nodes which will be added to the Node Pool size during an upgrade.
+
+-> **Note:** If a percentage is provided, the number of surge nodes is calculated from the current node count on the cluster. Node surge can allow a cluster to have more nodes than `max_count` during an upgrade. Ensure that your cluster has enough [IP space](https://docs.microsoft.com/en-us/azure/aks/upgrade-cluster#customize-node-surge-upgrade) during an upgrade.
 
 ## Attributes Reference
 

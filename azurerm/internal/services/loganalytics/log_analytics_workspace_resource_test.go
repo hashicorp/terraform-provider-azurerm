@@ -177,6 +177,36 @@ func TestAccLogAnalyticsWorkspace_withInternetQueryEnabled(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+func TestAccLogAnalyticsWorkspace_withCapacityReservation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
+	r := LogAnalyticsWorkspaceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withCapacityReservation(data, 2300),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("reservation_capcity_in_gb_per_day").HasValue("2300"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLogAnalyticsWorkspace_negativeOne(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
+	r := LogAnalyticsWorkspaceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withVolumeCap(data, -1.0),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
 
 func (t LogAnalyticsWorkspaceResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.LogAnalyticsWorkspaceID(state.ID)
@@ -429,4 +459,26 @@ resource "azurerm_log_analytics_workspace" "test" {
   retention_in_days      = 30
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (LogAnalyticsWorkspaceResource) withCapacityReservation(data acceptance.TestData, capacityReservation int) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                              = "acctestLAW-%d"
+  location                          = azurerm_resource_group.test.location
+  resource_group_name               = azurerm_resource_group.test.name
+  internet_query_enabled            = false
+  sku                               = "CapacityReservation"
+  reservation_capcity_in_gb_per_day = %d
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, capacityReservation)
 }

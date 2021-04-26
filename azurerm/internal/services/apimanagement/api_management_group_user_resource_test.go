@@ -58,8 +58,7 @@ func (ApiManagementGroupUserResource) Exists(ctx context.Context, clients *clien
 	groupName := id.Path["groups"]
 	userId := id.Path["users"]
 
-	_, err = clients.ApiManagement.GroupUsersClient.CheckEntityExists(ctx, resourceGroup, serviceName, groupName, userId)
-	if err != nil {
+	if _, err = clients.ApiManagement.GroupUsersClient.CheckEntityExists(ctx, resourceGroup, serviceName, groupName, userId); err != nil {
 		return nil, fmt.Errorf("reading ApiManagement Group User (%s): %+v", id, err)
 	}
 

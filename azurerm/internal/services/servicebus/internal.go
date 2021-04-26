@@ -1,6 +1,7 @@
 package servicebus
 
 import (
+	"context"
 	"fmt"
 	"log"
 
@@ -95,7 +96,7 @@ func authorizationRuleSchemaFrom(s map[string]*schema.Schema) map[string]*schema
 	return azure.MergeSchema(s, authSchema)
 }
 
-func authorizationRuleCustomizeDiff(d *schema.ResourceDiff, _ interface{}) error {
+func authorizationRuleCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, _ interface{}) error {
 	listen, hasListen := d.GetOk("listen")
 	send, hasSend := d.GetOk("send")
 	manage, hasManage := d.GetOk("manage")

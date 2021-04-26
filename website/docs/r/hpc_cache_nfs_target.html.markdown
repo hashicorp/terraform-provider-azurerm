@@ -139,7 +139,7 @@ The following arguments are supported:
 
 * `target_host_name` - (Required) The IP address or fully qualified domain name (FQDN) of the HPC Cache NFS target. Changing this forces a new resource to be created.
 
-* `usage_model` - (Required) The type of usage of the HPC Cache NFS Target.
+* `usage_model` - (Required) The type of usage of the HPC Cache NFS Target. Possible values are: `READ_HEAVY_INFREQ`, `READ_HEAVY_CHECK_180`, `WRITE_WORKLOAD_15`, `WRITE_AROUND`, `WRITE_WORKLOAD_CHECK_30`, `WRITE_WORKLOAD_CHECK_60` and `WRITE_WORKLOAD_CLOUDWS`.
 
 * `namespace_junction` - (Required) Can be specified multiple times to define multiple `namespace_junction`. Each `namespace_juntion` block supports fields documented below.
 
@@ -152,6 +152,8 @@ A `namespace_junction` block supports the following:
 * `nfs_export` - (Required) The NFS export of this NFS target within the HPC Cache NFS Target.
 
 * `target_path` - (Optional) The relative subdirectory path from the `nfs_export` to map to the `namespace_path`. Defaults to `""`, in which case the whole `nfs_export` is exported.
+
+* `access_policy_name` - (Optional) The name of the access policy applied to this target. Defaults to `default`.
 
 ## Attributes Reference
 

@@ -5,12 +5,14 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter/migration"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter/parse"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -22,7 +24,7 @@ func resourceSecurityCenterSubscriptionPricing() *schema.Resource {
 		Update: resourceSecurityCenterSubscriptionPricingUpdate,
 		Delete: resourceSecurityCenterSubscriptionPricingDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.SecurityCenterSubscriptionPricingID(id)
 			return err
 		}),
@@ -35,13 +37,9 @@ func resourceSecurityCenterSubscriptionPricing() *schema.Resource {
 		},
 
 		SchemaVersion: 1,
-		StateUpgraders: []schema.StateUpgrader{
-			{
-				Type:    ResourceSecurityCenterSubscriptionPricingV0().CoreConfigSchema().ImpliedType(),
-				Upgrade: ResourceSecurityCenterSubscriptionPricingUpgradeV0ToV1,
-				Version: 0,
-			},
-		},
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.SubscriptionPricingV0ToV1{},
+		}),
 
 		Schema: map[string]*schema.Schema{
 			"tier": {
@@ -65,6 +63,8 @@ func resourceSecurityCenterSubscriptionPricing() *schema.Resource {
 					"SqlServerVirtualMachines",
 					"StorageAccounts",
 					"VirtualMachines",
+					"Arm",
+					"Dns",
 				}, false),
 			},
 		},

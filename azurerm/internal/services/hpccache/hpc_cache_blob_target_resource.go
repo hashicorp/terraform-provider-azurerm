@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2020-03-01/storagecache"
+	"github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2021-03-01/storagecache"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -14,7 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hpccache/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hpccache/validate"
 	storageValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -26,7 +26,7 @@ func resourceHPCCacheBlobTarget() *schema.Resource {
 		Read:   resourceHPCCacheBlobTargetRead,
 		Delete: resourceHPCCacheBlobTargetDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.StorageTargetID(id)
 			return err
 		}),
@@ -67,6 +67,13 @@ func resourceHPCCacheBlobTarget() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: storageValidate.StorageContainerResourceManagerID,
 			},
+
+			"access_policy_name": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "default",
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
 		},
 	}
 }
@@ -100,14 +107,15 @@ func resourceHPCCacheBlobTargetCreateOrUpdate(d *schema.ResourceData, meta inter
 	// Construct parameters
 	namespaceJunction := []storagecache.NamespaceJunction{
 		{
-			NamespacePath: &namespacePath,
-			TargetPath:    utils.String("/"),
+			NamespacePath:   &namespacePath,
+			TargetPath:      utils.String("/"),
+			NfsAccessPolicy: utils.String(d.Get("access_policy_name").(string)),
 		},
 	}
 	param := &storagecache.StorageTarget{
-		BasicStorageTargetProperties: &storagecache.ClfsTargetProperties{
+		StorageTargetProperties: &storagecache.StorageTargetProperties{
 			Junctions:  &namespaceJunction,
-			TargetType: storagecache.TargetTypeClfs,
+			TargetType: storagecache.StorageTargetTypeClfs,
 			Clfs: &storagecache.ClfsTarget{
 				Target: utils.String(containerId),
 			},
@@ -162,25 +170,27 @@ func resourceHPCCacheBlobTargetRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("cache_name", id.CacheName)
 
-	if props := resp.BasicStorageTargetProperties; props != nil {
-		props, ok := props.AsClfsTargetProperties()
-		if !ok {
+	if props := resp.StorageTargetProperties; props != nil {
+		if props.TargetType != storagecache.StorageTargetTypeClfs {
 			return fmt.Errorf("The type of this HPC Cache Target %q (Resource Group %q, Cahe %q) is not a Blob Target", id.Name, id.ResourceGroup, id.CacheName)
 		}
 
 		storageContainerId := ""
-		if props.Clfs != nil && props.Clfs.Target != nil {
-			storageContainerId = *props.Clfs.Target
+		if clfs := props.Clfs; clfs != nil && clfs.Target != nil {
+			storageContainerId = *clfs.Target
 		}
 		d.Set("storage_container_id", storageContainerId)
 
 		namespacePath := ""
+		accessPolicy := ""
 		// There is only one namespace path allowed for blob container storage target,
 		// which maps to the root path of it.
 		if props.Junctions != nil && len(*props.Junctions) == 1 && (*props.Junctions)[0].NamespacePath != nil {
 			namespacePath = *(*props.Junctions)[0].NamespacePath
+			accessPolicy = *(*props.Junctions)[0].NfsAccessPolicy
 		}
 		d.Set("namespace_path", namespacePath)
+		d.Set("access_policy_name", accessPolicy)
 	}
 
 	return nil

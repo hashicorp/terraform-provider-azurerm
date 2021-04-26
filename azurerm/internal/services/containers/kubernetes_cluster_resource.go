@@ -1,14 +1,14 @@
 package containers
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-12-01/containerservice"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-02-01/containerservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -21,8 +21,9 @@ import (
 	containerValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/validate"
 	msiparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
 	msivalidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
+	privateDnsValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -35,14 +36,14 @@ func resourceKubernetesCluster() *schema.Resource {
 		Update: resourceKubernetesClusterUpdate,
 		Delete: resourceKubernetesClusterDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ClusterID(id)
 			return err
 		}),
 
-		CustomizeDiff: customdiff.Sequence(
+		CustomizeDiff: pluginsdk.CustomDiffInSequence(
 			// Downgrade from Paid to Free is not supported and requires rebuild to apply
-			customdiff.ForceNewIfChange("sku_tier", func(old, new, meta interface{}) bool {
+			pluginsdk.ForceNewIfChange("sku_tier", func(ctx context.Context, old, new, meta interface{}) bool {
 				return new == "Free"
 			}),
 		),
@@ -68,9 +69,17 @@ func resourceKubernetesCluster() *schema.Resource {
 
 			"dns_prefix": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
 				ForceNew:     true,
+				ExactlyOneOf: []string{"dns_prefix", "dns_prefix_private_cluster"},
 				ValidateFunc: containerValidate.KubernetesDNSPrefix,
+			},
+
+			"dns_prefix_private_cluster": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ExactlyOneOf: []string{"dns_prefix", "dns_prefix_private_cluster"},
 			},
 
 			"kubernetes_version": {
@@ -106,10 +115,39 @@ func resourceKubernetesCluster() *schema.Resource {
 							Optional: true,
 							Default:  false,
 						},
+						"expander": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(containerservice.LeastWaste),
+								string(containerservice.MostPods),
+								string(containerservice.Priority),
+								string(containerservice.Random),
+							}, false),
+						},
 						"max_graceful_termination_sec": {
 							Type:     schema.TypeString,
 							Optional: true,
 							Computed: true,
+						},
+						"max_node_provisioning_time": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      "15m",
+							ValidateFunc: containerValidate.Duration,
+						},
+						"max_unready_nodes": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      3,
+							ValidateFunc: validation.IntAtLeast(0),
+						},
+						"max_unready_percentage": {
+							Type:         schema.TypeFloat,
+							Optional:     true,
+							Default:      45,
+							ValidateFunc: validation.FloatBetween(0, 100),
 						},
 						"new_pod_scale_up_delay": {
 							Type:         schema.TypeString,
@@ -157,6 +195,21 @@ func resourceKubernetesCluster() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 							Computed: true,
+						},
+						"empty_bulk_delete_max": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
+						"skip_nodes_with_local_storage": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+						"skip_nodes_with_system_pods": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  true,
 						},
 					},
 				},
@@ -453,6 +506,20 @@ func resourceKubernetesCluster() *schema.Resource {
 				ConflictsWith: []string{"private_link_enabled"},
 			},
 
+			"private_dns_zone_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true, // a Private Cluster is `System` by default even if unspecified
+				ForceNew: true,
+				ValidateFunc: validation.Any(
+					privateDnsValidate.PrivateDnsZoneID,
+					validation.StringInSlice([]string{
+						"System",
+						"None",
+					}, false),
+				),
+			},
+
 			"role_based_access_control": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -475,12 +542,20 @@ func resourceKubernetesCluster() *schema.Resource {
 										Type:         schema.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.IsUUID,
+										AtLeastOneOf: []string{"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
+											"role_based_access_control.0.azure_active_directory.0.server_app_secret", "role_based_access_control.0.azure_active_directory.0.tenant_id",
+											"role_based_access_control.0.azure_active_directory.0.managed", "role_based_access_control.0.azure_active_directory.0.admin_group_object_ids",
+										},
 									},
 
 									"server_app_id": {
 										Type:         schema.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.IsUUID,
+										AtLeastOneOf: []string{"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
+											"role_based_access_control.0.azure_active_directory.0.server_app_secret", "role_based_access_control.0.azure_active_directory.0.tenant_id",
+											"role_based_access_control.0.azure_active_directory.0.managed", "role_based_access_control.0.azure_active_directory.0.admin_group_object_ids",
+										},
 									},
 
 									"server_app_secret": {
@@ -488,6 +563,10 @@ func resourceKubernetesCluster() *schema.Resource {
 										Optional:     true,
 										Sensitive:    true,
 										ValidateFunc: validation.StringIsNotEmpty,
+										AtLeastOneOf: []string{"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
+											"role_based_access_control.0.azure_active_directory.0.server_app_secret", "role_based_access_control.0.azure_active_directory.0.tenant_id",
+											"role_based_access_control.0.azure_active_directory.0.managed", "role_based_access_control.0.azure_active_directory.0.admin_group_object_ids",
+										},
 									},
 
 									"tenant_id": {
@@ -496,11 +575,19 @@ func resourceKubernetesCluster() *schema.Resource {
 										Computed: true,
 										// OrEmpty since this can be sourced from the client config if it's not specified
 										ValidateFunc: validation.Any(validation.IsUUID, validation.StringIsEmpty),
+										AtLeastOneOf: []string{"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
+											"role_based_access_control.0.azure_active_directory.0.server_app_secret", "role_based_access_control.0.azure_active_directory.0.tenant_id",
+											"role_based_access_control.0.azure_active_directory.0.managed", "role_based_access_control.0.azure_active_directory.0.admin_group_object_ids",
+										},
 									},
 
 									"managed": {
 										Type:     schema.TypeBool,
 										Optional: true,
+										AtLeastOneOf: []string{"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
+											"role_based_access_control.0.azure_active_directory.0.server_app_secret", "role_based_access_control.0.azure_active_directory.0.tenant_id",
+											"role_based_access_control.0.azure_active_directory.0.managed", "role_based_access_control.0.azure_active_directory.0.admin_group_object_ids",
+										},
 									},
 
 									"admin_group_object_ids": {
@@ -510,6 +597,10 @@ func resourceKubernetesCluster() *schema.Resource {
 										Elem: &schema.Schema{
 											Type:         schema.TypeString,
 											ValidateFunc: validation.IsUUID,
+										},
+										AtLeastOneOf: []string{"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
+											"role_based_access_control.0.azure_active_directory.0.server_app_secret", "role_based_access_control.0.azure_active_directory.0.tenant_id",
+											"role_based_access_control.0.azure_active_directory.0.managed", "role_based_access_control.0.azure_active_directory.0.admin_group_object_ids",
 										},
 									},
 								},
@@ -574,10 +665,20 @@ func resourceKubernetesCluster() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Sensitive:    true,
-							ValidateFunc: validation.StringLenBetween(14, 123),
+							ValidateFunc: validation.StringLenBetween(8, 123),
 						},
 					},
 				},
+			},
+
+			"automatic_channel_upgrade": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(containerservice.UpgradeChannelPatch),
+					string(containerservice.UpgradeChannelRapid),
+					string(containerservice.UpgradeChannelStable),
+				}, false),
 			},
 
 			// Computed
@@ -750,6 +851,10 @@ func resourceKubernetesClusterCreate(d *schema.ResourceData, meta interface{}) e
 		enablePrivateCluster = v.(bool)
 	}
 
+	if !enablePrivateCluster && dnsPrefix == "" {
+		return fmt.Errorf("`dns_prefix` should be set if it is not a private cluster")
+	}
+
 	apiAccessProfile := containerservice.ManagedClusterAPIServerAccessProfile{
 		EnablePrivateCluster: &enablePrivateCluster,
 		AuthorizedIPRanges:   apiServerAuthorizedIPRanges,
@@ -788,6 +893,12 @@ func resourceKubernetesClusterCreate(d *schema.ResourceData, meta interface{}) e
 		Tags: tags.Expand(t),
 	}
 
+	if v := d.Get("automatic_channel_upgrade").(string); v != "" {
+		parameters.ManagedClusterProperties.AutoUpgradeProfile = &containerservice.ManagedClusterAutoUpgradeProfile{
+			UpgradeChannel: containerservice.UpgradeChannel(v),
+		}
+	}
+
 	managedClusterIdentityRaw := d.Get("identity").([]interface{})
 	servicePrincipalProfileRaw := d.Get("service_principal").([]interface{})
 
@@ -802,12 +913,28 @@ func resourceKubernetesClusterCreate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
+	servicePrincipalSet := false
 	if len(servicePrincipalProfileRaw) > 0 {
 		servicePrincipalProfileVal := servicePrincipalProfileRaw[0].(map[string]interface{})
 		parameters.ManagedClusterProperties.ServicePrincipalProfile = &containerservice.ManagedClusterServicePrincipalProfile{
 			ClientID: utils.String(servicePrincipalProfileVal["client_id"].(string)),
 			Secret:   utils.String(servicePrincipalProfileVal["client_secret"].(string)),
 		}
+		servicePrincipalSet = true
+	}
+
+	if v, ok := d.GetOk("private_dns_zone_id"); ok {
+		if (parameters.Identity == nil && !servicePrincipalSet) || (v.(string) != "System" && v.(string) != "None" && (!servicePrincipalSet && parameters.Identity.Type != containerservice.ResourceIdentityTypeUserAssigned)) {
+			return fmt.Errorf("a user assigned identity or a service principal must be used when using a custom private dns zone")
+		}
+		apiAccessProfile.PrivateDNSZone = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("dns_prefix_private_cluster"); ok {
+		if !enablePrivateCluster || apiAccessProfile.PrivateDNSZone == nil || *apiAccessProfile.PrivateDNSZone == "System" || *apiAccessProfile.PrivateDNSZone == "None" {
+			return fmt.Errorf("`dns_prefix_private_cluster` should only be set for private cluster with custom private dns zone")
+		}
+		parameters.FqdnSubdomain = utils.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("disk_encryption_set_id"); ok && v.(string) != "" {
@@ -866,6 +993,14 @@ func resourceKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}) e
 
 	if err := validateKubernetesCluster(d, &existing, id.ResourceGroup, id.ManagedClusterName); err != nil {
 		return err
+	}
+
+	// when update, we should set the value of `Identity.UserAssignedIdentities` empty
+	// otherwise the rest api will report error - this is tracked here: https://github.com/Azure/azure-rest-api-specs/issues/13631
+	if existing.Identity != nil && existing.Identity.UserAssignedIdentities != nil {
+		for k := range existing.Identity.UserAssignedIdentities {
+			existing.Identity.UserAssignedIdentities[k] = &containerservice.ManagedClusterIdentityUserAssignedIdentitiesValue{}
+		}
 	}
 
 	if d.HasChange("service_principal") {
@@ -969,6 +1104,9 @@ func resourceKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}) e
 		existing.ManagedClusterProperties.APIServerAccessProfile = &containerservice.ManagedClusterAPIServerAccessProfile{
 			AuthorizedIPRanges:   utils.ExpandStringSlice(apiServerAuthorizedIPRangesRaw),
 			EnablePrivateCluster: &enablePrivateCluster,
+		}
+		if v, ok := d.GetOk("private_dns_zone_id"); ok {
+			existing.ManagedClusterProperties.APIServerAccessProfile.PrivateDNSZone = utils.String(v.(string))
 		}
 	}
 
@@ -1075,6 +1213,20 @@ func resourceKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}) e
 	if d.HasChange("sku_tier") {
 		updateCluster = true
 		existing.Sku.Tier = containerservice.ManagedClusterSKUTier(d.Get("sku_tier").(string))
+	}
+
+	if d.HasChange("automatic_channel_upgrade") {
+		updateCluster = true
+		if existing.ManagedClusterProperties.AutoUpgradeProfile == nil {
+			existing.ManagedClusterProperties.AutoUpgradeProfile = &containerservice.ManagedClusterAutoUpgradeProfile{}
+		}
+
+		channel := containerservice.UpgradeChannelNone
+		if v := d.Get("automatic_channel_upgrade").(string); v != "" {
+			channel = containerservice.UpgradeChannel(v)
+		}
+
+		existing.ManagedClusterProperties.AutoUpgradeProfile.UpgradeChannel = channel
 	}
 
 	if updateCluster {
@@ -1191,12 +1343,19 @@ func resourceKubernetesClusterRead(d *schema.ResourceData, meta interface{}) err
 
 	if props := resp.ManagedClusterProperties; props != nil {
 		d.Set("dns_prefix", props.DNSPrefix)
+		d.Set("dns_prefix_private_cluster", props.FqdnSubdomain)
 		d.Set("fqdn", props.Fqdn)
 		d.Set("private_fqdn", props.PrivateFQDN)
 		d.Set("disk_encryption_set_id", props.DiskEncryptionSetID)
 		d.Set("kubernetes_version", props.KubernetesVersion)
 		d.Set("node_resource_group", props.NodeResourceGroup)
 		d.Set("enable_pod_security_policy", props.EnablePodSecurityPolicy)
+
+		upgradeChannel := ""
+		if profile := props.AutoUpgradeProfile; profile != nil && profile.UpgradeChannel != containerservice.UpgradeChannelNone {
+			upgradeChannel = string(profile.UpgradeChannel)
+		}
+		d.Set("automatic_channel_upgrade", upgradeChannel)
 
 		// TODO: 2.0 we should introduce a access_profile block to match the new API design,
 		if accessProfile := props.APIServerAccessProfile; accessProfile != nil {
@@ -1207,6 +1366,7 @@ func resourceKubernetesClusterRead(d *schema.ResourceData, meta interface{}) err
 
 			d.Set("private_link_enabled", accessProfile.EnablePrivateCluster)
 			d.Set("private_cluster_enabled", accessProfile.EnablePrivateCluster)
+			d.Set("private_dns_zone_id", accessProfile.PrivateDNSZone)
 		}
 
 		addonProfiles := flattenKubernetesAddOnProfiles(props.AddonProfiles)
@@ -1214,7 +1374,10 @@ func resourceKubernetesClusterRead(d *schema.ResourceData, meta interface{}) err
 			return fmt.Errorf("setting `addon_profile`: %+v", err)
 		}
 
-		autoScalerProfile := flattenKubernetesClusterAutoScalerProfile(props.AutoScalerProfile)
+		autoScalerProfile, err := flattenKubernetesClusterAutoScalerProfile(props.AutoScalerProfile)
+		if err != nil {
+			return err
+		}
 		if err := d.Set("auto_scaler_profile", autoScalerProfile); err != nil {
 			return fmt.Errorf("setting `auto_scaler_profile`: %+v", err)
 		}
@@ -1952,9 +2115,9 @@ func flattenKubernetesClusterManagedClusterIdentity(input *containerservice.Mana
 	return []interface{}{identity}, nil
 }
 
-func flattenKubernetesClusterAutoScalerProfile(profile *containerservice.ManagedClusterPropertiesAutoScalerProfile) []interface{} {
+func flattenKubernetesClusterAutoScalerProfile(profile *containerservice.ManagedClusterPropertiesAutoScalerProfile) ([]interface{}, error) {
 	if profile == nil {
-		return []interface{}{}
+		return []interface{}{}, nil
 	}
 
 	balanceSimilarNodeGroups := false
@@ -1967,6 +2130,29 @@ func flattenKubernetesClusterAutoScalerProfile(profile *containerservice.Managed
 	maxGracefulTerminationSec := ""
 	if profile.MaxGracefulTerminationSec != nil {
 		maxGracefulTerminationSec = *profile.MaxGracefulTerminationSec
+	}
+
+	maxNodeProvisionTime := ""
+	if profile.MaxNodeProvisionTime != nil {
+		maxNodeProvisionTime = *profile.MaxNodeProvisionTime
+	}
+
+	maxUnreadyNodes := 0
+	if profile.OkTotalUnreadyCount != nil {
+		var err error
+		maxUnreadyNodes, err = strconv.Atoi(*profile.OkTotalUnreadyCount)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	maxUnreadyPercentage := 0.0
+	if profile.MaxTotalUnreadyPercentage != nil {
+		var err error
+		maxUnreadyPercentage, err = strconv.ParseFloat(*profile.MaxTotalUnreadyPercentage, 64)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	newPodScaleUpDelay := ""
@@ -2004,15 +2190,34 @@ func flattenKubernetesClusterAutoScalerProfile(profile *containerservice.Managed
 		scaleDownUtilizationThreshold = *profile.ScaleDownUtilizationThreshold
 	}
 
+	emptyBulkDeleteMax := ""
+	if profile.MaxEmptyBulkDelete != nil {
+		emptyBulkDeleteMax = *profile.MaxEmptyBulkDelete
+	}
+
 	scanInterval := ""
 	if profile.ScanInterval != nil {
 		scanInterval = *profile.ScanInterval
 	}
 
+	skipNodesWithLocalStorage := true
+	if profile.SkipNodesWithLocalStorage != nil {
+		skipNodesWithLocalStorage = strings.EqualFold(*profile.SkipNodesWithLocalStorage, "true")
+	}
+
+	skipNodesWithSystemPods := true
+	if profile.SkipNodesWithSystemPods != nil {
+		skipNodesWithSystemPods = strings.EqualFold(*profile.SkipNodesWithSystemPods, "true")
+	}
+
 	return []interface{}{
 		map[string]interface{}{
 			"balance_similar_node_groups":      balanceSimilarNodeGroups,
+			"expander":                         string(profile.Expander),
 			"max_graceful_termination_sec":     maxGracefulTerminationSec,
+			"max_node_provisioning_time":       maxNodeProvisionTime,
+			"max_unready_nodes":                maxUnreadyNodes,
+			"max_unready_percentage":           maxUnreadyPercentage,
 			"new_pod_scale_up_delay":           newPodScaleUpDelay,
 			"scale_down_delay_after_add":       scaleDownDelayAfterAdd,
 			"scale_down_delay_after_delete":    scaleDownDelayAfterDelete,
@@ -2020,9 +2225,12 @@ func flattenKubernetesClusterAutoScalerProfile(profile *containerservice.Managed
 			"scale_down_unneeded":              scaleDownUnneededTime,
 			"scale_down_unready":               scaleDownUnreadyTime,
 			"scale_down_utilization_threshold": scaleDownUtilizationThreshold,
+			"empty_bulk_delete_max":            emptyBulkDeleteMax,
 			"scan_interval":                    scanInterval,
+			"skip_nodes_with_local_storage":    skipNodesWithLocalStorage,
+			"skip_nodes_with_system_pods":      skipNodesWithSystemPods,
 		},
-	}
+	}, nil
 }
 
 func expandKubernetesClusterAutoScalerProfile(input []interface{}) *containerservice.ManagedClusterPropertiesAutoScalerProfile {
@@ -2033,7 +2241,11 @@ func expandKubernetesClusterAutoScalerProfile(input []interface{}) *containerser
 	config := input[0].(map[string]interface{})
 
 	balanceSimilarNodeGroups := config["balance_similar_node_groups"].(bool)
+	expander := config["expander"].(string)
 	maxGracefulTerminationSec := config["max_graceful_termination_sec"].(string)
+	maxNodeProvisionTime := config["max_node_provisioning_time"].(string)
+	maxUnreadyNodes := fmt.Sprint(config["max_unready_nodes"].(int))
+	maxUnreadyPercentage := fmt.Sprint(config["max_unready_percentage"].(float64))
 	newPodScaleUpDelay := config["new_pod_scale_up_delay"].(string)
 	scaleDownDelayAfterAdd := config["scale_down_delay_after_add"].(string)
 	scaleDownDelayAfterDelete := config["scale_down_delay_after_delete"].(string)
@@ -2041,18 +2253,28 @@ func expandKubernetesClusterAutoScalerProfile(input []interface{}) *containerser
 	scaleDownUnneededTime := config["scale_down_unneeded"].(string)
 	scaleDownUnreadyTime := config["scale_down_unready"].(string)
 	scaleDownUtilizationThreshold := config["scale_down_utilization_threshold"].(string)
+	emptyBulkDeleteMax := config["empty_bulk_delete_max"].(string)
 	scanInterval := config["scan_interval"].(string)
+	skipNodesWithLocalStorage := config["skip_nodes_with_local_storage"].(bool)
+	skipNodesWithSystemPods := config["skip_nodes_with_system_pods"].(bool)
 
 	return &containerservice.ManagedClusterPropertiesAutoScalerProfile{
 		BalanceSimilarNodeGroups:      utils.String(strconv.FormatBool(balanceSimilarNodeGroups)),
+		Expander:                      containerservice.Expander(expander),
 		MaxGracefulTerminationSec:     utils.String(maxGracefulTerminationSec),
+		MaxNodeProvisionTime:          utils.String(maxNodeProvisionTime),
+		MaxTotalUnreadyPercentage:     utils.String(maxUnreadyPercentage),
 		NewPodScaleUpDelay:            utils.String(newPodScaleUpDelay),
+		OkTotalUnreadyCount:           utils.String(maxUnreadyNodes),
 		ScaleDownDelayAfterAdd:        utils.String(scaleDownDelayAfterAdd),
 		ScaleDownDelayAfterDelete:     utils.String(scaleDownDelayAfterDelete),
 		ScaleDownDelayAfterFailure:    utils.String(scaleDownDelayAfterFailure),
 		ScaleDownUnneededTime:         utils.String(scaleDownUnneededTime),
 		ScaleDownUnreadyTime:          utils.String(scaleDownUnreadyTime),
 		ScaleDownUtilizationThreshold: utils.String(scaleDownUtilizationThreshold),
+		MaxEmptyBulkDelete:            utils.String(emptyBulkDeleteMax),
 		ScanInterval:                  utils.String(scanInterval),
+		SkipNodesWithLocalStorage:     utils.String(strconv.FormatBool(skipNodesWithLocalStorage)),
+		SkipNodesWithSystemPods:       utils.String(strconv.FormatBool(skipNodesWithSystemPods)),
 	}
 }

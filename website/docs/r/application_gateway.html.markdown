@@ -15,7 +15,7 @@ Manages an Application Gateway.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "West US"
+  location = "West Europe"
 }
 
 resource "azurerm_virtual_network" "example" {
@@ -336,6 +336,8 @@ A `path_rule` block supports the following:
 
 * `rewrite_rule_set_name` - (Optional) The Name of the Rewrite Rule Set which should be used for this URL Path Map. Only valid for v2 SKUs.
 
+* `firewall_policy_id` - (Optional) The ID of the Web Application Firewall Policy which should be used as a HTTP Listener.
+
 ---
 
 A `probe` block support the following:
@@ -545,6 +547,7 @@ A `rewrite_rule` block supports the following:
 
 * `response_header_configuration` - (Optional) One or more `response_header_configuration` blocks as defined above.
 
+* `url` - (Optional) One `url` block as defined above
 ---
 
 A `condition` block supports the following:
@@ -572,6 +575,18 @@ A `response_header_configuration` block supports the following:
 * `header_name` - (Required) Header name of the header configuration.
 
 * `header_value` - (Required) Header value of the header configuration. To delete a response header set this property to an empty string.
+
+---
+
+A `url` block supports the following:
+
+* `path` - (Optional) The URL path to rewrite.
+
+* `query_string` - (Optional) The query string to rewrite.
+
+~> **Note:** One or both of `path` and `query_string` must be specified.
+
+* `reroute` - (Optional) Whether the URL path map should be reevaluated after this rewrite has been applied. [More info on rewrite configutation](https://docs.microsoft.com/en-us/azure/application-gateway/rewrite-http-headers-url#rewrite-configuration)
 
 ## Attributes Reference
 

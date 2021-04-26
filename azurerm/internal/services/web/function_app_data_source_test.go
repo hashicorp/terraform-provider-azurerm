@@ -83,6 +83,31 @@ func TestAccFunctionAppDataSource_siteConfig(t *testing.T) {
 	})
 }
 
+func TestAccFunctionAppDataSource_clientCertMode(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_function_app", "test")
+
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: FunctionAppDataSource{}.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("client_cert_mode").HasValue(""),
+			),
+		},
+		{
+			Config: FunctionAppDataSource{}.certClientMode(data, "Optional"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("client_cert_mode").HasValue("Optional"),
+			),
+		},
+		{
+			Config: FunctionAppDataSource{}.certClientMode(data, "Required"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("client_cert_mode").HasValue("Required"),
+			),
+		},
+	})
+}
+
 func (d FunctionAppDataSource) basic(data acceptance.TestData) string {
 	template := FunctionAppResource{}.basic(data)
 	return fmt.Sprintf(`
@@ -141,4 +166,16 @@ data "azurerm_function_app" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 `, config)
+}
+
+func (d FunctionAppDataSource) certClientMode(data acceptance.TestData, modeValue string) string {
+	template := FunctionAppResource{}.clientCertMode(data, modeValue)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_function_app" "test" {
+  name                = azurerm_function_app.test.name
+  resource_group_name = azurerm_resource_group.test.name
+}
+`, template)
 }

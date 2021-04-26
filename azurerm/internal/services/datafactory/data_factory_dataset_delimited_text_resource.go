@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -24,9 +25,8 @@ func resourceDataFactoryDatasetDelimitedText() *schema.Resource {
 		Update: resourceDataFactoryDatasetDelimitedTextCreateUpdate,
 		Delete: resourceDataFactoryDatasetDelimitedTextDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -40,7 +40,7 @@ func resourceDataFactoryDatasetDelimitedText() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMDataFactoryLinkedServiceDatasetName,
+				ValidateFunc: validate.LinkedServiceDatasetName,
 			},
 
 			"data_factory_name": {
@@ -525,82 +525,4 @@ func resourceDataFactoryDatasetDelimitedTextDelete(d *schema.ResourceData, meta 
 	}
 
 	return nil
-}
-
-func expandDataFactoryDatasetLocation(d *schema.ResourceData) datafactory.BasicDatasetLocation {
-	if _, ok := d.GetOk("http_server_location"); ok {
-		return expandDataFactoryDatasetHttpServerLocation(d)
-	}
-
-	if _, ok := d.GetOk("azure_blob_storage_location"); ok {
-		return expandDataFactoryDatasetAzureBlobStorageLocation(d)
-	}
-
-	return nil
-}
-
-func expandDataFactoryDatasetHttpServerLocation(d *schema.ResourceData) datafactory.BasicDatasetLocation {
-	props := d.Get("http_server_location").([]interface{})[0].(map[string]interface{})
-	relativeUrl := props["relative_url"].(string)
-	path := props["path"].(string)
-	filename := props["filename"].(string)
-
-	httpServerLocation := datafactory.HTTPServerLocation{
-		RelativeURL: relativeUrl,
-		FolderPath:  path,
-		FileName:    filename,
-	}
-	return httpServerLocation
-}
-
-func expandDataFactoryDatasetAzureBlobStorageLocation(d *schema.ResourceData) datafactory.BasicDatasetLocation {
-	props := d.Get("azure_blob_storage_location").([]interface{})[0].(map[string]interface{})
-	container := props["container"].(string)
-	path := props["path"].(string)
-	filename := props["filename"].(string)
-
-	blobStorageLocation := datafactory.AzureBlobStorageLocation{
-		Container:  container,
-		FolderPath: path,
-		FileName:   filename,
-	}
-	return blobStorageLocation
-}
-
-func flattenDataFactoryDatasetHTTPServerLocation(input *datafactory.HTTPServerLocation) []interface{} {
-	if input == nil {
-		return nil
-	}
-	result := make(map[string]interface{})
-
-	if input.RelativeURL != nil {
-		result["relative_url"] = input.RelativeURL
-	}
-	if input.FolderPath != nil {
-		result["path"] = input.FolderPath
-	}
-	if input.FileName != nil {
-		result["filename"] = input.FileName
-	}
-
-	return []interface{}{result}
-}
-
-func flattenDataFactoryDatasetAzureBlobStorageLocation(input *datafactory.AzureBlobStorageLocation) []interface{} {
-	if input == nil {
-		return nil
-	}
-	result := make(map[string]interface{})
-
-	if input.Container != nil {
-		result["container"] = input.Container
-	}
-	if input.FolderPath != nil {
-		result["path"] = input.FolderPath
-	}
-	if input.FileName != nil {
-		result["filename"] = input.FileName
-	}
-
-	return []interface{}{result}
 }

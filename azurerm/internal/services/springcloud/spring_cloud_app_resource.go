@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/appplatform/mgmt/2020-07-01/appplatform"
+	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2020-11-01-preview/appplatform"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -14,7 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/identity"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/springcloud/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/springcloud/validate"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -28,7 +28,7 @@ func resourceSpringCloudApp() *schema.Resource {
 		Update: resourceSpringCloudAppUpdate,
 		Delete: resourceSpringCloudAppDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.SpringCloudAppID(id)
 			return err
 		}),
@@ -94,6 +94,17 @@ func resourceSpringCloudApp() *schema.Resource {
 				},
 			},
 
+			"tls_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"fqdn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"url": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -140,7 +151,8 @@ func resourceSpringCloudAppCreate(d *schema.ResourceData, meta interface{}) erro
 		Location: serviceResp.Location,
 		Identity: identity,
 		Properties: &appplatform.AppResourceProperties{
-			Public: utils.Bool(d.Get("is_public").(bool)),
+			EnableEndToEndTLS: utils.Bool(d.Get("tls_enabled").(bool)),
+			Public:            utils.Bool(d.Get("is_public").(bool)),
 		},
 	}
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, name, app)
@@ -184,9 +196,10 @@ func resourceSpringCloudAppUpdate(d *schema.ResourceData, meta interface{}) erro
 	app := appplatform.AppResource{
 		Identity: identity,
 		Properties: &appplatform.AppResourceProperties{
-			Public:         utils.Bool(d.Get("is_public").(bool)),
-			HTTPSOnly:      utils.Bool(d.Get("https_only").(bool)),
-			PersistentDisk: expandSpringCloudAppPersistentDisk(d.Get("persistent_disk").([]interface{})),
+			EnableEndToEndTLS: utils.Bool(d.Get("tls_enabled").(bool)),
+			Public:            utils.Bool(d.Get("is_public").(bool)),
+			HTTPSOnly:         utils.Bool(d.Get("https_only").(bool)),
+			PersistentDisk:    expandSpringCloudAppPersistentDisk(d.Get("persistent_disk").([]interface{})),
 		},
 	}
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.AppName, app)
@@ -231,7 +244,9 @@ func resourceSpringCloudAppRead(d *schema.ResourceData, meta interface{}) error 
 	if prop := resp.Properties; prop != nil {
 		d.Set("is_public", prop.Public)
 		d.Set("https_only", prop.HTTPSOnly)
+		d.Set("fqdn", prop.Fqdn)
 		d.Set("url", prop.URL)
+		d.Set("tls_enabled", prop.EnableEndToEndTLS)
 
 		if err := d.Set("persistent_disk", flattenSpringCloudAppPersistentDisk(prop.PersistentDisk)); err != nil {
 			return fmt.Errorf("setting `persistent_disk`: %s", err)

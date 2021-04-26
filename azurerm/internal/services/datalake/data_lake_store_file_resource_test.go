@@ -3,7 +3,6 @@ package datalake_test
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"math/rand"
 	"os"
 	"testing"
@@ -18,30 +17,6 @@ import (
 )
 
 type DataLakeStoreFileResource struct {
-}
-
-func TestValidateDataLakeStoreRemoteFilePath(t *testing.T) {
-	cases := []struct {
-		Value  string
-		Errors int
-	}{
-		{
-			Value:  "bad",
-			Errors: 1,
-		},
-		{
-			Value:  "/good/file/path",
-			Errors: 0,
-		},
-	}
-
-	for _, tc := range cases {
-		_, errors := datalake.ValidateDataLakeStoreRemoteFilePath()(tc.Value, "unittest")
-
-		if len(errors) != tc.Errors {
-			t.Fatalf("Expected validateDataLakeStoreRemoteFilePath to trigger '%d' errors for '%s' - got '%d'", tc.Errors, tc.Value, len(errors))
-		}
-	}
 }
 
 func TestAccDataLakeStoreFile_basic(t *testing.T) {
@@ -68,7 +43,7 @@ func TestAccDataLakeStoreFile_largefiles(t *testing.T) {
 	bytes := make([]byte, largeSize)
 	rand.Read(bytes) // fill with random data
 
-	tmpfile, err := ioutil.TempFile("", "azurerm-acc-datalake-file-large")
+	tmpfile, err := os.CreateTemp("", "azurerm-acc-datalake-file-large")
 	if err != nil {
 		t.Errorf("Unable to open a temporary file.")
 	}

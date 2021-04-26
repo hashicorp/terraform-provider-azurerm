@@ -14,8 +14,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicefabric/parse"
+	serviceFabricValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicefabric/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -34,7 +35,7 @@ func resourceServiceFabricCluster() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ClusterID(id)
 			return err
 		}),
@@ -307,6 +308,104 @@ func resourceServiceFabricCluster() *schema.Resource {
 				},
 			},
 
+			"upgrade_policy": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"force_restart_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"health_check_retry_timeout": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      "00:45:00",
+							ValidateFunc: serviceFabricValidate.UpgradeTimeout,
+						},
+						"health_check_stable_duration": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      "00:01:00",
+							ValidateFunc: serviceFabricValidate.UpgradeTimeout,
+						},
+						"health_check_wait_duration": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      "00:00:30",
+							ValidateFunc: serviceFabricValidate.UpgradeTimeout,
+						},
+						"upgrade_domain_timeout": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      "02:00:00",
+							ValidateFunc: serviceFabricValidate.UpgradeTimeout,
+						},
+						"upgrade_replica_set_check_timeout": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      "10675199.02:48:05.4775807",
+							ValidateFunc: serviceFabricValidate.UpgradeTimeout,
+						},
+						"upgrade_timeout": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      "12:00:00",
+							ValidateFunc: serviceFabricValidate.UpgradeTimeout,
+						},
+						"health_policy": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"max_unhealthy_applications_percent": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										Default:      0,
+										ValidateFunc: validation.IntBetween(0, 100),
+									},
+									"max_unhealthy_nodes_percent": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										Default:      0,
+										ValidateFunc: validation.IntBetween(0, 100),
+									},
+								},
+							},
+						},
+						"delta_health_policy": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"max_delta_unhealthy_applications_percent": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										Default:      0,
+										ValidateFunc: validation.IntBetween(0, 100),
+									},
+									"max_delta_unhealthy_nodes_percent": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										Default:      0,
+										ValidateFunc: validation.IntBetween(0, 100),
+									},
+									"max_upgrade_domain_delta_unhealthy_nodes_percent": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										Default:      0,
+										ValidateFunc: validation.IntBetween(0, 100),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
 			"fabric_settings": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -472,6 +571,9 @@ func resourceServiceFabricClusterCreateUpdate(d *schema.ResourceData, meta inter
 	diagnosticsRaw := d.Get("diagnostics_config").([]interface{})
 	diagnostics := expandServiceFabricClusterDiagnosticsConfig(diagnosticsRaw)
 
+	upgradePolicyRaw := d.Get("upgrade_policy").([]interface{})
+	upgradePolicy := expandServiceFabricClusterUpgradePolicy(upgradePolicyRaw)
+
 	fabricSettingsRaw := d.Get("fabric_settings").([]interface{})
 	fabricSettings := expandServiceFabricClusterFabricSettings(fabricSettingsRaw)
 
@@ -491,6 +593,7 @@ func resourceServiceFabricClusterCreateUpdate(d *schema.ResourceData, meta inter
 			ManagementEndpoint:                 utils.String(managementEndpoint),
 			NodeTypes:                          nodeTypes,
 			ReliabilityLevel:                   servicefabric.ReliabilityLevel(reliabilityLevel),
+			UpgradeDescription:                 upgradePolicy,
 			UpgradeMode:                        servicefabric.UpgradeMode(upgradeMode),
 			VMImage:                            utils.String(vmImage),
 		},
@@ -620,6 +723,11 @@ func resourceServiceFabricClusterRead(d *schema.ResourceData, meta interface{}) 
 		diagnostics := flattenServiceFabricClusterDiagnosticsConfig(props.DiagnosticsStorageAccountConfig)
 		if err := d.Set("diagnostics_config", diagnostics); err != nil {
 			return fmt.Errorf("Error setting `diagnostics_config`: %+v", err)
+		}
+
+		upgradePolicy := flattenServiceFabricClusterUpgradePolicy(props.UpgradeDescription)
+		if err := d.Set("upgrade_policy", upgradePolicy); err != nil {
+			return fmt.Errorf("Error setting `upgrade_description`: %+v", err)
 		}
 
 		fabricSettings := flattenServiceFabricClusterFabricSettings(props.FabricSettings)
@@ -1050,6 +1158,140 @@ func flattenServiceFabricClusterDiagnosticsConfig(input *servicefabric.Diagnosti
 	}
 
 	return results
+}
+
+func expandServiceFabricClusterUpgradePolicyDeltaHealthPolicy(input []interface{}) *servicefabric.ClusterUpgradeDeltaHealthPolicy {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	deltaHealthPolicy := &servicefabric.ClusterUpgradeDeltaHealthPolicy{}
+	v := input[0].(map[string]interface{})
+	deltaHealthPolicy.MaxPercentDeltaUnhealthyNodes = utils.Int32(int32(v["max_delta_unhealthy_nodes_percent"].(int)))
+	deltaHealthPolicy.MaxPercentUpgradeDomainDeltaUnhealthyNodes = utils.Int32(int32(v["max_upgrade_domain_delta_unhealthy_nodes_percent"].(int)))
+	deltaHealthPolicy.MaxPercentDeltaUnhealthyApplications = utils.Int32(int32(v["max_delta_unhealthy_applications_percent"].(int)))
+
+	return deltaHealthPolicy
+}
+
+func expandServiceFabricClusterUpgradePolicyHealthPolicy(input []interface{}) *servicefabric.ClusterHealthPolicy {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	healthPolicy := &servicefabric.ClusterHealthPolicy{}
+	v := input[0].(map[string]interface{})
+	healthPolicy.MaxPercentUnhealthyApplications = utils.Int32(int32(v["max_unhealthy_applications_percent"].(int)))
+	healthPolicy.MaxPercentUnhealthyNodes = utils.Int32(int32(v["max_unhealthy_nodes_percent"].(int)))
+
+	return healthPolicy
+}
+
+func expandServiceFabricClusterUpgradePolicy(input []interface{}) *servicefabric.ClusterUpgradePolicy {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	policy := &servicefabric.ClusterUpgradePolicy{}
+	v := input[0].(map[string]interface{})
+
+	policy.ForceRestart = utils.Bool(v["force_restart_enabled"].(bool))
+	policy.HealthCheckStableDuration = utils.String(v["health_check_stable_duration"].(string))
+	policy.UpgradeDomainTimeout = utils.String(v["upgrade_domain_timeout"].(string))
+	policy.UpgradeReplicaSetCheckTimeout = utils.String(v["upgrade_replica_set_check_timeout"].(string))
+	policy.UpgradeTimeout = utils.String(v["upgrade_timeout"].(string))
+	policy.HealthCheckRetryTimeout = utils.String(v["health_check_retry_timeout"].(string))
+	policy.HealthCheckWaitDuration = utils.String(v["health_check_wait_duration"].(string))
+
+	if v["health_policy"] != nil {
+		policy.HealthPolicy = expandServiceFabricClusterUpgradePolicyHealthPolicy(v["health_policy"].([]interface{}))
+	}
+	if v["delta_health_policy"] != nil {
+		policy.DeltaHealthPolicy = expandServiceFabricClusterUpgradePolicyDeltaHealthPolicy(v["delta_health_policy"].([]interface{}))
+	}
+
+	return policy
+}
+
+func flattenServiceFabricClusterUpgradePolicy(input *servicefabric.ClusterUpgradePolicy) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	output := make(map[string]interface{})
+
+	if forceRestart := input.ForceRestart; forceRestart != nil {
+		output["force_restart_enabled"] = *forceRestart
+	}
+
+	if healthCheckRetryTimeout := input.HealthCheckRetryTimeout; healthCheckRetryTimeout != nil {
+		output["health_check_retry_timeout"] = *healthCheckRetryTimeout
+	}
+
+	if healthCheckStableDuration := input.HealthCheckStableDuration; healthCheckStableDuration != nil {
+		output["health_check_stable_duration"] = *healthCheckStableDuration
+	}
+
+	if healthCheckWaitDuration := input.HealthCheckWaitDuration; healthCheckWaitDuration != nil {
+		output["health_check_wait_duration"] = *healthCheckWaitDuration
+	}
+
+	if upgradeDomainTimeout := input.UpgradeDomainTimeout; upgradeDomainTimeout != nil {
+		output["upgrade_domain_timeout"] = *upgradeDomainTimeout
+	}
+
+	if upgradeReplicaSetCheckTimeout := input.UpgradeReplicaSetCheckTimeout; upgradeReplicaSetCheckTimeout != nil {
+		output["upgrade_replica_set_check_timeout"] = *upgradeReplicaSetCheckTimeout
+	}
+
+	if upgradeTimeout := input.UpgradeTimeout; upgradeTimeout != nil {
+		output["upgrade_timeout"] = *upgradeTimeout
+	}
+
+	output["health_policy"] = flattenServiceFabricClusterUpgradePolicyHealthPolicy(input.HealthPolicy)
+	output["delta_health_policy"] = flattenServiceFabricClusterUpgradePolicyDeltaHealthPolicy(input.DeltaHealthPolicy)
+
+	return []interface{}{output}
+}
+
+func flattenServiceFabricClusterUpgradePolicyHealthPolicy(input *servicefabric.ClusterHealthPolicy) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	output := make(map[string]interface{})
+
+	if input.MaxPercentUnhealthyApplications != nil {
+		output["max_unhealthy_applications_percent"] = *input.MaxPercentUnhealthyApplications
+	}
+
+	if input.MaxPercentUnhealthyNodes != nil {
+		output["max_unhealthy_nodes_percent"] = *input.MaxPercentUnhealthyNodes
+	}
+
+	return []interface{}{output}
+}
+
+func flattenServiceFabricClusterUpgradePolicyDeltaHealthPolicy(input *servicefabric.ClusterUpgradeDeltaHealthPolicy) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	output := make(map[string]interface{})
+
+	if input.MaxPercentDeltaUnhealthyApplications != nil {
+		output["max_delta_unhealthy_applications_percent"] = input.MaxPercentDeltaUnhealthyApplications
+	}
+
+	if input.MaxPercentDeltaUnhealthyNodes != nil {
+		output["max_delta_unhealthy_nodes_percent"] = input.MaxPercentDeltaUnhealthyNodes
+	}
+
+	if input.MaxPercentUpgradeDomainDeltaUnhealthyNodes != nil {
+		output["max_upgrade_domain_delta_unhealthy_nodes_percent"] = input.MaxPercentUpgradeDomainDeltaUnhealthyNodes
+	}
+
+	return []interface{}{output}
 }
 
 func expandServiceFabricClusterFabricSettings(input []interface{}) *[]servicefabric.SettingsSectionDescription {

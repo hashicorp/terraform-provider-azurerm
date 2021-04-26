@@ -7,7 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/cosmos-db/mgmt/2020-04-01-preview/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-01-15/documentdb"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/common"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -26,9 +27,8 @@ func resourceCosmosDbCassandraTable() *schema.Resource {
 		Update: resourceCosmosDbCassandraTableUpdate,
 		Delete: resourceCosmosDbCassandraTableDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -220,7 +220,6 @@ func resourceCosmosDbCassandraTableRead(d *schema.ResourceData, meta interface{}
 
 	keyspaceId := parse.NewCassandraKeyspaceID(subscriptionId, id.ResourceGroup, id.DatabaseAccountName, id.CassandraKeyspaceName)
 
-	d.Set("account_name", id.DatabaseAccountName)
 	d.Set("cassandra_keyspace_id", keyspaceId.ID())
 	if props := resp.CassandraTableGetProperties; props != nil {
 		if res := props.Resource; res != nil {
@@ -342,16 +341,16 @@ func expandTableSchemaClusterKeys(input []interface{}) *[]documentdb.ClusterKey 
 	return &keys
 }
 
-func flattenTableSchema(schema *documentdb.CassandraSchema) []interface{} {
+func flattenTableSchema(input *documentdb.CassandraSchema) []interface{} {
 	results := make([]interface{}, 0)
-	if schema == nil {
+	if input == nil {
 		return results
 	}
 
 	result := make(map[string]interface{})
-	result["column"] = flattenTableSchemaColumns(schema.Columns)
-	result["partition_key"] = flattenTableSchemaPartitionKeys(schema.PartitionKeys)
-	result["cluster_key"] = flattenTableSchemaClusterKeys(schema.ClusterKeys)
+	result["column"] = flattenTableSchemaColumns(input.Columns)
+	result["partition_key"] = flattenTableSchemaPartitionKeys(input.PartitionKeys)
+	result["cluster_key"] = flattenTableSchemaClusterKeys(input.ClusterKeys)
 
 	results = append(results, result)
 	return results

@@ -1,6 +1,8 @@
 package sdk
 
-import "github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+import (
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+)
 
 // TypedServiceRegistration is a Service Registration using Types
 // meaning that we can abstract on top of the Plugin SDK and use
@@ -33,8 +35,8 @@ type UntypedServiceRegistration interface {
 	WebsiteCategories() []string
 
 	// SupportedDataSources returns the supported Data Sources supported by this Service
-	SupportedDataSources() map[string]*schema.Resource
+	SupportedDataSources() map[string]*pluginsdk.Resource
 
 	// SupportedResources returns the supported Resources supported by this Service
-	SupportedResources() map[string]*schema.Resource
+	SupportedResources() map[string]*pluginsdk.Resource
 }

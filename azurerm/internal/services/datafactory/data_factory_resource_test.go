@@ -418,7 +418,7 @@ resource "azurerm_data_factory" "test" {
 
   identity {
     type = "UserAssigned"
-    user_identity_ids = [
+    identity_ids = [
       azurerm_user_assigned_identity.test.id
     ]
   }
@@ -500,7 +500,7 @@ resource "azurerm_data_factory" "test" {
 
   identity {
     type = "UserAssigned"
-    user_identity_ids = [
+    identity_ids = [
       azurerm_user_assigned_identity.test.id
     ]
   }

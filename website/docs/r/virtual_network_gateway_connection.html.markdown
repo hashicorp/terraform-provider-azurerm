@@ -278,10 +278,10 @@ The `ipsec_policy` block supports:
     `ECP256`, `ECP384`, or `None`.
 
 * `ike_encryption` - (Required) The IKE encryption algorithm. Valid
-    options are `AES128`, `AES192`, `AES256`, `DES`, or `DES3`.
+    options are `AES128`, `AES192`, `AES256`, `DES`, `DES3`, `GCMAES128`, or `GCMAES256`.
 
 * `ike_integrity` - (Required) The IKE integrity algorithm. Valid
-    options are `MD5`, `SHA1`, `SHA256`, or `SHA384`.
+    options are `GCMAES128`, `GCMAES256`, `MD5`, `SHA1`, `SHA256`, or `SHA384`.
 
 * `ipsec_encryption` - (Required) The IPSec encryption algorithm. Valid
     options are `AES128`, `AES192`, `AES256`, `DES`, `DES3`, `GCMAES128`, `GCMAES192`, `GCMAES256`, or `None`.
@@ -290,7 +290,7 @@ The `ipsec_policy` block supports:
     options are `GCMAES128`, `GCMAES192`, `GCMAES256`, `MD5`, `SHA1`, or `SHA256`.
 
 * `pfs_group` - (Required) The DH group used in IKE phase 2 for new child SA.
-    Valid options are `ECP256`, `ECP384`, `PFS1`, `PFS2`, `PFS2048`, `PFS24`,
+    Valid options are `ECP256`, `ECP384`, `PFS1`, `PFS14`, `PFS2`, `PFS2048`, `PFS24`, `PFSMM`,
     or `None`.
 
 * `sa_datasize` - (Optional) The IPSec SA payload size in KB. Must be at least

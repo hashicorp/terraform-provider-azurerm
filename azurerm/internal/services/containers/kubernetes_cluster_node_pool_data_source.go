@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-12-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-02-01/containerservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -139,6 +139,8 @@ func dataSourceKubernetesClusterNodePool() *schema.Resource {
 			},
 
 			"tags": tags.SchemaDataSource(),
+
+			"upgrade_settings": upgradeSettingsForDataSourceSchema(),
 
 			"vm_size": {
 				Type:     schema.TypeString,
@@ -275,6 +277,10 @@ func dataSourceKubernetesClusterNodePoolRead(d *schema.ResourceData, meta interf
 			spotMaxPrice = *props.SpotMaxPrice
 		}
 		d.Set("spot_max_price", spotMaxPrice)
+
+		if err := d.Set("upgrade_settings", flattenUpgradeSettings(props.UpgradeSettings)); err != nil {
+			return fmt.Errorf("setting `upgrade_settings`: %+v", err)
+		}
 
 		d.Set("vnet_subnet_id", props.VnetSubnetID)
 		d.Set("vm_size", string(props.VMSize))

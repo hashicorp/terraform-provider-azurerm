@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -28,17 +30,12 @@ func resourceDataFactory() *schema.Resource {
 		Delete: resourceDataFactoryDelete,
 
 		SchemaVersion: 1,
-		StateUpgraders: []schema.StateUpgrader{
-			{
-				Type:    migration.DataFactoryUpgradeV0Schema().CoreConfigSchema().ImpliedType(),
-				Upgrade: migration.DataFactoryUpgradeV0ToV1,
-				Version: 0,
-			},
-		},
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.DataFactoryV0ToV1{},
+		}),
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -72,12 +69,12 @@ func resourceDataFactory() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								"SystemAssigned",
-								"UserAssigned",
+								string(datafactory.SystemAssigned),
+								string(datafactory.UserAssigned),
 							}, false),
 						},
 
-						"user_identity_ids": {
+						"identity_ids": {
 							Type:     schema.TypeSet,
 							Optional: true,
 							Elem: &schema.Schema{
@@ -186,7 +183,7 @@ func resourceDataFactory() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: keyVaultValidate.NestedItemId,
-				RequiredWith: []string{"identity.0.user_identity_ids"},
+				RequiredWith: []string{"identity.0.identity_ids"},
 			},
 
 			"tags": tags.Schema(),
@@ -231,10 +228,10 @@ func resourceDataFactoryCreateUpdate(d *schema.ResourceData, meta interface{}) e
 
 	if v, ok := d.GetOk("identity.0.type"); ok {
 		identityType := v.(string)
-		identityIdsRaw := d.Get("identity.0.user_identity_ids").(*schema.Set).List()
+		identityIdsRaw := d.Get("identity.0.identity_ids").(*schema.Set).List()
 
-		if len(identityIdsRaw) > 0 && identityType != "UserAssigned" {
-			return fmt.Errorf("`user_identity_ids` can only be specified when `type` is `UserAssigned`")
+		if len(identityIdsRaw) > 0 && identityType != string(datafactory.UserAssigned) {
+			return fmt.Errorf("`identity_ids` can only be specified when `type` is `UserAssigned`")
 		}
 
 		identityIds := make(map[string]interface{})
@@ -243,7 +240,7 @@ func resourceDataFactoryCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 
 		dataFactory.Identity = &datafactory.FactoryIdentity{
-			Type:                   &identityType,
+			Type:                   datafactory.FactoryIdentityType(identityType),
 			UserAssignedIdentities: identityIds,
 		}
 	}
@@ -254,7 +251,7 @@ func resourceDataFactoryCreateUpdate(d *schema.ResourceData, meta interface{}) e
 			return fmt.Errorf("could not parse Key Vault Key ID: %+v", err)
 		}
 
-		identityIdsRaw := d.Get("identity.0.user_identity_ids").(*schema.Set).List()
+		identityIdsRaw := d.Get("identity.0.identity_ids").(*schema.Set).List()
 
 		dataFactory.FactoryProperties.Encryption = &datafactory.EncryptionConfiguration{
 			VaultBaseURL: &keyVaultKey.KeyVaultBaseUrl,
@@ -476,26 +473,32 @@ func flattenDataFactoryRepoConfiguration(factory *datafactory.Factory) (datafact
 
 func flattenDataFactoryIdentity(identity *datafactory.FactoryIdentity) interface{} {
 	if identity == nil {
-		return make([]interface{}, 0)
+		return []interface{}{}
 	}
 
-	result := make(map[string]interface{})
-	if identity.Type != nil {
-		result["type"] = *identity.Type
-	}
+	principalId := ""
 	if identity.PrincipalID != nil {
-		result["principal_id"] = identity.PrincipalID.String()
+		principalId = identity.PrincipalID.String()
 	}
+	tenantId := ""
 	if identity.TenantID != nil {
-		result["tenant_id"] = identity.TenantID.String()
+		tenantId = identity.TenantID.String()
 	}
+	var identityIds []string
 	if identity.UserAssignedIdentities != nil {
 		userIdentities := make([]string, 0)
 		for key := range identity.UserAssignedIdentities {
 			userIdentities = append(userIdentities, key)
 		}
-		result["user_identity_ids"] = userIdentities
+		identityIds = userIdentities
 	}
 
-	return []interface{}{result}
+	return []interface{}{
+		map[string]interface{}{
+			"principal_id": principalId,
+			"tenant_id":    tenantId,
+			"type":         string(identity.Type),
+			"identity_ids": identityIds,
+		},
+	}
 }

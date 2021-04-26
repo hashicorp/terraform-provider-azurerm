@@ -142,8 +142,29 @@ func dataSourceMonitorActionGroup() *schema.Resource {
 						},
 						"use_common_alert_schema": {
 							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  false,
+							Computed: true,
+						},
+						"aad_auth": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"object_id": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+
+									"identifier_uri": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+
+									"tenant_id": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+								},
+							},
 						},
 					},
 				},
