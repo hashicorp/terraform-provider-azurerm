@@ -39,7 +39,7 @@ func dataSourceVirtualMachineScaleSet() *schema.Resource {
 
 			"location": azure.SchemaLocationForDataSource(),
 
-			"network_profile": schemaNetworkProfileForDataSource(),
+			"network_interface": VirtualMachineScaleSetNetworkInterfaceSchema(),
 
 			"identity": {
 				Type:     schema.TypeList,
