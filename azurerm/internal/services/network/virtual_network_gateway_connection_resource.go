@@ -205,6 +205,8 @@ func resourceVirtualNetworkGatewayConnection() *schema.Resource {
 								string(network.AES256),
 								string(network.DES),
 								string(network.DES3),
+								string(network.GCMAES128),
+								string(network.GCMAES256),
 							}, true),
 						},
 
@@ -262,9 +264,11 @@ func resourceVirtualNetworkGatewayConnection() *schema.Resource {
 								string(network.PfsGroupECP384),
 								string(network.PfsGroupNone),
 								string(network.PfsGroupPFS1),
+								string(network.PfsGroupPFS14),
 								string(network.PfsGroupPFS2),
 								string(network.PfsGroupPFS2048),
 								string(network.PfsGroupPFS24),
+								string(network.PfsGroupPFSMM),
 							}, true),
 						},
 
