@@ -25,3 +25,8 @@ func RandTimeInt() int {
 
 	return i
 }
+
+// RandString generates a random alphanumeric string of the length specified
+func RandString(strlen int) string {
+	return acctest.RandString(strlen)
+}

@@ -74,6 +74,7 @@ func CassandraTableSchemaPropertySchema() *schema.Schema {
 }
 
 func DatabaseAutoscaleSettingsSchema() *schema.Schema {
+	//lintignore:XS003
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,

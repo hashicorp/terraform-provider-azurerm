@@ -43,6 +43,7 @@ var unsupportedAddonsForEnvironment = map[string][]string{
 }
 
 func schemaKubernetesAddOnProfiles() *schema.Schema {
+	//lintignore:XS003
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		MaxItems: 1,
@@ -172,7 +173,7 @@ func expandKubernetesAddOnProfiles(input []interface{}, env azure.Environment) (
 		omsAgentKey:               &disabled,
 	}
 
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return filterUnsupportedKubernetesAddOns(profiles, env)
 	}
 

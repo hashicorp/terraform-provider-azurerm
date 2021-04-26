@@ -3,21 +3,51 @@
 FEATURES:
 
 * **Data Source:** `azurerm_postgresql_flexible_server` [GH-11081]
+* **Data Source:** `azurerm_key_vault_managed_hardware_security_module` [GH-10873]
 * **New Resource:** `azurerm_data_factory_dataset_snowflake `  [GH-11116]
+* **New Resource:** `azurerm_healthbot` [GH-11002]
+* **New Resource:** `azurerm_key_vault_managed_hardware_security_module `  [GH-10873]
 * **New Resource:** `azurerm_mssql_job_agent` [GH-11248]
+* **New Resource:** `azurerm_mssql_job_credential` [GH-11363]
+* **New Resource:** `azurerm_mssql_transparent_data_encryption` [GH-11148]
 * **New Resource:** `azurerm_postgresql_flexible_server` [GH-11081]
-
+* **New Resource:** `azurerm_spring_cloud_app_cosmosdb_association` [GH-11307]
+* **New Resource:** `azurerm_sentinel_data_connector_microsoft_defender_advanced_threat_protection` [GH-10669]
+* **New Resource:** `azurerm_virtual_machine_configuration_policy_assignment` [GH-11334]
+* **New Resource:** `azurerm_vmware_cluster` [GH-10848]
+* 
 ENHANCEMENTS:
 
-* dependencies: updating to `v53.3.0` of `github.com/Azure/azure-sdk-for-go` [GH-11365]
+* dependencies: updating to `v53.4.0` of `github.com/Azure/azure-sdk-for-go` [GH-11439]
+* dependencies: updating to `v1.17.1` of `github.com/hashicorp/terraform-plugin-sdk` [GH-11431]
 * `azurerm_container_registry` - deprecating the `georeplication_locations` property in favour of the `georeplications` property GH-11200]
-* `azurerm_redis_enterprise_cluster` - support for the `minimum_tls_version` and `hostname` properties [GH-11203]
+* `azurerm_database_migration` - switching to using an ID Formatter [GH-11378]
+* `azurerm_database_migration_project` - switching to using an ID Formatter [GH-11378]
+* `azurerm_databricks_workspace` - switching to using an ID Formatter [GH-11378]
+* `azurerm_databricks_workspace` - fixes propagation of tags to connected resources [GH-11405]
+* `azurerm_data_factory_linked_service_azure_file_storage` - support for the `key_vault_password` property [GH-11436]
+* `azurerm_dedicated_host_group` - support for the `automatic_placement_enabled` property [GH-11428]
+* `azurerm_frontdoor` - sync `MaxItems` on various attributes to match azure docs [GH-11421]
+* `azurerm_hdinsight_interactive_query_cluster` - add support for private link endpoint [GH-11300]
+* `azurerm_hdinsight_hadoop_cluster` - add support for private link endpoint [GH-11300]
+* `azurerm_hdinsight_spark_cluster` - add support for private link endpoint [GH-11300]
+* `azurerm_kubernetes_cluster` support for the `empty_bulk_delete_max` in the `auto_scaler_profile` block #[GH-11060]
 * `azurerm_lighthouse_definition` - support for the `delegated_role_definition_ids` property [GH-11269]
+* `azurerm_postgresql_server` - wait for replica restarts when needed [GH-11458]
+* `azurerm_redis_enterprise_cluster` - support for the `minimum_tls_version` and `hostname` properties [GH-11203]
+* `azurerm_storage_account` -  support for the `change_feed`, `versioning_enabled`, `default_service_version`, and `last_access_time_enabled` properties within the `blob_properties` block [GH-11301]
 
 BUG FIXES:
 
+* `azurerm_api_management` - will no longer panic with an empty `hostname_configuration` [GH-11426]
+* `azurerm_api_management_diagnostic` - fix a crash with the `frontend_request`, `frontend_response`, `backend_request`, `backend_response` blocks [GH-11402]
 * `azurerm_eventgrid_system_topic` - remove strict validation on `topic_type` [GH-11352]
+* `azurerm_iothub` - change `filter_rule` from TypeSet to TypeList to resolve an ordering issue [GH-10341]
 * `azurerm_linux_virtual_machine_scale_set` - the default value for the `priority` property will no longer force a replacement of the resource [GH-11362]
+* `azurerm_monitor_activity_log_alert` - fix a persistent diff for the `service_health` block [GH-11383]
+* `azurerm_mssql_database ` - error when secondary database uses `max_size_gb` [GH-11401]
+* `postgresql_server` - ensure `public_network_access_enabled` is correctly set for replicas [GH-11465]
+* `azurerm_virtual_network_gatewa` - updating the `custom_route` block no longer creates a new resource [GH- 11433]
 
 ## 2.56.0 (April 15, 2021)
 

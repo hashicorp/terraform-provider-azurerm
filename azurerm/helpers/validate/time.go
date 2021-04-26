@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 
 	iso8601 "github.com/btubbs/datetime"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/rickb777/date/period"
 )
 

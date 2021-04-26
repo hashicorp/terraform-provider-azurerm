@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn/migration"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2019-04-15/cdn"
@@ -16,7 +18,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -29,6 +30,11 @@ func resourceCdnEndpoint() *schema.Resource {
 		Update: resourceCdnEndpointUpdate,
 		Delete: resourceCdnEndpointDelete,
 
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.CdnEndpointV0ToV1{},
+		}),
+
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
@@ -36,7 +42,7 @@ func resourceCdnEndpoint() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.EndpointID(id)
 			return err
 		}),
@@ -201,15 +207,6 @@ func resourceCdnEndpoint() *schema.Resource {
 			"delivery_rule": endpointDeliveryRule(),
 
 			"tags": tags.Schema(),
-		},
-
-		SchemaVersion: 1,
-		StateUpgraders: []schema.StateUpgrader{
-			{
-				Type:    migration.CdnEndpointV0Schema().CoreConfigSchema().ImpliedType(),
-				Upgrade: migration.CdnEndpointV0ToV1,
-				Version: 0,
-			},
 		},
 	}
 }
@@ -684,7 +681,7 @@ func expandArmCdnEndpointDeliveryPolicy(globalRulesRaw []interface{}, deliveryRu
 		Rules:       &deliveryRules,
 	}
 
-	if len(globalRulesRaw) > 0 {
+	if len(globalRulesRaw) > 0 && globalRulesRaw[0] != nil {
 		ruleRaw := globalRulesRaw[0].(map[string]interface{})
 		rule, err := expandArmCdnEndpointGlobalDeliveryRule(ruleRaw)
 		if err != nil {

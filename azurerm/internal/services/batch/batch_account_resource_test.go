@@ -6,7 +6,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch/validate"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch/parse"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -34,7 +35,7 @@ func TestValidateBatchAccountName(t *testing.T) {
 	}
 
 	for _, test := range testCases {
-		_, es := batch.ValidateAzureRMBatchAccountName(test.input, "name")
+		_, es := validate.AccountName(test.input, "name")
 
 		if test.shouldError && len(es) == 0 {
 			t.Fatalf("Expected validating name %q to fail", test.input)
