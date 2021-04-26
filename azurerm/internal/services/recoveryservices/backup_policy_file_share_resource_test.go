@@ -222,7 +222,7 @@ resource "azurerm_backup_policy_file_share" "test" {
 
   retention_weekly {
     count    = 7
-    weekdays = ["Sunday", "Wednesday", "Friday"]
+    weekdays = ["Sunday", "Wednesday"]
   }
 
   retention_monthly {
