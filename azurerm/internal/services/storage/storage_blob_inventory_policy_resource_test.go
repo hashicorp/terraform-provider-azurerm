@@ -76,6 +76,13 @@ func TestAccStorageBlobInventoryPolicy_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
+			Config: r.multipleRules(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -125,6 +132,10 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
   allow_blob_public_access = true
+
+  blob_properties {
+    versioning_enabled = true
+  }
 }
 
 resource "azurerm_storage_container" "test" {
@@ -145,7 +156,7 @@ resource "azurerm_storage_blob_inventory_policy" "test" {
   rules {
     name = "rule1"
     filter {
-      blob_types   = ["blockBlob"]
+      blob_types = ["blockBlob"]
     }
   }
 }
@@ -153,7 +164,6 @@ resource "azurerm_storage_blob_inventory_policy" "test" {
 }
 
 func (r StorageBlobInventoryPolicyResource) requiresImport(data acceptance.TestData) string {
-	config := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -161,14 +171,14 @@ resource "azurerm_storage_blob_inventory_policy" "import" {
   storage_account_id     = azurerm_storage_blob_inventory_policy.test.storage_account_id
   storage_container_name = azurerm_storage_blob_inventory_policy.test.storage_container_name
   rules {
-    name = azurerm_storage_blob_inventory_policy.test.rules.0.name
+    name = tolist(azurerm_storage_blob_inventory_policy.test.rules).0.name
     filter {
-      blob_types = azurerm_storage_blob_inventory_policy.test.rules.0.filter.0.blob_types
+      blob_types = tolist(azurerm_storage_blob_inventory_policy.test.rules).0.filter.0.blob_types
 
     }
   }
 }
-`, config)
+`, r.basic(data))
 }
 
 func (r StorageBlobInventoryPolicyResource) complete(data acceptance.TestData) string {
@@ -177,56 +187,48 @@ func (r StorageBlobInventoryPolicyResource) complete(data acceptance.TestData) s
 %s
 
 resource "azurerm_storage_blob_inventory_policy" "test" {
-  name                = "acctest-sbip-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  account_name        = azurerm_storage_account.test.name
-  policy {
-    destination = "containerName"
-    enabled     = true
-    rules {
-      name = "inventoryPolicyRule1"
-      definition {
-        filters {
-          blob_types            = ["blockBlob", "appendBlob", "pageBlob"]
-          include_blob_versions = true
-          include_snapshots     = true
-          prefix_match          = ["inventoryprefix1", "inventoryprefix2"]
-        }
-      }
-      enabled = true
+  storage_account_id     = azurerm_storage_account.test.id
+  storage_container_name = azurerm_storage_container.test.name
+  rules {
+    name = "rule1"
+    filter {
+      blob_types            = ["blockBlob", "pageBlob"]
+      include_blob_versions = true
+      include_snapshots     = true
+      prefix_match          = ["*/test"]
     }
-    type = "Inventory"
   }
 }
-`, template, data.RandomInteger)
+`, template)
 }
 
-func (r StorageBlobInventoryPolicyResource) updatePolicy(data acceptance.TestData) string {
+func (r StorageBlobInventoryPolicyResource) multipleRules(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_storage_blob_inventory_policy" "test" {
-  name                = "acctest-sbip-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  account_name        = azurerm_storage_account.test.name
-  policy {
-    destination = "containerName"
-    enabled     = true
-    rules {
-      name = "inventoryPolicyRule1"
-      definition {
-        filters {
-          blob_types            = ["blockBlob", "appendBlob", "pageBlob"]
-          include_blob_versions = true
-          include_snapshots     = true
-          prefix_match          = ["inventoryprefix1", "inventoryprefix2"]
-        }
-      }
-      enabled = true
+  storage_account_id     = azurerm_storage_account.test.id
+  storage_container_name = azurerm_storage_container.test.name
+  rules {
+    name = "rule1"
+    filter {
+      blob_types            = ["blockBlob", "pageBlob"]
+      include_blob_versions = true
+      include_snapshots     = true
+      prefix_match          = ["*/test"]
     }
-    type = "Inventory"
+  }
+
+  rules {
+    name = "rule2"
+    filter {
+      blob_types            = ["appendBlob"]
+      include_blob_versions = false
+      include_snapshots     = true
+      prefix_match          = ["prefix"]
+    }
   }
 }
-`, template, data.RandomInteger)
+`, template)
 }

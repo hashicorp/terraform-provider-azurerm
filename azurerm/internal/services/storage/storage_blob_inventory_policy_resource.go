@@ -49,7 +49,7 @@ func resourceStorageBlobInventoryPolicy() *schema.Resource {
 			},
 
 			"rules": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -80,11 +80,13 @@ func resourceStorageBlobInventoryPolicy() *schema.Resource {
 									"include_blob_versions": {
 										Type:     schema.TypeBool,
 										Optional: true,
+										Default:  false,
 									},
 
 									"include_snapshots": {
 										Type:     schema.TypeBool,
 										Optional: true,
+										Default:  false,
 									},
 
 									"prefix_match": {
@@ -135,7 +137,7 @@ func resourceStorageBlobInventoryPolicyCreateUpdate(d *schema.ResourceData, meta
 				Enabled:     utils.Bool(true),
 				Destination: utils.String(d.Get("storage_container_name").(string)),
 				Type:        utils.String("Inventory"),
-				Rules:       expandBlobInventoryPolicyRules(d.Get("rules").([]interface{})),
+				Rules:       expandBlobInventoryPolicyRules(d.Get("rules").(*schema.Set).List()),
 			},
 		},
 	}
@@ -175,7 +177,7 @@ func resourceStorageBlobInventoryPolicyRead(d *schema.ResourceData, meta interfa
 				d.SetId("")
 				return nil
 			}
-			//d.Set("storage_container_name",policy.)
+			d.Set("storage_container_name", policy.Destination)
 			d.Set("rules", flattenBlobInventoryPolicyRules(policy.Rules))
 		}
 	}
@@ -237,7 +239,7 @@ func flattenBlobInventoryPolicyRules(input *[]storage.BlobInventoryPolicyRule) [
 		if item.Name != nil {
 			name = *item.Name
 		}
-		if item.Enabled != nil || !*item.Enabled || item.Definition == nil {
+		if item.Enabled == nil || !*item.Enabled || item.Definition == nil {
 			continue
 		}
 		results = append(results, map[string]interface{}{

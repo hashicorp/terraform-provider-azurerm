@@ -1621,9 +1621,11 @@ func expandBlobPropertiesChangeFeed(inputs []interface{}, isHnsEnabled bool, acc
 		Enabled: utils.Bool(true),
 	}
 
-	input := inputs[0].(map[string]interface{})
-	if v, ok := input["retention_in_days"].(int); ok && v != 0 {
-		result.RetentionInDays = utils.Int32(int32(v))
+	if inputs[0] != nil {
+		input := inputs[0].(map[string]interface{})
+		if v, ok := input["retention_in_days"].(int); ok && v != 0 {
+			result.RetentionInDays = utils.Int32(int32(v))
+		}
 	}
 
 	return &result, nil
@@ -1843,10 +1845,6 @@ func flattenBlobProperties(input storage.BlobServiceProperties) []interface{} {
 	flattenedContainerDeletePolicy := make([]interface{}, 0)
 	if containerDeletePolicy := input.BlobServicePropertiesProperties.ContainerDeleteRetentionPolicy; containerDeletePolicy != nil {
 		flattenedContainerDeletePolicy = flattenBlobPropertiesDeleteRetentionPolicy(containerDeletePolicy)
-	}
-
-	if len(flattenedCorsRules) == 0 && len(flattenedDeletePolicy) == 0 && len(flattenedContainerDeletePolicy) == 0 {
-		return []interface{}{}
 	}
 
 	versioning := false
