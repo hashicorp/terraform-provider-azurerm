@@ -2,7 +2,6 @@ package healthcare
 
 import (
 	"fmt"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/common"
 	keyVaultParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"log"
@@ -407,7 +406,7 @@ func expandAzureRMhealthcareapisCosmosDbConfiguration(d *schema.ResourceData) (*
 
 	cosmosDbConfigAttr := cosmosDbConfigRaw[0].(map[string]interface{})
 	cosmosdb := &healthcareapis.ServiceCosmosDbConfigurationInfo{
-		OfferThroughput: common.ConvertThroughputFromResourceData(cosmosDbConfigAttr["throughput"]),
+		OfferThroughput: utils.Int32(int32(cosmosDbConfigAttr["throughput"].(int))),
 	}
 	if keyVaultKeyIDRaw := cosmosDbConfigAttr["key_vault_key_id"]; keyVaultKeyIDRaw != "" {
 		keyVaultKey, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyVaultKeyIDRaw.(string))
