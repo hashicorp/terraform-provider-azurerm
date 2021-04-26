@@ -22,6 +22,7 @@ resource "azurerm_lighthouse_definition" "example" {
   name               = "Sample definition"
   description        = "This is a lighthouse definition created via Terraform"
   managing_tenant_id = "00000000-0000-0000-0000-000000000000"
+  scope              = "/subscriptions/00000000-0000-0000-0000-000000000000"
 
   authorization {
     principal_id           = "00000000-0000-0000-0000-000000000000"
@@ -41,6 +42,8 @@ The following arguments are supported:
 
 * `managing_tenant_id` - (Required) The ID of the managing tenant.
 
+* `scope` - (Required) The ID of the managed subscription.
+
 * `description` - (Optional) A description of the Lighthouse Definition.
 
 * `authorization` - (Required) An authorization block as defined below.  
@@ -51,9 +54,11 @@ An `authorization` block supports the following:
 
 * `principal_id` - (Required) Principal ID of the security group/service principal/user that would be assigned permissions to the projected subscription.
 
-* `principal_display_name` - (Optional) The display name of the security group/service principal/user that would be assigned permissions to the projected subscription.
-
 * `role_definition_id` - (Required) The role definition identifier. This role will define the permissions that are granted to the principal. This cannot be an `Owner` role.
+
+* `delegated_role_definition_ids` - (Optional) The set of role definition ids which define all the permissions that the principal id can assign.
+  
+* `principal_display_name` - (Optional) The display name of the security group/service principal/user that would be assigned permissions to the projected subscription.
 
 ## Attributes Reference
 

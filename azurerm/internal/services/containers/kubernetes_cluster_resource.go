@@ -1,16 +1,14 @@
 package containers
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strconv"
 	"strings"
 	"time"
 
-	privateDnsValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns/validate"
-
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-12-01/containerservice"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-02-01/containerservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -23,8 +21,9 @@ import (
 	containerValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/validate"
 	msiparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
 	msivalidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
+	privateDnsValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -37,14 +36,14 @@ func resourceKubernetesCluster() *schema.Resource {
 		Update: resourceKubernetesClusterUpdate,
 		Delete: resourceKubernetesClusterDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ClusterID(id)
 			return err
 		}),
 
-		CustomizeDiff: customdiff.Sequence(
+		CustomizeDiff: pluginsdk.CustomDiffInSequence(
 			// Downgrade from Paid to Free is not supported and requires rebuild to apply
-			customdiff.ForceNewIfChange("sku_tier", func(old, new, meta interface{}) bool {
+			pluginsdk.ForceNewIfChange("sku_tier", func(ctx context.Context, old, new, meta interface{}) bool {
 				return new == "Free"
 			}),
 		),
@@ -108,6 +107,17 @@ func resourceKubernetesCluster() *schema.Resource {
 							Optional: true,
 							Default:  false,
 						},
+						"expander": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(containerservice.LeastWaste),
+								string(containerservice.MostPods),
+								string(containerservice.Priority),
+								string(containerservice.Random),
+							}, false),
+						},
 						"max_graceful_termination_sec": {
 							Type:     schema.TypeString,
 							Optional: true,
@@ -156,6 +166,11 @@ func resourceKubernetesCluster() *schema.Resource {
 							ValidateFunc: containerValidate.Duration,
 						},
 						"scale_down_utilization_threshold": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
+						"empty_bulk_delete_max": {
 							Type:     schema.TypeString,
 							Optional: true,
 							Computed: true,
@@ -474,6 +489,7 @@ func resourceKubernetesCluster() *schema.Resource {
 					privateDnsValidate.PrivateDnsZoneID,
 					validation.StringInSlice([]string{
 						"System",
+						"None",
 					}, false),
 				),
 			},
@@ -500,12 +516,20 @@ func resourceKubernetesCluster() *schema.Resource {
 										Type:         schema.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.IsUUID,
+										AtLeastOneOf: []string{"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
+											"role_based_access_control.0.azure_active_directory.0.server_app_secret", "role_based_access_control.0.azure_active_directory.0.tenant_id",
+											"role_based_access_control.0.azure_active_directory.0.managed", "role_based_access_control.0.azure_active_directory.0.admin_group_object_ids",
+										},
 									},
 
 									"server_app_id": {
 										Type:         schema.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.IsUUID,
+										AtLeastOneOf: []string{"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
+											"role_based_access_control.0.azure_active_directory.0.server_app_secret", "role_based_access_control.0.azure_active_directory.0.tenant_id",
+											"role_based_access_control.0.azure_active_directory.0.managed", "role_based_access_control.0.azure_active_directory.0.admin_group_object_ids",
+										},
 									},
 
 									"server_app_secret": {
@@ -513,6 +537,10 @@ func resourceKubernetesCluster() *schema.Resource {
 										Optional:     true,
 										Sensitive:    true,
 										ValidateFunc: validation.StringIsNotEmpty,
+										AtLeastOneOf: []string{"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
+											"role_based_access_control.0.azure_active_directory.0.server_app_secret", "role_based_access_control.0.azure_active_directory.0.tenant_id",
+											"role_based_access_control.0.azure_active_directory.0.managed", "role_based_access_control.0.azure_active_directory.0.admin_group_object_ids",
+										},
 									},
 
 									"tenant_id": {
@@ -521,11 +549,19 @@ func resourceKubernetesCluster() *schema.Resource {
 										Computed: true,
 										// OrEmpty since this can be sourced from the client config if it's not specified
 										ValidateFunc: validation.Any(validation.IsUUID, validation.StringIsEmpty),
+										AtLeastOneOf: []string{"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
+											"role_based_access_control.0.azure_active_directory.0.server_app_secret", "role_based_access_control.0.azure_active_directory.0.tenant_id",
+											"role_based_access_control.0.azure_active_directory.0.managed", "role_based_access_control.0.azure_active_directory.0.admin_group_object_ids",
+										},
 									},
 
 									"managed": {
 										Type:     schema.TypeBool,
 										Optional: true,
+										AtLeastOneOf: []string{"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
+											"role_based_access_control.0.azure_active_directory.0.server_app_secret", "role_based_access_control.0.azure_active_directory.0.tenant_id",
+											"role_based_access_control.0.azure_active_directory.0.managed", "role_based_access_control.0.azure_active_directory.0.admin_group_object_ids",
+										},
 									},
 
 									"admin_group_object_ids": {
@@ -535,6 +571,10 @@ func resourceKubernetesCluster() *schema.Resource {
 										Elem: &schema.Schema{
 											Type:         schema.TypeString,
 											ValidateFunc: validation.IsUUID,
+										},
+										AtLeastOneOf: []string{"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
+											"role_based_access_control.0.azure_active_directory.0.server_app_secret", "role_based_access_control.0.azure_active_directory.0.tenant_id",
+											"role_based_access_control.0.azure_active_directory.0.managed", "role_based_access_control.0.azure_active_directory.0.admin_group_object_ids",
 										},
 									},
 								},
@@ -599,7 +639,7 @@ func resourceKubernetesCluster() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Sensitive:    true,
-							ValidateFunc: validation.StringLenBetween(14, 123),
+							ValidateFunc: validation.StringLenBetween(8, 123),
 						},
 					},
 				},
@@ -843,17 +883,19 @@ func resourceKubernetesClusterCreate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
+	servicePrincipalSet := false
 	if len(servicePrincipalProfileRaw) > 0 {
 		servicePrincipalProfileVal := servicePrincipalProfileRaw[0].(map[string]interface{})
 		parameters.ManagedClusterProperties.ServicePrincipalProfile = &containerservice.ManagedClusterServicePrincipalProfile{
 			ClientID: utils.String(servicePrincipalProfileVal["client_id"].(string)),
 			Secret:   utils.String(servicePrincipalProfileVal["client_secret"].(string)),
 		}
+		servicePrincipalSet = true
 	}
 
 	if v, ok := d.GetOk("private_dns_zone_id"); ok {
-		if parameters.Identity == nil || (v.(string) != "System" && parameters.Identity.Type != containerservice.ResourceIdentityTypeUserAssigned) {
-			return fmt.Errorf("a user assigned identity must be used when using a custom private dns zone")
+		if (parameters.Identity == nil && !servicePrincipalSet) || (v.(string) != "System" && v.(string) != "None" && (!servicePrincipalSet && parameters.Identity.Type != containerservice.ResourceIdentityTypeUserAssigned)) {
+			return fmt.Errorf("a user assigned identity or a service principal must be used when using a custom private dns zone")
 		}
 		apiAccessProfile.PrivateDNSZone = utils.String(v.(string))
 	}
@@ -914,6 +956,14 @@ func resourceKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}) e
 
 	if err := validateKubernetesCluster(d, &existing, id.ResourceGroup, id.ManagedClusterName); err != nil {
 		return err
+	}
+
+	// when update, we should set the value of `Identity.UserAssignedIdentities` empty
+	// otherwise the rest api will report error - this is tracked here: https://github.com/Azure/azure-rest-api-specs/issues/13631
+	if existing.Identity != nil && existing.Identity.UserAssignedIdentities != nil {
+		for k := range existing.Identity.UserAssignedIdentities {
+			existing.Identity.UserAssignedIdentities[k] = &containerservice.ManagedClusterIdentityUserAssignedIdentitiesValue{}
+		}
 	}
 
 	if d.HasChange("service_principal") {
@@ -2076,6 +2126,11 @@ func flattenKubernetesClusterAutoScalerProfile(profile *containerservice.Managed
 		scaleDownUtilizationThreshold = *profile.ScaleDownUtilizationThreshold
 	}
 
+	emptyBulkDeleteMax := ""
+	if profile.MaxEmptyBulkDelete != nil {
+		emptyBulkDeleteMax = *profile.MaxEmptyBulkDelete
+	}
+
 	scanInterval := ""
 	if profile.ScanInterval != nil {
 		scanInterval = *profile.ScanInterval
@@ -2094,6 +2149,7 @@ func flattenKubernetesClusterAutoScalerProfile(profile *containerservice.Managed
 	return []interface{}{
 		map[string]interface{}{
 			"balance_similar_node_groups":      balanceSimilarNodeGroups,
+			"expander":                         string(profile.Expander),
 			"max_graceful_termination_sec":     maxGracefulTerminationSec,
 			"new_pod_scale_up_delay":           newPodScaleUpDelay,
 			"scale_down_delay_after_add":       scaleDownDelayAfterAdd,
@@ -2102,6 +2158,7 @@ func flattenKubernetesClusterAutoScalerProfile(profile *containerservice.Managed
 			"scale_down_unneeded":              scaleDownUnneededTime,
 			"scale_down_unready":               scaleDownUnreadyTime,
 			"scale_down_utilization_threshold": scaleDownUtilizationThreshold,
+			"empty_bulk_delete_max":            emptyBulkDeleteMax,
 			"scan_interval":                    scanInterval,
 			"skip_nodes_with_local_storage":    skipNodesWithLocalStorage,
 			"skip_nodes_with_system_pods":      skipNodesWithSystemPods,
@@ -2117,6 +2174,7 @@ func expandKubernetesClusterAutoScalerProfile(input []interface{}) *containerser
 	config := input[0].(map[string]interface{})
 
 	balanceSimilarNodeGroups := config["balance_similar_node_groups"].(bool)
+	expander := config["expander"].(string)
 	maxGracefulTerminationSec := config["max_graceful_termination_sec"].(string)
 	newPodScaleUpDelay := config["new_pod_scale_up_delay"].(string)
 	scaleDownDelayAfterAdd := config["scale_down_delay_after_add"].(string)
@@ -2125,12 +2183,14 @@ func expandKubernetesClusterAutoScalerProfile(input []interface{}) *containerser
 	scaleDownUnneededTime := config["scale_down_unneeded"].(string)
 	scaleDownUnreadyTime := config["scale_down_unready"].(string)
 	scaleDownUtilizationThreshold := config["scale_down_utilization_threshold"].(string)
+	emptyBulkDeleteMax := config["empty_bulk_delete_max"].(string)
 	scanInterval := config["scan_interval"].(string)
 	skipNodesWithLocalStorage := config["skip_nodes_with_local_storage"].(bool)
 	skipNodesWithSystemPods := config["skip_nodes_with_system_pods"].(bool)
 
 	return &containerservice.ManagedClusterPropertiesAutoScalerProfile{
 		BalanceSimilarNodeGroups:      utils.String(strconv.FormatBool(balanceSimilarNodeGroups)),
+		Expander:                      containerservice.Expander(expander),
 		MaxGracefulTerminationSec:     utils.String(maxGracefulTerminationSec),
 		NewPodScaleUpDelay:            utils.String(newPodScaleUpDelay),
 		ScaleDownDelayAfterAdd:        utils.String(scaleDownDelayAfterAdd),
@@ -2139,6 +2199,7 @@ func expandKubernetesClusterAutoScalerProfile(input []interface{}) *containerser
 		ScaleDownUnneededTime:         utils.String(scaleDownUnneededTime),
 		ScaleDownUnreadyTime:          utils.String(scaleDownUnreadyTime),
 		ScaleDownUtilizationThreshold: utils.String(scaleDownUtilizationThreshold),
+		MaxEmptyBulkDelete:            utils.String(emptyBulkDeleteMax),
 		ScanInterval:                  utils.String(scanInterval),
 		SkipNodesWithLocalStorage:     utils.String(strconv.FormatBool(skipNodesWithLocalStorage)),
 		SkipNodesWithSystemPods:       utils.String(strconv.FormatBool(skipNodesWithSystemPods)),

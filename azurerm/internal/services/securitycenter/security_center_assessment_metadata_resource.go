@@ -12,17 +12,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter/parse"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmSecurityCenterAssessmentMetadata() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSecurityCenterAssessmentMetadataCreate,
-		Read:   resourceArmSecurityCenterAssessmentMetadataRead,
-		Update: resourceArmSecurityCenterAssessmentMetadataUpdate,
-		Delete: resourceArmSecurityCenterAssessmentMetadataDelete,
+		Create:             resourceArmSecurityCenterAssessmentMetadataCreate,
+		Read:               resourceArmSecurityCenterAssessmentMetadataRead,
+		Update:             resourceArmSecurityCenterAssessmentMetadataUpdate,
+		Delete:             resourceArmSecurityCenterAssessmentMetadataDelete,
+		DeprecationMessage: "This resource has been renamed to `azurerm_security_center_assessment_policy` and will be removed in version 3.0 of the provider.",
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -31,7 +32,7 @@ func resourceArmSecurityCenterAssessmentMetadata() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.AssessmentMetadataID(id)
 			return err
 		}),

@@ -17,12 +17,14 @@ Below are some of the key scenarios that Azure Front Door Service addresses:
 * Use Front Door to improve application performance with SSL offload and routing requests to the fastest available application backend.
 * Use Front Door for application layer security and DDoS protection for your application.
 
+!> **Be Aware:** Azure is rolling out a breaking change on Friday 9th April which may cause issues with the CDN/FrontDoor resources. [More information is available in this Github issue](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11231) - however unfortunately this may necessitate a breaking change to the CDN and FrontDoor resources, more information will be posted [in the Github issue](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11231) as the necessary changes are identified.
+
 ## Example Usage
 
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "FrontDoorExampleResourceGroup"
-  location = "EastUS2"
+  location = "West Europe"
 }
 
 resource "azurerm_frontdoor" "example" {
@@ -82,6 +84,8 @@ The following arguments are supported:
 * `resource_group_name` - (Required) Specifies the name of the Resource Group in which the Front Door service should exist. Changing this forces a new resource to be created.
 
 * `backend_pool` - (Required) A `backend_pool` block as defined below.
+
+-> Azure by default allows specifying up to 50 Backend Pools - but this quota can be increased via Microsoft Support.
 
 * `backend_pool_health_probe` - (Required) A `backend_pool_health_probe` block as defined below.
 

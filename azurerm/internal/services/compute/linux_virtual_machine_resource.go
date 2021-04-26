@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -22,7 +22,7 @@ import (
 	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/base64"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -36,7 +36,7 @@ func resourceLinuxVirtualMachine() *schema.Resource {
 		Read:   resourceLinuxVirtualMachineRead,
 		Update: resourceLinuxVirtualMachineUpdate,
 		Delete: resourceLinuxVirtualMachineDelete,
-		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.VirtualMachineID(id)
 			return err
 		}, importVirtualMachine(compute.Linux, "azurerm_linux_virtual_machine")),
@@ -53,7 +53,7 @@ func resourceLinuxVirtualMachine() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateVmName,
+				ValidateFunc: computeValidate.VirtualMachineName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -130,7 +130,7 @@ func resourceLinuxVirtualMachine() *schema.Resource {
 				Computed: true,
 				ForceNew: true,
 
-				ValidateFunc: ValidateLinuxComputerNameFull,
+				ValidateFunc: computeValidate.LinuxComputerNameFull,
 			},
 
 			"custom_data": base64.OptionalSchema(true),
@@ -176,6 +176,15 @@ func resourceLinuxVirtualMachine() *schema.Resource {
 			},
 
 			"identity": virtualMachineIdentitySchema(),
+
+			"license_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"RHEL_BYOS",
+					"SLES_BYOS",
+				}, false),
+			},
 
 			"max_bid_price": {
 				Type:         schema.TypeFloat,
@@ -236,6 +245,15 @@ func resourceLinuxVirtualMachine() *schema.Resource {
 					"availability_set_id",
 				},
 				ValidateFunc: computeValidate.VirtualMachineScaleSetID,
+			},
+
+			"platform_fault_domain": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Default:      -1,
+				ForceNew:     true,
+				RequiredWith: []string{"virtual_machine_scale_set_id"},
+				ValidateFunc: validation.IntAtLeast(-1),
 			},
 
 			"tags": tags.Schema(),
@@ -319,7 +337,7 @@ func resourceLinuxVirtualMachineCreate(d *schema.ResourceData, meta interface{})
 	if v, ok := d.GetOk("computer_name"); ok && len(v.(string)) > 0 {
 		computerName = v.(string)
 	} else {
-		_, errs := ValidateLinuxComputerNameFull(d.Get("name"), "computer_name")
+		_, errs := computeValidate.LinuxComputerNameFull(d.Get("name"), "computer_name")
 		if len(errs) > 0 {
 			return fmt.Errorf("unable to assume default computer name %s Please adjust the %q, or specify an explicit %q", errs[0], "name", "computer_name")
 		}
@@ -401,6 +419,10 @@ func resourceLinuxVirtualMachineCreate(d *schema.ResourceData, meta interface{})
 		Tags: tags.Expand(t),
 	}
 
+	if v, ok := d.GetOk("license_type"); ok {
+		params.VirtualMachineProperties.LicenseType = utils.String(v.(string))
+	}
+
 	if encryptionAtHostEnabled, ok := d.GetOk("encryption_at_host_enabled"); ok {
 		params.VirtualMachineProperties.SecurityProfile = &compute.SecurityProfile{
 			EncryptionAtHost: utils.Bool(encryptionAtHostEnabled.(bool)),
@@ -457,6 +479,11 @@ func resourceLinuxVirtualMachineCreate(d *schema.ResourceData, meta interface{})
 		params.VirtualMachineScaleSet = &compute.SubResource{
 			ID: utils.String(v.(string)),
 		}
+	}
+
+	platformFaultDomain := d.Get("platform_fault_domain").(int)
+	if platformFaultDomain != -1 {
+		params.PlatformFaultDomain = utils.Int32(int32(platformFaultDomain))
 	}
 
 	if v, ok := d.GetOk("zone"); ok {
@@ -556,6 +583,12 @@ func resourceLinuxVirtualMachineRead(d *schema.ResourceData, meta interface{}) e
 	}
 	d.Set("availability_set_id", availabilitySetId)
 
+	licenseType := ""
+	if props.LicenseType != nil {
+		licenseType = *props.LicenseType
+	}
+	d.Set("license_type", licenseType)
+
 	if err := d.Set("boot_diagnostics", flattenBootDiagnostics(props.DiagnosticsProfile)); err != nil {
 		return fmt.Errorf("setting `boot_diagnostics`: %+v", err)
 	}
@@ -595,6 +628,11 @@ func resourceLinuxVirtualMachineRead(d *schema.ResourceData, meta interface{}) e
 		virtualMachineScaleSetId = *props.VirtualMachineScaleSet.ID
 	}
 	d.Set("virtual_machine_scale_set_id", virtualMachineScaleSetId)
+	platformFaultDomain := -1
+	if props.PlatformFaultDomain != nil {
+		platformFaultDomain = int(*props.PlatformFaultDomain)
+	}
+	d.Set("platform_fault_domain", platformFaultDomain)
 
 	if profile := props.OsProfile; profile != nil {
 		d.Set("admin_username", profile.AdminUsername)
@@ -757,6 +795,14 @@ func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
 		update.Identity = identity
+	}
+
+	if d.HasChange("license_type") {
+		shouldUpdate = true
+
+		if v, ok := d.GetOk("license_type"); ok {
+			update.LicenseType = utils.String(v.(string))
+		}
 	}
 
 	if d.HasChange("dedicated_host_id") {
@@ -1013,7 +1059,7 @@ func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{})
 			update := compute.DiskUpdate{
 				DiskUpdateProperties: &compute.DiskUpdateProperties{
 					Encryption: &compute.Encryption{
-						Type:                compute.EncryptionAtRestWithCustomerKey,
+						Type:                compute.EncryptionTypeEncryptionAtRestWithCustomerKey,
 						DiskEncryptionSetID: utils.String(diskEncryptionSetId),
 					},
 				},

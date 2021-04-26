@@ -13,7 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthcare/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -32,7 +32,7 @@ func resourceHealthcareService() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ServiceID(id)
 			return err
 		}),
@@ -84,16 +84,19 @@ func resourceHealthcareService() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"authority": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							AtLeastOneOf: []string{"authentication_configuration.0.authority", "authentication_configuration.0.audience", "authentication_configuration.0.smart_proxy_enabled"},
 						},
 						"audience": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							AtLeastOneOf: []string{"authentication_configuration.0.authority", "authentication_configuration.0.audience", "authentication_configuration.0.smart_proxy_enabled"},
 						},
 						"smart_proxy_enabled": {
-							Type:     schema.TypeBool,
-							Optional: true,
+							Type:         schema.TypeBool,
+							Optional:     true,
+							AtLeastOneOf: []string{"authentication_configuration.0.authority", "authentication_configuration.0.audience", "authentication_configuration.0.smart_proxy_enabled"},
 						},
 					},
 				},
@@ -114,6 +117,10 @@ func resourceHealthcareService() *schema.Resource {
 								Type:         schema.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
+							AtLeastOneOf: []string{"cors_configuration.0.allowed_origins", "cors_configuration.0.allowed_headers",
+								"cors_configuration.0.allowed_methods", "cors_configuration.0.max_age_in_seconds",
+								"cors_configuration.0.allow_credentials",
+							},
 						},
 						"allowed_headers": {
 							Type:     schema.TypeSet,
@@ -122,6 +129,10 @@ func resourceHealthcareService() *schema.Resource {
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							AtLeastOneOf: []string{"cors_configuration.0.allowed_origins", "cors_configuration.0.allowed_headers",
+								"cors_configuration.0.allowed_methods", "cors_configuration.0.max_age_in_seconds",
+								"cors_configuration.0.allow_credentials",
 							},
 						},
 						"allowed_methods": {
@@ -140,15 +151,27 @@ func resourceHealthcareService() *schema.Resource {
 									"PUT",
 								}, false),
 							},
+							AtLeastOneOf: []string{"cors_configuration.0.allowed_origins", "cors_configuration.0.allowed_headers",
+								"cors_configuration.0.allowed_methods", "cors_configuration.0.max_age_in_seconds",
+								"cors_configuration.0.allow_credentials",
+							},
 						},
 						"max_age_in_seconds": {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntBetween(0, 2000000000),
+							AtLeastOneOf: []string{"cors_configuration.0.allowed_origins", "cors_configuration.0.allowed_headers",
+								"cors_configuration.0.allowed_methods", "cors_configuration.0.max_age_in_seconds",
+								"cors_configuration.0.allow_credentials",
+							},
 						},
 						"allow_credentials": {
 							Type:     schema.TypeBool,
 							Optional: true,
+							AtLeastOneOf: []string{"cors_configuration.0.allowed_origins", "cors_configuration.0.allowed_headers",
+								"cors_configuration.0.allowed_methods", "cors_configuration.0.max_age_in_seconds",
+								"cors_configuration.0.allow_credentials",
+							},
 						},
 					},
 				},

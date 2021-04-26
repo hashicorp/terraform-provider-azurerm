@@ -84,6 +84,7 @@ The following attributes are exported:
 
 * `id` - The Key Vault Secret ID.
 * `version` - The current version of the Key Vault Secret.
+* `versionless_id` - The Base ID of the Key Vault Secret.
 
 ## Timeouts
 

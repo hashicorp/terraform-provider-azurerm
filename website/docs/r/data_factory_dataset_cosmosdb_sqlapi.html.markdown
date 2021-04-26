@@ -15,7 +15,7 @@ Manages an Azure Cosmos DB SQL API Dataset inside an Azure Data Factory.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "northeurope"
+  location = "West Europe"
 }
 
 data "azurerm_cosmosdb_account" "example" {

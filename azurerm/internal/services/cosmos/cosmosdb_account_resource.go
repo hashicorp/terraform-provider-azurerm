@@ -23,6 +23,7 @@ import (
 	keyVaultParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -47,9 +48,8 @@ func resourceCosmosDbAccount() *schema.Resource {
 		Read:   resourceCosmosDbAccountRead,
 		Update: resourceCosmosDbAccountUpdate,
 		Delete: resourceCosmosDbAccountDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(180 * time.Minute),
@@ -355,7 +355,8 @@ func resourceCosmosDbAccount() *schema.Resource {
 				Computed:  true,
 				Sensitive: true,
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
+					Type:      schema.TypeString,
+					Sensitive: true,
 				},
 			},
 
@@ -999,6 +1000,17 @@ func findZoneRedundant(locations *[]documentdb.Location, id string) bool {
 		if location.ID != nil && *location.ID == id {
 			if location.IsZoneRedundant != nil {
 				return *location.IsZoneRedundant
+			}
+		}
+	}
+	return false
+}
+
+func isServerlessCapacityMode(accResp documentdb.DatabaseAccountGetResults) bool {
+	if props := accResp.DatabaseAccountGetProperties; props != nil && props.Capabilities != nil {
+		for _, v := range *props.Capabilities {
+			if v.Name != nil && *v.Name == "EnableServerless" {
+				return true
 			}
 		}
 	}

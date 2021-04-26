@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -24,9 +25,8 @@ func resourceApiManagementLogger() *schema.Resource {
 		Update: resourceApiManagementLoggerUpdate,
 		Delete: resourceApiManagementLoggerDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -41,6 +41,12 @@ func resourceApiManagementLogger() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"api_management_name": schemaz.SchemaApiManagementName(),
+
+			"resource_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
 
 			"eventhub": {
 				Type:          schema.TypeList,
@@ -142,6 +148,10 @@ func resourceApiManagementLoggerCreate(d *schema.ResourceData, meta interface{})
 		parameters.Credentials = expandApiManagementLoggerApplicationInsights(appInsightsRaw)
 	}
 
+	if resourceId := d.Get("resource_id").(string); resourceId != "" {
+		parameters.ResourceID = utils.String(resourceId)
+	}
+
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, name, parameters, ""); err != nil {
 		return fmt.Errorf("creating Logger %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
 	}
@@ -184,6 +194,7 @@ func resourceApiManagementLoggerRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("api_management_name", serviceName)
+	d.Set("resource_id", resp.ResourceID)
 
 	if properties := resp.LoggerContractProperties; properties != nil {
 		d.Set("buffered", properties.IsBuffered)

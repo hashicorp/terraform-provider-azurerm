@@ -121,7 +121,7 @@ resource "azurerm_custom_provider" "test" {
 
   resource_type {
     name     = "dEf1"
-    endpoint = "https://testendpoint.com/"
+    endpoint = "https://example.com/"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -143,7 +143,7 @@ resource "azurerm_custom_provider" "test" {
 
   resource_type {
     name     = "dEf1"
-    endpoint = "https://testendpoint.com/"
+    endpoint = "https://example.com/"
   }
 
   action {
@@ -174,7 +174,7 @@ resource "azurerm_custom_provider" "test" {
 
   action {
     name     = "dEf1"
-    endpoint = "https://testendpoint.com/"
+    endpoint = "https://example.com/"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

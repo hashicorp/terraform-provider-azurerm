@@ -95,6 +95,39 @@ resource "azurerm_private_endpoint" "example" {
 }
 ```
 
+Using a Private Link Service Alias with existing resources:
+
+```hcl
+data "azurerm_resource_group" "rg" {
+  name = "example-resources"
+}
+
+data "azurerm_virtual_network" "vnet" {
+  name                = "example-network"
+  resource_group_name = data.azurerm_resource_group.rg.name
+}
+
+data "azurerm_subnet" "subnet" {
+  name                 = "default"
+  virtual_network_name = data.azurerm_virtual_network.vnet.name
+  resource_group_name  = data.azurerm_resource_group.rg.name
+}
+
+resource "azurerm_private_endpoint" "example" {
+  name                = "example-endpoint"
+  location            = data.azurerm_resource_group.rg.location
+  resource_group_name = data.azurerm_resource_group.rg.name
+  subnet_id           = data.azurerm_subnet.subnet.id
+
+  private_service_connection {
+    name                              = "example-privateserviceconnection"
+    private_connection_resource_alias = "example-privatelinkservice.d20286c8-4ea5-11eb-9584-8f53157226c6.centralus.azure.privatelinkservice"
+    is_manual_connection              = true
+    request_message                   = "PL"
+  }
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -131,7 +164,9 @@ A `private_service_connection` supports the following:
 
 -> **NOTE:** If you are trying to connect the Private Endpoint to a remote resource without having the correct RBAC permissions on the remote resource set this value to `true`.
 
-* `private_connection_resource_id` - (Required) The ID of the Private Link Enabled Remote Resource which this Private Endpoint should be connected to. Changing this forces a new resource to be created.
+* `private_connection_resource_id` - (Optional) The ID of the Private Link Enabled Remote Resource which this Private Endpoint should be connected to. One of `private_connection_resource_id` or `private_connection_resource_alias` must be specified. Changing this forces a new resource to be created.
+
+* `private_connection_resource_alias` - (Optional) The Service Alias of the Private Link Enabled Remote Resource which this Private Endpoint should be connected to. One of `private_connection_resource_id` or `private_connection_resource_alias` must be specified. Changing this forces a new resource to be created.
 
 * `subresource_names` - (Optional) A list of subresource names which the Private Endpoint is able to connect to. `subresource_names` corresponds to `group_id`. Changing this forces a new resource to be created.
 

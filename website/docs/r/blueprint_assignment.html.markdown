@@ -37,7 +37,7 @@ data "azurerm_blueprint_published_version" "example" {
 
 resource "azurerm_resource_group" "example" {
   name     = "exampleRG-bp"
-  location = "westeurope"
+  location = "West Europe"
 
   tags = {
     Environment = "example"

@@ -16,7 +16,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/firewall/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/firewall/validate"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -28,7 +28,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *schema.Resource {
 		Update: resourceFirewallPolicyRuleCollectionGroupCreateUpdate,
 		Delete: resourceFirewallPolicyRuleCollectionGroupDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.FirewallPolicyRuleCollectionGroupID(id)
 			return err
 		}),
@@ -257,8 +257,11 @@ func resourceFirewallPolicyRuleCollectionGroup() *schema.Resource {
 										Type:     schema.TypeSet,
 										Required: true,
 										Elem: &schema.Schema{
-											Type:         schema.TypeString,
-											ValidateFunc: azValidate.PortOrPortRangeWithin(1, 65535),
+											Type: schema.TypeString,
+											ValidateFunc: validation.Any(
+												azValidate.PortOrPortRangeWithin(1, 65535),
+												validation.StringInSlice([]string{`*`}, false),
+											),
 										},
 									},
 								},

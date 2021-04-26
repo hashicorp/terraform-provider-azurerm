@@ -14,7 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/validate"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -27,7 +27,7 @@ func resourceServiceBusSubscriptionRule() *schema.Resource {
 		Update: resourceServiceBusSubscriptionRuleCreateUpdate,
 		Delete: resourceServiceBusSubscriptionRuleDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.SubscriptionRuleID(id)
 			return err
 		}),
@@ -101,40 +101,76 @@ func resourceServiceBusSubscriptionRule() *schema.Resource {
 						"correlation_id": {
 							Type:     schema.TypeString,
 							Optional: true,
+							AtLeastOneOf: []string{"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
+								"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
+								"correlation_filter.0.reply_to_session_id", "correlation_filter.0.content_type", "correlation_filter.0.properties",
+							},
 						},
 						"message_id": {
 							Type:     schema.TypeString,
 							Optional: true,
+							AtLeastOneOf: []string{"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
+								"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
+								"correlation_filter.0.reply_to_session_id", "correlation_filter.0.content_type", "correlation_filter.0.properties",
+							},
 						},
 						"to": {
 							Type:     schema.TypeString,
 							Optional: true,
+							AtLeastOneOf: []string{"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
+								"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
+								"correlation_filter.0.reply_to_session_id", "correlation_filter.0.content_type", "correlation_filter.0.properties",
+							},
 						},
 						"reply_to": {
 							Type:     schema.TypeString,
 							Optional: true,
+							AtLeastOneOf: []string{"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
+								"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
+								"correlation_filter.0.reply_to_session_id", "correlation_filter.0.content_type", "correlation_filter.0.properties",
+							},
 						},
 						"label": {
 							Type:     schema.TypeString,
 							Optional: true,
+							AtLeastOneOf: []string{"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
+								"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
+								"correlation_filter.0.reply_to_session_id", "correlation_filter.0.content_type", "correlation_filter.0.properties",
+							},
 						},
 						"session_id": {
 							Type:     schema.TypeString,
 							Optional: true,
+							AtLeastOneOf: []string{"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
+								"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
+								"correlation_filter.0.reply_to_session_id", "correlation_filter.0.content_type", "correlation_filter.0.properties",
+							},
 						},
 						"reply_to_session_id": {
 							Type:     schema.TypeString,
 							Optional: true,
+							AtLeastOneOf: []string{"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
+								"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
+								"correlation_filter.0.reply_to_session_id", "correlation_filter.0.content_type", "correlation_filter.0.properties",
+							},
 						},
 						"content_type": {
 							Type:     schema.TypeString,
 							Optional: true,
+							AtLeastOneOf: []string{"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
+								"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
+								"correlation_filter.0.reply_to_session_id", "correlation_filter.0.content_type", "correlation_filter.0.properties",
+							},
 						},
 						"properties": {
 							Type:     schema.TypeMap,
 							Optional: true,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
+							},
+							AtLeastOneOf: []string{"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
+								"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
+								"correlation_filter.0.reply_to_session_id", "correlation_filter.0.content_type", "correlation_filter.0.properties",
 							},
 						},
 					},

@@ -1,3 +1,13 @@
+# 2.2.0 (April  01, 2021)
+
+NOTES:
+
+In this release, we upgraded to a version of terraform-exec that surfaces numbers in state as json.Number instead of float64. You may need to update your type assertions against numbers in state.
+
+ENHANCEMENTS:
+
+ - Added support for Terraform 0.15 ([#45](https://github.com/hashicorp/terraform-plugin-test/pull/45))
+
 # 2.1.3 (February 22, 2021)
 
 BUG FIXES:

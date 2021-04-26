@@ -15,7 +15,7 @@ Manages an AlertingAction Scheduled Query Rules resource within Azure Monitor.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "monitoring-resources"
-  location = "West US"
+  location = "West Europe"
 }
 
 resource "azurerm_application_insights" "example" {
@@ -150,7 +150,7 @@ The following arguments are supported:
 
 ---
 
-* `action` supports the following:
+`action` supports the following:
 
 * `action_group` - (Required) List of action group reference resource IDs.
 * `custom_webhook_payload` - (Optional) Custom payload to be sent for all webhook payloads in alerting action.
@@ -158,10 +158,10 @@ The following arguments are supported:
 
 ---
 
-`metricTrigger` supports the following:
+`metric_trigger` supports the following:
 
-* `metricColumn` - (Required) Evaluation of metric on a particular column.
-* `metricTriggerType` - (Required) Metric Trigger Type - 'Consecutive' or 'Total'.
+* `metric_column` - (Required) Evaluation of metric on a particular column.
+* `metric_trigger_type` - (Required) Metric Trigger Type - 'Consecutive' or 'Total'.
 * `operator` - (Required) Evaluation operation for rule - 'Equal', 'GreaterThan' or 'LessThan'.
 * `threshold` - (Required) The threshold of the metric trigger.    Values must be between 0 and 10000 inclusive.
 
@@ -169,7 +169,7 @@ The following arguments are supported:
 
 `trigger` supports the following:
 
-* `metricTrigger` - (Optional) A `metricTrigger` block as defined above. Trigger condition for metric query rule.
+* `metric_trigger` - (Optional) A `metric_trigger` block as defined above. Trigger condition for metric query rule.
 * `operator` - (Required) Evaluation operation for rule - 'Equal', 'GreaterThan' or 'LessThan'.
 * `threshold` - (Required) Result or count threshold based on which rule should be triggered.  Values must be between 0 and 10000 inclusive.
 

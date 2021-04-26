@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path"
@@ -12,6 +11,12 @@ import (
 	"strings"
 	"unicode"
 )
+
+var packagesUsingAlias = map[string]struct{}{
+	"advisor":          {},
+	"analysisservices": {},
+	"appconfiguration": {},
+}
 
 func main() {
 	servicePackagePath := flag.String("path", "", "The relative path to the service package")
@@ -174,6 +179,7 @@ type ResourceId struct {
 	IDRaw    string
 
 	ServicePackageName string
+	TestPackageSuffix  string
 
 	HasResourceGroup  bool
 	HasSubscriptionId bool
@@ -292,6 +298,11 @@ func NewResourceID(typeName, servicePackageName, resourceId string) (*ResourceId
 		fmtString = strings.Replace(fmtString, segment.SegmentValue, "%s", 1)
 	}
 
+	packageSuffix := ""
+	if _, ok := packagesUsingAlias[servicePackageName]; ok {
+		packageSuffix = "_test"
+	}
+
 	return &ResourceId{
 		IDFmt:              fmtString,
 		IDRaw:              resourceId,
@@ -300,6 +311,7 @@ func NewResourceID(typeName, servicePackageName, resourceId string) (*ResourceId
 		Segments:           segments,
 		ServicePackageName: servicePackageName,
 		TypeName:           typeName,
+		TestPackageSuffix:  packageSuffix,
 	}, nil
 }
 
@@ -544,8 +556,13 @@ func %[1]sIDInsensitively(input string) (*%[1]sId, error) {
 }
 
 func (id ResourceIdGenerator) TestCode() string {
+	importLine := ""
+	if id.TestPackageSuffix != "" {
+		importLine = fmt.Sprintf("\"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/%s/parse\"", id.ServicePackageName)
+	}
+
 	return fmt.Sprintf(`
-package parse
+package parse%s
 
 // NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
 
@@ -553,12 +570,13 @@ import (
 	"testing"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
+	%s
 )
 
 %s
 %s
 %s
-`, id.testCodeForFormatter(), id.testCodeForParser(), id.testCodeForParserInsensitive())
+`, id.TestPackageSuffix, importLine, id.testCodeForFormatter(), id.testCodeForParser(), id.testCodeForParserInsensitive())
 }
 
 func (id ResourceIdGenerator) testCodeForFormatter() string {
@@ -566,8 +584,9 @@ func (id ResourceIdGenerator) testCodeForFormatter() string {
 	for _, segment := range id.Segments {
 		arguments = append(arguments, fmt.Sprintf("%q", segment.SegmentValue))
 	}
-	arguementsStr := strings.Join(arguments, ", ")
-	return fmt.Sprintf(`
+	argumentsStr := strings.Join(arguments, ", ")
+	if id.TestPackageSuffix == "" {
+		return fmt.Sprintf(`
 var _ resourceid.Formatter = %[1]sId{}
 
 func Test%[1]sIDFormatter(t *testing.T) {
@@ -577,7 +596,20 @@ func Test%[1]sIDFormatter(t *testing.T) {
 		t.Fatalf("Expected %%q but got %%q", expected, actual)
 	}
 }
-`, id.TypeName, arguementsStr, id.IDRaw)
+`, id.TypeName, argumentsStr, id.IDRaw)
+	}
+
+	return fmt.Sprintf(`
+var _ resourceid.Formatter = parse.%[1]sId{}
+
+func Test%[1]sIDFormatter(t *testing.T) {
+	actual := parse.New%[1]sID(%[2]s).ID()
+	expected := %[3]q
+	if actual != expected {
+		t.Fatalf("Expected %%q but got %%q", expected, actual)
+	}
+}
+`, id.TypeName, argumentsStr, id.IDRaw)
 }
 
 func (id ResourceIdGenerator) testCodeForParser() string {
@@ -616,15 +648,19 @@ func (id ResourceIdGenerator) testCodeForParser() string {
 	for _, segment := range id.Segments {
 		expectAssignments = append(expectAssignments, fmt.Sprintf("\t\t\t\t%s:\t%q,", segment.FieldName, segment.SegmentValue))
 	}
+	typeName := fmt.Sprintf("%sId", id.TypeName)
+	if id.TestPackageSuffix != "" {
+		typeName = fmt.Sprintf("parse.%s", typeName)
+	}
 	testCases = append(testCases, fmt.Sprintf(`
 		{
 			// valid
 			Input: "%[1]s",
-			Expected: &%[2]sId{
+			Expected: &%[2]s{
 %[3]s
 			},
 		},
-`, id.IDRaw, id.TypeName, strings.Join(expectAssignments, "\n")))
+`, id.IDRaw, typeName, strings.Join(expectAssignments, "\n")))
 
 	// add an intentionally failing upper-cased test case
 	testCases = append(testCases, fmt.Sprintf(`
@@ -636,7 +672,9 @@ func (id ResourceIdGenerator) testCodeForParser() string {
 
 	testCasesStr := strings.Join(testCases, "\n")
 	assignmentCheckStr := strings.Join(assignmentChecks, "\n")
-	return fmt.Sprintf(`
+
+	if id.TestPackageSuffix == "" {
+		return fmt.Sprintf(`
 func Test%[1]sID(t *testing.T) {
 	testData := []struct {
 		Input  string
@@ -650,6 +688,37 @@ func Test%[1]sID(t *testing.T) {
 		t.Logf("[DEBUG] Testing %%q", v.Input)
 
 		actual, err := %[1]sID(v.Input)
+		if err != nil {
+			if v.Error {
+				continue
+			}
+
+			t.Fatalf("Expect a value but got an error: %%s", err)
+		}
+		if v.Error {
+			t.Fatal("Expect an error but didn't get one")
+		}
+
+%[3]s
+	}
+}
+`, id.TypeName, testCasesStr, assignmentCheckStr)
+	}
+
+	return fmt.Sprintf(`
+func Test%[1]sID(t *testing.T) {
+	testData := []struct {
+		Input  string
+		Error  bool
+		Expected *parse.%[1]sId
+	}{
+%[2]s
+	}
+
+	for _, v := range testData {
+		t.Logf("[DEBUG] Testing %%q", v.Input)
+
+		actual, err := parse.%[1]sID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -729,14 +798,19 @@ func (id ResourceIdGenerator) testCodeForParserInsensitive() string {
 			transformedKey := transform(segment.SegmentKey)
 			resourceIdWithTransform = strings.Replace(resourceIdWithTransform, segment.SegmentKey, transformedKey, 1)
 		}
+
+		typeName := fmt.Sprintf("%sId", id.TypeName)
+		if id.TestPackageSuffix != "" {
+			typeName = fmt.Sprintf("parse.%s", typeName)
+		}
 		return fmt.Sprintf(`
 		{
 			// %[4]s
 			Input: "%[1]s",
-			Expected: &%[2]sId{
+			Expected: &%[2]s{
 %[3]s
 			},
-		},`, resourceIdWithTransform, id.TypeName, strings.Join(expectAssignments, "\n"), testCaseName)
+		},`, resourceIdWithTransform, typeName, strings.Join(expectAssignments, "\n"), testCaseName)
 	}
 
 	testCases = append(testCases, testCaseWithTransformation("lower-cased segment names", strings.ToLower))
@@ -755,7 +829,9 @@ func (id ResourceIdGenerator) testCodeForParserInsensitive() string {
 
 	testCasesStr := strings.Join(testCases, "\n")
 	assignmentCheckStr := strings.Join(assignmentChecks, "\n")
-	return fmt.Sprintf(`
+
+	if id.TestPackageSuffix == "" {
+		return fmt.Sprintf(`
 func Test%[1]sIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input  string
@@ -769,6 +845,37 @@ func Test%[1]sIDInsensitively(t *testing.T) {
 		t.Logf("[DEBUG] Testing %%q", v.Input)
 
 		actual, err := %[1]sIDInsensitively(v.Input)
+		if err != nil {
+			if v.Error {
+				continue
+			}
+
+			t.Fatalf("Expect a value but got an error: %%s", err)
+		}
+		if v.Error {
+			t.Fatal("Expect an error but didn't get one")
+		}
+
+%[3]s
+	}
+}
+`, id.TypeName, testCasesStr, assignmentCheckStr)
+	}
+
+	return fmt.Sprintf(`
+func Test%[1]sIDInsensitively(t *testing.T) {
+	testData := []struct {
+		Input  string
+		Error  bool
+		Expected *parse.%[1]sId
+	}{
+%[2]s
+	}
+
+	for _, v := range testData {
+		t.Logf("[DEBUG] Testing %%q", v.Input)
+
+		actual, err := parse.%[1]sIDInsensitively(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -859,7 +966,8 @@ func (id ResourceIdGenerator) ValidatorTestCode() string {
 
 	testCasesStr := strings.Join(testCases, "\n")
 
-	return fmt.Sprintf(`package validate
+	if id.TestPackageSuffix == "" {
+		return fmt.Sprintf(`package validate
 
 // NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
 
@@ -883,6 +991,36 @@ func Test%[1]sID(t *testing.T) {
 	}
 }
 `, id.TypeName, testCasesStr)
+	}
+
+	return fmt.Sprintf(`package validate%[1]s
+
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
+import (
+	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/%[4]s/validate"
+)
+
+func Test%[2]sID(t *testing.T) {
+	cases := []struct {
+		Input    string
+		Valid bool
+	}{
+%[3]s
+	}
+	for _, tc := range cases {
+		t.Logf("[DEBUG] Testing Value %%s", tc.Input)
+		_, errors := validate.%[2]sID(tc.Input, "test")
+		valid := len(errors) == 0
+
+		if tc.Valid != valid {
+			t.Fatalf("Expected %%t but got %%t", tc.Valid, valid)
+		}
+	}
+}
+`, id.TestPackageSuffix, id.TypeName, testCasesStr, id.ServicePackageName)
 }
 
 func goFmtAndWriteToFile(filePath, fileContents string) error {
@@ -891,7 +1029,7 @@ func goFmtAndWriteToFile(filePath, fileContents string) error {
 		return err
 	}
 
-	if err := ioutil.WriteFile(filePath, []byte(*fmt), 0644); err != nil {
+	if err := os.WriteFile(filePath, []byte(*fmt), 0644); err != nil {
 		return err
 	}
 
@@ -901,7 +1039,7 @@ func goFmtAndWriteToFile(filePath, fileContents string) error {
 type GolangCodeFormatter struct{}
 
 func (f GolangCodeFormatter) Format(input string) (*string, error) {
-	tmpfile, err := ioutil.TempFile("", "temp-*.go")
+	tmpfile, err := os.CreateTemp("", "temp-*.go")
 	if err != nil {
 		return nil, fmt.Errorf("creating temp file: %+v", err)
 	}
@@ -940,7 +1078,7 @@ func (f GolangCodeFormatter) runGoImports(filePath string) {
 }
 
 func (f GolangCodeFormatter) readFileContents(filePath string) (*string, error) {
-	data, err := ioutil.ReadFile(filePath)
+	data, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, err
 	}

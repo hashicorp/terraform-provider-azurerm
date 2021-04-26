@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	parseCompute "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
@@ -21,7 +20,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -34,9 +33,9 @@ func resourceMsSqlVirtualMachine() *schema.Resource {
 		Update: resourceMsSqlVirtualMachineCreateUpdate,
 		Delete: resourceMsSqlVirtualMachineDelete,
 
-		CustomizeDiff: resourceMsSqlVirtualMachineCustomDiff,
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(resourceMsSqlVirtualMachineCustomDiff),
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.SqlVirtualMachineID(id)
 			return err
 		}),
@@ -297,7 +296,7 @@ func resourceMsSqlVirtualMachine() *schema.Resource {
 	}
 }
 
-func resourceMsSqlVirtualMachineCustomDiff(d *schema.ResourceDiff, _ interface{}) error {
+func resourceMsSqlVirtualMachineCustomDiff(ctx context.Context, d *schema.ResourceDiff, _ interface{}) error {
 	// ForceNew when removing the auto_backup block.
 	// See https://github.com/Azure/azure-rest-api-specs/issues/12818#issuecomment-773727756
 	old, new := d.GetChange("auto_backup")
@@ -649,6 +648,10 @@ func flattenSqlVirtualMachineAutoBackup(autoBackup *sqlvirtualmachine.AutoBackup
 		var logBackupFrequency int
 		if autoBackup.LogBackupFrequency != nil {
 			logBackupFrequency = int(*autoBackup.LogBackupFrequency)
+			// API returns 60 minutes as zero
+			if logBackupFrequency == 0 {
+				logBackupFrequency = 60
+			}
 		}
 
 		manualSchedule = []interface{}{

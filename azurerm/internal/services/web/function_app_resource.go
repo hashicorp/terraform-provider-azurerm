@@ -6,17 +6,18 @@ import (
 	"strings"
 	"time"
 
+	storageValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
+
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
 	webValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -30,7 +31,7 @@ func resourceFunctionApp() *schema.Resource {
 		Read:   resourceFunctionAppRead,
 		Update: resourceFunctionAppUpdate,
 		Delete: resourceFunctionAppDelete,
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.FunctionAppID(id)
 			return err
 		}),
@@ -115,6 +116,15 @@ func resourceFunctionApp() *schema.Resource {
 				Computed: true,
 			},
 
+			"client_cert_mode": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"Required",
+					"Optional",
+				}, false),
+			},
+
 			"daily_memory_time_quota": {
 				Type:     schema.TypeInt,
 				Optional: true,
@@ -159,7 +169,7 @@ func resourceFunctionApp() *schema.Resource {
 				Optional:      true,
 				Computed:      true, // Remove this in 3.0
 				ForceNew:      true,
-				ValidateFunc:  storage.ValidateStorageAccountName,
+				ValidateFunc:  storageValidate.StorageAccountName,
 				ConflictsWith: []string{"storage_connection_string"},
 			},
 
@@ -287,6 +297,8 @@ func resourceFunctionAppCreate(d *schema.ResourceData, meta interface{}) error {
 	appServicePlanID := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
 	clientAffinityEnabled := d.Get("client_affinity_enabled").(bool)
+	clientCertMode := d.Get("client_cert_mode").(string)
+	clientCertEnabled := clientCertMode != ""
 	httpsOnly := d.Get("https_only").(bool)
 	dailyMemoryTimeQuota := d.Get("daily_memory_time_quota").(int)
 	t := d.Get("tags").(map[string]interface{})
@@ -315,10 +327,15 @@ func resourceFunctionAppCreate(d *schema.ResourceData, meta interface{}) error {
 			ServerFarmID:          utils.String(appServicePlanID),
 			Enabled:               utils.Bool(enabled),
 			ClientAffinityEnabled: utils.Bool(clientAffinityEnabled),
+			ClientCertEnabled:     utils.Bool(clientCertEnabled),
 			HTTPSOnly:             utils.Bool(httpsOnly),
 			DailyMemoryTimeQuota:  utils.Int32(int32(dailyMemoryTimeQuota)),
 			SiteConfig:            &siteConfig,
 		},
+	}
+
+	if clientCertMode != "" {
+		siteEnvelope.SiteProperties.ClientCertMode = web.ClientCertMode(clientCertMode)
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
@@ -399,6 +416,8 @@ func resourceFunctionAppUpdate(d *schema.ResourceData, meta interface{}) error {
 	appServicePlanID := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
 	clientAffinityEnabled := d.Get("client_affinity_enabled").(bool)
+	clientCertMode := d.Get("client_cert_mode").(string)
+	clientCertEnabled := clientCertMode != ""
 	httpsOnly := d.Get("https_only").(bool)
 	dailyMemoryTimeQuota := d.Get("daily_memory_time_quota").(int)
 	t := d.Get("tags").(map[string]interface{})
@@ -428,10 +447,15 @@ func resourceFunctionAppUpdate(d *schema.ResourceData, meta interface{}) error {
 			ServerFarmID:          utils.String(appServicePlanID),
 			Enabled:               utils.Bool(enabled),
 			ClientAffinityEnabled: utils.Bool(clientAffinityEnabled),
+			ClientCertEnabled:     utils.Bool(clientCertEnabled),
 			HTTPSOnly:             utils.Bool(httpsOnly),
 			DailyMemoryTimeQuota:  utils.Int32(int32(dailyMemoryTimeQuota)),
 			SiteConfig:            &siteConfig,
 		},
+	}
+
+	if clientCertMode != "" {
+		siteEnvelope.SiteProperties.ClientCertMode = web.ClientCertMode(clientCertMode)
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
@@ -611,6 +635,12 @@ func resourceFunctionAppRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("possible_outbound_ip_addresses", props.PossibleOutboundIPAddresses)
 		d.Set("client_affinity_enabled", props.ClientAffinityEnabled)
 		d.Set("custom_domain_verification_id", props.CustomDomainVerificationID)
+
+		clientCertMode := ""
+		if props.ClientCertEnabled != nil && *props.ClientCertEnabled {
+			clientCertMode = string(props.ClientCertMode)
+		}
+		d.Set("client_cert_mode", clientCertMode)
 	}
 
 	appSettings := flattenAppServiceAppSettings(appSettingsResp.Properties)

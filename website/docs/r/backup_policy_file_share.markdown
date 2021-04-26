@@ -15,7 +15,7 @@ Manages an Azure File Share Backup Policy within a Recovery Services vault.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "tfex-recovery_vault"
-  location = "West US"
+  location = "West Europe"
 }
 
 resource "azurerm_recovery_services_vault" "example" {

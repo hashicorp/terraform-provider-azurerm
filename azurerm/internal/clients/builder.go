@@ -19,6 +19,7 @@ import (
 type ClientBuilder struct {
 	AuthConfig                  *authentication.Config
 	DisableCorrelationRequestID bool
+	CustomCorrelationRequestID  string
 	DisableTerraformPartnerID   bool
 	PartnerId                   string
 	SkipProviderRegistration    bool
@@ -44,7 +45,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 
 	isAzureStack, err := authentication.IsEnvironmentAzureStack(ctx, builder.AuthConfig.MetadataHost, builder.AuthConfig.Environment)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to determine if environment is Azure Stack: %+v", err)
 	}
 	if isAzureStack {
 		return nil, fmt.Errorf(azureStackEnvironmentError)
@@ -52,7 +53,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 
 	env, err := authentication.AzureEnvironmentByNameFromEndpoint(ctx, builder.AuthConfig.MetadataHost, builder.AuthConfig.Environment)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to find environment %q from endpoint %q: %+v", builder.AuthConfig.Environment, builder.AuthConfig.MetadataHost, err)
 	}
 
 	// client declarations:
@@ -67,12 +68,12 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 
 	oauthConfig, err := builder.AuthConfig.BuildOAuthConfig(env.ActiveDirectoryEndpoint)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("building OAuth Config: %+v", err)
 	}
 
 	// OAuthConfigForTenant returns a pointer, which can be nil.
 	if oauthConfig == nil {
-		return nil, fmt.Errorf("Unable to configure OAuthConfig for tenant %s", builder.AuthConfig.TenantID)
+		return nil, fmt.Errorf("unable to configure OAuthConfig for tenant %s", builder.AuthConfig.TenantID)
 	}
 
 	sender := sender.BuildSender("AzureRM")
@@ -81,20 +82,20 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 	endpoint := env.ResourceManagerEndpoint
 	auth, err := builder.AuthConfig.GetAuthorizationToken(sender, oauthConfig, env.TokenAudience)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to get authorization token for resource manager: %+v", err)
 	}
 
 	// Graph Endpoints
 	graphEndpoint := env.GraphEndpoint
 	graphAuth, err := builder.AuthConfig.GetAuthorizationToken(sender, oauthConfig, graphEndpoint)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to get authorization token for graph endpoints: %+v", err)
 	}
 
 	// Storage Endpoints
 	storageAuth, err := builder.AuthConfig.GetAuthorizationToken(sender, oauthConfig, env.ResourceIdentifiers.Storage)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to get authorization token for storage endpoints: %+v", err)
 	}
 
 	// Synapse Endpoints
@@ -102,7 +103,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 	if env.ResourceIdentifiers.Synapse != azure.NotAvailable {
 		synapseAuth, err = builder.AuthConfig.GetAuthorizationToken(sender, oauthConfig, env.ResourceIdentifiers.Synapse)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("unable to get authorization token for synapse endpoints: %+v", err)
 		}
 	} else {
 		log.Printf("[DEBUG] Skipping building the Synapse Authorizer since this is not supported in the current Azure Environment")
@@ -125,6 +126,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		SynapseAuthorizer:           synapseAuth,
 		SkipProviderReg:             builder.SkipProviderRegistration,
 		DisableCorrelationRequestID: builder.DisableCorrelationRequestID,
+		CustomCorrelationRequestID:  builder.CustomCorrelationRequestID,
 		DisableTerraformPartnerID:   builder.DisableTerraformPartnerID,
 		Environment:                 *env,
 		Features:                    builder.Features,
@@ -132,7 +134,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 	}
 
 	if err := client.Build(ctx, o); err != nil {
-		return nil, fmt.Errorf("Error building Client: %+v", err)
+		return nil, fmt.Errorf("error building Client: %+v", err)
 	}
 
 	if features.EnhancedValidationEnabled() {

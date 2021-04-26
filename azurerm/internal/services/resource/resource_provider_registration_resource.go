@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -127,7 +129,7 @@ func (r ResourceProviderRegistrationResource) Read() sdk.ResourceFunc {
 			resp, err := client.Get(ctx, id.ResourceProvider, "")
 			if err != nil {
 				if utils.ResponseWasNotFound(resp.Response) {
-					return metadata.MarkAsGone()
+					return metadata.MarkAsGone(id)
 				}
 
 				return fmt.Errorf("retrieving Resource Provider %q: %+v", id.ResourceProvider, err)
@@ -135,7 +137,7 @@ func (r ResourceProviderRegistrationResource) Read() sdk.ResourceFunc {
 
 			if resp.RegistrationState != nil && !strings.EqualFold(*resp.RegistrationState, "Registered") {
 				log.Printf("[WARN] Resource Provider %q was not registered", id.ResourceProvider)
-				return metadata.MarkAsGone()
+				return metadata.MarkAsGone(id)
 			}
 
 			return metadata.Encode(&ResourceProviderRegistrationModel{
@@ -184,7 +186,7 @@ func (r ResourceProviderRegistrationResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r ResourceProviderRegistrationResource) IDValidationFunc() schema.SchemaValidateFunc {
+func (r ResourceProviderRegistrationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.ResourceProviderID
 }
 

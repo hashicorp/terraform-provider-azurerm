@@ -93,6 +93,7 @@ func TestAccKeyVaultSecret_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("expiration_date").HasValue("2020-01-01T01:02:03Z"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.hello").HasValue("world"),
+				check.That(data.ResourceName).Key("versionless_id").HasValue(fmt.Sprintf("https://acctestkv-%s.vault.azure.net/secrets/secret-%s", data.RandomString, data.RandomString)),
 			),
 		},
 		data.ImportStep(),
@@ -155,22 +156,22 @@ func TestAccKeyVaultSecret_recovery(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.softDeleteRecovery(data, false),
+			Config: r.softDeleteRecovery(data, false, "first"),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("value").HasValue("rick-and-morty"),
+				check.That(data.ResourceName).Key("value").HasValue("first"),
 			),
 		},
 		{
-			Config:  r.softDeleteRecovery(data, false),
+			Config:  r.softDeleteRecovery(data, false, "first"),
 			Destroy: true,
 		},
 		{
 			// purge true here to make sure when we end the test there's no soft-deleted items left behind
-			Config: r.softDeleteRecovery(data, true),
+			Config: r.softDeleteRecovery(data, true, "second"),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("value").HasValue("rick-and-morty"),
+				check.That(data.ResourceName).Key("value").HasValue("second"),
 			),
 		},
 	})
@@ -394,7 +395,7 @@ resource "azurerm_key_vault_secret" "test" {
 `, r.template(data), data.RandomString)
 }
 
-func (r KeyVaultSecretResource) softDeleteRecovery(data acceptance.TestData, purge bool) string {
+func (r KeyVaultSecretResource) softDeleteRecovery(data acceptance.TestData, purge bool, value string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -409,10 +410,10 @@ provider "azurerm" {
 
 resource "azurerm_key_vault_secret" "test" {
   name         = "secret-%s"
-  value        = "rick-and-morty"
+  value        = "%s"
   key_vault_id = azurerm_key_vault.test.id
 }
-`, purge, r.template(data), data.RandomString)
+`, purge, r.template(data), data.RandomString, value)
 }
 
 func (KeyVaultSecretResource) withExternalAccessPolicy(data acceptance.TestData) string {

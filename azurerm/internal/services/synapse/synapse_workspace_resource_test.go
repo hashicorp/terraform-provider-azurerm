@@ -287,7 +287,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-Synapse-%d"
+  name     = "acctestRG-synapse-%d"
   location = "%s"
 }
 
