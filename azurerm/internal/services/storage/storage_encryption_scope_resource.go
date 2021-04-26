@@ -68,7 +68,7 @@ func resourceStorageEncryptionScope() *schema.Resource {
 				ValidateFunc: keyVaultValidate.KeyVaultChildID,
 			},
 
-			"require_infrastructure_encryption": {
+			"infrastructure_encryption_required": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				ForceNew: true,
@@ -115,7 +115,7 @@ func resourceStorageEncryptionScopeCreate(d *schema.ResourceData, meta interface
 		},
 	}
 
-	if v, ok := d.GetOk("require_infrastructure_encryption"); ok {
+	if v, ok := d.GetOk("infrastructure_encryption_required"); ok {
 		props.EncryptionScopeProperties.RequireInfrastructureEncryption = utils.Bool(v.(bool))
 	}
 
@@ -204,7 +204,7 @@ func resourceStorageEncryptionScopeRead(d *schema.ResourceData, meta interface{}
 		}
 		d.Set("key_vault_key_id", keyId)
 		if props.RequireInfrastructureEncryption != nil {
-			d.Set("require_infrastructure_encryption", *props.RequireInfrastructureEncryption)
+			d.Set("infrastructure_encryption_required", *props.RequireInfrastructureEncryption)
 		}
 	}
 

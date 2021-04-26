@@ -256,11 +256,11 @@ provider "azurerm" {
 %s
 
 resource "azurerm_storage_encryption_scope" "test" {
-  name                              = "acctestES%d"
-  storage_account_id                = azurerm_storage_account.test.id
-  source                            = "Microsoft.KeyVault"
-  key_vault_key_id                  = azurerm_key_vault_key.first.id
-  require_infrastructure_encryption = true
+  name                               = "acctestES%d"
+  storage_account_id                 = azurerm_storage_account.test.id
+  source                             = "Microsoft.KeyVault"
+  key_vault_key_id                   = azurerm_key_vault_key.first.id
+  infrastructure_encryption_required = true
 }
 `, template, data.RandomInteger)
 }
@@ -298,10 +298,10 @@ provider "azurerm" {
 
 %s
 resource "azurerm_storage_encryption_scope" "test" {
-  name                              = "acctestES%d"
-  storage_account_id                = azurerm_storage_account.test.id
-  source                            = "Microsoft.Storage"
-  require_infrastructure_encryption = true
+  name                               = "acctestES%d"
+  storage_account_id                 = azurerm_storage_account.test.id
+  source                             = "Microsoft.Storage"
+  infrastructure_encryption_required = true
 }
 `, template, data.RandomInteger)
 }
