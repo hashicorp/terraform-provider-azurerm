@@ -338,7 +338,7 @@ func TestAccPostgreSQLServer_updateReplicaToDefault(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("creation_source_server_id"),
 	})
 }
 

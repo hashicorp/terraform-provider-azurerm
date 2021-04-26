@@ -79,8 +79,7 @@ func resourcePostgreSQLServer() *schema.Resource {
 				}
 
 				d.Set("create_mode", "Default")
-				d.Set("creation_source_server_id", "")
-				if *resp.ReplicationRole != "Master" && *resp.ReplicationRole != "None" {
+				if resp.ReplicationRole != nil && *resp.ReplicationRole != "Master" && *resp.ReplicationRole != "None" {
 					d.Set("create_mode", *resp.ReplicationRole)
 
 					masterServerId, err := parse.ServerID(*resp.MasterServerID)
