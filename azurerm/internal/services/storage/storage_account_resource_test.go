@@ -524,6 +524,13 @@ func TestAccStorageAccount_blobProperties(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.blobPropertiesUpdated2(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -771,7 +778,7 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 
   tags = {
-    %s
+            %s
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, tags)
@@ -1520,10 +1527,6 @@ resource "azurerm_storage_account" "test" {
     default_service_version  = "2019-07-07"
     versioning_enabled       = true
     last_access_time_enabled = true
-    change_feed {
-      retention_in_days = 3
-    }
-
     container_delete_retention_policy {
       days = 7
     }
@@ -1574,6 +1577,32 @@ resource "azurerm_storage_account" "test" {
 
     container_delete_retention_policy {
     }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountResource) blobPropertiesUpdated2(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestAzureRMSA-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  blob_properties {
+    versioning_enabled = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
