@@ -49,7 +49,7 @@ func resourceStorageBlobInventoryPolicy() *schema.Resource {
 			},
 
 			"rules": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -135,7 +135,7 @@ func resourceStorageBlobInventoryPolicyCreateUpdate(d *schema.ResourceData, meta
 				Enabled:     utils.Bool(true),
 				Destination: utils.String(d.Get("storage_container_name").(string)),
 				Type:        utils.String("Inventory"),
-				Rules:       expandBlobInventoryPolicyRules(d.Get("rules").(*schema.Set).List()),
+				Rules:       expandBlobInventoryPolicyRules(d.Get("rules").([]interface{})),
 			},
 		},
 	}
@@ -175,6 +175,7 @@ func resourceStorageBlobInventoryPolicyRead(d *schema.ResourceData, meta interfa
 				d.SetId("")
 				return nil
 			}
+			//d.Set("storage_container_name",policy.)
 			d.Set("rules", flattenBlobInventoryPolicyRules(policy.Rules))
 		}
 	}

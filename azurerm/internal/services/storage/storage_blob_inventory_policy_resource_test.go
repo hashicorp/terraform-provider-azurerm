@@ -146,7 +146,6 @@ resource "azurerm_storage_blob_inventory_policy" "test" {
     name = "rule1"
     filter {
       blob_types   = ["blockBlob"]
-      prefix_match = []
     }
   }
 }
@@ -162,9 +161,9 @@ resource "azurerm_storage_blob_inventory_policy" "import" {
   storage_account_id     = azurerm_storage_blob_inventory_policy.test.storage_account_id
   storage_container_name = azurerm_storage_blob_inventory_policy.test.storage_container_name
   rules {
-    name = list(azurerm_storage_blob_inventory_policy.test.rules).0.name
+    name = azurerm_storage_blob_inventory_policy.test.rules.0.name
     filter {
-      blob_types = list(azurerm_storage_blob_inventory_policy.test.rules).0.filter.0.blob_types
+      blob_types = azurerm_storage_blob_inventory_policy.test.rules.0.filter.0.blob_types
 
     }
   }
