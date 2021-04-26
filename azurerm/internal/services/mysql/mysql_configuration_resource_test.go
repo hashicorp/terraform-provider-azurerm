@@ -1,6 +1,7 @@
 package mysql_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -8,134 +9,104 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMMySQLConfiguration_characterSetServer(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mysql_configuration", "test")
+type MySQLConfigurationResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySQLConfigurationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMySQLConfiguration_characterSetServer(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLConfigurationValue(data.ResourceName, "hebrew"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMMySQLConfiguration_empty(data),
-				Check: resource.ComposeTestCheckFunc(
-					// "delete" resets back to the default value
-					testCheckAzureRMMySQLConfigurationValueReset(data, "character_set_server"),
-				),
-			},
+func TestAccMySQLConfiguration_characterSetServer(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mysql_configuration", "test")
+	r := MySQLConfigurationResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.characterSetServer(data),
+			Check: resource.ComposeTestCheckFunc(
+				data.CheckWithClient(r.checkValue("hebrew")),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.empty(data),
+			Check: resource.ComposeTestCheckFunc(
+				// "delete" resets back to the default value
+				data.CheckWithClientForResource(r.checkReset("character_set_server"), "azurerm_mysql_server.test"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMMySQLConfiguration_interactiveTimeout(t *testing.T) {
+func TestAccMySQLConfiguration_interactiveTimeout(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_configuration", "test")
+	r := MySQLConfigurationResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySQLConfigurationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMySQLConfiguration_interactiveTimeout(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLConfigurationValue(data.ResourceName, "30"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMMySQLConfiguration_empty(data),
-				Check: resource.ComposeTestCheckFunc(
-					// "delete" resets back to the default value
-					testCheckAzureRMMySQLConfigurationValueReset(data, "interactive_timeout"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.interactiveTimeout(data),
+			Check: resource.ComposeTestCheckFunc(
+				data.CheckWithClient(r.checkValue("30")),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.empty(data),
+			Check: resource.ComposeTestCheckFunc(
+				// "delete" resets back to the default value
+				data.CheckWithClientForResource(r.checkReset("interactive_timeout"), "azurerm_mysql_server.test"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMMySQLConfiguration_logSlowAdminStatements(t *testing.T) {
+func TestAccMySQLConfiguration_logSlowAdminStatements(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_configuration", "test")
+	r := MySQLConfigurationResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySQLConfigurationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMySQLConfiguration_logSlowAdminStatements(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLConfigurationValue(data.ResourceName, "on"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMMySQLConfiguration_empty(data),
-				Check: resource.ComposeTestCheckFunc(
-					// "delete" resets back to the default value
-					testCheckAzureRMMySQLConfigurationValueReset(data, "log_slow_admin_statements"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.logSlowAdminStatements(data),
+			Check: resource.ComposeTestCheckFunc(
+				data.CheckWithClient(r.checkValue("on")),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.empty(data),
+			Check: resource.ComposeTestCheckFunc(
+				// "delete" resets back to the default value
+				data.CheckWithClientForResource(r.checkReset("log_slow_admin_statements"), "azurerm_mysql_server.test"),
+			),
 		},
 	})
 }
 
-func testCheckAzureRMMySQLConfigurationValue(resourceName string, value string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).MySQL.ConfigurationsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		serverName := rs.Primary.Attributes["server_name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for MySQL Configuration: %s", name)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, serverName, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: MySQL Configuration %q (server %q resource group: %q) does not exist", name, serverName, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on mysqlConfigurationsClient: %+v", err)
-		}
-
-		if *resp.Value != value {
-			return fmt.Errorf("MySQL Configuration wasn't set. Expected '%s' - got '%s': \n%+v", value, *resp.Value, resp)
-		}
-
-		return nil
+func (t MySQLConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.ConfigurationID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+
+	resp, err := clients.MySQL.ConfigurationsClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("reading MySQL Configuration (%s): %+v", id, err)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testCheckAzureRMMySQLConfigurationValueReset(data acceptance.TestData, configurationName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).MySQL.ConfigurationsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func (r MySQLConfigurationResource) checkReset(configurationName string) acceptance.ClientCheckFunc {
+	return func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+		id, err := parse.ServerID(state.Attributes["id"])
+		if err != nil {
+			return err
+		}
 
-		resourceGroup := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
-		serverName := fmt.Sprintf("acctestmysqlsvr-%d", data.RandomInteger)
-
-		resp, err := client.Get(ctx, resourceGroup, serverName, configurationName)
+		resp, err := clients.MySQL.ConfigurationsClient.Get(ctx, id.ResourceGroup, id.Name, configurationName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: MySQL Configuration %q (server %q resource group: %q) does not exist", configurationName, serverName, resourceGroup)
+				return fmt.Errorf("Bad: MySQL Configuration %q (server %q resource group: %q) does not exist", configurationName, id.Name, id.ResourceGroup)
 			}
 			return fmt.Errorf("Bad: Get on mysqlConfigurationsClient: %+v", err)
 		}
@@ -151,46 +122,43 @@ func testCheckAzureRMMySQLConfigurationValueReset(data acceptance.TestData, conf
 	}
 }
 
-func testCheckAzureRMMySQLConfigurationDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).MySQL.ConfigurationsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_mysql_configuration" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		serverName := rs.Primary.Attributes["server_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, serverName, name)
+func (r MySQLConfigurationResource) checkValue(value string) acceptance.ClientCheckFunc {
+	return func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+		id, err := parse.ConfigurationID(state.Attributes["id"])
 		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-
 			return err
 		}
+
+		resp, err := clients.MySQL.ConfigurationsClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Bad: MySQL Configuration %q (server %q resource group: %q) does not exist", id.Name, id.ServerName, id.ResourceGroup)
+			}
+
+			return fmt.Errorf("Bad: Get on mysqlConfigurationsClient: %+v", err)
+		}
+
+		if *resp.Value != value {
+			return fmt.Errorf("MySQL Configuration wasn't set. Expected '%s' - got '%s': \n%+v", value, *resp.Value, resp)
+		}
+
+		return nil
 	}
-
-	return nil
 }
 
-func testAccAzureRMMySQLConfiguration_characterSetServer(data acceptance.TestData) string {
-	return testAccAzureRMMySQLConfiguration_template(data, "character_set_server", "hebrew")
+func (r MySQLConfigurationResource) characterSetServer(data acceptance.TestData) string {
+	return r.template(data, "character_set_server", "hebrew")
 }
 
-func testAccAzureRMMySQLConfiguration_interactiveTimeout(data acceptance.TestData) string {
-	return testAccAzureRMMySQLConfiguration_template(data, "interactive_timeout", "30")
+func (r MySQLConfigurationResource) interactiveTimeout(data acceptance.TestData) string {
+	return r.template(data, "interactive_timeout", "30")
 }
 
-func testAccAzureRMMySQLConfiguration_logSlowAdminStatements(data acceptance.TestData) string {
-	return testAccAzureRMMySQLConfiguration_template(data, "log_slow_admin_statements", "on")
+func (r MySQLConfigurationResource) logSlowAdminStatements(data acceptance.TestData) string {
+	return r.template(data, "log_slow_admin_statements", "on")
 }
 
-func testAccAzureRMMySQLConfiguration_template(data acceptance.TestData, name string, value string) string {
-	server := testAccAzureRMMySQLConfiguration_empty(data)
+func (r MySQLConfigurationResource) template(data acceptance.TestData, name string, value string) string {
 	config := fmt.Sprintf(`
 resource "azurerm_mysql_configuration" "test" {
   name                = "%s"
@@ -199,10 +167,10 @@ resource "azurerm_mysql_configuration" "test" {
   value               = "%s"
 }
 `, name, value)
-	return server + config
+	return r.empty(data) + config
 }
 
-func testAccAzureRMMySQLConfiguration_empty(data acceptance.TestData) string {
+func (MySQLConfigurationResource) empty(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

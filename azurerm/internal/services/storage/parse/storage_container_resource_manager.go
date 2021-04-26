@@ -29,15 +29,16 @@ func NewStorageContainerResourceManagerID(subscriptionId, resourceGroup, storage
 
 func (id StorageContainerResourceManagerId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Storage Account Name %q", id.StorageAccountName),
-		fmt.Sprintf("Blob Service Name %q", id.BlobServiceName),
 		fmt.Sprintf("Container Name %q", id.ContainerName),
+		fmt.Sprintf("Blob Service Name %q", id.BlobServiceName),
+		fmt.Sprintf("Storage Account Name %q", id.StorageAccountName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Storage Container Resource Manager", segmentsStr)
 }
 
-func (id StorageContainerResourceManagerId) ID(_ string) string {
+func (id StorageContainerResourceManagerId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Storage/storageAccounts/%s/blobServices/%s/containers/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.StorageAccountName, id.BlobServiceName, id.ContainerName)
 }

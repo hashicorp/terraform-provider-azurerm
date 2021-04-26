@@ -15,7 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maintenance/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maintenance/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -34,8 +34,8 @@ func resourceArmMaintenanceConfiguration() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.MaintenanceConfigurationID(id)
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.MaintenanceConfigurationIDInsensitively(id)
 			return err
 		}),
 
@@ -135,7 +135,7 @@ func resourceArmMaintenanceConfigurationRead(d *schema.ResourceData, meta interf
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MaintenanceConfigurationID(d.Id())
+	id, err := parse.MaintenanceConfigurationIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
@@ -164,7 +164,7 @@ func resourceArmMaintenanceConfigurationDelete(d *schema.ResourceData, meta inte
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MaintenanceConfigurationID(d.Id())
+	id, err := parse.MaintenanceConfigurationIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}

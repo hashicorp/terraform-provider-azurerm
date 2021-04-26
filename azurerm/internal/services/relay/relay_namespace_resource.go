@@ -8,7 +8,7 @@ import (
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay/parse"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 
 	"github.com/Azure/azure-sdk-for-go/services/relay/mgmt/2017-04-01/relay"
 	"github.com/hashicorp/go-azure-helpers/response"
@@ -23,13 +23,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmRelayNamespace() *schema.Resource {
+func resourceRelayNamespace() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmRelayNamespaceCreateUpdate,
-		Read:   resourceArmRelayNamespaceRead,
-		Update: resourceArmRelayNamespaceCreateUpdate,
-		Delete: resourceArmRelayNamespaceDelete,
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Create: resourceRelayNamespaceCreateUpdate,
+		Read:   resourceRelayNamespaceRead,
+		Update: resourceRelayNamespaceCreateUpdate,
+		Delete: resourceRelayNamespaceDelete,
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.NamespaceID(id)
 			return err
 		}),
@@ -95,7 +95,7 @@ func resourceArmRelayNamespace() *schema.Resource {
 	}
 }
 
-func resourceArmRelayNamespaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceRelayNamespaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Relay.NamespacesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -117,7 +117,7 @@ func resourceArmRelayNamespaceCreateUpdate(d *schema.ResourceData, meta interfac
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_relay_namespace", resourceId.ID(""))
+			return tf.ImportAsExistsError("azurerm_relay_namespace", resourceId.ID())
 		}
 	}
 
@@ -140,11 +140,11 @@ func resourceArmRelayNamespaceCreateUpdate(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("waiting for create/update of Relay Namespace %q (Resource Group %q) creation: %+v", resourceId.Name, resourceId.ResourceGroup, err)
 	}
 
-	d.SetId(resourceId.ID(""))
-	return resourceArmRelayNamespaceRead(d, meta)
+	d.SetId(resourceId.ID())
+	return resourceRelayNamespaceRead(d, meta)
 }
 
-func resourceArmRelayNamespaceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceRelayNamespaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Relay.NamespacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -189,7 +189,7 @@ func resourceArmRelayNamespaceRead(d *schema.ResourceData, meta interface{}) err
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmRelayNamespaceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceRelayNamespaceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Relay.NamespacesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -77,9 +77,6 @@ func TestAccLogicAppActionHttp_disappears(t *testing.T) {
 		{
 			// delete it
 			Config: r.template(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(LogicAppWorkflowResource{}),
-			),
 		},
 		{
 			Config:             r.basic(data),
@@ -138,7 +135,7 @@ resource "azurerm_logic_app_action_http" "import" {
   method       = azurerm_logic_app_action_http.test.method
   uri          = azurerm_logic_app_action_http.test.uri
 }
-`, r.template(data))
+`, r.basic(data))
 }
 
 func (r LogicAppActionHttpResource) headers(data acceptance.TestData) string {

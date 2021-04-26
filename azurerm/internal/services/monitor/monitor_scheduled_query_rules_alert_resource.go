@@ -7,6 +7,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -19,15 +22,14 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMonitorScheduledQueryRulesAlert() *schema.Resource {
+func resourceMonitorScheduledQueryRulesAlert() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMonitorScheduledQueryRulesAlertCreateUpdate,
-		Read:   resourceArmMonitorScheduledQueryRulesAlertRead,
-		Update: resourceArmMonitorScheduledQueryRulesAlertCreateUpdate,
-		Delete: resourceArmMonitorScheduledQueryRulesAlertDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Create: resourceMonitorScheduledQueryRulesAlertCreateUpdate,
+		Read:   resourceMonitorScheduledQueryRulesAlertRead,
+		Update: resourceMonitorScheduledQueryRulesAlertCreateUpdate,
+		Delete: resourceMonitorScheduledQueryRulesAlertDelete,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -172,7 +174,7 @@ func resourceArmMonitorScheduledQueryRulesAlert() *schema.Resource {
 									"threshold": {
 										Type:         schema.TypeFloat,
 										Required:     true,
-										ValidateFunc: validateMonitorScheduledQueryRulesAlertThreshold,
+										ValidateFunc: validate.ScheduledQueryRulesAlertThreshold,
 									},
 								},
 							},
@@ -189,7 +191,7 @@ func resourceArmMonitorScheduledQueryRulesAlert() *schema.Resource {
 						"threshold": {
 							Type:         schema.TypeFloat,
 							Required:     true,
-							ValidateFunc: validateMonitorScheduledQueryRulesAlertThreshold,
+							ValidateFunc: validate.ScheduledQueryRulesAlertThreshold,
 						},
 					},
 				},
@@ -200,7 +202,7 @@ func resourceArmMonitorScheduledQueryRulesAlert() *schema.Resource {
 	}
 }
 
-func resourceArmMonitorScheduledQueryRulesAlertCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorScheduledQueryRulesAlertCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	action := expandMonitorScheduledQueryRulesAlertingAction(d)
 	schedule := expandMonitorScheduledQueryRulesAlertSchedule(d)
 	client := meta.(*clients.Client).Monitor.ScheduledQueryRulesClient
@@ -279,10 +281,10 @@ func resourceArmMonitorScheduledQueryRulesAlertCreateUpdate(d *schema.ResourceDa
 	}
 	d.SetId(*read.ID)
 
-	return resourceArmMonitorScheduledQueryRulesAlertRead(d, meta)
+	return resourceMonitorScheduledQueryRulesAlertRead(d, meta)
 }
 
-func resourceArmMonitorScheduledQueryRulesAlertRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorScheduledQueryRulesAlertRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ScheduledQueryRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -359,7 +361,7 @@ func resourceArmMonitorScheduledQueryRulesAlertRead(d *schema.ResourceData, meta
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmMonitorScheduledQueryRulesAlertDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorScheduledQueryRulesAlertDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ScheduledQueryRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

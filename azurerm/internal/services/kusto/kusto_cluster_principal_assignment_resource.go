@@ -3,7 +3,6 @@ package kusto
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-09-18/kusto"
@@ -13,19 +12,20 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmKustoClusterPrincipalAssignment() *schema.Resource {
+func resourceKustoClusterPrincipalAssignment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmKustoClusterPrincipalAssignmentCreateUpdate,
-		Read:   resourceArmKustoClusterPrincipalAssignmentRead,
-		Delete: resourceArmKustoClusterPrincipalAssignmentDelete,
+		Create: resourceKustoClusterPrincipalAssignmentCreateUpdate,
+		Read:   resourceKustoClusterPrincipalAssignmentRead,
+		Delete: resourceKustoClusterPrincipalAssignmentDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),
@@ -41,14 +41,14 @@ func resourceArmKustoClusterPrincipalAssignment() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMKustoClusterName,
+				ValidateFunc: validate.ClusterName,
 			},
 
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMKustoClusterPrincipalAssignmentName,
+				ValidateFunc: validate.ClusterPrincipalAssignmentName,
 			},
 
 			"tenant_id": {
@@ -99,7 +99,7 @@ func resourceArmKustoClusterPrincipalAssignment() *schema.Resource {
 	}
 }
 
-func resourceArmKustoClusterPrincipalAssignmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoClusterPrincipalAssignmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.ClusterPrincipalAssignmentsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -157,10 +157,10 @@ func resourceArmKustoClusterPrincipalAssignmentCreateUpdate(d *schema.ResourceDa
 
 	d.SetId(*resp.ID)
 
-	return resourceArmKustoClusterPrincipalAssignmentRead(d, meta)
+	return resourceKustoClusterPrincipalAssignmentRead(d, meta)
 }
 
-func resourceArmKustoClusterPrincipalAssignmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoClusterPrincipalAssignmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.ClusterPrincipalAssignmentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -216,7 +216,7 @@ func resourceArmKustoClusterPrincipalAssignmentRead(d *schema.ResourceData, meta
 	return nil
 }
 
-func resourceArmKustoClusterPrincipalAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoClusterPrincipalAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.ClusterPrincipalAssignmentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -236,22 +236,4 @@ func resourceArmKustoClusterPrincipalAssignmentDelete(d *schema.ResourceData, me
 	}
 
 	return nil
-}
-
-func validateAzureRMKustoClusterPrincipalAssignmentName(v interface{}, k string) (warnings []string, errors []error) {
-	name := v.(string)
-
-	if regexp.MustCompile(`^[\s]+$`).MatchString(name) {
-		errors = append(errors, fmt.Errorf("%q must not consist of whitespaces only", k))
-	}
-
-	if !regexp.MustCompile(`^[a-zA-Z0-9\s.-]+$`).MatchString(name) {
-		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters, whitespaces, dashes and dots: %q", k, name))
-	}
-
-	if len(name) > 260 {
-		errors = append(errors, fmt.Errorf("%q must be (inclusive) between 4 and 22 characters long but is %d", k, len(name)))
-	}
-
-	return warnings, errors
 }

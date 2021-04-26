@@ -6,68 +6,60 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccDataSourceAzureRMPrivateDNSZone_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_private_dns_zone", "test")
+type PrivateDnsZoneDatasource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateDnsZoneDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourcePrivateDNSZone_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-				),
-			},
+func TestAccDataSourcePrivateDNSZone_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_private_dns_zone", "test")
+	r := PrivateDnsZoneDatasource{}
+
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+			),
 		},
 	})
 }
 
-func TestAccDataSourceAzureRMPrivateDNSZone_tags(t *testing.T) {
+func TestAccDataSourcePrivateDNSZone_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_private_dns_zone", "test")
+	r := PrivateDnsZoneDatasource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateDnsZoneDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourcePrivateDNSZone_tags(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.hello", "world"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.tags(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.hello").HasValue("world"),
+			),
 		},
 	})
 }
 
-func TestAccDataSourceAzureRMPrivateDNSZone_withoutResourceGroupName(t *testing.T) {
+func TestAccDataSourcePrivateDNSZone_withoutResourceGroupName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_private_dns_zone", "test")
+	r := PrivateDnsZoneDatasource{}
 	resourceGroupName := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateDnsZoneDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourcePrivateDNSZone_onlyNamePrep(data, resourceGroupName),
-			},
-			{
-				Config: testAccDataSourcePrivateDNSZone_onlyName(data, resourceGroupName),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "resource_group_name", resourceGroupName),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.onlyNamePrep(data, resourceGroupName),
+		},
+		{
+			Config: r.onlyName(data, resourceGroupName),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("resource_group_name").HasValue(resourceGroupName),
+			),
 		},
 	})
 }
 
-func testAccDataSourcePrivateDNSZone_basic(data acceptance.TestData) string {
+func (PrivateDnsZoneDatasource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -90,7 +82,7 @@ data "azurerm_private_dns_zone" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccDataSourcePrivateDNSZone_tags(data acceptance.TestData) string {
+func (PrivateDnsZoneDatasource) tags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -117,7 +109,7 @@ data "azurerm_private_dns_zone" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccDataSourcePrivateDNSZone_onlyNamePrep(data acceptance.TestData, resourceGroupName string) string {
+func (PrivateDnsZoneDatasource) onlyNamePrep(data acceptance.TestData, resourceGroupName string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -135,13 +127,12 @@ resource "azurerm_private_dns_zone" "test" {
 `, resourceGroupName, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccDataSourcePrivateDNSZone_onlyName(data acceptance.TestData, resourceGroupName string) string {
-	template := testAccDataSourcePrivateDNSZone_onlyNamePrep(data, resourceGroupName)
+func (r PrivateDnsZoneDatasource) onlyName(data acceptance.TestData, resourceGroupName string) string {
 	return fmt.Sprintf(`
 %s
 
 data "azurerm_private_dns_zone" "test" {
   name = azurerm_private_dns_zone.test.name
 }
-`, template)
+`, r.onlyNamePrep(data, resourceGroupName))
 }

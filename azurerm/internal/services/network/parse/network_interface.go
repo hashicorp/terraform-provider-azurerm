@@ -25,13 +25,14 @@ func NewNetworkInterfaceID(subscriptionId, resourceGroup, name string) NetworkIn
 
 func (id NetworkInterfaceId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Network Interface", segmentsStr)
 }
 
-func (id NetworkInterfaceId) ID(_ string) string {
+func (id NetworkInterfaceId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/networkInterfaces/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }

@@ -29,15 +29,16 @@ func NewHybridConnectionID(subscriptionId, resourceGroup, siteName, hybridConnec
 
 func (id HybridConnectionId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Site Name %q", id.SiteName),
-		fmt.Sprintf("Hybrid Connection Namespace Name %q", id.HybridConnectionNamespaceName),
 		fmt.Sprintf("Relay Name %q", id.RelayName),
+		fmt.Sprintf("Hybrid Connection Namespace Name %q", id.HybridConnectionNamespaceName),
+		fmt.Sprintf("Site Name %q", id.SiteName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Hybrid Connection", segmentsStr)
 }
 
-func (id HybridConnectionId) ID(_ string) string {
+func (id HybridConnectionId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/sites/%s/hybridConnectionNamespaces/%s/relays/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.SiteName, id.HybridConnectionNamespaceName, id.RelayName)
 }

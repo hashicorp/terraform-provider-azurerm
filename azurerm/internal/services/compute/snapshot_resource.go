@@ -3,30 +3,31 @@ package compute
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
+
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSnapshot() *schema.Resource {
+func resourceSnapshot() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSnapshotCreateUpdate,
-		Read:   resourceArmSnapshotRead,
-		Update: resourceArmSnapshotCreateUpdate,
-		Delete: resourceArmSnapshotDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Create: resourceSnapshotCreateUpdate,
+		Read:   resourceSnapshotRead,
+		Update: resourceSnapshotCreateUpdate,
+		Delete: resourceSnapshotDelete,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -40,7 +41,7 @@ func resourceArmSnapshot() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateSnapshotName,
+				ValidateFunc: validate.SnapshotName,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -88,7 +89,7 @@ func resourceArmSnapshot() *schema.Resource {
 	}
 }
 
-func resourceArmSnapshotCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSnapshotCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.SnapshotsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -161,10 +162,10 @@ func resourceArmSnapshotCreateUpdate(d *schema.ResourceData, meta interface{}) e
 
 	d.SetId(*resp.ID)
 
-	return resourceArmSnapshotRead(d, meta)
+	return resourceSnapshotRead(d, meta)
 }
 
-func resourceArmSnapshotRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSnapshotRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.SnapshotsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -215,7 +216,7 @@ func resourceArmSnapshotRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.SnapshotsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -238,20 +239,4 @@ func resourceArmSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	return nil
-}
-
-func ValidateSnapshotName(v interface{}, _ string) (warnings []string, errors []error) {
-	// a-z, A-Z, 0-9, _ and -. The max name length is 80
-	value := v.(string)
-
-	if !regexp.MustCompile("^[A-Za-z0-9_-]+$").MatchString(value) {
-		errors = append(errors, fmt.Errorf("Snapshot Names can only contain alphanumeric characters and underscores."))
-	}
-
-	length := len(value)
-	if length > 80 {
-		errors = append(errors, fmt.Errorf("Snapshot Name can be up to 80 characters, currently %d.", length))
-	}
-
-	return warnings, errors
 }

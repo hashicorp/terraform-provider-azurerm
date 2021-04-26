@@ -26,7 +26,7 @@ func testAccBotChannelSlack_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_slack", "test")
 	r := BotChannelSlackResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []resource.TestStep{
 		{
 			Config: r.basicConfig(data),
 			Check: resource.ComposeTestCheckFunc(
@@ -44,7 +44,7 @@ func testAccBotChannelSlack_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_slack", "test")
 	r := BotChannelSlackResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []resource.TestStep{
 		{
 			Config: r.basicConfig(data),
 			Check: resource.ComposeTestCheckFunc(
@@ -70,7 +70,7 @@ func (t BotChannelSlackResource) Exists(ctx context.Context, clients *clients.Cl
 
 	resp, err := clients.Bot.ChannelClient.Get(ctx, id.ResourceGroup, id.BotServiceName, string(botservice.ChannelNameSlackChannel))
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Bot Channel Slack (%s): %v", id.String(), err)
+		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
 
 	return utils.Bool(resp.Properties != nil), nil

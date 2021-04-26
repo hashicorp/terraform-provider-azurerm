@@ -11,7 +11,7 @@ import (
 var _ resourceid.Formatter = LinkedServerId{}
 
 func TestLinkedServerIDFormatter(t *testing.T) {
-	actual := NewLinkedServerID("12345678-1234-9876-4563-123456789012", "resGroup1", "redis1", "linkedServer1").ID("")
+	actual := NewLinkedServerID("12345678-1234-9876-4563-123456789012", "resGroup1", "redis1", "linkedServer1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cache/Redis/redis1/linkedServers/linkedServer1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)

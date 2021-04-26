@@ -8,24 +8,24 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmIpGroup() *schema.Resource {
+func resourceIpGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmIpGroupCreateUpdate,
-		Read:   resourceArmIpGroupRead,
-		Update: resourceArmIpGroupCreateUpdate,
-		Delete: resourceArmIpGroupDelete,
+		Create: resourceIpGroupCreateUpdate,
+		Read:   resourceIpGroupRead,
+		Update: resourceIpGroupCreateUpdate,
+		Delete: resourceIpGroupDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.IpGroupID(id)
 			return err
 		}),
@@ -63,7 +63,7 @@ func resourceArmIpGroup() *schema.Resource {
 	}
 }
 
-func resourceArmIpGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceIpGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.IPGroupsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -116,10 +116,10 @@ func resourceArmIpGroupCreateUpdate(d *schema.ResourceData, meta interface{}) er
 
 	d.SetId(*read.ID)
 
-	return resourceArmIpGroupRead(d, meta)
+	return resourceIpGroupRead(d, meta)
 }
 
-func resourceArmIpGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceIpGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.IPGroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -156,7 +156,7 @@ func resourceArmIpGroupRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmIpGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceIpGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.IPGroupsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

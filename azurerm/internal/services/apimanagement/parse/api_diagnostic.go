@@ -29,15 +29,16 @@ func NewApiDiagnosticID(subscriptionId, resourceGroup, serviceName, apiName, dia
 
 func (id ApiDiagnosticId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Service Name %q", id.ServiceName),
-		fmt.Sprintf("Api Name %q", id.ApiName),
 		fmt.Sprintf("Diagnostic Name %q", id.DiagnosticName),
+		fmt.Sprintf("Api Name %q", id.ApiName),
+		fmt.Sprintf("Service Name %q", id.ServiceName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Api Diagnostic", segmentsStr)
 }
 
-func (id ApiDiagnosticId) ID(_ string) string {
+func (id ApiDiagnosticId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ApiManagement/service/%s/apis/%s/diagnostics/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ServiceName, id.ApiName, id.DiagnosticName)
 }

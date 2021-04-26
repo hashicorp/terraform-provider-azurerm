@@ -11,7 +11,7 @@ import (
 var _ resourceid.Formatter = StorageSyncGroupId{}
 
 func TestStorageSyncGroupIDFormatter(t *testing.T) {
-	actual := NewStorageSyncGroupID("12345678-1234-9876-4563-123456789012", "resGroup1", "storageSyncService1", "syncGroup1").ID("")
+	actual := NewStorageSyncGroupID("12345678-1234-9876-4563-123456789012", "resGroup1", "storageSyncService1", "syncGroup1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.StorageSync/storageSyncServices/storageSyncService1/syncGroups/syncGroup1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)

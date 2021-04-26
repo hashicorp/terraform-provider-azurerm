@@ -5,15 +5,17 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2019-05-01-preview/appplatform"
+	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2020-11-01-preview/appplatform"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	keyVaultParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
+	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/springcloud/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/springcloud/validate"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -24,7 +26,7 @@ func resourceSpringCloudCertificate() *schema.Resource {
 		Read:   resourceSpringCloudCertificateRead,
 		Delete: resourceSpringCloudCertificateDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.SpringCloudCertificateID(id)
 			return err
 		}),
@@ -56,7 +58,12 @@ func resourceSpringCloudCertificate() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateKeyVaultChildId,
+				ValidateFunc: keyVaultValidate.NestedItemId,
+			},
+
+			"thumbprint": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 		},
 	}
@@ -72,7 +79,7 @@ func resourceSpringCloudCertificateCreate(d *schema.ResourceData, meta interface
 	resourceGroup := d.Get("resource_group_name").(string)
 	serviceName := d.Get("service_name").(string)
 
-	resourceId := parse.NewSpringCloudCertificateID(subscriptionId, resourceGroup, serviceName, name).ID("")
+	resourceId := parse.NewSpringCloudCertificateID(subscriptionId, resourceGroup, serviceName, name).ID()
 	existing, err := client.Get(ctx, resourceGroup, serviceName, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
@@ -83,7 +90,10 @@ func resourceSpringCloudCertificateCreate(d *schema.ResourceData, meta interface
 		return tf.ImportAsExistsError("azurerm_spring_cloud_certificate", resourceId)
 	}
 
-	keyVaultCertificateId, _ := azure.ParseKeyVaultChildID(d.Get("key_vault_certificate_id").(string))
+	keyVaultCertificateId, err := keyVaultParse.ParseNestedItemID(d.Get("key_vault_certificate_id").(string))
+	if err != nil {
+		return err
+	}
 	cert := appplatform.CertificateResource{
 		Properties: &appplatform.CertificateProperties{
 			VaultURI:         &keyVaultCertificateId.KeyVaultBaseUrl,
@@ -121,6 +131,10 @@ func resourceSpringCloudCertificateRead(d *schema.ResourceData, meta interface{}
 	d.Set("name", id.CertificateName)
 	d.Set("service_name", id.SpringName)
 	d.Set("resource_group_name", id.ResourceGroup)
+
+	if props := resp.Properties; props != nil {
+		d.Set("thumbprint", props.Thumbprint)
+	}
 
 	return nil
 }

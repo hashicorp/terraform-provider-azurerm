@@ -5,7 +5,10 @@ import (
 	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
+
+var _ resourceid.Formatter = AdvancedThreatProtectionId{}
 
 type AdvancedThreatProtectionId struct {
 	TargetResourceID string
@@ -19,7 +22,7 @@ func NewAdvancedThreatProtectionId(targetResourceId string) AdvancedThreatProtec
 	}
 }
 
-func (id AdvancedThreatProtectionId) ID(_ string) string {
+func (id AdvancedThreatProtectionId) ID() string {
 	fmtString := "%s/providers/Microsoft.Security/advancedThreatProtectionSettings/%s"
 	return fmt.Sprintf(fmtString, id.TargetResourceID, id.SettingName)
 }

@@ -3,16 +3,20 @@ package parse
 import (
 	"fmt"
 	"strings"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
+
+var _ resourceid.Formatter = WorkspaceApplicationGroupAssociationId{}
 
 type WorkspaceApplicationGroupAssociationId struct {
 	Workspace        WorkspaceId
 	ApplicationGroup ApplicationGroupId
 }
 
-func (id WorkspaceApplicationGroupAssociationId) ID(_ string) string {
-	workspaceId := id.Workspace.ID("")
-	applicationGroupId := id.ApplicationGroup.ID("")
+func (id WorkspaceApplicationGroupAssociationId) ID() string {
+	workspaceId := id.Workspace.ID()
+	applicationGroupId := id.ApplicationGroup.ID()
 	return fmt.Sprintf("%s|%s", workspaceId, applicationGroupId)
 }
 

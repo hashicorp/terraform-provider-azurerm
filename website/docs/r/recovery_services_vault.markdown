@@ -8,14 +8,14 @@ description: |-
 
 # azurerm_recovery_services_vault
 
-Manages an Recovery Services Vault.
+Manages a Recovery Services Vault.
 
 ## Example Usage
 
 ```hcl
 resource "azurerm_resource_group" "rg" {
   name     = "tfex-recovery_vault"
-  location = "West US"
+  location = "West Europe"
 }
 
 resource "azurerm_recovery_services_vault" "vault" {

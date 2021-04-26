@@ -3,9 +3,10 @@ package signalr
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/signalr/mgmt/2018-10-01/signalr"
+	"github.com/Azure/azure-sdk-for-go/services/signalr/mgmt/2020-05-01/signalr"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -13,8 +14,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr/parse"
+	signalrValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -33,7 +35,7 @@ func resourceArmSignalRService() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ServiceID(id)
 			return err
 		}),
@@ -95,6 +97,47 @@ func resourceArmSignalRService() *schema.Resource {
 						"value": {
 							Type:     schema.TypeString,
 							Required: true,
+						},
+					},
+				},
+			},
+
+			"upstream_endpoint": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"category_pattern": {
+							Type:     schema.TypeList,
+							Required: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
+
+						"event_pattern": {
+							Type:     schema.TypeList,
+							Required: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
+
+						"hub_pattern": {
+							Type:     schema.TypeList,
+							Required: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
+
+						"url_template": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: signalrValidate.UrlTemplate,
 						},
 					},
 				},
@@ -189,20 +232,29 @@ func resourceArmSignalRServiceCreate(d *schema.ResourceData, meta interface{}) e
 	featureFlags := d.Get("features").(*schema.Set).List()
 	cors := d.Get("cors").([]interface{})
 	expandedTags := tags.Expand(t)
+	upstreamSettings := d.Get("upstream_endpoint").(*schema.Set).List()
 
-	properties := &signalr.CreateOrUpdateProperties{
-		Cors:     expandSignalRCors(cors),
-		Features: expandSignalRFeatures(featureFlags),
+	expandedFeatures := expandSignalRFeatures(featureFlags)
+
+	// Upstream configurations are only allowed when the SignalR service is in `Serverless` mode
+	if len(upstreamSettings) > 0 && !signalRIsInServerlessMode(expandedFeatures) {
+		return fmt.Errorf("Upstream configurations are only allowed when the SignalR Service is in `Serverless` mode")
 	}
 
-	parameters := &signalr.CreateParameters{
+	properties := &signalr.Properties{
+		Cors:     expandSignalRCors(cors),
+		Features: expandedFeatures,
+		Upstream: expandUpstreamSettings(upstreamSettings),
+	}
+
+	resourceType := &signalr.ResourceType{
 		Location:   utils.String(location),
 		Sku:        expandSignalRServiceSku(sku),
 		Tags:       expandedTags,
 		Properties: properties,
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
+	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, resourceType)
 	if err != nil {
 		return fmt.Errorf("Error creating or updating SignalR %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -271,6 +323,10 @@ func resourceArmSignalRServiceRead(d *schema.ResourceData, meta interface{}) err
 		if err := d.Set("cors", flattenSignalRCors(properties.Cors)); err != nil {
 			return fmt.Errorf("Error setting `cors`: %+v", err)
 		}
+
+		if err := d.Set("upstream_endpoint", flattenUpstreamSettings(properties.Upstream)); err != nil {
+			return fmt.Errorf("Error setting `upstream_endpoint`: %+v", err)
+		}
 	}
 
 	d.Set("primary_access_key", keys.PrimaryKey)
@@ -291,33 +347,38 @@ func resourceArmSignalRServiceUpdate(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 
-	parameters := &signalr.UpdateParameters{}
+	resourceType := &signalr.ResourceType{}
 
-	if d.HasChanges("cors", "features") {
-		parameters.Properties = &signalr.CreateOrUpdateProperties{}
+	if d.HasChanges("cors", "features", "upstream_endpoint") {
+		resourceType.Properties = &signalr.Properties{}
 
 		if d.HasChange("cors") {
 			corsRaw := d.Get("cors").([]interface{})
-			parameters.Properties.Cors = expandSignalRCors(corsRaw)
+			resourceType.Properties.Cors = expandSignalRCors(corsRaw)
 		}
 
 		if d.HasChange("features") {
 			featuresRaw := d.Get("features").(*schema.Set).List()
-			parameters.Properties.Features = expandSignalRFeatures(featuresRaw)
+			resourceType.Properties.Features = expandSignalRFeatures(featuresRaw)
+		}
+
+		if d.HasChange("upstream_endpoint") {
+			featuresRaw := d.Get("upstream_endpoint").(*schema.Set).List()
+			resourceType.Properties.Upstream = expandUpstreamSettings(featuresRaw)
 		}
 	}
 
 	if d.HasChange("sku") {
 		sku := d.Get("sku").([]interface{})
-		parameters.Sku = expandSignalRServiceSku(sku)
+		resourceType.Sku = expandSignalRServiceSku(sku)
 	}
 
 	if d.HasChange("tags") {
 		tagsRaw := d.Get("tags").(map[string]interface{})
-		parameters.Tags = tags.Expand(tagsRaw)
+		resourceType.Tags = tags.Expand(tagsRaw)
 	}
 
-	future, err := client.Update(ctx, id.ResourceGroup, id.SignalRName, parameters)
+	future, err := client.Update(ctx, id.ResourceGroup, id.SignalRName, resourceType)
 	if err != nil {
 		return fmt.Errorf("updating SignalR Service %q (Resource Group %q): %+v", id.SignalRName, id.ResourceGroup, err)
 	}
@@ -354,6 +415,20 @@ func resourceArmSignalRServiceDelete(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
+func signalRIsInServerlessMode(features *[]signalr.Feature) bool {
+	if features == nil {
+		return false
+	}
+
+	for _, feature := range *features {
+		if feature.Flag == signalr.ServiceMode && feature.Value != nil {
+			return *feature.Value == "Serverless"
+		}
+	}
+
+	return false
+}
+
 func expandSignalRFeatures(input []interface{}) *[]signalr.Feature {
 	features := make([]signalr.Feature, 0)
 	for _, featureValue := range input {
@@ -385,6 +460,67 @@ func flattenSignalRFeatures(features *[]signalr.Feature) []interface{} {
 		result = append(result, map[string]interface{}{
 			"flag":  string(feature.Flag),
 			"value": value,
+		})
+	}
+	return result
+}
+
+func expandUpstreamSettings(input []interface{}) *signalr.ServerlessUpstreamSettings {
+	upstreamTemplates := make([]signalr.UpstreamTemplate, 0)
+
+	for _, upstreamSetting := range input {
+		setting := upstreamSetting.(map[string]interface{})
+
+		upstreamTemplate := signalr.UpstreamTemplate{
+			HubPattern:      utils.String(strings.Join(*utils.ExpandStringSlice(setting["hub_pattern"].([]interface{})), ",")),
+			EventPattern:    utils.String(strings.Join(*utils.ExpandStringSlice(setting["event_pattern"].([]interface{})), ",")),
+			CategoryPattern: utils.String(strings.Join(*utils.ExpandStringSlice(setting["category_pattern"].([]interface{})), ",")),
+			URLTemplate:     utils.String(setting["url_template"].(string)),
+		}
+
+		upstreamTemplates = append(upstreamTemplates, upstreamTemplate)
+	}
+
+	return &signalr.ServerlessUpstreamSettings{
+		Templates: &upstreamTemplates,
+	}
+}
+
+func flattenUpstreamSettings(upstreamSettings *signalr.ServerlessUpstreamSettings) []interface{} {
+	result := make([]interface{}, 0)
+	if upstreamSettings == nil || upstreamSettings.Templates == nil {
+		return result
+	}
+
+	for _, settings := range *upstreamSettings.Templates {
+		categoryPattern := make([]interface{}, 0)
+		if settings.CategoryPattern != nil {
+			categoryPatterns := strings.Split(*settings.CategoryPattern, ",")
+			categoryPattern = utils.FlattenStringSlice(&categoryPatterns)
+		}
+
+		eventPattern := make([]interface{}, 0)
+		if settings.EventPattern != nil {
+			eventPatterns := strings.Split(*settings.EventPattern, ",")
+			eventPattern = utils.FlattenStringSlice(&eventPatterns)
+		}
+
+		hubPattern := make([]interface{}, 0)
+		if settings.HubPattern != nil {
+			hubPatterns := strings.Split(*settings.HubPattern, ",")
+			hubPattern = utils.FlattenStringSlice(&hubPatterns)
+		}
+
+		urlTemplate := ""
+		if settings.URLTemplate != nil {
+			urlTemplate = *settings.URLTemplate
+		}
+
+		result = append(result, map[string]interface{}{
+			"url_template":     urlTemplate,
+			"hub_pattern":      hubPattern,
+			"event_pattern":    eventPattern,
+			"category_pattern": categoryPattern,
 		})
 	}
 	return result

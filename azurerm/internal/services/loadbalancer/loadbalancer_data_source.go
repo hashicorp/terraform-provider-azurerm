@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -112,10 +112,10 @@ func dataSourceArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) err
 	resp, err := client.Get(ctx, resourceGroup, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Load Balancer %q was not found in Resource Group %q", name, resourceGroup)
+			return fmt.Errorf("Load Balancer %q (resource group %q) was not found", name, resourceGroup)
 		}
 
-		return fmt.Errorf("Error retrieving Load Balancer %s: %s", name, err)
+		return fmt.Errorf("retrieving Load Balancer %s: %s", name, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -131,7 +131,7 @@ func dataSourceArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) err
 	if props := resp.LoadBalancerPropertiesFormat; props != nil {
 		if feipConfigs := props.FrontendIPConfigurations; feipConfigs != nil {
 			if err := d.Set("frontend_ip_configuration", flattenLoadBalancerDataSourceFrontendIpConfiguration(feipConfigs)); err != nil {
-				return fmt.Errorf("Error flattening `frontend_ip_configuration`: %+v", err)
+				return fmt.Errorf("flattening `frontend_ip_configuration`: %+v", err)
 			}
 
 			privateIpAddress := ""

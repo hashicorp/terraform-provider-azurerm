@@ -7,30 +7,31 @@ import (
 	"strings"
 	"time"
 
+	storageValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
+
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/validate"
 	webValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmFunctionAppSlot() *schema.Resource {
+func resourceFunctionAppSlot() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmFunctionAppSlotCreate,
-		Read:   resourceArmFunctionAppSlotRead,
-		Update: resourceArmFunctionAppSlotUpdate,
-		Delete: resourceArmFunctionAppSlotDelete,
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Create: resourceFunctionAppSlotCreate,
+		Read:   resourceFunctionAppSlotRead,
+		Update: resourceFunctionAppSlotUpdate,
+		Delete: resourceFunctionAppSlotDelete,
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.FunctionAppSlotID(id)
 			return err
 		}),
@@ -79,7 +80,7 @@ func resourceArmFunctionAppSlot() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: storage.ValidateArmStorageAccountName,
+				ValidateFunc: storageValidate.StorageAccountName,
 			},
 
 			"storage_account_access_key": {
@@ -220,7 +221,7 @@ func resourceArmFunctionAppSlot() *schema.Resource {
 	}
 }
 
-func resourceArmFunctionAppSlotCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceFunctionAppSlotCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	endpointSuffix := meta.(*clients.Client).Account.Environment.StorageEndpointSuffix
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -326,10 +327,10 @@ func resourceArmFunctionAppSlotCreate(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Error updating auth settings for Slot %q (Function App Slot %q / Resource Group %q): %+s", slot, functionAppName, resourceGroup, err)
 	}
 
-	return resourceArmFunctionAppSlotUpdate(d, meta)
+	return resourceFunctionAppSlotUpdate(d, meta)
 }
 
-func resourceArmFunctionAppSlotUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceFunctionAppSlotUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	endpointSuffix := meta.(*clients.Client).Account.Environment.StorageEndpointSuffix
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -449,10 +450,10 @@ func resourceArmFunctionAppSlotUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
-	return resourceArmFunctionAppSlotRead(d, meta)
+	return resourceFunctionAppSlotRead(d, meta)
 }
 
-func resourceArmFunctionAppSlotRead(d *schema.ResourceData, meta interface{}) error {
+func resourceFunctionAppSlotRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -568,7 +569,10 @@ func resourceArmFunctionAppSlotRead(d *schema.ResourceData, meta interface{}) er
 		return err
 	}
 
-	identity := flattenAppServiceIdentity(resp.Identity)
+	identity, err := flattenAppServiceIdentity(resp.Identity)
+	if err != nil {
+		return err
+	}
 	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("Error setting `identity`: %s", err)
 	}
@@ -596,7 +600,7 @@ func resourceArmFunctionAppSlotRead(d *schema.ResourceData, meta interface{}) er
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmFunctionAppSlotDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceFunctionAppSlotDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

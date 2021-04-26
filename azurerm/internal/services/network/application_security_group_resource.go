@@ -12,19 +12,19 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApplicationSecurityGroup() *schema.Resource {
+func resourceApplicationSecurityGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApplicationSecurityGroupCreateUpdate,
-		Read:   resourceArmApplicationSecurityGroupRead,
-		Update: resourceArmApplicationSecurityGroupCreateUpdate,
-		Delete: resourceArmApplicationSecurityGroupDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Create: resourceApplicationSecurityGroupCreateUpdate,
+		Read:   resourceApplicationSecurityGroupRead,
+		Update: resourceApplicationSecurityGroupCreateUpdate,
+		Delete: resourceApplicationSecurityGroupDelete,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -49,7 +49,7 @@ func resourceArmApplicationSecurityGroup() *schema.Resource {
 	}
 }
 
-func resourceArmApplicationSecurityGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApplicationSecurityGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ApplicationSecurityGroupsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -96,10 +96,10 @@ func resourceArmApplicationSecurityGroupCreateUpdate(d *schema.ResourceData, met
 
 	d.SetId(*read.ID)
 
-	return resourceArmApplicationSecurityGroupRead(d, meta)
+	return resourceApplicationSecurityGroupRead(d, meta)
 }
 
-func resourceArmApplicationSecurityGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApplicationSecurityGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ApplicationSecurityGroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -129,7 +129,7 @@ func resourceArmApplicationSecurityGroupRead(d *schema.ResourceData, meta interf
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmApplicationSecurityGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApplicationSecurityGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ApplicationSecurityGroupsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -90,7 +90,7 @@ resource "azurerm_logic_app_action_custom" "import" {
   logic_app_id = azurerm_logic_app_action_custom.test.logic_app_id
   body         = azurerm_logic_app_action_custom.test.body
 }
-`, r.template(data))
+`, r.basic(data))
 }
 
 func (LogicAppActionCustomResource) template(data acceptance.TestData) string {

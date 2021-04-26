@@ -11,7 +11,7 @@ import (
 var _ resourceid.Formatter = DedicatedHostGroupId{}
 
 func TestDedicatedHostGroupIDFormatter(t *testing.T) {
-	actual := NewDedicatedHostGroupID("12345678-1234-9876-4563-123456789012", "resGroup1", "hostGroup1").ID("")
+	actual := NewDedicatedHostGroupID("12345678-1234-9876-4563-123456789012", "resGroup1", "hostGroup1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/hostGroups/hostGroup1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)

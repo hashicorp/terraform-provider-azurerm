@@ -29,15 +29,16 @@ func NewTopicAuthorizationRuleID(subscriptionId, resourceGroup, namespaceName, t
 
 func (id TopicAuthorizationRuleId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Namespace Name %q", id.NamespaceName),
-		fmt.Sprintf("Topic Name %q", id.TopicName),
 		fmt.Sprintf("Authorization Rule Name %q", id.AuthorizationRuleName),
+		fmt.Sprintf("Topic Name %q", id.TopicName),
+		fmt.Sprintf("Namespace Name %q", id.NamespaceName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Topic Authorization Rule", segmentsStr)
 }
 
-func (id TopicAuthorizationRuleId) ID(_ string) string {
+func (id TopicAuthorizationRuleId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ServiceBus/namespaces/%s/topics/%s/authorizationRules/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.NamespaceName, id.TopicName, id.AuthorizationRuleName)
 }

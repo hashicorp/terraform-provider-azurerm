@@ -27,14 +27,15 @@ func NewFailoverGroupID(subscriptionId, resourceGroup, serverName, name string) 
 
 func (id FailoverGroupId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Server Name %q", id.ServerName),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Server Name %q", id.ServerName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Failover Group", segmentsStr)
 }
 
-func (id FailoverGroupId) ID(_ string) string {
+func (id FailoverGroupId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Sql/servers/%s/failoverGroups/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ServerName, id.Name)
 }

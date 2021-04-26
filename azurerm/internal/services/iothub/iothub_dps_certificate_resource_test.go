@@ -1,139 +1,95 @@
 package iothub_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMIotHubDPSCertificate_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_iothub_dps_certificate", "test")
+type IotHubDPSCertificateResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubDPSCertificateDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMIotHubDPSCertificate_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubDPSCertificateExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("certificate_content"),
+func TestAccIotHubDPSCertificate_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iothub_dps_certificate", "test")
+	r := IotHubDPSCertificateResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("certificate_content"),
+	})
+}
+
+func TestAccIotHubDPSCertificate_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iothub_dps_certificate", "test")
+	r := IotHubDPSCertificateResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_iothub_dps_certificate"),
 		},
 	})
 }
 
-func TestAccAzureRMIotHubDPSCertificate_requiresImport(t *testing.T) {
+func TestAccIotHubDPSCertificate_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_dps_certificate", "test")
+	r := IotHubDPSCertificateResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubDPSCertificateDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMIotHubDPSCertificate_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubDPSCertificateExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMIotHubDPSCertificate_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_iothub_dps_certificate"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("certificate_content"),
+		{
+			Config: r.update(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("certificate_content"),
 	})
 }
 
-func TestAccAzureRMIotHubDPSCertificate_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_iothub_dps_certificate", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubDPSCertificateDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMIotHubDPSCertificate_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubDPSCertificateExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("certificate_content"),
-			{
-				Config: testAccAzureRMIotHubDPSCertificate_update(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubDPSCertificateExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("certificate_content"),
-		},
-	})
-}
-
-func testCheckAzureRMIotHubDPSCertificateDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.DPSCertificateClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_iothub_dps_certificate" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		iotDPSName := rs.Primary.Attributes["iot_dps_name"]
-
-		resp, err := client.Get(ctx, name, resourceGroup, iotDPSName, "")
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("IoT Device Provisioning Service Certificate %s still exists in (device provisioning service %s / resource group %s)", name, iotDPSName, resourceGroup)
-		}
+func (t IotHubDPSCertificateResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
-	return nil
-}
+	resourceGroup := id.ResourceGroup
+	iotDPSName := id.Path["provisioningServices"]
+	name := id.Path["certificates"]
 
-func testCheckAzureRMIotHubDPSCertificateExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.DPSCertificateClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		iotDPSName := rs.Primary.Attributes["iot_dps_name"]
-
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for IoT Device Provisioning Service Certificate: %s", name)
-		}
-
-		resp, err := client.Get(ctx, name, resourceGroup, iotDPSName, "")
-		if err != nil {
-			if resp.StatusCode == http.StatusNotFound {
-				return fmt.Errorf("Bad: IoT Device Provisioning Service Certificate %q (Device Provisioning Service %q / Resource Group %q) does not exist", name, iotDPSName, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on iothubDPSCertificateClient: %+v", err)
-		}
-
-		return nil
+	resp, err := clients.IoTHub.DPSCertificateClient.Get(ctx, name, resourceGroup, iotDPSName, "")
+	if err != nil {
+		return nil, fmt.Errorf("reading IotHuB DPS Certificate (%s): %+v", id, err)
 	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMIotHubDPSCertificate_basic(data acceptance.TestData) string {
+func (IotHubDPSCertificateResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -165,8 +121,7 @@ resource "azurerm_iothub_dps_certificate" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMIotHubDPSCertificate_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMIotHubDPSCertificate_basic(data)
+func (r IotHubDPSCertificateResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -177,10 +132,10 @@ resource "azurerm_iothub_dps_certificate" "import" {
 
   certificate_content = filebase64("testdata/batch_certificate.cer")
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMIotHubDPSCertificate_update(data acceptance.TestData) string {
+func (IotHubDPSCertificateResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

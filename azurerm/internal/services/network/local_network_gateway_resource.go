@@ -11,19 +11,19 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmLocalNetworkGateway() *schema.Resource {
+func resourceLocalNetworkGateway() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmLocalNetworkGatewayCreateUpdate,
-		Read:   resourceArmLocalNetworkGatewayRead,
-		Update: resourceArmLocalNetworkGatewayCreateUpdate,
-		Delete: resourceArmLocalNetworkGatewayDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Create: resourceLocalNetworkGatewayCreateUpdate,
+		Read:   resourceLocalNetworkGatewayRead,
+		Update: resourceLocalNetworkGatewayCreateUpdate,
+		Delete: resourceLocalNetworkGatewayDelete,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -57,7 +57,7 @@ func resourceArmLocalNetworkGateway() *schema.Resource {
 
 			"address_space": {
 				Type:     schema.TypeList,
-				Required: true,
+				Optional: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
@@ -93,7 +93,7 @@ func resourceArmLocalNetworkGateway() *schema.Resource {
 	}
 }
 
-func resourceArmLocalNetworkGatewayCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceLocalNetworkGatewayCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.LocalNetworkGatewaysClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -168,10 +168,10 @@ func resourceArmLocalNetworkGatewayCreateUpdate(d *schema.ResourceData, meta int
 
 	d.SetId(*read.ID)
 
-	return resourceArmLocalNetworkGatewayRead(d, meta)
+	return resourceLocalNetworkGatewayRead(d, meta)
 }
 
-func resourceArmLocalNetworkGatewayRead(d *schema.ResourceData, meta interface{}) error {
+func resourceLocalNetworkGatewayRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.LocalNetworkGatewaysClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -213,7 +213,7 @@ func resourceArmLocalNetworkGatewayRead(d *schema.ResourceData, meta interface{}
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmLocalNetworkGatewayDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceLocalNetworkGatewayDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.LocalNetworkGatewaysClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -27,14 +27,15 @@ func NewHubRouteTableID(subscriptionId, resourceGroup, virtualHubName, name stri
 
 func (id HubRouteTableId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Virtual Hub Name %q", id.VirtualHubName),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Virtual Hub Name %q", id.VirtualHubName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Hub Route Table", segmentsStr)
 }
 
-func (id HubRouteTableId) ID(_ string) string {
+func (id HubRouteTableId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/virtualHubs/%s/hubRouteTables/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.VirtualHubName, id.Name)
 }

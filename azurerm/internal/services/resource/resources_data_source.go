@@ -15,9 +15,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
 
-func dataSourceArmResources() *schema.Resource {
+func dataSourceResources() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmResourcesRead,
+		Read: dataSourceResourcesRead,
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
 		},
@@ -67,7 +67,7 @@ func dataSourceArmResources() *schema.Resource {
 	}
 }
 
-func dataSourceArmResourcesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceResourcesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Resource.ResourcesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

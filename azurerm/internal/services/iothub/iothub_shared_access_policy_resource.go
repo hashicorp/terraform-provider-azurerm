@@ -1,10 +1,13 @@
 package iothub
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
 	"time"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 
 	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2020-03-01/devices"
 	"github.com/hashicorp/go-multierror"
@@ -18,15 +21,14 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmIotHubSharedAccessPolicy() *schema.Resource {
+func resourceIotHubSharedAccessPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmIotHubSharedAccessPolicyCreateUpdate,
-		Read:   resourceArmIotHubSharedAccessPolicyRead,
-		Update: resourceArmIotHubSharedAccessPolicyCreateUpdate,
-		Delete: resourceArmIotHubSharedAccessPolicyDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Create: resourceIotHubSharedAccessPolicyCreateUpdate,
+		Read:   resourceIotHubSharedAccessPolicyRead,
+		Update: resourceIotHubSharedAccessPolicyCreateUpdate,
+		Delete: resourceIotHubSharedAccessPolicyDelete,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -100,11 +102,11 @@ func resourceArmIotHubSharedAccessPolicy() *schema.Resource {
 				Computed:  true,
 			},
 		},
-		CustomizeDiff: iothubSharedAccessPolicyCustomizeDiff,
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(iothubSharedAccessPolicyCustomizeDiff),
 	}
 }
 
-func iothubSharedAccessPolicyCustomizeDiff(d *schema.ResourceDiff, _ interface{}) (err error) {
+func iothubSharedAccessPolicyCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, _ interface{}) (err error) {
 	registryRead, hasRegistryRead := d.GetOk("registry_read")
 	registryWrite, hasRegistryWrite := d.GetOk("registry_write")
 	serviceConnect, hasServieConnect := d.GetOk("service_connect")
@@ -125,7 +127,7 @@ func iothubSharedAccessPolicyCustomizeDiff(d *schema.ResourceDiff, _ interface{}
 	return
 }
 
-func resourceArmIotHubSharedAccessPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubSharedAccessPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -202,10 +204,10 @@ func resourceArmIotHubSharedAccessPolicyCreateUpdate(d *schema.ResourceData, met
 
 	d.SetId(resourceId)
 
-	return resourceArmIotHubSharedAccessPolicyRead(d, meta)
+	return resourceIotHubSharedAccessPolicyRead(d, meta)
 }
 
-func resourceArmIotHubSharedAccessPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubSharedAccessPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -257,7 +259,7 @@ func resourceArmIotHubSharedAccessPolicyRead(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func resourceArmIotHubSharedAccessPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubSharedAccessPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

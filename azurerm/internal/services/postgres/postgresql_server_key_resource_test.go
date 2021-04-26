@@ -1,137 +1,89 @@
 package postgres_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMPostgreSQLServerKey_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_postgresql_server_key", "test")
+type PostgreSQLServerKeyResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLServerKeyDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPostgreSQLServerKey_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPostgreSQLServerKeyExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccPostgreSQLServerKey_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_server_key", "test")
+	r := PostgreSQLServerKeyResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMPostgreSQLServerKey_updateKey(t *testing.T) {
+func TestAccPostgreSQLServerKey_updateKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server_key", "test")
+	r := PostgreSQLServerKeyResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLServerKeyDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPostgreSQLServerKey_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPostgreSQLServerKeyExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMPostgreSQLServerKey_updated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPostgreSQLServerKeyExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.updated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMPostgreSQLServerKey_requiresImport(t *testing.T) {
+func TestAccPostgreSQLServerKey_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server_key", "test")
+	r := PostgreSQLServerKeyResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLServerKeyDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPostgreSQLServerKey_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPostgreSQLServerKeyExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMPostgreSQLServerKey_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func testCheckAzureRMPostgreSQLServerKeyDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Postgres.ServerKeysClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_postgresql_server_key" {
-			continue
-		}
-
-		id, err := parse.ServerKeyID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.KeyName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("retrieving PostgreSQL Server Key: %+v", err)
-			}
-			return nil
-		}
-
-		return fmt.Errorf("PostgreSQL Server Key still exists:\n%#v", resp)
+func (t PostgreSQLServerKeyResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.ServerKeyID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
-}
-
-func testCheckAzureRMPostgreSQLServerKeyExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Postgres.ServerKeysClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		id, err := parse.ServerKeyID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.KeyName)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: PostgreSQL Server Key %q (Resource Group %q / Server %q) does not exist", id.KeyName, id.ResourceGroup, id.ServerName)
-			}
-			return fmt.Errorf("Bad: Get on PostgreSQLServerKeysClient: %+v", err)
-		}
-
-		return nil
+	resp, err := clients.Postgres.ServerKeysClient.Get(ctx, id.ResourceGroup, id.ServerName, id.KeyName)
+	if err != nil {
+		return nil, fmt.Errorf("reading Postgresql Server Key (%s): %+v", id.String(), err)
 	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMPostgreSQLServerKey_template(data acceptance.TestData) string {
+func (PostgreSQLServerKeyResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -210,8 +162,7 @@ resource "azurerm_postgresql_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
-func testAccAzureRMPostgreSQLServerKey_basic(data acceptance.TestData) string {
-	template := testAccAzureRMPostgreSQLServerKey_template(data)
+func (r PostgreSQLServerKeyResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -219,11 +170,10 @@ resource "azurerm_postgresql_server_key" "test" {
   server_id        = azurerm_postgresql_server.test.id
   key_vault_key_id = azurerm_key_vault_key.first.id
 }
-`, template)
+`, r.template(data))
 }
 
-func testAccAzureRMPostgreSQLServerKey_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMPostgreSQLServerKey_basic(data)
+func (r PostgreSQLServerKeyResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -231,11 +181,10 @@ resource "azurerm_postgresql_server_key" "import" {
   server_id        = azurerm_postgresql_server_key.test.server_id
   key_vault_key_id = azurerm_postgresql_server_key.test.key_vault_key_id
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMPostgreSQLServerKey_updated(data acceptance.TestData) string {
-	template := testAccAzureRMPostgreSQLServerKey_template(data)
+func (r PostgreSQLServerKeyResource) updated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -256,5 +205,5 @@ resource "azurerm_postgresql_server_key" "test" {
   server_id        = azurerm_postgresql_server.test.id
   key_vault_key_id = azurerm_key_vault_key.second.id
 }
-`, template)
+`, r.template(data))
 }

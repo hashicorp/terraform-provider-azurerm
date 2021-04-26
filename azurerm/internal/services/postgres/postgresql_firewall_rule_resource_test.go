@@ -1,116 +1,69 @@
 package postgres_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMPostgreSQLFirewallRule_basic(t *testing.T) {
+type PostgreSQLFirewallRuleResource struct {
+}
+
+func TestAccPostgreSQLFirewallRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_firewall_rule", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLFirewallRuleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPostgreSQLFirewallRule_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPostgreSQLFirewallRuleExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "start_ip_address", "0.0.0.0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "end_ip_address", "255.255.255.255"),
-				),
-			},
-			data.ImportStep(),
+	r := PostgreSQLFirewallRuleResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("start_ip_address").HasValue("0.0.0.0"),
+				check.That(data.ResourceName).Key("end_ip_address").HasValue("255.255.255.255"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMPostgreSQLFirewallRule_requiresImport(t *testing.T) {
+func TestAccPostgreSQLFirewallRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_firewall_rule", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLFirewallRuleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPostgreSQLFirewallRule_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPostgreSQLFirewallRuleExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "start_ip_address", "0.0.0.0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "end_ip_address", "255.255.255.255"),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMPostgreSQLFirewallRule_requiresImport),
+	r := PostgreSQLFirewallRuleResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("start_ip_address").HasValue("0.0.0.0"),
+				check.That(data.ResourceName).Key("end_ip_address").HasValue("255.255.255.255"),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func testCheckAzureRMPostgreSQLFirewallRuleExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Postgres.FirewallRulesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		serverName := rs.Primary.Attributes["server_name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for PostgreSQL Firewall Rule: %s", name)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, serverName, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: PostgreSQL Firewall Rule %q (server %q resource group: %q) does not exist", name, serverName, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on postgresqlFirewallRulesClient: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMPostgreSQLFirewallRuleDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Postgres.DatabasesClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_postgresql_firewall_rule" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		serverName := rs.Primary.Attributes["server_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, serverName, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-
-			return err
-		}
-
-		return fmt.Errorf("PostgreSQL Firewall Rule still exists:\n%#v", resp)
+func (t PostgreSQLFirewallRuleResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.FirewallRuleID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.Postgres.FirewallRulesClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("reading Postgresql Firewall Rule (%s): %+v", id.String(), err)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMPostgreSQLFirewallRule_basic(data acceptance.TestData) string {
+func (PostgreSQLFirewallRuleResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -150,8 +103,7 @@ resource "azurerm_postgresql_firewall_rule" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMPostgreSQLFirewallRule_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMPostgreSQLFirewallRule_basic(data)
+func (r PostgreSQLFirewallRuleResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -162,5 +114,5 @@ resource "azurerm_postgresql_firewall_rule" "import" {
   start_ip_address    = azurerm_postgresql_firewall_rule.test.start_ip_address
   end_ip_address      = azurerm_postgresql_firewall_rule.test.end_ip_address
 }
-`, template)
+`, r.basic(data))
 }

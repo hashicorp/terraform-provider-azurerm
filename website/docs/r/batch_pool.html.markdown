@@ -281,6 +281,8 @@ A `network_configuration` block supports the following:
 
 * `endpoint_configuration` - (Optional) A list of inbound NAT pools that can be used to address specific ports on an individual compute node externally. Set as documented in the inbound_nat_pools block below. Changing this forces a new resource to be created.
 
+* `public_address_provisioning_type` - (Optional) Type of public IP address provisioning. Supported values are `BatchManaged`, `UserManaged` and `NoPublicIPAddresses`.
+
 ---
 
 A `endpoint_configuration` block supports the following:

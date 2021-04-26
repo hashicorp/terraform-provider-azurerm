@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"regexp"
 	"sort"
 	"strings"
 
@@ -12,15 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
-
-func validateAzureRMDataFactoryLinkedServiceDatasetName(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-	if regexp.MustCompile(`^[-.+?/<>*%&:\\]+$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf("any of '-' '.', '+', '?', '/', '<', '>', '*', '%%', '&', ':', '\\', are not allowed in %q: %q", k, value))
-	}
-
-	return warnings, errors
-}
 
 func expandDataFactoryLinkedServiceIntegrationRuntime(integrationRuntimeName string) *datafactory.IntegrationRuntimeReference {
 	typeString := "IntegrationRuntimeReference"
@@ -226,4 +216,116 @@ func serializeDataFactoryPipelineActivities(activities *[]datafactory.BasicActiv
 
 func suppressJsonOrderingDifference(_, old, new string, _ *schema.ResourceData) bool {
 	return utils.NormalizeJson(old) == utils.NormalizeJson(new)
+}
+
+func expandAzureKeyVaultPassword(input []interface{}) *datafactory.AzureKeyVaultSecretReference {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	config := input[0].(map[string]interface{})
+
+	return &datafactory.AzureKeyVaultSecretReference{
+		SecretName: config["secret_name"].(string),
+		Store: &datafactory.LinkedServiceReference{
+			Type:          utils.String("LinkedServiceReference"),
+			ReferenceName: utils.String(config["linked_service_name"].(string)),
+		},
+	}
+}
+
+func flattenAzureKeyVaultPassword(secretReference *datafactory.AzureKeyVaultSecretReference) []interface{} {
+	if secretReference == nil {
+		return nil
+	}
+
+	parameters := make(map[string]interface{})
+
+	if store := secretReference.Store; store != nil {
+		if store.ReferenceName != nil {
+			parameters["linked_service_name"] = *store.ReferenceName
+		}
+	}
+
+	parameters["secret_name"] = secretReference.SecretName
+
+	return []interface{}{parameters}
+}
+
+func expandDataFactoryDatasetLocation(d *schema.ResourceData) datafactory.BasicDatasetLocation {
+	if _, ok := d.GetOk("http_server_location"); ok {
+		return expandDataFactoryDatasetHttpServerLocation(d)
+	}
+
+	if _, ok := d.GetOk("azure_blob_storage_location"); ok {
+		return expandDataFactoryDatasetAzureBlobStorageLocation(d)
+	}
+
+	return nil
+}
+
+func expandDataFactoryDatasetHttpServerLocation(d *schema.ResourceData) datafactory.BasicDatasetLocation {
+	props := d.Get("http_server_location").([]interface{})[0].(map[string]interface{})
+	relativeUrl := props["relative_url"].(string)
+	path := props["path"].(string)
+	filename := props["filename"].(string)
+
+	httpServerLocation := datafactory.HTTPServerLocation{
+		RelativeURL: relativeUrl,
+		FolderPath:  path,
+		FileName:    filename,
+	}
+	return httpServerLocation
+}
+
+func expandDataFactoryDatasetAzureBlobStorageLocation(d *schema.ResourceData) datafactory.BasicDatasetLocation {
+	props := d.Get("azure_blob_storage_location").([]interface{})[0].(map[string]interface{})
+	container := props["container"].(string)
+	path := props["path"].(string)
+	filename := props["filename"].(string)
+
+	blobStorageLocation := datafactory.AzureBlobStorageLocation{
+		Container:  container,
+		FolderPath: path,
+		FileName:   filename,
+	}
+	return blobStorageLocation
+}
+
+func flattenDataFactoryDatasetHTTPServerLocation(input *datafactory.HTTPServerLocation) []interface{} {
+	if input == nil {
+		return nil
+	}
+	result := make(map[string]interface{})
+
+	if input.RelativeURL != nil {
+		result["relative_url"] = input.RelativeURL
+	}
+	if input.FolderPath != nil {
+		result["path"] = input.FolderPath
+	}
+	if input.FileName != nil {
+		result["filename"] = input.FileName
+	}
+
+	return []interface{}{result}
+}
+
+func flattenDataFactoryDatasetAzureBlobStorageLocation(input *datafactory.AzureBlobStorageLocation) []interface{} {
+	if input == nil {
+		return nil
+	}
+	result := make(map[string]interface{})
+
+	if input.Container != nil {
+		result["container"] = input.Container
+	}
+	if input.FolderPath != nil {
+		result["path"] = input.FolderPath
+	}
+	if input.FileName != nil {
+		result["filename"] = input.FileName
+	}
+
+	return []interface{}{result}
 }

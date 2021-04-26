@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -14,20 +15,19 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 var appServiceHostnameBindingResourceName = "azurerm_app_service_custom_hostname_binding"
 
-func resourceArmAppServiceCertificateBinding() *schema.Resource {
+func resourceAppServiceCertificateBinding() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAppServiceCertificateBindingCreate,
-		Read:   resourceArmAppServiceCertificateBindingRead,
-		Delete: resourceArmAppServiceCertificateBindingDelete,
+		Create: resourceAppServiceCertificateBindingCreate,
+		Read:   resourceAppServiceCertificateBindingRead,
+		Delete: resourceAppServiceCertificateBindingDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.CertificateBindingID(id)
 			return err
 		}),
@@ -82,7 +82,7 @@ func resourceArmAppServiceCertificateBinding() *schema.Resource {
 	}
 }
 
-func resourceArmAppServiceCertificateBindingCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceCertificateBindingCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	certClient := meta.(*clients.Client).Web.CertificatesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -129,7 +129,7 @@ func resourceArmAppServiceCertificateBindingCreate(d *schema.ResourceData, meta 
 	props := binding.HostNameBindingProperties
 	if props != nil {
 		if props.Thumbprint != nil && *props.Thumbprint == *thumbprint {
-			return tf.ImportAsExistsError("azurerm_app_service_certificate_binding", id.ID(""))
+			return tf.ImportAsExistsError("azurerm_app_service_certificate_binding", id.ID())
 		}
 	}
 
@@ -143,12 +143,12 @@ func resourceArmAppServiceCertificateBindingCreate(d *schema.ResourceData, meta 
 		return fmt.Errorf("creating/updating Custom Hostname Certificate Binding %q with certificate name %q (App Service %q / Resource Group %q): %+v", id.HostnameBindingId.Name, id.CertificateId.Name, id.HostnameBindingId.SiteName, id.HostnameBindingId.ResourceGroup, err)
 	}
 
-	d.SetId(id.ID(""))
+	d.SetId(id.ID())
 
-	return resourceArmAppServiceCertificateBindingRead(d, meta)
+	return resourceAppServiceCertificateBindingRead(d, meta)
 }
 
-func resourceArmAppServiceCertificateBindingRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceCertificateBindingRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -175,8 +175,8 @@ func resourceArmAppServiceCertificateBindingRead(d *schema.ResourceData, meta in
 		return nil
 	}
 
-	d.Set("hostname_binding_id", id.HostnameBindingId.ID(""))
-	d.Set("certificate_id", id.CertificateId.ID(""))
+	d.Set("hostname_binding_id", id.HostnameBindingId.ID())
+	d.Set("certificate_id", id.CertificateId.ID())
 	d.Set("ssl_state", string(props.SslState))
 	d.Set("thumbprint", props.Thumbprint)
 	d.Set("hostname", id.HostnameBindingId.Name)
@@ -185,7 +185,7 @@ func resourceArmAppServiceCertificateBindingRead(d *schema.ResourceData, meta in
 	return nil
 }
 
-func resourceArmAppServiceCertificateBindingDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceCertificateBindingDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -14,9 +14,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmRedisCache() *schema.Resource {
+func dataSourceRedisCache() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmRedisCacheRead,
+		Read: dataSourceRedisCacheRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -215,7 +215,7 @@ func dataSourceArmRedisCache() *schema.Resource {
 	}
 }
 
-func dataSourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Redis.Client
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	patchSchedulesClient := meta.(*clients.Client).Redis.PatchSchedulesClient
@@ -231,7 +231,7 @@ func dataSourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("retrieving Redis Cache %q (Resource Group %q): %+v", id.RediName, id.ResourceGroup, err)
 	}
 
-	d.SetId(id.ID(""))
+	d.SetId(id.ID())
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if zones := resp.Zones; zones != nil {

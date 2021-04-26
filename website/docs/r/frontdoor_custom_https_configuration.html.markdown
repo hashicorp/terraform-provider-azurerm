@@ -13,12 +13,15 @@ Manages the Custom Https Configuration for an Azure Front Door Frontend Endpoint
 ~> **NOTE:** Custom https configurations for a Front Door Frontend Endpoint can be defined both within [the `azurerm_frontdoor` resource](frontdoor.html) via the `custom_https_configuration` block and by using a separate resource, as described in the following sections.
 
 -> **NOTE:** Defining custom https configurations using a separate `azurerm_frontdoor_custom_https_configuration` resource allows for parallel creation/update.
- 
+
+-> **NOTE:** UPCOMING BREAKING CHANGE: In order to address the ordering issue we have changed the design on how to retrieve existing sub resources such as frontend endpoints. Existing design will be deprecated and will result in an incorrect configuration. Please refer to the updated documentation below for more information.
+
+!> **Be Aware:** Azure is rolling out a breaking change on Friday 9th April which may cause issues with the CDN/FrontDoor resources. [More information is available in this Github issue](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11231) - however unfortunately this may necessitate a breaking change to the CDN and FrontDoor resources, more information will be posted [in the Github issue](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11231) as the necessary changes are identified.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "FrontDoorExampleResourceGroup"
-  location = "EastUS2"
+  location = "West Europe"
 }
 
 data "azurerm_key_vault" "vault" {
@@ -75,12 +78,12 @@ resource "azurerm_frontdoor" "example" {
 }
 
 resource "azurerm_frontdoor_custom_https_configuration" "example_custom_https_0" {
-  frontend_endpoint_id              = azurerm_frontdoor.example.frontend_endpoint[0].id
+  frontend_endpoint_id              = azurerm_frontdoor.example.frontend_endpoints["exampleFrontendEndpoint1"]
   custom_https_provisioning_enabled = false
 }
 
 resource "azurerm_frontdoor_custom_https_configuration" "example_custom_https_1" {
-  frontend_endpoint_id              = azurerm_frontdoor.example.frontend_endpoint[1].id
+  frontend_endpoint_id              = azurerm_frontdoor.example.frontend_endpoints["exampleFrontendEndpoint2"]
   custom_https_provisioning_enabled = true
 
   custom_https_configuration {
@@ -143,5 +146,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Front Door Custom Https Configurations can be imported using the `resource id` of the Frontend Endpoint, e.g.
 
 ```shell
-terraform import azurerm_frontdoor_custom_https_configuration.example_custom_https_1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/frontdoors/frontdoor1/frontendEndpoints/endpoint1
+terraform import azurerm_frontdoor_custom_https_configuration.example_custom_https_1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/frontDoors/frontdoor1/frontendEndpoints/endpoint1
 ```

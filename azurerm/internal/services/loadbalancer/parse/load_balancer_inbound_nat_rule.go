@@ -27,14 +27,15 @@ func NewLoadBalancerInboundNatRuleID(subscriptionId, resourceGroup, loadBalancer
 
 func (id LoadBalancerInboundNatRuleId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Load Balancer Name %q", id.LoadBalancerName),
 		fmt.Sprintf("Inbound Nat Rule Name %q", id.InboundNatRuleName),
+		fmt.Sprintf("Load Balancer Name %q", id.LoadBalancerName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Load Balancer Inbound Nat Rule", segmentsStr)
 }
 
-func (id LoadBalancerInboundNatRuleId) ID(_ string) string {
+func (id LoadBalancerInboundNatRuleId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/loadBalancers/%s/inboundNatRules/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName, id.InboundNatRuleName)
 }

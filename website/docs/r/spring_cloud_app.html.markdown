@@ -19,7 +19,7 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "Southeast Asia"
+  location = "West Europe"
 }
 
 resource "azurerm_spring_cloud_service" "example" {
@@ -51,17 +51,37 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
+* `is_public` - (Optional) Does the Spring Cloud Application have public endpoint? Defaults to `false`.
+
+* `https_only` - (Optional) Is only https allowed? Defaults to `false`.
+
+* `persistent_disk` - (Optional) An `persistent_disk` block as defined below.
+
+* `tls_enabled` - (Optional) Is End to End TLS Enabled? Defaults to `false`.
+
 ---
 
 An `identity` block supports the following:
 
 * `type` - (Required) Specifies the identity type of the Spring Cloud Application. Possible value is `SystemAssigned`.
 
+---
+
+An `persistent_disk` block supports the following:
+
+* `size_in_gb` - (Required) Specifies the size of the persistent disk in GB. Possible values are between `0` and `50`.
+
+* `mount_path` - (Optional) Specifies the mount path of the persistent disk. Defaults to `/persistent`.
+
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The ID of the Spring Cloud Application.
+
+* `fqdn` - The Fully Qualified DNS Name of the Spring Application in the service.
+
+* `url` - The public endpoint of the Spring Cloud Application.
 
 ---
 

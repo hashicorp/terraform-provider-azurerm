@@ -9,24 +9,24 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmLogAnalyticsDataExport() *schema.Resource {
+func resourceLogAnalyticsDataExport() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmOperationalinsightsDataExportCreateUpdate,
-		Read:   resourceArmOperationalinsightsDataExportRead,
-		Update: resourceArmOperationalinsightsDataExportCreateUpdate,
-		Delete: resourceArmOperationalinsightsDataExportDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Create: resourceOperationalinsightsDataExportCreateUpdate,
+		Read:   resourceOperationalinsightsDataExportRead,
+		Update: resourceOperationalinsightsDataExportCreateUpdate,
+		Delete: resourceOperationalinsightsDataExportDelete,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -83,7 +83,7 @@ func resourceArmLogAnalyticsDataExport() *schema.Resource {
 	}
 }
 
-func resourceArmOperationalinsightsDataExportCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceOperationalinsightsDataExportCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.DataExportClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -131,10 +131,10 @@ func resourceArmOperationalinsightsDataExportCreateUpdate(d *schema.ResourceData
 	}
 
 	d.SetId(*resp.ID)
-	return resourceArmOperationalinsightsDataExportRead(d, meta)
+	return resourceOperationalinsightsDataExportRead(d, meta)
 }
 
-func resourceArmOperationalinsightsDataExportRead(d *schema.ResourceData, meta interface{}) error {
+func resourceOperationalinsightsDataExportRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.DataExportClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -155,17 +155,17 @@ func resourceArmOperationalinsightsDataExportRead(d *schema.ResourceData, meta i
 	}
 	d.Set("name", id.DataexportName)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("workspace_resource_id", parse.NewLogAnalyticsWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID(""))
+	d.Set("workspace_resource_id", parse.NewLogAnalyticsWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID())
 	if props := resp.DataExportProperties; props != nil {
 		d.Set("export_rule_id", props.DataExportID)
-		d.Set("destination_resource_id", flattenArmDataExportDestination(props.Destination))
+		d.Set("destination_resource_id", flattenDataExportDestination(props.Destination))
 		d.Set("enabled", props.Enable)
 		d.Set("table_names", utils.FlattenStringSlice(props.TableNames))
 	}
 	return nil
 }
 
-func resourceArmOperationalinsightsDataExportDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceOperationalinsightsDataExportDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.DataExportClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -181,7 +181,7 @@ func resourceArmOperationalinsightsDataExportDelete(d *schema.ResourceData, meta
 	return nil
 }
 
-func flattenArmDataExportDestination(input *operationalinsights.Destination) string {
+func flattenDataExportDestination(input *operationalinsights.Destination) string {
 	if input == nil {
 		return ""
 	}

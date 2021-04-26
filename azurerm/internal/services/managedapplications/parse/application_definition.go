@@ -25,13 +25,14 @@ func NewApplicationDefinitionID(subscriptionId, resourceGroup, name string) Appl
 
 func (id ApplicationDefinitionId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Application Definition", segmentsStr)
 }
 
-func (id ApplicationDefinitionId) ID(_ string) string {
+func (id ApplicationDefinitionId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Solutions/applicationDefinitions/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }

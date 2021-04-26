@@ -6,31 +6,31 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccDataSourceAzureRMNetAppPool_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_netapp_pool", "test")
+type NetAppPoolDataSource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceNetAppPool_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "account_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "service_level"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "size_in_tb"),
-				),
-			},
+func TestAccDataSourceNetAppPool_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_netapp_pool", "test")
+	r := NetAppPoolDataSource{}
+
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+				check.That(data.ResourceName).Key("name").Exists(),
+				check.That(data.ResourceName).Key("account_name").Exists(),
+				check.That(data.ResourceName).Key("service_level").Exists(),
+				check.That(data.ResourceName).Key("size_in_tb").Exists(),
+			),
 		},
 	})
 }
 
-func testAccDataSourceNetAppPool_basic(data acceptance.TestData) string {
-	config := testAccAzureRMNetAppPool_basic(data)
+func (NetAppPoolDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -39,5 +39,5 @@ data "azurerm_netapp_pool" "test" {
   account_name        = azurerm_netapp_pool.test.account_name
   name                = azurerm_netapp_pool.test.name
 }
-`, config)
+`, NetAppPoolResource{}.basic(data))
 }

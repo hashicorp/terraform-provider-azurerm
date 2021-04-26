@@ -21,37 +21,52 @@ func schemaAppServiceSiteSourceControl() *schema.Schema {
 					Type:     schema.TypeString,
 					Optional: true,
 					Computed: true,
+					AtLeastOneOf: []string{"source_control.0.repo_url", "source_control.0.branch", "source_control.0.manual_integration",
+						"source_control.0.use_mercurial", "source_control.0.rollback_enabled",
+					},
 				},
 
 				"branch": {
 					Type:     schema.TypeString,
 					Optional: true,
 					Computed: true,
+					AtLeastOneOf: []string{"source_control.0.repo_url", "source_control.0.branch", "source_control.0.manual_integration",
+						"source_control.0.use_mercurial", "source_control.0.rollback_enabled",
+					},
 				},
 
 				"manual_integration": {
 					Type:     schema.TypeBool,
 					Optional: true,
 					Computed: true,
+					AtLeastOneOf: []string{"source_control.0.repo_url", "source_control.0.branch", "source_control.0.manual_integration",
+						"source_control.0.use_mercurial", "source_control.0.rollback_enabled",
+					},
 				},
 
 				"use_mercurial": {
 					Type:     schema.TypeBool,
 					Optional: true,
 					Computed: true,
+					AtLeastOneOf: []string{"source_control.0.repo_url", "source_control.0.branch", "source_control.0.manual_integration",
+						"source_control.0.use_mercurial", "source_control.0.rollback_enabled",
+					},
 				},
 
 				"rollback_enabled": {
 					Type:     schema.TypeBool,
 					Optional: true,
 					Computed: true,
+					AtLeastOneOf: []string{"source_control.0.repo_url", "source_control.0.branch", "source_control.0.manual_integration",
+						"source_control.0.use_mercurial", "source_control.0.rollback_enabled",
+					},
 				},
 			},
 		},
 	}
 }
 
-func schemaDataSourceAppServiceSiteSourceControl() *schema.Schema {
+func schemaAppServiceSiteSourceControlDataSource() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Computed: true,

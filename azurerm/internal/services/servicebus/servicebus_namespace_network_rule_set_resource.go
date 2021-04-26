@@ -9,14 +9,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	validateNetwork "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/validate"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/set"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -31,7 +31,7 @@ func resourceServiceBusNamespaceNetworkRuleSet() *schema.Resource {
 		Update: resourceServiceBusNamespaceNetworkRuleSetCreateUpdate,
 		Delete: resourceServiceBusNamespaceNetworkRuleSetDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.NamespaceNetworkRuleSetID(id)
 			return err
 		}),
@@ -114,7 +114,7 @@ func resourceServiceBusNamespaceNetworkRuleSetCreateUpdate(d *schema.ResourceDat
 		// This resource is unique to the corresponding service bus namespace.
 		// It will be created automatically along with the namespace, therefore we check whether this resource is identical to a "deleted" one
 		if !CheckNetworkRuleNullified(existing) {
-			return tf.ImportAsExistsError("azurerm_servicebus_namespace_network_rule_set", resourceId.ID(""))
+			return tf.ImportAsExistsError("azurerm_servicebus_namespace_network_rule_set", resourceId.ID())
 		}
 	}
 
@@ -130,7 +130,7 @@ func resourceServiceBusNamespaceNetworkRuleSetCreateUpdate(d *schema.ResourceDat
 		return fmt.Errorf("creating/updating %s: %+v", resourceId, err)
 	}
 
-	d.SetId(resourceId.ID(""))
+	d.SetId(resourceId.ID())
 	return resourceServiceBusNamespaceNetworkRuleSetRead(d, meta)
 }
 

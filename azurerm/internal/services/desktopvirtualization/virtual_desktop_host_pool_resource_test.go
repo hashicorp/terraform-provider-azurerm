@@ -152,6 +152,7 @@ resource "azurerm_virtual_desktop_host_pool" "test" {
   load_balancer_type       = "BreadthFirst"
   maximum_sessions_allowed = 100
   preferred_app_group_type = "Desktop"
+  custom_rdp_properties    = "audiocapturemode:i:1;audiomode:i:0;"
 
   # Do not use timestamp() outside of testing due to https://github.com/hashicorp/terraform/issues/22461
   registration_info {

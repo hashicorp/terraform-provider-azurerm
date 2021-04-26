@@ -13,7 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datashare/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datashare/validate"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -33,7 +33,7 @@ func resourceDataShare() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ShareID(id)
 			return err
 		}),
@@ -120,7 +120,7 @@ func resourceDataShareCreateUpdate(d *schema.ResourceData, meta interface{}) err
 		return err
 	}
 
-	resourceId := parse.NewShareID(subscriptionId, accountId.ResourceGroup, accountId.Name, name).ID("")
+	resourceId := parse.NewShareID(subscriptionId, accountId.ResourceGroup, accountId.Name, name).ID()
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, accountId.ResourceGroup, accountId.Name, name)
 		if err != nil {
@@ -198,7 +198,7 @@ func resourceDataShareRead(d *schema.ResourceData, meta interface{}) error {
 	accountId := parse.NewAccountID(subscriptionId, id.ResourceGroup, id.AccountName)
 
 	d.Set("name", id.Name)
-	d.Set("account_id", accountId.ID(""))
+	d.Set("account_id", accountId.ID())
 
 	if props := dataShare.ShareProperties; props != nil {
 		d.Set("kind", props.ShareKind)

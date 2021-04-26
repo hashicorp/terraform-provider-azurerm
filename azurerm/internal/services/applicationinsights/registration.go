@@ -28,9 +28,10 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_application_insights_api_key":        resourceApplicationInsightsAPIKey(),
-		"azurerm_application_insights":                resourceApplicationInsights(),
-		"azurerm_application_insights_analytics_item": resourceApplicationInsightsAnalyticsItem(),
-		"azurerm_application_insights_web_test":       resourceApplicationInsightsWebTests(),
+		"azurerm_application_insights_api_key":              resourceApplicationInsightsAPIKey(),
+		"azurerm_application_insights":                      resourceApplicationInsights(),
+		"azurerm_application_insights_analytics_item":       resourceApplicationInsightsAnalyticsItem(),
+		"azurerm_application_insights_smart_detection_rule": resourceApplicationInsightsSmartDetectionRule(),
+		"azurerm_application_insights_web_test":             resourceApplicationInsightsWebTests(),
 	}
 }

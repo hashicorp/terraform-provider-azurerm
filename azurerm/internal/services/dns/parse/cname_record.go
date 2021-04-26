@@ -27,14 +27,15 @@ func NewCnameRecordID(subscriptionId, resourceGroup, dnszoneName, cNAMEName stri
 
 func (id CnameRecordId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Dnszone Name %q", id.DnszoneName),
 		fmt.Sprintf("C N A M E Name %q", id.CNAMEName),
+		fmt.Sprintf("Dnszone Name %q", id.DnszoneName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Cname Record", segmentsStr)
 }
 
-func (id CnameRecordId) ID(_ string) string {
+func (id CnameRecordId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/dnszones/%s/CNAME/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DnszoneName, id.CNAMEName)
 }

@@ -26,7 +26,7 @@ func TestAccBotChannelEmail_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_email", "test")
 	r := BotChannelEmailResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []resource.TestStep{
 		{
 			Config: r.basicConfig(data),
 			Check: resource.ComposeTestCheckFunc(
@@ -47,7 +47,7 @@ func TestAccBotChannelEmail_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_email", "test")
 	r := BotChannelEmailResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []resource.TestStep{
 		{
 			Config: r.basicConfig(data),
 			Check: resource.ComposeTestCheckFunc(
@@ -73,7 +73,7 @@ func (t BotChannelEmailResource) Exists(ctx context.Context, clients *clients.Cl
 
 	resp, err := clients.Bot.ChannelClient.Get(ctx, id.ResourceGroup, id.BotServiceName, string(botservice.ChannelNameEmailChannel))
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Bot Channel E-Mail (%s): %v", id.String(), err)
+		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
 
 	return utils.Bool(resp.Properties != nil), nil

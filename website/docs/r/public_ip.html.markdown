@@ -14,8 +14,8 @@ Manages a Public IP Address.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "resourceGroup1"
-  location = "West US"
+  name     = "example-resources"
+  location = "West Europe"
 }
 
 resource "azurerm_public_ip" "example" {
@@ -61,6 +61,10 @@ The following arguments are supported:
 * `reverse_fqdn` - (Optional) A fully qualified domain name that resolves to this public IP address. If the reverseFqdn is specified, then a PTR DNS record is created pointing from the IP address in the in-addr.arpa domain to the reverse FQDN.
 
 * `public_ip_prefix_id` - (Optional) If specified then public IP address allocated will be provided from the public IP prefix resource.
+
+* `ip_tags` - (Optional) A mapping of IP tags to assign to the public IP.
+
+-> **Note** IP Tag `RoutingPreference` requires multiple `zones` and `Standard` SKU to be set.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

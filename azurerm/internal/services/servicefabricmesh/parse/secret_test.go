@@ -11,7 +11,7 @@ import (
 var _ resourceid.Formatter = SecretId{}
 
 func TestSecretIDFormatter(t *testing.T) {
-	actual := NewSecretID("12345678-1234-9876-4563-123456789012", "resGroup1", "secret1").ID("")
+	actual := NewSecretID("12345678-1234-9876-4563-123456789012", "resGroup1", "secret1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ServiceFabricMesh/secrets/secret1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)

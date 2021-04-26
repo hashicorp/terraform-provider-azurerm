@@ -1,458 +1,362 @@
 package servicebus_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/parse"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMServiceBusQueue_basic(t *testing.T) {
+type ServiceBusQueueResource struct {
+}
+
+func TestAccServiceBusQueue_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceBusQueue_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusQueueExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enable_express", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "enable_partitioning", "false"),
-				),
-			},
-			data.ImportStep(),
+	r := ServiceBusQueueResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enable_express").HasValue("false"),
+				check.That(data.ResourceName).Key("enable_partitioning").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccServiceBusQueue_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
+	r := ServiceBusQueueResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enable_express").HasValue("false"),
+				check.That(data.ResourceName).Key("enable_partitioning").HasValue("false"),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func TestAccServiceBusQueue_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
+	r := ServiceBusQueueResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enable_express").HasValue("false"),
+				check.That(data.ResourceName).Key("enable_batched_operations").HasValue("true"),
+			),
+		},
+		{
+			Config: r.update(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("enable_express").HasValue("true"),
+				check.That(data.ResourceName).Key("max_size_in_megabytes").HasValue("2048"),
+				check.That(data.ResourceName).Key("enable_batched_operations").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccServiceBusQueue_enablePartitioningStandard(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
+	r := ServiceBusQueueResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enable_partitioning").HasValue("false"),
+			),
+		},
+		{
+			Config: r.enablePartitioningStandard(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("enable_partitioning").HasValue("true"),
+				// Ensure size is read back in its original value and not the x16 value returned by Azure
+				check.That(data.ResourceName).Key("max_size_in_megabytes").HasValue("5120"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMServiceBusQueue_requiresImport(t *testing.T) {
+func TestAccServiceBusQueue_defaultEnablePartitioningPremium(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceBusQueue_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusQueueExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enable_express", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "enable_partitioning", "false"),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMServiceBusQueue_requiresImport),
+	r := ServiceBusQueueResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.Premium(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enable_partitioning").HasValue("false"),
+				check.That(data.ResourceName).Key("enable_express").HasValue("false"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMServiceBusQueue_update(t *testing.T) {
+func TestAccServiceBusQueue_enableDuplicateDetection(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceBusQueue_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusQueueExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enable_express", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "enable_batched_operations", "true"),
-				),
-			},
-			{
-				Config: testAccAzureRMServiceBusQueue_update(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "enable_express", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "max_size_in_megabytes", "2048"),
-					resource.TestCheckResourceAttr(data.ResourceName, "enable_batched_operations", "false"),
-				),
-			},
-			data.ImportStep(),
+	r := ServiceBusQueueResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("requires_duplicate_detection").HasValue("false"),
+			),
 		},
+		{
+			Config: r.enableDuplicateDetection(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("requires_duplicate_detection").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMServiceBusQueue_enablePartitioningStandard(t *testing.T) {
+func TestAccServiceBusQueue_enableRequiresSession(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceBusQueue_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusQueueExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enable_partitioning", "false"),
-				),
-			},
-			{
-				Config: testAccAzureRMServiceBusQueue_enablePartitioningStandard(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "enable_partitioning", "true"),
-					// Ensure size is read back in its original value and not the x16 value returned by Azure
-					resource.TestCheckResourceAttr(data.ResourceName, "max_size_in_megabytes", "5120"),
-				),
-			},
+	r := ServiceBusQueueResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("requires_session").HasValue("false"),
+			),
 		},
+		{
+			Config: r.enableRequiresSession(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("requires_session").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMServiceBusQueue_defaultEnablePartitioningPremium(t *testing.T) {
+func TestAccServiceBusQueue_enableDeadLetteringOnMessageExpiration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceBusQueue_Premium(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusQueueExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enable_partitioning", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "enable_express", "false"),
-				),
-			},
-			data.ImportStep(),
+	r := ServiceBusQueueResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("dead_lettering_on_message_expiration").HasValue("false"),
+			),
 		},
+		{
+			Config: r.enableDeadLetteringOnMessageExpiration(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("dead_lettering_on_message_expiration").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMServiceBusQueue_enableDuplicateDetection(t *testing.T) {
+func TestAccServiceBusQueue_lockDuration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceBusQueue_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusQueueExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "requires_duplicate_detection", "false"),
-				),
-			},
-			{
-				Config: testAccAzureRMServiceBusQueue_enableDuplicateDetection(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "requires_duplicate_detection", "true"),
-				),
-			},
-			data.ImportStep(),
+	r := ServiceBusQueueResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.lockDuration(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("lock_duration").HasValue("PT40S"),
+			),
 		},
+		{
+			Config: r.lockDurationUpdated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("lock_duration").HasValue("PT2M"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMServiceBusQueue_enableRequiresSession(t *testing.T) {
+func TestAccServiceBusQueue_isoTimeSpanAttributes(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceBusQueue_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusQueueExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "requires_session", "false"),
-				),
-			},
-			{
-				Config: testAccAzureRMServiceBusQueue_enableRequiresSession(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "requires_session", "true"),
-				),
-			},
-			data.ImportStep(),
+	r := ServiceBusQueueResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.isoTimeSpanAttributes(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("auto_delete_on_idle").HasValue("PT10M"),
+				check.That(data.ResourceName).Key("default_message_ttl").HasValue("PT30M"),
+				check.That(data.ResourceName).Key("requires_duplicate_detection").HasValue("true"),
+				check.That(data.ResourceName).Key("duplicate_detection_history_time_window").HasValue("PT15M"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMServiceBusQueue_enableDeadLetteringOnMessageExpiration(t *testing.T) {
+func TestAccServiceBusQueue_maxDeliveryCount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceBusQueue_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusQueueExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "dead_lettering_on_message_expiration", "false"),
-				),
-			},
-			{
-				Config: testAccAzureRMServiceBusQueue_enableDeadLetteringOnMessageExpiration(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "dead_lettering_on_message_expiration", "true"),
-				),
-			},
-			data.ImportStep(),
+	r := ServiceBusQueueResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("max_delivery_count").HasValue("10"),
+			),
 		},
+		{
+			Config: r.maxDeliveryCount(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("max_delivery_count").HasValue("20"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMServiceBusQueue_lockDuration(t *testing.T) {
+func TestAccServiceBusQueue_forwardTo(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceBusQueue_lockDuration(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusQueueExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "lock_duration", "PT40S"),
-				),
-			},
-			{
-				Config: testAccAzureRMServiceBusQueue_lockDurationUpdated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusQueueExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "lock_duration", "PT2M"),
-				),
-			},
-			data.ImportStep(),
+	r := ServiceBusQueueResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("forward_to").HasValue(""),
+			),
 		},
+		{
+			Config: r.forwardTo(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("forward_to").HasValue(fmt.Sprintf("acctestservicebusqueue-forward_to-%d", data.RandomInteger)),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMServiceBusQueue_isoTimeSpanAttributes(t *testing.T) {
+func TestAccServiceBusQueue_forwardDeadLetteredMessagesTo(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceBusQueue_isoTimeSpanAttributes(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusQueueExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "auto_delete_on_idle", "PT10M"),
-					resource.TestCheckResourceAttr(data.ResourceName, "default_message_ttl", "PT30M"),
-					resource.TestCheckResourceAttr(data.ResourceName, "requires_duplicate_detection", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "duplicate_detection_history_time_window", "PT15M"),
-				),
-			},
-			data.ImportStep(),
+	r := ServiceBusQueueResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("forward_dead_lettered_messages_to").HasValue(""),
+			),
 		},
+		{
+			Config: r.forwardDeadLetteredMessagesTo(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("forward_dead_lettered_messages_to").HasValue(fmt.Sprintf("acctestservicebusqueue-forward_dl_messages_to-%d", data.RandomInteger)),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMServiceBusQueue_maxDeliveryCount(t *testing.T) {
+func TestAccServiceBusQueue_status(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceBusQueue_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusQueueExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "max_delivery_count", "10"),
-				),
-			},
-			{
-				Config: testAccAzureRMServiceBusQueue_maxDeliveryCount(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "max_delivery_count", "20"),
-				),
-			},
-			data.ImportStep(),
+	r := ServiceBusQueueResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("status").HasValue("Active"),
+			),
 		},
+		{
+			Config: r.status(data, "Creating"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("status").HasValue("Creating"),
+			),
+		},
+		{
+			Config: r.status(data, "Deleting"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("status").HasValue("Deleting"),
+			),
+		},
+		{
+			Config: r.status(data, "Disabled"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("status").HasValue("Disabled"),
+			),
+		},
+		{
+			Config: r.status(data, "ReceiveDisabled"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("status").HasValue("ReceiveDisabled"),
+			),
+		},
+		{
+			Config: r.status(data, "Renaming"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("status").HasValue("Renaming"),
+			),
+		},
+		{
+			Config: r.status(data, "SendDisabled"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("status").HasValue("SendDisabled"),
+			),
+		},
+		{
+			Config: r.status(data, "Unknown"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("status").HasValue("Unknown"),
+			),
+		},
+		{
+			Config: r.status(data, "Active"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("status").HasValue("Active"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMServiceBusQueue_forwardTo(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceBusQueue_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusQueueExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "forward_to", ""),
-				),
-			},
-			{
-				Config: testAccAzureRMServiceBusQueue_forwardTo(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "forward_to", fmt.Sprintf("acctestservicebusqueue-forward_to-%d", data.RandomInteger)),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMServiceBusQueue_forwardDeadLetteredMessagesTo(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceBusQueue_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusQueueExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "forward_dead_lettered_messages_to", ""),
-				),
-			},
-			{
-				Config: testAccAzureRMServiceBusQueue_forwardDeadLetteredMessagesTo(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "forward_dead_lettered_messages_to", fmt.Sprintf("acctestservicebusqueue-forward_dl_messages_to-%d", data.RandomInteger)),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMServiceBusQueue_status(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceBusQueue_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusQueueExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "status", "Active"),
-				),
-			},
-			{
-				Config: testAccAzureRMServiceBusQueue_status(data, "Creating"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "status", "Creating"),
-				),
-			},
-			{
-				Config: testAccAzureRMServiceBusQueue_status(data, "Deleting"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "status", "Deleting"),
-				),
-			},
-			{
-				Config: testAccAzureRMServiceBusQueue_status(data, "Disabled"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "status", "Disabled"),
-				),
-			},
-			{
-				Config: testAccAzureRMServiceBusQueue_status(data, "ReceiveDisabled"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "status", "ReceiveDisabled"),
-				),
-			},
-			{
-				Config: testAccAzureRMServiceBusQueue_status(data, "Renaming"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "status", "Renaming"),
-				),
-			},
-			{
-				Config: testAccAzureRMServiceBusQueue_status(data, "SendDisabled"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "status", "SendDisabled"),
-				),
-			},
-			{
-				Config: testAccAzureRMServiceBusQueue_status(data, "Unknown"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "status", "Unknown"),
-				),
-			},
-			{
-				Config: testAccAzureRMServiceBusQueue_status(data, "Active"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "status", "Active"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func testCheckAzureRMServiceBusQueueDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).ServiceBus.QueuesClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_servicebus_queue" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		namespaceName := rs.Primary.Attributes["namespace_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, namespaceName, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-			return err
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("ServiceBus Queue still exists:\n%#v", resp.SBQueueProperties)
-		}
+func (t ServiceBusQueueResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.QueueID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
-}
-
-func testCheckAzureRMServiceBusQueueExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).ServiceBus.QueuesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		queueName := rs.Primary.Attributes["name"]
-		namespaceName := rs.Primary.Attributes["namespace_name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for queue: %s", queueName)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, namespaceName, queueName)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on serviceBusQueuesClient: %s", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Queue %q (resource group: %q) does not exist", namespaceName, resourceGroup)
-		}
-
-		return nil
+	resp, err := clients.ServiceBus.QueuesClient.Get(ctx, id.ResourceGroup, id.NamespaceName, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("reading Service Bus NameSpace Queue (%s): %+v", id.String(), err)
 	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMServiceBusQueue_basic(data acceptance.TestData) string {
+func (ServiceBusQueueResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -478,8 +382,7 @@ resource "azurerm_servicebus_queue" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMServiceBusQueue_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMServiceBusQueue_basic(data)
+func (r ServiceBusQueueResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -488,10 +391,10 @@ resource "azurerm_servicebus_queue" "import" {
   resource_group_name = azurerm_servicebus_queue.test.resource_group_name
   namespace_name      = azurerm_servicebus_queue.test.namespace_name
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMServiceBusQueue_Premium(data acceptance.TestData) string {
+func (ServiceBusQueueResource) Premium(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -520,7 +423,7 @@ resource "azurerm_servicebus_queue" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMServiceBusQueue_update(data acceptance.TestData) string {
+func (ServiceBusQueueResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -549,7 +452,7 @@ resource "azurerm_servicebus_queue" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMServiceBusQueue_enablePartitioningStandard(data acceptance.TestData) string {
+func (ServiceBusQueueResource) enablePartitioningStandard(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -577,7 +480,7 @@ resource "azurerm_servicebus_queue" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMServiceBusQueue_enableDuplicateDetection(data acceptance.TestData) string {
+func (ServiceBusQueueResource) enableDuplicateDetection(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -604,7 +507,7 @@ resource "azurerm_servicebus_queue" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMServiceBusQueue_enableRequiresSession(data acceptance.TestData) string {
+func (ServiceBusQueueResource) enableRequiresSession(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -632,7 +535,7 @@ resource "azurerm_servicebus_queue" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMServiceBusQueue_enableDeadLetteringOnMessageExpiration(data acceptance.TestData) string {
+func (ServiceBusQueueResource) enableDeadLetteringOnMessageExpiration(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -660,7 +563,7 @@ resource "azurerm_servicebus_queue" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMServiceBusQueue_lockDuration(data acceptance.TestData) string {
+func (ServiceBusQueueResource) lockDuration(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -687,7 +590,7 @@ resource "azurerm_servicebus_queue" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMServiceBusQueue_lockDurationUpdated(data acceptance.TestData) string {
+func (ServiceBusQueueResource) lockDurationUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -714,7 +617,7 @@ resource "azurerm_servicebus_queue" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMServiceBusQueue_isoTimeSpanAttributes(data acceptance.TestData) string {
+func (ServiceBusQueueResource) isoTimeSpanAttributes(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -744,7 +647,7 @@ resource "azurerm_servicebus_queue" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMServiceBusQueue_maxDeliveryCount(data acceptance.TestData) string {
+func (ServiceBusQueueResource) maxDeliveryCount(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -771,7 +674,7 @@ resource "azurerm_servicebus_queue" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMServiceBusQueue_forwardTo(data acceptance.TestData) string {
+func (ServiceBusQueueResource) forwardTo(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -804,7 +707,7 @@ resource "azurerm_servicebus_queue" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMServiceBusQueue_forwardDeadLetteredMessagesTo(data acceptance.TestData) string {
+func (ServiceBusQueueResource) forwardDeadLetteredMessagesTo(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -837,7 +740,7 @@ resource "azurerm_servicebus_queue" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMServiceBusQueue_status(data acceptance.TestData, status string) string {
+func (ServiceBusQueueResource) status(data acceptance.TestData, status string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

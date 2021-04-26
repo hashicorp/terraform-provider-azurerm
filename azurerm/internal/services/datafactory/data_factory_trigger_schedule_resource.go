@@ -11,22 +11,22 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataFactoryTriggerSchedule() *schema.Resource {
+func resourceDataFactoryTriggerSchedule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryTriggerScheduleCreateUpdate,
-		Read:   resourceArmDataFactoryTriggerScheduleRead,
-		Update: resourceArmDataFactoryTriggerScheduleCreateUpdate,
-		Delete: resourceArmDataFactoryTriggerScheduleDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Create: resourceDataFactoryTriggerScheduleCreateUpdate,
+		Read:   resourceDataFactoryTriggerScheduleRead,
+		Update: resourceDataFactoryTriggerScheduleCreateUpdate,
+		Delete: resourceDataFactoryTriggerScheduleDelete,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -121,7 +121,7 @@ func resourceArmDataFactoryTriggerSchedule() *schema.Resource {
 	}
 }
 
-func resourceArmDataFactoryTriggerScheduleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryTriggerScheduleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.TriggersClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -203,10 +203,10 @@ func resourceArmDataFactoryTriggerScheduleCreateUpdate(d *schema.ResourceData, m
 
 	d.SetId(*read.ID)
 
-	return resourceArmDataFactoryTriggerScheduleRead(d, meta)
+	return resourceDataFactoryTriggerScheduleRead(d, meta)
 }
 
-func resourceArmDataFactoryTriggerScheduleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryTriggerScheduleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.TriggersClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -268,7 +268,7 @@ func resourceArmDataFactoryTriggerScheduleRead(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func resourceArmDataFactoryTriggerScheduleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryTriggerScheduleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.TriggersClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()

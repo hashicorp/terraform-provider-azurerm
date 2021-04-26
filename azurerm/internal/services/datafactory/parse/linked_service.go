@@ -27,14 +27,15 @@ func NewLinkedServiceID(subscriptionId, resourceGroup, factoryName, name string)
 
 func (id LinkedServiceId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Factory Name %q", id.FactoryName),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Factory Name %q", id.FactoryName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Linked Service", segmentsStr)
 }
 
-func (id LinkedServiceId) ID(_ string) string {
+func (id LinkedServiceId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DataFactory/factories/%s/linkedservices/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.FactoryName, id.Name)
 }

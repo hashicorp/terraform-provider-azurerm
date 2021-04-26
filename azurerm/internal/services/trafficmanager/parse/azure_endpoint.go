@@ -27,14 +27,15 @@ func NewAzureEndpointID(subscriptionId, resourceGroup, trafficManagerProfileName
 
 func (id AzureEndpointId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Traffic Manager Profile Name %q", id.TrafficManagerProfileName),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Traffic Manager Profile Name %q", id.TrafficManagerProfileName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Azure Endpoint", segmentsStr)
 }
 
-func (id AzureEndpointId) ID(_ string) string {
+func (id AzureEndpointId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/trafficManagerProfiles/%s/azureEndpoints/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.TrafficManagerProfileName, id.Name)
 }

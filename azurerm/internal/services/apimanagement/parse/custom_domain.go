@@ -27,14 +27,15 @@ func NewCustomDomainID(subscriptionId, resourceGroup, serviceName, name string) 
 
 func (id CustomDomainId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Service Name %q", id.ServiceName),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Service Name %q", id.ServiceName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Custom Domain", segmentsStr)
 }
 
-func (id CustomDomainId) ID(_ string) string {
+func (id CustomDomainId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ApiManagement/service/%s/customDomains/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ServiceName, id.Name)
 }

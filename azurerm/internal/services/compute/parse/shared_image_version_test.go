@@ -11,7 +11,7 @@ import (
 var _ resourceid.Formatter = SharedImageVersionId{}
 
 func TestSharedImageVersionIDFormatter(t *testing.T) {
-	actual := NewSharedImageVersionID("12345678-1234-9876-4563-123456789012", "resGroup1", "gallery1", "image1", "version1").ID("")
+	actual := NewSharedImageVersionID("12345678-1234-9876-4563-123456789012", "resGroup1", "gallery1", "image1", "version1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/galleries/gallery1/images/image1/versions/version1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)

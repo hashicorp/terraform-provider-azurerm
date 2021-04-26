@@ -17,18 +17,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/lighthouse/validate"
 	resourceValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/validate"
 	subscriptionValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/subscription/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmLighthouseAssignment() *schema.Resource {
+func resourceLighthouseAssignment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmLighthouseAssignmentCreate,
-		Read:   resourceArmLighthouseAssignmentRead,
-		Delete: resourceArmLighthouseAssignmentDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Create: resourceLighthouseAssignmentCreate,
+		Read:   resourceLighthouseAssignmentRead,
+		Delete: resourceLighthouseAssignmentDelete,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -62,7 +62,7 @@ func resourceArmLighthouseAssignment() *schema.Resource {
 	}
 }
 
-func resourceArmLighthouseAssignmentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceLighthouseAssignmentCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Lighthouse.AssignmentsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -111,10 +111,10 @@ func resourceArmLighthouseAssignmentCreate(d *schema.ResourceData, meta interfac
 
 	d.SetId(*read.ID)
 
-	return resourceArmLighthouseAssignmentRead(d, meta)
+	return resourceLighthouseAssignmentRead(d, meta)
 }
 
-func resourceArmLighthouseAssignmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceLighthouseAssignmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Lighthouse.AssignmentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -145,7 +145,7 @@ func resourceArmLighthouseAssignmentRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func resourceArmLighthouseAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceLighthouseAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Lighthouse.AssignmentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -155,8 +155,7 @@ func resourceArmLighthouseAssignmentDelete(d *schema.ResourceData, meta interfac
 		return err
 	}
 
-	_, err = client.Delete(ctx, id.Scope, id.Name)
-	if err != nil {
+	if _, err = client.Delete(ctx, id.Scope, id.Name); err != nil {
 		return fmt.Errorf("Error deleting Lighthouse Assignment %q at Scope %q: %+v", id.Name, id.Scope, err)
 	}
 

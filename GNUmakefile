@@ -5,20 +5,18 @@ TESTTIMEOUT=180m
 
 .EXPORT_ALL_VARIABLES:
   TF_SCHEMA_PANIC_ON_ERROR=1
-  GO111MODULE=on
-  GOFLAGS=-mod=vendor
 
 default: build
 
 tools:
 	@echo "==> installing required tooling..."
 	@sh "$(CURDIR)/scripts/gogetcookie.sh"
-	GO111MODULE=off go get -u github.com/client9/misspell/cmd/misspell
-	GO111MODULE=off go get -u github.com/bflad/tfproviderlint/cmd/tfproviderlint
-	GO111MODULE=off go get -u github.com/bflad/tfproviderdocs
-	GO111MODULE=off go get -u github.com/katbyte/terrafmt
-	GO111MODULE=off go get -u golang.org/x/tools/cmd/goimports
-	GO111MODULE=off go get -u mvdan.cc/gofumpt
+	go install github.com/client9/misspell/cmd/misspell@latest
+	go install github.com/bflad/tfproviderlint/cmd/tfproviderlint@latest
+	go install github.com/bflad/tfproviderdocs@latest
+	go install github.com/katbyte/terrafmt@latest
+	go install golang.org/x/tools/cmd/goimports@latest
+	go install mvdan.cc/gofumpt@latest
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH || $$GOPATH)/bin v1.32.0
 
 build: fmtcheck generate
@@ -26,7 +24,7 @@ build: fmtcheck generate
 
 build-docker:
 	mkdir -p bin
-	docker run --rm -v $$(pwd)/bin:/go/bin -v $$(pwd):/go/src/github.com/terraform-providers/terraform-provider-azurerm -w /go/src/github.com/terraform-providers/terraform-provider-azurerm -e GOOS golang:1.13 make build
+	docker run --rm -v $$(pwd)/bin:/go/bin -v $$(pwd):/go/src/github.com/terraform-providers/terraform-provider-azurerm -w /go/src/github.com/terraform-providers/terraform-provider-azurerm -e GOOS golang:1.16 make build
 
 fmt:
 	@echo "==> Fixing source code with gofmt..."
@@ -34,7 +32,7 @@ fmt:
 	find . -name '*.go' | grep -v vendor | xargs gofmt -s -w
 
 fumpt:
-	@echo "==> Fixing source code with gofmt..."
+	@echo "==> Fixing source code with Gofumpt..."
 	# This logic should match the search logic in scripts/gofmtcheck.sh
 	find . -name '*.go' | grep -v vendor | xargs gofumpt -s -w
 
@@ -104,7 +102,7 @@ testacc: fmtcheck
 	TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout $(TESTTIMEOUT) -ldflags="-X=github.com/terraform-providers/terraform-provider-azurerm/version.ProviderVersion=acc"
 
 acctests: fmtcheck
-	TF_ACC=1 go test -v ./azurerm/internal/services/$(SERVICE)/tests/ $(TESTARGS) -timeout $(TESTTIMEOUT) -ldflags="-X=github.com/terraform-providers/terraform-provider-azurerm/version.ProviderVersion=acc"
+	TF_ACC=1 go test -v ./azurerm/internal/services/$(SERVICE) $(TESTARGS) -timeout $(TESTTIMEOUT) -ldflags="-X=github.com/terraform-providers/terraform-provider-azurerm/version.ProviderVersion=acc"
 
 debugacc: fmtcheck
 	TF_ACC=1 dlv test $(TEST) --headless --listen=:2345 --api-version=2 -- -test.v $(TESTARGS)
@@ -126,13 +124,6 @@ endif
 
 scaffold-website:
 	./scripts/scaffold-website.sh
-
-website-test:
-ifeq (,$(wildcard $(GOPATH)/src/$(WEBSITE_REPO)))
-	echo "$(WEBSITE_REPO) not found in your GOPATH (necessary for layouts and assets), get-ting..."
-	git clone https://$(WEBSITE_REPO) $$(go env GOPATH || $$GOPATH)/src/$(WEBSITE_REPO)
-endif
-	@$(MAKE) -C $$(go env GOPATH || $$GOPATH)/src/$(WEBSITE_REPO) website-provider-test PROVIDER_PATH=$(shell pwd) PROVIDER_NAME=$(PKG_NAME)
 
 teamcity-test:
 	@$(MAKE) -C .teamcity tools

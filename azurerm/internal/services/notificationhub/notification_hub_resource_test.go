@@ -88,7 +88,7 @@ func (NotificationHubResource) Exists(ctx context.Context, clients *clients.Clie
 
 	resp, err := clients.NotificationHubs.HubsClient.Get(ctx, id.ResourceGroup, id.NamespaceName, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Notification Hub (%s): %v", id.String(), err)
+		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
 
 	return utils.Bool(resp.Properties != nil), nil

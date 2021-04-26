@@ -27,14 +27,15 @@ func NewFrontendEndpointID(subscriptionId, resourceGroup, frontDoorName, name st
 
 func (id FrontendEndpointId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Front Door Name %q", id.FrontDoorName),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Front Door Name %q", id.FrontDoorName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Frontend Endpoint", segmentsStr)
 }
 
-func (id FrontendEndpointId) ID(_ string) string {
+func (id FrontendEndpointId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/frontDoors/%s/frontendEndpoints/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.FrontDoorName, id.Name)
 }

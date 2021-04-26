@@ -15,20 +15,20 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmExpressRouteCircuitPeering() *schema.Resource {
+func resourceExpressRouteCircuitPeering() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmExpressRouteCircuitPeeringCreateUpdate,
-		Read:   resourceArmExpressRouteCircuitPeeringRead,
-		Update: resourceArmExpressRouteCircuitPeeringCreateUpdate,
-		Delete: resourceArmExpressRouteCircuitPeeringDelete,
+		Create: resourceExpressRouteCircuitPeeringCreateUpdate,
+		Read:   resourceExpressRouteCircuitPeeringRead,
+		Update: resourceExpressRouteCircuitPeeringCreateUpdate,
+		Delete: resourceExpressRouteCircuitPeeringDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -192,7 +192,7 @@ func resourceArmExpressRouteCircuitPeering() *schema.Resource {
 	}
 }
 
-func resourceArmExpressRouteCircuitPeeringCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceExpressRouteCircuitPeeringCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ExpressRoutePeeringsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -287,10 +287,10 @@ func resourceArmExpressRouteCircuitPeeringCreateUpdate(d *schema.ResourceData, m
 
 	d.SetId(*read.ID)
 
-	return resourceArmExpressRouteCircuitPeeringRead(d, meta)
+	return resourceExpressRouteCircuitPeeringRead(d, meta)
 }
 
-func resourceArmExpressRouteCircuitPeeringRead(d *schema.ResourceData, meta interface{}) error {
+func resourceExpressRouteCircuitPeeringRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ExpressRoutePeeringsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -343,7 +343,7 @@ func resourceArmExpressRouteCircuitPeeringRead(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func resourceArmExpressRouteCircuitPeeringDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceExpressRouteCircuitPeeringDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ExpressRoutePeeringsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

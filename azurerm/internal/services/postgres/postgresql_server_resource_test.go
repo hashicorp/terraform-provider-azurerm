@@ -1,6 +1,7 @@
 package postgres_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -8,483 +9,433 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMPostgreSQLServer_basicNinePointFive(t *testing.T) {
+type PostgreSQLServerResource struct {
+}
+
+func TestAccPostgreSQLServer_basicNinePointFive(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPostgreSQLServer_basic(data, "9.5"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"),
+	r := PostgreSQLServerResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, "9.5"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("administrator_login_password"),
 	})
 }
 
-func TestAccAzureRMPostgreSQLServer_basicNinePointFiveDeprecated(t *testing.T) {
+func TestAccPostgreSQLServer_basicNinePointFiveDeprecated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPostgreSQLServer_basicDeprecated(data, "9.5"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"),
-			{
-				Config: testAccAzureRMPostgreSQLServer_gp(data, "9.5"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"),
+	r := PostgreSQLServerResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicDeprecated(data, "9.5"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.gp(data, "9.5"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
 	})
 }
 
-func TestAccAzureRMPostgreSQLServer_basicNinePointSix(t *testing.T) {
+func TestAccPostgreSQLServer_basicNinePointSix(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPostgreSQLServer_basic(data, "9.6"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"),
+	r := PostgreSQLServerResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, "9.6"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("administrator_login_password"),
 	})
 }
 
-func TestAccAzureRMPostgreSQLServer_basicTenPointZero(t *testing.T) {
+func TestAccPostgreSQLServer_basicTenPointZero(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPostgreSQLServer_basic(data, "10.0"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"),
+	r := PostgreSQLServerResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, "10.0"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("administrator_login_password"),
 	})
 }
 
-func TestAccAzureRMPostgreSQLServer_gpTenPointZero(t *testing.T) {
+func TestAccPostgreSQLServer_gpTenPointZero(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPostgreSQLServer_gp(data, "10.0"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"),
+	r := PostgreSQLServerResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.gp(data, "10.0"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("administrator_login_password"),
 	})
 }
 
-func TestAccAzureRMPostgreSQLServer_moTenPointZero(t *testing.T) {
+func TestAccPostgreSQLServer_moTenPointZero(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPostgreSQLServer_mo(data, "10.0"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"),
+	r := PostgreSQLServerResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.mo(data, "10.0"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("administrator_login_password"),
 	})
 }
 
-func TestAccAzureRMPostgreSQLServer_basicEleven(t *testing.T) {
+func TestAccPostgreSQLServer_basicEleven(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPostgreSQLServer_basic(data, "11"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"),
+	r := PostgreSQLServerResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, "11"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("administrator_login_password"),
 	})
 }
 
-func TestAccAzureRMPostgreSQLServer_basicWithIdentity(t *testing.T) {
+func TestAccPostgreSQLServer_basicWithIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPostgreSQLServer_basicWithIdentity(data, "11"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"),
+	r := PostgreSQLServerResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicWithIdentity(data, "11"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("administrator_login_password"),
 	})
 }
 
-func TestAccAzureRMPostgreSQLServer_autogrowOnly(t *testing.T) {
+func TestAccPostgreSQLServer_autogrowOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
+	r := PostgreSQLServerResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPostgreSQLServer_autogrow(data, "11"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"),
-			{
-				Config: testAccAzureRMPostgreSQLServer_gp(data, "11"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.autogrow(data, "11"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.gp(data, "11"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
 	})
 }
 
-func TestAccAzureRMPostgreSQLServer_requiresImport(t *testing.T) {
+func TestAccPostgreSQLServer_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
+	r := PostgreSQLServerResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPostgreSQLServer_basic(data, "10.0"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMPostgreSQLServer_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, "10.0"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func TestAccAzureRMPostgreSQLServer_complete(t *testing.T) {
+func TestAccPostgreSQLServer_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPostgreSQLServer_complete(data, "9.6"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"),
+	r := PostgreSQLServerResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("administrator_login_password"),
 	})
 }
 
-func TestAccAzureRMPostgreSQLServer_updatedDeprecated(t *testing.T) {
+func TestAccPostgreSQLServer_updatedDeprecated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPostgreSQLServer_basicDeprecated(data, "9.6"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"),
-			{
-				Config: testAccAzureRMPostgreSQLServer_completeDeprecated(data, "9.6"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"),
-			{
-				Config: testAccAzureRMPostgreSQLServer_basicDeprecated(data, "9.6"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"),
+	r := PostgreSQLServerResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicDeprecated(data, "9.6"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.completeDeprecated(data, "9.6"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.basicDeprecated(data, "9.6"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
 	})
 }
 
-func TestAccAzureRMPostgreSQLServer_updated(t *testing.T) {
+func TestAccPostgreSQLServer_updated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPostgreSQLServer_gp(data, "9.6"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"),
-			{
-				Config: testAccAzureRMPostgreSQLServer_complete(data, "9.6"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"),
-			{
-				Config: testAccAzureRMPostgreSQLServer_complete2(data, "9.6"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"),
-			{
-				Config: testAccAzureRMPostgreSQLServer_gp(data, "9.6"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"),
+	r := PostgreSQLServerResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.gp(data, "9.6"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.complete2(data, "9.6"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
 	})
 }
 
-func TestAccAzureRMPostgreSQLServer_completeDeprecatedUpdate(t *testing.T) {
+func TestAccPostgreSQLServer_completeDeprecatedUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPostgreSQLServer_completeDeprecated(data, "9.6"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"),
-			{
-				Config: testAccAzureRMPostgreSQLServer_complete(data, "9.6"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"),
+	r := PostgreSQLServerResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.completeDeprecated(data, "9.6"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
 	})
 }
 
-func TestAccAzureRMPostgreSQLServer_updateSKU(t *testing.T) {
+func TestAccPostgreSQLServer_updateSKU(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPostgreSQLServer_sku(data, "10.0", "B_Gen5_2"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"),
-			{
-				Config: testAccAzureRMPostgreSQLServer_sku(data, "10.0", "GP_Gen5_2"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"),
-			{
-				Config: testAccAzureRMPostgreSQLServer_sku(data, "10.0", "MO_Gen5_16"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"),
+	r := PostgreSQLServerResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.sku(data, "10.0", "B_Gen5_2"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.sku(data, "10.0", "GP_Gen5_2"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.sku(data, "10.0", "MO_Gen5_16"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
 	})
 }
 
-func TestAccAzureRMPostgreSQLServer_createReplica(t *testing.T) {
+func TestAccPostgreSQLServer_createReplica(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPostgreSQLServer_gp(data, "11"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"),
-			{
-				Config: testAccAzureRMPostgreSQLServer_createReplica(data, "11"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
-					testCheckAzureRMPostgreSQLServerExists("azurerm_postgresql_server.replica"),
-				),
-			},
-			data.ImportStep("administrator_login_password"),
+	r := PostgreSQLServerResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.gp(data, "11"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.createReplica(data, "GP_Gen5_2"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
 	})
 }
 
-func TestAccAzureRMPostgreSQLServer_createPointInTimeRestore(t *testing.T) {
+func TestAccPostgreSQLServer_scaleReplicas(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
+	r := PostgreSQLServerResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.createReplicas(data, "GP_Gen5_2"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
+				check.That("azurerm_postgresql_server.replica1").ExistsInAzure(r),
+				check.That("azurerm_postgresql_server.replica1").Key("sku_name").HasValue("GP_Gen5_2"),
+				check.That("azurerm_postgresql_server.replica2").ExistsInAzure(r),
+				check.That("azurerm_postgresql_server.replica2").Key("sku_name").HasValue("GP_Gen5_2"),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.createReplicas(data, "GP_Gen5_4"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_4"),
+				check.That("azurerm_postgresql_server.replica1").ExistsInAzure(r),
+				check.That("azurerm_postgresql_server.replica1").Key("sku_name").HasValue("GP_Gen5_4"),
+				check.That("azurerm_postgresql_server.replica2").ExistsInAzure(r),
+				check.That("azurerm_postgresql_server.replica2").Key("sku_name").HasValue("GP_Gen5_4"),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.createReplicas(data, "GP_Gen5_2"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
+				check.That("azurerm_postgresql_server.replica1").ExistsInAzure(r),
+				check.That("azurerm_postgresql_server.replica1").Key("sku_name").HasValue("GP_Gen5_2"),
+				check.That("azurerm_postgresql_server.replica2").ExistsInAzure(r),
+				check.That("azurerm_postgresql_server.replica2").Key("sku_name").HasValue("GP_Gen5_2"),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+	})
+}
+
+func TestAccPostgreSQLServer_createPointInTimeRestore(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
+	r := PostgreSQLServerResource{}
 	restoreTime := time.Now().Add(11 * time.Minute)
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPostgreSQLServer_gp(data, "11"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"),
-			{
-				PreConfig: func() { time.Sleep(restoreTime.Sub(time.Now().Add(-7 * time.Minute))) },
-				Config:    testAccAzureRMPostgreSQLServer_createPointInTimeRestore(data, "11", restoreTime.Format(time.RFC3339)),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
-					testCheckAzureRMPostgreSQLServerExists("azurerm_postgresql_server.restore"),
-				),
-			},
-			data.ImportStep("administrator_login_password"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.gp(data, "11"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("administrator_login_password"),
+		{
+			PreConfig: func() { time.Sleep(restoreTime.Sub(time.Now().Add(-7 * time.Minute))) },
+			Config:    r.createPointInTimeRestore(data, "11", restoreTime.Format(time.RFC3339)),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
 	})
 }
 
-func TestAccAzureRMPostgreSQLServer_threatDetectionEmptyAttrs(t *testing.T) {
+func TestAccPostgreSQLServer_threatDetectionEmptyAttrs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPostgreSQLServer_emptyAttrs(data, "9.5"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"),
+	r := PostgreSQLServerResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.emptyAttrs(data, "9.5"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+	})
+}
+
+func TestMinTlsVersionOnServerUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
+	r := PostgreSQLServerResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.beforeUpdate(data, "9.6", "TLS1_2"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.afterUpdate(data, "9.6", "TLS1_0"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 	})
 }
 
-func testCheckAzureRMPostgreSQLServerExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Postgres.ServersClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for PostgreSQL Server: %s", name)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: PostgreSQL Server %q (resource group: %q) does not exist", name, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on postgresqlServersClient: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMPostgreSQLServerDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Postgres.ServersClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_postgresql_server" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-
-			return err
-		}
-
-		return fmt.Errorf("PostgreSQL Server still exists:\n%#v", resp)
+func (t PostgreSQLServerResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.ServerID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.Postgres.ServersClient.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("reading Postgresql Server (%s): %+v", id.String(), err)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMPostgreSQLServer_template(data acceptance.TestData, sku, version string) string {
+func (PostgreSQLServerResource) template(data acceptance.TestData, sku, version string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -512,11 +463,11 @@ resource "azurerm_postgresql_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku, version)
 }
 
-func testAccAzureRMPostgreSQLServer_basic(data acceptance.TestData, version string) string {
-	return testAccAzureRMPostgreSQLServer_template(data, "B_Gen5_1", version)
+func (r PostgreSQLServerResource) basic(data acceptance.TestData, version string) string {
+	return r.template(data, "B_Gen5_1", version)
 }
 
-func testAccAzureRMPostgreSQLServer_basicWithIdentity(data acceptance.TestData, version string) string {
+func (PostgreSQLServerResource) basicWithIdentity(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -548,15 +499,15 @@ resource "azurerm_postgresql_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }
 
-func testAccAzureRMPostgreSQLServer_mo(data acceptance.TestData, version string) string {
-	return testAccAzureRMPostgreSQLServer_template(data, "MO_Gen5_2", version)
+func (r PostgreSQLServerResource) mo(data acceptance.TestData, version string) string {
+	return r.template(data, "MO_Gen5_2", version)
 }
 
-func testAccAzureRMPostgreSQLServer_gp(data acceptance.TestData, version string) string {
-	return testAccAzureRMPostgreSQLServer_template(data, "GP_Gen5_2", version)
+func (r PostgreSQLServerResource) gp(data acceptance.TestData, version string) string {
+	return r.template(data, "GP_Gen5_2", version)
 }
 
-func testAccAzureRMPostgreSQLServer_autogrow(data acceptance.TestData, version string) string {
+func (PostgreSQLServerResource) autogrow(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -584,7 +535,7 @@ resource "azurerm_postgresql_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }
 
-func testAccAzureRMPostgreSQLServer_basicDeprecated(data acceptance.TestData, version string) string {
+func (PostgreSQLServerResource) basicDeprecated(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -615,8 +566,7 @@ resource "azurerm_postgresql_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }
 
-func testAccAzureRMPostgreSQLServer_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMPostgreSQLServer_basic(data, "10.0")
+func (r PostgreSQLServerResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -634,10 +584,10 @@ resource "azurerm_postgresql_server" "import" {
 
   ssl_enforcement_enabled = azurerm_postgresql_server.test.ssl_enforcement_enabled
 }
-`, template)
+`, r.basic(data, "10.0"))
 }
 
-func testAccAzureRMPostgreSQLServer_completeDeprecated(data acceptance.TestData, version string) string {
+func (PostgreSQLServerResource) completeDeprecated(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -675,7 +625,7 @@ resource "azurerm_postgresql_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }
 
-func testAccAzureRMPostgreSQLServer_complete(data acceptance.TestData, version string) string {
+func (PostgreSQLServerResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -695,7 +645,7 @@ resource "azurerm_postgresql_server" "test" {
   administrator_login_password = "H@Sh1CoR3!updated"
 
   sku_name   = "GP_Gen5_4"
-  version    = "%[3]s"
+  version    = "9.6"
   storage_mb = 640000
 
   backup_retention_days        = 7
@@ -716,10 +666,10 @@ resource "azurerm_postgresql_server" "test" {
     retention_days = 7
   }
 }
-`, data.RandomInteger, data.Locations.Primary, version)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMPostgreSQLServer_complete2(data acceptance.TestData, version string) string {
+func (PostgreSQLServerResource) complete2(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -757,7 +707,6 @@ resource "azurerm_postgresql_server" "test" {
   infrastructure_encryption_enabled = false
   public_network_access_enabled     = true
   ssl_enforcement_enabled           = false
-  ssl_minimal_tls_version_enforced  = "TLS1_1"
 
   threat_detection_policy {
     enabled              = true
@@ -766,15 +715,12 @@ resource "azurerm_postgresql_server" "test" {
     email_addresses      = ["kt@example.com"]
 
     retention_days = 7
-
-    storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
-    storage_account_access_key = azurerm_storage_account.test.primary_access_key
   }
 }
 `, data.RandomInteger, data.Locations.Primary, version)
 }
 
-func testAccAzureRMPostgreSQLServer_sku(data acceptance.TestData, version, sku string) string {
+func (PostgreSQLServerResource) sku(data acceptance.TestData, version, sku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -802,27 +748,72 @@ resource "azurerm_postgresql_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku, version)
 }
 
-func testAccAzureRMPostgreSQLServer_createReplica(data acceptance.TestData, version string) string {
+func (r PostgreSQLServerResource) createReplica(data acceptance.TestData, sku string) string {
 	return fmt.Sprintf(`
 %[1]s
 
+resource "azurerm_resource_group" "replica" {
+  name     = "acctestRG-psql-%[2]d-replica"
+  location = "%[3]s"
+}
+
 resource "azurerm_postgresql_server" "replica" {
   name                = "acctest-psql-server-%[2]d-replica"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = "%[3]s"
+  resource_group_name = azurerm_resource_group.replica.name
 
-  sku_name = "GP_Gen5_2"
-  version  = "%[3]s"
+  sku_name = "%[4]s"
+  version  = "11"
+
+  create_mode               = "Replica"
+  creation_source_server_id = azurerm_postgresql_server.test.id
+
+  public_network_access_enabled = false
+  ssl_enforcement_enabled       = true
+}
+`, r.template(data, sku, "11"), data.RandomInteger, data.Locations.Secondary, sku)
+}
+
+func (r PostgreSQLServerResource) createReplicas(data acceptance.TestData, sku string) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_resource_group" "replica1" {
+  name     = "acctestRG-psql-%[2]d-replica1"
+  location = "%[3]s"
+}
+
+resource "azurerm_postgresql_server" "replica1" {
+  name                = "acctest-psql-server-%[2]d-replica1"
+  location            = "%[3]s"
+  resource_group_name = azurerm_resource_group.replica1.name
+
+  sku_name = "%[4]s"
+  version  = "11"
 
   create_mode               = "Replica"
   creation_source_server_id = azurerm_postgresql_server.test.id
 
   ssl_enforcement_enabled = true
 }
-`, testAccAzureRMPostgreSQLServer_basic(data, version), data.RandomInteger, version)
+
+resource "azurerm_postgresql_server" "replica2" {
+  name                = "acctest-psql-server-%[2]d-replica2"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku_name = "%[4]s"
+  version  = "11"
+
+  create_mode               = "Replica"
+  creation_source_server_id = azurerm_postgresql_server.test.id
+
+  ssl_enforcement_enabled = true
+}
+`, r.template(data, sku, "11"), data.RandomInteger, data.Locations.Secondary, sku)
 }
 
-func testAccAzureRMPostgreSQLServer_createPointInTimeRestore(data acceptance.TestData, version, restoreTime string) string {
+func (r PostgreSQLServerResource) createPointInTimeRestore(data acceptance.TestData, version, restoreTime string) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -841,10 +832,10 @@ resource "azurerm_postgresql_server" "restore" {
 
   ssl_enforcement_enabled = true
 }
-`, testAccAzureRMPostgreSQLServer_basic(data, version), data.RandomInteger, restoreTime, version)
+`, r.basic(data, version), data.RandomInteger, restoreTime, version)
 }
 
-func testAccAzureRMPostgreSQLServer_emptyAttrs(data acceptance.TestData, version string) string {
+func (PostgreSQLServerResource) emptyAttrs(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -878,4 +869,70 @@ resource "azurerm_postgresql_server" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, version)
+}
+
+func (PostgreSQLServerResource) beforeUpdate(data acceptance.TestData, version string, tlsVersion string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-psql-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_postgresql_server" "test" {
+  name                = "acctest-psql-server-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  administrator_login          = "acctestun"
+  administrator_login_password = "H@Sh1CoR3!updated"
+
+  sku_name   = "GP_Gen5_4"
+  version    = "%[3]s"
+  storage_mb = 640000
+
+  backup_retention_days = 7
+  auto_grow_enabled     = true
+
+  public_network_access_enabled    = false
+  ssl_enforcement_enabled          = true
+  ssl_minimal_tls_version_enforced = "%[4]s"
+}
+`, data.RandomInteger, data.Locations.Primary, version, tlsVersion)
+}
+
+func (PostgreSQLServerResource) afterUpdate(data acceptance.TestData, version string, tlsVersion string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-psql-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_postgresql_server" "test" {
+  name                = "acctest-psql-server-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  administrator_login          = "acctestun"
+  administrator_login_password = "H@Sh1CoR3!updated"
+
+  sku_name   = "GP_Gen5_4"
+  version    = "%[3]s"
+  storage_mb = 640000
+
+  backup_retention_days = 7
+  auto_grow_enabled     = true
+
+  ssl_enforcement_enabled          = true
+  ssl_minimal_tls_version_enforced = "%[4]s"
+
+}
+`, data.RandomInteger, data.Locations.Primary, version, tlsVersion)
 }

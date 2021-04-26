@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 
 	"github.com/hashicorp/go-azure-helpers/response"
 
@@ -20,19 +21,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmVPNGatewayConnection() *schema.Resource {
+func resourceVPNGatewayConnection() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmVpnGatewayConnectionResourceCreateUpdate,
-		Read:   resourceArmVpnGatewayConnectionResourceRead,
-		Update: resourceArmVpnGatewayConnectionResourceCreateUpdate,
-		Delete: resourceArmVpnGatewayConnectionResourceDelete,
+		Create: resourceVpnGatewayConnectionResourceCreateUpdate,
+		Read:   resourceVpnGatewayConnectionResourceRead,
+		Update: resourceVpnGatewayConnectionResourceCreateUpdate,
+		Delete: resourceVpnGatewayConnectionResourceDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.VpnConnectionID(id)
 			return err
 		}),
@@ -282,7 +282,7 @@ func resourceArmVPNGatewayConnection() *schema.Resource {
 	}
 }
 
-func resourceArmVpnGatewayConnectionResourceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceVpnGatewayConnectionResourceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VpnConnectionsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -316,8 +316,8 @@ func resourceArmVpnGatewayConnectionResourceCreateUpdate(d *schema.ResourceData,
 			RemoteVpnSite: &network.SubResource{
 				ID: utils.String(d.Get("remote_vpn_site_id").(string)),
 			},
-			VpnLinkConnections:   expandArmVpnGatewayConnectionVpnSiteLinkConnections(d.Get("vpn_link").([]interface{})),
-			RoutingConfiguration: expandArmVpnGatewayConnectionRoutingConfiguration(d.Get("routing").([]interface{})),
+			VpnLinkConnections:   expandVpnGatewayConnectionVpnSiteLinkConnections(d.Get("vpn_link").([]interface{})),
+			RoutingConfiguration: expandVpnGatewayConnectionRoutingConfiguration(d.Get("routing").([]interface{})),
 		},
 	}
 
@@ -342,12 +342,12 @@ func resourceArmVpnGatewayConnectionResourceCreateUpdate(d *schema.ResourceData,
 	if err != nil {
 		return err
 	}
-	d.SetId(id.ID(""))
+	d.SetId(id.ID())
 
-	return resourceArmVpnGatewayConnectionResourceRead(d, meta)
+	return resourceVpnGatewayConnectionResourceRead(d, meta)
 }
 
-func resourceArmVpnGatewayConnectionResourceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceVpnGatewayConnectionResourceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VpnConnectionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -371,7 +371,7 @@ func resourceArmVpnGatewayConnectionResourceRead(d *schema.ResourceData, meta in
 	d.Set("name", id.Name)
 
 	gatewayId := parse.NewVpnGatewayID(id.SubscriptionId, id.ResourceGroup, id.VpnGatewayName)
-	d.Set("vpn_gateway_id", gatewayId.ID(""))
+	d.Set("vpn_gateway_id", gatewayId.ID())
 
 	if prop := resp.VpnConnectionProperties; prop != nil {
 		vpnSiteId := ""
@@ -381,7 +381,7 @@ func resourceArmVpnGatewayConnectionResourceRead(d *schema.ResourceData, meta in
 				if err != nil {
 					return err
 				}
-				vpnSiteId = theVpnSiteId.ID("")
+				vpnSiteId = theVpnSiteId.ID()
 			}
 		}
 		d.Set("remote_vpn_site_id", vpnSiteId)
@@ -392,11 +392,11 @@ func resourceArmVpnGatewayConnectionResourceRead(d *schema.ResourceData, meta in
 		}
 		d.Set("internet_security_enabled", enableInternetSecurity)
 
-		if err := d.Set("routing", flattenArmVpnGatewayConnectionRoutingConfiguration(prop.RoutingConfiguration)); err != nil {
+		if err := d.Set("routing", flattenVpnGatewayConnectionRoutingConfiguration(prop.RoutingConfiguration)); err != nil {
 			return fmt.Errorf(`setting "routing": %v`, err)
 		}
 
-		if err := d.Set("vpn_link", flattenArmVpnGatewayConnectionVpnSiteLinkConnections(prop.VpnLinkConnections)); err != nil {
+		if err := d.Set("vpn_link", flattenVpnGatewayConnectionVpnSiteLinkConnections(prop.VpnLinkConnections)); err != nil {
 			return fmt.Errorf(`setting "vpn_link": %v`, err)
 		}
 	}
@@ -404,7 +404,7 @@ func resourceArmVpnGatewayConnectionResourceRead(d *schema.ResourceData, meta in
 	return nil
 }
 
-func resourceArmVpnGatewayConnectionResourceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceVpnGatewayConnectionResourceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VpnConnectionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -433,7 +433,7 @@ func resourceArmVpnGatewayConnectionResourceDelete(d *schema.ResourceData, meta 
 	return nil
 }
 
-func expandArmVpnGatewayConnectionVpnSiteLinkConnections(input []interface{}) *[]network.VpnSiteLinkConnection {
+func expandVpnGatewayConnectionVpnSiteLinkConnections(input []interface{}) *[]network.VpnSiteLinkConnection {
 	if len(input) == 0 {
 		return nil
 	}
@@ -450,7 +450,7 @@ func expandArmVpnGatewayConnectionVpnSiteLinkConnections(input []interface{}) *[
 				VpnConnectionProtocolType:      network.VirtualNetworkGatewayConnectionProtocol(e["protocol"].(string)),
 				ConnectionBandwidth:            utils.Int32(int32(e["bandwidth_mbps"].(int))),
 				EnableBgp:                      utils.Bool(e["bgp_enabled"].(bool)),
-				IpsecPolicies:                  expandArmVpnGatewayConnectionIpSecPolicies(e["ipsec_policy"].([]interface{})),
+				IpsecPolicies:                  expandVpnGatewayConnectionIpSecPolicies(e["ipsec_policy"].([]interface{})),
 				EnableRateLimiting:             utils.Bool(e["ratelimit_enabled"].(bool)),
 				UseLocalAzureIPAddress:         utils.Bool(e["local_azure_ip_address_enabled"].(bool)),
 				UsePolicyBasedTrafficSelectors: utils.Bool(e["policy_based_traffic_selector_enabled"].(bool)),
@@ -467,7 +467,7 @@ func expandArmVpnGatewayConnectionVpnSiteLinkConnections(input []interface{}) *[
 	return &result
 }
 
-func flattenArmVpnGatewayConnectionVpnSiteLinkConnections(input *[]network.VpnSiteLinkConnection) interface{} {
+func flattenVpnGatewayConnectionVpnSiteLinkConnections(input *[]network.VpnSiteLinkConnection) interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -528,7 +528,7 @@ func flattenArmVpnGatewayConnectionVpnSiteLinkConnections(input *[]network.VpnSi
 			"bandwidth_mbps":                        bandwidth,
 			"shared_key":                            sharedKey,
 			"bgp_enabled":                           bgpEnabled,
-			"ipsec_policy":                          flattenArmVpnGatewayConnectionIpSecPolicies(e.IpsecPolicies),
+			"ipsec_policy":                          flattenVpnGatewayConnectionIpSecPolicies(e.IpsecPolicies),
 			"ratelimit_enabled":                     rateLimitEnabled,
 			"local_azure_ip_address_enabled":        useLocalAzureIpAddress,
 			"policy_based_traffic_selector_enabled": usePolicyBased,
@@ -540,7 +540,7 @@ func flattenArmVpnGatewayConnectionVpnSiteLinkConnections(input *[]network.VpnSi
 	return output
 }
 
-func expandArmVpnGatewayConnectionIpSecPolicies(input []interface{}) *[]network.IpsecPolicy {
+func expandVpnGatewayConnectionIpSecPolicies(input []interface{}) *[]network.IpsecPolicy {
 	if len(input) == 0 {
 		return nil
 	}
@@ -565,7 +565,7 @@ func expandArmVpnGatewayConnectionIpSecPolicies(input []interface{}) *[]network.
 	return &result
 }
 
-func flattenArmVpnGatewayConnectionIpSecPolicies(input *[]network.IpsecPolicy) []interface{} {
+func flattenVpnGatewayConnectionIpSecPolicies(input *[]network.IpsecPolicy) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -600,7 +600,7 @@ func flattenArmVpnGatewayConnectionIpSecPolicies(input *[]network.IpsecPolicy) [
 	return output
 }
 
-func expandArmVpnGatewayConnectionRoutingConfiguration(input []interface{}) *network.RoutingConfiguration {
+func expandVpnGatewayConnectionRoutingConfiguration(input []interface{}) *network.RoutingConfiguration {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
@@ -613,7 +613,7 @@ func expandArmVpnGatewayConnectionRoutingConfiguration(input []interface{}) *net
 	return output
 }
 
-func flattenArmVpnGatewayConnectionRoutingConfiguration(input *network.RoutingConfiguration) []interface{} {
+func flattenVpnGatewayConnectionRoutingConfiguration(input *network.RoutingConfiguration) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -625,10 +625,10 @@ func flattenArmVpnGatewayConnectionRoutingConfiguration(input *network.RoutingCo
 
 	propagatedRouteTables := []interface{}{}
 	if input.PropagatedRouteTables != nil && input.PropagatedRouteTables.Ids != nil {
-		for _, subresource := range *input.PropagatedRouteTables.Ids {
+		for _, routeTableId := range *input.PropagatedRouteTables.Ids {
 			id := ""
-			if subresource.ID != nil {
-				id = *subresource.ID
+			if routeTableId.ID != nil {
+				id = *routeTableId.ID
 			}
 			propagatedRouteTables = append(propagatedRouteTables, id)
 		}

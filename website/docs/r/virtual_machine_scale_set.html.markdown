@@ -10,7 +10,7 @@ description: |-
 
 Manages a virtual machine scale set.
 
-## Disclaimers
+## Disclaimers
 
 -> **Note:** The `azurerm_virtual_machine_scale_set` resource has been superseded by the [`azurerm_linux_virtual_machine_scale_set`](linux_virtual_machine_scale_set.html) and [`azurerm_windows_virtual_machine_scale_set`](windows_virtual_machine_scale_set.html) resources. The existing `azurerm_virtual_machine_scale_set` resource will continue to be available throughout the 2.x releases however is in a feature-frozen state to maintain compatibility - new functionality will instead be added to the `azurerm_linux_virtual_machine_scale_set` and `azurerm_windows_virtual_machine_scale_set` resources.
 
@@ -21,7 +21,7 @@ Manages a virtual machine scale set.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "West US 2"
+  location = "West Europe"
 }
 
 resource "azurerm_virtual_network" "example" {
@@ -171,7 +171,7 @@ resource "azurerm_virtual_machine_scale_set" "example" {
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "West US"
+  location = "West Europe"
 }
 
 resource "azurerm_virtual_network" "example" {

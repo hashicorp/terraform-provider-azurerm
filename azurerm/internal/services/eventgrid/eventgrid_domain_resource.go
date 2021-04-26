@@ -15,7 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -34,7 +34,7 @@ func resourceEventGridDomain() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.DomainID(id)
 			return err
 		}),
@@ -71,6 +71,7 @@ func resourceEventGridDomain() *schema.Resource {
 				}, false),
 			},
 
+			//lintignore:XS003
 			"input_mapping_fields": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -112,6 +113,7 @@ func resourceEventGridDomain() *schema.Resource {
 				},
 			},
 
+			//lintignore:XS003
 			"input_mapping_default_values": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -137,6 +139,10 @@ func resourceEventGridDomain() *schema.Resource {
 					},
 				},
 			},
+
+			"public_network_access_enabled": eventSubscriptionPublicNetworkAccessEnabled(),
+
+			"inbound_ip_rule": eventSubscriptionInboundIPRule(),
 
 			"endpoint": {
 				Type:     schema.TypeString,
@@ -170,7 +176,7 @@ func resourceEventGridDomainCreateUpdate(d *schema.ResourceData, meta interface{
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing EventGrid Domain %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing EventGrid Domain %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
@@ -183,8 +189,10 @@ func resourceEventGridDomainCreateUpdate(d *schema.ResourceData, meta interface{
 	t := d.Get("tags").(map[string]interface{})
 
 	domainProperties := &eventgrid.DomainProperties{
-		InputSchemaMapping: expandAzureRmEventgridDomainInputMapping(d),
-		InputSchema:        eventgrid.InputSchema(d.Get("input_schema").(string)),
+		InputSchemaMapping:  expandAzureRmEventgridDomainInputMapping(d),
+		InputSchema:         eventgrid.InputSchema(d.Get("input_schema").(string)),
+		PublicNetworkAccess: expandPublicNetworkAccess(d),
+		InboundIPRules:      expandInboundIPRules(d),
 	}
 
 	domain := eventgrid.Domain{
@@ -197,19 +205,19 @@ func resourceEventGridDomainCreateUpdate(d *schema.ResourceData, meta interface{
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, domain)
 	if err != nil {
-		return fmt.Errorf("Error creating/updating EventGrid Domain %q (Resource Group %q): %s", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating EventGrid Domain %q (Resource Group %q): %s", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for EventGrid Domain %q (Resource Group %q) to become available: %s", name, resourceGroup, err)
+		return fmt.Errorf("waiting for EventGrid Domain %q (Resource Group %q) to become available: %s", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving EventGrid Domain %q (Resource Group %q): %s", name, resourceGroup, err)
+		return fmt.Errorf("retrieving EventGrid Domain %q (Resource Group %q): %s", name, resourceGroup, err)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read EventGrid Domain %q (resource group %s) ID", name, resourceGroup)
+		return fmt.Errorf("reading EventGrid Domain %q (resource group %s) ID", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -235,7 +243,7 @@ func resourceEventGridDomainRead(d *schema.ResourceData, meta interface{}) error
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on EventGrid Domain %q: %+v", id.Name, err)
+		return fmt.Errorf("making Read request on EventGrid Domain %q: %+v", id.Name, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -251,24 +259,34 @@ func resourceEventGridDomainRead(d *schema.ResourceData, meta interface{}) error
 
 		inputMappingFields, err := flattenAzureRmEventgridDomainInputMapping(props.InputSchemaMapping)
 		if err != nil {
-			return fmt.Errorf("Unable to flatten `input_schema_mapping_fields` for EventGrid Domain %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("flattening `input_schema_mapping_fields` for EventGrid Domain %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
 		}
 		if err := d.Set("input_mapping_fields", inputMappingFields); err != nil {
-			return fmt.Errorf("Error setting `input_schema_mapping_fields` for EventGrid Domain %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("setting `input_schema_mapping_fields` for EventGrid Domain %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
 		}
 
 		inputMappingDefaultValues, err := flattenAzureRmEventgridDomainInputMappingDefaultValues(props.InputSchemaMapping)
 		if err != nil {
-			return fmt.Errorf("Unable to flatten `input_schema_mapping_default_values` for EventGrid Domain %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("flattening `input_schema_mapping_default_values` for EventGrid Domain %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
 		}
 		if err := d.Set("input_mapping_default_values", inputMappingDefaultValues); err != nil {
-			return fmt.Errorf("Error setting `input_schema_mapping_fields` for EventGrid Domain %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("setting `input_schema_mapping_fields` for EventGrid Domain %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
+		}
+
+		publicNetworkAccessEnabled := flattenPublicNetworkAccess(props.PublicNetworkAccess)
+		if err := d.Set("public_network_access_enabled", publicNetworkAccessEnabled); err != nil {
+			return fmt.Errorf("setting `public_network_access_enabled` in EventGrid Domain %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		}
+
+		inboundIPRules := flattenInboundIPRules(props.InboundIPRules)
+		if err := d.Set("inbound_ip_rule", inboundIPRules); err != nil {
+			return fmt.Errorf("setting `inbound_ip_rule` in EventGrid Domain %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 	}
 
 	keys, err := client.ListSharedAccessKeys(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Shared Access Keys for EventGrid Domain %q: %+v", id.Name, err)
+		return fmt.Errorf("retrieving Shared Access Keys for EventGrid Domain %q: %+v", id.Name, err)
 	}
 	d.Set("primary_access_key", keys.Key1)
 	d.Set("secondary_access_key", keys.Key2)
@@ -291,14 +309,14 @@ func resourceEventGridDomainDelete(d *schema.ResourceData, meta interface{}) err
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error deleting Event Grid Domain %q: %+v", id.Name, err)
+		return fmt.Errorf("deleting Event Grid Domain %q: %+v", id.Name, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error deleting Event Grid Domain %q: %+v", id.Name, err)
+		return fmt.Errorf("deleting Event Grid Domain %q: %+v", id.Name, err)
 	}
 
 	return nil
@@ -317,47 +335,51 @@ func expandAzureRmEventgridDomainInputMapping(d *schema.ResourceData) *eventgrid
 
 	if imfok {
 		mappings := imf.([]interface{})
-		mapping := mappings[0].(map[string]interface{})
+		if len(mappings) > 0 && mappings[0] != nil {
+			mapping := mappings[0].(map[string]interface{})
 
-		if id := mapping["id"].(string); id != "" {
-			jismp.ID = &eventgrid.JSONField{SourceField: &id}
-		}
+			if id := mapping["id"].(string); id != "" {
+				jismp.ID = &eventgrid.JSONField{SourceField: &id}
+			}
 
-		if eventTime := mapping["event_time"].(string); eventTime != "" {
-			jismp.EventTime = &eventgrid.JSONField{SourceField: &eventTime}
-		}
+			if eventTime := mapping["event_time"].(string); eventTime != "" {
+				jismp.EventTime = &eventgrid.JSONField{SourceField: &eventTime}
+			}
 
-		if topic := mapping["topic"].(string); topic != "" {
-			jismp.Topic = &eventgrid.JSONField{SourceField: &topic}
-		}
+			if topic := mapping["topic"].(string); topic != "" {
+				jismp.Topic = &eventgrid.JSONField{SourceField: &topic}
+			}
 
-		if dataVersion := mapping["data_version"].(string); dataVersion != "" {
-			jismp.DataVersion = &eventgrid.JSONFieldWithDefault{SourceField: &dataVersion}
-		}
+			if dataVersion := mapping["data_version"].(string); dataVersion != "" {
+				jismp.DataVersion = &eventgrid.JSONFieldWithDefault{SourceField: &dataVersion}
+			}
 
-		if subject := mapping["subject"].(string); subject != "" {
-			jismp.Subject = &eventgrid.JSONFieldWithDefault{SourceField: &subject}
-		}
+			if subject := mapping["subject"].(string); subject != "" {
+				jismp.Subject = &eventgrid.JSONFieldWithDefault{SourceField: &subject}
+			}
 
-		if eventType := mapping["event_type"].(string); eventType != "" {
-			jismp.EventType = &eventgrid.JSONFieldWithDefault{SourceField: &eventType}
+			if eventType := mapping["event_type"].(string); eventType != "" {
+				jismp.EventType = &eventgrid.JSONFieldWithDefault{SourceField: &eventType}
+			}
 		}
 	}
 
 	if imdvok {
 		mappings := imdv.([]interface{})
-		mapping := mappings[0].(map[string]interface{})
+		if len(mappings) > 0 && mappings[0] != nil {
+			mapping := mappings[0].(map[string]interface{})
 
-		if dataVersion := mapping["data_version"].(string); dataVersion != "" {
-			jismp.DataVersion = &eventgrid.JSONFieldWithDefault{DefaultValue: &dataVersion}
-		}
+			if dataVersion := mapping["data_version"].(string); dataVersion != "" {
+				jismp.DataVersion = &eventgrid.JSONFieldWithDefault{DefaultValue: &dataVersion}
+			}
 
-		if subject := mapping["subject"].(string); subject != "" {
-			jismp.Subject = &eventgrid.JSONFieldWithDefault{DefaultValue: &subject}
-		}
+			if subject := mapping["subject"].(string); subject != "" {
+				jismp.Subject = &eventgrid.JSONFieldWithDefault{DefaultValue: &subject}
+			}
 
-		if eventType := mapping["event_type"].(string); eventType != "" {
-			jismp.EventType = &eventgrid.JSONFieldWithDefault{DefaultValue: &eventType}
+			if eventType := mapping["event_type"].(string); eventType != "" {
+				jismp.EventType = &eventgrid.JSONFieldWithDefault{DefaultValue: &eventType}
+			}
 		}
 	}
 

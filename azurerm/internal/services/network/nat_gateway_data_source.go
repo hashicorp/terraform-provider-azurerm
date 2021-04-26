@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -12,9 +14,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmNatGateway() *schema.Resource {
+func dataSourceNatGateway() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmNatGatewayRead,
+		Read: dataSourceNatGatewayRead,
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
 		},
@@ -23,7 +25,7 @@ func dataSourceArmNatGateway() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: ValidateNatGatewayName,
+				ValidateFunc: validate.NatGatewayName,
 			},
 
 			"location": azure.SchemaLocationForDataSource(),
@@ -76,7 +78,7 @@ func dataSourceArmNatGateway() *schema.Resource {
 	}
 }
 
-func dataSourceArmNatGatewayRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceNatGatewayRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.NatGatewayClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

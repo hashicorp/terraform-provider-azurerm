@@ -12,20 +12,21 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmKustoAttachedDatabaseConfiguration() *schema.Resource {
+func resourceKustoAttachedDatabaseConfiguration() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmKustoAttachedDatabaseConfigurationCreateUpdate,
-		Read:   resourceArmKustoAttachedDatabaseConfigurationRead,
-		Update: resourceArmKustoAttachedDatabaseConfigurationCreateUpdate,
-		Delete: resourceArmKustoAttachedDatabaseConfigurationDelete,
+		Create: resourceKustoAttachedDatabaseConfigurationCreateUpdate,
+		Read:   resourceKustoAttachedDatabaseConfigurationRead,
+		Update: resourceKustoAttachedDatabaseConfigurationCreateUpdate,
+		Delete: resourceKustoAttachedDatabaseConfigurationDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),
@@ -39,7 +40,7 @@ func resourceArmKustoAttachedDatabaseConfiguration() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMKustoDataConnectionName,
+				ValidateFunc: validate.DataConnectionName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -50,14 +51,14 @@ func resourceArmKustoAttachedDatabaseConfiguration() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMKustoClusterName,
+				ValidateFunc: validate.ClusterName,
 			},
 
 			"database_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.Any(validateAzureRMKustoDatabaseName, validation.StringInSlice([]string{"*"}, false)),
+				ValidateFunc: validation.Any(validate.DatabaseName, validation.StringInSlice([]string{"*"}, false)),
 			},
 
 			"cluster_resource_id": {
@@ -89,7 +90,7 @@ func resourceArmKustoAttachedDatabaseConfiguration() *schema.Resource {
 	}
 }
 
-func resourceArmKustoAttachedDatabaseConfigurationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoAttachedDatabaseConfigurationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.AttachedDatabaseConfigurationsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -138,10 +139,10 @@ func resourceArmKustoAttachedDatabaseConfigurationCreateUpdate(d *schema.Resourc
 
 	d.SetId(*configuration.ID)
 
-	return resourceArmKustoAttachedDatabaseConfigurationRead(d, meta)
+	return resourceKustoAttachedDatabaseConfigurationRead(d, meta)
 }
 
-func resourceArmKustoAttachedDatabaseConfigurationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoAttachedDatabaseConfigurationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.AttachedDatabaseConfigurationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -178,7 +179,7 @@ func resourceArmKustoAttachedDatabaseConfigurationRead(d *schema.ResourceData, m
 	return nil
 }
 
-func resourceArmKustoAttachedDatabaseConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoAttachedDatabaseConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.AttachedDatabaseConfigurationsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

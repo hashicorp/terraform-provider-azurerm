@@ -27,14 +27,15 @@ func NewBotConnectionID(subscriptionId, resourceGroup, botServiceName, connectio
 
 func (id BotConnectionId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Bot Service Name %q", id.BotServiceName),
 		fmt.Sprintf("Connection Name %q", id.ConnectionName),
+		fmt.Sprintf("Bot Service Name %q", id.BotServiceName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Bot Connection", segmentsStr)
 }
 
-func (id BotConnectionId) ID(_ string) string {
+func (id BotConnectionId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.BotService/botServices/%s/connections/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.BotServiceName, id.ConnectionName)
 }

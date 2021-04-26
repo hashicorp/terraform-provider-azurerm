@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/recoveryservices/validate"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -14,9 +16,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmBackupPolicyVm() *schema.Resource {
+func dataSourceBackupPolicyVm() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmBackupPolicyVmRead,
+		Read: dataSourceBackupPolicyVmRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -31,7 +33,7 @@ func dataSourceArmBackupPolicyVm() *schema.Resource {
 			"recovery_vault_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: azure.ValidateRecoveryServicesVaultName,
+				ValidateFunc: validate.RecoveryServicesVaultName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
@@ -41,7 +43,7 @@ func dataSourceArmBackupPolicyVm() *schema.Resource {
 	}
 }
 
-func dataSourceArmBackupPolicyVmRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceBackupPolicyVmRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).RecoveryServices.ProtectionPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -11,7 +11,7 @@ import (
 var _ resourceid.Formatter = HybridConnectionId{}
 
 func TestHybridConnectionIDFormatter(t *testing.T) {
-	actual := NewHybridConnectionID("12345678-1234-9876-4563-123456789012", "resGroup1", "site1", "hybridConnectionNamespace1", "relay1").ID("")
+	actual := NewHybridConnectionID("12345678-1234-9876-4563-123456789012", "resGroup1", "site1", "hybridConnectionNamespace1", "relay1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1/hybridConnectionNamespaces/hybridConnectionNamespace1/relays/relay1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)

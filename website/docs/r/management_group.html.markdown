@@ -10,6 +10,8 @@ description: |-
 
 Manages a Management Group.
 
+!> **Note:** Configuring `subscription_ids` is not supported when using the `azurerm_management_group_subscription_association` resource, results will be unpredictable.
+
 ## Example Usage
 
 ```hcl
@@ -48,6 +50,8 @@ The following arguments are supported:
 * `parent_management_group_id` - (Optional) The ID of the Parent Management Group. Changing this forces a new resource to be created.
 
 * `subscription_ids` - (Optional) A list of Subscription GUIDs which should be assigned to the Management Group.
+
+~> **Note:** To clear all Subscriptions from the Management Group set `subscription_ids` to an empty list
 
 ## Attributes Reference
 

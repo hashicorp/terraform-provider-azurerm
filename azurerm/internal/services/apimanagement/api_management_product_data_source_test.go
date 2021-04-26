@@ -6,32 +6,33 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccDataSourceAzureRMApiManagementProduct_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_api_management_product", "test")
+type ApiManagementProductDataSource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceApiManagementProduct_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "product_id", "test-product"),
-					resource.TestCheckResourceAttr(data.ResourceName, "display_name", "Test Product"),
-					resource.TestCheckResourceAttr(data.ResourceName, "subscription_required", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "approval_required", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "published", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", "This is an example description"),
-					resource.TestCheckResourceAttr(data.ResourceName, "terms", "These are some example terms and conditions"),
-				),
-			},
+func TestAccDataSourceApiManagementProduct_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_api_management_product", "test")
+	r := ApiManagementProductDataSource{}
+
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("product_id").HasValue("test-product"),
+				check.That(data.ResourceName).Key("display_name").HasValue("Test Product"),
+				check.That(data.ResourceName).Key("subscription_required").HasValue("true"),
+				check.That(data.ResourceName).Key("approval_required").HasValue("true"),
+				check.That(data.ResourceName).Key("published").HasValue("true"),
+				check.That(data.ResourceName).Key("description").HasValue("This is an example description"),
+				check.That(data.ResourceName).Key("terms").HasValue("These are some example terms and conditions"),
+			),
 		},
 	})
 }
 
-func testAccDataSourceApiManagementProduct_basic(data acceptance.TestData) string {
+func (ApiManagementProductDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

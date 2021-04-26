@@ -11,7 +11,7 @@ import (
 var _ resourceid.Formatter = HostnameBindingId{}
 
 func TestHostnameBindingIDFormatter(t *testing.T) {
-	actual := NewHostnameBindingID("12345678-1234-9876-4563-123456789012", "mygroup1", "site1", "binding1").ID("")
+	actual := NewHostnameBindingID("12345678-1234-9876-4563-123456789012", "mygroup1", "site1", "binding1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/mygroup1/providers/Microsoft.Web/sites/site1/hostNameBindings/binding1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)

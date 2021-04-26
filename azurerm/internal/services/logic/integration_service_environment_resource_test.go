@@ -338,7 +338,7 @@ resource "azurerm_integration_service_environment" "test" {
     azurerm_subnet.isesubnet4.id
   ]
 }
-  `, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r IntegrationServiceEnvironmentResource) requiresImport(data acceptance.TestData) string {

@@ -25,13 +25,14 @@ func NewConfigurationStoreID(subscriptionId, resourceGroup, name string) Configu
 
 func (id ConfigurationStoreId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Configuration Store", segmentsStr)
 }
 
-func (id ConfigurationStoreId) ID(_ string) string {
+func (id ConfigurationStoreId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.AppConfiguration/configurationStores/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }

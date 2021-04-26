@@ -13,7 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/streamanalytics/parse"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -24,7 +24,7 @@ func resourceStreamAnalyticsStreamInputBlob() *schema.Resource {
 		Read:   resourceStreamAnalyticsStreamInputBlobRead,
 		Update: resourceStreamAnalyticsStreamInputBlobCreateUpdate,
 		Delete: resourceStreamAnalyticsStreamInputBlobDelete,
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.StreamInputID(id)
 			return err
 		}),
@@ -89,7 +89,7 @@ func resourceStreamAnalyticsStreamInputBlob() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"serialization": azure.SchemaStreamAnalyticsStreamInputSerialization(),
+			"serialization": schemaStreamAnalyticsStreamInputSerialization(),
 		},
 	}
 }
@@ -111,7 +111,7 @@ func resourceStreamAnalyticsStreamInputBlobCreateUpdate(d *schema.ResourceData, 
 		}
 
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_stream_analytics_stream_input_blob", resourceId.ID(""))
+			return tf.ImportAsExistsError("azurerm_stream_analytics_stream_input_blob", resourceId.ID())
 		}
 	}
 
@@ -123,7 +123,7 @@ func resourceStreamAnalyticsStreamInputBlobCreateUpdate(d *schema.ResourceData, 
 	timeFormat := d.Get("time_format").(string)
 
 	serializationRaw := d.Get("serialization").([]interface{})
-	serialization, err := azure.ExpandStreamAnalyticsStreamInputSerialization(serializationRaw)
+	serialization, err := expandStreamAnalyticsStreamInputSerialization(serializationRaw)
 	if err != nil {
 		return fmt.Errorf("Error expanding `serialization`: %+v", err)
 	}
@@ -156,7 +156,7 @@ func resourceStreamAnalyticsStreamInputBlobCreateUpdate(d *schema.ResourceData, 
 			return fmt.Errorf("creating %s: %+v", resourceId, err)
 		}
 
-		d.SetId(resourceId.ID(""))
+		d.SetId(resourceId.ID())
 	} else if _, err := client.Update(ctx, props, resourceId.ResourceGroup, resourceId.StreamingjobName, resourceId.InputName, ""); err != nil {
 		return fmt.Errorf("updating %s: %+v", resourceId, err)
 	}
@@ -210,7 +210,7 @@ func resourceStreamAnalyticsStreamInputBlobRead(d *schema.ResourceData, meta int
 			d.Set("storage_account_name", account.AccountName)
 		}
 
-		if err := d.Set("serialization", azure.FlattenStreamAnalyticsStreamInputSerialization(v.Serialization)); err != nil {
+		if err := d.Set("serialization", flattenStreamAnalyticsStreamInputSerialization(v.Serialization)); err != nil {
 			return fmt.Errorf("setting `serialization`: %+v", err)
 		}
 	}

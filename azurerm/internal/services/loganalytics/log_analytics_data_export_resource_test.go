@@ -1,171 +1,114 @@
 package loganalytics_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 )
 
-func TestAccAzureRMLogAnalyticsDataExportRule_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_log_analytics_data_export_rule", "test")
+type LogAnalyticsDataExportRuleResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogAnalyticsDataExportRuleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config:             testAccAzureRMLogAnalyticsDataExportRule_basic(data),
-				ExpectNonEmptyPlan: true, // Due to API changing case of attributes you need to ignore a non-empty plan for this resource
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsDataExportRuleExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccLogAnalyticsDataExportRule_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_data_export_rule", "test")
+	r := LogAnalyticsDataExportRuleResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config:             r.basic(data),
+			ExpectNonEmptyPlan: true, // Due to API changing case of attributes you need to ignore a non-empty plan for this resource
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLogAnalyticsDataExportRule_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_data_export_rule", "test")
+	r := LogAnalyticsDataExportRuleResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config:             r.basicLower(data),
+			ExpectNonEmptyPlan: true, // Due to API changing case of attributes you need to ignore a non-empty plan for this resource
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:             r.requiresImport(data),
+			ExpectNonEmptyPlan: true, // Due to API changing case of attributes you need to ignore a non-empty plan for this resource
+			ExpectError:        acceptance.RequiresImportError("azurerm_log_analytics_data_export_rule"),
 		},
 	})
 }
 
-func TestAccAzureRMLogAnalyticsDataExportRule_requiresImport(t *testing.T) {
+func TestAccLogAnalyticsDataExportRule_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_data_export_rule", "test")
+	r := LogAnalyticsDataExportRuleResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogAnalyticsDataExportRuleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config:             testAccAzureRMLogAnalyticsDataExportRule_basicLower(data),
-				ExpectNonEmptyPlan: true, // Due to API changing case of attributes you need to ignore a non-empty plan for this resource
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsDataExportRuleExists(data.ResourceName),
-				),
-			},
-			{
-				Config:             testAccAzureRMLogAnalyticsDataExportRule_requiresImport(data),
-				ExpectNonEmptyPlan: true, // Due to API changing case of attributes you need to ignore a non-empty plan for this resource
-				ExpectError:        acceptance.RequiresImportError("azurerm_log_analytics_data_export_rule"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config:             r.basic(data),
+			ExpectNonEmptyPlan: true, // Due to API changing case of attributes you need to ignore a non-empty plan for this resource
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config:             r.update(data),
+			ExpectNonEmptyPlan: true, // Due to API changing case of attributes you need to ignore a non-empty plan for this resource
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMLogAnalyticsDataExportRule_update(t *testing.T) {
+func TestAccLogAnalyticsDataExportRule_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_data_export_rule", "test")
+	r := LogAnalyticsDataExportRuleResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogAnalyticsDataExportRuleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config:             testAccAzureRMLogAnalyticsDataExportRule_basic(data),
-				ExpectNonEmptyPlan: true, // Due to API changing case of attributes you need to ignore a non-empty plan for this resource
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsDataExportRuleExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config:             testAccAzureRMLogAnalyticsDataExportRule_update(data),
-				ExpectNonEmptyPlan: true, // Due to API changing case of attributes you need to ignore a non-empty plan for this resource
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsDataExportRuleExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config:             r.complete(data),
+			ExpectNonEmptyPlan: true, // Due to API changing case of attributes you need to ignore a non-empty plan for this resource
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMLogAnalyticsDataExportRule_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_log_analytics_data_export_rule", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogAnalyticsDataExportRuleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config:             testAccAzureRMLogAnalyticsDataExportRule_complete(data),
-				ExpectNonEmptyPlan: true, // Due to API changing case of attributes you need to ignore a non-empty plan for this resource
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsDataExportRuleExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func testCheckAzureRMLogAnalyticsDataExportRuleDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).LogAnalytics.DataExportClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_log_analytics_data_export_rule" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		workspace, err := parse.LogAnalyticsWorkspaceID(rs.Primary.Attributes["workspace_resource_id"])
-		if err != nil {
-			return nil
-		}
-
-		resp, err := conn.Get(ctx, resourceGroup, workspace.WorkspaceName, name)
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Log Analytics Data Export Rule still exists:\n%#v", resp)
-		}
+func (t LogAnalyticsDataExportRuleResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.LogAnalyticsDataExportID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
-}
-
-func testCheckAzureRMLogAnalyticsDataExportRuleExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).LogAnalytics.DataExportClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Log Analytics Data Export Rule: %q", name)
-		}
-
-		workspace, err := parse.LogAnalyticsWorkspaceID(rs.Primary.Attributes["workspace_resource_id"])
-		if err != nil {
-			return fmt.Errorf("Bad: unable to access 'workspace_resource_id' for Log Analytics Data Export Rule: %q", name)
-		}
-
-		resp, err := conn.Get(ctx, resourceGroup, workspace.WorkspaceName, name)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on Log Analytics Data Export Rule Client: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Log Analytics Data Export Rule %q (resource group: %q) does not exist", name, resourceGroup)
-		}
-
-		return nil
+	resp, err := clients.LogAnalytics.DataExportClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.DataexportName)
+	if err != nil {
+		return nil, fmt.Errorf("readingLog Analytics Data Export (%s): %+v", id.String(), err)
 	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMLogAnalyticsDataExportRule_template(data acceptance.TestData) string {
+func (LogAnalyticsDataExportRuleResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -194,8 +137,7 @@ resource "azurerm_storage_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }
 
-func testAccAzureRMLogAnalyticsDataExportRule_basic(data acceptance.TestData) string {
-	template := testAccAzureRMLogAnalyticsDataExportRule_template(data)
+func (r LogAnalyticsDataExportRuleResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -206,12 +148,11 @@ resource "azurerm_log_analytics_data_export_rule" "test" {
   destination_resource_id = azurerm_storage_account.test.id
   table_names             = ["Heartbeat"]
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 // I have to make this a lower case to get the requiresImport test to pass since the RP lowercases everything when it sends the data back to you
-func testAccAzureRMLogAnalyticsDataExportRule_basicLower(data acceptance.TestData) string {
-	template := testAccAzureRMLogAnalyticsDataExportRule_template(data)
+func (r LogAnalyticsDataExportRuleResource) basicLower(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -222,11 +163,10 @@ resource "azurerm_log_analytics_data_export_rule" "test" {
   destination_resource_id = azurerm_storage_account.test.id
   table_names             = ["Heartbeat"]
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMLogAnalyticsDataExportRule_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMLogAnalyticsDataExportRule_basicLower(data)
+func (r LogAnalyticsDataExportRuleResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -237,11 +177,10 @@ resource "azurerm_log_analytics_data_export_rule" "import" {
   destination_resource_id = azurerm_storage_account.test.id
   table_names             = ["Heartbeat"]
 }
-`, template)
+`, r.basicLower(data))
 }
 
-func testAccAzureRMLogAnalyticsDataExportRule_update(data acceptance.TestData) string {
-	template := testAccAzureRMLogAnalyticsDataExportRule_template(data)
+func (r LogAnalyticsDataExportRuleResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -252,11 +191,10 @@ resource "azurerm_log_analytics_data_export_rule" "test" {
   destination_resource_id = azurerm_storage_account.test.id
   table_names             = ["Heartbeat", "Event"]
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMLogAnalyticsDataExportRule_complete(data acceptance.TestData) string {
-	template := testAccAzureRMLogAnalyticsDataExportRule_template(data)
+func (r LogAnalyticsDataExportRuleResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -268,5 +206,5 @@ resource "azurerm_log_analytics_data_export_rule" "test" {
   table_names             = ["Heartbeat"]
   enabled                 = true
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }

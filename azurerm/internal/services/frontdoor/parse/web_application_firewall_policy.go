@@ -25,13 +25,14 @@ func NewWebApplicationFirewallPolicyID(subscriptionId, resourceGroup, frontDoorW
 
 func (id WebApplicationFirewallPolicyId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 		fmt.Sprintf("Front Door Web Application Firewall Policy Name %q", id.FrontDoorWebApplicationFirewallPolicyName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Web Application Firewall Policy", segmentsStr)
 }
 
-func (id WebApplicationFirewallPolicyId) ID(_ string) string {
+func (id WebApplicationFirewallPolicyId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/frontDoorWebApplicationFirewallPolicies/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.FrontDoorWebApplicationFirewallPolicyName)
 }

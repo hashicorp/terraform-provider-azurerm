@@ -5,6 +5,9 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/migration"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -12,30 +15,24 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmNetworkPacketCapture() *schema.Resource {
+func resourceNetworkPacketCapture() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmNetworkPacketCaptureCreate,
-		Read:   resourceArmNetworkPacketCaptureRead,
-		Delete: resourceArmNetworkPacketCaptureDelete,
+		Create: resourceNetworkPacketCaptureCreate,
+		Read:   resourceNetworkPacketCaptureRead,
+		Delete: resourceNetworkPacketCaptureDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		SchemaVersion: 1,
-		StateUpgraders: []schema.StateUpgrader{
-			{
-				Type:    migration.NetworkPacketCaptureV0Schema().CoreConfigSchema().ImpliedType(),
-				Upgrade: migration.NetworkPacketCaptureV0ToV1,
-				Version: 0,
-			},
-		},
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.NetworkPacketCaptureV0ToV1{},
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -95,12 +92,14 @@ func resourceArmNetworkPacketCapture() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"file_path": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							AtLeastOneOf: []string{"storage_location.0.file_path", "storage_location.0.storage_account_id"},
 						},
 						"storage_account_id": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							AtLeastOneOf: []string{"storage_location.0.file_path", "storage_location.0.storage_account_id"},
 						},
 						"storage_path": {
 							Type:     schema.TypeString,
@@ -153,7 +152,7 @@ func resourceArmNetworkPacketCapture() *schema.Resource {
 	}
 }
 
-func resourceArmNetworkPacketCaptureCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkPacketCaptureCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PacketCapturesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -178,7 +177,7 @@ func resourceArmNetworkPacketCaptureCreate(d *schema.ResourceData, meta interfac
 		return tf.ImportAsExistsError("azurerm_network_packet_capture", *existing.ID)
 	}
 
-	storageLocation, err := expandArmNetworkPacketCaptureStorageLocation(d)
+	storageLocation, err := expandNetworkPacketCaptureStorageLocation(d)
 	if err != nil {
 		return err
 	}
@@ -190,7 +189,7 @@ func resourceArmNetworkPacketCaptureCreate(d *schema.ResourceData, meta interfac
 			BytesToCapturePerPacket: utils.Int32(int32(bytesToCapturePerPacket)),
 			TimeLimitInSeconds:      utils.Int32(int32(timeLimitInSeconds)),
 			TotalBytesPerSession:    utils.Int32(int32(totalBytesPerSession)),
-			Filters:                 expandArmNetworkPacketCaptureFilters(d),
+			Filters:                 expandNetworkPacketCaptureFilters(d),
 		},
 	}
 
@@ -210,10 +209,10 @@ func resourceArmNetworkPacketCaptureCreate(d *schema.ResourceData, meta interfac
 
 	d.SetId(*resp.ID)
 
-	return resourceArmNetworkPacketCaptureRead(d, meta)
+	return resourceNetworkPacketCaptureRead(d, meta)
 }
 
-func resourceArmNetworkPacketCaptureRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkPacketCaptureRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PacketCapturesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -244,12 +243,12 @@ func resourceArmNetworkPacketCaptureRead(d *schema.ResourceData, meta interface{
 		d.Set("maximum_bytes_per_session", int(*props.TotalBytesPerSession))
 		d.Set("maximum_capture_duration", int(*props.TimeLimitInSeconds))
 
-		location := flattenArmNetworkPacketCaptureStorageLocation(props.StorageLocation)
+		location := flattenNetworkPacketCaptureStorageLocation(props.StorageLocation)
 		if err := d.Set("storage_location", location); err != nil {
 			return fmt.Errorf("Error setting `storage_location`: %+v", err)
 		}
 
-		filters := flattenArmNetworkPacketCaptureFilters(props.Filters)
+		filters := flattenNetworkPacketCaptureFilters(props.Filters)
 		if err := d.Set("filter", filters); err != nil {
 			return fmt.Errorf("Error setting `filter`: %+v", err)
 		}
@@ -258,7 +257,7 @@ func resourceArmNetworkPacketCaptureRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func resourceArmNetworkPacketCaptureDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkPacketCaptureDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PacketCapturesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -288,7 +287,7 @@ func resourceArmNetworkPacketCaptureDelete(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func expandArmNetworkPacketCaptureStorageLocation(d *schema.ResourceData) (*network.PacketCaptureStorageLocation, error) {
+func expandNetworkPacketCaptureStorageLocation(d *schema.ResourceData) (*network.PacketCaptureStorageLocation, error) {
 	locations := d.Get("storage_location").([]interface{})
 	if len(locations) == 0 {
 		return nil, fmt.Errorf("Error expandng `storage_location`: not found")
@@ -308,7 +307,7 @@ func expandArmNetworkPacketCaptureStorageLocation(d *schema.ResourceData) (*netw
 	return &storageLocation, nil
 }
 
-func flattenArmNetworkPacketCaptureStorageLocation(input *network.PacketCaptureStorageLocation) []interface{} {
+func flattenNetworkPacketCaptureStorageLocation(input *network.PacketCaptureStorageLocation) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -330,7 +329,7 @@ func flattenArmNetworkPacketCaptureStorageLocation(input *network.PacketCaptureS
 	return []interface{}{output}
 }
 
-func expandArmNetworkPacketCaptureFilters(d *schema.ResourceData) *[]network.PacketCaptureFilter {
+func expandNetworkPacketCaptureFilters(d *schema.ResourceData) *[]network.PacketCaptureFilter {
 	inputFilters := d.Get("filter").([]interface{})
 	if len(inputFilters) == 0 {
 		return nil
@@ -360,7 +359,7 @@ func expandArmNetworkPacketCaptureFilters(d *schema.ResourceData) *[]network.Pac
 	return &filters
 }
 
-func flattenArmNetworkPacketCaptureFilters(input *[]network.PacketCaptureFilter) []interface{} {
+func flattenNetworkPacketCaptureFilters(input *[]network.PacketCaptureFilter) []interface{} {
 	filters := make([]interface{}, 0)
 
 	if inFilter := input; inFilter != nil {

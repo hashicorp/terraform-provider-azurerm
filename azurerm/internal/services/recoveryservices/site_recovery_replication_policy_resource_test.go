@@ -1,36 +1,39 @@
 package recoveryservices_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
-func TestAccAzureRMSiteRecoveryReplicationPolicy_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replication_policy", "test")
+type SiteRecoveryReplicationPolicyResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSiteRecoveryReplicationPolicyDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSiteRecoveryReplicationPolicy_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSiteRecoveryReplicationPolicyExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccSiteRecoveryReplicationPolicy_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replication_policy", "test")
+	r := SiteRecoveryReplicationPolicyResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func testAccAzureRMSiteRecoveryReplicationPolicy_basic(data acceptance.TestData) string {
+func (SiteRecoveryReplicationPolicyResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -60,57 +63,20 @@ resource "azurerm_site_recovery_replication_policy" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testCheckAzureRMSiteRecoveryReplicationPolicyExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		state, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		resourceGroupName := state.Primary.Attributes["resource_group_name"]
-		vaultName := state.Primary.Attributes["recovery_vault_name"]
-		policyName := state.Primary.Attributes["name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.ReplicationPoliciesClient(resourceGroupName, vaultName)
-
-		resp, err := client.Get(ctx, policyName)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on RecoveryServices.ReplicationPoliciesClient: %+v", err)
-		}
-
-		if resp.Response.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: replication policy: %q does not exist", policyName)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMSiteRecoveryReplicationPolicyDestroy(s *terraform.State) error {
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_site_recovery_replication_policy" {
-			continue
-		}
-
-		resourceGroupName := rs.Primary.Attributes["resource_group_name"]
-		vaultName := rs.Primary.Attributes["recovery_vault_name"]
-		policyName := rs.Primary.Attributes["name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.ReplicationPoliciesClient(resourceGroupName, vaultName)
-		resp, err := client.Get(ctx, policyName)
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Replication Policy still exists:\n%#v", resp.Properties)
-		}
+func (t SiteRecoveryReplicationPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resGroup := id.ResourceGroup
+	vaultName := id.Path["vaults"]
+	name := id.Path["replicationPolicies"]
+
+	resp, err := clients.RecoveryServices.ReplicationPoliciesClient(resGroup, vaultName).Get(ctx, name)
+	if err != nil {
+		return nil, fmt.Errorf("reading site recovery replication policy (%s): %+v", id, err)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
 }

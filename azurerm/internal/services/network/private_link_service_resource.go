@@ -6,6 +6,10 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
+	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
+
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -20,16 +24,15 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmPrivateLinkService() *schema.Resource {
+func resourcePrivateLinkService() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmPrivateLinkServiceCreateUpdate,
-		Read:   resourceArmPrivateLinkServiceRead,
-		Update: resourceArmPrivateLinkServiceCreateUpdate,
-		Delete: resourceArmPrivateLinkServiceDelete,
+		Create: resourcePrivateLinkServiceCreateUpdate,
+		Read:   resourcePrivateLinkServiceRead,
+		Update: resourcePrivateLinkServiceCreateUpdate,
+		Delete: resourcePrivateLinkServiceDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),
@@ -43,7 +46,7 @@ func resourceArmPrivateLinkService() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidatePrivateLinkName,
+				ValidateFunc: networkValidate.PrivateLinkName,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -88,7 +91,7 @@ func resourceArmPrivateLinkService() *schema.Resource {
 							Type:         schema.TypeString,
 							Required:     true,
 							ForceNew:     true,
-							ValidateFunc: ValidatePrivateLinkName,
+							ValidateFunc: networkValidate.PrivateLinkName,
 						},
 						"private_ip_address": {
 							Type:         schema.TypeString,
@@ -138,17 +141,17 @@ func resourceArmPrivateLinkService() *schema.Resource {
 			"tags": tags.Schema(),
 		},
 
-		CustomizeDiff: func(d *schema.ResourceDiff, v interface{}) error {
-			if err := ValidatePrivateLinkNatIpConfiguration(d); err != nil {
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *schema.ResourceDiff, v interface{}) error {
+			if err := validatePrivateLinkNatIpConfiguration(d); err != nil {
 				return err
 			}
 
 			return nil
-		},
+		}),
 	}
 }
 
-func resourceArmPrivateLinkServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourcePrivateLinkServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PrivateLinkServiceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -186,8 +189,8 @@ func resourceArmPrivateLinkServiceCreateUpdate(d *schema.ResourceData, meta inte
 			Visibility: &network.PrivateLinkServicePropertiesVisibility{
 				Subscriptions: utils.ExpandStringSlice(visibility),
 			},
-			IPConfigurations:                     expandArmPrivateLinkServiceIPConfiguration(primaryIpConfiguration),
-			LoadBalancerFrontendIPConfigurations: expandArmPrivateLinkServiceFrontendIPConfiguration(loadBalancerFrontendIpConfigurations),
+			IPConfigurations:                     expandPrivateLinkServiceIPConfiguration(primaryIpConfiguration),
+			LoadBalancerFrontendIPConfigurations: expandPrivateLinkServiceFrontendIPConfiguration(loadBalancerFrontendIpConfigurations),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -231,10 +234,10 @@ func resourceArmPrivateLinkServiceCreateUpdate(d *schema.ResourceData, meta inte
 
 	d.SetId(*resp.ID)
 
-	return resourceArmPrivateLinkServiceRead(d, meta)
+	return resourcePrivateLinkServiceRead(d, meta)
 }
 
-func resourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{}) error {
+func resourcePrivateLinkServiceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PrivateLinkServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -280,11 +283,11 @@ func resourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("Error setting `visibility_subscription_ids`: %+v", err)
 		}
 
-		if err := d.Set("nat_ip_configuration", flattenArmPrivateLinkServiceIPConfiguration(props.IPConfigurations)); err != nil {
+		if err := d.Set("nat_ip_configuration", flattenPrivateLinkServiceIPConfiguration(props.IPConfigurations)); err != nil {
 			return fmt.Errorf("Error setting `nat_ip_configuration`: %+v", err)
 		}
 
-		if err := d.Set("load_balancer_frontend_ip_configuration_ids", flattenArmPrivateLinkServiceFrontendIPConfiguration(props.LoadBalancerFrontendIPConfigurations)); err != nil {
+		if err := d.Set("load_balancer_frontend_ip_configuration_ids", flattenPrivateLinkServiceFrontendIPConfiguration(props.LoadBalancerFrontendIPConfigurations)); err != nil {
 			return fmt.Errorf("Error setting `load_balancer_frontend_ip_configuration_ids`: %+v", err)
 		}
 	}
@@ -292,7 +295,7 @@ func resourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{})
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmPrivateLinkServiceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourcePrivateLinkServiceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PrivateLinkServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -321,7 +324,7 @@ func resourceArmPrivateLinkServiceDelete(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func expandArmPrivateLinkServiceIPConfiguration(input []interface{}) *[]network.PrivateLinkServiceIPConfiguration {
+func expandPrivateLinkServiceIPConfiguration(input []interface{}) *[]network.PrivateLinkServiceIPConfiguration {
 	if len(input) == 0 {
 		return nil
 	}
@@ -360,7 +363,7 @@ func expandArmPrivateLinkServiceIPConfiguration(input []interface{}) *[]network.
 	return &results
 }
 
-func expandArmPrivateLinkServiceFrontendIPConfiguration(input []interface{}) *[]network.FrontendIPConfiguration {
+func expandPrivateLinkServiceFrontendIPConfiguration(input []interface{}) *[]network.FrontendIPConfiguration {
 	if len(input) == 0 {
 		return nil
 	}
@@ -378,7 +381,7 @@ func expandArmPrivateLinkServiceFrontendIPConfiguration(input []interface{}) *[]
 	return &results
 }
 
-func flattenArmPrivateLinkServiceIPConfiguration(input *[]network.PrivateLinkServiceIPConfiguration) []interface{} {
+func flattenPrivateLinkServiceIPConfiguration(input *[]network.PrivateLinkServiceIPConfiguration) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -423,7 +426,7 @@ func flattenArmPrivateLinkServiceIPConfiguration(input *[]network.PrivateLinkSer
 	return results
 }
 
-func flattenArmPrivateLinkServiceFrontendIPConfiguration(input *[]network.FrontendIPConfiguration) *schema.Set {
+func flattenPrivateLinkServiceFrontendIPConfiguration(input *[]network.FrontendIPConfiguration) *schema.Set {
 	results := &schema.Set{F: schema.HashString}
 	if input == nil {
 		return results
@@ -457,4 +460,33 @@ func privateLinkServiceWaitForReadyRefreshFunc(ctx context.Context, client *netw
 
 		return res, "Pending", nil
 	}
+}
+func validatePrivateLinkNatIpConfiguration(d *schema.ResourceDiff) error {
+	name := d.Get("name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
+	ipConfigurations := d.Get("nat_ip_configuration").([]interface{})
+
+	for i, item := range ipConfigurations {
+		v := item.(map[string]interface{})
+		p := fmt.Sprintf("nat_ip_configuration.%d.private_ip_address", i)
+		s := fmt.Sprintf("nat_ip_configuration.%d.subnet_id", i)
+		isPrimary := v["primary"].(bool)
+		in := v["name"].(string)
+
+		if d.HasChange(p) {
+			o, n := d.GetChange(p)
+			if o != "" && n == "" {
+				return fmt.Errorf("Private Link Service %q (Resource Group %q) nat_ip_configuration %q private_ip_address once assigned can not be removed", name, resourceGroup, in)
+			}
+		}
+
+		if isPrimary && d.HasChange(s) {
+			o, _ := d.GetChange(s)
+			if o != "" {
+				return fmt.Errorf("Private Link Service %q (Resource Group %q) nat_ip_configuration %q primary subnet_id once assigned can not be changed", name, resourceGroup, in)
+			}
+		}
+	}
+
+	return nil
 }

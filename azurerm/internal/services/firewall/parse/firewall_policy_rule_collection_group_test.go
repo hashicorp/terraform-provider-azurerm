@@ -11,7 +11,7 @@ import (
 var _ resourceid.Formatter = FirewallPolicyRuleCollectionGroupId{}
 
 func TestFirewallPolicyRuleCollectionGroupIDFormatter(t *testing.T) {
-	actual := NewFirewallPolicyRuleCollectionGroupID("12345678-1234-9876-4563-123456789012", "resGroup1", "policy1", "ruleCollectionGroup1").ID("")
+	actual := NewFirewallPolicyRuleCollectionGroupID("12345678-1234-9876-4563-123456789012", "resGroup1", "policy1", "ruleCollectionGroup1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/firewallPolicies/policy1/ruleCollectionGroups/ruleCollectionGroup1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)

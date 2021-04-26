@@ -11,7 +11,7 @@ import (
 var _ resourceid.Formatter = SmartDetectorAlertRuleId{}
 
 func TestSmartDetectorAlertRuleIDFormatter(t *testing.T) {
-	actual := NewSmartDetectorAlertRuleID("12345678-1234-9876-4563-123456789012", "group1", "rule1").ID("")
+	actual := NewSmartDetectorAlertRuleID("12345678-1234-9876-4563-123456789012", "group1", "rule1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.AlertsManagement/smartdetectoralertrules/rule1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)

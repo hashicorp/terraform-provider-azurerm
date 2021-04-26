@@ -32,6 +32,8 @@ The following arguments are supported:
 
 ---
 
+* `sku` - (Optional) The SKU Tier of the Firewall Policy. Possible values are `Standard`, `Premium`.
+
 * `base_policy_id` - (Optional) The ID of the base Firewall Policy.
 
 * `dns` - (Optional) A `dns` block as defined below.

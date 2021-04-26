@@ -19,21 +19,21 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 var VPNGatewayResourceName = "azurerm_vpn_gateway"
 
-func resourceArmVPNGateway() *schema.Resource {
+func resourceVPNGateway() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmVPNGatewayCreate,
-		Read:   resourceArmVPNGatewayRead,
-		Update: resourceArmVPNGatewayUpdate,
-		Delete: resourceArmVPNGatewayDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Create: resourceVPNGatewayCreate,
+		Read:   resourceVPNGatewayRead,
+		Update: resourceVPNGatewayUpdate,
+		Delete: resourceVPNGatewayDelete,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(90 * time.Minute),
@@ -180,7 +180,7 @@ func resourceArmVPNGateway() *schema.Resource {
 	}
 }
 
-func resourceArmVPNGatewayCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceVPNGatewayCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VpnGatewaysClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -258,10 +258,10 @@ func resourceArmVPNGatewayCreate(d *schema.ResourceData, meta interface{}) error
 
 	d.SetId(*resp.ID)
 
-	return resourceArmVPNGatewayRead(d, meta)
+	return resourceVPNGatewayRead(d, meta)
 }
 
-func resourceArmVPNGatewayUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceVPNGatewayUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VpnGatewaysClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -309,10 +309,10 @@ func resourceArmVPNGatewayUpdate(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 
-	return resourceArmVPNGatewayRead(d, meta)
+	return resourceVPNGatewayRead(d, meta)
 }
 
-func resourceArmVPNGatewayRead(d *schema.ResourceData, meta interface{}) error {
+func resourceVPNGatewayRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VpnGatewaysClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -360,7 +360,7 @@ func resourceArmVPNGatewayRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmVPNGatewayDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceVPNGatewayDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VpnGatewaysClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

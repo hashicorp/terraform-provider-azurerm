@@ -3,7 +3,6 @@ package kusto
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-09-18/kusto"
@@ -13,20 +12,21 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/parse"
+	kustoValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmKustoDatabase() *schema.Resource {
+func resourceKustoDatabase() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmKustoDatabaseCreateUpdate,
-		Read:   resourceArmKustoDatabaseRead,
-		Update: resourceArmKustoDatabaseCreateUpdate,
-		Delete: resourceArmKustoDatabaseDelete,
+		Create: resourceKustoDatabaseCreateUpdate,
+		Read:   resourceKustoDatabaseRead,
+		Update: resourceKustoDatabaseCreateUpdate,
+		Delete: resourceKustoDatabaseDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),
@@ -40,7 +40,7 @@ func resourceArmKustoDatabase() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMKustoDatabaseName,
+				ValidateFunc: kustoValidate.DatabaseName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -51,7 +51,7 @@ func resourceArmKustoDatabase() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMKustoClusterName,
+				ValidateFunc: kustoValidate.ClusterName,
 			},
 
 			"soft_delete_period": {
@@ -74,7 +74,7 @@ func resourceArmKustoDatabase() *schema.Resource {
 	}
 }
 
-func resourceArmKustoDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DatabasesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -142,10 +142,10 @@ func resourceArmKustoDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 
 	d.SetId(*database.ID)
 
-	return resourceArmKustoDatabaseRead(d, meta)
+	return resourceKustoDatabaseRead(d, meta)
 }
 
-func resourceArmKustoDatabaseRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoDatabaseRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DatabasesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -193,48 +193,26 @@ func resourceArmKustoDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func resourceArmKustoDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DatabasesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.DatabaseID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resGroup := id.ResourceGroup
-	clusterName := id.Path["Clusters"]
-	name := id.Path["Databases"]
-
-	future, err := client.Delete(ctx, resGroup, clusterName, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.ClusterName, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Kusto Database %q (Resource Group %q, Cluster %q): %+v", name, resGroup, clusterName, err)
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of Kusto Database %q (Resource Group %q, Cluster %q): %+v", name, resGroup, clusterName, err)
+		return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
 	}
 
 	return nil
-}
-
-func validateAzureRMKustoDatabaseName(v interface{}, k string) (warnings []string, errors []error) {
-	name := v.(string)
-
-	if regexp.MustCompile(`^[\s]+$`).MatchString(name) {
-		errors = append(errors, fmt.Errorf("%q must not consist of whitespaces only", k))
-	}
-
-	if !regexp.MustCompile(`^[a-zA-Z0-9\s.-]+$`).MatchString(name) {
-		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters, whitespaces, dashes and dots: %q", k, name))
-	}
-
-	if len(name) > 260 {
-		errors = append(errors, fmt.Errorf("%q must be (inclusive) between 4 and 22 characters long but is %d", k, len(name)))
-	}
-
-	return warnings, errors
 }
 
 func expandKustoDatabaseProperties(d *schema.ResourceData) *kusto.ReadWriteDatabaseProperties {

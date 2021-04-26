@@ -27,14 +27,15 @@ func NewPoolID(subscriptionId, resourceGroup, batchAccountName, name string) Poo
 
 func (id PoolId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Batch Account Name %q", id.BatchAccountName),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Batch Account Name %q", id.BatchAccountName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Pool", segmentsStr)
 }
 
-func (id PoolId) ID(_ string) string {
+func (id PoolId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Batch/batchAccounts/%s/pools/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.BatchAccountName, id.Name)
 }

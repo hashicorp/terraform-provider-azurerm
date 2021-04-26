@@ -15,7 +15,7 @@ Manages an Azure IoT Time Series Insights Gen2 Environment.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "northeurope"
+  location = "West Europe"
 }
 resource "azurerm_storage_account" "storage" {
   name                     = "example"
@@ -74,6 +74,8 @@ A `storage` block supports the following:
 ## Attributes Reference
 
 * `id` - The ID of the IoT Time Series Insights Gen2 Environment.
+
+* `data_access_fqdn` - The FQDN used to access the environment data.
 
 ## Timeouts
 

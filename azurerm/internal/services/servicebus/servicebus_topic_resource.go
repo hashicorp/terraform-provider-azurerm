@@ -9,25 +9,25 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/parse"
 	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/validate"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmServiceBusTopic() *schema.Resource {
+func resourceServiceBusTopic() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmServiceBusTopicCreateUpdate,
-		Read:   resourceArmServiceBusTopicRead,
-		Update: resourceArmServiceBusTopicCreateUpdate,
-		Delete: resourceArmServiceBusTopicDelete,
+		Create: resourceServiceBusTopicCreateUpdate,
+		Read:   resourceServiceBusTopicRead,
+		Update: resourceServiceBusTopicCreateUpdate,
+		Delete: resourceServiceBusTopicDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.TopicID(id)
 			return err
 		}),
@@ -108,7 +108,7 @@ func resourceArmServiceBusTopic() *schema.Resource {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validate.ServiceBusMaxSizeInMegabytes(),
+				ValidateFunc: azValidate.ServiceBusMaxSizeInMegabytes(),
 			},
 
 			"requires_duplicate_detection": {
@@ -125,7 +125,7 @@ func resourceArmServiceBusTopic() *schema.Resource {
 	}
 }
 
-func resourceArmServiceBusTopicCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceBusTopicCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.TopicsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -151,7 +151,7 @@ func resourceArmServiceBusTopicCreateUpdate(d *schema.ResourceData, meta interfa
 		}
 
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_service_fabric_cluster", resourceId.ID(""))
+			return tf.ImportAsExistsError("azurerm_service_fabric_cluster", resourceId.ID())
 		}
 	}
 
@@ -184,11 +184,11 @@ func resourceArmServiceBusTopicCreateUpdate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("creating/updating %s: %v", resourceId, err)
 	}
 
-	d.SetId(resourceId.ID(""))
-	return resourceArmServiceBusTopicRead(d, meta)
+	d.SetId(resourceId.ID())
+	return resourceServiceBusTopicRead(d, meta)
 }
 
-func resourceArmServiceBusTopicRead(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceBusTopicRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.TopicsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -251,7 +251,7 @@ func resourceArmServiceBusTopicRead(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceArmServiceBusTopicDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceBusTopicDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.TopicsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

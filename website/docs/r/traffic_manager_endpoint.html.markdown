@@ -23,7 +23,7 @@ resource "random_id" "server" {
 
 resource "azurerm_resource_group" "example" {
   name     = "trafficmanagerendpointTest"
-  location = "West US"
+  location = "West Europe"
 }
 
 resource "azurerm_traffic_manager_profile" "example" {

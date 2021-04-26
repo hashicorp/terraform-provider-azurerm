@@ -6,76 +6,71 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccDataSourceAzureRMEventHubNamespace_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_eventhub_namespace", "test")
+type EventHubNamespaceDataSource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceEventHubNamespace_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "sku", "Basic"),
-				),
-			},
+func TestAccEventHubNamespaceDataSource_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_eventhub_namespace", "test")
+	r := EventHubNamespaceDataSource{}
+
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("sku").HasValue("Basic"),
+			),
 		},
 	})
 }
 
-func TestAccDataSourceAzureRMEventHubNamespace_complete(t *testing.T) {
+func TestAccEventHubNamespaceDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_eventhub_namespace", "test")
+	r := EventHubNamespaceDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceEventHubNamespace_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "sku", "Standard"),
-					resource.TestCheckResourceAttr(data.ResourceName, "capacity", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auto_inflate_enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "maximum_throughput_units", "20"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("sku").HasValue("Standard"),
+				check.That(data.ResourceName).Key("capacity").HasValue("2"),
+				check.That(data.ResourceName).Key("auto_inflate_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("maximum_throughput_units").HasValue("20"),
+			),
 		},
 	})
 }
 
-func TestAccDataSourceAzureRMEventHubNamespace_withAliasConnectionString(t *testing.T) {
+func TestAccEventHubNamespaceDataSource_withAliasConnectionString(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_eventhub_namespace", "test")
+	r := EventHubNamespaceDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				// `default_primary_connection_string_alias` and `default_secondary_connection_string_alias` are still `nil` while `data.azurerm_eventhub_namespace` is retrieving resource. since `azurerm_eventhub_namespace_disaster_recovery_config` hasn't been created.
-				// So these two properties should be checked in the second run.
-				Config: testAccAzureRMEventHubNamespace_withAliasConnectionString(data),
-			},
-			{
-				Config: testAccDataSourceEventHubNamespace_withAliasConnectionString(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "default_primary_connection_string_alias"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "default_secondary_connection_string_alias"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			// `default_primary_connection_string_alias` and `default_secondary_connection_string_alias` are still `nil` while `data.azurerm_eventhub_namespace` is retrieving resource. since `azurerm_eventhub_namespace_disaster_recovery_config` hasn't been created.
+			// So these two properties should be checked in the second run.
+			Config: r.withAliasConnectionString(data),
+		},
+		{
+			Config: r.withAliasConnectionString(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("default_primary_connection_string_alias").Exists(),
+				check.That(data.ResourceName).Key("default_secondary_connection_string_alias").Exists(),
+			),
 		},
 	})
 }
 
-func testAccDataSourceEventHubNamespace_basic(data acceptance.TestData) string {
+func (EventHubNamespaceDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-eh-%d"
   location = "%s"
 }
 
@@ -93,14 +88,14 @@ data "azurerm_eventhub_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccDataSourceEventHubNamespace_complete(data acceptance.TestData) string {
+func (EventHubNamespaceDataSource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-eh-%d"
   location = "%s"
 }
 
@@ -121,8 +116,7 @@ data "azurerm_eventhub_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccDataSourceEventHubNamespace_withAliasConnectionString(data acceptance.TestData) string {
-	template := testAccAzureRMEventHubNamespace_withAliasConnectionString(data)
+func (EventHubNamespaceDataSource) withAliasConnectionString(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -130,5 +124,5 @@ data "azurerm_eventhub_namespace" "test" {
   name                = azurerm_eventhub_namespace.test.name
   resource_group_name = azurerm_eventhub_namespace.test.resource_group_name
 }
-`, template)
+`, EventHubNamespaceResource{}.withAliasConnectionString(data))
 }

@@ -29,15 +29,16 @@ func NewMongodbCollectionID(subscriptionId, resourceGroup, databaseAccountName, 
 
 func (id MongodbCollectionId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Database Account Name %q", id.DatabaseAccountName),
-		fmt.Sprintf("Mongodb Database Name %q", id.MongodbDatabaseName),
 		fmt.Sprintf("Collection Name %q", id.CollectionName),
+		fmt.Sprintf("Mongodb Database Name %q", id.MongodbDatabaseName),
+		fmt.Sprintf("Database Account Name %q", id.DatabaseAccountName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Mongodb Collection", segmentsStr)
 }
 
-func (id MongodbCollectionId) ID(_ string) string {
+func (id MongodbCollectionId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DocumentDB/databaseAccounts/%s/mongodbDatabases/%s/collections/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DatabaseAccountName, id.MongodbDatabaseName, id.CollectionName)
 }

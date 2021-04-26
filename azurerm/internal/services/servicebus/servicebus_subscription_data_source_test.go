@@ -6,28 +6,27 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccDataSourceAzureRMServiceBusSubscription_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_servicebus_subscription", "test")
+type ServiceBusSubscriptionDataSource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusSubscriptionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMServiceBusSubscription_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusSubscriptionExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "max_delivery_count"),
-				),
-			},
+func TestAccDataSourceServiceBusSubscription_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_servicebus_subscription", "test")
+	r := ServiceBusSubscriptionDataSource{}
+
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("max_delivery_count").Exists(),
+			),
 		},
 	})
 }
 
-func testAccDataSourceAzureRMServiceBusSubscription_basic(data acceptance.TestData) string {
+func (ServiceBusSubscriptionDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -57,5 +56,5 @@ data "azurerm_servicebus_subscription" "test" {
   namespace_name      = azurerm_servicebus_namespace.test.name
   topic_name          = azurerm_servicebus_topic.test.name
 }
-	`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
