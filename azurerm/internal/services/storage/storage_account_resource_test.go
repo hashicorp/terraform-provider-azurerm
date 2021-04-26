@@ -528,10 +528,6 @@ func TestAccStorageAccount_blobProperties(t *testing.T) {
 			Config: r.blobPropertiesUpdated2(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("blob_properties.0.cors_rule.#").HasValue("2"),
-				check.That(data.ResourceName).Key("blob_properties.0.delete_retention_policy.0.days").HasValue("7"),
-				check.That(data.ResourceName).Key("blob_properties.0.versioning_enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("blob_properties.0.default_service_version").HasValue("2020-06-12"),
 			),
 		},
 		data.ImportStep(),
