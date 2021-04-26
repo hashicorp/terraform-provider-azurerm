@@ -255,6 +255,10 @@ resource "azurerm_backup_policy_file_share" "test" {
     time      = "23:00"
   }
 
+  retention_daily {
+    count = 10
+  }
+
   retention_weekly {
     count    = 7
     weekdays = ["Sunday", "Wednesday"]
