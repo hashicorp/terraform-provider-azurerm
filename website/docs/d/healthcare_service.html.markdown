@@ -40,7 +40,7 @@ The following attributes are exported:
 
 * `kind` - The type of the service.
 * `authentication_configuration` - An `authentication_configuration` block as defined below.
-* `cosmosdb_offer_throughput` - The provisioned throughput for the backing database.
+* `cosmosdb_configuration` - A `cosmosdb_configuration` block as defined below.
 * `cors_configuration` - A `cors_configuration` block as defined below.
 * `tags` - A mapping of tags to assign to the resource.
 
@@ -50,6 +50,13 @@ An `authentication_configuration` exports the following:
 * `authority` - The Azure Active Directory (tenant) that serves as the authentication authority to access the service. 
 * `audience` - The intended audience to receive authentication tokens for the service. 
 * `smart_proxy_enabled` - Is the 'SMART on FHIR' option for mobile and web implementations enabled?
+
+A `cosmodb_configuration` exports the following:
+
+* `throughput` - The provisioned throughput for the backing database.
+* `key_vault_key_id` - The Key Vault key URI for CMK encryption.
+
+~> **NOTE:** The CosmosDB service always uses the latest version of the specified key.
 
 ---
 A `cors_configuration` block exports the following:

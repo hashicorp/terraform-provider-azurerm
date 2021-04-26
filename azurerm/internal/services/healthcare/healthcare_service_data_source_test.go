@@ -23,7 +23,6 @@ func TestAccHealthCareServiceDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("location").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
 				check.That(data.ResourceName).Key("kind").Exists(),
-				check.That(data.ResourceName).Key("cosmosdb_throughput").Exists(),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
 			),
 		},
