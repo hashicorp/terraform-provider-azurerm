@@ -40,6 +40,7 @@ func Required() map[string]struct{} {
 		"Microsoft.EventHub":                {},
 		"Microsoft.HDInsight":               {},
 		"Microsoft.HealthcareApis":          {},
+		"Microsoft.GuestConfiguration":      {},
 		"Microsoft.KeyVault":                {},
 		"Microsoft.Kusto":                   {},
 		"microsoft.insights":                {},

@@ -44,6 +44,13 @@ func TestAccIotHub_ipFilterRules(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.ipFilterRulesUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -356,6 +363,70 @@ resource "azurerm_iothub" "test" {
   ip_filter_rule {
     name    = "test"
     ip_mask = "10.0.0.0/31"
+    action  = "Accept"
+  }
+
+  ip_filter_rule {
+    name    = "test2"
+    ip_mask = "10.0.2.0/31"
+    action  = "Accept"
+  }
+
+  ip_filter_rule {
+    name    = "test3"
+    ip_mask = "10.0.3.0/31"
+    action  = "Accept"
+  }
+
+  tags = {
+    purpose = "testing"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (IotHubResource) ipFilterRulesUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_iothub" "test" {
+  name                = "acctestIoTHub-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku {
+    name     = "S1"
+    capacity = "1"
+  }
+
+  ip_filter_rule {
+    name    = "test4"
+    ip_mask = "10.0.4.0/31"
+    action  = "Accept"
+  }
+
+  ip_filter_rule {
+    name    = "test"
+    ip_mask = "10.0.0.0/31"
+    action  = "Accept"
+  }
+
+  ip_filter_rule {
+    name    = "test3"
+    ip_mask = "10.0.3.0/31"
+    action  = "Accept"
+  }
+
+  ip_filter_rule {
+    name    = "test5"
+    ip_mask = "10.0.5.0/31"
     action  = "Accept"
   }
 
@@ -797,12 +868,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-iothub-%d"
+  name     = "acctestRG-iothub-%d-1"
   location = "%s"
 }
 
 resource "azurerm_resource_group" "test2" {
-  name     = "acctestRG2-%d"
+  name     = "acctestRG-iothub-%d-2"
   location = "%s"
 }
 
@@ -905,5 +976,5 @@ resource "azurerm_iothub" "test" {
     purpose = "testing"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Ternary, data.RandomInteger)
 }

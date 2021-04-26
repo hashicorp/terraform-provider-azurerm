@@ -3,10 +3,12 @@ package containers
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2019-05-01/containerregistry"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
+	"github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2020-11-01-preview/containerregistry"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -25,9 +27,8 @@ func resourceContainerRegistryWebhook() *schema.Resource {
 		Update: resourceContainerRegistryWebhookUpdate,
 		Delete: resourceContainerRegistryWebhookDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -41,7 +42,7 @@ func resourceContainerRegistryWebhook() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateContainerRegistryWebhookName,
+				ValidateFunc: validate.ContainerRegistryWebhookName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -50,13 +51,13 @@ func resourceContainerRegistryWebhook() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateContainerRegistryName,
+				ValidateFunc: validate.ContainerRegistryName,
 			},
 
 			"service_uri": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validateContainerRegistryWebhookServiceUri,
+				ValidateFunc: validate.ContainerRegistryWebhookServiceUri,
 			},
 
 			"custom_headers": {
@@ -291,26 +292,6 @@ func resourceContainerRegistryWebhookDelete(d *schema.ResourceData, meta interfa
 	}
 
 	return nil
-}
-
-func validateContainerRegistryWebhookName(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-	if !regexp.MustCompile(`^[a-zA-Z0-9]{5,50}$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf(
-			"alpha numeric characters only are allowed and between 5 and 50 characters in %q: %q", k, value))
-	}
-
-	return warnings, errors
-}
-
-func validateContainerRegistryWebhookServiceUri(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-	if !regexp.MustCompile(`^https?://[^\s]+$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf(
-			"%q must start with http:// or https:// and must not contain whitespaces: %q", k, value))
-	}
-
-	return warnings, errors
 }
 
 func expandWebhookPropertiesCreateParameters(d *schema.ResourceData) *containerregistry.WebhookPropertiesCreateParameters {

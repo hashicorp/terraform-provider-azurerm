@@ -60,6 +60,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_express_route_circuit":               resourceExpressRouteCircuit(),
 		"azurerm_express_route_connection":            resourceExpressRouteConnection(),
 		"azurerm_express_route_gateway":               resourceExpressRouteGateway(),
+		"azurerm_express_route_port":                  resourceArmExpressRoutePort(),
 		"azurerm_ip_group":                            resourceIpGroup(),
 		"azurerm_local_network_gateway":               resourceLocalNetworkGateway(),
 		"azurerm_nat_gateway":                         resourceNatGateway(),

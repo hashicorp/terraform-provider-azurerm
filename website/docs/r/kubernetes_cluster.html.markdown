@@ -74,7 +74,7 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 ---
 
-* `automatic_channel_upgrade` - (Optional) The upgrade channel for this Kubernetes Cluster. Possible values are `none`, `patch`, `rapid`, and `stable`. The default value is `none`.
+* `automatic_channel_upgrade` - (Optional) The upgrade channel for this Kubernetes Cluster. Possible values are `patch`, `rapid`, and `stable`.
 
 !> **Note:** Cluster Auto-Upgrade will update the Kubernetes Cluster (and it's Node Pools) to the latest GA version of Kubernetes automatically - please [see the Azure documentation for more information](https://docs.microsoft.com/en-us/azure/aks/upgrade-cluster#set-auto-upgrade-channel-preview).
 
@@ -221,7 +221,7 @@ A `auto_scaler_profile` block supports the following:
 
 * `balance_similar_node_groups` - Detect similar node groups and balance the number of nodes between them. Defaults to `false`.
 
-* `expander` - Expander to use. Possible values are `least-waste`, `priority`, `max-pods` and `random`. Defaults to `random`.
+* `expander` - Expander to use. Possible values are `least-waste`, `priority`, `most-pods` and `random`. Defaults to `random`.
 
 * `max_graceful_termination_sec` - Maximum number of seconds the cluster autoscaler waits for pod termination when trying to scale down a node. Defaults to `600`.
 
@@ -240,6 +240,8 @@ A `auto_scaler_profile` block supports the following:
 * `scale_down_unready` - How long an unready node should be unneeded before it is eligible for scale down. Defaults to `20m`.
 
 * `scale_down_utilization_threshold` - Node utilization level, defined as sum of requested resources divided by capacity, below which a node can be considered for scale down. Defaults to `0.5`.
+
+* `empty_bulk_delete_max` - Maximum number of empty nodes that can be deleted at the same time. Defaults to `10`.
 
 * `skip_nodes_with_local_storage` - If `true` cluster autoscaler will never delete nodes with pods with local storage, for example, EmptyDir or HostPath. Defaults to `true`.
 
@@ -428,8 +430,6 @@ A `oms_agent` block supports the following:
 
 * `log_analytics_workspace_id` - (Optional) The ID of the Log Analytics Workspace which the OMS Agent should send data to. Must be present if `enabled` is `true`.
 
-* `oms_agent_identity` - An `oms_agent_identity` block as defined below.  
-
 ---
 
 A `role_based_access_control` block supports the following:
@@ -521,6 +521,12 @@ The `kubelet_identity` block exports the following:
 * `object_id` - The Object ID of the user-defined Managed Identity assigned to the Kubelets.
 
 * `user_assigned_identity_id` - The ID of the User Assigned Identity assigned to the Kubelets.
+
+---
+
+The `oms_agent` block exports the following: 
+
+* `oms_agent_identity` - An `oms_agent_identity` block is exported. The exported attributes are defined below.  
 
 ---
 

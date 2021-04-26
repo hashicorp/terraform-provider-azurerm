@@ -13,7 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	iothubValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter/parse"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -25,7 +25,7 @@ func resourceIotSecurityDeviceGroup() *schema.Resource {
 		Update: resourceIotSecurityDeviceGroupCreateUpdate,
 		Delete: resourceIotSecurityDeviceGroupDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.IotSecurityDeviceGroupID(id)
 			return err
 		}),
@@ -65,6 +65,7 @@ func resourceIotSecurityDeviceGroup() *schema.Resource {
 								Type:         schema.TypeString,
 								ValidateFunc: validate.CIDR,
 							},
+							AtLeastOneOf: []string{"allow_rule.0.connection_to_ip_not_allowed", "allow_rule.0.local_user_not_allowed", "allow_rule.0.process_not_allowed"},
 						},
 
 						"local_user_not_allowed": {
@@ -73,6 +74,7 @@ func resourceIotSecurityDeviceGroup() *schema.Resource {
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},
+							AtLeastOneOf: []string{"allow_rule.0.connection_to_ip_not_allowed", "allow_rule.0.local_user_not_allowed", "allow_rule.0.process_not_allowed"},
 						},
 
 						"process_not_allowed": {
@@ -81,6 +83,7 @@ func resourceIotSecurityDeviceGroup() *schema.Resource {
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},
+							AtLeastOneOf: []string{"allow_rule.0.connection_to_ip_not_allowed", "allow_rule.0.local_user_not_allowed", "allow_rule.0.process_not_allowed"},
 						},
 					},
 				},

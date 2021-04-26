@@ -5,7 +5,7 @@ var defaultStartHour = 0
 var defaultParallelism = 20
 
 // specifies the default version of Terraform Core which should be used for testing
-var defaultTerraformCoreVersion = "0.14.7"
+var defaultTerraformCoreVersion = "0.15.0"
 
 var locations = mapOf(
         "public" to LocationConfiguration("westeurope", "eastus2", "francecentral", false),
@@ -49,5 +49,8 @@ var serviceTestConfigurationOverrides = mapOf(
         "signalr" to testConfiguration(1, defaultStartHour),
 
         // Spring Cloud only allows a max of 10 provisioned
-        "springcloud" to testConfiguration(5, defaultStartHour)
+        "springcloud" to testConfiguration(5, defaultStartHour),
+
+        // Currently have a quota of 10 nodes, 3 nodes required per test so lets limit it to 3
+        "vmware" to testConfiguration(3, defaultStartHour)
 )

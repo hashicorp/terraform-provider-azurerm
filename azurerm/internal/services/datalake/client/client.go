@@ -9,9 +9,10 @@ import (
 
 type Client struct {
 	// Data Lake Store
-	StoreAccountsClient      *store.AccountsClient
-	StoreFirewallRulesClient *store.FirewallRulesClient
-	StoreFilesClient         *filesystem.Client
+	StoreAccountsClient       *store.AccountsClient
+	StoreFirewallRulesClient  *store.FirewallRulesClient
+	VirtualNetworkRulesClient *store.VirtualNetworkRulesClient
+	StoreFilesClient          *filesystem.Client
 
 	// Data Lake Analytics
 	AnalyticsAccountsClient      *analytics.AccountsClient
@@ -25,6 +26,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	StoreFirewallRulesClient := store.NewFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&StoreFirewallRulesClient.Client, o.ResourceManagerAuthorizer)
 
+	VirtualNetworkRulesClient := store.NewVirtualNetworkRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&VirtualNetworkRulesClient.Client, o.ResourceManagerAuthorizer)
+
 	StoreFilesClient := filesystem.NewClient()
 	o.ConfigureClient(&StoreFilesClient.Client, o.ResourceManagerAuthorizer)
 
@@ -37,6 +41,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	return &Client{
 		StoreAccountsClient:          &StoreAccountsClient,
 		StoreFirewallRulesClient:     &StoreFirewallRulesClient,
+		VirtualNetworkRulesClient:    &VirtualNetworkRulesClient,
 		StoreFilesClient:             &StoreFilesClient,
 		AnalyticsAccountsClient:      &AnalyticsAccountsClient,
 		AnalyticsFirewallRulesClient: &AnalyticsFirewallRulesClient,

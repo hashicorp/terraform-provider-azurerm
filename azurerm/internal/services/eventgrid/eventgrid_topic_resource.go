@@ -15,7 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -34,7 +34,7 @@ func resourceEventGridTopic() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.TopicID(id)
 			return err
 		}),
@@ -69,6 +69,7 @@ func resourceEventGridTopic() *schema.Resource {
 				}, false),
 			},
 
+			//lintignore:XS003
 			"input_mapping_fields": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -110,6 +111,7 @@ func resourceEventGridTopic() *schema.Resource {
 				},
 			},
 
+			//lintignore:XS003
 			"input_mapping_default_values": {
 				Type:     schema.TypeList,
 				Optional: true,

@@ -17,7 +17,7 @@ import (
 	validateCompute "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maintenance/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maintenance/validate"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -35,7 +35,7 @@ func resourceArmMaintenanceAssignmentDedicatedHost() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.MaintenanceAssignmentDedicatedHostID(id)
 			return err
 		}),
@@ -78,7 +78,7 @@ func resourceArmMaintenanceAssignmentDedicatedHostCreate(d *schema.ResourceData,
 	}
 
 	maintenanceConfigurationID := d.Get("maintenance_configuration_id").(string)
-	configurationId, _ := parse.MaintenanceConfigurationID(maintenanceConfigurationID)
+	configurationId, _ := parse.MaintenanceConfigurationIDInsensitively(maintenanceConfigurationID)
 
 	// set assignment name to configuration name
 	assignmentName := configurationId.Name
@@ -136,8 +136,12 @@ func resourceArmMaintenanceAssignmentDedicatedHostRead(d *schema.ResourceData, m
 		return fmt.Errorf("empty or nil ID of Maintenance Assignment (Dedicated Host ID: %q", id.DedicatedHostIdRaw)
 	}
 
-	// in list api, `ResourceID` returned is always nil
-	d.Set("dedicated_host_id", id.DedicatedHostIdRaw)
+	dedicatedHostId := ""
+	if id.DedicatedHostId != nil {
+		dedicatedHostId = id.DedicatedHostId.ID()
+	}
+	d.Set("dedicated_host_id", dedicatedHostId)
+
 	if props := assignment.ConfigurationAssignmentProperties; props != nil {
 		d.Set("maintenance_configuration_id", props.MaintenanceConfigurationID)
 	}

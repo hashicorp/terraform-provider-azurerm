@@ -5,9 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"strconv"
 	"strings"
 	"time"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch/validate"
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2020-03-01/batch"
 	"github.com/hashicorp/go-azure-helpers/response"
@@ -17,7 +18,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch/parse"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -37,7 +38,7 @@ func resourceBatchPool() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.PoolID(id)
 			return err
 		}),
@@ -46,7 +47,7 @@ func resourceBatchPool() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateAzureRMBatchPoolName,
+				ValidateFunc: validate.PoolName,
 			},
 
 			// TODO: make this case sensitive once this API bug has been fixed:
@@ -57,7 +58,7 @@ func resourceBatchPool() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateAzureRMBatchAccountName,
+				ValidateFunc: validate.AccountName,
 			},
 			"display_name": {
 				Type:     schema.TypeString,
@@ -135,6 +136,7 @@ func resourceBatchPool() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+							AtLeastOneOf: []string{"container_configuration.0.type", "container_configuration.0.container_image_names", "container_configuration.0.container_registries"},
 						},
 						"container_image_names": {
 							Type:     schema.TypeSet,
@@ -144,6 +146,7 @@ func resourceBatchPool() *schema.Resource {
 								Type:         schema.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
+							AtLeastOneOf: []string{"container_configuration.0.type", "container_configuration.0.container_image_names", "container_configuration.0.container_registries"},
 						},
 						"container_registries": {
 							Type:       schema.TypeList,
@@ -173,6 +176,7 @@ func resourceBatchPool() *schema.Resource {
 									},
 								},
 							},
+							AtLeastOneOf: []string{"container_configuration.0.type", "container_configuration.0.container_image_names", "container_configuration.0.container_registries"},
 						},
 					},
 				},
@@ -189,6 +193,7 @@ func resourceBatchPool() *schema.Resource {
 							Optional:     true,
 							ForceNew:     true,
 							ValidateFunc: azure.ValidateResourceID,
+							AtLeastOneOf: []string{"storage_image_reference.0.id", "storage_image_reference.0.publisher", "storage_image_reference.0.offer", "storage_image_reference.0.sku", "storage_image_reference.0.version"},
 						},
 
 						"publisher": {
@@ -196,6 +201,7 @@ func resourceBatchPool() *schema.Resource {
 							Optional:     true,
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+							AtLeastOneOf: []string{"storage_image_reference.0.id", "storage_image_reference.0.publisher", "storage_image_reference.0.offer", "storage_image_reference.0.sku", "storage_image_reference.0.version"},
 						},
 
 						"offer": {
@@ -203,6 +209,7 @@ func resourceBatchPool() *schema.Resource {
 							Optional:     true,
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+							AtLeastOneOf: []string{"storage_image_reference.0.id", "storage_image_reference.0.publisher", "storage_image_reference.0.offer", "storage_image_reference.0.sku", "storage_image_reference.0.version"},
 						},
 
 						"sku": {
@@ -211,6 +218,7 @@ func resourceBatchPool() *schema.Resource {
 							ForceNew:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc:     validation.StringIsNotEmpty,
+							AtLeastOneOf:     []string{"storage_image_reference.0.id", "storage_image_reference.0.publisher", "storage_image_reference.0.offer", "storage_image_reference.0.sku", "storage_image_reference.0.version"},
 						},
 
 						"version": {
@@ -218,6 +226,7 @@ func resourceBatchPool() *schema.Resource {
 							Optional:     true,
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+							AtLeastOneOf: []string{"storage_image_reference.0.id", "storage_image_reference.0.publisher", "storage_image_reference.0.offer", "storage_image_reference.0.sku", "storage_image_reference.0.version"},
 						},
 					},
 				},
@@ -314,8 +323,9 @@ func resourceBatchPool() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"user_name": {
-										Type:     schema.TypeString,
-										Optional: true,
+										Type:         schema.TypeString,
+										Optional:     true,
+										AtLeastOneOf: []string{"start_task.0.user_identity.0.user_name", "start_task.0.user_identity.0.auto_user"},
 									},
 									"auto_user": {
 										Type:     schema.TypeList,
@@ -343,11 +353,13 @@ func resourceBatchPool() *schema.Resource {
 												},
 											},
 										},
+										AtLeastOneOf: []string{"start_task.0.user_identity.0.user_name", "start_task.0.user_identity.0.auto_user"},
 									},
 								},
 							},
 						},
 
+						//lintignore:XS003
 						"resource_file": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -456,7 +468,7 @@ func resourceBatchPool() *schema.Resource {
 										Type:         schema.TypeString,
 										Required:     true,
 										ForceNew:     true,
-										ValidateFunc: validateFrontendPortRangeRange,
+										ValidateFunc: validate.FrontendPortRange,
 									},
 									"network_security_group_rules": {
 										Type:     schema.TypeList,
@@ -947,45 +959,4 @@ func validateBatchPoolCrossFieldRules(pool *batch.Pool) error {
 	}
 
 	return nil
-}
-
-func validateFrontendPortRangeRange(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-		return warnings, errors
-	}
-
-	parts := strings.Split(v, "-")
-	if len(parts) != 2 {
-		errors = append(errors, fmt.Errorf("expected %s to contain a single '-', got %v", k, i))
-		return warnings, errors
-	}
-
-	startPort, err := strconv.Atoi(parts[0])
-	if err != nil {
-		errors = append(errors, fmt.Errorf("expected %s on the left of - to be an integer, got %v: %v", k, i, err))
-		return warnings, errors
-	}
-
-	endPort, err := strconv.Atoi(parts[1])
-	if err != nil {
-		errors = append(errors, fmt.Errorf("expected %s on the right of - to be an integer, got %v: %v", k, i, err))
-		return warnings, errors
-	}
-
-	if !validPortNumber(startPort) || !validPortNumber(endPort) {
-		errors = append(errors, fmt.Errorf("expect values range between 1 and 65534 except ports from `50000` to `55000`, got %v: %v", k, i))
-		return warnings, errors
-	}
-	if endPort-startPort < 100 {
-		errors = append(errors, fmt.Errorf("values must be a range of at least 100, got %v: %v", k, i))
-		return warnings, errors
-	}
-
-	return warnings, errors
-}
-
-func validPortNumber(port int) bool {
-	return 1 <= port && port < 50000 || 55000 < port && port <= 65535
 }

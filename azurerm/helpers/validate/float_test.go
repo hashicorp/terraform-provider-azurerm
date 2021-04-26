@@ -3,13 +3,13 @@ package validate
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
 func TestValidateFloatInSlice(t *testing.T) {
 	cases := map[string]struct {
 		Value                  interface{}
-		ValidateFunc           schema.SchemaValidateFunc
+		ValidateFunc           pluginsdk.SchemaValidateFunc
 		ExpectValidationErrors bool
 	}{
 		"accept valid value": {

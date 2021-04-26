@@ -96,6 +96,7 @@ func flattenAdditionalUnattendContent(input *[]compute.AdditionalUnattendContent
 }
 
 func bootDiagnosticsSchema() *schema.Schema {
+	//lintignore:XS003
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,

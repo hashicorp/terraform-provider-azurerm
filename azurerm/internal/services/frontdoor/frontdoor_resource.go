@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-01-01/frontdoor"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -18,7 +20,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -30,28 +31,16 @@ func resourceFrontDoor() *schema.Resource {
 		Update: resourceFrontDoorCreateUpdate,
 		Delete: resourceFrontDoorDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.FrontDoorID(id)
 			return err
 		}),
 
 		SchemaVersion: 2,
-		StateUpgraders: []schema.StateUpgrader{
-			{
-				// this resource was set to "schema version 1" unintentionally.. so we're adding
-				// a "fake" upgrade here to account for it
-				Type: migration.FrontDoorV0V1Schema().CoreConfigSchema().ImpliedType(),
-				Upgrade: func(rawState map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
-					return rawState, nil
-				},
-				Version: 0,
-			},
-			{
-				Type:    migration.FrontDoorV0V1Schema().CoreConfigSchema().ImpliedType(),
-				Upgrade: migration.FrontDoorV1ToV2,
-				Version: 1,
-			},
-		},
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.FrontDoorUpgradeV0ToV1{},
+			1: migration.FrontDoorUpgradeV1ToV2{},
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(6 * time.Hour),
@@ -116,7 +105,7 @@ func resourceFrontDoor() *schema.Resource {
 
 			"routing_rule": {
 				Type:     schema.TypeList,
-				MaxItems: 100,
+				MaxItems: 500,
 				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -158,7 +147,7 @@ func resourceFrontDoor() *schema.Resource {
 						"frontend_endpoints": {
 							Type:     schema.TypeList,
 							Required: true,
-							MaxItems: 100,
+							MaxItems: 500,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
@@ -352,7 +341,7 @@ func resourceFrontDoor() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"backend": {
 							Type:     schema.TypeList,
-							MaxItems: 100,
+							MaxItems: 500,
 							Required: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
@@ -417,7 +406,7 @@ func resourceFrontDoor() *schema.Resource {
 
 			"frontend_endpoint": {
 				Type:     schema.TypeList,
-				MaxItems: 100,
+				MaxItems: 500,
 				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -513,7 +502,7 @@ func resourceFrontDoor() *schema.Resource {
 			"tags": tags.Schema(),
 		},
 
-		CustomizeDiff: frontDoorCustomizeDiff,
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(frontDoorCustomizeDiff),
 	}
 }
 

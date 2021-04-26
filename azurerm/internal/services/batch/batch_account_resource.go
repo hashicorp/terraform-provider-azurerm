@@ -3,8 +3,10 @@ package batch
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"time"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2020-03-01/batch"
 	"github.com/hashicorp/go-azure-helpers/response"
@@ -15,7 +17,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -34,7 +35,7 @@ func resourceBatchAccount() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.AccountID(id)
 			return err
 		}),
@@ -44,7 +45,7 @@ func resourceBatchAccount() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateAzureRMBatchAccountName,
+				ValidateFunc: validate.AccountName,
 			},
 
 			// TODO: make this case sensitive once this API bug has been fixed:
@@ -296,21 +297,4 @@ func resourceBatchAccountDelete(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	return nil
-}
-
-func ValidateAzureRMBatchAccountName(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-	if !regexp.MustCompile(`^[a-z0-9]+$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf("lowercase letters and numbers only are allowed in %q: %q", k, value))
-	}
-
-	if 3 > len(value) {
-		errors = append(errors, fmt.Errorf("%q cannot be less than 3 characters: %q", k, value))
-	}
-
-	if len(value) > 24 {
-		errors = append(errors, fmt.Errorf("%q cannot be longer than 24 characters: %q %d", k, value, len(value)))
-	}
-
-	return warnings, errors
 }

@@ -43,7 +43,7 @@ func TestAccDataFactoryLinkedServiceAzureBlobStorage_managed_id(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("connection_string"),
+		data.ImportStep("service_endpoint"),
 	})
 }
 
@@ -219,12 +219,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-df-%d"
+  name     = "acctestRG-df-%[1]d"
   location = "%s"
 }
 
 resource "azurerm_data_factory" "test" {
-  name                = "acctestdf%d"
+  name                = "acctestdf%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   identity {
@@ -235,14 +235,30 @@ resource "azurerm_data_factory" "test" {
 data "azurerm_client_config" "current" {
 }
 
+resource "azurerm_storage_account" "test" {
+  name                      = "accsa%[1]d"
+  location                  = azurerm_resource_group.test.location
+  resource_group_name       = azurerm_resource_group.test.name
+  account_tier              = "Standard"
+  account_kind              = "StorageV2"
+  account_replication_type  = "LRS"
+  enable_https_traffic_only = true
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_storage_account.test.id
+  role_definition_name = "Storage Blob Data Reader"
+  principal_id         = azurerm_data_factory.test.identity.0.principal_id
+}
+
 resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
-  name                 = "acctestBlobStorage%d"
+  name                 = "acctestBlobStorage%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   data_factory_name    = azurerm_data_factory.test.name
-  connection_string    = "DefaultEndpointsProtocol=https;AccountName=foo;AccountKey=bar"
+  service_endpoint     = azurerm_storage_account.test.primary_blob_endpoint
   use_managed_identity = true
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (LinkedServiceAzureBlobStorageResource) sas_uri(data acceptance.TestData) string {

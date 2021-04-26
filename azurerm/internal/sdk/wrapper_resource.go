@@ -1,11 +1,12 @@
 package sdk
 
 import (
+	"context"
 	"fmt"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
 
@@ -76,7 +77,7 @@ func (rw *ResourceWrapper) Resource() (*schema.Resource, error) {
 			Read:   d(rw.resource.Read().Timeout),
 			Delete: d(rw.resource.Delete().Timeout),
 		},
-		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			fn := rw.resource.IDValidationFunc()
 			warnings, errors := fn(id, "id")
 			if len(warnings) > 0 {
@@ -93,18 +94,16 @@ func (rw *ResourceWrapper) Resource() (*schema.Resource, error) {
 			}
 
 			return nil
-		}, func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
 			if v, ok := rw.resource.(ResourceWithCustomImporter); ok {
-				ctx, metaData := runArgs(d, meta, rw.logger)
-				wrappedCtx, cancel := timeouts.ForRead(ctx, d)
-				defer cancel()
+				_, metaData := runArgs(d, meta, rw.logger)
 
-				err := v.CustomImporter()(wrappedCtx, metaData)
+				err := v.CustomImporter()(ctx, metaData)
 				if err != nil {
 					return nil, err
 				}
 
-				return []*schema.ResourceData{metaData.ResourceData}, nil
+				return []*pluginsdk.ResourceData{metaData.ResourceData}, nil
 			}
 
 			return schema.ImportStatePassthrough(d, meta)

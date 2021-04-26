@@ -528,7 +528,7 @@ resource "azurerm_network_interface" "second" {
     public_ip_address_id          = azurerm_public_ip.second.id
   }
 }
-`, r.networkMultipleTemplate(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.templateBase(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r LinuxVirtualMachineResource) networkMultiplePublic(data acceptance.TestData) string {
