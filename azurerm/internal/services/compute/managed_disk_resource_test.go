@@ -322,67 +322,13 @@ func TestAccManagedDisk_attachedStorageTypeUpdate(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMManagedDisk_create_withNetworkPolicy(t *testing.T) {
+func TestAccAzureRMManagedDisk_networkPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
 	r := ManagedDiskResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: testAccAzureRMManagedDisk_create_withNetworkPolicy(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-	})
-}
-
-func TestAccAzureRMManagedDisk_update_withNetworkPolicy(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
-	r := ManagedDiskResource{}
-
-	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: testAccAzureRMManagedDisk_create_withNetworkPolicy(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				resource.TestCheckResourceAttr(data.ResourceName, "network_access_policy", "DenyAll"),
-			),
-		},
-		{
-			Config: testAccAzureRMManagedDisk_update_withNetworkPolicy(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				resource.TestCheckResourceAttr(data.ResourceName, "network_access_policy", "DenyAll"),
-			),
-		},
-	})
-}
-
-func TestAccAzureRMManagedDisk_import_withNetworkPolicy(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
-	r := ManagedDiskResource{}
-
-	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: testAccAzureRMManagedDisk_create_withNetworkPolicy(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		{
-			Config:      testAccAzureRMManagedDisk_import_withNetworkPolicy(data),
-			ExpectError: acceptance.RequiresImportError("azurerm_managed_disk"),
-		},
-	})
-}
-
-func TestAccAzureRMManagedDisk_create_withAllowPrivateNetworkPolicy(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
-	r := ManagedDiskResource{}
-
-	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: testAccAzureRMManagedDisk_create_withAllowPrivateNetworkPolicy(data),
+			Config: testAccAzureRMManagedDisk_networkPolicy_create(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -391,13 +337,52 @@ func TestAccAzureRMManagedDisk_create_withAllowPrivateNetworkPolicy(t *testing.T
 	})
 }
 
-func TestAccAzureRMManagedDisk_update_withAllowPrivateNetworkPolicy(t *testing.T) {
+func TestAccAzureRMManagedDisk_networkPolicy_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
 	r := ManagedDiskResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: testAccAzureRMManagedDisk_create_withAllowPrivateNetworkPolicy(data),
+			Config: testAccAzureRMManagedDisk_networkPolicy_create(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				resource.TestCheckResourceAttr(data.ResourceName, "network_access_policy", "DenyAll"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: testAccAzureRMManagedDisk_networkPolicy_update(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				resource.TestCheckResourceAttr(data.ResourceName, "network_access_policy", "DenyAll"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAzureRMManagedDisk_networkPolicy_create_withAllowPrivate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	r := ManagedDiskResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: testAccAzureRMManagedDisk_networkPolicy_create_withAllowPrivate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAzureRMManagedDisk_networkPolicy_update_withAllowPrivate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	r := ManagedDiskResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: testAccAzureRMManagedDisk_networkPolicy_create_withAllowPrivate(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				resource.TestCheckResourceAttr(data.ResourceName, "network_access_policy", "AllowPrivate"),
@@ -405,31 +390,13 @@ func TestAccAzureRMManagedDisk_update_withAllowPrivateNetworkPolicy(t *testing.T
 		},
 		data.ImportStep(),
 		{
-			Config: testAccAzureRMManagedDisk_update_withAllowPrivateNetworkPolicy(data),
+			Config: testAccAzureRMManagedDisk_networkPolicy_update_withAllowPrivate(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				resource.TestCheckResourceAttr(data.ResourceName, "network_access_policy", "AllowPrivate"),
 			),
 		},
 		data.ImportStep(),
-	})
-}
-
-func TestAccAzureRMManagedDisk_import_withAllowPrivateNetworkPolicy(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
-	r := ManagedDiskResource{}
-
-	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: testAccAzureRMManagedDisk_create_withAllowPrivateNetworkPolicy(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		{
-			Config:      testAccAzureRMManagedDisk_import_withAllowPrivateNetworkPolicy(data),
-			ExpectError: acceptance.RequiresImportError("azurerm_managed_disk"),
-		},
 	})
 }
 
@@ -1143,7 +1110,7 @@ resource "azurerm_linux_virtual_machine" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMManagedDisk_create_withNetworkPolicy(data acceptance.TestData) string {
+func testAccAzureRMManagedDisk_networkPolicy_create(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1174,7 +1141,7 @@ resource "azurerm_managed_disk" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMManagedDisk_update_withNetworkPolicy(data acceptance.TestData) string {
+func testAccAzureRMManagedDisk_networkPolicy_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1205,31 +1172,7 @@ resource "azurerm_managed_disk" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMManagedDisk_import_withNetworkPolicy(data acceptance.TestData) string {
-	template := testAccAzureRMManagedDisk_create_withNetworkPolicy(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_managed_disk" "import" {
-  name                  = azurerm_managed_disk.test.name
-  location              = azurerm_managed_disk.test.location
-  resource_group_name   = azurerm_managed_disk.test.resource_group_name
-  storage_account_type  = "Standard_LRS"
-  create_option         = "Empty"
-  disk_size_gb          = "4"
-  disk_iops_read_write  = "101"
-  disk_mbps_read_write  = "10"
-  network_access_policy = "DenyAll"
-
-  tags = {
-    environment = "acctest"
-    cost-center = "ops"
-  }
-}
-`, template)
-}
-
-func testAccAzureRMManagedDisk_create_withAllowPrivateNetworkPolicy(data acceptance.TestData) string {
+func testAccAzureRMManagedDisk_networkPolicy_create_withAllowPrivate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1271,7 +1214,7 @@ resource "azurerm_managed_disk" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMManagedDisk_update_withAllowPrivateNetworkPolicy(data acceptance.TestData) string {
+func testAccAzureRMManagedDisk_networkPolicy_update_withAllowPrivate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1311,29 +1254,4 @@ resource "azurerm_managed_disk" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
-}
-
-func testAccAzureRMManagedDisk_import_withAllowPrivateNetworkPolicy(data acceptance.TestData) string {
-	template := testAccAzureRMManagedDisk_create_withAllowPrivateNetworkPolicy(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_managed_disk" "import" {
-  name                  = azurerm_managed_disk.test.name
-  location              = azurerm_managed_disk.test.location
-  resource_group_name   = azurerm_managed_disk.test.resource_group_name
-  storage_account_type  = "Standard_LRS"
-  create_option         = "Empty"
-  disk_size_gb          = "4"
-  disk_iops_read_write  = "101"
-  disk_mbps_read_write  = "10"
-  network_access_policy = "AllowPrivate"
-  disk_access_id        = azurerm_disk_access.test.id
-
-  tags = {
-    environment = "acctest"
-    cost-center = "ops"
-  }
-}
-`, template)
 }
