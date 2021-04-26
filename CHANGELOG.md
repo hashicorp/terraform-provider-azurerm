@@ -35,6 +35,7 @@ ENHANCEMENTS:
 * `azurerm_lighthouse_definition` - support for the `delegated_role_definition_ids` property [GH-11269]
 * `azurerm_postgresql_server` - wait for replica restarts when needed [GH-11458]
 * `azurerm_redis_enterprise_cluster` - support for the `minimum_tls_version` and `hostname` properties [GH-11203]
+* `azurerm_storage_account` -  support for the `change_feed`, `versioning_enabled`, `default_service_version`, and `last_access_time_enabled` properties within the `blob_properties` block [GH-11301]
 
 BUG FIXES:
 
@@ -45,6 +46,7 @@ BUG FIXES:
 * `azurerm_linux_virtual_machine_scale_set` - the default value for the `priority` property will no longer force a replacement of the resource [GH-11362]
 * `azurerm_monitor_activity_log_alert` - fix a persistent diff for the `service_health` block [GH-11383]
 * `azurerm_mssql_database ` - error when secondary database uses `max_size_gb` [GH-11401]
+* `postgresql_server` - ensure `public_network_access_enabled` is correctly set for replicas [GH-11465]
 * `azurerm_virtual_network_gatewa` - updating the `custom_route` block no longer creates a new resource [GH- 11433]
 
 ## 2.56.0 (April 15, 2021)

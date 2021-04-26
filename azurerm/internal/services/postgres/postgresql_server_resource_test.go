@@ -768,7 +768,8 @@ resource "azurerm_postgresql_server" "replica" {
   create_mode               = "Replica"
   creation_source_server_id = azurerm_postgresql_server.test.id
 
-  ssl_enforcement_enabled = true
+  public_network_access_enabled = false
+  ssl_enforcement_enabled       = true
 }
 `, r.template(data, sku, "11"), data.RandomInteger, data.Locations.Secondary, sku)
 }

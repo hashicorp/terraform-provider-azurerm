@@ -519,6 +519,8 @@ func TestAccStorageAccount_blobProperties(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("blob_properties.0.cors_rule.#").HasValue("2"),
 				check.That(data.ResourceName).Key("blob_properties.0.delete_retention_policy.0.days").HasValue("7"),
+				check.That(data.ResourceName).Key("blob_properties.0.versioning_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("blob_properties.0.default_service_version").HasValue("2020-06-12"),
 			),
 		},
 		data.ImportStep(),
@@ -1513,6 +1515,13 @@ resource "azurerm_storage_account" "test" {
 
     delete_retention_policy {
       days = 300
+    }
+
+    default_service_version  = "2019-07-07"
+    versioning_enabled       = true
+    last_access_time_enabled = true
+    change_feed {
+      retention_in_days = 3
     }
 
     container_delete_retention_policy {

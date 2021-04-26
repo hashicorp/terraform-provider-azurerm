@@ -71,6 +71,7 @@ func resourceEventGridDomain() *schema.Resource {
 				}, false),
 			},
 
+			//lintignore:XS003
 			"input_mapping_fields": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -82,60 +83,37 @@ func resourceEventGridDomain() *schema.Resource {
 							Type:     schema.TypeString,
 							ForceNew: true,
 							Optional: true,
-							AtLeastOneOf: []string{"input_mapping_fields.0.id", "input_mapping_fields.0.topic",
-								"input_mapping_fields.0.event_time", "input_mapping_fields.0.event_type",
-								"input_mapping_fields.0.subject", "input_mapping_fields.0.data_version",
-							},
 						},
 						"topic": {
 							Type:     schema.TypeString,
 							ForceNew: true,
 							Optional: true,
-							AtLeastOneOf: []string{"input_mapping_fields.0.id", "input_mapping_fields.0.topic",
-								"input_mapping_fields.0.event_time", "input_mapping_fields.0.event_type",
-								"input_mapping_fields.0.subject", "input_mapping_fields.0.data_version",
-							},
 						},
 						"event_time": {
 							Type:     schema.TypeString,
 							ForceNew: true,
 							Optional: true,
-							AtLeastOneOf: []string{"input_mapping_fields.0.id", "input_mapping_fields.0.topic",
-								"input_mapping_fields.0.event_time", "input_mapping_fields.0.event_type",
-								"input_mapping_fields.0.subject", "input_mapping_fields.0.data_version",
-							},
 						},
 						"event_type": {
 							Type:     schema.TypeString,
 							ForceNew: true,
 							Optional: true,
-							AtLeastOneOf: []string{"input_mapping_fields.0.id", "input_mapping_fields.0.topic",
-								"input_mapping_fields.0.event_time", "input_mapping_fields.0.event_type",
-								"input_mapping_fields.0.subject", "input_mapping_fields.0.data_version",
-							},
 						},
 						"subject": {
 							Type:     schema.TypeString,
 							ForceNew: true,
 							Optional: true,
-							AtLeastOneOf: []string{"input_mapping_fields.0.id", "input_mapping_fields.0.topic",
-								"input_mapping_fields.0.event_time", "input_mapping_fields.0.event_type",
-								"input_mapping_fields.0.subject", "input_mapping_fields.0.data_version",
-							},
 						},
 						"data_version": {
 							Type:     schema.TypeString,
 							ForceNew: true,
 							Optional: true,
-							AtLeastOneOf: []string{"input_mapping_fields.0.id", "input_mapping_fields.0.topic",
-								"input_mapping_fields.0.event_time", "input_mapping_fields.0.event_type",
-								"input_mapping_fields.0.subject", "input_mapping_fields.0.data_version",
-							},
 						},
 					},
 				},
 			},
 
+			//lintignore:XS003
 			"input_mapping_default_values": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -147,25 +125,16 @@ func resourceEventGridDomain() *schema.Resource {
 							Type:     schema.TypeString,
 							ForceNew: true,
 							Optional: true,
-							AtLeastOneOf: []string{"input_mapping_default_values.0.event_type", "input_mapping_default_values.0.subject",
-								"input_mapping_default_values.0.data_version",
-							},
 						},
 						"subject": {
 							Type:     schema.TypeString,
 							ForceNew: true,
 							Optional: true,
-							AtLeastOneOf: []string{"input_mapping_default_values.0.event_type", "input_mapping_default_values.0.subject",
-								"input_mapping_default_values.0.data_version",
-							},
 						},
 						"data_version": {
 							Type:     schema.TypeString,
 							ForceNew: true,
 							Optional: true,
-							AtLeastOneOf: []string{"input_mapping_default_values.0.event_type", "input_mapping_default_values.0.subject",
-								"input_mapping_default_values.0.data_version",
-							},
 						},
 					},
 				},
@@ -366,47 +335,51 @@ func expandAzureRmEventgridDomainInputMapping(d *schema.ResourceData) *eventgrid
 
 	if imfok {
 		mappings := imf.([]interface{})
-		mapping := mappings[0].(map[string]interface{})
+		if len(mappings) > 0 && mappings[0] != nil {
+			mapping := mappings[0].(map[string]interface{})
 
-		if id := mapping["id"].(string); id != "" {
-			jismp.ID = &eventgrid.JSONField{SourceField: &id}
-		}
+			if id := mapping["id"].(string); id != "" {
+				jismp.ID = &eventgrid.JSONField{SourceField: &id}
+			}
 
-		if eventTime := mapping["event_time"].(string); eventTime != "" {
-			jismp.EventTime = &eventgrid.JSONField{SourceField: &eventTime}
-		}
+			if eventTime := mapping["event_time"].(string); eventTime != "" {
+				jismp.EventTime = &eventgrid.JSONField{SourceField: &eventTime}
+			}
 
-		if topic := mapping["topic"].(string); topic != "" {
-			jismp.Topic = &eventgrid.JSONField{SourceField: &topic}
-		}
+			if topic := mapping["topic"].(string); topic != "" {
+				jismp.Topic = &eventgrid.JSONField{SourceField: &topic}
+			}
 
-		if dataVersion := mapping["data_version"].(string); dataVersion != "" {
-			jismp.DataVersion = &eventgrid.JSONFieldWithDefault{SourceField: &dataVersion}
-		}
+			if dataVersion := mapping["data_version"].(string); dataVersion != "" {
+				jismp.DataVersion = &eventgrid.JSONFieldWithDefault{SourceField: &dataVersion}
+			}
 
-		if subject := mapping["subject"].(string); subject != "" {
-			jismp.Subject = &eventgrid.JSONFieldWithDefault{SourceField: &subject}
-		}
+			if subject := mapping["subject"].(string); subject != "" {
+				jismp.Subject = &eventgrid.JSONFieldWithDefault{SourceField: &subject}
+			}
 
-		if eventType := mapping["event_type"].(string); eventType != "" {
-			jismp.EventType = &eventgrid.JSONFieldWithDefault{SourceField: &eventType}
+			if eventType := mapping["event_type"].(string); eventType != "" {
+				jismp.EventType = &eventgrid.JSONFieldWithDefault{SourceField: &eventType}
+			}
 		}
 	}
 
 	if imdvok {
 		mappings := imdv.([]interface{})
-		mapping := mappings[0].(map[string]interface{})
+		if len(mappings) > 0 && mappings[0] != nil {
+			mapping := mappings[0].(map[string]interface{})
 
-		if dataVersion := mapping["data_version"].(string); dataVersion != "" {
-			jismp.DataVersion = &eventgrid.JSONFieldWithDefault{DefaultValue: &dataVersion}
-		}
+			if dataVersion := mapping["data_version"].(string); dataVersion != "" {
+				jismp.DataVersion = &eventgrid.JSONFieldWithDefault{DefaultValue: &dataVersion}
+			}
 
-		if subject := mapping["subject"].(string); subject != "" {
-			jismp.Subject = &eventgrid.JSONFieldWithDefault{DefaultValue: &subject}
-		}
+			if subject := mapping["subject"].(string); subject != "" {
+				jismp.Subject = &eventgrid.JSONFieldWithDefault{DefaultValue: &subject}
+			}
 
-		if eventType := mapping["event_type"].(string); eventType != "" {
-			jismp.EventType = &eventgrid.JSONFieldWithDefault{DefaultValue: &eventType}
+			if eventType := mapping["event_type"].(string); eventType != "" {
+				jismp.EventType = &eventgrid.JSONFieldWithDefault{DefaultValue: &eventType}
+			}
 		}
 	}
 

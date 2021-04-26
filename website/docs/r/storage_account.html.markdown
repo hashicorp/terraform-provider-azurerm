@@ -137,6 +137,14 @@ A `blob_properties` block supports the following:
 
 * `delete_retention_policy` - (Optional) A `delete_retention_policy` block as defined below.
 
+* `versioning_enabled` - (Optional) Is versioning enabled? Default to `false`.
+
+* `change_feed` - (Optional) A `change_feed` block as defined below.
+
+* `default_service_version` - (Optional) The API Version which should be used by default for requests to the Data Plane API if an incoming request doesn't specify an API Version. Defaults to `2020-06-12`.
+
+* `last_access_time_enabled` - (Optional) Is the last access time based tracking enabled? Default to `false`.
+
 * `container_delete_retention_policy` - (Optional) A `container_delete_retention_policy` block as defined below.
 
 ---
@@ -172,6 +180,12 @@ A `delete_retention_policy` block supports the following:
 A `container_delete_retention_policy` block supports the following:
 
 * `days` - (Optional) Specifies the number of days that the container should be retained, between `1` and `365` days. Defaults to `7`.
+
+---
+
+A `change_feed` block supports the following:
+
+* `retention_in_days` - (Optional) The duration of changeFeed retention in days, between `1` and `146000` days. A null value indicates an infinite retention of the change feed.
 
 ---
 
