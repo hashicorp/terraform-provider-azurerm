@@ -145,8 +145,8 @@ resource "azurerm_storage_blob_inventory_policy" "test" {
   rules {
     name = "rule1"
     filter {
-      blob_types = ["blockBlob"]
-
+      blob_types   = ["blockBlob"]
+      prefix_match = []
     }
   }
 }
@@ -159,9 +159,15 @@ func (r StorageBlobInventoryPolicyResource) requiresImport(data acceptance.TestD
 %s
 
 resource "azurerm_storage_blob_inventory_policy" "import" {
-  name                = azurerm_storage_blob_inventory_policy.test.name
-  resource_group_name = azurerm_storage_blob_inventory_policy.test.resource_group_name
-  account_name        = azurerm_storage_blob_inventory_policy.test.account_name
+  storage_account_id     = azurerm_storage_blob_inventory_policy.test.storage_account_id
+  storage_container_name = azurerm_storage_blob_inventory_policy.test.storage_container_name
+  rules {
+    name = list(azurerm_storage_blob_inventory_policy.test.rules).0.name
+    filter {
+      blob_types = list(azurerm_storage_blob_inventory_policy.test.rules).0.filter.0.blob_types
+
+    }
+  }
 }
 `, config)
 }

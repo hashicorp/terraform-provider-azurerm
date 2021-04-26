@@ -139,7 +139,7 @@ func resourceStorageBlobInventoryPolicyCreateUpdate(d *schema.ResourceData, meta
 			},
 		},
 	}
-	if _, err := client.CreateOrUpdate(ctx, id.StorageAccountName, id.StorageAccountName, props); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.StorageAccountName, props); err != nil {
 		return fmt.Errorf("creating/updating %q: %+v", id, err)
 	}
 
