@@ -308,6 +308,21 @@ func TestAccStorageManagementPolicy_complete(t *testing.T) {
 	})
 }
 
+func TestAccStorageManagementPolicy_zero(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_management_policy", "test")
+	r := StorageManagementPolicyResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.zero(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccStorageManagementPolicy_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_management_policy", "test")
 	r := StorageManagementPolicyResource{}
@@ -862,6 +877,59 @@ resource "azurerm_storage_management_policy" "test" {
         change_tier_to_archive_after_days_since_creation = 10
         change_tier_to_cool_after_days_since_creation    = 91
         delete_after_days_since_creation                 = 4
+      }
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageManagementPolicyResource) zero(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  account_kind             = "BlobStorage"
+}
+
+resource "azurerm_storage_management_policy" "test" {
+  storage_account_id = azurerm_storage_account.test.id
+
+  rule {
+    name    = "rule1"
+    enabled = true
+    filters {
+      prefix_match = ["container1/prefix1"]
+      blob_types   = ["blockBlob"]
+    }
+    actions {
+      base_blob {
+        tier_to_cool_after_days_since_modification_greater_than    = 10
+        tier_to_archive_after_days_since_modification_greater_than = 50
+        delete_after_days_since_modification_greater_than          = 100
+      }
+      snapshot {
+        change_tier_to_archive_after_days_since_creation = 0
+        change_tier_to_cool_after_days_since_creation    = 0
+        delete_after_days_since_creation_greater_than    = 30
+      }
+      version {
+        change_tier_to_archive_after_days_since_creation = 0
+        change_tier_to_cool_after_days_since_creation    = 0
+        delete_after_days_since_creation                 = 0
       }
     }
   }

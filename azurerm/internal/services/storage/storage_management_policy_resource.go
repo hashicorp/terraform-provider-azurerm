@@ -129,21 +129,27 @@ func resourceStorageManagementPolicy() *schema.Resource {
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"tier_to_cool_after_days_since_modification_greater_than": {
-													Type:         schema.TypeInt,
-													Optional:     true,
-													Default:      nil,
+													Type:     schema.TypeInt,
+													Optional: true,
+													Default:  nil,
+													// todo: default change to -1 to allow value 0 in 3.0
+													// for issue https://github.com/terraform-providers/terraform-provider-azurerm/issues/6158
 													ValidateFunc: validation.IntBetween(0, 99999),
 												},
 												"tier_to_archive_after_days_since_modification_greater_than": {
-													Type:         schema.TypeInt,
-													Optional:     true,
-													Default:      nil,
+													Type:     schema.TypeInt,
+													Optional: true,
+													Default:  nil,
+													// todo: default change to -1 to allow value 0 in 3.0
+													// for issue https://github.com/terraform-providers/terraform-provider-azurerm/issues/6158
 													ValidateFunc: validation.IntBetween(0, 99999),
 												},
 												"delete_after_days_since_modification_greater_than": {
-													Type:         schema.TypeInt,
-													Optional:     true,
-													Default:      nil,
+													Type:     schema.TypeInt,
+													Optional: true,
+													Default:  nil,
+													// todo: default change to -1 to allow value 0 in 3.0
+													// for issue https://github.com/terraform-providers/terraform-provider-azurerm/issues/6158
 													ValidateFunc: validation.IntBetween(0, 99999),
 												},
 											},
@@ -159,18 +165,20 @@ func resourceStorageManagementPolicy() *schema.Resource {
 												"change_tier_to_archive_after_days_since_creation": {
 													Type:         schema.TypeInt,
 													Optional:     true,
-													Default:      nil,
+													Default:      -1,
 													ValidateFunc: validation.IntBetween(0, 99999),
 												},
 												"change_tier_to_cool_after_days_since_creation": {
 													Type:         schema.TypeInt,
 													Optional:     true,
-													Default:      nil,
+													Default:      -1,
 													ValidateFunc: validation.IntBetween(0, 99999),
 												},
 												"delete_after_days_since_creation_greater_than": {
-													Type:         schema.TypeInt,
-													Optional:     true,
+													Type:     schema.TypeInt,
+													Optional: true,
+													// todo: default change to -1 to allow value 0 in 3.0
+													// for issue https://github.com/terraform-providers/terraform-provider-azurerm/issues/6158
 													ValidateFunc: validation.IntBetween(0, 99999),
 												},
 											},
@@ -185,19 +193,19 @@ func resourceStorageManagementPolicy() *schema.Resource {
 												"change_tier_to_archive_after_days_since_creation": {
 													Type:         schema.TypeInt,
 													Optional:     true,
-													Default:      nil,
+													Default:      -1,
 													ValidateFunc: validation.IntBetween(0, 99999),
 												},
 												"change_tier_to_cool_after_days_since_creation": {
 													Type:         schema.TypeInt,
 													Optional:     true,
-													Default:      nil,
+													Default:      -1,
 													ValidateFunc: validation.IntBetween(0, 99999),
 												},
 												"delete_after_days_since_creation": {
 													Type:         schema.TypeInt,
 													Optional:     true,
-													Default:      nil,
+													Default:      -1,
 													ValidateFunc: validation.IntBetween(0, 99999),
 												},
 											},
@@ -403,12 +411,12 @@ func expandStorageManagementPolicyRule(d *schema.ResourceData, ruleIndex int) st
 				v2 := float64(v.(int))
 				snapshot.Delete = &storage.DateAfterCreation{DaysAfterCreationGreaterThan: &v2}
 			}
-			if v, ok := d.GetOk(fmt.Sprintf("rule.%d.actions.0.snapshot.0.change_tier_to_archive_after_days_since_creation", ruleIndex)); ok {
+			if v := d.Get(fmt.Sprintf("rule.%d.actions.0.snapshot.0.change_tier_to_archive_after_days_since_creation", ruleIndex)); v != -1 {
 				snapshot.TierToArchive = &storage.DateAfterCreation{
 					DaysAfterCreationGreaterThan: utils.Float(float64(v.(int))),
 				}
 			}
-			if v, ok := d.GetOk(fmt.Sprintf("rule.%d.actions.0.snapshot.0.change_tier_to_cool_after_days_since_creation", ruleIndex)); ok {
+			if v := d.Get(fmt.Sprintf("rule.%d.actions.0.snapshot.0.change_tier_to_cool_after_days_since_creation", ruleIndex)); v != -1 {
 				snapshot.TierToCool = &storage.DateAfterCreation{
 					DaysAfterCreationGreaterThan: utils.Float(float64(v.(int))),
 				}
@@ -418,17 +426,17 @@ func expandStorageManagementPolicyRule(d *schema.ResourceData, ruleIndex int) st
 
 		if _, ok := d.GetOk(fmt.Sprintf("rule.%d.actions.0.version", ruleIndex)); ok {
 			version := &storage.ManagementPolicyVersion{}
-			if v, ok := d.GetOk(fmt.Sprintf("rule.%d.actions.0.version.0.delete_after_days_since_creation", ruleIndex)); ok {
+			if v := d.Get(fmt.Sprintf("rule.%d.actions.0.version.0.delete_after_days_since_creation", ruleIndex)); v != -1 {
 				version.Delete = &storage.DateAfterCreation{
 					DaysAfterCreationGreaterThan: utils.Float(float64(v.(int))),
 				}
 			}
-			if v, ok := d.GetOk(fmt.Sprintf("rule.%d.actions.0.version.0.change_tier_to_archive_after_days_since_creation", ruleIndex)); ok {
+			if v := d.Get(fmt.Sprintf("rule.%d.actions.0.version.0.change_tier_to_archive_after_days_since_creation", ruleIndex)); v != -1 {
 				version.TierToArchive = &storage.DateAfterCreation{
 					DaysAfterCreationGreaterThan: utils.Float(float64(v.(int))),
 				}
 			}
-			if v, ok := d.GetOk(fmt.Sprintf("rule.%d.actions.0.version.0.change_tier_to_cool_after_days_since_creation", ruleIndex)); ok {
+			if v := d.Get(fmt.Sprintf("rule.%d.actions.0.version.0.change_tier_to_cool_after_days_since_creation", ruleIndex)); v != -1 {
 				version.TierToCool = &storage.DateAfterCreation{
 					DaysAfterCreationGreaterThan: utils.Float(float64(v.(int))),
 				}
@@ -509,37 +517,39 @@ func flattenStorageManagementPolicyRules(armRules *[]storage.ManagementPolicyRul
 
 				armActionSnaphost := armAction.Snapshot
 				if armActionSnaphost != nil {
-					snapshot := make(map[string]interface{})
+					deleteAfterCreation, archiveAfterCreation, coolAfterCreation := 0, -1, -1
 					if armActionSnaphost.Delete != nil && armActionSnaphost.Delete.DaysAfterCreationGreaterThan != nil {
-						intTemp := int(*armActionSnaphost.Delete.DaysAfterCreationGreaterThan)
-						snapshot["delete_after_days_since_creation_greater_than"] = intTemp
+						deleteAfterCreation = int(*armActionSnaphost.Delete.DaysAfterCreationGreaterThan)
 					}
 					if armActionSnaphost.TierToArchive != nil && armActionSnaphost.TierToArchive.DaysAfterCreationGreaterThan != nil {
-						intTemp := int(*armActionSnaphost.TierToArchive.DaysAfterCreationGreaterThan)
-						snapshot["change_tier_to_archive_after_days_since_creation"] = intTemp
+						archiveAfterCreation = int(*armActionSnaphost.TierToArchive.DaysAfterCreationGreaterThan)
 					}
 					if armActionSnaphost.TierToCool != nil && armActionSnaphost.TierToCool.DaysAfterCreationGreaterThan != nil {
-						intTemp := int(*armActionSnaphost.TierToCool.DaysAfterCreationGreaterThan)
-						snapshot["change_tier_to_cool_after_days_since_creation"] = intTemp
+						coolAfterCreation = int(*armActionSnaphost.TierToCool.DaysAfterCreationGreaterThan)
 					}
-					action["snapshot"] = [1]interface{}{snapshot}
+					action["snapshot"] = [1]interface{}{map[string]interface{}{
+						"delete_after_days_since_creation_greater_than":    deleteAfterCreation,
+						"change_tier_to_archive_after_days_since_creation": archiveAfterCreation,
+						"change_tier_to_cool_after_days_since_creation":    coolAfterCreation,
+					}}
 				}
 
 				if armActionVersion := armAction.Version; armActionVersion != nil {
-					version := make(map[string]interface{})
+					deleteAfterCreation, archiveAfterCreation, coolAfterCreation := -1, -1, -1
 					if armActionVersion.Delete != nil && armActionVersion.Delete.DaysAfterCreationGreaterThan != nil {
-						intTemp := int(*armActionVersion.Delete.DaysAfterCreationGreaterThan)
-						version["delete_after_days_since_creation"] = intTemp
+						deleteAfterCreation = int(*armActionVersion.Delete.DaysAfterCreationGreaterThan)
 					}
 					if armActionVersion.TierToArchive != nil && armActionVersion.TierToArchive.DaysAfterCreationGreaterThan != nil {
-						intTemp := int(*armActionVersion.TierToArchive.DaysAfterCreationGreaterThan)
-						version["change_tier_to_archive_after_days_since_creation"] = intTemp
+						archiveAfterCreation = int(*armActionVersion.TierToArchive.DaysAfterCreationGreaterThan)
 					}
 					if armActionVersion.TierToCool != nil && armActionVersion.TierToCool.DaysAfterCreationGreaterThan != nil {
-						intTemp := int(*armActionVersion.TierToCool.DaysAfterCreationGreaterThan)
-						version["change_tier_to_cool_after_days_since_creation"] = intTemp
+						coolAfterCreation = int(*armActionVersion.TierToCool.DaysAfterCreationGreaterThan)
 					}
-					action["version"] = [1]interface{}{version}
+					action["version"] = [1]interface{}{map[string]interface{}{
+						"delete_after_days_since_creation":                 deleteAfterCreation,
+						"change_tier_to_archive_after_days_since_creation": archiveAfterCreation,
+						"change_tier_to_cool_after_days_since_creation":    coolAfterCreation,
+					}}
 				}
 
 				rule["actions"] = [1]interface{}{action}
