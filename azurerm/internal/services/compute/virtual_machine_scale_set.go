@@ -333,8 +333,11 @@ func virtualMachineScaleSetIPConfigurationSchemaForDataSource() *schema.Schema {
 				},
 
 				"application_gateway_backend_address_pool_ids": {
-					Type:     schema.TypeSet,
+					Type:     schema.TypeList,
 					Computed: true,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
 				},
 
 				"application_security_group_ids": {
@@ -348,11 +351,17 @@ func virtualMachineScaleSetIPConfigurationSchemaForDataSource() *schema.Schema {
 				"load_balancer_backend_address_pool_ids": {
 					Type:     schema.TypeList,
 					Computed: true,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
 				},
 
 				"load_balancer_inbound_nat_rules_ids": {
 					Type:     schema.TypeList,
 					Computed: true,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
 				},
 
 				"primary": {
