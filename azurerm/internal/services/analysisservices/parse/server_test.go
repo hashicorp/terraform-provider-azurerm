@@ -1,4 +1,4 @@
-package parse
+package parse_test
 
 // NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
 
@@ -6,12 +6,13 @@ import (
 	"testing"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/analysisservices/parse"
 )
 
-var _ resourceid.Formatter = ServerId{}
+var _ resourceid.Formatter = parse.ServerId{}
 
 func TestServerIDFormatter(t *testing.T) {
-	actual := NewServerID("12345678-1234-9876-4563-123456789012", "resGroup1", "Server1").ID()
+	actual := parse.NewServerID("12345678-1234-9876-4563-123456789012", "resGroup1", "Server1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.AnalysisServices/servers/Server1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
@@ -22,7 +23,7 @@ func TestServerID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *ServerId
+		Expected *parse.ServerId
 	}{
 
 		{
@@ -70,7 +71,7 @@ func TestServerID(t *testing.T) {
 		{
 			// valid
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.AnalysisServices/servers/Server1",
-			Expected: &ServerId{
+			Expected: &parse.ServerId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:  "resGroup1",
 				Name:           "Server1",
@@ -87,7 +88,7 @@ func TestServerID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := ServerID(v.Input)
+		actual, err := parse.ServerID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue

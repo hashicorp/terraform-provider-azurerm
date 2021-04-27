@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -22,9 +23,8 @@ func resourceDataFactoryLinkedServiceAzureBlobStorage() *schema.Resource {
 		Update: resourceDataFactoryLinkedServiceBlobStorageCreateUpdate,
 		Delete: resourceDataFactoryLinkedServiceBlobStorageDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -38,7 +38,7 @@ func resourceDataFactoryLinkedServiceAzureBlobStorage() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMDataFactoryLinkedServiceDatasetName,
+				ValidateFunc: validate.LinkedServiceDatasetName,
 			},
 
 			"data_factory_name": {
@@ -57,7 +57,7 @@ func resourceDataFactoryLinkedServiceAzureBlobStorage() *schema.Resource {
 				Optional:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
-				ExactlyOneOf: []string{"connection_string", "sas_uri"},
+				ExactlyOneOf: []string{"connection_string", "sas_uri", "service_endpoint"},
 			},
 
 			"sas_uri": {
@@ -65,7 +65,7 @@ func resourceDataFactoryLinkedServiceAzureBlobStorage() *schema.Resource {
 				Optional:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
-				ExactlyOneOf: []string{"connection_string", "sas_uri"},
+				ExactlyOneOf: []string{"connection_string", "sas_uri", "service_endpoint"},
 			},
 
 			"description": {
@@ -87,6 +87,15 @@ func resourceDataFactoryLinkedServiceAzureBlobStorage() *schema.Resource {
 				ConflictsWith: []string{
 					"service_principal_id",
 				},
+			},
+
+			"service_endpoint": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Sensitive:    true,
+				ValidateFunc: validation.StringIsNotEmpty,
+				RequiredWith: []string{"use_managed_identity"},
+				ExactlyOneOf: []string{"connection_string", "sas_uri", "service_endpoint"},
 			},
 
 			"service_principal_id": {
@@ -178,7 +187,9 @@ func resourceDataFactoryLinkedServiceBlobStorageCreateUpdate(d *schema.ResourceD
 	}
 
 	if d.Get("use_managed_identity").(bool) {
-		blobStorageProperties.Tenant = utils.String(d.Get("tenant_id").(string))
+		if v, ok := d.GetOk("service_endpoint"); ok {
+			blobStorageProperties.ServiceEndpoint = utils.String(v.(string))
+		}
 	} else {
 		secureString := datafactory.SecureString{
 			Value: utils.String(d.Get("service_principal_key").(string)),
@@ -276,6 +287,7 @@ func resourceDataFactoryLinkedServiceBlobStorageRead(d *schema.ResourceData, met
 			d.Set("service_principal_id", blobStorage.ServicePrincipalID)
 			d.Set("use_managed_identity", false)
 		} else {
+			d.Set("service_endpoint", blobStorage.ServiceEndpoint)
 			d.Set("use_managed_identity", true)
 		}
 	}

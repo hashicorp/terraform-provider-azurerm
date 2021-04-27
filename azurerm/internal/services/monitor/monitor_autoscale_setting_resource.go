@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"time"
 
+	monitorValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor/validate"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/response"
@@ -16,6 +18,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -27,9 +30,8 @@ func resourceMonitorAutoScaleSetting() *schema.Resource {
 		Read:   resourceMonitorAutoScaleSettingRead,
 		Update: resourceMonitorAutoScaleSettingCreateUpdate,
 		Delete: resourceMonitorAutoScaleSettingDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -263,7 +265,7 @@ func resourceMonitorAutoScaleSetting() *schema.Resource {
 										Type:         schema.TypeString,
 										Optional:     true,
 										Default:      "UTC",
-										ValidateFunc: validateMonitorAutoScaleSettingsTimeZone(),
+										ValidateFunc: monitorValidate.AutoScaleSettingsTimeZone(),
 									},
 									"start": {
 										Type:         schema.TypeString,
@@ -288,7 +290,7 @@ func resourceMonitorAutoScaleSetting() *schema.Resource {
 										Type:         schema.TypeString,
 										Optional:     true,
 										Default:      "UTC",
-										ValidateFunc: validateMonitorAutoScaleSettingsTimeZone(),
+										ValidateFunc: monitorValidate.AutoScaleSettingsTimeZone(),
 									},
 									"days": {
 										Type:     schema.TypeList,
@@ -363,6 +365,7 @@ func resourceMonitorAutoScaleSetting() *schema.Resource {
 									},
 								},
 							},
+							AtLeastOneOf: []string{"notification.0.email", "notification.0.webhook"},
 						},
 						"webhook": {
 							Type:     schema.TypeList,
@@ -383,6 +386,7 @@ func resourceMonitorAutoScaleSetting() *schema.Resource {
 									},
 								},
 							},
+							AtLeastOneOf: []string{"notification.0.email", "notification.0.webhook"},
 						},
 					},
 				},
@@ -1039,120 +1043,6 @@ func flattenAzureRmMonitorAutoScaleSettingNotification(notifications *[]insights
 		results = append(results, result)
 	}
 	return results
-}
-
-func validateMonitorAutoScaleSettingsTimeZone() schema.SchemaValidateFunc {
-	// from https://docs.microsoft.com/en-us/rest/api/monitor/autoscalesettings/createorupdate#timewindow
-	timeZones := []string{
-		"Dateline Standard Time",
-		"UTC-11",
-		"Hawaiian Standard Time",
-		"Alaskan Standard Time",
-		"Pacific Standard Time (Mexico)",
-		"Pacific Standard Time",
-		"US Mountain Standard Time",
-		"Mountain Standard Time (Mexico)",
-		"Mountain Standard Time",
-		"Central America Standard Time",
-		"Central Standard Time",
-		"Central Standard Time (Mexico)",
-		"Canada Central Standard Time",
-		"SA Pacific Standard Time",
-		"Eastern Standard Time",
-		"US Eastern Standard Time",
-		"Venezuela Standard Time",
-		"Paraguay Standard Time",
-		"Atlantic Standard Time",
-		"Central Brazilian Standard Time",
-		"SA Western Standard Time",
-		"Pacific SA Standard Time",
-		"Newfoundland Standard Time",
-		"E. South America Standard Time",
-		"Argentina Standard Time",
-		"SA Eastern Standard Time",
-		"Greenland Standard Time",
-		"Montevideo Standard Time",
-		"Bahia Standard Time",
-		"UTC-02",
-		"Mid-Atlantic Standard Time",
-		"Azores Standard Time",
-		"Cape Verde Standard Time",
-		"Morocco Standard Time",
-		"UTC",
-		"GMT Standard Time",
-		"Greenwich Standard Time",
-		"W. Europe Standard Time",
-		"Central Europe Standard Time",
-		"Romance Standard Time",
-		"Central European Standard Time",
-		"W. Central Africa Standard Time",
-		"Namibia Standard Time",
-		"Jordan Standard Time",
-		"GTB Standard Time",
-		"Middle East Standard Time",
-		"Egypt Standard Time",
-		"Syria Standard Time",
-		"E. Europe Standard Time",
-		"South Africa Standard Time",
-		"FLE Standard Time",
-		"Turkey Standard Time",
-		"Israel Standard Time",
-		"Kaliningrad Standard Time",
-		"Libya Standard Time",
-		"Arabic Standard Time",
-		"Arab Standard Time",
-		"Belarus Standard Time",
-		"Russian Standard Time",
-		"E. Africa Standard Time",
-		"Iran Standard Time",
-		"Arabian Standard Time",
-		"Azerbaijan Standard Time",
-		"Russia Time Zone 3",
-		"Mauritius Standard Time",
-		"Georgian Standard Time",
-		"Caucasus Standard Time",
-		"Afghanistan Standard Time",
-		"West Asia Standard Time",
-		"Ekaterinburg Standard Time",
-		"Pakistan Standard Time",
-		"India Standard Time",
-		"Sri Lanka Standard Time",
-		"Nepal Standard Time",
-		"Central Asia Standard Time",
-		"Bangladesh Standard Time",
-		"N. Central Asia Standard Time",
-		"Myanmar Standard Time",
-		"SE Asia Standard Time",
-		"North Asia Standard Time",
-		"China Standard Time",
-		"North Asia East Standard Time",
-		"Singapore Standard Time",
-		"W. Australia Standard Time",
-		"Taipei Standard Time",
-		"Ulaanbaatar Standard Time",
-		"Tokyo Standard Time",
-		"Korea Standard Time",
-		"Yakutsk Standard Time",
-		"Cen. Australia Standard Time",
-		"AUS Central Standard Time",
-		"E. Australia Standard Time",
-		"AUS Eastern Standard Time",
-		"West Pacific Standard Time",
-		"Tasmania Standard Time",
-		"Magadan Standard Time",
-		"Vladivostok Standard Time",
-		"Russia Time Zone 10",
-		"Central Pacific Standard Time",
-		"Russia Time Zone 11",
-		"New Zealand Standard Time",
-		"UTC+12",
-		"Fiji Standard Time",
-		"Kamchatka Standard Time",
-		"Tonga Standard Time",
-		"Samoa Standard Time",
-		"Line Islands Standard Time",
-	}
-	return validation.StringInSlice(timeZones, false)
 }
 
 func flattenAzureRmMonitorAutoScaleSettingRulesDimensions(dimensions *[]insights.ScaleRuleMetricDimension) []interface{} {

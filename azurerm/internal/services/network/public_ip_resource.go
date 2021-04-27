@@ -15,7 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -28,7 +28,7 @@ func resourcePublicIp() *schema.Resource {
 		Update: resourcePublicIpCreateUpdate,
 		Delete: resourcePublicIpDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.PublicIpAddressID(id)
 			return err
 		}),
@@ -120,6 +120,15 @@ func resourcePublicIp() *schema.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
+			"ip_tags": {
+				Type:     schema.TypeMap,
+				Optional: true,
+				ForceNew: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+
 			"zones": azure.SchemaSingleZone(),
 
 			"tags": tags.Schema(),
@@ -209,6 +218,21 @@ func resourcePublicIpCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 		publicIp.PublicIPAddressPropertiesFormat.DNSSettings = &dnsSettings
 	}
 
+	if v, ok := d.GetOk("ip_tags"); ok {
+		ipTags := v.(map[string]interface{})
+		newIpTags := []network.IPTag{}
+
+		for key, val := range ipTags {
+			ipTag := network.IPTag{
+				IPTagType: utils.String(key),
+				Tag:       utils.String(val.(string)),
+			}
+			newIpTags = append(newIpTags, ipTag)
+		}
+
+		publicIp.PublicIPAddressPropertiesFormat.IPTags = &newIpTags
+	}
+
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, publicIp)
 	if err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
@@ -267,6 +291,11 @@ func resourcePublicIpRead(d *schema.ResourceData, meta interface{}) error {
 			d.Set("domain_name_label", settings.DomainNameLabel)
 		}
 
+		iptags := flattenPublicIpPropsIpTags(*props.IPTags)
+		if iptags != nil {
+			d.Set("ip_tags", iptags)
+		}
+
 		d.Set("ip_address", props.IPAddress)
 		d.Set("idle_timeout_in_minutes", props.IdleTimeoutInMinutes)
 	}
@@ -294,4 +323,15 @@ func resourcePublicIpDelete(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	return nil
+}
+
+func flattenPublicIpPropsIpTags(ipTags []network.IPTag) map[string]interface{} {
+	mapIpTags := make(map[string]interface{})
+
+	for _, tag := range ipTags {
+		if tag.IPTagType != nil {
+			mapIpTags[*tag.IPTagType] = tag.Tag
+		}
+	}
+	return mapIpTags
 }

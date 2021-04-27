@@ -1,12 +1,13 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/appplatform/mgmt/2020-07-01/appplatform"
+	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2020-11-01-preview/appplatform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 
 type Client struct {
 	AppsClient               *appplatform.AppsClient
+	BindingsClient           *appplatform.BindingsClient
 	CertificatesClient       *appplatform.CertificatesClient
 	ConfigServersClient      *appplatform.ConfigServersClient
 	CustomDomainsClient      *appplatform.CustomDomainsClient
@@ -18,6 +19,9 @@ type Client struct {
 func NewClient(o *common.ClientOptions) *Client {
 	appsClient := appplatform.NewAppsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&appsClient.Client, o.ResourceManagerAuthorizer)
+
+	bindingsClient := appplatform.NewBindingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&bindingsClient.Client, o.ResourceManagerAuthorizer)
 
 	certificatesClient := appplatform.NewCertificatesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&certificatesClient.Client, o.ResourceManagerAuthorizer)
@@ -39,6 +43,7 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	return &Client{
 		AppsClient:               &appsClient,
+		BindingsClient:           &bindingsClient,
 		CertificatesClient:       &certificatesClient,
 		ConfigServersClient:      &configServersClient,
 		CustomDomainsClient:      &customDomainsClient,

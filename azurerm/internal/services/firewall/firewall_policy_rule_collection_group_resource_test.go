@@ -239,6 +239,13 @@ resource "azurerm_firewall_policy_rule_collection_group" "test" {
       destination_ip_groups = [azurerm_ip_group.test_destination.id]
       destination_ports     = ["80", "1000-2000"]
     }
+    rule {
+      name                  = "network_rule_collection1_rule4"
+      protocols             = ["ICMP"]
+      source_ip_groups      = [azurerm_ip_group.test_source.id]
+      destination_ip_groups = [azurerm_ip_group.test_destination.id]
+      destination_ports     = ["*"]
+    }
   }
 
   nat_rule_collection {
@@ -372,6 +379,13 @@ resource "azurerm_firewall_policy_rule_collection_group" "test" {
       source_ip_groups      = [azurerm_ip_group.test_source.id]
       destination_ip_groups = [azurerm_ip_group.test_destination.id]
       destination_ports     = ["80", "1-65535"]
+    }
+    rule {
+      name                  = "network_rule_collection1_rule4"
+      protocols             = ["ICMP"]
+      source_ip_groups      = [azurerm_ip_group.test_source.id]
+      destination_ip_groups = [azurerm_ip_group.test_destination.id]
+      destination_ports     = ["*"]
     }
   }
 

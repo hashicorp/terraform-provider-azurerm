@@ -321,6 +321,27 @@ func TestAccPostgreSQLServer_createReplica(t *testing.T) {
 	})
 }
 
+func TestAccPostgreSQLServer_updateReplicaToDefault(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "replica")
+	r := PostgreSQLServerResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.createReplica(data, "GP_Gen5_2"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateReplicaToDefault(data, "GP_Gen5_2"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("creation_source_server_id"),
+	})
+}
+
 func TestAccPostgreSQLServer_scaleReplicas(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
 	r := PostgreSQLServerResource{}
@@ -752,32 +773,67 @@ func (r PostgreSQLServerResource) createReplica(data acceptance.TestData, sku st
 	return fmt.Sprintf(`
 %[1]s
 
+resource "azurerm_resource_group" "replica" {
+  name     = "acctestRG-psql-%[2]d-replica"
+  location = "%[3]s"
+}
+
 resource "azurerm_postgresql_server" "replica" {
   name                = "acctest-psql-server-%[2]d-replica"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = "%[3]s"
+  resource_group_name = azurerm_resource_group.replica.name
 
-  sku_name = "%[3]s"
+  sku_name = "%[4]s"
   version  = "11"
 
   create_mode               = "Replica"
   creation_source_server_id = azurerm_postgresql_server.test.id
 
-  ssl_enforcement_enabled = true
+  public_network_access_enabled = false
+  ssl_enforcement_enabled       = true
 }
-`, r.template(data, sku, "11"), data.RandomInteger, sku)
+`, r.template(data, sku, "11"), data.RandomInteger, data.Locations.Secondary, sku)
+}
+
+func (r PostgreSQLServerResource) updateReplicaToDefault(data acceptance.TestData, sku string) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_resource_group" "replica" {
+  name     = "acctestRG-psql-%[2]d-replica"
+  location = "%[3]s"
+}
+
+resource "azurerm_postgresql_server" "replica" {
+  name                = "acctest-psql-server-%[2]d-replica"
+  location            = "%[3]s"
+  resource_group_name = azurerm_resource_group.replica.name
+
+  sku_name    = "%[4]s"
+  version     = "11"
+  create_mode = "Default"
+
+  public_network_access_enabled = false
+  ssl_enforcement_enabled       = true
+}
+`, r.template(data, sku, "11"), data.RandomInteger, data.Locations.Secondary, sku)
 }
 
 func (r PostgreSQLServerResource) createReplicas(data acceptance.TestData, sku string) string {
 	return fmt.Sprintf(`
 %[1]s
 
+resource "azurerm_resource_group" "replica1" {
+  name     = "acctestRG-psql-%[2]d-replica1"
+  location = "%[3]s"
+}
+
 resource "azurerm_postgresql_server" "replica1" {
   name                = "acctest-psql-server-%[2]d-replica1"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = "%[3]s"
+  resource_group_name = azurerm_resource_group.replica1.name
 
-  sku_name = "%[3]s"
+  sku_name = "%[4]s"
   version  = "11"
 
   create_mode               = "Replica"
@@ -791,7 +847,7 @@ resource "azurerm_postgresql_server" "replica2" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  sku_name = "%[3]s"
+  sku_name = "%[4]s"
   version  = "11"
 
   create_mode               = "Replica"
@@ -799,7 +855,7 @@ resource "azurerm_postgresql_server" "replica2" {
 
   ssl_enforcement_enabled = true
 }
-`, r.template(data, sku, "11"), data.RandomInteger, sku)
+`, r.template(data, sku, "11"), data.RandomInteger, data.Locations.Secondary, sku)
 }
 
 func (r PostgreSQLServerResource) createPointInTimeRestore(data acceptance.TestData, version, restoreTime string) string {

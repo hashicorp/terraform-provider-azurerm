@@ -52,6 +52,7 @@ func TestAccRedisEnterpriseCluster_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("hostname").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -127,6 +128,7 @@ resource "azurerm_redis_enterprise_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
+  minimum_tls_version = "1.2"
 
   sku_name = "EnterpriseFlash_F300-3"
   zones    = ["1", "2", "3"]

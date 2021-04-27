@@ -1,14 +1,16 @@
 package monitor
 
 import (
+	"context"
 	"fmt"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/alertsmanagement/mgmt/2019-06-01-preview/alertsmanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -263,16 +265,14 @@ func flattenActionRuleConditions(input *alertsmanagement.Conditions) []interface
 	}
 }
 
-func importMonitorActionRule(actionRuleType alertsmanagement.Type) func(d *schema.ResourceData, meta interface{}) (data []*schema.ResourceData, err error) {
-	return func(d *schema.ResourceData, meta interface{}) (data []*schema.ResourceData, err error) {
+func importMonitorActionRule(actionRuleType alertsmanagement.Type) pluginsdk.ImporterFunc {
+	return func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) (data []*pluginsdk.ResourceData, err error) {
 		id, err := parse.ActionRuleID(d.Id())
 		if err != nil {
 			return nil, err
 		}
 
 		client := meta.(*clients.Client).Monitor.ActionRulesClient
-		ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-		defer cancel()
 
 		actionRule, err := client.GetByName(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
@@ -297,6 +297,6 @@ func importMonitorActionRule(actionRuleType alertsmanagement.Type) func(d *schem
 			return nil, fmt.Errorf("Monitor Action Rule has mismatched kind, expected: %q, got %q", actionRuleType, t)
 		}
 
-		return []*schema.ResourceData{d}, nil
+		return []*pluginsdk.ResourceData{d}, nil
 	}
 }
