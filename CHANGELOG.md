@@ -21,7 +21,7 @@ FEATURES:
 * **New Resource:** `azurerm_sentinel_data_connector_microsoft_defender_advanced_threat_protection` [GH-10669]
 * **New Resource:** `azurerm_virtual_machine_configuration_policy_assignment` [GH-11334]
 * **New Resource:** `azurerm_vmware_cluster` [GH-10848]
-* 
+
 ENHANCEMENTS:
 
 * dependencies: updating to `v53.4.0` of `github.com/Azure/azure-sdk-for-go` [GH-11439]
@@ -39,6 +39,8 @@ ENHANCEMENTS:
 * `azurerm_hdinsight_hadoop_cluster` - add support for private link endpoint [GH-11300]
 * `azurerm_hdinsight_spark_cluster` - add support for private link endpoint [GH-11300]
 * `azurerm_hpc_cache` - support for the `directory_active_directory`, `directory_flat_file`, and `directory_ldap` blocks [GH-11332]
+* `azurerm_kubernetes_cluster` - support for the `dns_prefix_private_cluster` property [GH-11321]
+* `azurerm_kubernetes_cluster` - support for the `max_node_provisioning_time`, `max_unready_percentage`, and `max_unready_nodes` properties [GH-11406]
 * `azurerm_storage_encryption_scope` - support for the `infrastructure_encryption_required` property [GH-11462]
 * `azurerm_kubernetes_cluster` support for the `empty_bulk_delete_max` in the `auto_scaler_profile` block #[GH-11060]
 * `azurerm_lighthouse_definition` - support for the `delegated_role_definition_ids` property [GH-11269]
