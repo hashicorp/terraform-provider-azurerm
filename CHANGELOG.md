@@ -25,7 +25,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: updating to `v53.4.0` of `github.com/Azure/azure-sdk-for-go` [GH-11439]
-* dependencies: updating to `v1.17.1` of `github.com/hashicorp/terraform-plugin-sdk` [GH-11431]
+* dependencies: updating to `v1.17.2` of `github.com/hashicorp/terraform-plugin-sdk` [GH-11431]
 * dependencies: updating `cosmos-db` to API version `2021-02-01` [GH-10926]
 * `azurerm_function_app` - support for the `site_config.ip_restrictions.headers` and  `site_config.scm_ip_restrictions.headers` properties [GH-11209]
 * `azurerm_app_service` - support for the `site_config.ip_restrictions.headers` and  `site_config.scm_ip_restrictions.headers` properties [GH-11209]
