@@ -12,11 +12,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func schemaNetworkProfileForDataSource() *schema.Schema {
+func schemaNetworkInterfaceForDataSource() *schema.Schema {
 	return &schema.Schema{
-		Type:     schema.TypeSet,
+		Type:     schema.TypeList,
 		Computed: true,
-		Elem:     resourceVirtualMachineScaleSet().Schema["network_profile"].Elem,
+		Elem:     VirtualMachineScaleSetNetworkInterfaceSchema().Elem,
 	}
 }
 
@@ -39,7 +39,7 @@ func dataSourceVirtualMachineScaleSet() *schema.Resource {
 
 			"location": azure.SchemaLocationForDataSource(),
 
-			"network_interface": VirtualMachineScaleSetNetworkInterfaceSchema(),
+			"network_interface": schemaNetworkInterfaceForDataSource(),
 
 			"identity": {
 				Type:     schema.TypeList,
@@ -100,9 +100,9 @@ func dataSourceVirtualMachineScaleSetRead(d *schema.ResourceData, meta interface
 		return fmt.Errorf("[DEBUG] Error setting `identity`: %+v", err)
 	}
 
-	flattenedNetworkProfile := flattenAzureRmVirtualMachineScaleSetNetworkProfile(resp.VirtualMachineProfile.NetworkProfile)
-	if err := d.Set("network_profile", flattenedNetworkProfile); err != nil {
-		return fmt.Errorf("[DEBUG] Error setting `network_profile`: %#v", err)
+	networkInterface := FlattenVirtualMachineScaleSetNetworkInterface(resp.VirtualMachineProfile.NetworkProfile.NetworkInterfaceConfigurations)
+	if err := d.Set("network_interface", networkInterface); err != nil {
+		return fmt.Errorf("[DEBUG] Error setting `network_interface`: %#v", err)
 	}
 
 	return nil
