@@ -1,5 +1,11 @@
 ## 2.57.0 (Unreleased)
 
+UPGRADE NOTES
+
+* `azurerm_cosmosdb_account` - the `2021-02-01` of the cosmos API defaults new MongoDB accounts to `v3.6` rather then `v3.2` [GH-10926]
+* `azurerm_cosmosdb_mongo_collection` - the `_id` index is now required by the new API/MongoDB version [GH-10926]
+* `azurerm_cosmosdb_gremlin_graph` and `azurerm_cosmosdb_sql_container` - the `patition_key_path` property is now required [GH-10926]
+ 
 FEATURES:
 
 * **Data Source:** `azurerm_postgresql_flexible_server` [GH-11081]
@@ -20,6 +26,7 @@ ENHANCEMENTS:
 
 * dependencies: updating to `v53.4.0` of `github.com/Azure/azure-sdk-for-go` [GH-11439]
 * dependencies: updating to `v1.17.1` of `github.com/hashicorp/terraform-plugin-sdk` [GH-11431]
+* dependencies: updating `cosmos-db` to API version `2021-02-01` [GH-10926]
 * `azurerm_container_registry` - deprecating the `georeplication_locations` property in favour of the `georeplications` property GH-11200]
 * `azurerm_database_migration` - switching to using an ID Formatter [GH-11378]
 * `azurerm_database_migration_project` - switching to using an ID Formatter [GH-11378]
@@ -31,11 +38,13 @@ ENHANCEMENTS:
 * `azurerm_hdinsight_interactive_query_cluster` - add support for private link endpoint [GH-11300]
 * `azurerm_hdinsight_hadoop_cluster` - add support for private link endpoint [GH-11300]
 * `azurerm_hdinsight_spark_cluster` - add support for private link endpoint [GH-11300]
+* `azurerm_hpc_cache` - support for the `directory_active_directory`, `directory_flat_file`, and `directory_ldap` blocks [GH-11332]
+* `azurerm_storage_encryption_scope` - support for the `infrastructure_encryption_required` property [GH-11462]
 * `azurerm_kubernetes_cluster` support for the `empty_bulk_delete_max` in the `auto_scaler_profile` block #[GH-11060]
 * `azurerm_lighthouse_definition` - support for the `delegated_role_definition_ids` property [GH-11269]
 * `azurerm_postgresql_server` - wait for replica restarts when needed [GH-11458]
 * `azurerm_redis_enterprise_cluster` - support for the `minimum_tls_version` and `hostname` properties [GH-11203]
-* `azurerm_storage_account` -  support for the `change_feed`, `versioning_enabled`, `default_service_version`, and `last_access_time_enabled` properties within the `blob_properties` block [GH-11301]
+* `azurerm_storage_account` -  support for the `versioning_enabled`, `default_service_version`, and `last_access_time_enabled` properties within the `blob_properties` block [GH-11301]
 
 BUG FIXES:
 
@@ -46,7 +55,8 @@ BUG FIXES:
 * `azurerm_linux_virtual_machine_scale_set` - the default value for the `priority` property will no longer force a replacement of the resource [GH-11362]
 * `azurerm_monitor_activity_log_alert` - fix a persistent diff for the `service_health` block [GH-11383]
 * `azurerm_mssql_database ` - error when secondary database uses `max_size_gb` [GH-11401]
-* `postgresql_server` - ensure `public_network_access_enabled` is correctly set for replicas [GH-11465]
+* `azurerm_postgresql_server` - ensure `public_network_access_enabled` is correctly set for replicas [GH-11465]
+* `azurerm_postgresql_server` - can not correctly disable replication if required when `create_mode` is changed [GH-11467]
 * `azurerm_virtual_network_gatewa` - updating the `custom_route` block no longer creates a new resource [GH- 11433]
 
 ## 2.56.0 (April 15, 2021)

@@ -18,11 +18,11 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/cosmos-db/mgmt/2020-04-01-preview/documentdb"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-01-15/documentdb"
 
 // APIProperties ...
 type APIProperties struct {
-	// ServerVersion - Describes the ServerVersion of an a MongoDB account. Possible values include: 'ThreeFullStopTwo', 'ThreeFullStopSix'
+	// ServerVersion - Describes the ServerVersion of an a MongoDB account. Possible values include: 'ThreeFullStopTwo', 'ThreeFullStopSix', 'FourFullStopZero'
 	ServerVersion ServerVersion `json:"serverVersion,omitempty"`
 }
 
@@ -106,6 +106,90 @@ type AzureEntityResource struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
+}
+
+// BasicBackupPolicy the object representing the policy for taking backups on an account.
+type BasicBackupPolicy interface {
+	AsPeriodicModeBackupPolicy() (*PeriodicModeBackupPolicy, bool)
+	AsContinuousModeBackupPolicy() (*ContinuousModeBackupPolicy, bool)
+	AsBackupPolicy() (*BackupPolicy, bool)
+}
+
+// BackupPolicy the object representing the policy for taking backups on an account.
+type BackupPolicy struct {
+	// Type - Possible values include: 'TypeBackupPolicy', 'TypePeriodic', 'TypeContinuous'
+	Type Type `json:"type,omitempty"`
+}
+
+func unmarshalBasicBackupPolicy(body []byte) (BasicBackupPolicy, error) {
+	var m map[string]interface{}
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return nil, err
+	}
+
+	switch m["type"] {
+	case string(TypePeriodic):
+		var pmbp PeriodicModeBackupPolicy
+		err := json.Unmarshal(body, &pmbp)
+		return pmbp, err
+	case string(TypeContinuous):
+		var cmbp ContinuousModeBackupPolicy
+		err := json.Unmarshal(body, &cmbp)
+		return cmbp, err
+	default:
+		var bp BackupPolicy
+		err := json.Unmarshal(body, &bp)
+		return bp, err
+	}
+}
+func unmarshalBasicBackupPolicyArray(body []byte) ([]BasicBackupPolicy, error) {
+	var rawMessages []*json.RawMessage
+	err := json.Unmarshal(body, &rawMessages)
+	if err != nil {
+		return nil, err
+	}
+
+	bpArray := make([]BasicBackupPolicy, len(rawMessages))
+
+	for index, rawMessage := range rawMessages {
+		bp, err := unmarshalBasicBackupPolicy(*rawMessage)
+		if err != nil {
+			return nil, err
+		}
+		bpArray[index] = bp
+	}
+	return bpArray, nil
+}
+
+// MarshalJSON is the custom marshaler for BackupPolicy.
+func (bp BackupPolicy) MarshalJSON() ([]byte, error) {
+	bp.Type = TypeBackupPolicy
+	objectMap := make(map[string]interface{})
+	if bp.Type != "" {
+		objectMap["type"] = bp.Type
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsPeriodicModeBackupPolicy is the BasicBackupPolicy implementation for BackupPolicy.
+func (bp BackupPolicy) AsPeriodicModeBackupPolicy() (*PeriodicModeBackupPolicy, bool) {
+	return nil, false
+}
+
+// AsContinuousModeBackupPolicy is the BasicBackupPolicy implementation for BackupPolicy.
+func (bp BackupPolicy) AsContinuousModeBackupPolicy() (*ContinuousModeBackupPolicy, bool) {
+	return nil, false
+}
+
+// AsBackupPolicy is the BasicBackupPolicy implementation for BackupPolicy.
+func (bp BackupPolicy) AsBackupPolicy() (*BackupPolicy, bool) {
+	return &bp, true
+}
+
+// AsBasicBackupPolicy is the BasicBackupPolicy implementation for BackupPolicy.
+func (bp BackupPolicy) AsBasicBackupPolicy() (BasicBackupPolicy, bool) {
+	return &bp, true
 }
 
 // Capability cosmos DB capability object
@@ -243,7 +327,7 @@ type CassandraKeyspaceGetPropertiesResource struct {
 	// Rid - READ-ONLY; A system generated property. A unique identifier.
 	Rid *string `json:"_rid,omitempty"`
 	// Ts - READ-ONLY; A system generated property that denotes the last updated timestamp of the resource.
-	Ts interface{} `json:"_ts,omitempty"`
+	Ts *float64 `json:"_ts,omitempty"`
 	// Etag - READ-ONLY; A system generated property representing the resource etag required for optimistic concurrency control.
 	Etag *string `json:"_etag,omitempty"`
 }
@@ -939,7 +1023,7 @@ type CassandraTableGetPropertiesResource struct {
 	// Rid - READ-ONLY; A system generated property. A unique identifier.
 	Rid *string `json:"_rid,omitempty"`
 	// Ts - READ-ONLY; A system generated property that denotes the last updated timestamp of the resource.
-	Ts interface{} `json:"_ts,omitempty"`
+	Ts *float64 `json:"_ts,omitempty"`
 	// Etag - READ-ONLY; A system generated property representing the resource etag required for optimistic concurrency control.
 	Etag *string `json:"_etag,omitempty"`
 }
@@ -1131,10 +1215,63 @@ type ConsistencyPolicy struct {
 type ContainerPartitionKey struct {
 	// Paths - List of paths using which data within the container can be partitioned
 	Paths *[]string `json:"paths,omitempty"`
-	// Kind - Indicates the kind of algorithm used for partitioning. Possible values include: 'PartitionKindHash', 'PartitionKindRange'
+	// Kind - Indicates the kind of algorithm used for partitioning. For MultiHash, multiple partition keys (upto three maximum) are supported for container create. Possible values include: 'PartitionKindHash', 'PartitionKindRange', 'PartitionKindMultiHash'
 	Kind PartitionKind `json:"kind,omitempty"`
 	// Version - Indicates the version of the partition key definition
 	Version *int32 `json:"version,omitempty"`
+	// SystemKey - READ-ONLY; Indicates if the container is using a system generated partition key
+	SystemKey *bool `json:"systemKey,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ContainerPartitionKey.
+func (cpk ContainerPartitionKey) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if cpk.Paths != nil {
+		objectMap["paths"] = cpk.Paths
+	}
+	if cpk.Kind != "" {
+		objectMap["kind"] = cpk.Kind
+	}
+	if cpk.Version != nil {
+		objectMap["version"] = cpk.Version
+	}
+	return json.Marshal(objectMap)
+}
+
+// ContinuousModeBackupPolicy the object representing continuous mode backup policy.
+type ContinuousModeBackupPolicy struct {
+	// Type - Possible values include: 'TypeBackupPolicy', 'TypePeriodic', 'TypeContinuous'
+	Type Type `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ContinuousModeBackupPolicy.
+func (cmbp ContinuousModeBackupPolicy) MarshalJSON() ([]byte, error) {
+	cmbp.Type = TypeContinuous
+	objectMap := make(map[string]interface{})
+	if cmbp.Type != "" {
+		objectMap["type"] = cmbp.Type
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsPeriodicModeBackupPolicy is the BasicBackupPolicy implementation for ContinuousModeBackupPolicy.
+func (cmbp ContinuousModeBackupPolicy) AsPeriodicModeBackupPolicy() (*PeriodicModeBackupPolicy, bool) {
+	return nil, false
+}
+
+// AsContinuousModeBackupPolicy is the BasicBackupPolicy implementation for ContinuousModeBackupPolicy.
+func (cmbp ContinuousModeBackupPolicy) AsContinuousModeBackupPolicy() (*ContinuousModeBackupPolicy, bool) {
+	return &cmbp, true
+}
+
+// AsBackupPolicy is the BasicBackupPolicy implementation for ContinuousModeBackupPolicy.
+func (cmbp ContinuousModeBackupPolicy) AsBackupPolicy() (*BackupPolicy, bool) {
+	return nil, false
+}
+
+// AsBasicBackupPolicy is the BasicBackupPolicy implementation for ContinuousModeBackupPolicy.
+func (cmbp ContinuousModeBackupPolicy) AsBasicBackupPolicy() (BasicBackupPolicy, bool) {
+	return &cmbp, true
 }
 
 // CorsPolicy the CORS policy for the Cosmos DB database account.
@@ -1171,7 +1308,8 @@ type DatabaseAccountConnectionString struct {
 // DatabaseAccountCreateUpdateParameters parameters to create and update Cosmos DB database accounts.
 type DatabaseAccountCreateUpdateParameters struct {
 	// Kind - Indicates the type of database account. This can only be set at database account creation. Possible values include: 'GlobalDocumentDB', 'MongoDB', 'Parse'
-	Kind                                   DatabaseAccountKind `json:"kind,omitempty"`
+	Kind                                   DatabaseAccountKind     `json:"kind,omitempty"`
+	Identity                               *ManagedServiceIdentity `json:"identity,omitempty"`
 	*DatabaseAccountCreateUpdateProperties `json:"properties,omitempty"`
 	// ID - READ-ONLY; The unique resource identifier of the ARM resource.
 	ID *string `json:"id,omitempty"`
@@ -1189,6 +1327,9 @@ func (dacup DatabaseAccountCreateUpdateParameters) MarshalJSON() ([]byte, error)
 	objectMap := make(map[string]interface{})
 	if dacup.Kind != "" {
 		objectMap["kind"] = dacup.Kind
+	}
+	if dacup.Identity != nil {
+		objectMap["identity"] = dacup.Identity
 	}
 	if dacup.DatabaseAccountCreateUpdateProperties != nil {
 		objectMap["properties"] = dacup.DatabaseAccountCreateUpdateProperties
@@ -1219,6 +1360,15 @@ func (dacup *DatabaseAccountCreateUpdateParameters) UnmarshalJSON(body []byte) e
 					return err
 				}
 				dacup.Kind = kind
+			}
+		case "identity":
+			if v != nil {
+				var identity ManagedServiceIdentity
+				err = json.Unmarshal(*v, &identity)
+				if err != nil {
+					return err
+				}
+				dacup.Identity = &identity
 			}
 		case "properties":
 			if v != nil {
@@ -1316,8 +1466,217 @@ type DatabaseAccountCreateUpdateProperties struct {
 	APIProperties *APIProperties `json:"apiProperties,omitempty"`
 	// EnableAnalyticalStorage - Flag to indicate whether to enable storage analytics.
 	EnableAnalyticalStorage *bool `json:"enableAnalyticalStorage,omitempty"`
+	// BackupPolicy - The object representing the policy for taking backups on an account.
+	BackupPolicy BasicBackupPolicy `json:"backupPolicy,omitempty"`
 	// Cors - The CORS policy for the Cosmos DB database account.
 	Cors *[]CorsPolicy `json:"cors,omitempty"`
+	// NetworkACLBypass - Indicates what services are allowed to bypass firewall checks. Possible values include: 'NetworkACLBypassNone', 'NetworkACLBypassAzureServices'
+	NetworkACLBypass NetworkACLBypass `json:"networkAclBypass,omitempty"`
+	// NetworkACLBypassResourceIds - An array that contains the Resource Ids for Network Acl Bypass for the Cosmos DB account.
+	NetworkACLBypassResourceIds *[]string `json:"networkAclBypassResourceIds,omitempty"`
+}
+
+// UnmarshalJSON is the custom unmarshaler for DatabaseAccountCreateUpdateProperties struct.
+func (dacup *DatabaseAccountCreateUpdateProperties) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "consistencyPolicy":
+			if v != nil {
+				var consistencyPolicy ConsistencyPolicy
+				err = json.Unmarshal(*v, &consistencyPolicy)
+				if err != nil {
+					return err
+				}
+				dacup.ConsistencyPolicy = &consistencyPolicy
+			}
+		case "locations":
+			if v != nil {
+				var locations []Location
+				err = json.Unmarshal(*v, &locations)
+				if err != nil {
+					return err
+				}
+				dacup.Locations = &locations
+			}
+		case "databaseAccountOfferType":
+			if v != nil {
+				var databaseAccountOfferType string
+				err = json.Unmarshal(*v, &databaseAccountOfferType)
+				if err != nil {
+					return err
+				}
+				dacup.DatabaseAccountOfferType = &databaseAccountOfferType
+			}
+		case "ipRules":
+			if v != nil {
+				var IPRules []IPAddressOrRange
+				err = json.Unmarshal(*v, &IPRules)
+				if err != nil {
+					return err
+				}
+				dacup.IPRules = &IPRules
+			}
+		case "isVirtualNetworkFilterEnabled":
+			if v != nil {
+				var isVirtualNetworkFilterEnabled bool
+				err = json.Unmarshal(*v, &isVirtualNetworkFilterEnabled)
+				if err != nil {
+					return err
+				}
+				dacup.IsVirtualNetworkFilterEnabled = &isVirtualNetworkFilterEnabled
+			}
+		case "enableAutomaticFailover":
+			if v != nil {
+				var enableAutomaticFailover bool
+				err = json.Unmarshal(*v, &enableAutomaticFailover)
+				if err != nil {
+					return err
+				}
+				dacup.EnableAutomaticFailover = &enableAutomaticFailover
+			}
+		case "capabilities":
+			if v != nil {
+				var capabilities []Capability
+				err = json.Unmarshal(*v, &capabilities)
+				if err != nil {
+					return err
+				}
+				dacup.Capabilities = &capabilities
+			}
+		case "virtualNetworkRules":
+			if v != nil {
+				var virtualNetworkRules []VirtualNetworkRule
+				err = json.Unmarshal(*v, &virtualNetworkRules)
+				if err != nil {
+					return err
+				}
+				dacup.VirtualNetworkRules = &virtualNetworkRules
+			}
+		case "enableMultipleWriteLocations":
+			if v != nil {
+				var enableMultipleWriteLocations bool
+				err = json.Unmarshal(*v, &enableMultipleWriteLocations)
+				if err != nil {
+					return err
+				}
+				dacup.EnableMultipleWriteLocations = &enableMultipleWriteLocations
+			}
+		case "enableCassandraConnector":
+			if v != nil {
+				var enableCassandraConnector bool
+				err = json.Unmarshal(*v, &enableCassandraConnector)
+				if err != nil {
+					return err
+				}
+				dacup.EnableCassandraConnector = &enableCassandraConnector
+			}
+		case "connectorOffer":
+			if v != nil {
+				var connectorOffer ConnectorOffer
+				err = json.Unmarshal(*v, &connectorOffer)
+				if err != nil {
+					return err
+				}
+				dacup.ConnectorOffer = connectorOffer
+			}
+		case "disableKeyBasedMetadataWriteAccess":
+			if v != nil {
+				var disableKeyBasedMetadataWriteAccess bool
+				err = json.Unmarshal(*v, &disableKeyBasedMetadataWriteAccess)
+				if err != nil {
+					return err
+				}
+				dacup.DisableKeyBasedMetadataWriteAccess = &disableKeyBasedMetadataWriteAccess
+			}
+		case "keyVaultKeyUri":
+			if v != nil {
+				var keyVaultKeyURI string
+				err = json.Unmarshal(*v, &keyVaultKeyURI)
+				if err != nil {
+					return err
+				}
+				dacup.KeyVaultKeyURI = &keyVaultKeyURI
+			}
+		case "publicNetworkAccess":
+			if v != nil {
+				var publicNetworkAccess PublicNetworkAccess
+				err = json.Unmarshal(*v, &publicNetworkAccess)
+				if err != nil {
+					return err
+				}
+				dacup.PublicNetworkAccess = publicNetworkAccess
+			}
+		case "enableFreeTier":
+			if v != nil {
+				var enableFreeTier bool
+				err = json.Unmarshal(*v, &enableFreeTier)
+				if err != nil {
+					return err
+				}
+				dacup.EnableFreeTier = &enableFreeTier
+			}
+		case "apiProperties":
+			if v != nil {
+				var APIProperties APIProperties
+				err = json.Unmarshal(*v, &APIProperties)
+				if err != nil {
+					return err
+				}
+				dacup.APIProperties = &APIProperties
+			}
+		case "enableAnalyticalStorage":
+			if v != nil {
+				var enableAnalyticalStorage bool
+				err = json.Unmarshal(*v, &enableAnalyticalStorage)
+				if err != nil {
+					return err
+				}
+				dacup.EnableAnalyticalStorage = &enableAnalyticalStorage
+			}
+		case "backupPolicy":
+			if v != nil {
+				backupPolicy, err := unmarshalBasicBackupPolicy(*v)
+				if err != nil {
+					return err
+				}
+				dacup.BackupPolicy = backupPolicy
+			}
+		case "cors":
+			if v != nil {
+				var cors []CorsPolicy
+				err = json.Unmarshal(*v, &cors)
+				if err != nil {
+					return err
+				}
+				dacup.Cors = &cors
+			}
+		case "networkAclBypass":
+			if v != nil {
+				var networkACLBypass NetworkACLBypass
+				err = json.Unmarshal(*v, &networkACLBypass)
+				if err != nil {
+					return err
+				}
+				dacup.NetworkACLBypass = networkACLBypass
+			}
+		case "networkAclBypassResourceIds":
+			if v != nil {
+				var networkACLBypassResourceIds []string
+				err = json.Unmarshal(*v, &networkACLBypassResourceIds)
+				if err != nil {
+					return err
+				}
+				dacup.NetworkACLBypassResourceIds = &networkACLBypassResourceIds
+			}
+		}
+	}
+
+	return nil
 }
 
 // DatabaseAccountGetProperties properties for the database account.
@@ -1367,8 +1726,14 @@ type DatabaseAccountGetProperties struct {
 	APIProperties *APIProperties `json:"apiProperties,omitempty"`
 	// EnableAnalyticalStorage - Flag to indicate whether to enable storage analytics.
 	EnableAnalyticalStorage *bool `json:"enableAnalyticalStorage,omitempty"`
+	// BackupPolicy - The object representing the policy for taking backups on an account.
+	BackupPolicy BasicBackupPolicy `json:"backupPolicy,omitempty"`
 	// Cors - The CORS policy for the Cosmos DB database account.
 	Cors *[]CorsPolicy `json:"cors,omitempty"`
+	// NetworkACLBypass - Indicates what services are allowed to bypass firewall checks. Possible values include: 'NetworkACLBypassNone', 'NetworkACLBypassAzureServices'
+	NetworkACLBypass NetworkACLBypass `json:"networkAclBypass,omitempty"`
+	// NetworkACLBypassResourceIds - An array that contains the Resource Ids for Network Acl Bypass for the Cosmos DB account.
+	NetworkACLBypassResourceIds *[]string `json:"networkAclBypassResourceIds,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for DatabaseAccountGetProperties.
@@ -1422,17 +1787,282 @@ func (dagp DatabaseAccountGetProperties) MarshalJSON() ([]byte, error) {
 	if dagp.EnableAnalyticalStorage != nil {
 		objectMap["enableAnalyticalStorage"] = dagp.EnableAnalyticalStorage
 	}
+	objectMap["backupPolicy"] = dagp.BackupPolicy
 	if dagp.Cors != nil {
 		objectMap["cors"] = dagp.Cors
 	}
+	if dagp.NetworkACLBypass != "" {
+		objectMap["networkAclBypass"] = dagp.NetworkACLBypass
+	}
+	if dagp.NetworkACLBypassResourceIds != nil {
+		objectMap["networkAclBypassResourceIds"] = dagp.NetworkACLBypassResourceIds
+	}
 	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for DatabaseAccountGetProperties struct.
+func (dagp *DatabaseAccountGetProperties) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "provisioningState":
+			if v != nil {
+				var provisioningState string
+				err = json.Unmarshal(*v, &provisioningState)
+				if err != nil {
+					return err
+				}
+				dagp.ProvisioningState = &provisioningState
+			}
+		case "documentEndpoint":
+			if v != nil {
+				var documentEndpoint string
+				err = json.Unmarshal(*v, &documentEndpoint)
+				if err != nil {
+					return err
+				}
+				dagp.DocumentEndpoint = &documentEndpoint
+			}
+		case "databaseAccountOfferType":
+			if v != nil {
+				var databaseAccountOfferType DatabaseAccountOfferType
+				err = json.Unmarshal(*v, &databaseAccountOfferType)
+				if err != nil {
+					return err
+				}
+				dagp.DatabaseAccountOfferType = databaseAccountOfferType
+			}
+		case "ipRules":
+			if v != nil {
+				var IPRules []IPAddressOrRange
+				err = json.Unmarshal(*v, &IPRules)
+				if err != nil {
+					return err
+				}
+				dagp.IPRules = &IPRules
+			}
+		case "isVirtualNetworkFilterEnabled":
+			if v != nil {
+				var isVirtualNetworkFilterEnabled bool
+				err = json.Unmarshal(*v, &isVirtualNetworkFilterEnabled)
+				if err != nil {
+					return err
+				}
+				dagp.IsVirtualNetworkFilterEnabled = &isVirtualNetworkFilterEnabled
+			}
+		case "enableAutomaticFailover":
+			if v != nil {
+				var enableAutomaticFailover bool
+				err = json.Unmarshal(*v, &enableAutomaticFailover)
+				if err != nil {
+					return err
+				}
+				dagp.EnableAutomaticFailover = &enableAutomaticFailover
+			}
+		case "consistencyPolicy":
+			if v != nil {
+				var consistencyPolicy ConsistencyPolicy
+				err = json.Unmarshal(*v, &consistencyPolicy)
+				if err != nil {
+					return err
+				}
+				dagp.ConsistencyPolicy = &consistencyPolicy
+			}
+		case "capabilities":
+			if v != nil {
+				var capabilities []Capability
+				err = json.Unmarshal(*v, &capabilities)
+				if err != nil {
+					return err
+				}
+				dagp.Capabilities = &capabilities
+			}
+		case "writeLocations":
+			if v != nil {
+				var writeLocations []Location
+				err = json.Unmarshal(*v, &writeLocations)
+				if err != nil {
+					return err
+				}
+				dagp.WriteLocations = &writeLocations
+			}
+		case "readLocations":
+			if v != nil {
+				var readLocations []Location
+				err = json.Unmarshal(*v, &readLocations)
+				if err != nil {
+					return err
+				}
+				dagp.ReadLocations = &readLocations
+			}
+		case "locations":
+			if v != nil {
+				var locations []Location
+				err = json.Unmarshal(*v, &locations)
+				if err != nil {
+					return err
+				}
+				dagp.Locations = &locations
+			}
+		case "failoverPolicies":
+			if v != nil {
+				var failoverPolicies []FailoverPolicy
+				err = json.Unmarshal(*v, &failoverPolicies)
+				if err != nil {
+					return err
+				}
+				dagp.FailoverPolicies = &failoverPolicies
+			}
+		case "virtualNetworkRules":
+			if v != nil {
+				var virtualNetworkRules []VirtualNetworkRule
+				err = json.Unmarshal(*v, &virtualNetworkRules)
+				if err != nil {
+					return err
+				}
+				dagp.VirtualNetworkRules = &virtualNetworkRules
+			}
+		case "privateEndpointConnections":
+			if v != nil {
+				var privateEndpointConnections []PrivateEndpointConnection
+				err = json.Unmarshal(*v, &privateEndpointConnections)
+				if err != nil {
+					return err
+				}
+				dagp.PrivateEndpointConnections = &privateEndpointConnections
+			}
+		case "enableMultipleWriteLocations":
+			if v != nil {
+				var enableMultipleWriteLocations bool
+				err = json.Unmarshal(*v, &enableMultipleWriteLocations)
+				if err != nil {
+					return err
+				}
+				dagp.EnableMultipleWriteLocations = &enableMultipleWriteLocations
+			}
+		case "enableCassandraConnector":
+			if v != nil {
+				var enableCassandraConnector bool
+				err = json.Unmarshal(*v, &enableCassandraConnector)
+				if err != nil {
+					return err
+				}
+				dagp.EnableCassandraConnector = &enableCassandraConnector
+			}
+		case "connectorOffer":
+			if v != nil {
+				var connectorOffer ConnectorOffer
+				err = json.Unmarshal(*v, &connectorOffer)
+				if err != nil {
+					return err
+				}
+				dagp.ConnectorOffer = connectorOffer
+			}
+		case "disableKeyBasedMetadataWriteAccess":
+			if v != nil {
+				var disableKeyBasedMetadataWriteAccess bool
+				err = json.Unmarshal(*v, &disableKeyBasedMetadataWriteAccess)
+				if err != nil {
+					return err
+				}
+				dagp.DisableKeyBasedMetadataWriteAccess = &disableKeyBasedMetadataWriteAccess
+			}
+		case "keyVaultKeyUri":
+			if v != nil {
+				var keyVaultKeyURI string
+				err = json.Unmarshal(*v, &keyVaultKeyURI)
+				if err != nil {
+					return err
+				}
+				dagp.KeyVaultKeyURI = &keyVaultKeyURI
+			}
+		case "publicNetworkAccess":
+			if v != nil {
+				var publicNetworkAccess PublicNetworkAccess
+				err = json.Unmarshal(*v, &publicNetworkAccess)
+				if err != nil {
+					return err
+				}
+				dagp.PublicNetworkAccess = publicNetworkAccess
+			}
+		case "enableFreeTier":
+			if v != nil {
+				var enableFreeTier bool
+				err = json.Unmarshal(*v, &enableFreeTier)
+				if err != nil {
+					return err
+				}
+				dagp.EnableFreeTier = &enableFreeTier
+			}
+		case "apiProperties":
+			if v != nil {
+				var APIProperties APIProperties
+				err = json.Unmarshal(*v, &APIProperties)
+				if err != nil {
+					return err
+				}
+				dagp.APIProperties = &APIProperties
+			}
+		case "enableAnalyticalStorage":
+			if v != nil {
+				var enableAnalyticalStorage bool
+				err = json.Unmarshal(*v, &enableAnalyticalStorage)
+				if err != nil {
+					return err
+				}
+				dagp.EnableAnalyticalStorage = &enableAnalyticalStorage
+			}
+		case "backupPolicy":
+			if v != nil {
+				backupPolicy, err := unmarshalBasicBackupPolicy(*v)
+				if err != nil {
+					return err
+				}
+				dagp.BackupPolicy = backupPolicy
+			}
+		case "cors":
+			if v != nil {
+				var cors []CorsPolicy
+				err = json.Unmarshal(*v, &cors)
+				if err != nil {
+					return err
+				}
+				dagp.Cors = &cors
+			}
+		case "networkAclBypass":
+			if v != nil {
+				var networkACLBypass NetworkACLBypass
+				err = json.Unmarshal(*v, &networkACLBypass)
+				if err != nil {
+					return err
+				}
+				dagp.NetworkACLBypass = networkACLBypass
+			}
+		case "networkAclBypassResourceIds":
+			if v != nil {
+				var networkACLBypassResourceIds []string
+				err = json.Unmarshal(*v, &networkACLBypassResourceIds)
+				if err != nil {
+					return err
+				}
+				dagp.NetworkACLBypassResourceIds = &networkACLBypassResourceIds
+			}
+		}
+	}
+
+	return nil
 }
 
 // DatabaseAccountGetResults an Azure Cosmos DB database account.
 type DatabaseAccountGetResults struct {
 	autorest.Response `json:"-"`
 	// Kind - Indicates the type of database account. This can only be set at database account creation. Possible values include: 'GlobalDocumentDB', 'MongoDB', 'Parse'
-	Kind                          DatabaseAccountKind `json:"kind,omitempty"`
+	Kind                          DatabaseAccountKind     `json:"kind,omitempty"`
+	Identity                      *ManagedServiceIdentity `json:"identity,omitempty"`
 	*DatabaseAccountGetProperties `json:"properties,omitempty"`
 	// ID - READ-ONLY; The unique resource identifier of the ARM resource.
 	ID *string `json:"id,omitempty"`
@@ -1450,6 +2080,9 @@ func (dagr DatabaseAccountGetResults) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if dagr.Kind != "" {
 		objectMap["kind"] = dagr.Kind
+	}
+	if dagr.Identity != nil {
+		objectMap["identity"] = dagr.Identity
 	}
 	if dagr.DatabaseAccountGetProperties != nil {
 		objectMap["properties"] = dagr.DatabaseAccountGetProperties
@@ -1480,6 +2113,15 @@ func (dagr *DatabaseAccountGetResults) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				dagr.Kind = kind
+			}
+		case "identity":
+			if v != nil {
+				var identity ManagedServiceIdentity
+				err = json.Unmarshal(*v, &identity)
+				if err != nil {
+					return err
+				}
+				dagr.Identity = &identity
 			}
 		case "properties":
 			if v != nil {
@@ -1859,7 +2501,8 @@ func (future *DatabaseAccountsUpdateFuture) result(client DatabaseAccountsClient
 type DatabaseAccountUpdateParameters struct {
 	Tags map[string]*string `json:"tags"`
 	// Location - The location of the resource group to which the resource belongs.
-	Location                         *string `json:"location,omitempty"`
+	Location                         *string                 `json:"location,omitempty"`
+	Identity                         *ManagedServiceIdentity `json:"identity,omitempty"`
 	*DatabaseAccountUpdateProperties `json:"properties,omitempty"`
 }
 
@@ -1871,6 +2514,9 @@ func (daup DatabaseAccountUpdateParameters) MarshalJSON() ([]byte, error) {
 	}
 	if daup.Location != nil {
 		objectMap["location"] = daup.Location
+	}
+	if daup.Identity != nil {
+		objectMap["identity"] = daup.Identity
 	}
 	if daup.DatabaseAccountUpdateProperties != nil {
 		objectMap["properties"] = daup.DatabaseAccountUpdateProperties
@@ -1904,6 +2550,15 @@ func (daup *DatabaseAccountUpdateParameters) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				daup.Location = &location
+			}
+		case "identity":
+			if v != nil {
+				var identity ManagedServiceIdentity
+				err = json.Unmarshal(*v, &identity)
+				if err != nil {
+					return err
+				}
+				daup.Identity = &identity
 			}
 		case "properties":
 			if v != nil {
@@ -1954,8 +2609,208 @@ type DatabaseAccountUpdateProperties struct {
 	APIProperties *APIProperties `json:"apiProperties,omitempty"`
 	// EnableAnalyticalStorage - Flag to indicate whether to enable storage analytics.
 	EnableAnalyticalStorage *bool `json:"enableAnalyticalStorage,omitempty"`
+	// BackupPolicy - The object representing the policy for taking backups on an account.
+	BackupPolicy BasicBackupPolicy `json:"backupPolicy,omitempty"`
 	// Cors - The CORS policy for the Cosmos DB database account.
 	Cors *[]CorsPolicy `json:"cors,omitempty"`
+	// NetworkACLBypass - Indicates what services are allowed to bypass firewall checks. Possible values include: 'NetworkACLBypassNone', 'NetworkACLBypassAzureServices'
+	NetworkACLBypass NetworkACLBypass `json:"networkAclBypass,omitempty"`
+	// NetworkACLBypassResourceIds - An array that contains the Resource Ids for Network Acl Bypass for the Cosmos DB account.
+	NetworkACLBypassResourceIds *[]string `json:"networkAclBypassResourceIds,omitempty"`
+}
+
+// UnmarshalJSON is the custom unmarshaler for DatabaseAccountUpdateProperties struct.
+func (daup *DatabaseAccountUpdateProperties) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "consistencyPolicy":
+			if v != nil {
+				var consistencyPolicy ConsistencyPolicy
+				err = json.Unmarshal(*v, &consistencyPolicy)
+				if err != nil {
+					return err
+				}
+				daup.ConsistencyPolicy = &consistencyPolicy
+			}
+		case "locations":
+			if v != nil {
+				var locations []Location
+				err = json.Unmarshal(*v, &locations)
+				if err != nil {
+					return err
+				}
+				daup.Locations = &locations
+			}
+		case "ipRules":
+			if v != nil {
+				var IPRules []IPAddressOrRange
+				err = json.Unmarshal(*v, &IPRules)
+				if err != nil {
+					return err
+				}
+				daup.IPRules = &IPRules
+			}
+		case "isVirtualNetworkFilterEnabled":
+			if v != nil {
+				var isVirtualNetworkFilterEnabled bool
+				err = json.Unmarshal(*v, &isVirtualNetworkFilterEnabled)
+				if err != nil {
+					return err
+				}
+				daup.IsVirtualNetworkFilterEnabled = &isVirtualNetworkFilterEnabled
+			}
+		case "enableAutomaticFailover":
+			if v != nil {
+				var enableAutomaticFailover bool
+				err = json.Unmarshal(*v, &enableAutomaticFailover)
+				if err != nil {
+					return err
+				}
+				daup.EnableAutomaticFailover = &enableAutomaticFailover
+			}
+		case "capabilities":
+			if v != nil {
+				var capabilities []Capability
+				err = json.Unmarshal(*v, &capabilities)
+				if err != nil {
+					return err
+				}
+				daup.Capabilities = &capabilities
+			}
+		case "virtualNetworkRules":
+			if v != nil {
+				var virtualNetworkRules []VirtualNetworkRule
+				err = json.Unmarshal(*v, &virtualNetworkRules)
+				if err != nil {
+					return err
+				}
+				daup.VirtualNetworkRules = &virtualNetworkRules
+			}
+		case "enableMultipleWriteLocations":
+			if v != nil {
+				var enableMultipleWriteLocations bool
+				err = json.Unmarshal(*v, &enableMultipleWriteLocations)
+				if err != nil {
+					return err
+				}
+				daup.EnableMultipleWriteLocations = &enableMultipleWriteLocations
+			}
+		case "enableCassandraConnector":
+			if v != nil {
+				var enableCassandraConnector bool
+				err = json.Unmarshal(*v, &enableCassandraConnector)
+				if err != nil {
+					return err
+				}
+				daup.EnableCassandraConnector = &enableCassandraConnector
+			}
+		case "connectorOffer":
+			if v != nil {
+				var connectorOffer ConnectorOffer
+				err = json.Unmarshal(*v, &connectorOffer)
+				if err != nil {
+					return err
+				}
+				daup.ConnectorOffer = connectorOffer
+			}
+		case "disableKeyBasedMetadataWriteAccess":
+			if v != nil {
+				var disableKeyBasedMetadataWriteAccess bool
+				err = json.Unmarshal(*v, &disableKeyBasedMetadataWriteAccess)
+				if err != nil {
+					return err
+				}
+				daup.DisableKeyBasedMetadataWriteAccess = &disableKeyBasedMetadataWriteAccess
+			}
+		case "keyVaultKeyUri":
+			if v != nil {
+				var keyVaultKeyURI string
+				err = json.Unmarshal(*v, &keyVaultKeyURI)
+				if err != nil {
+					return err
+				}
+				daup.KeyVaultKeyURI = &keyVaultKeyURI
+			}
+		case "publicNetworkAccess":
+			if v != nil {
+				var publicNetworkAccess PublicNetworkAccess
+				err = json.Unmarshal(*v, &publicNetworkAccess)
+				if err != nil {
+					return err
+				}
+				daup.PublicNetworkAccess = publicNetworkAccess
+			}
+		case "enableFreeTier":
+			if v != nil {
+				var enableFreeTier bool
+				err = json.Unmarshal(*v, &enableFreeTier)
+				if err != nil {
+					return err
+				}
+				daup.EnableFreeTier = &enableFreeTier
+			}
+		case "apiProperties":
+			if v != nil {
+				var APIProperties APIProperties
+				err = json.Unmarshal(*v, &APIProperties)
+				if err != nil {
+					return err
+				}
+				daup.APIProperties = &APIProperties
+			}
+		case "enableAnalyticalStorage":
+			if v != nil {
+				var enableAnalyticalStorage bool
+				err = json.Unmarshal(*v, &enableAnalyticalStorage)
+				if err != nil {
+					return err
+				}
+				daup.EnableAnalyticalStorage = &enableAnalyticalStorage
+			}
+		case "backupPolicy":
+			if v != nil {
+				backupPolicy, err := unmarshalBasicBackupPolicy(*v)
+				if err != nil {
+					return err
+				}
+				daup.BackupPolicy = backupPolicy
+			}
+		case "cors":
+			if v != nil {
+				var cors []CorsPolicy
+				err = json.Unmarshal(*v, &cors)
+				if err != nil {
+					return err
+				}
+				daup.Cors = &cors
+			}
+		case "networkAclBypass":
+			if v != nil {
+				var networkACLBypass NetworkACLBypass
+				err = json.Unmarshal(*v, &networkACLBypass)
+				if err != nil {
+					return err
+				}
+				daup.NetworkACLBypass = networkACLBypass
+			}
+		case "networkAclBypassResourceIds":
+			if v != nil {
+				var networkACLBypassResourceIds []string
+				err = json.Unmarshal(*v, &networkACLBypassResourceIds)
+				if err != nil {
+					return err
+				}
+				daup.NetworkACLBypassResourceIds = &networkACLBypassResourceIds
+			}
+		}
+	}
+
+	return nil
 }
 
 // ErrorResponse error Response.
@@ -1964,6 +2819,11 @@ type ErrorResponse struct {
 	Code *string `json:"code,omitempty"`
 	// Message - Error message indicating why the operation failed.
 	Message *string `json:"message,omitempty"`
+}
+
+// ErrorResponseUpdatedFormat an error response from the service.
+type ErrorResponseUpdatedFormat struct {
+	Error *ErrorResponse `json:"error,omitempty"`
 }
 
 // ExcludedPath ...
@@ -1978,7 +2838,7 @@ type ExtendedResourceProperties struct {
 	// Rid - READ-ONLY; A system generated property. A unique identifier.
 	Rid *string `json:"_rid,omitempty"`
 	// Ts - READ-ONLY; A system generated property that denotes the last updated timestamp of the resource.
-	Ts interface{} `json:"_ts,omitempty"`
+	Ts *float64 `json:"_ts,omitempty"`
 	// Etag - READ-ONLY; A system generated property representing the resource etag required for optimistic concurrency control.
 	Etag *string `json:"_etag,omitempty"`
 }
@@ -2139,7 +2999,7 @@ type GremlinDatabaseGetPropertiesResource struct {
 	// Rid - READ-ONLY; A system generated property. A unique identifier.
 	Rid *string `json:"_rid,omitempty"`
 	// Ts - READ-ONLY; A system generated property that denotes the last updated timestamp of the resource.
-	Ts interface{} `json:"_ts,omitempty"`
+	Ts *float64 `json:"_ts,omitempty"`
 	// Etag - READ-ONLY; A system generated property representing the resource etag required for optimistic concurrency control.
 	Etag *string `json:"_etag,omitempty"`
 }
@@ -2405,7 +3265,7 @@ type GremlinGraphGetPropertiesResource struct {
 	// Rid - READ-ONLY; A system generated property. A unique identifier.
 	Rid *string `json:"_rid,omitempty"`
 	// Ts - READ-ONLY; A system generated property that denotes the last updated timestamp of the resource.
-	Ts interface{} `json:"_ts,omitempty"`
+	Ts *float64 `json:"_ts,omitempty"`
 	// Etag - READ-ONLY; A system generated property representing the resource etag required for optimistic concurrency control.
 	Etag *string `json:"_etag,omitempty"`
 }
@@ -3048,6 +3908,38 @@ func (l Location) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
+// ManagedServiceIdentity identity for the resource.
+type ManagedServiceIdentity struct {
+	// PrincipalID - READ-ONLY; The principal id of the system assigned identity. This property will only be provided for a system assigned identity.
+	PrincipalID *string `json:"principalId,omitempty"`
+	// TenantID - READ-ONLY; The tenant id of the system assigned identity. This property will only be provided for a system assigned identity.
+	TenantID *string `json:"tenantId,omitempty"`
+	// Type - The type of identity used for the resource. The type 'SystemAssigned,UserAssigned' includes both an implicitly created identity and a set of user assigned identities. The type 'None' will remove any identities from the service. Possible values include: 'ResourceIdentityTypeSystemAssigned', 'ResourceIdentityTypeUserAssigned', 'ResourceIdentityTypeSystemAssignedUserAssigned', 'ResourceIdentityTypeNone'
+	Type ResourceIdentityType `json:"type,omitempty"`
+	// UserAssignedIdentities - The list of user identities associated with resource. The user identity dictionary key references will be ARM resource ids in the form: '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{identityName}'.
+	UserAssignedIdentities map[string]*ManagedServiceIdentityUserAssignedIdentitiesValue `json:"userAssignedIdentities"`
+}
+
+// MarshalJSON is the custom marshaler for ManagedServiceIdentity.
+func (msi ManagedServiceIdentity) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if msi.Type != "" {
+		objectMap["type"] = msi.Type
+	}
+	if msi.UserAssignedIdentities != nil {
+		objectMap["userAssignedIdentities"] = msi.UserAssignedIdentities
+	}
+	return json.Marshal(objectMap)
+}
+
+// ManagedServiceIdentityUserAssignedIdentitiesValue ...
+type ManagedServiceIdentityUserAssignedIdentitiesValue struct {
+	// PrincipalID - READ-ONLY; The principal id of user assigned identity.
+	PrincipalID *string `json:"principalId,omitempty"`
+	// ClientID - READ-ONLY; The client id of user assigned identity.
+	ClientID *string `json:"clientId,omitempty"`
+}
+
 // Metric metric data
 type Metric struct {
 	// StartTime - READ-ONLY; The start time for the metric (ISO-8601 format).
@@ -3277,7 +4169,7 @@ type MongoDBCollectionGetPropertiesResource struct {
 	// Rid - READ-ONLY; A system generated property. A unique identifier.
 	Rid *string `json:"_rid,omitempty"`
 	// Ts - READ-ONLY; A system generated property that denotes the last updated timestamp of the resource.
-	Ts interface{} `json:"_ts,omitempty"`
+	Ts *float64 `json:"_ts,omitempty"`
 	// Etag - READ-ONLY; A system generated property representing the resource etag required for optimistic concurrency control.
 	Etag *string `json:"_etag,omitempty"`
 }
@@ -3566,7 +4458,7 @@ type MongoDBDatabaseGetPropertiesResource struct {
 	// Rid - READ-ONLY; A system generated property. A unique identifier.
 	Rid *string `json:"_rid,omitempty"`
 	// Ts - READ-ONLY; A system generated property that denotes the last updated timestamp of the resource.
-	Ts interface{} `json:"_ts,omitempty"`
+	Ts *float64 `json:"_ts,omitempty"`
 	// Etag - READ-ONLY; A system generated property representing the resource etag required for optimistic concurrency control.
 	Etag *string `json:"_etag,omitempty"`
 }
@@ -4715,6 +5607,55 @@ type PercentileMetricValue struct {
 	Total *float64 `json:"total,omitempty"`
 }
 
+// PeriodicModeBackupPolicy the object representing periodic mode backup policy.
+type PeriodicModeBackupPolicy struct {
+	// PeriodicModeProperties - Configuration values for periodic mode backup
+	PeriodicModeProperties *PeriodicModeProperties `json:"periodicModeProperties,omitempty"`
+	// Type - Possible values include: 'TypeBackupPolicy', 'TypePeriodic', 'TypeContinuous'
+	Type Type `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PeriodicModeBackupPolicy.
+func (pmbp PeriodicModeBackupPolicy) MarshalJSON() ([]byte, error) {
+	pmbp.Type = TypePeriodic
+	objectMap := make(map[string]interface{})
+	if pmbp.PeriodicModeProperties != nil {
+		objectMap["periodicModeProperties"] = pmbp.PeriodicModeProperties
+	}
+	if pmbp.Type != "" {
+		objectMap["type"] = pmbp.Type
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsPeriodicModeBackupPolicy is the BasicBackupPolicy implementation for PeriodicModeBackupPolicy.
+func (pmbp PeriodicModeBackupPolicy) AsPeriodicModeBackupPolicy() (*PeriodicModeBackupPolicy, bool) {
+	return &pmbp, true
+}
+
+// AsContinuousModeBackupPolicy is the BasicBackupPolicy implementation for PeriodicModeBackupPolicy.
+func (pmbp PeriodicModeBackupPolicy) AsContinuousModeBackupPolicy() (*ContinuousModeBackupPolicy, bool) {
+	return nil, false
+}
+
+// AsBackupPolicy is the BasicBackupPolicy implementation for PeriodicModeBackupPolicy.
+func (pmbp PeriodicModeBackupPolicy) AsBackupPolicy() (*BackupPolicy, bool) {
+	return nil, false
+}
+
+// AsBasicBackupPolicy is the BasicBackupPolicy implementation for PeriodicModeBackupPolicy.
+func (pmbp PeriodicModeBackupPolicy) AsBasicBackupPolicy() (BasicBackupPolicy, bool) {
+	return &pmbp, true
+}
+
+// PeriodicModeProperties configuration values for periodic mode backup
+type PeriodicModeProperties struct {
+	// BackupIntervalInMinutes - An integer representing the interval in minutes between two backups
+	BackupIntervalInMinutes *int32 `json:"backupIntervalInMinutes,omitempty"`
+	// BackupRetentionIntervalInHours - An integer representing the time (in hours) that each backup is retained
+	BackupRetentionIntervalInHours *int32 `json:"backupRetentionIntervalInHours,omitempty"`
+}
+
 // PrivateEndpointConnection a private endpoint connection
 type PrivateEndpointConnection struct {
 	autorest.Response `json:"-"`
@@ -4987,10 +5928,10 @@ type PrivateLinkResourceProperties struct {
 type PrivateLinkServiceConnectionStateProperty struct {
 	// Status - The private link service connection status.
 	Status *string `json:"status,omitempty"`
-	// ActionsRequired - READ-ONLY; Any action that is required beyond basic workflow (approve/ reject/ disconnect)
-	ActionsRequired *string `json:"actionsRequired,omitempty"`
 	// Description - The private link service connection description.
 	Description *string `json:"description,omitempty"`
+	// ActionsRequired - READ-ONLY; Any action that is required beyond basic workflow (approve/ reject/ disconnect)
+	ActionsRequired *string `json:"actionsRequired,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for PrivateLinkServiceConnectionStateProperty.
@@ -5180,7 +6121,7 @@ type SQLContainerGetPropertiesResource struct {
 	// Rid - READ-ONLY; A system generated property. A unique identifier.
 	Rid *string `json:"_rid,omitempty"`
 	// Ts - READ-ONLY; A system generated property that denotes the last updated timestamp of the resource.
-	Ts interface{} `json:"_ts,omitempty"`
+	Ts *float64 `json:"_ts,omitempty"`
 	// Etag - READ-ONLY; A system generated property representing the resource etag required for optimistic concurrency control.
 	Etag *string `json:"_etag,omitempty"`
 }
@@ -5465,7 +6406,7 @@ type SQLDatabaseGetPropertiesResource struct {
 	// Rid - READ-ONLY; A system generated property. A unique identifier.
 	Rid *string `json:"_rid,omitempty"`
 	// Ts - READ-ONLY; A system generated property that denotes the last updated timestamp of the resource.
-	Ts interface{} `json:"_ts,omitempty"`
+	Ts *float64 `json:"_ts,omitempty"`
 	// Etag - READ-ONLY; A system generated property representing the resource etag required for optimistic concurrency control.
 	Etag *string `json:"_etag,omitempty"`
 	// Colls - A system generated property that specified the addressable path of the collections resource.
@@ -6382,7 +7323,7 @@ type SQLStoredProcedureGetPropertiesResource struct {
 	// Rid - READ-ONLY; A system generated property. A unique identifier.
 	Rid *string `json:"_rid,omitempty"`
 	// Ts - READ-ONLY; A system generated property that denotes the last updated timestamp of the resource.
-	Ts interface{} `json:"_ts,omitempty"`
+	Ts *float64 `json:"_ts,omitempty"`
 	// Etag - READ-ONLY; A system generated property representing the resource etag required for optimistic concurrency control.
 	Etag *string `json:"_etag,omitempty"`
 }
@@ -6640,7 +7581,7 @@ type SQLTriggerGetPropertiesResource struct {
 	// Rid - READ-ONLY; A system generated property. A unique identifier.
 	Rid *string `json:"_rid,omitempty"`
 	// Ts - READ-ONLY; A system generated property that denotes the last updated timestamp of the resource.
-	Ts interface{} `json:"_ts,omitempty"`
+	Ts *float64 `json:"_ts,omitempty"`
 	// Etag - READ-ONLY; A system generated property representing the resource etag required for optimistic concurrency control.
 	Etag *string `json:"_etag,omitempty"`
 }
@@ -6905,7 +7846,7 @@ type SQLUserDefinedFunctionGetPropertiesResource struct {
 	// Rid - READ-ONLY; A system generated property. A unique identifier.
 	Rid *string `json:"_rid,omitempty"`
 	// Ts - READ-ONLY; A system generated property that denotes the last updated timestamp of the resource.
-	Ts interface{} `json:"_ts,omitempty"`
+	Ts *float64 `json:"_ts,omitempty"`
 	// Etag - READ-ONLY; A system generated property representing the resource etag required for optimistic concurrency control.
 	Etag *string `json:"_etag,omitempty"`
 }
@@ -7166,7 +8107,7 @@ type TableGetPropertiesResource struct {
 	// Rid - READ-ONLY; A system generated property. A unique identifier.
 	Rid *string `json:"_rid,omitempty"`
 	// Ts - READ-ONLY; A system generated property that denotes the last updated timestamp of the resource.
-	Ts interface{} `json:"_ts,omitempty"`
+	Ts *float64 `json:"_ts,omitempty"`
 	// Etag - READ-ONLY; A system generated property representing the resource etag required for optimistic concurrency control.
 	Etag *string `json:"_etag,omitempty"`
 }
@@ -7528,7 +8469,7 @@ type ThroughputSettingsGetPropertiesResource struct {
 	// Rid - READ-ONLY; A system generated property. A unique identifier.
 	Rid *string `json:"_rid,omitempty"`
 	// Ts - READ-ONLY; A system generated property that denotes the last updated timestamp of the resource.
-	Ts interface{} `json:"_ts,omitempty"`
+	Ts *float64 `json:"_ts,omitempty"`
 	// Etag - READ-ONLY; A system generated property representing the resource etag required for optimistic concurrency control.
 	Etag *string `json:"_etag,omitempty"`
 }

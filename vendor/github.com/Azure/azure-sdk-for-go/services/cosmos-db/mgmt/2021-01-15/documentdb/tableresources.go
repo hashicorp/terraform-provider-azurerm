@@ -63,7 +63,6 @@ func (client TableResourcesClient) CreateUpdateTable(ctx context.Context, resour
 			Constraints: []validation.Constraint{{Target: "createUpdateTableParameters.TableCreateUpdateProperties", Name: validation.Null, Rule: true,
 				Chain: []validation.Constraint{{Target: "createUpdateTableParameters.TableCreateUpdateProperties.Resource", Name: validation.Null, Rule: true,
 					Chain: []validation.Constraint{{Target: "createUpdateTableParameters.TableCreateUpdateProperties.Resource.ID", Name: validation.Null, Rule: true, Chain: nil}}},
-					{Target: "createUpdateTableParameters.TableCreateUpdateProperties.Options", Name: validation.Null, Rule: true, Chain: nil},
 				}}}}}); err != nil {
 		return result, validation.NewError("documentdb.TableResourcesClient", "CreateUpdateTable", err.Error())
 	}
@@ -92,7 +91,7 @@ func (client TableResourcesClient) CreateUpdateTablePreparer(ctx context.Context
 		"tableName":         autorest.Encode("path", tableName),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -188,7 +187,7 @@ func (client TableResourcesClient) DeleteTablePreparer(ctx context.Context, reso
 		"tableName":         autorest.Encode("path", tableName),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -288,7 +287,7 @@ func (client TableResourcesClient) GetTablePreparer(ctx context.Context, resourc
 		"tableName":         autorest.Encode("path", tableName),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -381,7 +380,7 @@ func (client TableResourcesClient) GetTableThroughputPreparer(ctx context.Contex
 		"tableName":         autorest.Encode("path", tableName),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -471,7 +470,7 @@ func (client TableResourcesClient) ListTablesPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -556,7 +555,7 @@ func (client TableResourcesClient) MigrateTableToAutoscalePreparer(ctx context.C
 		"tableName":         autorest.Encode("path", tableName),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -650,7 +649,7 @@ func (client TableResourcesClient) MigrateTableToManualThroughputPreparer(ctx co
 		"tableName":         autorest.Encode("path", tableName),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -752,7 +751,7 @@ func (client TableResourcesClient) UpdateTableThroughputPreparer(ctx context.Con
 		"tableName":         autorest.Encode("path", tableName),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

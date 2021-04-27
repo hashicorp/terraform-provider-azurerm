@@ -272,21 +272,6 @@ func resourceStorageAccount() *schema.Resource {
 							},
 						},
 
-						"change_feed": {
-							Type:     schema.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"retention_in_days": {
-										Type:         schema.TypeInt,
-										Optional:     true,
-										ValidateFunc: validation.IntBetween(1, 146000),
-									},
-								},
-							},
-						},
-
 						"versioning_enabled": {
 							Type:     schema.TypeBool,
 							Optional: true,
@@ -782,10 +767,7 @@ func resourceStorageAccountCreate(d *schema.ResourceData, meta interface{}) erro
 		if accountKind != string(storage.FileStorage) {
 			blobClient := meta.(*clients.Client).Storage.BlobServicesClient
 
-			blobProperties, err := expandBlobProperties(val.([]interface{}), isHnsEnabled, accountKind)
-			if err != nil {
-				return err
-			}
+			blobProperties := expandBlobProperties(val.([]interface{}))
 
 			if _, err = blobClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, *blobProperties); err != nil {
 				return fmt.Errorf("Error updating Azure Storage Account `blob_properties` %q: %+v", storageAccountName, err)
@@ -1043,10 +1025,7 @@ func resourceStorageAccountUpdate(d *schema.ResourceData, meta interface{}) erro
 		// FileStorage does not support blob settings
 		if accountKind != string(storage.FileStorage) {
 			blobClient := meta.(*clients.Client).Storage.BlobServicesClient
-			blobProperties, err := expandBlobProperties(d.Get("blob_properties").([]interface{}), d.Get("is_hns_enabled").(bool), accountKind)
-			if err != nil {
-				return err
-			}
+			blobProperties := expandBlobProperties(d.Get("blob_properties").([]interface{}))
 
 			if _, err = blobClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, *blobProperties); err != nil {
 				return fmt.Errorf("Error updating Azure Storage Account `blob_properties` %q: %+v", storageAccountName, err)
@@ -1502,16 +1481,13 @@ func expandStorageAccountBypass(networkRule map[string]interface{}) storage.Bypa
 	return storage.Bypass(strings.Join(bypassValues, ", "))
 }
 
-func expandBlobProperties(input []interface{}, isHnsEnabled bool, accountKind string) (*storage.BlobServiceProperties, error) {
+func expandBlobProperties(input []interface{}) *storage.BlobServiceProperties {
 	props := storage.BlobServiceProperties{
 		BlobServicePropertiesProperties: &storage.BlobServicePropertiesProperties{
 			Cors: &storage.CorsRules{
 				CorsRules: &[]storage.CorsRule{},
 			},
 			IsVersioningEnabled: utils.Bool(false),
-			ChangeFeed: &storage.ChangeFeed{
-				Enabled: utils.Bool(false),
-			},
 			LastAccessTimeTrackingPolicy: &storage.LastAccessTimeTrackingPolicy{
 				Enable: utils.Bool(false),
 			},
@@ -1523,7 +1499,7 @@ func expandBlobProperties(input []interface{}, isHnsEnabled bool, accountKind st
 	}
 
 	if len(input) == 0 || input[0] == nil {
-		return &props, nil
+		return &props
 	}
 
 	v := input[0].(map[string]interface{})
@@ -1537,12 +1513,6 @@ func expandBlobProperties(input []interface{}, isHnsEnabled bool, accountKind st
 
 	props.IsVersioningEnabled = utils.Bool(v["versioning_enabled"].(bool))
 
-	changeFeed, err := expandBlobPropertiesChangeFeed(v["change_feed"].([]interface{}), isHnsEnabled, accountKind)
-	if err != nil {
-		return nil, err
-	}
-	props.ChangeFeed = changeFeed
-
 	if version, ok := v["default_service_version"].(string); ok && version != "" {
 		props.DefaultServiceVersion = utils.String(version)
 	}
@@ -1550,7 +1520,7 @@ func expandBlobProperties(input []interface{}, isHnsEnabled bool, accountKind st
 	props.LastAccessTimeTrackingPolicy = &storage.LastAccessTimeTrackingPolicy{
 		Enable: utils.Bool(v["last_access_time_enabled"].(bool)),
 	}
-	return &props, nil
+	return &props
 }
 
 func expandBlobPropertiesDeleteRetentionPolicy(input []interface{}) *storage.DeleteRetentionPolicy {
@@ -1600,35 +1570,6 @@ func expandBlobPropertiesCors(input []interface{}) *storage.CorsRules {
 	blobCorsRules.CorsRules = &corsRules
 
 	return &blobCorsRules
-}
-
-func expandBlobPropertiesChangeFeed(inputs []interface{}, isHnsEnabled bool, accountKind string) (*storage.ChangeFeed, error) {
-	if len(inputs) == 0 {
-		return &storage.ChangeFeed{
-			Enabled: utils.Bool(false),
-		}, nil
-	}
-
-	if isHnsEnabled {
-		return nil, fmt.Errorf("`change_feed` in `blob_properties` cannot be enabled when `is_hns_enabled` is enabled")
-	}
-
-	if accountKind != string(storage.BlobStorage) && accountKind != string(storage.StorageV2) {
-		return nil, fmt.Errorf("`change_feed` can only be configured when `account_kind` is set to `BlobStorage` or `StorageV2`")
-	}
-
-	result := storage.ChangeFeed{
-		Enabled: utils.Bool(true),
-	}
-
-	if inputs[0] != nil {
-		input := inputs[0].(map[string]interface{})
-		if v, ok := input["retention_in_days"].(int); ok && v != 0 {
-			result.RetentionInDays = utils.Int32(int32(v))
-		}
-	}
-
-	return &result, nil
 }
 
 func expandQueueProperties(input []interface{}) (queues.StorageServiceProperties, error) {
@@ -1866,7 +1807,6 @@ func flattenBlobProperties(input storage.BlobServiceProperties) []interface{} {
 		map[string]interface{}{
 			"cors_rule":                         flattenedCorsRules,
 			"delete_retention_policy":           flattenedDeletePolicy,
-			"change_feed":                       flattenBlobPropertiesChangeFeed(input.BlobServicePropertiesProperties.ChangeFeed),
 			"versioning_enabled":                versioning,
 			"default_service_version":           defaultServiceVersion,
 			"last_access_time_enabled":          LastAccessTimeTrackingPolicy,
@@ -1939,25 +1879,6 @@ func flattenBlobPropertiesDeleteRetentionPolicy(input *storage.DeleteRetentionPo
 	}
 
 	return deleteRetentionPolicy
-}
-
-func flattenBlobPropertiesChangeFeed(input *storage.ChangeFeed) []interface{} {
-	changeFeed := make([]interface{}, 0)
-
-	if input == nil || input.Enabled == nil || !*input.Enabled {
-		return changeFeed
-	}
-
-	days := 0
-	if input.RetentionInDays != nil {
-		days = int(*input.RetentionInDays)
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"retention_in_days": days,
-		},
-	}
 }
 
 func flattenQueueProperties(input *queues.StorageServiceProperties) []interface{} {

@@ -102,7 +102,7 @@ func (client PartitionKeyRangeIDRegionClient) ListMetricsPreparer(ctx context.Co
 		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"$filter":     autorest.Encode("query", filter),
 		"api-version": APIVersion,

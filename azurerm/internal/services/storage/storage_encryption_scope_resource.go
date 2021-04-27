@@ -67,6 +67,12 @@ func resourceStorageEncryptionScope() *schema.Resource {
 				Optional:     true,
 				ValidateFunc: keyVaultValidate.KeyVaultChildID,
 			},
+
+			"infrastructure_encryption_required": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
 		},
 	}
 }
@@ -108,6 +114,11 @@ func resourceStorageEncryptionScopeCreate(d *schema.ResourceData, meta interface
 			},
 		},
 	}
+
+	if v, ok := d.GetOk("infrastructure_encryption_required"); ok {
+		props.EncryptionScopeProperties.RequireInfrastructureEncryption = utils.Bool(v.(bool))
+	}
+
 	if _, err := client.Put(ctx, accountId.ResourceGroup, accountId.Name, name, props); err != nil {
 		return fmt.Errorf("creating Storage Encryption Scope %q (Storage Account Name %q / Resource Group %q): %+v", name, accountId.Name, accountId.ResourceGroup, err)
 	}
@@ -192,6 +203,9 @@ func resourceStorageEncryptionScopeRead(d *schema.ResourceData, meta interface{}
 			}
 		}
 		d.Set("key_vault_key_id", keyId)
+		if props.RequireInfrastructureEncryption != nil {
+			d.Set("infrastructure_encryption_required", *props.RequireInfrastructureEncryption)
+		}
 	}
 
 	return nil

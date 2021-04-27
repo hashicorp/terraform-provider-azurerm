@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/cosmos-db/mgmt/2020-04-01-preview/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-01-15/documentdb"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -208,6 +208,7 @@ func resourceCosmosDbAccount() *schema.Resource {
 						"zone_redundant": {
 							Type:     schema.TypeBool,
 							Optional: true,
+							Default:  false,
 						},
 					},
 				},
@@ -821,21 +822,23 @@ func resourceCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClient,
 				return nil, "", fmt.Errorf("Error reading CosmosDB Account %q after create/update (Resource Group %q): %+v", name, resourceGroup, err2)
 			}
 			status := "Succeeded"
-			locations := append(*resp.ReadLocations, *resp.WriteLocations...)
-			for _, l := range locations {
-				if status = *l.ProvisioningState; status == "Creating" || status == "Updating" || status == "Deleting" {
-					break // return the first non successful status.
-				}
-			}
-
-			for _, desiredLocation := range *account.Locations {
-				for index, l := range locations {
-					if azure.NormalizeLocation(*desiredLocation.LocationName) == azure.NormalizeLocation(*l.LocationName) {
-						break
+			if props := resp.DatabaseAccountGetProperties; props != nil {
+				locations := append(*props.ReadLocations, *props.WriteLocations...)
+				for _, l := range locations {
+					if status = *l.ProvisioningState; status == "Creating" || status == "Updating" || status == "Deleting" {
+						break // return the first non successful status.
 					}
+				}
 
-					if (index + 1) == len(locations) {
-						return resp, "Updating", nil
+				for _, desiredLocation := range *account.Locations {
+					for index, l := range locations {
+						if azure.NormalizeLocation(*desiredLocation.LocationName) == azure.NormalizeLocation(*l.LocationName) {
+							break
+						}
+
+						if (index + 1) == len(locations) {
+							return resp, "Updating", nil
+						}
 					}
 				}
 			}
