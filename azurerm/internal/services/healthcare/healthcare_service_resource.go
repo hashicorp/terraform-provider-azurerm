@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthcare/parse"
 	keyVaultParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
+	keyVaultSuppress "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/suppress"
 	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
@@ -73,7 +74,7 @@ func resourceHealthcareService() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ForceNew:         true,
-				DiffSuppressFunc: diffSuppressIgnoreKeyVaultKeyVersion,
+				DiffSuppressFunc: keyVaultSuppress.DiffSuppressIgnoreKeyVaultKeyVersion,
 				ValidateFunc:     keyVaultValidate.VersionlessNestedItemId,
 			},
 
@@ -479,17 +480,4 @@ func flattenHealthcareCorsConfig(input *healthcareapis.ServiceCorsConfigurationI
 			"max_age_in_seconds": maxAge,
 		},
 	}
-}
-
-func diffSuppressIgnoreKeyVaultKeyVersion(k, old, new string, d *schema.ResourceData) bool {
-	oldKey, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(old)
-	if err != nil {
-		return false
-	}
-	newKey, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(new)
-	if err != nil {
-		return false
-	}
-
-	return (oldKey.KeyVaultBaseUrl == newKey.KeyVaultBaseUrl) && (oldKey.Name == newKey.Name)
 }
