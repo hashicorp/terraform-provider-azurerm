@@ -3,11 +3,12 @@ package cosmos
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/cosmos-db/mgmt/2020-04-01-preview/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-01-15/documentdb"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -82,11 +83,11 @@ func resourceCosmosDbGremlinGraph() *schema.Resource {
 				ValidateFunc: validate.CosmosThroughput,
 			},
 
-			"autoscale_settings": common.ContainerAutoscaleSettingsSchema(),
+			"autoscale_settings": common.DatabaseAutoscaleSettingsSchema(),
 
 			"partition_key_path": {
 				Type:         schema.TypeString,
-				Optional:     true,
+				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
@@ -103,14 +104,16 @@ func resourceCosmosDbGremlinGraph() *schema.Resource {
 							Default:  true,
 						},
 
+						// case change in 2021-01-15, issue https://github.com/Azure/azure-rest-api-specs/issues/14051
+						// todo: change to SDK constants and remove translation code in 3.0
 						"indexing_mode": {
 							Type:             schema.TypeString,
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference, // Open issue https://github.com/Azure/azure-sdk-for-go/issues/6603
 							ValidateFunc: validation.StringInSlice([]string{
-								string(documentdb.Consistent),
-								string(documentdb.Lazy),
-								string(documentdb.None),
+								"Consistent",
+								"Lazy",
+								"None",
 							}, false),
 						},
 
@@ -456,7 +459,7 @@ func expandAzureRmCosmosDbGrelinGraphIndexingPolicy(d *schema.ResourceData) *doc
 	input := i[0].(map[string]interface{})
 	indexingPolicy := input["indexing_mode"].(string)
 	policy := &documentdb.IndexingPolicy{
-		IndexingMode:  documentdb.IndexingMode(indexingPolicy),
+		IndexingMode:  documentdb.IndexingMode(strings.ToLower(indexingPolicy)),
 		IncludedPaths: expandAzureRmCosmosDbGrelimGraphIncludedPath(input),
 		ExcludedPaths: expandAzureRmCosmosDbGremlinGraphExcludedPath(input),
 	}
@@ -551,7 +554,7 @@ func flattenAzureRmCosmosDBGremlinGraphIndexingPolicy(input *documentdb.Indexing
 	indexPolicy := make(map[string]interface{})
 
 	indexPolicy["automatic"] = input.Automatic
-	indexPolicy["indexing_mode"] = string(input.IndexingMode)
+	indexPolicy["indexing_mode"] = strings.Title(string(input.IndexingMode))
 	indexPolicy["included_paths"] = schema.NewSet(schema.HashString, flattenAzureRmCosmosDBGremlinGraphIncludedPaths(input.IncludedPaths))
 	indexPolicy["excluded_paths"] = schema.NewSet(schema.HashString, flattenAzureRmCosmosDBGremlinGraphExcludedPaths(input.ExcludedPaths))
 

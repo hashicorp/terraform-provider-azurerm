@@ -71,7 +71,6 @@ func (client SQLResourcesClient) CreateUpdateSQLContainer(ctx context.Context, r
 								}},
 							}},
 					}},
-					{Target: "createUpdateSQLContainerParameters.SQLContainerCreateUpdateProperties.Options", Name: validation.Null, Rule: true, Chain: nil},
 				}}}}}); err != nil {
 		return result, validation.NewError("documentdb.SQLResourcesClient", "CreateUpdateSQLContainer", err.Error())
 	}
@@ -101,7 +100,7 @@ func (client SQLResourcesClient) CreateUpdateSQLContainerPreparer(ctx context.Co
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -175,7 +174,6 @@ func (client SQLResourcesClient) CreateUpdateSQLDatabase(ctx context.Context, re
 			Constraints: []validation.Constraint{{Target: "createUpdateSQLDatabaseParameters.SQLDatabaseCreateUpdateProperties", Name: validation.Null, Rule: true,
 				Chain: []validation.Constraint{{Target: "createUpdateSQLDatabaseParameters.SQLDatabaseCreateUpdateProperties.Resource", Name: validation.Null, Rule: true,
 					Chain: []validation.Constraint{{Target: "createUpdateSQLDatabaseParameters.SQLDatabaseCreateUpdateProperties.Resource.ID", Name: validation.Null, Rule: true, Chain: nil}}},
-					{Target: "createUpdateSQLDatabaseParameters.SQLDatabaseCreateUpdateProperties.Options", Name: validation.Null, Rule: true, Chain: nil},
 				}}}}}); err != nil {
 		return result, validation.NewError("documentdb.SQLResourcesClient", "CreateUpdateSQLDatabase", err.Error())
 	}
@@ -204,7 +202,7 @@ func (client SQLResourcesClient) CreateUpdateSQLDatabasePreparer(ctx context.Con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -280,7 +278,6 @@ func (client SQLResourcesClient) CreateUpdateSQLStoredProcedure(ctx context.Cont
 			Constraints: []validation.Constraint{{Target: "createUpdateSQLStoredProcedureParameters.SQLStoredProcedureCreateUpdateProperties", Name: validation.Null, Rule: true,
 				Chain: []validation.Constraint{{Target: "createUpdateSQLStoredProcedureParameters.SQLStoredProcedureCreateUpdateProperties.Resource", Name: validation.Null, Rule: true,
 					Chain: []validation.Constraint{{Target: "createUpdateSQLStoredProcedureParameters.SQLStoredProcedureCreateUpdateProperties.Resource.ID", Name: validation.Null, Rule: true, Chain: nil}}},
-					{Target: "createUpdateSQLStoredProcedureParameters.SQLStoredProcedureCreateUpdateProperties.Options", Name: validation.Null, Rule: true, Chain: nil},
 				}}}}}); err != nil {
 		return result, validation.NewError("documentdb.SQLResourcesClient", "CreateUpdateSQLStoredProcedure", err.Error())
 	}
@@ -311,7 +308,7 @@ func (client SQLResourcesClient) CreateUpdateSQLStoredProcedurePreparer(ctx cont
 		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -387,7 +384,6 @@ func (client SQLResourcesClient) CreateUpdateSQLTrigger(ctx context.Context, res
 			Constraints: []validation.Constraint{{Target: "createUpdateSQLTriggerParameters.SQLTriggerCreateUpdateProperties", Name: validation.Null, Rule: true,
 				Chain: []validation.Constraint{{Target: "createUpdateSQLTriggerParameters.SQLTriggerCreateUpdateProperties.Resource", Name: validation.Null, Rule: true,
 					Chain: []validation.Constraint{{Target: "createUpdateSQLTriggerParameters.SQLTriggerCreateUpdateProperties.Resource.ID", Name: validation.Null, Rule: true, Chain: nil}}},
-					{Target: "createUpdateSQLTriggerParameters.SQLTriggerCreateUpdateProperties.Options", Name: validation.Null, Rule: true, Chain: nil},
 				}}}}}); err != nil {
 		return result, validation.NewError("documentdb.SQLResourcesClient", "CreateUpdateSQLTrigger", err.Error())
 	}
@@ -418,7 +414,7 @@ func (client SQLResourcesClient) CreateUpdateSQLTriggerPreparer(ctx context.Cont
 		"triggerName":       autorest.Encode("path", triggerName),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -495,7 +491,6 @@ func (client SQLResourcesClient) CreateUpdateSQLUserDefinedFunction(ctx context.
 			Constraints: []validation.Constraint{{Target: "createUpdateSQLUserDefinedFunctionParameters.SQLUserDefinedFunctionCreateUpdateProperties", Name: validation.Null, Rule: true,
 				Chain: []validation.Constraint{{Target: "createUpdateSQLUserDefinedFunctionParameters.SQLUserDefinedFunctionCreateUpdateProperties.Resource", Name: validation.Null, Rule: true,
 					Chain: []validation.Constraint{{Target: "createUpdateSQLUserDefinedFunctionParameters.SQLUserDefinedFunctionCreateUpdateProperties.Resource.ID", Name: validation.Null, Rule: true, Chain: nil}}},
-					{Target: "createUpdateSQLUserDefinedFunctionParameters.SQLUserDefinedFunctionCreateUpdateProperties.Options", Name: validation.Null, Rule: true, Chain: nil},
 				}}}}}); err != nil {
 		return result, validation.NewError("documentdb.SQLResourcesClient", "CreateUpdateSQLUserDefinedFunction", err.Error())
 	}
@@ -526,7 +521,7 @@ func (client SQLResourcesClient) CreateUpdateSQLUserDefinedFunctionPreparer(ctx 
 		"userDefinedFunctionName": autorest.Encode("path", userDefinedFunctionName),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -624,7 +619,7 @@ func (client SQLResourcesClient) DeleteSQLContainerPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -717,7 +712,7 @@ func (client SQLResourcesClient) DeleteSQLDatabasePreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -814,7 +809,7 @@ func (client SQLResourcesClient) DeleteSQLStoredProcedurePreparer(ctx context.Co
 		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -911,7 +906,7 @@ func (client SQLResourcesClient) DeleteSQLTriggerPreparer(ctx context.Context, r
 		"triggerName":       autorest.Encode("path", triggerName),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1008,7 +1003,7 @@ func (client SQLResourcesClient) DeleteSQLUserDefinedFunctionPreparer(ctx contex
 		"userDefinedFunctionName": autorest.Encode("path", userDefinedFunctionName),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1110,7 +1105,7 @@ func (client SQLResourcesClient) GetSQLContainerPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1205,7 +1200,7 @@ func (client SQLResourcesClient) GetSQLContainerThroughputPreparer(ctx context.C
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1297,7 +1292,7 @@ func (client SQLResourcesClient) GetSQLDatabasePreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1390,7 +1385,7 @@ func (client SQLResourcesClient) GetSQLDatabaseThroughputPreparer(ctx context.Co
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1486,7 +1481,7 @@ func (client SQLResourcesClient) GetSQLStoredProcedurePreparer(ctx context.Conte
 		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1582,7 +1577,7 @@ func (client SQLResourcesClient) GetSQLTriggerPreparer(ctx context.Context, reso
 		"triggerName":       autorest.Encode("path", triggerName),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1678,7 +1673,7 @@ func (client SQLResourcesClient) GetSQLUserDefinedFunctionPreparer(ctx context.C
 		"userDefinedFunctionName": autorest.Encode("path", userDefinedFunctionName),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1770,7 +1765,7 @@ func (client SQLResourcesClient) ListSQLContainersPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1860,7 +1855,7 @@ func (client SQLResourcesClient) ListSQLDatabasesPreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1954,7 +1949,7 @@ func (client SQLResourcesClient) ListSQLStoredProceduresPreparer(ctx context.Con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2048,7 +2043,7 @@ func (client SQLResourcesClient) ListSQLTriggersPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2142,7 +2137,7 @@ func (client SQLResourcesClient) ListSQLUserDefinedFunctionsPreparer(ctx context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2229,7 +2224,7 @@ func (client SQLResourcesClient) MigrateSQLContainerToAutoscalePreparer(ctx cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2325,7 +2320,7 @@ func (client SQLResourcesClient) MigrateSQLContainerToManualThroughputPreparer(c
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2419,7 +2414,7 @@ func (client SQLResourcesClient) MigrateSQLDatabaseToAutoscalePreparer(ctx conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2513,7 +2508,7 @@ func (client SQLResourcesClient) MigrateSQLDatabaseToManualThroughputPreparer(ct
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2617,7 +2612,7 @@ func (client SQLResourcesClient) UpdateSQLContainerThroughputPreparer(ctx contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2721,7 +2716,7 @@ func (client SQLResourcesClient) UpdateSQLDatabaseThroughputPreparer(ctx context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
