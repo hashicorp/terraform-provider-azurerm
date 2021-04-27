@@ -893,6 +893,8 @@ func schemaAppServiceIpRestriction() *schema.Schema {
 					ConfigMode: schema.SchemaConfigModeAttr,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
+
+							// lintignore:S018
 							"x_forwarded_host": {
 								Type:     schema.TypeSet,
 								Optional: true,
@@ -901,6 +903,8 @@ func schemaAppServiceIpRestriction() *schema.Schema {
 									Type: schema.TypeString,
 								},
 							},
+
+							// lintignore:S018
 							"x_forwarded_for": {
 								Type:     schema.TypeSet,
 								Optional: true,
@@ -910,6 +914,8 @@ func schemaAppServiceIpRestriction() *schema.Schema {
 									ValidateFunc: validation.IsCIDR,
 								},
 							},
+
+							// lintignore:S018
 							"x_azure_fdid": {
 								Type:     schema.TypeSet,
 								Optional: true,
@@ -919,6 +925,8 @@ func schemaAppServiceIpRestriction() *schema.Schema {
 									ValidateFunc: validation.IsUUID,
 								},
 							},
+
+							// lintignore:S018
 							"x_fd_health_probe": {
 								Type:     schema.TypeSet,
 								Optional: true,
