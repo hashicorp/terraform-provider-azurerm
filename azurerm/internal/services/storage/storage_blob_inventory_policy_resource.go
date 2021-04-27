@@ -44,18 +44,21 @@ func resourceStorageBlobInventoryPolicy() *schema.Resource {
 			},
 
 			"storage_container_name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.StorageContainerName,
 			},
 
 			"rules": {
 				Type:     schema.TypeSet,
-				Required: true,
+				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"filter": {
