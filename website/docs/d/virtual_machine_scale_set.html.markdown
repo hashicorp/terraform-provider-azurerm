@@ -55,13 +55,13 @@ A `identity` block exports the following:
 
 `network_profile` exports the following:
 
-* `name` - The the name of the network interface configuration.
-* `primary` - Indicates whether network interfaces created from the network interface configuration will be the primary NIC of the VM.
+* `name` - The name of the network interface configuration.
+* `primary` - Whether network interfaces created from the network interface configuration will be the primary NIC of the VM.
 * `ip_configuration` - An ip_configuration block as documented below.
-* `accelerated_networking` - The whether to enable accelerated networking or not. Defaults to `false`.
+* `accelerated_networking` - Whether to enable accelerated networking or not.
 * `dns_settings` - A dns_settings block as documented below.
-* `ip_forwarding` - Whether IP forwarding is enabled on this NIC. Defaults to `false`.
-* `network_security_group_id` - The the identifier for the network security group.
+* `ip_forwarding` - Whether IP forwarding is enabled on this NIC.
+* `network_security_group_id` - The identifier for the network security group.
 
 `dns_settings` exports the following:
 
@@ -71,10 +71,10 @@ A `identity` block exports the following:
 
 * `name` - The name of the IP configuration.
 * `subnet_id` - The the identifier of the subnet.
-* `application_gateway_backend_address_pool_ids` - The an array of references to backend address pools of application gateways.
-* `load_balancer_backend_address_pool_ids` - The an array of references to backend address pools of load balancers.
-* `load_balancer_inbound_nat_rules_ids` - The an array of references to inbound NAT pools for load balancers.
-* `primary` -  The if this ip_configuration is the primary one.
+* `application_gateway_backend_address_pool_ids` - An array of references to backend address pools of application gateways.
+* `load_balancer_backend_address_pool_ids` - An array of references to backend address pools of load balancers.
+* `load_balancer_inbound_nat_rules_ids` - An array of references to inbound NAT pools for load balancers.
+* `primary` -  If this ip_configuration is the primary one.
 * `application_security_group_ids` -  The application security group IDs to use.
 * `public_ip_address_configuration` - The virtual machines scale set IP Configuration's PublicIPAddress configuration. The `public_ip_address_configuration` is documented below.
 
