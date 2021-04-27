@@ -152,6 +152,12 @@ func (r StorageBlobInventoryPolicyResource) basic(data acceptance.TestData) stri
 resource "azurerm_storage_blob_inventory_policy" "test" {
   storage_account_id     = azurerm_storage_account.test.id
   storage_container_name = azurerm_storage_container.test.name
+  rules {
+    name = "rule1"
+    filter {
+      blob_types = ["blockBlob"]
+    }
+  }
 }
 `, r.template(data))
 }
@@ -163,6 +169,13 @@ func (r StorageBlobInventoryPolicyResource) requiresImport(data acceptance.TestD
 resource "azurerm_storage_blob_inventory_policy" "import" {
   storage_account_id     = azurerm_storage_blob_inventory_policy.test.storage_account_id
   storage_container_name = azurerm_storage_blob_inventory_policy.test.storage_container_name
+  rules {
+    name = tolist(azurerm_storage_blob_inventory_policy.test.rules).0.name
+    filter {
+      blob_types = tolist(azurerm_storage_blob_inventory_policy.test.rules).0.filter.0.blob_types
+
+    }
+  }
 }
 `, r.basic(data))
 }
@@ -213,13 +226,6 @@ resource "azurerm_storage_blob_inventory_policy" "test" {
       include_blob_versions = false
       include_snapshots     = true
       prefix_match          = ["prefix"]
-    }
-  }
-
-  rules {
-    name = "rule3"
-    filter {
-      blob_types = ["blockBlob"]
     }
   }
 }
