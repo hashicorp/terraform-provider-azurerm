@@ -1,5 +1,11 @@
 ## 2.57.0 (Unreleased)
 
+UPGRADE NOTES
+
+* `azurerm_cosmosdb_account` - the `2021-02-01` of the cosmos API defaults new MongoDB accounts to `v3.6` rather then `v3.2` [GH-10926]
+* `azurerm_cosmosdb_mongo_collection` - the `_id` index is now required by the new API/MongoDB version [GH-10926]
+* `azurerm_cosmosdb_gremlin_graph` and `azurerm_cosmosdb_sql_container` - the `patition_key_path` property is now required [GH-10926]
+ 
 FEATURES:
 
 * **Data Source:** `azurerm_postgresql_flexible_server` [GH-11081]
@@ -20,6 +26,7 @@ ENHANCEMENTS:
 
 * dependencies: updating to `v53.4.0` of `github.com/Azure/azure-sdk-for-go` [GH-11439]
 * dependencies: updating to `v1.17.1` of `github.com/hashicorp/terraform-plugin-sdk` [GH-11431]
+* dependencies: updating `cosmos-db` to API version `2021-02-01` [GH-10926]
 * `azurerm_container_registry` - deprecating the `georeplication_locations` property in favour of the `georeplications` property GH-11200]
 * `azurerm_database_migration` - switching to using an ID Formatter [GH-11378]
 * `azurerm_database_migration_project` - switching to using an ID Formatter [GH-11378]
