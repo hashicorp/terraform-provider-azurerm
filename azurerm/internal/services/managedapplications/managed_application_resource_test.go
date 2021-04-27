@@ -94,6 +94,41 @@ func TestAccManagedApplication_update(t *testing.T) {
 	})
 }
 
+func TestAccManagedApplication_updateParameters(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_application", "test")
+	r := ManagedApplicationResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("parameters.%").HasValue("3"),
+				check.That(data.ResourceName).Key("parameter_values").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.parameterValues(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("parameters.%").Exists(),
+				check.That(data.ResourceName).Key("parameter_values").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("parameters.%").HasValue("3"),
+				check.That(data.ResourceName).Key("parameter_values").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccManagedApplication_parameterValues(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_application", "test")
 	r := ManagedApplicationResource{}

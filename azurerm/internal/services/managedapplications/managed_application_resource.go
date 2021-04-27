@@ -77,7 +77,6 @@ func resourceManagedApplication() *schema.Resource {
 				Type:          schema.TypeMap,
 				Optional:      true,
 				Computed:      true,
-				Deprecated:    "Deprecated in favour of `parameter_values`",
 				ConflictsWith: []string{"parameter_values"},
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
