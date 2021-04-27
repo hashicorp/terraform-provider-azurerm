@@ -3,6 +3,7 @@ package storage_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"regexp"
 	"testing"
 
@@ -597,13 +598,6 @@ func TestAccStorageAccount_resourceAccessRules(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		//{
-		//	Config: r.networkRulesResourceAccessRuleUpdate(data),
-		//	Check: resource.ComposeTestCheckFunc(
-		//		check.That(data.ResourceName).ExistsInAzure(r),
-		//	),
-		//},
-		//data.ImportStep(),
 		{
 			Config: r.networkRulesReverted(data),
 			Check: resource.ComposeTestCheckFunc(
@@ -965,7 +959,7 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 
   tags = {
-                %s
+                    %s
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, tags)
@@ -2445,7 +2439,7 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 
   extended_location {
-    name = "microsoftrrdclab1"
+    name = "%s"
     type = "EdgeZone"
   }
 
@@ -2453,5 +2447,5 @@ resource "azurerm_storage_account" "test" {
     environment = "production"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, os.Getenv("ARM_EDGE_ZONE_ACCOUNT_LOCATION"), data.RandomString, os.Getenv("ARM_EDGE_ZONE_LOCATION"))
 }

@@ -88,6 +88,17 @@ The following arguments are supported:
 
 -> **NOTE** User has to explicitly set `virtual_network_subnet_ids` to empty slice (`[]`) to remove it.
 
+* `resource_access_rules` - (Optional) One or more `resource_access_rules` blocks as documented below.
+
+---
+
+A `resource_access_rules` block supports the following:
+
+* `resource_id` - (Required) The `azurerm_private_endpoint` resource id, which assigns a private IP address from your VNet to this storage account and secures all traffic between your VNet and this storage account over a private link. 
+
+* `tenant_id` - (Optional) The tenant id of the `azurerm_private_endpoint`. Defaults to the current tenant id.
+
+
 ## Attributes Reference
 
 The following attributes are exported in addition to the arguments listed above:
