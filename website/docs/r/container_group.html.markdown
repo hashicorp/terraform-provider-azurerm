@@ -218,7 +218,7 @@ The `readiness_probe` block supports:
 
 * `exec` - (Optional) Commands to be run to validate container readiness. Changing this forces a new resource to be created.
 
-* `http_get` - (Optional) The definition of the httpget for this container as documented in the `httpget` block below. Changing this forces a new resource to be created.
+* `http_get` - (Optional) The definition of the http_get for this container as documented in the `http_get` block below. Changing this forces a new resource to be created.
 
 * `initial_delay_seconds` - (Optional) Number of seconds after the container has started before liveness or readiness probes are initiated. Changing this forces a new resource to be created.
 
@@ -236,7 +236,7 @@ The `liveness_probe` block supports:
 
 * `exec` - (Optional) Commands to be run to validate container readiness. Changing this forces a new resource to be created.
 
-* `http_get` - (Optional) The definition of the httpget for this container as documented in the `httpget` block below. Changing this forces a new resource to be created.
+* `http_get` - (Optional) The definition of the http_get for this container as documented in the `http_get` block below. Changing this forces a new resource to be created.
 
 * `initial_delay_seconds` - (Optional) Number of seconds after the container has started before liveness or readiness probes are initiated. Changing this forces a new resource to be created.
 
