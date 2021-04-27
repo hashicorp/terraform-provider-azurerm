@@ -27,14 +27,15 @@ func NewMxRecordID(subscriptionId, resourceGroup, dnszoneName, mXName string) Mx
 
 func (id MxRecordId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Dnszone Name %q", id.DnszoneName),
 		fmt.Sprintf("M X Name %q", id.MXName),
+		fmt.Sprintf("Dnszone Name %q", id.DnszoneName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Mx Record", segmentsStr)
 }
 
-func (id MxRecordId) ID(_ string) string {
+func (id MxRecordId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/dnszones/%s/MX/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DnszoneName, id.MXName)
 }

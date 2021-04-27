@@ -1,156 +1,104 @@
 package redis_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMRedisFirewallRule_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_redis_firewall_rule", "test")
+type RedisFirewallRuleResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRedisFirewallRuleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMRedisFirewallRule_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRedisFirewallRuleExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccRedisFirewallRule_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_redis_firewall_rule", "test")
+	r := RedisFirewallRuleResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMRedisFirewallRule_multi(t *testing.T) {
+func TestAccRedisFirewallRule_multi(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_firewall_rule", "test")
+	r := RedisFirewallRuleResource{}
 	ruleTwo := "azurerm_redis_firewall_rule.double"
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRedisFirewallRuleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMRedisFirewallRule_multi(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRedisFirewallRuleExists(data.ResourceName),
-					testCheckAzureRMRedisFirewallRuleExists(ruleTwo),
-				),
-			},
-			data.ImportStep(),
-			{
-				ResourceName:      ruleTwo,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.multi(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(ruleTwo).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		data.ImportStepFor(ruleTwo),
 	})
 }
 
-func TestAccAzureRMRedisFirewallRule_requiresImport(t *testing.T) {
+func TestAccRedisFirewallRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_firewall_rule", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRedisFirewallRuleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMRedisFirewallRule_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRedisFirewallRuleExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMRedisFirewallRule_requiresImport),
+	r := RedisFirewallRuleResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func TestAccAzureRMRedisFirewallRule_update(t *testing.T) {
+func TestAccRedisFirewallRule_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_firewall_rule", "test")
+	r := RedisFirewallRuleResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRedisFirewallRuleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMRedisFirewallRule_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRedisFirewallRuleExists(data.ResourceName),
-				),
-			},
-			{
-				Config: testAccAzureRMRedisFirewallRule_update(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRedisFirewallRuleExists(data.ResourceName),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.update(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 	})
 }
 
-func testCheckAzureRMRedisFirewallRuleExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Redis.FirewallRulesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %q", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		cacheName := rs.Primary.Attributes["redis_cache_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, cacheName, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Firewall Rule %q (cache %q resource group: %q) does not exist", name, cacheName, resourceGroup)
-			}
-			return fmt.Errorf("Bad: Get on redis.FirewallRulesClient: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMRedisFirewallRuleDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Resource.GroupsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_redis_firewall_rule" {
-			continue
-		}
-
-		resourceGroup := rs.Primary.ID
-
-		resp, err := client.Get(ctx, resourceGroup)
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Firewall Rule still exists:\n%#v", resp.Properties)
-		}
+func (t RedisFirewallRuleResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.FirewallRuleID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.Redis.FirewallRulesClient.Get(ctx, id.ResourceGroup, id.RediName, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("reading Redis Firewall Rule (%s): %+v", id.String(), err)
+	}
+
+	return utils.Bool(resp.FirewallRuleProperties != nil), nil
 }
 
-func testAccAzureRMRedisFirewallRule_basic(data acceptance.TestData) string {
+func (RedisFirewallRuleResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -187,8 +135,7 @@ resource "azurerm_redis_firewall_rule" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMRedisFirewallRule_multi(data acceptance.TestData) string {
-	template := testAccAzureRMRedisFirewallRule_basic(data)
+func (r RedisFirewallRuleResource) multi(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -199,11 +146,10 @@ resource "azurerm_redis_firewall_rule" "double" {
   start_ip            = "4.5.6.7"
   end_ip              = "8.9.0.1"
 }
-`, template, data.RandomInteger)
+`, r.basic(data), data.RandomInteger)
 }
 
-func testAccAzureRMRedisFirewallRule_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMRedisFirewallRule_basic(data)
+func (r RedisFirewallRuleResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -214,10 +160,10 @@ resource "azurerm_redis_firewall_rule" "import" {
   start_ip            = azurerm_redis_firewall_rule.test.start_ip
   end_ip              = azurerm_redis_firewall_rule.test.end_ip
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMRedisFirewallRule_update(data acceptance.TestData) string {
+func (RedisFirewallRuleResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

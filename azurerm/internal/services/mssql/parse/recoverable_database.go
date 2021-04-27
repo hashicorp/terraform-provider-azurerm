@@ -27,14 +27,15 @@ func NewRecoverableDatabaseID(subscriptionId, resourceGroup, serverName, name st
 
 func (id RecoverableDatabaseId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Server Name %q", id.ServerName),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Server Name %q", id.ServerName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Recoverable Database", segmentsStr)
 }
 
-func (id RecoverableDatabaseId) ID(_ string) string {
+func (id RecoverableDatabaseId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Sql/servers/%s/recoverabledatabases/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ServerName, id.Name)
 }

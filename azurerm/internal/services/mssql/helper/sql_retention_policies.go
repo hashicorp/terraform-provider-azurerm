@@ -4,11 +4,14 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func LongTermRetentionPolicySchema() *schema.Schema {
+	atLeastOneOf := []string{"long_term_retention_policy.0.weekly_retention", "long_term_retention_policy.0.monthly_retention",
+		"long_term_retention_policy.0.yearly_retention", "long_term_retention_policy.0.week_of_year",
+	}
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
@@ -21,21 +24,24 @@ func LongTermRetentionPolicySchema() *schema.Schema {
 					Type:         schema.TypeString,
 					Optional:     true,
 					Computed:     true,
-					ValidateFunc: azure.ValidateLongTermRetentionPoliciesIsoFormat,
+					ValidateFunc: validate.ValidateLongTermRetentionPoliciesIsoFormat,
+					AtLeastOneOf: atLeastOneOf,
 				},
 				// MonthlyRetention - The monthly retention policy for an LTR backup in an ISO 8601 format.
 				"monthly_retention": {
 					Type:         schema.TypeString,
 					Optional:     true,
 					Computed:     true,
-					ValidateFunc: azure.ValidateLongTermRetentionPoliciesIsoFormat,
+					ValidateFunc: validate.ValidateLongTermRetentionPoliciesIsoFormat,
+					AtLeastOneOf: atLeastOneOf,
 				},
 				// YearlyRetention - The yearly retention policy for an LTR backup in an ISO 8601 format.
 				"yearly_retention": {
 					Type:         schema.TypeString,
 					Optional:     true,
 					Computed:     true,
-					ValidateFunc: azure.ValidateLongTermRetentionPoliciesIsoFormat,
+					ValidateFunc: validate.ValidateLongTermRetentionPoliciesIsoFormat,
+					AtLeastOneOf: atLeastOneOf,
 				},
 				// WeekOfYear - The week of year to take the yearly backup in an ISO 8601 format.
 				"week_of_year": {
@@ -43,6 +49,7 @@ func LongTermRetentionPolicySchema() *schema.Schema {
 					Optional:     true,
 					Computed:     true,
 					ValidateFunc: validation.IntBetween(1, 52),
+					AtLeastOneOf: atLeastOneOf,
 				},
 			},
 		},

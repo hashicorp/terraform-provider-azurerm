@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -20,9 +21,8 @@ func resourceApplicationInsightsAPIKey() *schema.Resource {
 		Create: resourceApplicationInsightsAPIKeyCreate,
 		Read:   resourceApplicationInsightsAPIKeyRead,
 		Delete: resourceApplicationInsightsAPIKeyDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -131,8 +131,8 @@ func resourceApplicationInsightsAPIKeyCreate(d *schema.ResourceData, meta interf
 
 	apiKeyProperties := insights.APIKeyRequest{
 		Name:                  &name,
-		LinkedReadProperties:  azure.ExpandApplicationInsightsAPIKeyLinkedProperties(d.Get("read_permissions").(*schema.Set), appInsightsID),
-		LinkedWriteProperties: azure.ExpandApplicationInsightsAPIKeyLinkedProperties(d.Get("write_permissions").(*schema.Set), appInsightsID),
+		LinkedReadProperties:  expandApplicationInsightsAPIKeyLinkedProperties(d.Get("read_permissions").(*schema.Set), appInsightsID),
+		LinkedWriteProperties: expandApplicationInsightsAPIKeyLinkedProperties(d.Get("write_permissions").(*schema.Set), appInsightsID),
 	}
 
 	result, err := client.Create(ctx, resGroup, appInsightsName, apiKeyProperties)
@@ -181,11 +181,11 @@ func resourceApplicationInsightsAPIKeyRead(d *schema.ResourceData, meta interfac
 	d.Set("application_insights_id", fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/microsoft.insights/components/%s", client.SubscriptionID, resGroup, appInsightsName))
 
 	d.Set("name", result.Name)
-	readProps := azure.FlattenApplicationInsightsAPIKeyLinkedProperties(result.LinkedReadProperties)
+	readProps := flattenApplicationInsightsAPIKeyLinkedProperties(result.LinkedReadProperties)
 	if err := d.Set("read_permissions", readProps); err != nil {
 		return fmt.Errorf("Error flattening `read_permissions `: %s", err)
 	}
-	writeProps := azure.FlattenApplicationInsightsAPIKeyLinkedProperties(result.LinkedWriteProperties)
+	writeProps := flattenApplicationInsightsAPIKeyLinkedProperties(result.LinkedWriteProperties)
 	if err := d.Set("write_permissions", writeProps); err != nil {
 		return fmt.Errorf("Error flattening `write_permissions `: %s", err)
 	}

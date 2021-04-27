@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch/validate"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -24,13 +26,13 @@ func dataSourceBatchPool() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: ValidateAzureRMBatchPoolName,
+				ValidateFunc: validate.PoolName,
 			},
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 			"account_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: ValidateAzureRMBatchAccountName,
+				ValidateFunc: validate.AccountName,
 			},
 			"display_name": {
 				Type:     schema.TypeString,
@@ -295,19 +297,16 @@ func dataSourceBatchPool() *schema.Resource {
 			},
 			"network_configuration": {
 				Type:     schema.TypeList,
-				Optional: true,
 				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"subnet_id": {
 							Type:     schema.TypeString,
-							Optional: true,
 							Computed: true,
 						},
 						"endpoint_configuration": {
 							Type:     schema.TypeList,
-							Optional: true,
 							Computed: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
@@ -330,7 +329,6 @@ func dataSourceBatchPool() *schema.Resource {
 									},
 									"network_security_group_rules": {
 										Type:     schema.TypeList,
-										Optional: true,
 										Computed: true,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
@@ -418,7 +416,7 @@ func dataSourceBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("start_task", flattenBatchPoolStartTask(props.StartTask))
 		d.Set("metadata", FlattenBatchMetaData(props.Metadata))
 
-		if err := d.Set("network_configuration", FlattenBatchPoolNetworkConfiguration(props.NetworkConfiguration)); err != nil {
+		if err := d.Set("network_configuration", flattenBatchPoolNetworkConfiguration(props.NetworkConfiguration)); err != nil {
 			return fmt.Errorf("error setting `network_configuration`: %v", err)
 		}
 	}

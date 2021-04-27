@@ -11,7 +11,7 @@ import (
 var _ resourceid.Formatter = ServerKeyId{}
 
 func TestServerKeyIDFormatter(t *testing.T) {
-	actual := NewServerKeyID("12345678-1234-9876-4563-123456789012", "resGroup1", "server1", "key1").ID("")
+	actual := NewServerKeyID("12345678-1234-9876-4563-123456789012", "resGroup1", "server1", "key1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DBforPostgreSQL/servers/server1/keys/key1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)

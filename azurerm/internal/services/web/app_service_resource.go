@@ -3,31 +3,32 @@ package web
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAppService() *schema.Resource {
+func resourceAppService() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAppServiceCreate,
-		Read:   resourceArmAppServiceRead,
-		Update: resourceArmAppServiceUpdate,
-		Delete: resourceArmAppServiceDelete,
+		Create: resourceAppServiceCreate,
+		Read:   resourceAppServiceRead,
+		Update: resourceAppServiceUpdate,
+		Delete: resourceAppServiceDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.AppServiceID(id)
 			return err
 		}),
@@ -177,15 +178,31 @@ func resourceArmAppService() *schema.Resource {
 				Computed: true,
 			},
 
+			"outbound_ip_address_list": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+
 			"possible_outbound_ip_addresses": {
 				Type:     schema.TypeString,
 				Computed: true,
+			},
+
+			"possible_outbound_ip_address_list": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 		},
 	}
 }
 
-func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	aspClient := meta.(*clients.Client).Web.AppServicePlansClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -298,7 +315,7 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving App Service %q (Resource Group %q): %s", name, resourceGroup, err)
+		return fmt.Errorf("retrieving App Service %q (Resource Group %q): %s", name, resourceGroup, err)
 	}
 
 	if read.ID == nil || *read.ID == "" {
@@ -316,7 +333,7 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 	}
 
 	if _, err := client.UpdateAuthSettings(ctx, resourceGroup, name, auth); err != nil {
-		return fmt.Errorf("Error updating auth settings for App Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("updating auth settings for App Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	logsConfig := expandAppServiceLogs(d.Get("logs"))
@@ -327,21 +344,20 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 	}
 
 	if _, err := client.UpdateDiagnosticLogsConfig(ctx, resourceGroup, name, logs); err != nil {
-		return fmt.Errorf("Error updating diagnostic logs config for App Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("updating diagnostic logs config for App Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	backupRaw := d.Get("backup").([]interface{})
 	if backup := expandAppServiceBackup(backupRaw); backup != nil {
-		_, err = client.UpdateBackupConfiguration(ctx, resourceGroup, name, *backup)
-		if err != nil {
-			return fmt.Errorf("Error updating Backup Settings for App Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		if _, err = client.UpdateBackupConfiguration(ctx, resourceGroup, name, *backup); err != nil {
+			return fmt.Errorf("updating Backup Settings for App Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
-	return resourceArmAppServiceUpdate(d, meta)
+	return resourceAppServiceUpdate(d, meta)
 }
 
-func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -360,7 +376,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 
 	siteConfig, err := expandAppServiceSiteConfig(d.Get("site_config"))
 	if err != nil {
-		return fmt.Errorf("Error expanding `site_config` for App Service %q (Resource Group %q): %s", id.SiteName, id.ResourceGroup, err)
+		return fmt.Errorf("expanding `site_config` for App Service %q (Resource Group %q): %s", id.SiteName, id.ResourceGroup, err)
 	}
 
 	siteEnvelope := web.Site{
@@ -394,7 +410,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		// update the main configuration
 		siteConfig, err := expandAppServiceSiteConfig(d.Get("site_config"))
 		if err != nil {
-			return fmt.Errorf("Error expanding `site_config` for App Service %q (Resource Group %q): %s", id.SiteName, id.ResourceGroup, err)
+			return fmt.Errorf("expanding `site_config` for App Service %q (Resource Group %q): %s", id.SiteName, id.ResourceGroup, err)
 		}
 		siteConfigResource := web.SiteConfigResource{
 			SiteConfig: siteConfig,
@@ -407,7 +423,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 
 		if _, err := client.CreateOrUpdateConfiguration(ctx, id.ResourceGroup, id.SiteName, siteConfigResource); err != nil {
-			return fmt.Errorf("Error updating Configuration for App Service %q: %+v", id.SiteName, err)
+			return fmt.Errorf("updating Configuration for App Service %q: %+v", id.SiteName, err)
 		}
 	}
 
@@ -441,21 +457,19 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 
 		if _, err := client.UpdateAuthSettings(ctx, id.ResourceGroup, id.SiteName, authSettings); err != nil {
-			return fmt.Errorf("Error updating Authentication Settings for App Service %q: %+v", id.SiteName, err)
+			return fmt.Errorf("updating Authentication Settings for App Service %q: %+v", id.SiteName, err)
 		}
 	}
 
 	if d.HasChange("backup") {
 		backupRaw := d.Get("backup").([]interface{})
 		if backup := expandAppServiceBackup(backupRaw); backup != nil {
-			_, err = client.UpdateBackupConfiguration(ctx, id.ResourceGroup, id.SiteName, *backup)
-			if err != nil {
-				return fmt.Errorf("Error updating Backup Settings for App Service %q (Resource Group %q): %s", id.SiteName, id.ResourceGroup, err)
+			if _, err = client.UpdateBackupConfiguration(ctx, id.ResourceGroup, id.SiteName, *backup); err != nil {
+				return fmt.Errorf("updating Backup Settings for App Service %q (Resource Group %q): %s", id.SiteName, id.ResourceGroup, err)
 			}
 		} else {
-			_, err = client.DeleteBackupConfiguration(ctx, id.ResourceGroup, id.SiteName)
-			if err != nil {
-				return fmt.Errorf("Error removing Backup Settings for App Service %q (Resource Group %q): %s", id.SiteName, id.ResourceGroup, err)
+			if _, err = client.DeleteBackupConfiguration(ctx, id.ResourceGroup, id.SiteName); err != nil {
+				return fmt.Errorf("removing Backup Settings for App Service %q (Resource Group %q): %s", id.SiteName, id.ResourceGroup, err)
 			}
 		}
 	}
@@ -471,7 +485,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 
 		if _, err := client.Update(ctx, id.ResourceGroup, id.SiteName, sitePatchResource); err != nil {
-			return fmt.Errorf("Error updating App Service ARR Affinity setting %q: %+v", id.SiteName, err)
+			return fmt.Errorf("updating App Service ARR Affinity setting %q: %+v", id.SiteName, err)
 		}
 	}
 
@@ -484,7 +498,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 
 		if _, err := client.UpdateApplicationSettings(ctx, id.ResourceGroup, id.SiteName, settings); err != nil {
-			return fmt.Errorf("Error updating Application Settings for App Service %q: %+v", id.SiteName, err)
+			return fmt.Errorf("updating Application Settings for App Service %q: %+v", id.SiteName, err)
 		}
 	}
 
@@ -502,7 +516,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 
 		if _, err := client.UpdateDiagnosticLogsConfig(ctx, id.ResourceGroup, id.SiteName, logsResource); err != nil {
-			return fmt.Errorf("Error updating Diagnostics Logs for App Service %q: %+v", id.SiteName, err)
+			return fmt.Errorf("updating Diagnostics Logs for App Service %q: %+v", id.SiteName, err)
 		}
 	}
 
@@ -514,7 +528,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 
 		if _, err := client.UpdateAzureStorageAccounts(ctx, id.ResourceGroup, id.SiteName, properties); err != nil {
-			return fmt.Errorf("Error updating Storage Accounts for App Service %q: %+v", id.SiteName, err)
+			return fmt.Errorf("updating Storage Accounts for App Service %q: %+v", id.SiteName, err)
 		}
 	}
 
@@ -526,14 +540,14 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 
 		if _, err := client.UpdateConnectionStrings(ctx, id.ResourceGroup, id.SiteName, properties); err != nil {
-			return fmt.Errorf("Error updating Connection Strings for App Service %q: %+v", id.SiteName, err)
+			return fmt.Errorf("updating Connection Strings for App Service %q: %+v", id.SiteName, err)
 		}
 	}
 
 	if d.HasChange("identity") {
 		site, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
 		if err != nil {
-			return fmt.Errorf("Error getting configuration for App Service %q: %+v", id.SiteName, err)
+			return fmt.Errorf("getting configuration for App Service %q: %+v", id.SiteName, err)
 		}
 
 		appServiceIdentityRaw := d.Get("identity").([]interface{})
@@ -542,18 +556,18 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 
 		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, site)
 		if err != nil {
-			return fmt.Errorf("Error updating Managed Service Identity for App Service %q: %+v", id.SiteName, err)
+			return fmt.Errorf("updating Managed Service Identity for App Service %q: %+v", id.SiteName, err)
 		}
 
 		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error updating Managed Service Identity for App Service %q: %+v", id.SiteName, err)
+			return fmt.Errorf("updating Managed Service Identity for App Service %q: %+v", id.SiteName, err)
 		}
 	}
 
-	return resourceArmAppServiceRead(d, meta)
+	return resourceAppServiceRead(d, meta)
 }
 
-func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -570,7 +584,7 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on AzureRM App Service %q: %+v", id.SiteName, err)
+		return fmt.Errorf("making Read request on AzureRM App Service %q: %+v", id.SiteName, err)
 	}
 
 	configResp, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
@@ -580,24 +594,24 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on AzureRM App Service Configuration %q: %+v", id.SiteName, err)
+		return fmt.Errorf("making Read request on AzureRM App Service Configuration %q: %+v", id.SiteName, err)
 	}
 
 	authResp, err := client.GetAuthSettings(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving the AuthSettings for App Service %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving the AuthSettings for App Service %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
 	}
 
 	backupResp, err := client.GetBackupConfiguration(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(backupResp.Response) {
-			return fmt.Errorf("Error retrieving the BackupConfiguration for App Service %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
+			return fmt.Errorf("retrieving the BackupConfiguration for App Service %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
 		}
 	}
 
 	logsResp, err := client.GetDiagnosticLogsConfiguration(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving the DiagnosticsLogsConfiguration for App Service %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving the DiagnosticsLogsConfiguration for App Service %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
 	}
 
 	appSettingsResp, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
@@ -607,22 +621,22 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on AzureRM App Service AppSettings %q: %+v", id.SiteName, err)
+		return fmt.Errorf("making Read request on AzureRM App Service AppSettings %q: %+v", id.SiteName, err)
 	}
 
 	storageAccountsResp, err := client.ListAzureStorageAccounts(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
-		return fmt.Errorf("Error making Read request on AzureRM App Service Storage Accounts %q: %+v", id.SiteName, err)
+		return fmt.Errorf("making Read request on AzureRM App Service Storage Accounts %q: %+v", id.SiteName, err)
 	}
 
 	connectionStringsResp, err := client.ListConnectionStrings(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
-		return fmt.Errorf("Error making Read request on AzureRM App Service ConnectionStrings %q: %+v", id.SiteName, err)
+		return fmt.Errorf("making Read request on AzureRM App Service ConnectionStrings %q: %+v", id.SiteName, err)
 	}
 
 	scmResp, err := client.GetSourceControl(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
-		return fmt.Errorf("Error making Read request on AzureRM App Service Source Control %q: %+v", id.SiteName, err)
+		return fmt.Errorf("making Read request on AzureRM App Service Source Control %q: %+v", id.SiteName, err)
 	}
 
 	siteCredFuture, err := client.ListPublishingCredentials(ctx, id.ResourceGroup, id.SiteName)
@@ -635,7 +649,7 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 	}
 	siteCredResp, err := siteCredFuture.Result(*client)
 	if err != nil {
-		return fmt.Errorf("Error making Read request on AzureRM App Service Site Credential %q: %+v", id.SiteName, err)
+		return fmt.Errorf("making Read request on AzureRM App Service Site Credential %q: %+v", id.SiteName, err)
 	}
 
 	d.Set("name", id.SiteName)
@@ -652,7 +666,13 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("client_cert_enabled", props.ClientCertEnabled)
 		d.Set("default_site_hostname", props.DefaultHostName)
 		d.Set("outbound_ip_addresses", props.OutboundIPAddresses)
+		if props.OutboundIPAddresses != nil {
+			d.Set("outbound_ip_address_list", strings.Split(*props.OutboundIPAddresses, ","))
+		}
 		d.Set("possible_outbound_ip_addresses", props.PossibleOutboundIPAddresses)
+		if props.PossibleOutboundIPAddresses != nil {
+			d.Set("possible_outbound_ip_address_list", strings.Split(*props.PossibleOutboundIPAddresses, ","))
+		}
 		d.Set("custom_domain_verification_id", props.CustomDomainVerificationID)
 	}
 
@@ -665,19 +685,19 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 	delete(appSettings, "WEBSITE_HTTPLOGGING_RETENTION_DAYS")
 
 	if err := d.Set("app_settings", appSettings); err != nil {
-		return fmt.Errorf("Error setting `app_settings`: %s", err)
+		return fmt.Errorf("setting `app_settings`: %s", err)
 	}
 
 	if err := d.Set("backup", flattenAppServiceBackup(backupResp.BackupRequestProperties)); err != nil {
-		return fmt.Errorf("Error setting `backup`: %s", err)
+		return fmt.Errorf("setting `backup`: %s", err)
 	}
 
 	if err := d.Set("storage_account", flattenAppServiceStorageAccounts(storageAccountsResp.Properties)); err != nil {
-		return fmt.Errorf("Error setting `storage_account`: %s", err)
+		return fmt.Errorf("setting `storage_account`: %s", err)
 	}
 
 	if err := d.Set("connection_string", flattenAppServiceConnectionStrings(connectionStringsResp.Properties)); err != nil {
-		return fmt.Errorf("Error setting `connection_string`: %s", err)
+		return fmt.Errorf("setting `connection_string`: %s", err)
 	}
 
 	siteConfig := flattenAppServiceSiteConfig(configResp.SiteConfig)
@@ -687,33 +707,36 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 
 	authSettings := flattenAppServiceAuthSettings(authResp.SiteAuthSettingsProperties)
 	if err := d.Set("auth_settings", authSettings); err != nil {
-		return fmt.Errorf("Error setting `auth_settings`: %s", err)
+		return fmt.Errorf("setting `auth_settings`: %s", err)
 	}
 
 	logs := flattenAppServiceLogs(logsResp.SiteLogsConfigProperties)
 	if err := d.Set("logs", logs); err != nil {
-		return fmt.Errorf("Error setting `logs`: %s", err)
+		return fmt.Errorf("setting `logs`: %s", err)
 	}
 
 	scm := flattenAppServiceSourceControl(scmResp.SiteSourceControlProperties)
 	if err := d.Set("source_control", scm); err != nil {
-		return fmt.Errorf("Error setting `source_control`: %s", err)
+		return fmt.Errorf("setting `source_control`: %s", err)
 	}
 
 	siteCred := flattenAppServiceSiteCredential(siteCredResp.UserProperties)
 	if err := d.Set("site_credential", siteCred); err != nil {
-		return fmt.Errorf("Error setting `site_credential`: %s", err)
+		return fmt.Errorf("setting `site_credential`: %s", err)
 	}
 
-	identity := flattenAppServiceIdentity(resp.Identity)
+	identity, err := flattenAppServiceIdentity(resp.Identity)
+	if err != nil {
+		return err
+	}
 	if err := d.Set("identity", identity); err != nil {
-		return fmt.Errorf("Error setting `identity`: %s", err)
+		return fmt.Errorf("setting `identity`: %s", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmAppServiceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

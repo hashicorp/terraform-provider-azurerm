@@ -6,15 +6,16 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization/migration"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/desktopvirtualization/mgmt/2019-12-10-preview/desktopvirtualization"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization/validate"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -32,19 +33,15 @@ func resourceVirtualDesktopWorkspaceApplicationGroupAssociation() *schema.Resour
 			Delete: schema.DefaultTimeout(60 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.WorkspaceApplicationGroupAssociationID(id)
 			return err
 		}),
 
 		SchemaVersion: 1,
-		StateUpgraders: []schema.StateUpgrader{
-			{
-				Type:    migration.WorkspaceApplicationGroupAssociationUpgradeV0Schema().CoreConfigSchema().ImpliedType(),
-				Upgrade: migration.WorkspaceApplicationGroupAssociationUpgradeV0ToV1,
-				Version: 0,
-			},
-		},
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.WorkspaceApplicationGroupAssociationV0ToV1{},
+		}),
 
 		Schema: map[string]*schema.Schema{
 			"workspace_id": {
@@ -78,7 +75,7 @@ func resourceVirtualDesktopWorkspaceApplicationGroupAssociationCreate(d *schema.
 	if err != nil {
 		return err
 	}
-	associationId := parse.NewWorkspaceApplicationGroupAssociationId(*workspaceId, *applicationGroupId).ID("")
+	associationId := parse.NewWorkspaceApplicationGroupAssociationId(*workspaceId, *applicationGroupId).ID()
 
 	locks.ByName(workspaceId.Name, workspaceResourceType)
 	defer locks.UnlockByName(workspaceId.Name, workspaceResourceType)
@@ -100,7 +97,7 @@ func resourceVirtualDesktopWorkspaceApplicationGroupAssociationCreate(d *schema.
 		applicationGroupAssociations = *props.ApplicationGroupReferences
 	}
 
-	applicationGroupIdStr := applicationGroupId.ID("")
+	applicationGroupIdStr := applicationGroupId.ID()
 	if associationExists(workspace.WorkspaceProperties, applicationGroupIdStr) {
 		return tf.ImportAsExistsError("azurerm_virtual_desktop_workspace_application_group_association", associationId)
 	}
@@ -137,7 +134,7 @@ func resourceVirtualDesktopWorkspaceApplicationGroupAssociationRead(d *schema.Re
 		return fmt.Errorf("retrieving Virtual Desktop Desktop Workspace %q (Resource Group %q): %+v", id.Workspace.Name, id.Workspace.ResourceGroup, err)
 	}
 
-	applicationGroupId := id.ApplicationGroup.ID("")
+	applicationGroupId := id.ApplicationGroup.ID()
 	exists := associationExists(workspace.WorkspaceProperties, applicationGroupId)
 	if !exists {
 		log.Printf("[DEBUG] Association between Virtual Desktop Workspace %q (Resource Group %q) and Application Group %q (Resource Group %q) was not found - removing from state!", id.Workspace.Name, id.Workspace.ResourceGroup, id.ApplicationGroup.Name, id.ApplicationGroup.ResourceGroup)
@@ -145,7 +142,7 @@ func resourceVirtualDesktopWorkspaceApplicationGroupAssociationRead(d *schema.Re
 		return nil
 	}
 
-	d.Set("workspace_id", id.Workspace.ID(""))
+	d.Set("workspace_id", id.Workspace.ID())
 	d.Set("application_group_id", applicationGroupId)
 
 	return nil
@@ -177,7 +174,7 @@ func resourceVirtualDesktopWorkspaceApplicationGroupAssociationDelete(d *schema.
 	}
 
 	applicationGroupReferences := []string{}
-	applicationGroupId := id.ApplicationGroup.ID("")
+	applicationGroupId := id.ApplicationGroup.ID()
 	if workspace.WorkspaceProperties != nil && workspace.WorkspaceProperties.ApplicationGroupReferences != nil {
 		for _, referenceId := range *workspace.WorkspaceProperties.ApplicationGroupReferences {
 			if strings.EqualFold(referenceId, applicationGroupId) {

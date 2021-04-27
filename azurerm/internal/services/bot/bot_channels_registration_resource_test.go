@@ -21,7 +21,7 @@ func testAccBotChannelsRegistration_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channels_registration", "test")
 	r := BotChannelsRegistrationResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []resource.TestStep{
 		{
 			Config: r.basicConfig(data),
 			Check: resource.ComposeTestCheckFunc(
@@ -36,7 +36,7 @@ func testAccBotChannelsRegistration_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channels_registration", "test")
 	r := BotChannelsRegistrationResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []resource.TestStep{
 		{
 			Config: r.basicConfig(data),
 			Check: resource.ComposeTestCheckFunc(
@@ -58,7 +58,7 @@ func testAccBotChannelsRegistration_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channels_registration", "test")
 	r := BotChannelsRegistrationResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []resource.TestStep{
 		{
 			Config: r.completeConfig(data),
 			Check: resource.ComposeTestCheckFunc(
@@ -77,7 +77,7 @@ func (t BotChannelsRegistrationResource) Exists(ctx context.Context, clients *cl
 
 	resp, err := clients.Bot.BotClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Bot Channels Registration (%s): %v", id.String(), err)
+		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
 
 	return utils.Bool(resp.Properties != nil), nil

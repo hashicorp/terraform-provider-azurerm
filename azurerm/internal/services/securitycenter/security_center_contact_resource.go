@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter/azuresdkhacks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -21,16 +22,15 @@ import (
 // Message="Invalid security contact name 'default2' was provided. Expected 'default1'"
 const securityCenterContactName = "default1"
 
-func resourceArmSecurityCenterContact() *schema.Resource {
+func resourceSecurityCenterContact() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSecurityCenterContactCreateUpdate,
-		Read:   resourceArmSecurityCenterContactRead,
-		Update: resourceArmSecurityCenterContactCreateUpdate,
-		Delete: resourceArmSecurityCenterContactDelete,
+		Create: resourceSecurityCenterContactCreateUpdate,
+		Read:   resourceSecurityCenterContactRead,
+		Update: resourceSecurityCenterContactCreateUpdate,
+		Delete: resourceSecurityCenterContactDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),
@@ -65,7 +65,7 @@ func resourceArmSecurityCenterContact() *schema.Resource {
 	}
 }
 
-func resourceArmSecurityCenterContactCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSecurityCenterContactCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.ContactsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -124,10 +124,10 @@ func resourceArmSecurityCenterContactCreateUpdate(d *schema.ResourceData, meta i
 		return fmt.Errorf("Updating Security Center Contact: %+v", err)
 	}
 
-	return resourceArmSecurityCenterContactRead(d, meta)
+	return resourceSecurityCenterContactRead(d, meta)
 }
 
-func resourceArmSecurityCenterContactRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSecurityCenterContactRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.ContactsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -155,7 +155,7 @@ func resourceArmSecurityCenterContactRead(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func resourceArmSecurityCenterContactDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSecurityCenterContactDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.ContactsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

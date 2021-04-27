@@ -11,7 +11,7 @@ import (
 var _ resourceid.Formatter = VirtualWanId{}
 
 func TestVirtualWanIDFormatter(t *testing.T) {
-	actual := NewVirtualWanID("12345678-1234-9876-4563-123456789012", "resGroup1", "virtualWan1").ID("")
+	actual := NewVirtualWanID("12345678-1234-9876-4563-123456789012", "resGroup1", "virtualWan1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/virtualWans/virtualWan1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)

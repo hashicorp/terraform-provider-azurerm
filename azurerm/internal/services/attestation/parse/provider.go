@@ -25,13 +25,14 @@ func NewProviderID(subscriptionId, resourceGroup, attestationProviderName string
 
 func (id ProviderId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 		fmt.Sprintf("Attestation Provider Name %q", id.AttestationProviderName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Provider", segmentsStr)
 }
 
-func (id ProviderId) ID(_ string) string {
+func (id ProviderId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Attestation/attestationProviders/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.AttestationProviderName)
 }

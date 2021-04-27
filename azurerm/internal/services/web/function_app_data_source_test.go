@@ -11,14 +11,13 @@ import (
 
 type FunctionAppDataSource struct{}
 
-func TestAccDataSourceAzureRMFunctionApp_basic(t *testing.T) {
+func TestAccFunctionAppDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_function_app", "test")
 
 	data.DataSourceTest(t, []resource.TestStep{
 		{
 			Config: FunctionAppDataSource{}.basic(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckAzureRMFunctionAppHasNoContentShare(data.ResourceName),
 				check.That(data.ResourceName).Key("outbound_ip_addresses").Exists(),
 				check.That(data.ResourceName).Key("possible_outbound_ip_addresses").Exists(),
 				check.That(data.ResourceName).Key("custom_domain_verification_id").Exists(),
@@ -27,7 +26,7 @@ func TestAccDataSourceAzureRMFunctionApp_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMFunctionApp_appSettings(t *testing.T) {
+func TestAccFunctionAppDataSource_appSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_function_app", "test")
 
 	data.DataSourceTest(t, []resource.TestStep{
@@ -40,7 +39,7 @@ func TestAccDataSourceAzureRMFunctionApp_appSettings(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMFunctionApp_connectionStrings(t *testing.T) {
+func TestAccFunctionAppDataSource_connectionStrings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_function_app", "test")
 
 	data.DataSourceTest(t, []resource.TestStep{
@@ -55,7 +54,7 @@ func TestAccDataSourceAzureRMFunctionApp_connectionStrings(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMFunctionApp_withSourceControl(t *testing.T) {
+func TestAccFunctionAppDataSource_withSourceControl(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_function_app", "test")
 
 	data.DataSourceTest(t, []resource.TestStep{
@@ -68,7 +67,7 @@ func TestAccDataSourceAzureRMFunctionApp_withSourceControl(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMFunctionApp_siteConfig(t *testing.T) {
+func TestAccFunctionAppDataSource_siteConfig(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 
 	data.DataSourceTest(t, []resource.TestStep{
@@ -79,6 +78,31 @@ func TestAccDataSourceAzureRMFunctionApp_siteConfig(t *testing.T) {
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.1.ip_address").HasValue("20.20.20.0/24"),
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.2.ip_address").HasValue("30.30.0.0/16"),
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.3.ip_address").HasValue("192.168.1.2/24"),
+			),
+		},
+	})
+}
+
+func TestAccFunctionAppDataSource_clientCertMode(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_function_app", "test")
+
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: FunctionAppDataSource{}.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("client_cert_mode").HasValue(""),
+			),
+		},
+		{
+			Config: FunctionAppDataSource{}.certClientMode(data, "Optional"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("client_cert_mode").HasValue("Optional"),
+			),
+		},
+		{
+			Config: FunctionAppDataSource{}.certClientMode(data, "Required"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("client_cert_mode").HasValue("Required"),
 			),
 		},
 	})
@@ -142,4 +166,16 @@ data "azurerm_function_app" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 `, config)
+}
+
+func (d FunctionAppDataSource) certClientMode(data acceptance.TestData, modeValue string) string {
+	template := FunctionAppResource{}.clientCertMode(data, modeValue)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_function_app" "test" {
+  name                = azurerm_function_app.test.name
+  resource_group_name = azurerm_resource_group.test.name
+}
+`, template)
 }

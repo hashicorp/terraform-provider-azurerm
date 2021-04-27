@@ -6,27 +6,27 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis"
+	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2020-06-01/redis"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis/validate"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmRedisLinkedServer() *schema.Resource {
+func resourceRedisLinkedServer() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmRedisLinkedServerCreate,
-		Read:   resourceArmRedisLinkedServerRead,
-		Delete: resourceArmRedisLinkedServerDelete,
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Create: resourceRedisLinkedServerCreate,
+		Read:   resourceRedisLinkedServerRead,
+		Delete: resourceRedisLinkedServerDelete,
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.LinkedServerID(id)
 			return err
 		}),
@@ -77,7 +77,7 @@ func resourceArmRedisLinkedServer() *schema.Resource {
 	}
 }
 
-func resourceArmRedisLinkedServerCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceRedisLinkedServerCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Redis.LinkedServerClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -103,7 +103,7 @@ func resourceArmRedisLinkedServerCreate(d *schema.ResourceData, meta interface{}
 			}
 		}
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_redis_linked_server", resourceId.ID(""))
+			return tf.ImportAsExistsError("azurerm_redis_linked_server", resourceId.ID())
 		}
 	}
 
@@ -137,11 +137,11 @@ func resourceArmRedisLinkedServerCreate(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("waiting for Linked Server %q (Redis Cache %q / Resource Group %q) to become available: %+v", resourceId.Name, resourceId.RediName, resourceId.ResourceGroup, err)
 	}
 
-	d.SetId(resourceId.ID(""))
-	return resourceArmRedisLinkedServerRead(d, meta)
+	d.SetId(resourceId.ID())
+	return resourceRedisLinkedServerRead(d, meta)
 }
 
-func resourceArmRedisLinkedServerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceRedisLinkedServerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Redis.LinkedServerClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -173,7 +173,7 @@ func resourceArmRedisLinkedServerRead(d *schema.ResourceData, meta interface{}) 
 				return err
 			}
 
-			linkedRedisCacheId = cacheId.ID("")
+			linkedRedisCacheId = cacheId.ID()
 		}
 		d.Set("linked_redis_cache_id", linkedRedisCacheId)
 
@@ -184,7 +184,7 @@ func resourceArmRedisLinkedServerRead(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceArmRedisLinkedServerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceRedisLinkedServerDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Redis.LinkedServerClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

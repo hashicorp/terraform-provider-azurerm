@@ -1,188 +1,134 @@
 package recoveryservices_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMRecoveryServicesVault_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
+type RecoveryServicesVaultResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRecoveryServicesVaultDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMRecoveryServicesVault_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRecoveryServicesVaultExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccRecoveryServicesVault_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
+	r := RecoveryServicesVaultResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMRecoveryServicesVault_complete(t *testing.T) {
+func TestAccRecoveryServicesVault_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
+	r := RecoveryServicesVaultResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRecoveryServicesVaultDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMRecoveryServicesVault_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRecoveryServicesVaultExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMRecoveryServicesVault_update(t *testing.T) {
+func TestAccRecoveryServicesVault_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
+	r := RecoveryServicesVaultResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRecoveryServicesVaultDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMRecoveryServicesVault_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRecoveryServicesVaultExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMRecoveryServicesVault_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRecoveryServicesVaultExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMRecoveryServicesVault_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRecoveryServicesVaultExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMRecoveryServicesVault_requiresImport(t *testing.T) {
+func TestAccRecoveryServicesVault_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
+	r := RecoveryServicesVaultResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRecoveryServicesVaultDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMRecoveryServicesVault_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRecoveryServicesVaultExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "location"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku", "Standard"),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMRecoveryServicesVault_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("name").Exists(),
+				check.That(data.ResourceName).Key("location").Exists(),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+				check.That(data.ResourceName).Key("sku").HasValue("Standard"),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
 func TestAccRecoveryServicesVault_basicWithIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
+	r := RecoveryServicesVaultResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRecoveryServicesVaultDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testRecoveryServicesVault_basicWithIdentity(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRecoveryServicesVaultExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicWithIdentity(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMRecoveryServicesVaultDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.VaultsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_recovery_services_vault" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-
-			return err
-		}
-
-		return fmt.Errorf("Recovery Services Vault still exists:\n%#v", resp)
+func (t RecoveryServicesVaultResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
-}
+	name := id.Path["vaults"]
+	resourceGroup := id.ResourceGroup
 
-func testCheckAzureRMRecoveryServicesVaultExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.VaultsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %q", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Recovery Services Vault: %q", name)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Recovery Services Vault %q (resource group: %q) was not found: %+v", name, resourceGroup, err)
-			}
-
-			return fmt.Errorf("Bad: Get on recoveryServicesVaultsClient: %+v", err)
-		}
-
-		return nil
+	resp, err := clients.RecoveryServices.VaultsClient.Get(ctx, resourceGroup, name)
+	if err != nil {
+		return nil, fmt.Errorf("reading Recovery Service Vault (%s): %+v", id, err)
 	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMRecoveryServicesVault_basic(data acceptance.TestData) string {
+func (RecoveryServicesVaultResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -204,7 +150,7 @@ resource "azurerm_recovery_services_vault" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testRecoveryServicesVault_basicWithIdentity(data acceptance.TestData) string {
+func (RecoveryServicesVaultResource) basicWithIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -230,7 +176,7 @@ resource "azurerm_recovery_services_vault" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMRecoveryServicesVault_complete(data acceptance.TestData) string {
+func (RecoveryServicesVaultResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -252,8 +198,7 @@ resource "azurerm_recovery_services_vault" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMRecoveryServicesVault_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMRecoveryServicesVault_basic(data)
+func (r RecoveryServicesVaultResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -263,5 +208,5 @@ resource "azurerm_recovery_services_vault" "import" {
   resource_group_name = azurerm_recovery_services_vault.test.resource_group_name
   sku                 = azurerm_recovery_services_vault.test.sku
 }
-`, template)
+`, r.basic(data))
 }

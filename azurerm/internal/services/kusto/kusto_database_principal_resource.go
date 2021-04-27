@@ -13,21 +13,22 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmKustoDatabasePrincipal() *schema.Resource {
+func resourceKustoDatabasePrincipal() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmKustoDatabasePrincipalCreate,
-		Read:   resourceArmKustoDatabasePrincipalRead,
-		Delete: resourceArmKustoDatabasePrincipalDelete,
+		Create: resourceKustoDatabasePrincipalCreate,
+		Read:   resourceKustoDatabasePrincipalRead,
+		Delete: resourceKustoDatabasePrincipalDelete,
 
 		DeprecationMessage: "This resource has been superseded by `azurerm_kusto_database_principal_assignment` to reflects changes in the API/SDK and will be removed in version 3.0 of the provider.",
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			// TODO: confirm these
@@ -44,14 +45,14 @@ func resourceArmKustoDatabasePrincipal() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMKustoClusterName,
+				ValidateFunc: validate.ClusterName,
 			},
 
 			"database_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMKustoDatabaseName,
+				ValidateFunc: validate.DatabaseName,
 			},
 
 			"role": {
@@ -118,7 +119,7 @@ func resourceArmKustoDatabasePrincipal() *schema.Resource {
 	}
 }
 
-func resourceArmKustoDatabasePrincipalCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoDatabasePrincipalCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DatabasesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -207,10 +208,10 @@ func resourceArmKustoDatabasePrincipalCreate(d *schema.ResourceData, meta interf
 
 	d.SetId(resourceID)
 
-	return resourceArmKustoDatabasePrincipalRead(d, meta)
+	return resourceKustoDatabasePrincipalRead(d, meta)
 }
 
-func resourceArmKustoDatabasePrincipalRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoDatabasePrincipalRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DatabasesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -288,7 +289,7 @@ func resourceArmKustoDatabasePrincipalRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func resourceArmKustoDatabasePrincipalDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoDatabasePrincipalDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DatabasesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

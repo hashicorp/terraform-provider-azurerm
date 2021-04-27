@@ -16,7 +16,7 @@ Manages an App Service Slot's Virtual Network Association (this is for the [Regi
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "uksouth"
+  location = "West Europe"
 }
 
 resource "azurerm_virtual_network" "example" {

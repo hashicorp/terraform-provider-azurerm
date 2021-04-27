@@ -13,21 +13,21 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 const azureNetworkProfileResourceName = "azurerm_network_profile"
 
-func resourceArmNetworkProfile() *schema.Resource {
+func resourceNetworkProfile() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmNetworkProfileCreateUpdate,
-		Read:   resourceArmNetworkProfileRead,
-		Update: resourceArmNetworkProfileCreateUpdate,
-		Delete: resourceArmNetworkProfileDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Create: resourceNetworkProfileCreateUpdate,
+		Read:   resourceNetworkProfileRead,
+		Update: resourceNetworkProfileCreateUpdate,
+		Delete: resourceNetworkProfileDelete,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -94,7 +94,7 @@ func resourceArmNetworkProfile() *schema.Resource {
 	}
 }
 
-func resourceArmNetworkProfileCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkProfileCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ProfileClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -157,10 +157,10 @@ func resourceArmNetworkProfileCreateUpdate(d *schema.ResourceData, meta interfac
 
 	d.SetId(*profile.ID)
 
-	return resourceArmNetworkProfileRead(d, meta)
+	return resourceNetworkProfileRead(d, meta)
 }
 
-func resourceArmNetworkProfileRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkProfileRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ProfileClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -204,7 +204,7 @@ func resourceArmNetworkProfileRead(d *schema.ResourceData, meta interface{}) err
 	return tags.FlattenAndSet(d, profile.Tags)
 }
 
-func resourceArmNetworkProfileDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkProfileDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ProfileClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

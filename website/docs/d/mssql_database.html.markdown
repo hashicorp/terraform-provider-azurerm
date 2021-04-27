@@ -45,6 +45,8 @@ output "database_id" {
 
 * `sku_name` - The name of the sku of the database.
 
+* `storage_account_type` - The storage account type used to store backups for this database.
+
 * `zone_redundant` - Whether or not this database is zone redundant, which means the replicas of this database will be spread across multiple availability zones.
 
 * `tags` -  A mapping of tags to assign to the resource.

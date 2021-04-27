@@ -15,7 +15,7 @@ Manages an HTTP Action within a Logic App Workflow
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "workflow-resources"
-  location = "East US"
+  location = "West Europe"
 }
 
 resource "azurerm_logic_app_workflow" "example" {

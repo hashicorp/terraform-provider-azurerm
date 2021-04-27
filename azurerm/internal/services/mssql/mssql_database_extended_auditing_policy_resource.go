@@ -8,23 +8,24 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/validate"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMsSqlDatabaseExtendedAuditingPolicy() *schema.Resource {
+func resourceMsSqlDatabaseExtendedAuditingPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMsSqlDatabaseExtendedAuditingPolicyCreateUpdate,
-		Read:   resourceArmMsSqlDatabaseExtendedAuditingPolicyRead,
-		Update: resourceArmMsSqlDatabaseExtendedAuditingPolicyCreateUpdate,
-		Delete: resourceArmMsSqlDatabaseExtendedAuditingPolicyDelete,
+		Create: resourceMsSqlDatabaseExtendedAuditingPolicyCreateUpdate,
+		Read:   resourceMsSqlDatabaseExtendedAuditingPolicyRead,
+		Update: resourceMsSqlDatabaseExtendedAuditingPolicyCreateUpdate,
+		Delete: resourceMsSqlDatabaseExtendedAuditingPolicyDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.DatabaseExtendedAuditingPolicyID(id)
 			return err
 		}),
@@ -46,7 +47,7 @@ func resourceArmMsSqlDatabaseExtendedAuditingPolicy() *schema.Resource {
 
 			"storage_endpoint": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: validation.IsURLWithHTTPS,
 			},
 
@@ -69,11 +70,17 @@ func resourceArmMsSqlDatabaseExtendedAuditingPolicy() *schema.Resource {
 				Default:      0,
 				ValidateFunc: validation.IntBetween(0, 3285),
 			},
+
+			"log_monitoring_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
 		},
 	}
 }
 
-func resourceArmMsSqlDatabaseExtendedAuditingPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMsSqlDatabaseExtendedAuditingPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.DatabaseExtendedBlobAuditingPoliciesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -101,14 +108,11 @@ func resourceArmMsSqlDatabaseExtendedAuditingPolicyCreateUpdate(d *schema.Resour
 
 	params := sql.ExtendedDatabaseBlobAuditingPolicy{
 		ExtendedDatabaseBlobAuditingPolicyProperties: &sql.ExtendedDatabaseBlobAuditingPolicyProperties{
-			State:                      sql.BlobAuditingPolicyStateEnabled,
-			StorageEndpoint:            utils.String(d.Get("storage_endpoint").(string)),
-			IsStorageSecondaryKeyInUse: utils.Bool(d.Get("storage_account_access_key_is_secondary").(bool)),
-			RetentionDays:              utils.Int32(int32(d.Get("retention_in_days").(int))),
-
-			// NOTE: this works around a regression in the Azure API detailed here:
-			// https://github.com/Azure/azure-rest-api-specs/issues/11271
-			IsAzureMonitorTargetEnabled: utils.Bool(true),
+			State:                       sql.BlobAuditingPolicyStateEnabled,
+			StorageEndpoint:             utils.String(d.Get("storage_endpoint").(string)),
+			IsStorageSecondaryKeyInUse:  utils.Bool(d.Get("storage_account_access_key_is_secondary").(bool)),
+			RetentionDays:               utils.Int32(int32(d.Get("retention_in_days").(int))),
+			IsAzureMonitorTargetEnabled: utils.Bool(d.Get("log_monitoring_enabled").(bool)),
 		},
 	}
 
@@ -131,10 +135,10 @@ func resourceArmMsSqlDatabaseExtendedAuditingPolicyCreateUpdate(d *schema.Resour
 
 	d.SetId(*read.ID)
 
-	return resourceArmMsSqlDatabaseExtendedAuditingPolicyRead(d, meta)
+	return resourceMsSqlDatabaseExtendedAuditingPolicyRead(d, meta)
 }
 
-func resourceArmMsSqlDatabaseExtendedAuditingPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMsSqlDatabaseExtendedAuditingPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.DatabaseExtendedBlobAuditingPoliciesClient
 	dbClient := meta.(*clients.Client).MSSQL.DatabasesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -165,12 +169,13 @@ func resourceArmMsSqlDatabaseExtendedAuditingPolicyRead(d *schema.ResourceData, 
 		d.Set("storage_endpoint", props.StorageEndpoint)
 		d.Set("storage_account_access_key_is_secondary", props.IsStorageSecondaryKeyInUse)
 		d.Set("retention_in_days", props.RetentionDays)
+		d.Set("log_monitoring_enabled", props.IsAzureMonitorTargetEnabled)
 	}
 
 	return nil
 }
 
-func resourceArmMsSqlDatabaseExtendedAuditingPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMsSqlDatabaseExtendedAuditingPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.DatabaseExtendedBlobAuditingPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -183,10 +188,6 @@ func resourceArmMsSqlDatabaseExtendedAuditingPolicyDelete(d *schema.ResourceData
 	params := sql.ExtendedDatabaseBlobAuditingPolicy{
 		ExtendedDatabaseBlobAuditingPolicyProperties: &sql.ExtendedDatabaseBlobAuditingPolicyProperties{
 			State: sql.BlobAuditingPolicyStateDisabled,
-
-			// NOTE: this works around a regression in the Azure API detailed here:
-			// https://github.com/Azure/azure-rest-api-specs/issues/11271
-			IsAzureMonitorTargetEnabled: utils.Bool(true),
 		},
 	}
 

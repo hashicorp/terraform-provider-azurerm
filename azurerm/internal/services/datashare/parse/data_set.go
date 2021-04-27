@@ -29,15 +29,16 @@ func NewDataSetID(subscriptionId, resourceGroup, accountName, shareName, name st
 
 func (id DataSetId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Account Name %q", id.AccountName),
-		fmt.Sprintf("Share Name %q", id.ShareName),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Share Name %q", id.ShareName),
+		fmt.Sprintf("Account Name %q", id.AccountName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Data Set", segmentsStr)
 }
 
-func (id DataSetId) ID(_ string) string {
+func (id DataSetId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DataShare/accounts/%s/shares/%s/dataSets/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.AccountName, id.ShareName, id.Name)
 }

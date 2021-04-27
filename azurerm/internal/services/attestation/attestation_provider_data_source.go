@@ -64,7 +64,7 @@ func dataSourceArmAttestationProviderRead(d *schema.ResourceData, meta interface
 		return fmt.Errorf("retrieving Attestation Provider %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	d.SetId(parse.NewProviderID(subscriptionId, resourceGroup, name).ID(""))
+	d.SetId(parse.NewProviderID(subscriptionId, resourceGroup, name).ID())
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)

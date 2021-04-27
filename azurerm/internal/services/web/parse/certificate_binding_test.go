@@ -23,7 +23,7 @@ func TestCertificateBindingIDFormatter(t *testing.T) {
 	}
 	actual := NewCertificateBindingId(hostnameBindingId, certificateId)
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/mygroup1/providers/Microsoft.Web/sites/site1/hostNameBindings/binding1|/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/certificates/certificate1"
-	if actual.ID("") != expected {
+	if actual.ID() != expected {
 		t.Fatalf("Expected %q, got %q", expected, actual)
 	}
 }

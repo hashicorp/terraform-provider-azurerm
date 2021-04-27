@@ -1,167 +1,111 @@
 package servicebus_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMServiceBusNamespaceNetworkRule_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace_network_rule_set", "test")
+type ServiceBusNamespaceNetworkRuleSetResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusNamespaceNetworkRuleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceBusNamespaceNetworkRule_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusNamespaceNetworkRuleExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccServiceBusNamespaceNetworkRule_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace_network_rule_set", "test")
+	r := ServiceBusNamespaceNetworkRuleSetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMServiceBusNamespaceNetworkRule_complete(t *testing.T) {
+func TestAccServiceBusNamespaceNetworkRule_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace_network_rule_set", "test")
+	r := ServiceBusNamespaceNetworkRuleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusNamespaceNetworkRuleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceBusNamespaceNetworkRule_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusNamespaceNetworkRuleExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMServiceBusNamespaceNetworkRule_update(t *testing.T) {
+func TestAccServiceBusNamespaceNetworkRule_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace_network_rule_set", "test")
+	r := ServiceBusNamespaceNetworkRuleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusNamespaceNetworkRuleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceBusNamespaceNetworkRule_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusNamespaceNetworkRuleExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMServiceBusNamespaceNetworkRule_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusNamespaceNetworkRuleExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMServiceBusNamespaceNetworkRule_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusNamespaceNetworkRuleExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMServiceBusNamespaceNetworkRule_requiresImport(t *testing.T) {
+func TestAccServiceBusNamespaceNetworkRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace_network_rule_set", "test")
+	r := ServiceBusNamespaceNetworkRuleSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusNamespaceNetworkRuleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceBusNamespaceNetworkRule_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusNamespaceNetworkRuleExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMServiceBusNamespaceNetworkRule_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func testCheckAzureRMServiceBusNamespaceNetworkRuleExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).ServiceBus.NamespacesClientPreview
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Service Bus Namespace Network Rule Set not found: %s", resourceName)
-		}
-
-		id, err := parse.NamespaceNetworkRuleSetID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		if resp, err := client.GetNetworkRuleSet(ctx, id.ResourceGroup, id.NamespaceName); err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Service Bus Namespace Network Rule Set (Namespace %q / Resource Group %q) does not exist", id.NamespaceName, id.ResourceGroup)
-			}
-			return fmt.Errorf("failed to GetNetworkRuleSet on ServiceBus.NamespacesClientPreview: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMServiceBusNamespaceNetworkRuleDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).ServiceBus.NamespacesClientPreview
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_servicebus_namespace_network_rule_set" {
-			continue
-		}
-
-		id, err := parse.NamespaceNetworkRuleSetID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		// this resource cannot be deleted, instead, we check if this setting was set back to empty
-		resp, err := client.GetNetworkRuleSet(ctx, id.ResourceGroup, id.NamespaceName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("failed to GetNetworkRuleSet on ServiceBus.NamespacesClientPreview: %+v", err)
-			}
-			return nil
-		}
-
-		if !servicebus.CheckNetworkRuleNullified(resp) {
-			return fmt.Errorf("the Service Bus Namespace Network Rule Set (Namespace %q / Resource Group %q) still exists", id.NamespaceName, id.ResourceGroup)
-		}
+func (t ServiceBusNamespaceNetworkRuleSetResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.NamespaceNetworkRuleSetID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.ServiceBus.NamespacesClientPreview.GetNetworkRuleSet(ctx, id.ResourceGroup, id.NamespaceName)
+	if err != nil {
+		return nil, fmt.Errorf("reading Service Bus NameSpace Network Rule Set (%s): %+v", id.String(), err)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMServiceBusNamespaceNetworkRule_basic(data acceptance.TestData) string {
-	template := testAccAzureRMServiceBusNamespaceNetworkRule_template(data)
+func (r ServiceBusNamespaceNetworkRuleSetResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -176,11 +120,10 @@ resource "azurerm_servicebus_namespace_network_rule_set" "test" {
     ignore_missing_vnet_service_endpoint = false
   }
 }
-`, template)
+`, r.template(data))
 }
 
-func testAccAzureRMServiceBusNamespaceNetworkRule_complete(data acceptance.TestData) string {
-	template := testAccAzureRMServiceBusNamespaceNetworkRule_template(data)
+func (r ServiceBusNamespaceNetworkRuleSetResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -197,10 +140,10 @@ resource "azurerm_servicebus_namespace_network_rule_set" "test" {
 
   ip_rules = ["1.1.1.1"]
 }
-`, template)
+`, r.template(data))
 }
 
-func testAccAzureRMServiceBusNamespaceNetworkRule_template(data acceptance.TestData) string {
+func (ServiceBusNamespaceNetworkRuleSetResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -239,8 +182,7 @@ resource "azurerm_subnet" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMServiceBusNamespaceNetworkRule_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMServiceBusNamespaceNetworkRule_basic(data)
+func (r ServiceBusNamespaceNetworkRuleSetResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -248,5 +190,5 @@ resource "azurerm_servicebus_namespace_network_rule_set" "import" {
   namespace_name      = azurerm_servicebus_namespace_network_rule_set.test.namespace_name
   resource_group_name = azurerm_servicebus_namespace_network_rule_set.test.resource_group_name
 }
-`, template)
+`, r.basic(data))
 }

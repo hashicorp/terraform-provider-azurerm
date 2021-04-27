@@ -14,19 +14,19 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMonitorActionGroup() *schema.Resource {
+func resourceMonitorActionGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMonitorActionGroupCreateUpdate,
-		Read:   resourceArmMonitorActionGroupRead,
-		Update: resourceArmMonitorActionGroupCreateUpdate,
-		Delete: resourceArmMonitorActionGroupDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Create: resourceMonitorActionGroupCreateUpdate,
+		Read:   resourceMonitorActionGroupRead,
+		Update: resourceMonitorActionGroupCreateUpdate,
+		Delete: resourceMonitorActionGroupDelete,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -177,6 +177,35 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 						"use_common_alert_schema": {
 							Type:     schema.TypeBool,
 							Optional: true,
+						},
+
+						"aad_auth": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"object_id": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.IsUUID,
+									},
+
+									"identifier_uri": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										Computed:     true,
+										ValidateFunc: validation.IsURLWithScheme([]string{"api"}),
+									},
+
+									"tenant_id": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										Computed:     true,
+										ValidateFunc: validation.IsUUID,
+									},
+								},
+							},
 						},
 					},
 				},
@@ -337,8 +366,9 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 	}
 }
 
-func resourceArmMonitorActionGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorActionGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ActionGroupsClient
+	tenantId := meta.(*clients.Client).Account.TenantId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -384,12 +414,12 @@ func resourceArmMonitorActionGroupCreateUpdate(d *schema.ResourceData, meta inte
 			AzureAppPushReceivers:      expandMonitorActionGroupAzureAppPushReceiver(azureAppPushReceiversRaw),
 			ItsmReceivers:              expandMonitorActionGroupItsmReceiver(itsmReceiversRaw),
 			SmsReceivers:               expandMonitorActionGroupSmsReceiver(smsReceiversRaw),
-			WebhookReceivers:           expandMonitorActionGroupWebHookReceiver(webhookReceiversRaw),
+			WebhookReceivers:           expandMonitorActionGroupWebHookReceiver(tenantId, webhookReceiversRaw),
 			AutomationRunbookReceivers: expandMonitorActionGroupAutomationRunbookReceiver(automationRunbookReceiversRaw),
 			VoiceReceivers:             expandMonitorActionGroupVoiceReceiver(voiceReceiversRaw),
 			LogicAppReceivers:          expandMonitorActionGroupLogicAppReceiver(logicAppReceiversRaw),
 			AzureFunctionReceivers:     expandMonitorActionGroupAzureFunctionReceiver(azureFunctionReceiversRaw),
-			ArmRoleReceivers:           expandMonitorActionGroupArmRoleReceiver(armRoleReceiversRaw),
+			ArmRoleReceivers:           expandMonitorActionGroupRoleReceiver(armRoleReceiversRaw),
 		},
 		Tags: expandedTags,
 	}
@@ -408,10 +438,10 @@ func resourceArmMonitorActionGroupCreateUpdate(d *schema.ResourceData, meta inte
 
 	d.SetId(*read.ID)
 
-	return resourceArmMonitorActionGroupRead(d, meta)
+	return resourceMonitorActionGroupRead(d, meta)
 }
 
-func resourceArmMonitorActionGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorActionGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ActionGroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -474,14 +504,14 @@ func resourceArmMonitorActionGroupRead(d *schema.ResourceData, meta interface{})
 		if err = d.Set("azure_function_receiver", flattenMonitorActionGroupAzureFunctionReceiver(group.AzureFunctionReceivers)); err != nil {
 			return fmt.Errorf("Error setting `azure_function_receiver`: %+v", err)
 		}
-		if err = d.Set("arm_role_receiver", flattenMonitorActionGroupArmRoleReceiver(group.ArmRoleReceivers)); err != nil {
+		if err = d.Set("arm_role_receiver", flattenMonitorActionGroupRoleReceiver(group.ArmRoleReceivers)); err != nil {
 			return fmt.Errorf("Error setting `arm_role_receiver`: %+v", err)
 		}
 	}
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmMonitorActionGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorActionGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ActionGroupsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -560,7 +590,7 @@ func expandMonitorActionGroupSmsReceiver(v []interface{}) *[]insights.SmsReceive
 	return &receivers
 }
 
-func expandMonitorActionGroupWebHookReceiver(v []interface{}) *[]insights.WebhookReceiver {
+func expandMonitorActionGroupWebHookReceiver(tenantId string, v []interface{}) *[]insights.WebhookReceiver {
 	receivers := make([]insights.WebhookReceiver, 0)
 	for _, receiverValue := range v {
 		val := receiverValue.(map[string]interface{})
@@ -568,6 +598,17 @@ func expandMonitorActionGroupWebHookReceiver(v []interface{}) *[]insights.Webhoo
 			Name:                 utils.String(val["name"].(string)),
 			ServiceURI:           utils.String(val["service_uri"].(string)),
 			UseCommonAlertSchema: utils.Bool(val["use_common_alert_schema"].(bool)),
+		}
+		if v, ok := val["aad_auth"].([]interface{}); ok && len(v) > 0 {
+			secureWebhook := v[0].(map[string]interface{})
+			receiver.UseAadAuth = utils.Bool(true)
+			receiver.ObjectID = utils.String(secureWebhook["object_id"].(string))
+			receiver.IdentifierURI = utils.String(secureWebhook["identifier_uri"].(string))
+			if v := secureWebhook["tenant_id"].(string); v != "" {
+				receiver.TenantID = utils.String(v)
+			} else {
+				receiver.TenantID = utils.String(tenantId)
+			}
 		}
 		receivers = append(receivers, receiver)
 	}
@@ -637,7 +678,7 @@ func expandMonitorActionGroupAzureFunctionReceiver(v []interface{}) *[]insights.
 	return &receivers
 }
 
-func expandMonitorActionGroupArmRoleReceiver(v []interface{}) *[]insights.ArmRoleReceiver {
+func expandMonitorActionGroupRoleReceiver(v []interface{}) *[]insights.ArmRoleReceiver {
 	receivers := make([]insights.ArmRoleReceiver, 0)
 	for _, receiverValue := range v {
 		val := receiverValue.(map[string]interface{})
@@ -739,21 +780,52 @@ func flattenMonitorActionGroupWebHookReceiver(receivers *[]insights.WebhookRecei
 	result := make([]interface{}, 0)
 	if receivers != nil {
 		for _, receiver := range *receivers {
-			val := make(map[string]interface{})
+			var useCommonAlert bool
+			var name, serviceUri string
 			if receiver.Name != nil {
-				val["name"] = *receiver.Name
+				name = *receiver.Name
 			}
 			if receiver.ServiceURI != nil {
-				val["service_uri"] = *receiver.ServiceURI
+				serviceUri = *receiver.ServiceURI
 			}
 			if receiver.UseCommonAlertSchema != nil {
-				val["use_common_alert_schema"] = *receiver.UseCommonAlertSchema
+				useCommonAlert = *receiver.UseCommonAlertSchema
 			}
 
-			result = append(result, val)
+			result = append(result, map[string]interface{}{
+				"name":                    name,
+				"service_uri":             serviceUri,
+				"use_common_alert_schema": useCommonAlert,
+				"aad_auth":                flattenMonitorActionGroupSecureWebHookReceiver(receiver),
+			})
 		}
 	}
 	return result
+}
+
+func flattenMonitorActionGroupSecureWebHookReceiver(receiver insights.WebhookReceiver) []interface{} {
+	if receiver.UseAadAuth == nil || !*receiver.UseAadAuth {
+		return []interface{}{}
+	}
+
+	var objectId, identifierUri, tenantId string
+
+	if v := receiver.ObjectID; v != nil {
+		objectId = *v
+	}
+	if v := receiver.IdentifierURI; v != nil {
+		identifierUri = *v
+	}
+	if v := receiver.TenantID; v != nil {
+		tenantId = *v
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"object_id":      objectId,
+			"identifier_uri": identifierUri,
+			"tenant_id":      tenantId,
+		},
+	}
 }
 
 func flattenMonitorActionGroupAutomationRunbookReceiver(receivers *[]insights.AutomationRunbookReceiver) []interface{} {
@@ -857,7 +929,7 @@ func flattenMonitorActionGroupAzureFunctionReceiver(receivers *[]insights.AzureF
 	return result
 }
 
-func flattenMonitorActionGroupArmRoleReceiver(receivers *[]insights.ArmRoleReceiver) []interface{} {
+func flattenMonitorActionGroupRoleReceiver(receivers *[]insights.ArmRoleReceiver) []interface{} {
 	result := make([]interface{}, 0)
 	if receivers != nil {
 		for _, receiver := range *receivers {

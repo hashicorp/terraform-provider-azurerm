@@ -25,13 +25,14 @@ func NewDiskEncryptionSetID(subscriptionId, resourceGroup, name string) DiskEncr
 
 func (id DiskEncryptionSetId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Disk Encryption Set", segmentsStr)
 }
 
-func (id DiskEncryptionSetId) ID(_ string) string {
+func (id DiskEncryptionSetId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/diskEncryptionSets/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }

@@ -11,7 +11,7 @@ import (
 var _ resourceid.Formatter = ScheduleId{}
 
 func TestScheduleIDFormatter(t *testing.T) {
-	actual := NewScheduleID("12345678-1234-9876-4563-123456789012", "group1", "schedule1").ID("")
+	actual := NewScheduleID("12345678-1234-9876-4563-123456789012", "group1", "schedule1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.DevTestLab/schedules/schedule1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)

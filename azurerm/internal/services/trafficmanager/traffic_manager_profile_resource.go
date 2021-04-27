@@ -7,15 +7,18 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/trafficmanager/validate"
+
 	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-04-01/trafficmanager"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/trafficmanager/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -26,9 +29,8 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 		Read:   resourceArmTrafficManagerProfileRead,
 		Update: resourceArmTrafficManagerProfileUpdate,
 		Delete: resourceArmTrafficManagerProfileDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -102,7 +104,7 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 							Optional: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
-								ValidateFunc: validateTrafficManagerProfileStatusCodeRange,
+								ValidateFunc: validate.StatusCodeRange,
 							},
 						},
 
@@ -175,6 +177,17 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 				Computed: true,
 			},
 
+			"max_return": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(1, 8),
+			},
+
+			"traffic_view_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -197,7 +210,7 @@ func resourceArmTrafficManagerProfileCreate(d *schema.ResourceData, meta interfa
 	}
 
 	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_traffic_manager_profile", resourceId.ID(""))
+		return tf.ImportAsExistsError("azurerm_traffic_manager_profile", resourceId.ID())
 	}
 
 	// No existing profile - start from a new struct.
@@ -212,8 +225,21 @@ func resourceArmTrafficManagerProfileCreate(d *schema.ResourceData, meta interfa
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
+	if maxReturn, ok := d.GetOk("max_return"); ok {
+		profile.MaxReturn = utils.Int64(int64(maxReturn.(int)))
+	}
+
 	if status, ok := d.GetOk("profile_status"); ok {
 		profile.ProfileStatus = trafficmanager.ProfileStatus(status.(string))
+	}
+
+	if trafficViewStatus, ok := d.GetOk("traffic_view_enabled"); ok {
+		profile.TrafficViewEnrollmentStatus = expandArmTrafficManagerTrafficView(trafficViewStatus.(bool))
+	}
+
+	if profile.ProfileProperties.TrafficRoutingMethod == trafficmanager.MultiValue &&
+		profile.ProfileProperties.MaxReturn == nil {
+		return fmt.Errorf("`max_return` must be specified when `traffic_routing_method` is set to `MultiValue`")
 	}
 
 	if *profile.ProfileProperties.MonitorConfig.IntervalInSeconds == int64(10) &&
@@ -225,7 +251,7 @@ func resourceArmTrafficManagerProfileCreate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("creating Traffic Manager Profile %q (Resource Group %q): %+v", resourceId.Name, resourceId.ResourceGroup, err)
 	}
 
-	d.SetId(resourceId.ID(""))
+	d.SetId(resourceId.ID())
 	return resourceArmTrafficManagerProfileRead(d, meta)
 }
 
@@ -254,9 +280,11 @@ func resourceArmTrafficManagerProfileRead(d *schema.ResourceData, meta interface
 	if profile := resp.ProfileProperties; profile != nil {
 		d.Set("profile_status", profile.ProfileStatus)
 		d.Set("traffic_routing_method", profile.TrafficRoutingMethod)
+		d.Set("max_return", profile.MaxReturn)
 
 		d.Set("dns_config", flattenAzureRMTrafficManagerProfileDNSConfig(profile.DNSConfig))
 		d.Set("monitor_config", flattenAzureRMTrafficManagerProfileMonitorConfig(profile.MonitorConfig))
+		d.Set("traffic_view_enabled", profile.TrafficViewEnrollmentStatus == trafficmanager.TrafficViewEnrollmentStatusEnabled)
 
 		// fqdn is actually inside DNSConfig, inlined for simpler reference
 		if dns := profile.DNSConfig; dns != nil {
@@ -291,12 +319,24 @@ func resourceArmTrafficManagerProfileUpdate(d *schema.ResourceData, meta interfa
 		update.ProfileProperties.TrafficRoutingMethod = trafficmanager.TrafficRoutingMethod(d.Get("traffic_routing_method").(string))
 	}
 
+	if d.HasChange("max_return") {
+		if maxReturn, ok := d.GetOk("max_return"); ok {
+			update.MaxReturn = utils.Int64(int64(maxReturn.(int)))
+		}
+	}
+
 	if d.HasChange("dns_config") {
 		update.ProfileProperties.DNSConfig = expandArmTrafficManagerDNSConfig(d)
 	}
 
 	if d.HasChange("monitor_config") {
 		update.ProfileProperties.MonitorConfig = expandArmTrafficManagerMonitorConfig(d)
+	}
+
+	if d.HasChange("traffic_view_enabled") {
+		if trafficViewStatus, ok := d.GetOk("traffic_view_enabled"); ok {
+			update.ProfileProperties.TrafficViewEnrollmentStatus = expandArmTrafficManagerTrafficView(trafficViewStatus.(bool))
+		}
 	}
 
 	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, update); err != nil {
@@ -411,6 +451,13 @@ func expandArmTrafficManagerDNSConfig(d *schema.ResourceData) *trafficmanager.DN
 	}
 }
 
+func expandArmTrafficManagerTrafficView(s bool) trafficmanager.TrafficViewEnrollmentStatus {
+	if s {
+		return trafficmanager.TrafficViewEnrollmentStatusEnabled
+	}
+	return trafficmanager.TrafficViewEnrollmentStatusDisabled
+}
+
 func flattenAzureRMTrafficManagerProfileDNSConfig(dns *trafficmanager.DNSConfig) []interface{} {
 	result := make(map[string]interface{})
 
@@ -448,32 +495,4 @@ func flattenAzureRMTrafficManagerProfileMonitorConfig(cfg *trafficmanager.Monito
 	}
 
 	return []interface{}{result}
-}
-
-func validateTrafficManagerProfileStatusCodeRange(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-		return warnings, errors
-	}
-
-	parts := strings.Split(v, "-")
-	if len(parts) != 2 {
-		errors = append(errors, fmt.Errorf("expected %s to contain a single '-', got %v", k, i))
-		return warnings, errors
-	}
-
-	_, err := strconv.Atoi(parts[0])
-	if err != nil {
-		errors = append(errors, fmt.Errorf("expected %s on the left of - to be an integer, got %v: %v", k, i, err))
-		return warnings, errors
-	}
-
-	_, err = strconv.Atoi(parts[1])
-	if err != nil {
-		errors = append(errors, fmt.Errorf("expected %s on the right of - to be an integer, got %v: %v", k, i, err))
-		return warnings, errors
-	}
-
-	return warnings, errors
 }

@@ -11,7 +11,7 @@ import (
 var _ resourceid.Formatter = VirtualMachineScaleSetId{}
 
 func TestVirtualMachineScaleSetIDFormatter(t *testing.T) {
-	actual := NewVirtualMachineScaleSetID("12345678-1234-9876-4563-123456789012", "resGroup1", "scaleSet1").ID("")
+	actual := NewVirtualMachineScaleSetID("12345678-1234-9876-4563-123456789012", "resGroup1", "scaleSet1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/virtualMachineScaleSets/scaleSet1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)

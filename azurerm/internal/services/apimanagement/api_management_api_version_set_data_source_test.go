@@ -6,29 +6,29 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccDataSourceAzureRMApiManagementApiVersionSet_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_api_management_api_version_set", "test")
+type ApiManagementApiVersionSetDataSource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceApiManagementApiVersionSet_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "api_management_name"),
-				),
-			},
+func TestAccDataSourceApiManagementApiVersionSet_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_api_management_api_version_set", "test")
+	r := ApiManagementApiVersionSetDataSource{}
+
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("name").Exists(),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+				check.That(data.ResourceName).Key("api_management_name").Exists(),
+			),
 		},
 	})
 }
 
-func testAccDataSourceApiManagementApiVersionSet_basic(data acceptance.TestData) string {
-	config := testAccAzureRMApiManagementApiVersionSet_basic(data)
+func (ApiManagementApiVersionSetDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -37,5 +37,5 @@ data "azurerm_api_management_api_version_set" "test" {
   resource_group_name = azurerm_api_management_api_version_set.test.resource_group_name
   api_management_name = azurerm_api_management_api_version_set.test.api_management_name
 }
-`, config)
+`, ApiManagementApiVersionSetResource{}.basic(data))
 }

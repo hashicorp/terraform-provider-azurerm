@@ -15,7 +15,7 @@ Manages an Azure Data Factory (Version 2).
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "northeurope"
+  location = "West Europe"
 }
 
 resource "azurerm_data_factory" "example" {
@@ -40,6 +40,8 @@ The following arguments are supported:
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `vsts_configuration` - (Optional) A `vsts_configuration` block as defined below.
+
+* `public_network_enabled` - (Optional) Is the Data Factory visible to the public network? Defaults to `true`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

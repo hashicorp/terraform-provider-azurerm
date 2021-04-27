@@ -166,7 +166,7 @@ func (NotificationHubAuthorizationRuleResource) Exists(ctx context.Context, clie
 
 	resp, err := clients.NotificationHubs.HubsClient.GetAuthorizationRule(ctx, id.ResourceGroup, id.NamespaceName, id.NotificationHubName, id.AuthorizationRuleName)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Notification Hub Authorization Rule (%s): %v", id.String(), err)
+		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
 
 	return utils.Bool(resp.SharedAccessAuthorizationRuleProperties != nil), nil

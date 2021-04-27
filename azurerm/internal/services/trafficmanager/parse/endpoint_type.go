@@ -38,17 +38,17 @@ func NewEndpointId(subscriptionId, resourceGroup, trafficManagerProfile, endpoin
 	}, nil
 }
 
-func (id EndpointId) ID(_ string) string {
+func (id EndpointId) ID() string {
 	if id.endpointName == "azure" {
-		return NewAzureEndpointID(id.SubscriptionId, id.ResourceGroup, id.TrafficManagerProfileName, id.Name).ID("")
+		return NewAzureEndpointID(id.SubscriptionId, id.ResourceGroup, id.TrafficManagerProfileName, id.Name).ID()
 	}
 
 	if id.endpointName == "external" {
-		return NewExternalEndpointID(id.SubscriptionId, id.ResourceGroup, id.TrafficManagerProfileName, id.Name).ID("")
+		return NewExternalEndpointID(id.SubscriptionId, id.ResourceGroup, id.TrafficManagerProfileName, id.Name).ID()
 	}
 
 	if id.endpointName == "nested" {
-		return NewNestedEndpointID(id.SubscriptionId, id.ResourceGroup, id.TrafficManagerProfileName, id.Name).ID("")
+		return NewNestedEndpointID(id.SubscriptionId, id.ResourceGroup, id.TrafficManagerProfileName, id.Name).ID()
 	}
 
 	// NOTE: this looks bad but is caught above in the `New` function and below in the Parse

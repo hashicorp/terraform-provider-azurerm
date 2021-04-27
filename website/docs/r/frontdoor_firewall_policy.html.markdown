@@ -10,16 +10,18 @@ description: |-
 
 Manages an Azure Front Door Web Application Firewall Policy instance.
 
+!> **Be Aware:** Azure is rolling out a breaking change on Friday 9th April which may cause issues with the CDN/FrontDoor resources. [More information is available in this Github issue](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11231) - however unfortunately this may necessitate a breaking change to the CDN and FrontDoor resources, more information will be posted [in the Github issue](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11231) as the necessary changes are identified.
+
 ## Example Usage
 
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-rg"
-  location = "West US 2"
+  location = "West Europe"
 }
 
 resource "azurerm_frontdoor_firewall_policy" "example" {
-  name                              = "example-fdwafpolicy"
+  name                              = "examplefdwafpolicy"
   resource_group_name               = azurerm_resource_group.example.name
   enabled                           = true
   mode                              = "Prevention"
@@ -157,7 +159,7 @@ The `custom_rule` block supports the following:
 
 * `type` - (Required) The type of rule. Possible values are `MatchRule` or `RateLimitRule`.
 
-* `match_condition` - (Required) One or more `match_condition` block defined below.
+* `match_condition` - (Required) One or more `match_condition` block defined below. Can support up to `10` `match_condition` blocks.
 
 * `rate_limit_duration_in_minutes` - (Optional) The rate limit duration in minutes. Defaults to `1`.
 
@@ -169,7 +171,7 @@ The `match_condition` block supports the following:
 
 * `match_variable` - (Required) The request variable to compare with. Possible values are `Cookies`, `PostArgs`, `QueryString`, `RemoteAddr`, `RequestBody`, `RequestHeader`, `RequestMethod`, `RequestUri`, or `SocketAddr`.
 
-* `match_values` - (Required) Up to `100` possible values to match.
+* `match_values` - (Required) Up to `600` possible values to match. Limit is in total across all `match_condition` blocks and `match_values` arguments. String value itself can be up to `256` characters long.
 
 * `operator` - (Required) Comparison type to use for matching with the variable value. Possible values are `Any`, `BeginsWith`, `Contains`, `EndsWith`, `Equal`, `GeoMatch`, `GreaterThan`, `GreaterThanOrEqual`, `IPMatch`, `LessThan`, `LessThanOrEqual` or `RegEx`.
 
@@ -247,5 +249,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 FrontDoor Web Application Firewall Policy can be imported using the `resource id`, e.g.
 
 ```shell
-$ terraform import azurerm_frontdoor_firewall_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.Network/frontDoorWebApplicationFirewallPolicies/example-fdwafpolicy
+$ terraform import azurerm_frontdoor_firewall_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.Network/frontDoorWebApplicationFirewallPolicies/examplefdwafpolicy
 ```

@@ -11,7 +11,7 @@ import (
 
 type AppServiceCertificateDataSource struct{}
 
-func TestAccDataSourceAzureRMAppServiceCertificate_basic(t *testing.T) {
+func TestAccDataSourceAppServiceCertificate_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service_certificate", "test")
 
 	data.DataSourceTest(t, []resource.TestStep{

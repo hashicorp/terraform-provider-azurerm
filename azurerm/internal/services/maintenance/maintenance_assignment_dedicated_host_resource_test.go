@@ -58,7 +58,7 @@ func (MaintenanceAssignmentDedicatedHostResource) Exists(ctx context.Context, cl
 		return nil, fmt.Errorf("retrieving Maintenance Assignment Dedicated Host (target resource id: %q): %v", id.DedicatedHostIdRaw, err)
 	}
 
-	return utils.Bool(resp.Value == nil || len(*resp.Value) == 0), nil
+	return utils.Bool(resp.Value != nil && len(*resp.Value) != 0), nil
 }
 
 func (r MaintenanceAssignmentDedicatedHostResource) basic(data acceptance.TestData) string {

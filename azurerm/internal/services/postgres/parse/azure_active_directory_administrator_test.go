@@ -11,7 +11,7 @@ import (
 var _ resourceid.Formatter = AzureActiveDirectoryAdministratorId{}
 
 func TestAzureActiveDirectoryAdministratorIDFormatter(t *testing.T) {
-	actual := NewAzureActiveDirectoryAdministratorID("12345678-1234-9876-4563-123456789012", "resGroup1", "server1", "activeDirectory").ID("")
+	actual := NewAzureActiveDirectoryAdministratorID("12345678-1234-9876-4563-123456789012", "resGroup1", "server1", "activeDirectory").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DBforPostgreSQL/servers/server1/administrators/activeDirectory"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)

@@ -107,7 +107,7 @@ The following arguments are supported:
 
 * `is_hns_enabled` - (Optional) Is Hierarchical Namespace enabled? This can be used with Azure Data Lake Storage Gen 2 ([see here for more information](https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-quickstart-create-account/)). Changing this forces a new resource to be created.
 
--> **NOTE:** When this is set to `true` the `account_tier` argument must be set to `Standard`
+-> **NOTE:** This can only be `true` when `account_tier` is `Standard` or when `account_tier` is `Premium` *and* `account_kind` is `BlockBlobStorage` 
 
 * `custom_domain` - (Optional) A `custom_domain` block as documented below.
 
@@ -137,6 +137,16 @@ A `blob_properties` block supports the following:
 
 * `delete_retention_policy` - (Optional) A `delete_retention_policy` block as defined below.
 
+* `versioning_enabled` - (Optional) Is versioning enabled? Default to `false`.
+
+* `change_feed` - (Optional) A `change_feed` block as defined below.
+
+* `default_service_version` - (Optional) The API Version which should be used by default for requests to the Data Plane API if an incoming request doesn't specify an API Version. Defaults to `2020-06-12`.
+
+* `last_access_time_enabled` - (Optional) Is the last access time based tracking enabled? Default to `false`.
+
+* `container_delete_retention_policy` - (Optional) A `container_delete_retention_policy` block as defined below.
+
 ---
 
 A `cors_rule` block supports the following:
@@ -164,6 +174,18 @@ A `custom_domain` block supports the following:
 A `delete_retention_policy` block supports the following:
 
 * `days` - (Optional) Specifies the number of days that the blob should be retained, between `1` and `365` days. Defaults to `7`.
+
+---
+
+A `container_delete_retention_policy` block supports the following:
+
+* `days` - (Optional) Specifies the number of days that the container should be retained, between `1` and `365` days. Defaults to `7`.
+
+---
+
+A `change_feed` block supports the following:
+
+* `retention_in_days` - (Optional) The duration of changeFeed retention in days, between `1` and `146000` days. A null value indicates an infinite retention of the change feed.
 
 ---
 

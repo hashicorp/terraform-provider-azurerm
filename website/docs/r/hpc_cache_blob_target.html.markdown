@@ -97,6 +97,8 @@ The following arguments are supported:
 
 -> **Note:** This is the Resource Manager ID of the Storage Container, rather than the regular ID - and can be accessed on the `azurerm_storage_container` Data Source/Resource as `resource_manager_id`.
 
+* `access_policy_name` - (Optional) The name of the access policy applied to this target. Defaults to `default`.
+
 ## Attributes Reference
 
 The following attributes are exported:

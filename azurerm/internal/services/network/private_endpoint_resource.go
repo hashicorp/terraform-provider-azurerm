@@ -16,21 +16,22 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	privateDnsParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns/parse"
 	privateDnsValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmPrivateEndpoint() *schema.Resource {
+func resourcePrivateEndpoint() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmPrivateEndpointCreate,
-		Read:   resourceArmPrivateEndpointRead,
-		Update: resourceArmPrivateEndpointUpdate,
-		Delete: resourceArmPrivateEndpointDelete,
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Create: resourcePrivateEndpointCreate,
+		Read:   resourcePrivateEndpointRead,
+		Update: resourcePrivateEndpointUpdate,
+		Delete: resourcePrivateEndpointDelete,
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.PrivateEndpointID(id)
 			return err
 		}),
@@ -47,7 +48,7 @@ func resourceArmPrivateEndpoint() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidatePrivateLinkName,
+				ValidateFunc: validate.PrivateLinkName,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -74,7 +75,7 @@ func resourceArmPrivateEndpoint() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: ValidatePrivateLinkName,
+							ValidateFunc: validate.PrivateLinkName,
 						},
 						"private_dns_zone_ids": {
 							Type:     schema.TypeList,
@@ -98,7 +99,7 @@ func resourceArmPrivateEndpoint() *schema.Resource {
 							Type:         schema.TypeString,
 							Required:     true,
 							ForceNew:     true,
-							ValidateFunc: ValidatePrivateLinkName,
+							ValidateFunc: validate.PrivateLinkName,
 						},
 						"is_manual_connection": {
 							Type:     schema.TypeBool,
@@ -107,9 +108,17 @@ func resourceArmPrivateEndpoint() *schema.Resource {
 						},
 						"private_connection_resource_id": {
 							Type:         schema.TypeString,
-							Required:     true,
+							Optional:     true,
 							ForceNew:     true,
 							ValidateFunc: azure.ValidateResourceID,
+							ExactlyOneOf: []string{"private_service_connection.0.private_connection_resource_alias", "private_service_connection.0.private_connection_resource_id"},
+						},
+						"private_connection_resource_alias": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validate.PrivateConnectionResourceAlias,
+							ExactlyOneOf: []string{"private_service_connection.0.private_connection_resource_alias", "private_service_connection.0.private_connection_resource_id"},
 						},
 						"subresource_names": {
 							Type:     schema.TypeList,
@@ -117,7 +126,7 @@ func resourceArmPrivateEndpoint() *schema.Resource {
 							ForceNew: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
-								ValidateFunc: ValidatePrivateLinkSubResourceName,
+								ValidateFunc: validate.PrivateLinkSubResourceName,
 							},
 						},
 						"request_message": {
@@ -210,7 +219,7 @@ func resourceArmPrivateEndpoint() *schema.Resource {
 	}
 }
 
-func resourceArmPrivateEndpointCreate(d *schema.ResourceData, meta interface{}) error {
+func resourcePrivateEndpointCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PrivateEndpointClient
 	dnsClient := meta.(*clients.Client).Network.PrivateDnsZoneGroupClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -219,7 +228,7 @@ func resourceArmPrivateEndpointCreate(d *schema.ResourceData, meta interface{}) 
 
 	id := parse.NewPrivateEndpointID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	if err := ValidatePrivateEndpointSettings(d); err != nil {
+	if err := validatePrivateEndpointSettings(d); err != nil {
 		return fmt.Errorf("validating the configuration for the Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
@@ -231,7 +240,7 @@ func resourceArmPrivateEndpointCreate(d *schema.ResourceData, meta interface{}) 
 	}
 
 	if existing.PrivateEndpointProperties != nil {
-		return tf.ImportAsExistsError("azurerm_private_endpoint", id.ID(""))
+		return tf.ImportAsExistsError("azurerm_private_endpoint", id.ID())
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
@@ -242,8 +251,8 @@ func resourceArmPrivateEndpointCreate(d *schema.ResourceData, meta interface{}) 
 	parameters := network.PrivateEndpoint{
 		Location: utils.String(location),
 		PrivateEndpointProperties: &network.PrivateEndpointProperties{
-			PrivateLinkServiceConnections:       expandArmPrivateLinkEndpointServiceConnection(privateServiceConnections, false),
-			ManualPrivateLinkServiceConnections: expandArmPrivateLinkEndpointServiceConnection(privateServiceConnections, true),
+			PrivateLinkServiceConnections:       expandPrivateLinkEndpointServiceConnection(privateServiceConnections, false),
+			ManualPrivateLinkServiceConnections: expandPrivateLinkEndpointServiceConnection(privateServiceConnections, true),
 			Subnet: &network.Subnet{
 				ID: utils.String(subnetId),
 			},
@@ -263,7 +272,7 @@ func resourceArmPrivateEndpointCreate(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("waiting for creation of Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	d.SetId(id.ID(""))
+	d.SetId(id.ID())
 
 	// 1 Private Endpoint can have 1 Private DNS Zone Group
 	// since this is a new resource, there shouldn't be an existing one - so there's no need to delete it
@@ -275,10 +284,10 @@ func resourceArmPrivateEndpointCreate(d *schema.ResourceData, meta interface{}) 
 		log.Printf("[DEBUG] Created the Existing Private DNS Zone Group associated with Private Endpoint %q / Resource Group %q.", id.Name, id.ResourceGroup)
 	}
 
-	return resourceArmPrivateEndpointRead(d, meta)
+	return resourcePrivateEndpointRead(d, meta)
 }
 
-func resourceArmPrivateEndpointUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourcePrivateEndpointUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PrivateEndpointClient
 	dnsClient := meta.(*clients.Client).Network.PrivateDnsZoneGroupClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -289,7 +298,7 @@ func resourceArmPrivateEndpointUpdate(d *schema.ResourceData, meta interface{}) 
 		return err
 	}
 
-	if err := ValidatePrivateEndpointSettings(d); err != nil {
+	if err := validatePrivateEndpointSettings(d); err != nil {
 		return fmt.Errorf("validating the configuration for the Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
@@ -302,8 +311,8 @@ func resourceArmPrivateEndpointUpdate(d *schema.ResourceData, meta interface{}) 
 	parameters := network.PrivateEndpoint{
 		Location: utils.String(location),
 		PrivateEndpointProperties: &network.PrivateEndpointProperties{
-			PrivateLinkServiceConnections:       expandArmPrivateLinkEndpointServiceConnection(privateServiceConnections, false),
-			ManualPrivateLinkServiceConnections: expandArmPrivateLinkEndpointServiceConnection(privateServiceConnections, true),
+			PrivateLinkServiceConnections:       expandPrivateLinkEndpointServiceConnection(privateServiceConnections, false),
+			ManualPrivateLinkServiceConnections: expandPrivateLinkEndpointServiceConnection(privateServiceConnections, true),
 			Subnet: &network.Subnet{
 				ID: utils.String(subnetId),
 			},
@@ -358,20 +367,20 @@ func resourceArmPrivateEndpointUpdate(d *schema.ResourceData, meta interface{}) 
 			}
 			log.Printf("[DEBUG] Deleted the Existing Private DNS Zone Group associated with Private Endpoint %q / Resource Group %q.", id.Name, id.ResourceGroup)
 		}
-	}
 
-	if len(privateDnsZoneGroup) > 0 {
-		log.Printf("[DEBUG] Creating Private DNS Zone Group associated with Private Endpoint %q / Resource Group %q..", id.Name, id.ResourceGroup)
-		if err := createPrivateDnsZoneGroupForPrivateEndpoint(ctx, dnsClient, *id, privateDnsZoneGroup); err != nil {
-			return err
+		if len(privateDnsZoneGroup) > 0 {
+			log.Printf("[DEBUG] Creating Private DNS Zone Group associated with Private Endpoint %q / Resource Group %q..", id.Name, id.ResourceGroup)
+			if err := createPrivateDnsZoneGroupForPrivateEndpoint(ctx, dnsClient, *id, privateDnsZoneGroup); err != nil {
+				return err
+			}
+			log.Printf("[DEBUG] Created the Existing Private DNS Zone Group associated with Private Endpoint %q / Resource Group %q.", id.Name, id.ResourceGroup)
 		}
-		log.Printf("[DEBUG] Created the Existing Private DNS Zone Group associated with Private Endpoint %q / Resource Group %q.", id.Name, id.ResourceGroup)
 	}
 
-	return resourceArmPrivateEndpointRead(d, meta)
+	return resourcePrivateEndpointRead(d, meta)
 }
 
-func resourceArmPrivateEndpointRead(d *schema.ResourceData, meta interface{}) error {
+func resourcePrivateEndpointRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PrivateEndpointClient
 	nicsClient := meta.(*clients.Client).Network.InterfacesClient
 	dnsClient := meta.(*clients.Client).Network.PrivateDnsZoneGroupClient
@@ -403,7 +412,7 @@ func resourceArmPrivateEndpointRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.PrivateEndpointProperties; props != nil {
-		if err := d.Set("custom_dns_configs", flattenArmCustomDnsConfigs(props.CustomDNSConfigs)); err != nil {
+		if err := d.Set("custom_dns_configs", flattenCustomDnsConfigs(props.CustomDNSConfigs)); err != nil {
 			return fmt.Errorf("setting `custom_dns_configs`: %+v", err)
 		}
 
@@ -414,7 +423,7 @@ func resourceArmPrivateEndpointRead(d *schema.ResourceData, meta interface{}) er
 				privateIpAddress = getPrivateIpAddress(ctx, nicsClient, *nic.ID)
 			}
 		}
-		flattenedConnection := flattenArmPrivateLinkEndpointServiceConnection(props.PrivateLinkServiceConnections, props.ManualPrivateLinkServiceConnections, privateIpAddress)
+		flattenedConnection := flattenPrivateLinkEndpointServiceConnection(props.PrivateLinkServiceConnections, props.ManualPrivateLinkServiceConnections, privateIpAddress)
 		if err := d.Set("private_service_connection", flattenedConnection); err != nil {
 			return fmt.Errorf("setting `private_service_connection`: %+v", err)
 		}
@@ -454,7 +463,7 @@ func resourceArmPrivateEndpointRead(d *schema.ResourceData, meta interface{}) er
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmPrivateEndpointDelete(d *schema.ResourceData, meta interface{}) error {
+func resourcePrivateEndpointDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PrivateEndpointClient
 	dnsZoneGroupsClient := meta.(*clients.Client).Network.PrivateDnsZoneGroupClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -490,12 +499,15 @@ func resourceArmPrivateEndpointDelete(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func expandArmPrivateLinkEndpointServiceConnection(input []interface{}, parseManual bool) *[]network.PrivateLinkServiceConnection {
+func expandPrivateLinkEndpointServiceConnection(input []interface{}, parseManual bool) *[]network.PrivateLinkServiceConnection {
 	results := make([]network.PrivateLinkServiceConnection, 0)
 
 	for _, item := range input {
 		v := item.(map[string]interface{})
 		privateConnectonResourceId := v["private_connection_resource_id"].(string)
+		if privateConnectonResourceId == "" {
+			privateConnectonResourceId = v["private_connection_resource_alias"].(string)
+		}
 		subresourceNames := v["subresource_names"].([]interface{})
 		requestMessage := v["request_message"].(string)
 		isManual := v["is_manual_connection"].(bool)
@@ -521,7 +533,7 @@ func expandArmPrivateLinkEndpointServiceConnection(input []interface{}, parseMan
 	return &results
 }
 
-func flattenArmCustomDnsConfigs(customDnsConfigs *[]network.CustomDNSConfigPropertiesFormat) []interface{} {
+func flattenCustomDnsConfigs(customDnsConfigs *[]network.CustomDNSConfigPropertiesFormat) []interface{} {
 	results := make([]interface{}, 0)
 	if customDnsConfigs == nil {
 		return results
@@ -537,7 +549,7 @@ func flattenArmCustomDnsConfigs(customDnsConfigs *[]network.CustomDNSConfigPrope
 	return results
 }
 
-func flattenArmPrivateLinkEndpointServiceConnection(serviceConnections *[]network.PrivateLinkServiceConnection, manualServiceConnections *[]network.PrivateLinkServiceConnection, privateIPAddress string) []interface{} {
+func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]network.PrivateLinkServiceConnection, manualServiceConnections *[]network.PrivateLinkServiceConnection, privateIPAddress string) []interface{} {
 	results := make([]interface{}, 0)
 	if serviceConnections == nil && manualServiceConnections == nil {
 		return results
@@ -561,13 +573,19 @@ func flattenArmPrivateLinkEndpointServiceConnection(serviceConnections *[]networ
 					privateConnectionId = *props.PrivateLinkServiceID
 				}
 			}
-			results = append(results, map[string]interface{}{
-				"name":                           name,
-				"is_manual_connection":           false,
-				"private_connection_resource_id": privateConnectionId,
-				"private_ip_address":             privateIPAddress,
-				"subresource_names":              subResourceNames,
-			})
+			attrs := map[string]interface{}{
+				"name":                 name,
+				"is_manual_connection": false,
+				"private_ip_address":   privateIPAddress,
+				"subresource_names":    subResourceNames,
+			}
+			if strings.HasSuffix(privateConnectionId, ".azure.privatelinkservice") {
+				attrs["private_connection_resource_alias"] = privateConnectionId
+			} else {
+				attrs["private_connection_resource_id"] = privateConnectionId
+			}
+
+			results = append(results, attrs)
 		}
 	}
 
@@ -594,14 +612,20 @@ func flattenArmPrivateLinkEndpointServiceConnection(serviceConnections *[]networ
 				}
 			}
 
-			results = append(results, map[string]interface{}{
-				"name":                           name,
-				"is_manual_connection":           true,
-				"private_connection_resource_id": privateConnectionId,
-				"private_ip_address":             privateIPAddress,
-				"request_message":                requestMessage,
-				"subresource_names":              subResourceNames,
-			})
+			attrs := map[string]interface{}{
+				"name":                 name,
+				"is_manual_connection": true,
+				"private_ip_address":   privateIPAddress,
+				"request_message":      requestMessage,
+				"subresource_names":    subResourceNames,
+			}
+			if strings.HasSuffix(privateConnectionId, ".azure.privatelinkservice") {
+				attrs["private_connection_resource_alias"] = privateConnectionId
+			} else {
+				attrs["private_connection_resource_id"] = privateConnectionId
+			}
+
+			results = append(results, attrs)
 		}
 	}
 
@@ -628,7 +652,7 @@ func createPrivateDnsZoneGroupForPrivateEndpoint(ctx context.Context, client *ne
 		privateDnsZoneConfigs = append(privateDnsZoneConfigs, network.PrivateDNSZoneConfig{
 			Name: utils.String(privateDnsZone.Name),
 			PrivateDNSZonePropertiesFormat: &network.PrivateDNSZonePropertiesFormat{
-				PrivateDNSZoneID: utils.String(privateDnsZone.ID("")),
+				PrivateDNSZoneID: utils.String(privateDnsZone.ID()),
 			},
 		})
 	}
@@ -746,7 +770,7 @@ func retrieveAndFlattenPrivateDnsZone(ctx context.Context, client *network.Priva
 
 			recordSets := flattenPrivateDnsZoneGroupRecordSets(props.RecordSets)
 			dnsZoneConfigs = append(dnsZoneConfigs, map[string]interface{}{
-				"id":                  parse.NewPrivateDnsZoneConfigID(id.SubscriptionId, id.ResourceGroup, id.PrivateEndpointName, id.Name, name).ID(""),
+				"id":                  parse.NewPrivateDnsZoneConfigID(id.SubscriptionId, id.ResourceGroup, id.PrivateEndpointName, id.Name, name).ID(),
 				"name":                name,
 				"private_dns_zone_id": privateDnsZoneId,
 				"record_sets":         recordSets,
@@ -757,7 +781,7 @@ func retrieveAndFlattenPrivateDnsZone(ctx context.Context, client *network.Priva
 	return &flattenedPrivateDnsZoneGroup{
 		DnsZoneConfig: dnsZoneConfigs,
 		DnsZoneGroup: map[string]interface{}{
-			"id":                   id.ID(""),
+			"id":                   id.ID(),
 			"name":                 id.Name,
 			"private_dns_zone_ids": privateDnsZoneIds,
 		},
@@ -806,4 +830,25 @@ func flattenPrivateDnsZoneGroupRecordSets(input *[]network.RecordSet) []interfac
 	}
 
 	return output
+}
+
+func validatePrivateEndpointSettings(d *schema.ResourceData) error {
+	privateServiceConnections := d.Get("private_service_connection").([]interface{})
+
+	for _, psc := range privateServiceConnections {
+		privateServiceConnection := psc.(map[string]interface{})
+		name := privateServiceConnection["name"].(string)
+
+		// If this is not a manual connection and the message is set return an error since this does not make sense.
+		if !privateServiceConnection["is_manual_connection"].(bool) && privateServiceConnection["request_message"].(string) != "" {
+			return fmt.Errorf(`"private_service_connection":%q is invalid, the "request_message" attribute cannot be set if the "is_manual_connection" attribute is "false"`, name)
+		}
+
+		// If this is a manual connection and the message isn't set return an error.
+		if privateServiceConnection["is_manual_connection"].(bool) && strings.TrimSpace(privateServiceConnection["request_message"].(string)) == "" {
+			return fmt.Errorf(`"private_service_connection":%q is invalid, the "request_message" attribute must not be empty`, name)
+		}
+	}
+
+	return nil
 }

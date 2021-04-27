@@ -7,7 +7,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2019-10-01/netapp"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
+	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2020-09-01/netapp"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -16,17 +19,16 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmNetAppPool() *schema.Resource {
+func resourceNetAppPool() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmNetAppPoolCreateUpdate,
-		Read:   resourceArmNetAppPoolRead,
-		Update: resourceArmNetAppPoolCreateUpdate,
-		Delete: resourceArmNetAppPoolDelete,
+		Create: resourceNetAppPoolCreateUpdate,
+		Read:   resourceNetAppPoolRead,
+		Update: resourceNetAppPoolCreateUpdate,
+		Delete: resourceNetAppPoolDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -34,7 +36,7 @@ func resourceArmNetAppPool() *schema.Resource {
 			Update: schema.DefaultTimeout(30 * time.Minute),
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.CapacityPoolID(id)
 			return err
 		}),
@@ -44,7 +46,7 @@ func resourceArmNetAppPool() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateNetAppPoolName,
+				ValidateFunc: validate.PoolName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -55,7 +57,7 @@ func resourceArmNetAppPool() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateNetAppAccountName,
+				ValidateFunc: validate.AccountName,
 			},
 
 			"service_level": {
@@ -79,7 +81,7 @@ func resourceArmNetAppPool() *schema.Resource {
 	}
 }
 
-func resourceArmNetAppPoolCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceNetAppPoolCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.PoolClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -132,10 +134,10 @@ func resourceArmNetAppPoolCreateUpdate(d *schema.ResourceData, meta interface{})
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmNetAppPoolRead(d, meta)
+	return resourceNetAppPoolRead(d, meta)
 }
 
-func resourceArmNetAppPoolRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNetAppPoolRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.PoolClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -176,7 +178,7 @@ func resourceArmNetAppPoolRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmNetAppPoolDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNetAppPoolDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.PoolClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -186,8 +188,7 @@ func resourceArmNetAppPoolDelete(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 
-	_, err = client.Delete(ctx, id.ResourceGroup, id.NetAppAccountName, id.Name)
-	if err != nil {
+	if _, err = client.Delete(ctx, id.ResourceGroup, id.NetAppAccountName, id.Name); err != nil {
 		return fmt.Errorf("Error deleting NetApp Pool %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 

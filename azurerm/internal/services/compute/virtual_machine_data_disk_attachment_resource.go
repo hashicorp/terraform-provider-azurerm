@@ -5,27 +5,27 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmVirtualMachineDataDiskAttachment() *schema.Resource {
+func resourceVirtualMachineDataDiskAttachment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmVirtualMachineDataDiskAttachmentCreateUpdate,
-		Read:   resourceArmVirtualMachineDataDiskAttachmentRead,
-		Update: resourceArmVirtualMachineDataDiskAttachmentCreateUpdate,
-		Delete: resourceArmVirtualMachineDataDiskAttachmentDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Create: resourceVirtualMachineDataDiskAttachmentCreateUpdate,
+		Read:   resourceVirtualMachineDataDiskAttachmentRead,
+		Update: resourceVirtualMachineDataDiskAttachmentCreateUpdate,
+		Delete: resourceVirtualMachineDataDiskAttachmentDelete,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -89,7 +89,7 @@ func resourceArmVirtualMachineDataDiskAttachment() *schema.Resource {
 	}
 }
 
-func resourceArmVirtualMachineDataDiskAttachmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualMachineDataDiskAttachmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -188,10 +188,10 @@ func resourceArmVirtualMachineDataDiskAttachmentCreateUpdate(d *schema.ResourceD
 	}
 
 	d.SetId(resourceId)
-	return resourceArmVirtualMachineDataDiskAttachmentRead(d, meta)
+	return resourceVirtualMachineDataDiskAttachmentRead(d, meta)
 }
 
-func resourceArmVirtualMachineDataDiskAttachmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualMachineDataDiskAttachmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -251,7 +251,7 @@ func resourceArmVirtualMachineDataDiskAttachmentRead(d *schema.ResourceData, met
 	return nil
 }
 
-func resourceArmVirtualMachineDataDiskAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualMachineDataDiskAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

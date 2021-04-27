@@ -13,9 +13,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmHDInsightSparkCluster() *schema.Resource {
+func dataSourceHDInsightSparkCluster() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmHDInsightClusterRead,
+		Read: dataSourceHDInsightClusterRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -90,6 +90,11 @@ func dataSourceArmHDInsightSparkCluster() *schema.Resource {
 				Computed: true,
 			},
 
+			"kafka_rest_proxy_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"ssh_endpoint": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -98,7 +103,7 @@ func dataSourceArmHDInsightSparkCluster() *schema.Resource {
 	}
 }
 
-func dataSourceArmHDInsightClusterRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceHDInsightClusterRead(d *schema.ResourceData, meta interface{}) error {
 	clustersClient := meta.(*clients.Client).HDInsight.ClustersClient
 	configurationsClient := meta.(*clients.Client).HDInsight.ConfigurationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -150,6 +155,8 @@ func dataSourceArmHDInsightClusterRead(d *schema.ResourceData, meta interface{})
 		d.Set("https_endpoint", httpEndpoint)
 		sshEndpoint := FindHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints)
 		d.Set("ssh_endpoint", sshEndpoint)
+		kafkaRestProxyEndpoint := FindHDInsightConnectivityEndpoint("KafkaRestProxyPublicEndpoint", props.ConnectivityEndpoints)
+		d.Set("kafka_rest_proxy_endpoint", kafkaRestProxyEndpoint)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

@@ -10,19 +10,19 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmIotHubFallbackRoute() *schema.Resource {
+func resourceIotHubFallbackRoute() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmIotHubFallbackRouteCreateUpdate,
-		Read:   resourceArmIotHubFallbackRouteRead,
-		Update: resourceArmIotHubFallbackRouteCreateUpdate,
-		Delete: resourceArmIotHubFallbackRouteDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Create: resourceIotHubFallbackRouteCreateUpdate,
+		Read:   resourceIotHubFallbackRouteRead,
+		Update: resourceIotHubFallbackRouteCreateUpdate,
+		Delete: resourceIotHubFallbackRouteDelete,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -68,7 +68,7 @@ func resourceArmIotHubFallbackRoute() *schema.Resource {
 	}
 }
 
-func resourceArmIotHubFallbackRouteCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubFallbackRouteCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -116,10 +116,10 @@ func resourceArmIotHubFallbackRouteCreateUpdate(d *schema.ResourceData, meta int
 	resourceId := fmt.Sprintf("%s/FallbackRoute/defined", *iothub.ID)
 	d.SetId(resourceId)
 
-	return resourceArmIotHubFallbackRouteRead(d, meta)
+	return resourceIotHubFallbackRouteRead(d, meta)
 }
 
-func resourceArmIotHubFallbackRouteRead(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubFallbackRouteRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -153,7 +153,7 @@ func resourceArmIotHubFallbackRouteRead(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceArmIotHubFallbackRouteDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubFallbackRouteDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

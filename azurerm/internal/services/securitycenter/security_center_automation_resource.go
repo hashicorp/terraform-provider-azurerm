@@ -14,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -22,16 +23,15 @@ const typeLogicApp = "logicapp"
 const typeEventHub = "eventhub"
 const typeLogAnalytics = "loganalytics"
 
-func resourceArmSecurityCenterAutomation() *schema.Resource {
+func resourceSecurityCenterAutomation() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSecurityCenterAutomationCreateUpdate,
-		Read:   resourceArmSecurityCenterAutomationRead,
-		Update: resourceArmSecurityCenterAutomationCreateUpdate,
-		Delete: resourceArmSecurityCenterAutomationDelete,
+		Create: resourceSecurityCenterAutomationCreateUpdate,
+		Read:   resourceSecurityCenterAutomationRead,
+		Update: resourceSecurityCenterAutomationCreateUpdate,
+		Delete: resourceSecurityCenterAutomationDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -128,10 +128,12 @@ func resourceArmSecurityCenterAutomation() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								"Alerts",
-								"Assessments",
-								"SubAssessments",
-							}, true),
+								string(security.Alerts),
+								string(security.Assessments),
+								string(security.SecureScoreControls),
+								string(security.SecureScores),
+								string(security.SubAssessments),
+							}, false),
 						},
 
 						"rule_set": {
@@ -192,7 +194,7 @@ func resourceArmSecurityCenterAutomation() *schema.Resource {
 	}
 }
 
-func resourceArmSecurityCenterAutomationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSecurityCenterAutomationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.AutomationsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -247,10 +249,10 @@ func resourceArmSecurityCenterAutomationCreateUpdate(d *schema.ResourceData, met
 
 	// Important steps
 	d.SetId(*resp.ID)
-	return resourceArmSecurityCenterAutomationRead(d, meta)
+	return resourceSecurityCenterAutomationRead(d, meta)
 }
 
-func resourceArmSecurityCenterAutomationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSecurityCenterAutomationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.AutomationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -312,7 +314,7 @@ func resourceArmSecurityCenterAutomationRead(d *schema.ResourceData, meta interf
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmSecurityCenterAutomationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSecurityCenterAutomationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.AutomationsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

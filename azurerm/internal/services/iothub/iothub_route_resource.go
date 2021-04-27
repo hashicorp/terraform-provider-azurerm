@@ -14,19 +14,19 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmIotHubRoute() *schema.Resource {
+func resourceIotHubRoute() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmIotHubRouteCreateUpdate,
-		Read:   resourceArmIotHubRouteRead,
-		Update: resourceArmIotHubRouteCreateUpdate,
-		Delete: resourceArmIotHubRouteDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Create: resourceIotHubRouteCreateUpdate,
+		Read:   resourceIotHubRouteRead,
+		Update: resourceIotHubRouteCreateUpdate,
+		Delete: resourceIotHubRouteDelete,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -90,7 +90,7 @@ func resourceArmIotHubRoute() *schema.Resource {
 	}
 }
 
-func resourceArmIotHubRouteCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubRouteCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -174,10 +174,10 @@ func resourceArmIotHubRouteCreateUpdate(d *schema.ResourceData, meta interface{}
 
 	d.SetId(resourceId)
 
-	return resourceArmIotHubRouteRead(d, meta)
+	return resourceIotHubRouteRead(d, meta)
 }
 
-func resourceArmIotHubRouteRead(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubRouteRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -220,7 +220,7 @@ func resourceArmIotHubRouteRead(d *schema.ResourceData, meta interface{}) error 
 	return nil
 }
 
-func resourceArmIotHubRouteDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubRouteDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

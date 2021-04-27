@@ -10,24 +10,24 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/validate"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmServiceBusSubscriptionRule() *schema.Resource {
+func resourceServiceBusSubscriptionRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmServiceBusSubscriptionRuleCreateUpdate,
-		Read:   resourceArmServiceBusSubscriptionRuleRead,
-		Update: resourceArmServiceBusSubscriptionRuleCreateUpdate,
-		Delete: resourceArmServiceBusSubscriptionRuleDelete,
+		Create: resourceServiceBusSubscriptionRuleCreateUpdate,
+		Read:   resourceServiceBusSubscriptionRuleRead,
+		Update: resourceServiceBusSubscriptionRuleCreateUpdate,
+		Delete: resourceServiceBusSubscriptionRuleDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.SubscriptionRuleID(id)
 			return err
 		}),
@@ -101,40 +101,76 @@ func resourceArmServiceBusSubscriptionRule() *schema.Resource {
 						"correlation_id": {
 							Type:     schema.TypeString,
 							Optional: true,
+							AtLeastOneOf: []string{"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
+								"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
+								"correlation_filter.0.reply_to_session_id", "correlation_filter.0.content_type", "correlation_filter.0.properties",
+							},
 						},
 						"message_id": {
 							Type:     schema.TypeString,
 							Optional: true,
+							AtLeastOneOf: []string{"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
+								"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
+								"correlation_filter.0.reply_to_session_id", "correlation_filter.0.content_type", "correlation_filter.0.properties",
+							},
 						},
 						"to": {
 							Type:     schema.TypeString,
 							Optional: true,
+							AtLeastOneOf: []string{"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
+								"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
+								"correlation_filter.0.reply_to_session_id", "correlation_filter.0.content_type", "correlation_filter.0.properties",
+							},
 						},
 						"reply_to": {
 							Type:     schema.TypeString,
 							Optional: true,
+							AtLeastOneOf: []string{"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
+								"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
+								"correlation_filter.0.reply_to_session_id", "correlation_filter.0.content_type", "correlation_filter.0.properties",
+							},
 						},
 						"label": {
 							Type:     schema.TypeString,
 							Optional: true,
+							AtLeastOneOf: []string{"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
+								"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
+								"correlation_filter.0.reply_to_session_id", "correlation_filter.0.content_type", "correlation_filter.0.properties",
+							},
 						},
 						"session_id": {
 							Type:     schema.TypeString,
 							Optional: true,
+							AtLeastOneOf: []string{"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
+								"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
+								"correlation_filter.0.reply_to_session_id", "correlation_filter.0.content_type", "correlation_filter.0.properties",
+							},
 						},
 						"reply_to_session_id": {
 							Type:     schema.TypeString,
 							Optional: true,
+							AtLeastOneOf: []string{"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
+								"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
+								"correlation_filter.0.reply_to_session_id", "correlation_filter.0.content_type", "correlation_filter.0.properties",
+							},
 						},
 						"content_type": {
 							Type:     schema.TypeString,
 							Optional: true,
+							AtLeastOneOf: []string{"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
+								"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
+								"correlation_filter.0.reply_to_session_id", "correlation_filter.0.content_type", "correlation_filter.0.properties",
+							},
 						},
 						"properties": {
 							Type:     schema.TypeMap,
 							Optional: true,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
+							},
+							AtLeastOneOf: []string{"correlation_filter.0.correlation_id", "correlation_filter.0.message_id", "correlation_filter.0.to",
+								"correlation_filter.0.reply_to", "correlation_filter.0.label", "correlation_filter.0.session_id",
+								"correlation_filter.0.reply_to_session_id", "correlation_filter.0.content_type", "correlation_filter.0.properties",
 							},
 						},
 					},
@@ -144,7 +180,7 @@ func resourceArmServiceBusSubscriptionRule() *schema.Resource {
 	}
 }
 
-func resourceArmServiceBusSubscriptionRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceBusSubscriptionRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.SubscriptionRulesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -156,8 +192,8 @@ func resourceArmServiceBusSubscriptionRuleCreateUpdate(d *schema.ResourceData, m
 	resourceId := parse.NewSubscriptionRuleID(subscriptionId,
 		d.Get("resource_group_name").(string),
 		d.Get("namespace_name").(string),
-		d.Get("subscription_name").(string),
 		d.Get("topic_name").(string),
+		d.Get("subscription_name").(string),
 		d.Get("name").(string))
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.NamespaceName, resourceId.TopicName, resourceId.SubscriptionName, resourceId.RuleName)
@@ -168,7 +204,7 @@ func resourceArmServiceBusSubscriptionRuleCreateUpdate(d *schema.ResourceData, m
 		}
 
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_servicebus_subscription_rule", resourceId.ID(""))
+			return tf.ImportAsExistsError("azurerm_servicebus_subscription_rule", resourceId.ID())
 		}
 	}
 
@@ -204,11 +240,11 @@ func resourceArmServiceBusSubscriptionRuleCreateUpdate(d *schema.ResourceData, m
 		return fmt.Errorf("creating/updating %s: %+v", resourceId, err)
 	}
 
-	d.SetId(resourceId.ID(""))
-	return resourceArmServiceBusSubscriptionRuleRead(d, meta)
+	d.SetId(resourceId.ID())
+	return resourceServiceBusSubscriptionRuleRead(d, meta)
 }
 
-func resourceArmServiceBusSubscriptionRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceBusSubscriptionRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.SubscriptionRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -252,7 +288,7 @@ func resourceArmServiceBusSubscriptionRuleRead(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func resourceArmServiceBusSubscriptionRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceBusSubscriptionRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.SubscriptionRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

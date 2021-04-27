@@ -96,6 +96,8 @@ The following arguments are supported:
 
 * `roles` - (Required) A `roles` block as defined below.
 
+* `network` - (Optional) A `network` block as defined below.
+
 * `storage_account` - (Required) One or more `storage_account` block as defined below.
 
 * `storage_account_gen2` - (Required) A `storage_account_gen2` block as defined below.
@@ -162,6 +164,16 @@ A `roles` block supports the following:
 * `worker_node` - (Required) A `worker_node` block as defined below.
 
 * `zookeeper_node` - (Required) A `zookeeper_node` block as defined below.
+
+---
+
+A `network` block supports the following:
+
+* `connection_direction` - (Optional) The direction of the resource provider connection. Possible values include `Inbound` or `Outbound`. Defaults to `Inbound`. Changing this forces a new resource to be created.
+
+-> **NOTE:** To enabled the private link the `connection_direction` must be set to `Outbound`.
+
+* `private_link_enabled` - (Optional) Is the private link enabled? Possible values include `True` or `False`. Defaults to `False`. Changing this forces a new resource to be created.
 
 ---
 
@@ -318,5 +330,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 HDInsight Interactive Query Clusters can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_hdinsight_interactive_query_cluster.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.HDInsight/clusters/cluster1}
+terraform import azurerm_hdinsight_interactive_query_cluster.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.HDInsight/clusters/cluster1
 ```

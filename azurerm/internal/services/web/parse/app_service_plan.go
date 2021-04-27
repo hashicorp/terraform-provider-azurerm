@@ -25,13 +25,14 @@ func NewAppServicePlanID(subscriptionId, resourceGroup, serverfarmName string) A
 
 func (id AppServicePlanId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 		fmt.Sprintf("Serverfarm Name %q", id.ServerfarmName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "App Service Plan", segmentsStr)
 }
 
-func (id AppServicePlanId) ID(_ string) string {
+func (id AppServicePlanId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/serverfarms/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ServerfarmName)
 }

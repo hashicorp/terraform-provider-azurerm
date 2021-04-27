@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
 
@@ -18,9 +19,8 @@ func resourceApplicationInsightsAnalyticsItem() *schema.Resource {
 		Read:   resourceApplicationInsightsAnalyticsItemRead,
 		Update: resourceApplicationInsightsAnalyticsItemUpdate,
 		Delete: resourceApplicationInsightsAnalyticsItemDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -209,8 +209,7 @@ func resourceApplicationInsightsAnalyticsItemDelete(d *schema.ResourceData, meta
 		return fmt.Errorf("Error parsing Application Insights Analytics Item ID %s: %s", id, err)
 	}
 
-	_, err = client.Delete(ctx, resourceGroupName, appInsightsName, itemScopePath, itemID, "")
-	if err != nil {
+	if _, err = client.Delete(ctx, resourceGroupName, appInsightsName, itemScopePath, itemID, ""); err != nil {
 		return fmt.Errorf("Error Deleting Application Insights Analytics Item '%s' (Resource Group %s, App Insights Name: %s): %s", itemID, resourceGroupName, appInsightsName, err)
 	}
 

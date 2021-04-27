@@ -1,12 +1,16 @@
 package logic
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
-	"regexp"
 	"time"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic/validate"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
@@ -20,9 +24,8 @@ func resourceLogicAppTriggerHttpRequest() *schema.Resource {
 		Read:   resourceLogicAppTriggerHttpRequestRead,
 		Update: resourceLogicAppTriggerHttpRequestCreateUpdate,
 		Delete: resourceLogicAppTriggerHttpRequestDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -31,7 +34,7 @@ func resourceLogicAppTriggerHttpRequest() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *schema.ResourceDiff, v interface{}) error {
 			relativePath := diff.Get("relative_path").(string)
 			if relativePath != "" {
 				method := diff.Get("method").(string)
@@ -41,7 +44,7 @@ func resourceLogicAppTriggerHttpRequest() *schema.Resource {
 			}
 
 			return nil
-		},
+		}),
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -79,7 +82,7 @@ func resourceLogicAppTriggerHttpRequest() *schema.Resource {
 			"relative_path": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateLogicAppTriggerHttpRequestRelativePath,
+				ValidateFunc: validate.TriggerHttpRequestRelativePath,
 			},
 		},
 	}
@@ -191,14 +194,4 @@ func resourceLogicAppTriggerHttpRequestDelete(d *schema.ResourceData, meta inter
 	}
 
 	return nil
-}
-
-func validateLogicAppTriggerHttpRequestRelativePath(v interface{}, _ string) (warnings []string, errors []error) {
-	value := v.(string)
-
-	if !regexp.MustCompile("^[A-Za-z0-9_/}{]+$").MatchString(value) {
-		errors = append(errors, fmt.Errorf("Relative Path can only contain alphanumeric characters, underscores, forward slashes and curly braces."))
-	}
-
-	return warnings, errors
 }

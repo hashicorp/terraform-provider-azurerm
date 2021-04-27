@@ -11,7 +11,7 @@ import (
 var _ resourceid.Formatter = LogAnalyticsStorageInsightsId{}
 
 func TestLogAnalyticsStorageInsightsIDFormatter(t *testing.T) {
-	actual := NewLogAnalyticsStorageInsightsID("12345678-1234-9876-4563-123456789012", "resGroup1", "workspace1", "storageInsight1").ID("")
+	actual := NewLogAnalyticsStorageInsightsID("12345678-1234-9876-4563-123456789012", "resGroup1", "workspace1", "storageInsight1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/storageInsightConfigs/storageInsight1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)

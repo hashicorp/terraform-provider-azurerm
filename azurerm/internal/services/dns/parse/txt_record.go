@@ -27,14 +27,15 @@ func NewTxtRecordID(subscriptionId, resourceGroup, dnszoneName, tXTName string) 
 
 func (id TxtRecordId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Dnszone Name %q", id.DnszoneName),
 		fmt.Sprintf("T X T Name %q", id.TXTName),
+		fmt.Sprintf("Dnszone Name %q", id.DnszoneName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Txt Record", segmentsStr)
 }
 
-func (id TxtRecordId) ID(_ string) string {
+func (id TxtRecordId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/dnszones/%s/TXT/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DnszoneName, id.TXTName)
 }

@@ -6,160 +6,134 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccDataSourceAzureRMMySQLServer_basicFiveSix(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_mysql_server", "test")
+type MySQLServerDataSource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMMySQLServer_basic(data, "5.6"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLServerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "GP_Gen5_2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "administrator_login", "acctestun"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auto_grow_enabled", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "ssl_minimal_tls_version_enforced", "TLS1_1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "storage_mb", "51200"),
-					resource.TestCheckResourceAttr(data.ResourceName, "version", "5.6"),
-				),
-			},
+func TestAccDataSourceMySQLServerDataSourceMySQLServer_basicFiveSix(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_mysql_server", "test")
+	r := MySQLServerDataSource{}
+
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data, "5.6"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
+				check.That(data.ResourceName).Key("administrator_login").HasValue("acctestun"),
+				check.That(data.ResourceName).Key("auto_grow_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("ssl_minimal_tls_version_enforced").HasValue("TLS1_1"),
+				check.That(data.ResourceName).Key("storage_mb").HasValue("51200"),
+				check.That(data.ResourceName).Key("version").HasValue("5.6"),
+			),
 		},
 	})
 }
 
-func TestAccDataSourceAzureRMMySQLServer_basicFiveSixWithIdentity(t *testing.T) {
+func TestAccDataSourceMySQLServerDataSourceMySQLServer_basicFiveSixWithIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_mysql_server", "test")
+	r := MySQLServerDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMMySQLServer_basicWithIdentity(data, "5.6"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLServerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "GP_Gen5_2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "administrator_login", "acctestun"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auto_grow_enabled", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "ssl_minimal_tls_version_enforced", "TLS1_1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "storage_mb", "51200"),
-					resource.TestCheckResourceAttr(data.ResourceName, "version", "5.6"),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "SystemAssigned"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.principal_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.tenant_id"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basicWithIdentity(data, "5.6"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
+				check.That(data.ResourceName).Key("administrator_login").HasValue("acctestun"),
+				check.That(data.ResourceName).Key("auto_grow_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("ssl_minimal_tls_version_enforced").HasValue("TLS1_1"),
+				check.That(data.ResourceName).Key("storage_mb").HasValue("51200"),
+				check.That(data.ResourceName).Key("version").HasValue("5.6"),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
+			),
 		},
 	})
 }
 
-func TestAccDataSourceAzureRMMySQLServer_basicFiveSeven(t *testing.T) {
+func TestAccDataSourceMySQLServerDataSourceMySQLServer_basicFiveSeven(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_mysql_server", "test")
+	r := MySQLServerDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMMySQLServer_basic(data, "5.7"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLServerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "GP_Gen5_2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "administrator_login", "acctestun"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auto_grow_enabled", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "ssl_minimal_tls_version_enforced", "TLS1_1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "storage_mb", "51200"),
-					resource.TestCheckResourceAttr(data.ResourceName, "version", "5.7"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data, "5.7"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
+				check.That(data.ResourceName).Key("administrator_login").HasValue("acctestun"),
+				check.That(data.ResourceName).Key("auto_grow_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("ssl_minimal_tls_version_enforced").HasValue("TLS1_1"),
+				check.That(data.ResourceName).Key("storage_mb").HasValue("51200"),
+				check.That(data.ResourceName).Key("version").HasValue("5.7"),
+			),
 		},
 	})
 }
 
-func TestAccDataSourceAzureRMMySQLServer_basicEightZero(t *testing.T) {
+func TestAccDataSourceMySQLServerDataSourceMySQLServer_basicEightZero(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_mysql_server", "test")
+	r := MySQLServerDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMMySQLServer_basic(data, "8.0"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLServerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "GP_Gen5_2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "administrator_login", "acctestun"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auto_grow_enabled", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "ssl_minimal_tls_version_enforced", "TLS1_1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "storage_mb", "51200"),
-					resource.TestCheckResourceAttr(data.ResourceName, "version", "8.0"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data, "8.0"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
+				check.That(data.ResourceName).Key("administrator_login").HasValue("acctestun"),
+				check.That(data.ResourceName).Key("auto_grow_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("ssl_minimal_tls_version_enforced").HasValue("TLS1_1"),
+				check.That(data.ResourceName).Key("storage_mb").HasValue("51200"),
+				check.That(data.ResourceName).Key("version").HasValue("8.0"),
+			),
 		},
 	})
 }
 
-func TestAccDataSourceAzureRMMySQLServer_autogrowOnly(t *testing.T) {
+func TestAccDataSourceMySQLServerDataSourceMySQLServer_autogrowOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_mysql_server", "test")
+	r := MySQLServerDataSource{}
 	mysqlVersion := "5.7"
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMMySQLServer_autogrow(data, mysqlVersion),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLServerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "GP_Gen5_2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "administrator_login", "acctestun"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auto_grow_enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "storage_mb", "51200"),
-					resource.TestCheckResourceAttr(data.ResourceName, "version", "5.7"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.autogrow(data, mysqlVersion),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
+				check.That(data.ResourceName).Key("administrator_login").HasValue("acctestun"),
+				check.That(data.ResourceName).Key("auto_grow_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("storage_mb").HasValue("51200"),
+				check.That(data.ResourceName).Key("version").HasValue("5.7"),
+			),
 		},
 	})
 }
 
-func TestAccDataSourceAzureRMMySQLServer_complete(t *testing.T) {
+func TestAccDataSourceMySQLServerDataSourceMySQLServer_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_mysql_server", "test")
+	r := MySQLServerDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMMySQLServer_complete(data, "8.0"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLServerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "GP_Gen5_2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "administrator_login", "acctestun"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auto_grow_enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "ssl_minimal_tls_version_enforced", "TLS1_2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "storage_mb", "51200"),
-					resource.TestCheckResourceAttr(data.ResourceName, "version", "8.0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "threat_detection_policy.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "threat_detection_policy.0.enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "threat_detection_policy.0.email_account_admins", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "threat_detection_policy.0.retention_days", "7"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.complete(data, "8.0"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
+				check.That(data.ResourceName).Key("administrator_login").HasValue("acctestun"),
+				check.That(data.ResourceName).Key("auto_grow_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("ssl_minimal_tls_version_enforced").HasValue("TLS1_2"),
+				check.That(data.ResourceName).Key("storage_mb").HasValue("51200"),
+				check.That(data.ResourceName).Key("version").HasValue("8.0"),
+				check.That(data.ResourceName).Key("threat_detection_policy.#").HasValue("1"),
+				check.That(data.ResourceName).Key("threat_detection_policy.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("threat_detection_policy.0.email_account_admins").HasValue("true"),
+				check.That(data.ResourceName).Key("threat_detection_policy.0.retention_days").HasValue("7"),
+			),
 		},
 	})
 }
 
-func testAccDataSourceAzureRMMySQLServer_basic(data acceptance.TestData, version string) string {
+func (MySQLServerDataSource) basic(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -167,10 +141,10 @@ data "azurerm_mysql_server" "test" {
   name                = azurerm_mysql_server.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, testAccAzureRMMySQLServer_basic(data, version))
+`, MySQLServerResource{}.basic(data, version))
 }
 
-func testAccDataSourceAzureRMMySQLServer_basicWithIdentity(data acceptance.TestData, version string) string {
+func (MySQLServerDataSource) basicWithIdentity(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -178,10 +152,10 @@ data "azurerm_mysql_server" "test" {
   name                = azurerm_mysql_server.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, testAccAzureRMMySQLServer_basicWithIdentity(data, version))
+`, MySQLServerResource{}.basicWithIdentity(data, version))
 }
 
-func testAccDataSourceAzureRMMySQLServer_autogrow(data acceptance.TestData, version string) string {
+func (MySQLServerDataSource) autogrow(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -189,10 +163,10 @@ data "azurerm_mysql_server" "test" {
   name                = azurerm_mysql_server.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, testAccAzureRMMySQLServer_autogrow(data, version))
+`, MySQLServerResource{}.autogrow(data, version))
 }
 
-func testAccDataSourceAzureRMMySQLServer_complete(data acceptance.TestData, version string) string {
+func (MySQLServerDataSource) complete(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -200,5 +174,5 @@ data "azurerm_mysql_server" "test" {
   name                = azurerm_mysql_server.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, testAccAzureRMMySQLServer_complete(data, version))
+`, MySQLServerResource{}.complete(data, version))
 }

@@ -1,12 +1,14 @@
 package keyvault_test
 
 import (
+	"context"
 	"fmt"
-	"log"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -14,253 +16,155 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMKeyVaultCertificateIssuer_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate_issuer", "test")
+type KeyVaultCertificateIssuerResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultCertificateIssuerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKeyVaultCertificateIssuer_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultCertificateIssuerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("password"),
+func TestAccKeyVaultCertificateIssuer_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate_issuer", "test")
+	r := KeyVaultCertificateIssuerResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("password"),
 	})
 }
 
-func TestAccAzureRMKeyVaultCertificateIssuer_requiresImport(t *testing.T) {
+func TestAccKeyVaultCertificateIssuer_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate_issuer", "test")
+	r := KeyVaultCertificateIssuerResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultCertificateIssuerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKeyVaultCertificateIssuer_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultCertificateIssuerExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMKeyVaultCertificateIssuer_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func TestAccAzureRMKeyVaultCertificateIssuer_complete(t *testing.T) {
+func TestAccKeyVaultCertificateIssuer_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate_issuer", "test")
+	r := KeyVaultCertificateIssuerResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultCertificateIssuerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKeyVaultCertificateIssuer_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultCertificateIssuerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("password"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("password"),
 	})
 }
 
-func TestAccAzureRMKeyVaultCertificateIssuer_update(t *testing.T) {
+func TestAccKeyVaultCertificateIssuer_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate_issuer", "test")
+	r := KeyVaultCertificateIssuerResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultCertificateIssuerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKeyVaultCertificateIssuer_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultCertificateIssuerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("password"),
-			{
-				Config: testAccAzureRMKeyVaultCertificateIssuer_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultCertificateIssuerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("password"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("password"),
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("password"),
 	})
 }
 
-func TestAccAzureRMKeyVaultCertificateIssuer_disappears(t *testing.T) {
+func TestAccKeyVaultCertificateIssuer_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate_issuer", "test")
+	r := KeyVaultCertificateIssuerResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultCertificateIssuerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKeyVaultCertificateIssuer_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultCertificateIssuerExists(data.ResourceName),
-					testCheckAzureRMKeyVaultCertificateIssuerDisappears(data.ResourceName),
-				),
-				ExpectNonEmptyPlan: true,
-			},
-		},
+	data.ResourceTest(t, r, []resource.TestStep{
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.basic,
+			TestResource: r,
+		}),
 	})
 }
 
-func TestAccAzureRMKeyVaultCertificateIssuer_disappearsWhenParentKeyVaultDeleted(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate_issuer", "test")
+func (r KeyVaultCertificateIssuerResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	client := clients.KeyVault.ManagementClient
+	keyVaultsClient := clients.KeyVault
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultCertificateIssuerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKeyVaultCertificateIssuer_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultCertificateIssuerExists("azurerm_key_vault_certificate_issuer.test"),
-					testCheckAzureRMKeyVaultDisappears("azurerm_key_vault.test"),
-				),
-				ExpectNonEmptyPlan: true,
-			},
-		},
-	})
-}
-
-func testCheckAzureRMKeyVaultCertificateIssuerDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.ManagementClient
-	vaultClient := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_key_vault_certificate_issuer" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		keyVaultId := rs.Primary.Attributes["key_vault_id"]
-		vaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
-		if err != nil {
-			// deleted, this is fine.
-			return nil
-		}
-
-		ok, err := azure.KeyVaultExists(ctx, acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient, keyVaultId)
-		if err != nil {
-			return fmt.Errorf("failed to check if key vault %q for Certificate Issuer %q in Vault at url %q exists: %v", keyVaultId, name, vaultBaseUrl, err)
-		}
-		if !ok {
-			log.Printf("[DEBUG] Certificate Issuer %q Key Vault %q was not found in Key Vault at URI %q ", name, keyVaultId, vaultBaseUrl)
-			return nil
-		}
-
-		// get the latest version
-		resp, err := client.GetCertificateIssuer(ctx, vaultBaseUrl, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-			return fmt.Errorf("Bad: Get on keyVault certificate issuer: %+v", err)
-		}
-
-		return fmt.Errorf("Key Vault Certificate Issuer still exists:\n%#v", resp)
+	id, err := parse.IssuerID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
-}
-
-func testCheckAzureRMKeyVaultCertificateIssuerExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.ManagementClient
-		vaultClient := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		keyVaultId := rs.Primary.Attributes["key_vault_id"]
-		vaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
-		if err != nil {
-			return fmt.Errorf("failed to look up Secret %q vault url from id %q: %+v", name, keyVaultId, err)
-		}
-
-		ok, err = azure.KeyVaultExists(ctx, acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient, keyVaultId)
-		if err != nil {
-			return fmt.Errorf("failed to check if key vault %q for Certificate Issuer %q in Vault at url %q exists: %v", keyVaultId, name, vaultBaseUrl, err)
-		}
-		if !ok {
-			log.Printf("[DEBUG] Certificate Issuer %q Key Vault %q was not found in Key Vault at URI %q ", name, keyVaultId, vaultBaseUrl)
-			return nil
-		}
-
-		resp, err := client.GetCertificateIssuer(ctx, vaultBaseUrl, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Key Vault Certificate Issuer %q (resource group: %q) does not exist", name, vaultBaseUrl)
-			}
-
-			return fmt.Errorf("Bad: Get on keyVault certificate issuer: %+v", err)
-		}
-
-		return nil
+	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, clients.Resource, id.KeyVaultBaseUrl)
+	if err != nil || keyVaultIdRaw == nil {
+		return nil, fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}
-}
-
-func testCheckAzureRMKeyVaultCertificateIssuerDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.ManagementClient
-		vaultClient := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-		name := rs.Primary.Attributes["name"]
-		keyVaultId := rs.Primary.Attributes["key_vault_id"]
-		vaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
-		if err != nil {
-			return fmt.Errorf("failed to look up base URI from id %q: %+v", keyVaultId, err)
-		}
-
-		ok, err = azure.KeyVaultExists(ctx, acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient, keyVaultId)
-		if err != nil {
-			return fmt.Errorf("failed to check if key vault %q for Certificate Issuer %q in Vault at url %q exists: %v", keyVaultId, name, vaultBaseUrl, err)
-		}
-		if !ok {
-			log.Printf("[DEBUG] Certificate Issuer %q Key Vault %q was not found in Key Vault at URI %q ", name, keyVaultId, vaultBaseUrl)
-			return nil
-		}
-
-		resp, err := client.DeleteCertificateIssuer(ctx, vaultBaseUrl, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-
-			return fmt.Errorf("Bad: Delete on keyVaultManagementClient: %+v", err)
-		}
-
-		return nil
+	keyVaultId, err := parse.VaultID(*keyVaultIdRaw)
+	if err != nil {
+		return nil, err
 	}
+
+	ok, err := keyVaultsClient.Exists(ctx, *keyVaultId)
+	if err != nil || !ok {
+		return nil, fmt.Errorf("checking if key vault %q for Certificate %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
+	}
+
+	resp, err := client.GetCertificateIssuer(ctx, id.KeyVaultBaseUrl, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("failed to make Read request on Azure KeyVault Certificate Issuer %s: %+v", id.Name, err)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMKeyVaultCertificateIssuer_basic(data acceptance.TestData) string {
+func (r KeyVaultCertificateIssuerResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	dataPlaneClient := client.KeyVault.ManagementClient
+	keyVaultsClient := client.KeyVault
+
+	name := state.Attributes["name"]
+	keyVaultId, err := parse.VaultID(state.Attributes["key_vault_id"])
+	if err != nil {
+		return nil, err
+	}
+
+	vaultBaseUrl, err := keyVaultsClient.BaseUriForKeyVault(ctx, *keyVaultId)
+	if err != nil {
+		return utils.Bool(false), fmt.Errorf("failed to look up base URI from id %q: %+v", keyVaultId, err)
+	}
+
+	ok, err := keyVaultsClient.Exists(ctx, *keyVaultId)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check if key vault %q for Certificate Issuer %q in Vault at url %q exists: %v", keyVaultId.ID(), name, *vaultBaseUrl, err)
+	}
+	if !ok {
+		return utils.Bool(false), fmt.Errorf("Certificate Issuer %q Key Vault %q was not found in Key Vault at URI %q", name, keyVaultId.ID(), *vaultBaseUrl)
+	}
+
+	resp, err := dataPlaneClient.DeleteCertificateIssuer(ctx, *vaultBaseUrl, name)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return utils.Bool(true), nil
+		}
+
+		return nil, fmt.Errorf("Bad: Delete on keyVaultManagementClient: %+v", err)
+	}
+
+	return utils.Bool(true), nil
+}
+
+func (KeyVaultCertificateIssuerResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -312,8 +216,7 @@ resource "azurerm_key_vault_certificate_issuer" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
-func testAccAzureRMKeyVaultCertificateIssuer_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMKeyVaultCertificateIssuer_basic(data)
+func (r KeyVaultCertificateIssuerResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -326,10 +229,10 @@ resource "azurerm_key_vault_certificate_issuer" "import" {
   provider_name = azurerm_key_vault_certificate_issuer.test.provider_name
 }
 
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMKeyVaultCertificateIssuer_complete(data acceptance.TestData) string {
+func (KeyVaultCertificateIssuerResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

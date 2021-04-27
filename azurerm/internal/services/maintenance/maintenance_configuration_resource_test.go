@@ -103,7 +103,7 @@ func TestAccMaintenanceConfiguration_update(t *testing.T) {
 }
 
 func (MaintenanceConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.MaintenanceConfigurationID(state.ID)
+	id, err := parse.MaintenanceConfigurationIDInsensitively(state.ID)
 	if err != nil {
 		return nil, err
 	}

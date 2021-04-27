@@ -5,71 +5,65 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccDataSourceAzureRMMsSqlServer_basic(t *testing.T) {
+type MsSqlServerDataSource struct{}
+
+func TestAccDataSourceMsSqlServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_mssql_server", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMsSqlServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMMsSqlServer_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMsSqlServerExists(data.ResourceName),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: MsSqlServerDataSource{}.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctestsqlserver%d", data.RandomInteger)),
+				check.That(data.ResourceName).Key("location").HasValue(data.Locations.Primary),
+			),
 		},
 	})
 }
 
-func TestAccDataSourceAzureRMMsSqlServer_complete(t *testing.T) {
+func TestAccDataSourceMsSqlServer_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_mssql_server", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMsSqlServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMMsSqlServer_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMsSqlServerExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "version"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "administrator_login"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "fully_qualified_domain_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "tags.%"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: MsSqlServerDataSource{}.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctestsqlserver%d", data.RandomInteger)),
+				check.That(data.ResourceName).Key("location").HasValue(data.Locations.Primary),
+				check.That(data.ResourceName).Key("version").Exists(),
+				check.That(data.ResourceName).Key("administrator_login").Exists(),
+				check.That(data.ResourceName).Key("fully_qualified_domain_name").Exists(),
+				check.That(data.ResourceName).Key("tags.%").Exists(),
+			),
 		},
 	})
 }
 
-func testAccDataSourceAzureRMMsSqlServer_basic(data acceptance.TestData) string {
-	template := testAccAzureRMMsSqlServer_basic(data)
+func (MsSqlServerDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 data "azurerm_mssql_server" "test" {
   name                = azurerm_mssql_server.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
 
-`, template)
+`, MsSqlServerResource{}.basic(data))
 }
 
-func testAccDataSourceAzureRMMsSqlServer_complete(data acceptance.TestData) string {
-	template := testAccAzureRMMsSqlServer_complete(data)
+func (MsSqlServerDataSource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 data "azurerm_mssql_server" "test" {
   name                = azurerm_mssql_server.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
 
-`, template)
+`, MsSqlServerResource{}.complete(data))
 }

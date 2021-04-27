@@ -11,7 +11,7 @@ import (
 var _ resourceid.Formatter = TrafficManagerProfileId{}
 
 func TestTrafficManagerProfileIDFormatter(t *testing.T) {
-	actual := NewTrafficManagerProfileID("12345678-1234-9876-4563-123456789012", "resGroup1", "trafficManagerProfile1").ID("")
+	actual := NewTrafficManagerProfileID("12345678-1234-9876-4563-123456789012", "resGroup1", "trafficManagerProfile1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/trafficManagerProfiles/trafficManagerProfile1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)

@@ -28,6 +28,7 @@ func TestAccAzureRMUserAssignedIdentity_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("principal_id").MatchesRegex(validate.UUIDRegExp),
 				check.That(data.ResourceName).Key("client_id").MatchesRegex(validate.UUIDRegExp),
+				check.That(data.ResourceName).Key("tenant_id").MatchesRegex(validate.UUIDRegExp),
 			),
 		},
 		data.ImportStep(),
@@ -45,6 +46,7 @@ func TestAccAzureRMUserAssignedIdentity_requiresImport(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("principal_id").MatchesRegex(validate.UUIDRegExp),
 				check.That(data.ResourceName).Key("client_id").MatchesRegex(validate.UUIDRegExp),
+				check.That(data.ResourceName).Key("tenant_id").MatchesRegex(validate.UUIDRegExp),
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
@@ -62,7 +64,7 @@ func (r UserAssignedIdentityResource) Exists(ctx context.Context, client *client
 		return nil, fmt.Errorf("retrieving User Assigned Identity %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	return utils.Bool(resp.IdentityProperties != nil), nil
+	return utils.Bool(resp.UserAssignedIdentityProperties != nil), nil
 }
 
 func (r UserAssignedIdentityResource) basic(data acceptance.TestData) string {

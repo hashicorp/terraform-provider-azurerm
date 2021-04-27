@@ -8,13 +8,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis"
+	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2020-06-01/redis"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
@@ -25,18 +24,19 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmRedisCache() *schema.Resource {
+func resourceRedisCache() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmRedisCacheCreate,
-		Read:   resourceArmRedisCacheRead,
-		Update: resourceArmRedisCacheUpdate,
-		Delete: resourceArmRedisCacheDelete,
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Create: resourceRedisCacheCreate,
+		Read:   resourceRedisCacheRead,
+		Update: resourceRedisCacheUpdate,
+		Delete: resourceRedisCacheDelete,
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.CacheID(id)
 			return err
 		}),
@@ -64,7 +64,7 @@ func resourceArmRedisCache() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"zones": azure.SchemaSingleZone(),
+			"zones": azure.SchemaMultipleZones(),
 
 			"capacity": {
 				Type:     schema.TypeInt,
@@ -273,12 +273,18 @@ func resourceArmRedisCache() *schema.Resource {
 				Sensitive: true,
 			},
 
+			"public_network_access_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
 }
 
-func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceRedisCacheCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Redis.Client
 	patchClient := meta.(*clients.Client).Redis.PatchSchedulesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -304,13 +310,18 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 	if !utils.ResponseWasNotFound(existing.Response) {
-		return tf.ImportAsExistsError("azurerm_redis_cache", id.ID(""))
+		return tf.ImportAsExistsError("azurerm_redis_cache", id.ID())
 	}
 
 	patchSchedule := expandRedisPatchSchedule(d)
 	redisConfiguration, err := expandRedisConfiguration(d)
 	if err != nil {
 		return fmt.Errorf("parsing Redis Configuration: %+v", err)
+	}
+
+	publicNetworkAccess := redis.Enabled
+	if !d.Get("public_network_access_enabled").(bool) {
+		publicNetworkAccess = redis.Disabled
 	}
 
 	parameters := redis.CreateParameters{
@@ -322,8 +333,9 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 				Family:   family,
 				Name:     sku,
 			},
-			MinimumTLSVersion:  redis.TLSVersion(d.Get("minimum_tls_version").(string)),
-			RedisConfiguration: redisConfiguration,
+			MinimumTLSVersion:   redis.TLSVersion(d.Get("minimum_tls_version").(string)),
+			RedisConfiguration:  redisConfiguration,
+			PublicNetworkAccess: publicNetworkAccess,
 		},
 		Tags: expandedTags,
 	}
@@ -378,7 +390,7 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("waiting for Redis Cache %q (Resource Group %q) to become available: %s", id.RediName, id.ResourceGroup, err)
 	}
 
-	d.SetId(id.ID(""))
+	d.SetId(id.ID())
 
 	if patchSchedule != nil {
 		if _, err = patchClient.CreateOrUpdate(ctx, id.ResourceGroup, id.RediName, *patchSchedule); err != nil {
@@ -386,10 +398,10 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	return resourceArmRedisCacheRead(d, meta)
+	return resourceRedisCacheRead(d, meta)
 }
 
-func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Redis.Client
 	patchClient := meta.(*clients.Client).Redis.PatchSchedulesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -428,6 +440,14 @@ func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error
 			shardCount := int32(v.(int))
 			parameters.ShardCount = &shardCount
 		}
+	}
+
+	if d.HasChange("public_network_access_enabled") {
+		publicNetworkAccess := redis.Enabled
+		if !d.Get("public_network_access_enabled").(bool) {
+			publicNetworkAccess = redis.Disabled
+		}
+		parameters.PublicNetworkAccess = publicNetworkAccess
 	}
 
 	if d.HasChange("redis_configuration") {
@@ -469,10 +489,10 @@ func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	return resourceArmRedisCacheRead(d, meta)
+	return resourceRedisCacheRead(d, meta)
 }
 
-func resourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
+func resourceRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Redis.Client
 	patchSchedulesClient := meta.(*clients.Client).Redis.PatchSchedulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -537,9 +557,11 @@ func resourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 				return err
 			}
 
-			subnetId = parsed.ID("")
+			subnetId = parsed.ID()
 		}
 		d.Set("subnet_id", subnetId)
+
+		d.Set("public_network_access_enabled", props.PublicNetworkAccess == redis.Enabled)
 	}
 
 	redisConfiguration, err := flattenRedisConfiguration(resp.RedisConfiguration)
@@ -562,7 +584,7 @@ func resourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmRedisCacheDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceRedisCacheDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Redis.Client
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -1,171 +1,102 @@
 package iothub_test
 
 import (
+	"context"
 	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMIotHubRoute_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_iothub_route", "test")
+type IotHubRouteResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubRouteDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMIotHubRoute_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubRouteExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccIotHubRoute_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iothub_route", "test")
+	r := IotHubRouteResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccIotHubRoute_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iothub_route", "test")
+	r := IotHubRouteResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_iothub_route"),
 		},
 	})
 }
 
-func TestAccAzureRMIotHubRoute_requiresImport(t *testing.T) {
+func TestAccIotHubRoute_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_route", "test")
+	r := IotHubRouteResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubRouteDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMIotHubRoute_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubRouteExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMIotHubRoute_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_iothub_route"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.update(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMIotHubRoute_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_iothub_route", "test")
+func (t IotHubRouteResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+	resourceGroup := id.ResourceGroup
+	iothubName := id.Path["IotHubs"]
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubRouteDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMIotHubRoute_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubRouteExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMIotHubRoute_update(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubRouteExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
+	resp, err := clients.IoTHub.ResourceClient.Get(ctx, resourceGroup, iothubName)
+	if err != nil || resp.Properties == nil || resp.Properties.Routing == nil {
+		return nil, fmt.Errorf("reading IotHuB Route (%s): %+v", id, err)
+	}
 
-func testCheckAzureRMIotHubRouteDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.ResourceClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_iothub_route" {
-			continue
-		}
-
-		routeName := rs.Primary.Attributes["name"]
-		iothubName := rs.Primary.Attributes["iothub_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		iothub, err := client.Get(ctx, resourceGroup, iothubName)
-		if err != nil {
-			if utils.ResponseWasNotFound(iothub.Response) {
-				return nil
-			}
-
-			return fmt.Errorf("Bad: Get on iothubResourceClient: %+v", err)
-		}
-		if iothub.Properties == nil || iothub.Properties.Routing == nil {
-			return nil
-		}
-		routes := iothub.Properties.Routing.Routes
-
-		if routes == nil {
-			return nil
-		}
-
+	if routes := resp.Properties.Routing.Routes; routes != nil {
 		for _, route := range *routes {
-			if strings.EqualFold(*route.Name, routeName) {
-				return fmt.Errorf("Bad: route %s still exists on IoTHb %s", routeName, iothubName)
+			if route.Name != nil {
+				return utils.Bool(true), nil
 			}
 		}
 	}
-	return nil
+
+	return utils.Bool(false), nil
 }
 
-func testCheckAzureRMIotHubRouteExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.ResourceClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-		parsedIothubId, err := azure.ParseAzureResourceID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-		iothubName := parsedIothubId.Path["IotHubs"]
-		routeName := parsedIothubId.Path["Routes"]
-		resourceGroup := parsedIothubId.ResourceGroup
-
-		iothub, err := client.Get(ctx, resourceGroup, iothubName)
-		if err != nil {
-			if utils.ResponseWasNotFound(iothub.Response) {
-				return fmt.Errorf("IotHub %q (Resource Group %q) was not found", iothubName, resourceGroup)
-			}
-
-			return fmt.Errorf("Error loading IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
-		}
-
-		if iothub.Properties == nil || iothub.Properties.Routing == nil {
-			return fmt.Errorf("Bad: No route %s defined for IotHub %s", routeName, iothubName)
-		}
-		routes := iothub.Properties.Routing.Routes
-
-		if routes == nil {
-			return fmt.Errorf("Bad: No route %s defined for IotHub %s", routeName, iothubName)
-		}
-
-		for _, route := range *routes {
-			if strings.EqualFold(*route.Name, routeName) {
-				return nil
-			}
-		}
-
-		return fmt.Errorf("Bad: No route %s defined for IotHub %s", routeName, iothubName)
-	}
-}
-
-func testAccAzureRMIotHubRoute_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMIotHubRoute_basic(data)
+func (r IotHubRouteResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -179,10 +110,10 @@ resource "azurerm_iothub_route" "import" {
   endpoint_names = [azurerm_iothub_endpoint_storage_container.test.name]
   enabled        = true
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMIotHubRoute_basic(data acceptance.TestData) string {
+func (IotHubRouteResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -248,7 +179,7 @@ resource "azurerm_iothub_route" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMIotHubRoute_update(data acceptance.TestData) string {
+func (IotHubRouteResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

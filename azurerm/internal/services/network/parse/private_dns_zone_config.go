@@ -29,15 +29,16 @@ func NewPrivateDnsZoneConfigID(subscriptionId, resourceGroup, privateEndpointNam
 
 func (id PrivateDnsZoneConfigId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Private Endpoint Name %q", id.PrivateEndpointName),
-		fmt.Sprintf("Private Dns Zone Group Name %q", id.PrivateDnsZoneGroupName),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Private Dns Zone Group Name %q", id.PrivateDnsZoneGroupName),
+		fmt.Sprintf("Private Endpoint Name %q", id.PrivateEndpointName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Private Dns Zone Config", segmentsStr)
 }
 
-func (id PrivateDnsZoneConfigId) ID(_ string) string {
+func (id PrivateDnsZoneConfigId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/privateEndpoints/%s/privateDnsZoneGroups/%s/privateDnsZoneConfigs/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.PrivateEndpointName, id.PrivateDnsZoneGroupName, id.Name)
 }

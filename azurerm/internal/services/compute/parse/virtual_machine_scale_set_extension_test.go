@@ -11,7 +11,7 @@ import (
 var _ resourceid.Formatter = VirtualMachineScaleSetExtensionId{}
 
 func TestVirtualMachineScaleSetExtensionIDFormatter(t *testing.T) {
-	actual := NewVirtualMachineScaleSetExtensionID("12345678-1234-9876-4563-123456789012", "resGroup1", "scaleSet1", "extension1").ID("")
+	actual := NewVirtualMachineScaleSetExtensionID("12345678-1234-9876-4563-123456789012", "resGroup1", "scaleSet1", "extension1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/virtualMachineScaleSets/scaleSet1/extensions/extension1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)

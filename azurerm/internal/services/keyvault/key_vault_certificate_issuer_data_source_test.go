@@ -6,33 +6,33 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccDataSourceAzureRMKeyVaultCertificateIssuer_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_key_vault_certificate_issuer", "test")
+type KeyVaultCertificateIssuerDataSource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMKeyVaultCertificateIssuer_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "account_id", "test-account"),
-					resource.TestCheckResourceAttr(data.ResourceName, "provider_name", "DigiCert"),
-					resource.TestCheckResourceAttr(data.ResourceName, "org_id", "accTestOrg"),
-					resource.TestCheckResourceAttr(data.ResourceName, "admin.0.email_address", "admin@contoso.com"),
-					resource.TestCheckResourceAttr(data.ResourceName, "admin.0.first_name", "First"),
-					resource.TestCheckResourceAttr(data.ResourceName, "admin.0.last_name", "Last"),
-					resource.TestCheckResourceAttr(data.ResourceName, "admin.0.phone", "01234567890"),
-				),
-			},
+func TestAccDataSourceKeyVaultCertificateIssuer_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_key_vault_certificate_issuer", "test")
+	r := KeyVaultCertificateIssuerDataSource{}
+
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("account_id").HasValue("test-account"),
+				check.That(data.ResourceName).Key("provider_name").HasValue("DigiCert"),
+				check.That(data.ResourceName).Key("org_id").HasValue("accTestOrg"),
+				check.That(data.ResourceName).Key("admin.0.email_address").HasValue("admin@contoso.com"),
+				check.That(data.ResourceName).Key("admin.0.first_name").HasValue("First"),
+				check.That(data.ResourceName).Key("admin.0.last_name").HasValue("Last"),
+				check.That(data.ResourceName).Key("admin.0.phone").HasValue("01234567890"),
+			),
 		},
 	})
 }
 
-func testAccDataSourceAzureRMKeyVaultCertificateIssuer_basic(data acceptance.TestData) string {
-	template := testAccAzureRMKeyVaultCertificateIssuer_complete(data)
+func (KeyVaultCertificateIssuerDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -40,5 +40,5 @@ data "azurerm_key_vault_certificate_issuer" "test" {
   name         = azurerm_key_vault_certificate_issuer.test.name
   key_vault_id = azurerm_key_vault.test.id
 }
-`, template)
+`, KeyVaultCertificateIssuerResource{}.complete(data))
 }

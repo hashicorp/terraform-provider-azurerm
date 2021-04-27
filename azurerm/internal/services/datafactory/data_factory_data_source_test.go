@@ -6,63 +6,43 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccAzureRMDataFactoryDataSource_basic(t *testing.T) {
+type DataFactoryDataSource struct {
+}
+
+func TestAccDataFactoryDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_data_factory", "test")
+	r := DataFactoryDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDataFactoryDataSource_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryExists(data.ResourceName),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check:  resource.ComposeTestCheckFunc(),
 		},
 	})
 }
 
-func testAccAzureRMDataFactoryDataSource_basic(data acceptance.TestData) string {
-	config := testAccAzureRMDataFactory_basic(data)
-	return fmt.Sprintf(`
-%s
-
-data "azurerm_data_factory" "test" {
-  name                = azurerm_data_factory.test.name
-  resource_group_name = azurerm_data_factory.test.resource_group_name
-}
-`, config)
-}
-
-func TestAccAzureRMDataFactoryDataSource_identity(t *testing.T) {
+func TestAccDataFactoryDataSource_identity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory", "test")
+	r := DataFactoryDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDataFactoryDataSource_identity(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.#"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.type"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.principal_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.tenant_id"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.identity(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("name").Exists(),
+				check.That(data.ResourceName).Key("identity.#").Exists(),
+				check.That(data.ResourceName).Key("identity.0.type").Exists(),
+				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
+			),
 		},
 	})
 }
 
-func testAccAzureRMDataFactoryDataSource_identity(data acceptance.TestData) string {
-	config := testAccAzureRMDataFactory_identity(data)
+func (DataFactoryDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -70,5 +50,16 @@ data "azurerm_data_factory" "test" {
   name                = azurerm_data_factory.test.name
   resource_group_name = azurerm_data_factory.test.resource_group_name
 }
-`, config)
+`, DataFactoryResource{}.basic(data))
+}
+
+func (DataFactoryDataSource) identity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_data_factory" "test" {
+  name                = azurerm_data_factory.test.name
+  resource_group_name = azurerm_data_factory.test.resource_group_name
+}
+`, DataFactoryResource{}.identity(data))
 }

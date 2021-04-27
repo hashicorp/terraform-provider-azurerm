@@ -21,7 +21,7 @@ func testAccBotWebApp_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_web_app", "test")
 	r := BotWebAppResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []resource.TestStep{
 		{
 			Config: r.basicConfig(data),
 			Check: resource.ComposeTestCheckFunc(
@@ -36,7 +36,7 @@ func testAccBotWebApp_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_web_app", "test")
 	r := BotWebAppResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []resource.TestStep{
 		{
 			Config: r.basicConfig(data),
 			Check: resource.ComposeTestCheckFunc(
@@ -58,7 +58,7 @@ func testAccBotWebApp_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_web_app", "test")
 	r := BotWebAppResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []resource.TestStep{
 		{
 			Config: r.completeConfig(data),
 			Check: resource.ComposeTestCheckFunc(
@@ -77,7 +77,7 @@ func (t BotWebAppResource) Exists(ctx context.Context, clients *clients.Client, 
 
 	resp, err := clients.Bot.BotClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Bot Web App (%s): %v", id.String(), err)
+		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
 
 	return utils.Bool(resp.Properties != nil), nil

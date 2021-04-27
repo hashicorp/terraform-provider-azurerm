@@ -36,3 +36,14 @@ func ManagementGroupID(input string) (*ManagementGroupId, error) {
 
 	return &id, nil
 }
+
+func NewManagementGroupId(managementGroupName string) ManagementGroupId {
+	return ManagementGroupId{
+		Name: managementGroupName,
+	}
+}
+
+func (r ManagementGroupId) ID() string {
+	managementGroupIdFmt := "/providers/Microsoft.Management/managementGroups/%s"
+	return fmt.Sprintf(managementGroupIdFmt, r.Name)
+}

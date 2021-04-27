@@ -11,7 +11,7 @@ import (
 var _ resourceid.Formatter = WorkspaceId{}
 
 func TestWorkspaceIDFormatter(t *testing.T) {
-	actual := NewWorkspaceID("12345678-1234-9876-4563-123456789012", "resGroup1", "workspace1").ID("")
+	actual := NewWorkspaceID("12345678-1234-9876-4563-123456789012", "resGroup1", "workspace1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DesktopVirtualization/workspaces/workspace1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)

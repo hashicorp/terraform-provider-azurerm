@@ -7,6 +7,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/recoveryservices/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2019-05-13/backup"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -18,16 +21,15 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmRecoveryServicesBackupProtectedVM() *schema.Resource {
+func resourceRecoveryServicesBackupProtectedVM() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmRecoveryServicesBackupProtectedVMCreateUpdate,
-		Read:   resourceArmRecoveryServicesBackupProtectedVMRead,
-		Update: resourceArmRecoveryServicesBackupProtectedVMCreateUpdate,
-		Delete: resourceArmRecoveryServicesBackupProtectedVMDelete,
+		Create: resourceRecoveryServicesBackupProtectedVMCreateUpdate,
+		Read:   resourceRecoveryServicesBackupProtectedVMRead,
+		Update: resourceRecoveryServicesBackupProtectedVMCreateUpdate,
+		Delete: resourceRecoveryServicesBackupProtectedVMDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(80 * time.Minute),
@@ -44,7 +46,7 @@ func resourceArmRecoveryServicesBackupProtectedVM() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateRecoveryServicesVaultName,
+				ValidateFunc: validate.RecoveryServicesVaultName,
 			},
 
 			"source_vm_id": {
@@ -65,7 +67,7 @@ func resourceArmRecoveryServicesBackupProtectedVM() *schema.Resource {
 	}
 }
 
-func resourceArmRecoveryServicesBackupProtectedVMCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceRecoveryServicesBackupProtectedVMCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).RecoveryServices.ProtectedItemsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -121,7 +123,7 @@ func resourceArmRecoveryServicesBackupProtectedVMCreateUpdate(d *schema.Resource
 		return fmt.Errorf("Error creating/updating Azure Backup Protected VM %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err)
 	}
 
-	resp, err := resourceArmRecoveryServicesBackupProtectedVMWaitForStateCreateUpdate(ctx, client, vaultName, resourceGroup, containerName, protectedItemName, policyId, d)
+	resp, err := resourceRecoveryServicesBackupProtectedVMWaitForStateCreateUpdate(ctx, client, vaultName, resourceGroup, containerName, protectedItemName, policyId, d)
 	if err != nil {
 		return err
 	}
@@ -129,10 +131,10 @@ func resourceArmRecoveryServicesBackupProtectedVMCreateUpdate(d *schema.Resource
 	id := strings.Replace(*resp.ID, "Subscriptions", "subscriptions", 1) // This code is a workaround for this bug https://github.com/Azure/azure-sdk-for-go/issues/2824
 	d.SetId(id)
 
-	return resourceArmRecoveryServicesBackupProtectedVMRead(d, meta)
+	return resourceRecoveryServicesBackupProtectedVMRead(d, meta)
 }
 
-func resourceArmRecoveryServicesBackupProtectedVMRead(d *schema.ResourceData, meta interface{}) error {
+func resourceRecoveryServicesBackupProtectedVMRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).RecoveryServices.ProtectedItemsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -175,7 +177,7 @@ func resourceArmRecoveryServicesBackupProtectedVMRead(d *schema.ResourceData, me
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmRecoveryServicesBackupProtectedVMDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceRecoveryServicesBackupProtectedVMDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).RecoveryServices.ProtectedItemsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -199,20 +201,20 @@ func resourceArmRecoveryServicesBackupProtectedVMDelete(d *schema.ResourceData, 
 		}
 	}
 
-	if _, err := resourceArmRecoveryServicesBackupProtectedVMWaitForDeletion(ctx, client, vaultName, resourceGroup, containerName, protectedItemName, "", d); err != nil {
+	if _, err := resourceRecoveryServicesBackupProtectedVMWaitForDeletion(ctx, client, vaultName, resourceGroup, containerName, protectedItemName, "", d); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func resourceArmRecoveryServicesBackupProtectedVMWaitForStateCreateUpdate(ctx context.Context, client *backup.ProtectedItemsClient, vaultName, resourceGroup, containerName, protectedItemName string, policyId string, d *schema.ResourceData) (backup.ProtectedItemResource, error) {
+func resourceRecoveryServicesBackupProtectedVMWaitForStateCreateUpdate(ctx context.Context, client *backup.ProtectedItemsClient, vaultName, resourceGroup, containerName, protectedItemName string, policyId string, d *schema.ResourceData) (backup.ProtectedItemResource, error) {
 	state := &resource.StateChangeConf{
 		MinTimeout: 30 * time.Second,
 		Delay:      10 * time.Second,
 		Pending:    []string{"NotFound"},
 		Target:     []string{"Found"},
-		Refresh:    resourceArmRecoveryServicesBackupProtectedVMRefreshFunc(ctx, client, vaultName, resourceGroup, containerName, protectedItemName, policyId, true),
+		Refresh:    resourceRecoveryServicesBackupProtectedVMRefreshFunc(ctx, client, vaultName, resourceGroup, containerName, protectedItemName, policyId, true),
 	}
 
 	if d.IsNewResource() {
@@ -230,13 +232,13 @@ func resourceArmRecoveryServicesBackupProtectedVMWaitForStateCreateUpdate(ctx co
 	return resp.(backup.ProtectedItemResource), nil
 }
 
-func resourceArmRecoveryServicesBackupProtectedVMWaitForDeletion(ctx context.Context, client *backup.ProtectedItemsClient, vaultName, resourceGroup, containerName, protectedItemName string, policyId string, d *schema.ResourceData) (backup.ProtectedItemResource, error) {
+func resourceRecoveryServicesBackupProtectedVMWaitForDeletion(ctx context.Context, client *backup.ProtectedItemsClient, vaultName, resourceGroup, containerName, protectedItemName string, policyId string, d *schema.ResourceData) (backup.ProtectedItemResource, error) {
 	state := &resource.StateChangeConf{
 		MinTimeout: 30 * time.Second,
 		Delay:      10 * time.Second,
 		Pending:    []string{"Found"},
 		Target:     []string{"NotFound"},
-		Refresh:    resourceArmRecoveryServicesBackupProtectedVMRefreshFunc(ctx, client, vaultName, resourceGroup, containerName, protectedItemName, policyId, false),
+		Refresh:    resourceRecoveryServicesBackupProtectedVMRefreshFunc(ctx, client, vaultName, resourceGroup, containerName, protectedItemName, policyId, false),
 		Timeout:    d.Timeout(schema.TimeoutDelete),
 	}
 
@@ -249,7 +251,7 @@ func resourceArmRecoveryServicesBackupProtectedVMWaitForDeletion(ctx context.Con
 	return resp.(backup.ProtectedItemResource), nil
 }
 
-func resourceArmRecoveryServicesBackupProtectedVMRefreshFunc(ctx context.Context, client *backup.ProtectedItemsClient, vaultName, resourceGroup, containerName, protectedItemName string, policyId string, newResource bool) resource.StateRefreshFunc {
+func resourceRecoveryServicesBackupProtectedVMRefreshFunc(ctx context.Context, client *backup.ProtectedItemsClient, vaultName, resourceGroup, containerName, protectedItemName string, policyId string, newResource bool) resource.StateRefreshFunc {
 	// TODO: split this into two functions
 	return func() (interface{}, string, error) {
 		resp, err := client.Get(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, "")

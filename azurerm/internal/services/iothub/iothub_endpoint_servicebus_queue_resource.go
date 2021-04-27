@@ -13,19 +13,19 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmIotHubEndpointServiceBusQueue() *schema.Resource {
+func resourceIotHubEndpointServiceBusQueue() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmIotHubEndpointServiceBusQueueCreateUpdate,
-		Read:   resourceArmIotHubEndpointServiceBusQueueRead,
-		Update: resourceArmIotHubEndpointServiceBusQueueCreateUpdate,
-		Delete: resourceArmIotHubEndpointServiceBusQueueDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Create: resourceIotHubEndpointServiceBusQueueCreateUpdate,
+		Read:   resourceIotHubEndpointServiceBusQueueRead,
+		Update: resourceIotHubEndpointServiceBusQueueCreateUpdate,
+		Delete: resourceIotHubEndpointServiceBusQueueDelete,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -68,7 +68,7 @@ func resourceArmIotHubEndpointServiceBusQueue() *schema.Resource {
 	}
 }
 
-func resourceArmIotHubEndpointServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubEndpointServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -147,10 +147,10 @@ func resourceArmIotHubEndpointServiceBusQueueCreateUpdate(d *schema.ResourceData
 
 	d.SetId(resourceId)
 
-	return resourceArmIotHubEndpointServiceBusQueueRead(d, meta)
+	return resourceIotHubEndpointServiceBusQueueRead(d, meta)
 }
 
-func resourceArmIotHubEndpointServiceBusQueueRead(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubEndpointServiceBusQueueRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -190,7 +190,7 @@ func resourceArmIotHubEndpointServiceBusQueueRead(d *schema.ResourceData, meta i
 	return nil
 }
 
-func resourceArmIotHubEndpointServiceBusQueueDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubEndpointServiceBusQueueDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

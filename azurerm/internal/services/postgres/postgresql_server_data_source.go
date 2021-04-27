@@ -14,10 +14,10 @@ import (
 
 func dataSourcePostgreSqlServer() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmPostgreSqlServerRead,
+		Read: dataSourcePostgreSqlServerRead,
 
 		Timeouts: &schema.ResourceTimeout{
-			Read: schema.DefaultTimeout(5 * time.Minute),
+			Read: schema.DefaultTimeout(10 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -81,7 +81,7 @@ func dataSourcePostgreSqlServer() *schema.Resource {
 	}
 }
 
-func dataSourceArmPostgreSqlServerRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourcePostgreSqlServerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Postgres.ServersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

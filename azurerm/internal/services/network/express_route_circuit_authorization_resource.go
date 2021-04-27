@@ -11,18 +11,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmExpressRouteCircuitAuthorization() *schema.Resource {
+func resourceExpressRouteCircuitAuthorization() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmExpressRouteCircuitAuthorizationCreate,
-		Read:   resourceArmExpressRouteCircuitAuthorizationRead,
-		Delete: resourceArmExpressRouteCircuitAuthorizationDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Create: resourceExpressRouteCircuitAuthorizationCreate,
+		Read:   resourceExpressRouteCircuitAuthorizationRead,
+		Delete: resourceExpressRouteCircuitAuthorizationDelete,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -60,7 +60,7 @@ func resourceArmExpressRouteCircuitAuthorization() *schema.Resource {
 	}
 }
 
-func resourceArmExpressRouteCircuitAuthorizationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceExpressRouteCircuitAuthorizationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ExpressRouteAuthsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -105,10 +105,10 @@ func resourceArmExpressRouteCircuitAuthorizationCreate(d *schema.ResourceData, m
 
 	d.SetId(*read.ID)
 
-	return resourceArmExpressRouteCircuitAuthorizationRead(d, meta)
+	return resourceExpressRouteCircuitAuthorizationRead(d, meta)
 }
 
-func resourceArmExpressRouteCircuitAuthorizationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceExpressRouteCircuitAuthorizationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ExpressRouteAuthsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -143,7 +143,7 @@ func resourceArmExpressRouteCircuitAuthorizationRead(d *schema.ResourceData, met
 	return nil
 }
 
-func resourceArmExpressRouteCircuitAuthorizationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceExpressRouteCircuitAuthorizationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ExpressRouteAuthsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

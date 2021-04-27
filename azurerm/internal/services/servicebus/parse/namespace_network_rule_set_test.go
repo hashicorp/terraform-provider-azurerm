@@ -11,7 +11,7 @@ import (
 var _ resourceid.Formatter = NamespaceNetworkRuleSetId{}
 
 func TestNamespaceNetworkRuleSetIDFormatter(t *testing.T) {
-	actual := NewNamespaceNetworkRuleSetID("12345678-1234-9876-4563-123456789012", "resGroup1", "namespace1", "networkRuleSet1").ID("")
+	actual := NewNamespaceNetworkRuleSetID("12345678-1234-9876-4563-123456789012", "resGroup1", "namespace1", "networkRuleSet1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ServiceBus/namespaces/namespace1/networkrulesets/networkRuleSet1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)

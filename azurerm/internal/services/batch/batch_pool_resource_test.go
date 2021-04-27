@@ -222,13 +222,10 @@ func TestAccBatchPool_certificates(t *testing.T) {
 				check.That(data.ResourceName).Key("certificate.0.store_location").HasValue("CurrentUser"),
 				check.That(data.ResourceName).Key("certificate.0.store_name").HasValue(""),
 				check.That(data.ResourceName).Key("certificate.0.visibility.#").HasValue("1"),
-				check.That(data.ResourceName).Key("certificate.0.visibility.3294600504").HasValue("StartTask"),
 				check.That(data.ResourceName).Key("certificate.1.id").HasValue(certificate1ID),
 				check.That(data.ResourceName).Key("certificate.1.store_location").HasValue("CurrentUser"),
 				check.That(data.ResourceName).Key("certificate.1.store_name").HasValue(""),
 				check.That(data.ResourceName).Key("certificate.1.visibility.#").HasValue("2"),
-				check.That(data.ResourceName).Key("certificate.1.visibility.3294600504").HasValue("StartTask"),
-				check.That(data.ResourceName).Key("certificate.1.visibility.4077195354").HasValue("RemoteUser"),
 			),
 		},
 		data.ImportStep("stop_pending_resize_operation"),
@@ -387,7 +384,7 @@ func (t BatchPoolResource) Exists(ctx context.Context, clients *clients.Client, 
 		return nil, err
 	}
 
-	resp, err := clients.Batch.PoolClient.Get(ctx, id.Name, id.BatchAccountName, id.ResourceGroup)
+	resp, err := clients.Batch.PoolClient.Get(ctx, id.ResourceGroup, id.BatchAccountName, id.Name)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Batch Pool %q (Account Name %q / Resource Group %q) does not exist", id.Name, id.BatchAccountName, id.ResourceGroup)
 	}
@@ -974,7 +971,7 @@ resource "azurerm_batch_certificate" "testcer" {
 resource "azurerm_batch_certificate" "testpfx" {
   resource_group_name  = azurerm_resource_group.test.name
   account_name         = azurerm_batch_account.test.name
-  certificate          = filebase64("testdata/batch_certificate.pfx")
+  certificate          = filebase64("testdata/batch_certificate_password.pfx")
   format               = "Pfx"
   password             = "terraform"
   thumbprint           = "42c107874fd0e4a9583292a2f1098e8fe4b2edda"
@@ -1122,6 +1119,8 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
+  allow_blob_public_access = true
+
   tags = {
     environment = "Dev"
   }
@@ -1190,6 +1189,26 @@ resource "azurerm_image" "test" {
   }
 }
 
+resource "azurerm_shared_image_gallery" "test" {
+  name                = "acctestsig%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_shared_image" "test" {
+  name                = "acctestimg%d"
+  gallery_name        = azurerm_shared_image_gallery.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  os_type             = "Linux"
+
+  identifier {
+    publisher = "AccTesPublisher%d"
+    offer     = "AccTesOffer%d"
+    sku       = "AccTesSku%d"
+  }
+}
+
 resource "azurerm_batch_account" "test" {
   name                 = "testaccbatch%s"
   resource_group_name  = azurerm_resource_group.test.name
@@ -1215,10 +1234,10 @@ resource "azurerm_batch_pool" "test" {
   }
 
   storage_image_reference {
-    id = azurerm_image.test.id
+    id = azurerm_shared_image.test.id
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString)
 }
 
 func (BatchPoolResource) networkConfiguration(data acceptance.TestData) string {
@@ -1276,8 +1295,9 @@ resource "azurerm_batch_pool" "test" {
   }
 
   network_configuration {
-    subnet_id  = azurerm_subnet.test.id
-    public_ips = [azurerm_public_ip.test.id]
+    public_address_provisioning_type = "UserManaged"
+    public_ips                       = [azurerm_public_ip.test.id]
+    subnet_id                        = azurerm_subnet.test.id
 
     endpoint_configuration {
       name                = "SSH"

@@ -4,17 +4,17 @@ import (
 	"testing"
 )
 
-func TestAccAzureRMSecurityCenter_pricingAndWorkspace(t *testing.T) {
+func TestAccSecurityCenter_pricingAndWorkspace(t *testing.T) {
 	// NOTE: this is a combined test rather than separate split out tests
 	// due to the workspace tests depending on the current pricing tier
 	testCases := map[string]map[string]func(t *testing.T){
 		"pricing": {
-			"update": testAccAzureRMSecurityCenterSubscriptionPricing_update,
+			"update": testAccSecurityCenterSubscriptionPricing_update,
 		},
 		"workspace": {
-			"basic":          testAccAzureRMSecurityCenterWorkspace_basic,
-			"update":         testAccAzureRMSecurityCenterWorkspace_update,
-			"requiresImport": testAccAzureRMSecurityCenterWorkspace_requiresImport,
+			"basic":          testAccSecurityCenterWorkspace_basic,
+			"update":         testAccSecurityCenterWorkspace_update,
+			"requiresImport": testAccSecurityCenterWorkspace_requiresImport,
 		},
 	}
 

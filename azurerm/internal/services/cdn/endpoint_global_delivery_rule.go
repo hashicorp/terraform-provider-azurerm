@@ -8,6 +8,7 @@ import (
 )
 
 func endpointGlobalDeliveryRule() *schema.Schema {
+	//lintignore:XS003
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,

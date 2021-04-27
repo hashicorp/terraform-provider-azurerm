@@ -1,343 +1,311 @@
 package monitor_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMMonitorAutoScaleSetting_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_monitor_autoscale_setting", "test")
+type MonitorAutoScaleSettingResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorAutoScaleSettingDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMonitorAutoScaleSetting_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorAutoScaleSettingExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "profile.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "profile.0.name", "metricRules"),
-					resource.TestCheckResourceAttr(data.ResourceName, "profile.0.rule.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "profile.0.rule.0.metric_trigger.0.time_aggregation", "Last"),
-					resource.TestCheckResourceAttr(data.ResourceName, "notification.#", "0"),
-					resource.TestCheckNoResourceAttr(data.ResourceName, "tags.$type"),
-				),
-			},
-			data.ImportStep(),
+func TestAccMonitorAutoScaleSetting_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_autoscale_setting", "test")
+	r := MonitorAutoScaleSettingResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("profile.#").HasValue("1"),
+				check.That(data.ResourceName).Key("profile.0.name").HasValue("metricRules"),
+				check.That(data.ResourceName).Key("profile.0.rule.#").HasValue("1"),
+				check.That(data.ResourceName).Key("profile.0.rule.0.metric_trigger.0.time_aggregation").HasValue("Last"),
+				check.That(data.ResourceName).Key("notification.#").HasValue("0"),
+				resource.TestCheckNoResourceAttr(data.ResourceName, "tags.$type"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMonitorAutoScaleSetting_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_autoscale_setting", "test")
+	r := MonitorAutoScaleSettingResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_monitor_autoscale_setting"),
 		},
 	})
 }
 
-func TestAccAzureRMMonitorAutoScaleSetting_requiresImport(t *testing.T) {
+func TestAccMonitorAutoScaleSetting_multipleProfiles(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_autoscale_setting", "test")
+	r := MonitorAutoScaleSettingResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorAutoScaleSettingDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMonitorAutoScaleSetting_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorAutoScaleSettingExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMMonitorAutoScaleSetting_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_monitor_autoscale_setting"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.multipleProfiles(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("profile.#").HasValue("2"),
+				check.That(data.ResourceName).Key("profile.0.name").HasValue("primary"),
+				check.That(data.ResourceName).Key("profile.1.name").HasValue("secondary"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMMonitorAutoScaleSetting_multipleProfiles(t *testing.T) {
+func TestAccMonitorAutoScaleSetting_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_autoscale_setting", "test")
+	r := MonitorAutoScaleSettingResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorAutoScaleSettingDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMonitorAutoScaleSetting_multipleProfiles(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorAutoScaleSettingExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "profile.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "profile.0.name", "primary"),
-					resource.TestCheckResourceAttr(data.ResourceName, "profile.1.name", "secondary"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.capacity(data, 1, 3, 2),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("profile.#").HasValue("1"),
+				check.That(data.ResourceName).Key("profile.0.capacity.0.minimum").HasValue("1"),
+				check.That(data.ResourceName).Key("profile.0.capacity.0.maximum").HasValue("3"),
+				check.That(data.ResourceName).Key("profile.0.capacity.0.default").HasValue("2"),
+			),
+		},
+		{
+			Config: r.capacity(data, 2, 4, 3),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("profile.#").HasValue("1"),
+				check.That(data.ResourceName).Key("profile.0.capacity.0.minimum").HasValue("2"),
+				check.That(data.ResourceName).Key("profile.0.capacity.0.maximum").HasValue("4"),
+				check.That(data.ResourceName).Key("profile.0.capacity.0.default").HasValue("3"),
+			),
+		},
+		{
+			Config: r.capacity(data, 2, 45, 3),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("profile.#").HasValue("1"),
+				check.That(data.ResourceName).Key("profile.0.capacity.0.minimum").HasValue("2"),
+				check.That(data.ResourceName).Key("profile.0.capacity.0.maximum").HasValue("45"),
+				check.That(data.ResourceName).Key("profile.0.capacity.0.default").HasValue("3"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMMonitorAutoScaleSetting_update(t *testing.T) {
+func TestAccMonitorAutoScaleSetting_multipleRules(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_autoscale_setting", "test")
+	r := MonitorAutoScaleSettingResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorAutoScaleSettingDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMonitorAutoScaleSetting_capacity(data, 1, 3, 2),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorAutoScaleSettingExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "profile.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "profile.0.capacity.0.minimum", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "profile.0.capacity.0.maximum", "3"),
-					resource.TestCheckResourceAttr(data.ResourceName, "profile.0.capacity.0.default", "2"),
-				),
-			},
-			{
-				Config: testAccAzureRMMonitorAutoScaleSetting_capacity(data, 2, 4, 3),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorAutoScaleSettingExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "profile.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "profile.0.capacity.0.minimum", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "profile.0.capacity.0.maximum", "4"),
-					resource.TestCheckResourceAttr(data.ResourceName, "profile.0.capacity.0.default", "3"),
-				),
-			},
-			{
-				Config: testAccAzureRMMonitorAutoScaleSetting_capacity(data, 2, 45, 3),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorAutoScaleSettingExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "profile.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "profile.0.capacity.0.minimum", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "profile.0.capacity.0.maximum", "45"),
-					resource.TestCheckResourceAttr(data.ResourceName, "profile.0.capacity.0.default", "3"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("profile.#").HasValue("1"),
+				check.That(data.ResourceName).Key("profile.0.name").HasValue("metricRules"),
+				check.That(data.ResourceName).Key("profile.0.rule.#").HasValue("1"),
+				check.That(data.ResourceName).Key("profile.0.rule.0.scale_action.0.direction").HasValue("Increase"),
+				check.That(data.ResourceName).Key("notification.#").HasValue("0"),
+			),
+		},
+		{
+			Config: r.multipleRules(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("profile.#").HasValue("1"),
+				check.That(data.ResourceName).Key("profile.0.name").HasValue("metricRules"),
+				check.That(data.ResourceName).Key("profile.0.rule.#").HasValue("2"),
+				check.That(data.ResourceName).Key("profile.0.rule.0.scale_action.0.direction").HasValue("Increase"),
+				check.That(data.ResourceName).Key("profile.0.rule.1.scale_action.0.direction").HasValue("Decrease"),
+				check.That(data.ResourceName).Key("notification.#").HasValue("0"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMMonitorAutoScaleSetting_multipleRules(t *testing.T) {
+func TestAccMonitorAutoScaleSetting_customEmails(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_autoscale_setting", "test")
+	r := MonitorAutoScaleSettingResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorAutoScaleSettingDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMonitorAutoScaleSetting_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorAutoScaleSettingExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "profile.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "profile.0.name", "metricRules"),
-					resource.TestCheckResourceAttr(data.ResourceName, "profile.0.rule.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "profile.0.rule.0.scale_action.0.direction", "Increase"),
-					resource.TestCheckResourceAttr(data.ResourceName, "notification.#", "0"),
-				),
-			},
-			{
-				Config: testAccAzureRMMonitorAutoScaleSetting_multipleRules(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorAutoScaleSettingExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "profile.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "profile.0.name", "metricRules"),
-					resource.TestCheckResourceAttr(data.ResourceName, "profile.0.rule.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "profile.0.rule.0.scale_action.0.direction", "Increase"),
-					resource.TestCheckResourceAttr(data.ResourceName, "profile.0.rule.1.scale_action.0.direction", "Decrease"),
-					resource.TestCheckResourceAttr(data.ResourceName, "notification.#", "0"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.email(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("notification.#").HasValue("1"),
+				check.That(data.ResourceName).Key("notification.0.email.#").HasValue("1"),
+				check.That(data.ResourceName).Key("notification.0.email.0.custom_emails.#").HasValue("1"),
+				check.That(data.ResourceName).Key("notification.0.email.0.custom_emails.0").HasValue(fmt.Sprintf("acctest1-%d@example.com", data.RandomInteger)),
+			),
+		},
+		{
+			Config: r.emailUpdated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("notification.#").HasValue("1"),
+				check.That(data.ResourceName).Key("notification.0.email.#").HasValue("1"),
+				check.That(data.ResourceName).Key("notification.0.email.0.custom_emails.#").HasValue("2"),
+				check.That(data.ResourceName).Key("notification.0.email.0.custom_emails.0").HasValue(fmt.Sprintf("acctest1-%d@example.com", data.RandomInteger)),
+				check.That(data.ResourceName).Key("notification.0.email.0.custom_emails.1").HasValue(fmt.Sprintf("acctest2-%d@example.com", data.RandomInteger)),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMMonitorAutoScaleSetting_customEmails(t *testing.T) {
+func TestAccMonitorAutoScaleSetting_recurrence(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_autoscale_setting", "test")
+	r := MonitorAutoScaleSettingResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorAutoScaleSettingDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMonitorAutoScaleSetting_email(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorAutoScaleSettingExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "notification.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "notification.0.email.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "notification.0.email.0.custom_emails.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "notification.0.email.0.custom_emails.0", fmt.Sprintf("acctest1-%d@example.com", data.RandomInteger)),
-				),
-			},
-			{
-				Config: testAccAzureRMMonitorAutoScaleSetting_emailUpdated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorAutoScaleSettingExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "notification.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "notification.0.email.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "notification.0.email.0.custom_emails.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "notification.0.email.0.custom_emails.0", fmt.Sprintf("acctest1-%d@example.com", data.RandomInteger)),
-					resource.TestCheckResourceAttr(data.ResourceName, "notification.0.email.0.custom_emails.1", fmt.Sprintf("acctest2-%d@example.com", data.RandomInteger)),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.recurrence(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("profile.#").HasValue("1"),
+				check.That(data.ResourceName).Key("profile.0.name").HasValue("recurrence"),
+				check.That(data.ResourceName).Key("profile.0.recurrence.#").HasValue("1"),
+				check.That(data.ResourceName).Key("notification.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMonitorAutoScaleSetting_recurrenceUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_autoscale_setting", "test")
+	r := MonitorAutoScaleSettingResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.recurrence(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("notification.#").HasValue("1"),
+				check.That(data.ResourceName).Key("profile.0.recurrence.0.days.#").HasValue("3"),
+				check.That(data.ResourceName).Key("profile.0.recurrence.0.days.0").HasValue("Monday"),
+				check.That(data.ResourceName).Key("profile.0.recurrence.0.days.1").HasValue("Wednesday"),
+				check.That(data.ResourceName).Key("profile.0.recurrence.0.days.2").HasValue("Friday"),
+				check.That(data.ResourceName).Key("profile.0.recurrence.0.hours.0").HasValue("18"),
+				check.That(data.ResourceName).Key("profile.0.recurrence.0.minutes.0").HasValue("0"),
+			),
+		},
+		{
+			Config: r.recurrenceUpdated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("profile.0.recurrence.#").HasValue("1"),
+				check.That(data.ResourceName).Key("profile.0.recurrence.0.days.#").HasValue("3"),
+				check.That(data.ResourceName).Key("profile.0.recurrence.0.days.0").HasValue("Monday"),
+				check.That(data.ResourceName).Key("profile.0.recurrence.0.days.1").HasValue("Tuesday"),
+				check.That(data.ResourceName).Key("profile.0.recurrence.0.days.2").HasValue("Wednesday"),
+				check.That(data.ResourceName).Key("profile.0.recurrence.0.hours.0").HasValue("20"),
+				check.That(data.ResourceName).Key("profile.0.recurrence.0.minutes.0").HasValue("15"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMMonitorAutoScaleSetting_recurrence(t *testing.T) {
+func TestAccMonitorAutoScaleSetting_fixedDate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_autoscale_setting", "test")
+	r := MonitorAutoScaleSettingResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorAutoScaleSettingDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMonitorAutoScaleSetting_recurrence(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorAutoScaleSettingExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "profile.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "profile.0.name", "recurrence"),
-					resource.TestCheckResourceAttr(data.ResourceName, "profile.0.recurrence.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "notification.#", "1"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.fixedDate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("profile.#").HasValue("1"),
+				check.That(data.ResourceName).Key("profile.0.name").HasValue("fixedDate"),
+				check.That(data.ResourceName).Key("profile.0.fixed_date.#").HasValue("1"),
+				check.That(data.ResourceName).Key("notification.#").HasValue("0"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMMonitorAutoScaleSetting_recurrenceUpdate(t *testing.T) {
+func TestAccAzureRMMonitorAutoScaleSetting_multipleRulesDimensions(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_autoscale_setting", "test")
+	r := MonitorAutoScaleSettingResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorAutoScaleSettingDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMonitorAutoScaleSetting_recurrence(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorAutoScaleSettingExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "notification.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "profile.0.recurrence.0.days.#", "3"),
-					resource.TestCheckResourceAttr(data.ResourceName, "profile.0.recurrence.0.days.0", "Monday"),
-					resource.TestCheckResourceAttr(data.ResourceName, "profile.0.recurrence.0.days.1", "Wednesday"),
-					resource.TestCheckResourceAttr(data.ResourceName, "profile.0.recurrence.0.days.2", "Friday"),
-					resource.TestCheckResourceAttr(data.ResourceName, "profile.0.recurrence.0.hours.0", "18"),
-					resource.TestCheckResourceAttr(data.ResourceName, "profile.0.recurrence.0.minutes.0", "0"),
-				),
-			},
-			{
-				Config: testAccAzureRMMonitorAutoScaleSetting_recurrenceUpdated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorAutoScaleSettingExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "profile.0.recurrence.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "profile.0.recurrence.0.days.#", "3"),
-					resource.TestCheckResourceAttr(data.ResourceName, "profile.0.recurrence.0.days.0", "Monday"),
-					resource.TestCheckResourceAttr(data.ResourceName, "profile.0.recurrence.0.days.1", "Tuesday"),
-					resource.TestCheckResourceAttr(data.ResourceName, "profile.0.recurrence.0.days.2", "Wednesday"),
-					resource.TestCheckResourceAttr(data.ResourceName, "profile.0.recurrence.0.hours.0", "20"),
-					resource.TestCheckResourceAttr(data.ResourceName, "profile.0.recurrence.0.minutes.0", "15"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.multipleRules(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.multipleRulesDimensions(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.multipleRulesDimensionsUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.multipleRules(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMMonitorAutoScaleSetting_fixedDate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_monitor_autoscale_setting", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorAutoScaleSettingDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMonitorAutoScaleSetting_fixedDate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorAutoScaleSettingExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "profile.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "profile.0.name", "fixedDate"),
-					resource.TestCheckResourceAttr(data.ResourceName, "profile.0.fixed_date.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "notification.#", "0"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func testCheckAzureRMMonitorAutoScaleSettingExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.AutoscaleSettingsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		autoscaleSettingName := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Monitor AutoScale Setting: %s", autoscaleSettingName)
-		}
-
-		resp, err := conn.Get(ctx, resourceGroup, autoscaleSettingName)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on Monitor AutoScale Setting: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: AutoScale Setting %q (Resource Group: %q) does not exist", autoscaleSettingName, resourceGroup)
-		}
-
-		return nil
+func (t MonitorAutoScaleSettingResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
-}
+	resourceGroup := id.ResourceGroup
+	name := id.Path["autoscalesettings"]
 
-func testCheckAzureRMMonitorAutoScaleSettingDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.AutoscaleSettingsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_monitor_autoscale_setting" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(ctx, resourceGroup, name)
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("AutoScale Setting still exists:\n%#v", resp)
-		}
+	resp, err := clients.Monitor.AutoscaleSettingsClient.Get(ctx, resourceGroup, name)
+	if err != nil {
+		return nil, fmt.Errorf("reading autoscale settings (%s): %+v", id, err)
 	}
 
-	return nil
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMMonitorAutoScaleSetting_basic(data acceptance.TestData) string {
-	template := testAccAzureRMMonitorAutoScaleSetting_template(data)
+func (MonitorAutoScaleSettingResource) basic(data acceptance.TestData) string {
+	template := MonitorAutoScaleSettingResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -380,8 +348,8 @@ resource "azurerm_monitor_autoscale_setting" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMMonitorAutoScaleSetting_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMMonitorAutoScaleSetting_basic(data)
+func (MonitorAutoScaleSettingResource) requiresImport(data acceptance.TestData) string {
+	template := MonitorAutoScaleSettingResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -424,8 +392,8 @@ resource "azurerm_monitor_autoscale_setting" "import" {
 `, template)
 }
 
-func testAccAzureRMMonitorAutoScaleSetting_multipleProfiles(data acceptance.TestData) string {
-	template := testAccAzureRMMonitorAutoScaleSetting_template(data)
+func (MonitorAutoScaleSettingResource) multipleProfiles(data acceptance.TestData) string {
+	template := MonitorAutoScaleSettingResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -511,8 +479,8 @@ resource "azurerm_monitor_autoscale_setting" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMMonitorAutoScaleSetting_capacity(data acceptance.TestData, min int, max int, defaultVal int) string {
-	template := testAccAzureRMMonitorAutoScaleSetting_template(data)
+func (MonitorAutoScaleSettingResource) capacity(data acceptance.TestData, min int, max int, defaultVal int) string {
+	template := MonitorAutoScaleSettingResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -556,8 +524,8 @@ resource "azurerm_monitor_autoscale_setting" "test" {
 `, template, data.RandomInteger, defaultVal, min, max)
 }
 
-func testAccAzureRMMonitorAutoScaleSetting_multipleRules(data acceptance.TestData) string {
-	template := testAccAzureRMMonitorAutoScaleSetting_template(data)
+func (MonitorAutoScaleSettingResource) multipleRules(data acceptance.TestData) string {
+	template := MonitorAutoScaleSettingResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -587,6 +555,7 @@ resource "azurerm_monitor_autoscale_setting" "test" {
         time_aggregation   = "Average"
         operator           = "GreaterThan"
         threshold          = 75
+        metric_namespace   = "microsoft.compute/virtualmachinescalesets"
       }
 
       scale_action {
@@ -607,6 +576,7 @@ resource "azurerm_monitor_autoscale_setting" "test" {
         time_aggregation   = "Average"
         operator           = "LessThan"
         threshold          = 25
+        metric_namespace   = "microsoft.compute/virtualmachinescalesets"
       }
 
       scale_action {
@@ -621,8 +591,8 @@ resource "azurerm_monitor_autoscale_setting" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMMonitorAutoScaleSetting_email(data acceptance.TestData) string {
-	template := testAccAzureRMMonitorAutoScaleSetting_template(data)
+func (MonitorAutoScaleSettingResource) email(data acceptance.TestData) string {
+	template := MonitorAutoScaleSettingResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -673,8 +643,8 @@ resource "azurerm_monitor_autoscale_setting" "test" {
 `, template, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMMonitorAutoScaleSetting_emailUpdated(data acceptance.TestData) string {
-	template := testAccAzureRMMonitorAutoScaleSetting_template(data)
+func (MonitorAutoScaleSettingResource) emailUpdated(data acceptance.TestData) string {
+	template := MonitorAutoScaleSettingResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -725,8 +695,8 @@ resource "azurerm_monitor_autoscale_setting" "test" {
 `, template, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMMonitorAutoScaleSetting_recurrence(data acceptance.TestData) string {
-	template := testAccAzureRMMonitorAutoScaleSetting_template(data)
+func (MonitorAutoScaleSettingResource) recurrence(data acceptance.TestData) string {
+	template := MonitorAutoScaleSettingResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -769,8 +739,8 @@ resource "azurerm_monitor_autoscale_setting" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMMonitorAutoScaleSetting_recurrenceUpdated(data acceptance.TestData) string {
-	template := testAccAzureRMMonitorAutoScaleSetting_template(data)
+func (MonitorAutoScaleSettingResource) recurrenceUpdated(data acceptance.TestData) string {
+	template := MonitorAutoScaleSettingResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -813,8 +783,8 @@ resource "azurerm_monitor_autoscale_setting" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMMonitorAutoScaleSetting_fixedDate(data acceptance.TestData) string {
-	template := testAccAzureRMMonitorAutoScaleSetting_template(data)
+func (MonitorAutoScaleSettingResource) fixedDate(data acceptance.TestData) string {
+	template := MonitorAutoScaleSettingResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -843,7 +813,158 @@ resource "azurerm_monitor_autoscale_setting" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMMonitorAutoScaleSetting_template(data acceptance.TestData) string {
+func (MonitorAutoScaleSettingResource) multipleRulesDimensions(data acceptance.TestData) string {
+	template := MonitorAutoScaleSettingResource{}.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_monitor_autoscale_setting" "test" {
+  name                = "acctestautoscale-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  target_resource_id  = azurerm_virtual_machine_scale_set.test.id
+  enabled             = true
+
+  profile {
+    name = "metricRules"
+
+    capacity {
+      default = 1
+      minimum = 1
+      maximum = 10
+    }
+
+    rule {
+      metric_trigger {
+        metric_name        = "Percentage CPU"
+        metric_resource_id = azurerm_virtual_machine_scale_set.test.id
+        time_grain         = "PT1M"
+        statistic          = "Average"
+        time_window        = "PT5M"
+        time_aggregation   = "Average"
+        operator           = "GreaterThan"
+        threshold          = 75
+        metric_namespace   = "microsoft.compute/virtualmachinescalesets"
+        dimensions {
+          name     = "AppName"
+          operator = "Equals"
+          values   = ["App1"]
+        }
+      }
+
+
+      scale_action {
+        direction = "Increase"
+        type      = "ChangeCount"
+        value     = 1
+        cooldown  = "PT1M"
+      }
+    }
+
+    rule {
+      metric_trigger {
+        metric_name        = "Percentage CPU"
+        metric_resource_id = azurerm_virtual_machine_scale_set.test.id
+        time_grain         = "PT1M"
+        statistic          = "Average"
+        time_window        = "PT5M"
+        time_aggregation   = "Average"
+        operator           = "LessThan"
+        threshold          = 25
+        metric_namespace   = "microsoft.compute/virtualmachinescalesets"
+      }
+
+      scale_action {
+        direction = "Decrease"
+        type      = "ChangeCount"
+        value     = 1
+        cooldown  = "PT1M"
+      }
+    }
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (MonitorAutoScaleSettingResource) multipleRulesDimensionsUpdate(data acceptance.TestData) string {
+	template := MonitorAutoScaleSettingResource{}.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_monitor_autoscale_setting" "test" {
+  name                = "acctestautoscale-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  target_resource_id  = azurerm_virtual_machine_scale_set.test.id
+  enabled             = true
+
+  profile {
+    name = "metricRules"
+
+    capacity {
+      default = 1
+      minimum = 1
+      maximum = 10
+    }
+
+    rule {
+      metric_trigger {
+        metric_name        = "Percentage CPU"
+        metric_resource_id = azurerm_virtual_machine_scale_set.test.id
+        time_grain         = "PT1M"
+        statistic          = "Average"
+        time_window        = "PT5M"
+        time_aggregation   = "Average"
+        operator           = "GreaterThan"
+        threshold          = 75
+        metric_namespace   = "microsoft.compute/virtualmachinescalesets"
+        dimensions {
+          name     = "AppName2"
+          operator = "NotEquals"
+          values   = ["App2"]
+        }
+
+        dimensions {
+          name     = "Deployment"
+          operator = "Equals"
+          values   = ["default"]
+        }
+      }
+
+      scale_action {
+        direction = "Increase"
+        type      = "ChangeCount"
+        value     = 1
+        cooldown  = "PT1M"
+      }
+    }
+
+    rule {
+      metric_trigger {
+        metric_name        = "Percentage CPU"
+        metric_resource_id = azurerm_virtual_machine_scale_set.test.id
+        time_grain         = "PT1M"
+        statistic          = "Average"
+        time_window        = "PT5M"
+        time_aggregation   = "Average"
+        operator           = "LessThan"
+        threshold          = 25
+        metric_namespace   = "microsoft.compute/virtualmachinescalesets"
+      }
+
+      scale_action {
+        direction = "Decrease"
+        type      = "ChangeCount"
+        value     = 1
+        cooldown  = "PT1M"
+      }
+    }
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (MonitorAutoScaleSettingResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -884,6 +1005,15 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     computer_name_prefix = "testvm-%d"
     admin_username       = "myadmin"
     admin_password       = "Passwword1234"
+  }
+
+  os_profile_linux_config {
+    disable_password_authentication = true
+
+    ssh_keys {
+      path     = "/home/myadmin/.ssh/authorized_keys"
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDCsTcryUl51Q2VSEHqDRNmceUFo55ZtcIwxl2QITbN1RREti5ml/VTytC0yeBOvnZA4x4CFpdw/lCDPk0yrH9Ei5vVkXmOrExdTlT3qI7YaAzj1tUVlBd4S6LX1F7y6VLActvdHuDDuXZXzCDd/97420jrDfWZqJMlUK/EmCE5ParCeHIRIvmBxcEnGfFIsw8xQZl0HphxWOtJil8qsUWSdMyCiJYYQpMoMliO99X40AUc4/AlsyPyT5ddbKk08YrZ+rKDVHF7o29rh4vi5MmHkVgVQHKiKybWlHq+b71gIAUQk9wrJxD+dqt4igrmDSpIjfjwnd+l5UIn5fJSO5DYV4YT/4hwK7OKmuo7OFHD0WyY5YnkYEMtFgzemnRBdE8ulcT60DQpVgRMXFWHvhyCWy0L6sgj1QWDZlLpvsIvNfHsyhKFMG1frLnMt/nP0+YCcfg+v1JYeCKjeoJxB8DWcRBsjzItY0CGmzP8UYZiYKl/2u+2TgFS5r7NWH11bxoUzjKdaa1NLw+ieA8GlBFfCbfWe6YVB9ggUte4VtYFMZGxOjS2bAiYtfgTKFJv+XqORAwExG6+G2eDxIDyo80/OA9IG7Xv/jwQr7D6KDjDuULFcN/iTxuttoKrHeYz1hf5ZQlBdllwJHYx6fK2g8kha6r2JIQKocvsAXiiONqSfw== hello@world.com"
+    }
   }
 
   network_profile {

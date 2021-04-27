@@ -6,30 +6,32 @@ import (
 	"strconv"
 	"time"
 
+	monitorValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor/validate"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMonitorAutoScaleSetting() *schema.Resource {
+func resourceMonitorAutoScaleSetting() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMonitorAutoScaleSettingCreateUpdate,
-		Read:   resourceArmMonitorAutoScaleSettingRead,
-		Update: resourceArmMonitorAutoScaleSettingCreateUpdate,
-		Delete: resourceArmMonitorAutoScaleSettingDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Create: resourceMonitorAutoScaleSettingCreateUpdate,
+		Read:   resourceMonitorAutoScaleSettingRead,
+		Update: resourceMonitorAutoScaleSettingCreateUpdate,
+		Delete: resourceMonitorAutoScaleSettingDelete,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -171,6 +173,44 @@ func resourceArmMonitorAutoScaleSetting() *schema.Resource {
 													Type:     schema.TypeFloat,
 													Required: true,
 												},
+
+												"metric_namespace": {
+													Type:         schema.TypeString,
+													Optional:     true,
+													ValidateFunc: validation.StringIsNotEmpty,
+												},
+
+												"dimensions": {
+													Type:     schema.TypeList,
+													Optional: true,
+													Elem: &schema.Resource{
+														Schema: map[string]*schema.Schema{
+															"name": {
+																Type:         schema.TypeString,
+																Required:     true,
+																ValidateFunc: validation.StringIsNotEmpty,
+															},
+
+															"operator": {
+																Type:     schema.TypeString,
+																Required: true,
+																ValidateFunc: validation.StringInSlice([]string{
+																	string(insights.ScaleRuleMetricDimensionOperationTypeEquals),
+																	string(insights.ScaleRuleMetricDimensionOperationTypeNotEquals),
+																}, false),
+															},
+
+															"values": {
+																Type:     schema.TypeList,
+																Required: true,
+																Elem: &schema.Schema{
+																	Type:         schema.TypeString,
+																	ValidateFunc: validation.StringIsNotEmpty,
+																},
+															},
+														},
+													},
+												},
 											},
 										},
 									},
@@ -225,7 +265,7 @@ func resourceArmMonitorAutoScaleSetting() *schema.Resource {
 										Type:         schema.TypeString,
 										Optional:     true,
 										Default:      "UTC",
-										ValidateFunc: validateMonitorAutoScaleSettingsTimeZone(),
+										ValidateFunc: monitorValidate.AutoScaleSettingsTimeZone(),
 									},
 									"start": {
 										Type:         schema.TypeString,
@@ -250,7 +290,7 @@ func resourceArmMonitorAutoScaleSetting() *schema.Resource {
 										Type:         schema.TypeString,
 										Optional:     true,
 										Default:      "UTC",
-										ValidateFunc: validateMonitorAutoScaleSettingsTimeZone(),
+										ValidateFunc: monitorValidate.AutoScaleSettingsTimeZone(),
 									},
 									"days": {
 										Type:     schema.TypeList,
@@ -325,6 +365,7 @@ func resourceArmMonitorAutoScaleSetting() *schema.Resource {
 									},
 								},
 							},
+							AtLeastOneOf: []string{"notification.0.email", "notification.0.webhook"},
 						},
 						"webhook": {
 							Type:     schema.TypeList,
@@ -345,6 +386,7 @@ func resourceArmMonitorAutoScaleSetting() *schema.Resource {
 									},
 								},
 							},
+							AtLeastOneOf: []string{"notification.0.email", "notification.0.webhook"},
 						},
 					},
 				},
@@ -355,7 +397,7 @@ func resourceArmMonitorAutoScaleSetting() *schema.Resource {
 	}
 }
 
-func resourceArmMonitorAutoScaleSettingCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorAutoScaleSettingCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.AutoscaleSettingsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -417,10 +459,10 @@ func resourceArmMonitorAutoScaleSettingCreateUpdate(d *schema.ResourceData, meta
 
 	d.SetId(*read.ID)
 
-	return resourceArmMonitorAutoScaleSettingRead(d, meta)
+	return resourceMonitorAutoScaleSettingRead(d, meta)
 }
 
-func resourceArmMonitorAutoScaleSettingRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorAutoScaleSettingRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.AutoscaleSettingsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -470,7 +512,7 @@ func resourceArmMonitorAutoScaleSettingRead(d *schema.ResourceData, meta interfa
 	return tags.FlattenAndSet(d, tagMap)
 }
 
-func resourceArmMonitorAutoScaleSettingDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorAutoScaleSettingDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.AutoscaleSettingsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -544,6 +586,7 @@ func expandAzureRmMonitorAutoScaleSettingRule(input []interface{}) *[]insights.S
 		triggerRaw := triggersRaw[0].(map[string]interface{})
 		metricTrigger := insights.MetricTrigger{
 			MetricName:        utils.String(triggerRaw["metric_name"].(string)),
+			MetricNamespace:   utils.String(triggerRaw["metric_namespace"].(string)),
 			MetricResourceURI: utils.String(triggerRaw["metric_resource_id"].(string)),
 			TimeGrain:         utils.String(triggerRaw["time_grain"].(string)),
 			Statistic:         insights.MetricStatisticType(triggerRaw["statistic"].(string)),
@@ -551,6 +594,7 @@ func expandAzureRmMonitorAutoScaleSettingRule(input []interface{}) *[]insights.S
 			TimeAggregation:   insights.TimeAggregationType(triggerRaw["time_aggregation"].(string)),
 			Operator:          insights.ComparisonOperationType(triggerRaw["operator"].(string)),
 			Threshold:         utils.Float(triggerRaw["threshold"].(float64)),
+			Dimensions:        expandAzureRmMonitorAutoScaleSettingRuleDimensions(triggerRaw["dimensions"].([]interface{})),
 		}
 
 		actionsRaw := ruleRaw["scale_action"].([]interface{})
@@ -709,6 +753,27 @@ func expandAzureRmMonitorAutoScaleSettingNotificationWebhook(input []interface{}
 	return &webhooks
 }
 
+func expandAzureRmMonitorAutoScaleSettingRuleDimensions(input []interface{}) *[]insights.ScaleRuleMetricDimension {
+	dimensions := make([]insights.ScaleRuleMetricDimension, 0)
+
+	for _, v := range input {
+		if v == nil {
+			continue
+		}
+		dimensionRaw := v.(map[string]interface{})
+
+		dimension := insights.ScaleRuleMetricDimension{
+			DimensionName: utils.String(dimensionRaw["name"].(string)),
+			Operator:      insights.ScaleRuleMetricDimensionOperationType(dimensionRaw["operator"].(string)),
+			Values:        utils.ExpandStringSlice(dimensionRaw["values"].([]interface{})),
+		}
+
+		dimensions = append(dimensions, dimension)
+	}
+
+	return &dimensions
+}
+
 func flattenAzureRmMonitorAutoScaleSettingProfile(profiles *[]insights.AutoscaleProfile) ([]interface{}, error) {
 	if profiles == nil {
 		return []interface{}{}, nil
@@ -787,33 +852,44 @@ func flattenAzureRmMonitorAutoScaleSettingRules(input *[]insights.ScaleRule) ([]
 
 		metricTriggers := make([]interface{}, 0)
 		if trigger := rule.MetricTrigger; trigger != nil {
-			output := make(map[string]interface{})
-
-			output["operator"] = string(trigger.Operator)
-			output["statistic"] = string(trigger.Statistic)
-			output["time_aggregation"] = string(trigger.TimeAggregation)
-
+			var metricName, metricNamespace, metricId, timeGrain, timeWindow string
+			var threshold float64
 			if trigger.MetricName != nil {
-				output["metric_name"] = *trigger.MetricName
+				metricName = *trigger.MetricName
+			}
+
+			if v := trigger.MetricNamespace; v != nil {
+				metricNamespace = *v
 			}
 
 			if trigger.MetricResourceURI != nil {
-				output["metric_resource_id"] = *trigger.MetricResourceURI
+				metricId = *trigger.MetricResourceURI
 			}
 
 			if trigger.TimeGrain != nil {
-				output["time_grain"] = *trigger.TimeGrain
+				timeGrain = *trigger.TimeGrain
 			}
 
 			if trigger.TimeWindow != nil {
-				output["time_window"] = *trigger.TimeWindow
+				timeWindow = *trigger.TimeWindow
 			}
 
 			if trigger.Threshold != nil {
-				output["threshold"] = *trigger.Threshold
+				threshold = *trigger.Threshold
 			}
 
-			metricTriggers = append(metricTriggers, output)
+			metricTriggers = append(metricTriggers, map[string]interface{}{
+				"metric_name":        metricName,
+				"metric_namespace":   metricNamespace,
+				"metric_resource_id": metricId,
+				"time_grain":         timeGrain,
+				"statistic":          string(trigger.Statistic),
+				"time_window":        timeWindow,
+				"time_aggregation":   string(trigger.TimeAggregation),
+				"operator":           string(trigger.Operator),
+				"threshold":          threshold,
+				"dimensions":         flattenAzureRmMonitorAutoScaleSettingRulesDimensions(trigger.Dimensions),
+			})
 		}
 
 		result["metric_trigger"] = metricTriggers
@@ -969,116 +1045,25 @@ func flattenAzureRmMonitorAutoScaleSettingNotification(notifications *[]insights
 	return results
 }
 
-func validateMonitorAutoScaleSettingsTimeZone() schema.SchemaValidateFunc {
-	// from https://docs.microsoft.com/en-us/rest/api/monitor/autoscalesettings/createorupdate#timewindow
-	timeZones := []string{
-		"Dateline Standard Time",
-		"UTC-11",
-		"Hawaiian Standard Time",
-		"Alaskan Standard Time",
-		"Pacific Standard Time (Mexico)",
-		"Pacific Standard Time",
-		"US Mountain Standard Time",
-		"Mountain Standard Time (Mexico)",
-		"Mountain Standard Time",
-		"Central America Standard Time",
-		"Central Standard Time",
-		"Central Standard Time (Mexico)",
-		"Canada Central Standard Time",
-		"SA Pacific Standard Time",
-		"Eastern Standard Time",
-		"US Eastern Standard Time",
-		"Venezuela Standard Time",
-		"Paraguay Standard Time",
-		"Atlantic Standard Time",
-		"Central Brazilian Standard Time",
-		"SA Western Standard Time",
-		"Pacific SA Standard Time",
-		"Newfoundland Standard Time",
-		"E. South America Standard Time",
-		"Argentina Standard Time",
-		"SA Eastern Standard Time",
-		"Greenland Standard Time",
-		"Montevideo Standard Time",
-		"Bahia Standard Time",
-		"UTC-02",
-		"Mid-Atlantic Standard Time",
-		"Azores Standard Time",
-		"Cape Verde Standard Time",
-		"Morocco Standard Time",
-		"UTC",
-		"GMT Standard Time",
-		"Greenwich Standard Time",
-		"W. Europe Standard Time",
-		"Central Europe Standard Time",
-		"Romance Standard Time",
-		"Central European Standard Time",
-		"W. Central Africa Standard Time",
-		"Namibia Standard Time",
-		"Jordan Standard Time",
-		"GTB Standard Time",
-		"Middle East Standard Time",
-		"Egypt Standard Time",
-		"Syria Standard Time",
-		"E. Europe Standard Time",
-		"South Africa Standard Time",
-		"FLE Standard Time",
-		"Turkey Standard Time",
-		"Israel Standard Time",
-		"Kaliningrad Standard Time",
-		"Libya Standard Time",
-		"Arabic Standard Time",
-		"Arab Standard Time",
-		"Belarus Standard Time",
-		"Russian Standard Time",
-		"E. Africa Standard Time",
-		"Iran Standard Time",
-		"Arabian Standard Time",
-		"Azerbaijan Standard Time",
-		"Russia Time Zone 3",
-		"Mauritius Standard Time",
-		"Georgian Standard Time",
-		"Caucasus Standard Time",
-		"Afghanistan Standard Time",
-		"West Asia Standard Time",
-		"Ekaterinburg Standard Time",
-		"Pakistan Standard Time",
-		"India Standard Time",
-		"Sri Lanka Standard Time",
-		"Nepal Standard Time",
-		"Central Asia Standard Time",
-		"Bangladesh Standard Time",
-		"N. Central Asia Standard Time",
-		"Myanmar Standard Time",
-		"SE Asia Standard Time",
-		"North Asia Standard Time",
-		"China Standard Time",
-		"North Asia East Standard Time",
-		"Singapore Standard Time",
-		"W. Australia Standard Time",
-		"Taipei Standard Time",
-		"Ulaanbaatar Standard Time",
-		"Tokyo Standard Time",
-		"Korea Standard Time",
-		"Yakutsk Standard Time",
-		"Cen. Australia Standard Time",
-		"AUS Central Standard Time",
-		"E. Australia Standard Time",
-		"AUS Eastern Standard Time",
-		"West Pacific Standard Time",
-		"Tasmania Standard Time",
-		"Magadan Standard Time",
-		"Vladivostok Standard Time",
-		"Russia Time Zone 10",
-		"Central Pacific Standard Time",
-		"Russia Time Zone 11",
-		"New Zealand Standard Time",
-		"UTC+12",
-		"Fiji Standard Time",
-		"Kamchatka Standard Time",
-		"Tonga Standard Time",
-		"Samoa Standard Time",
-		"Line Islands Standard Time",
+func flattenAzureRmMonitorAutoScaleSettingRulesDimensions(dimensions *[]insights.ScaleRuleMetricDimension) []interface{} {
+	results := make([]interface{}, 0)
+
+	if dimensions == nil {
+		return results
 	}
-	return validation.StringInSlice(timeZones, false)
+
+	for _, dimension := range *dimensions {
+		var name string
+
+		if v := dimension.DimensionName; v != nil {
+			name = *v
+		}
+
+		results = append(results, map[string]interface{}{
+			"name":     name,
+			"operator": string(dimension.Operator),
+			"values":   utils.FlattenStringSlice(dimension.Values),
+		})
+	}
+	return results
 }

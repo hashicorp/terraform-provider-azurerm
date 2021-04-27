@@ -6,12 +6,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2018-01-01-preview/servicebus"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
@@ -19,7 +20,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -28,20 +29,22 @@ import (
 // default connection strings and keys
 var serviceBusNamespaceDefaultAuthorizationRule = "RootManageSharedAccessKey"
 
-func resourceArmServiceBusNamespace() *schema.Resource {
+func resourceServiceBusNamespace() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmServiceBusNamespaceCreateUpdate,
-		Read:   resourceArmServiceBusNamespaceRead,
-		Update: resourceArmServiceBusNamespaceCreateUpdate,
-		Delete: resourceArmServiceBusNamespaceDelete,
+		Create: resourceServiceBusNamespaceCreateUpdate,
+		Read:   resourceServiceBusNamespaceRead,
+		Update: resourceServiceBusNamespaceCreateUpdate,
+		Delete: resourceServiceBusNamespaceDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.NamespaceID(id)
 			return err
 		}),
 
-		MigrateState:  migration.ServiceBusNamespaceResourceMigrateState,
 		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.NamespaceV0ToV1{},
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -78,7 +81,7 @@ func resourceArmServiceBusNamespace() *schema.Resource {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Default:      0,
-				ValidateFunc: validation.IntInSlice([]int{0, 1, 2, 4, 8}),
+				ValidateFunc: validation.IntInSlice([]int{0, 1, 2, 4, 8, 16}),
 			},
 
 			"default_primary_connection_string": {
@@ -116,7 +119,7 @@ func resourceArmServiceBusNamespace() *schema.Resource {
 	}
 }
 
-func resourceArmServiceBusNamespaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceBusNamespaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.NamespacesClientPreview
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -138,7 +141,7 @@ func resourceArmServiceBusNamespaceCreateUpdate(d *schema.ResourceData, meta int
 		}
 
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_servicebus_namespace", resourceId.ID(""))
+			return tf.ImportAsExistsError("azurerm_servicebus_namespace", resourceId.ID())
 		}
 	}
 
@@ -159,7 +162,7 @@ func resourceArmServiceBusNamespaceCreateUpdate(d *schema.ResourceData, meta int
 			return fmt.Errorf("Service Bus SKU %q only supports `capacity` of 0", sku)
 		}
 		if strings.EqualFold(sku, string(servicebus.Premium)) && capacity.(int) == 0 {
-			return fmt.Errorf("Service Bus SKU %q only supports `capacity` of 1, 2, 4 or 8", sku)
+			return fmt.Errorf("Service Bus SKU %q only supports `capacity` of 1, 2, 4, 8 or 16", sku)
 		}
 		parameters.Sku.Capacity = utils.Int32(int32(capacity.(int)))
 	}
@@ -173,11 +176,11 @@ func resourceArmServiceBusNamespaceCreateUpdate(d *schema.ResourceData, meta int
 		return fmt.Errorf("waiting for create/update of %s: %+v", resourceId, err)
 	}
 
-	d.SetId(resourceId.ID(""))
-	return resourceArmServiceBusNamespaceRead(d, meta)
+	d.SetId(resourceId.ID())
+	return resourceServiceBusNamespaceRead(d, meta)
 }
 
-func resourceArmServiceBusNamespaceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceBusNamespaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.NamespacesClientPreview
 	clientStable := meta.(*clients.Client).ServiceBus.NamespacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -223,7 +226,7 @@ func resourceArmServiceBusNamespaceRead(d *schema.ResourceData, meta interface{}
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmServiceBusNamespaceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceBusNamespaceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.NamespacesClientPreview
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

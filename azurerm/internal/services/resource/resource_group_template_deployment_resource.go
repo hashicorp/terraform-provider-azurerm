@@ -15,7 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -26,7 +26,7 @@ func resourceGroupTemplateDeploymentResource() *schema.Resource {
 		Read:   resourceGroupTemplateDeploymentResourceRead,
 		Update: resourceGroupTemplateDeploymentResourceUpdate,
 		Delete: resourceGroupTemplateDeploymentResourceDelete,
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ResourceGroupTemplateDeploymentID(id)
 			return err
 		}),
@@ -61,9 +61,24 @@ func resourceGroupTemplateDeploymentResource() *schema.Resource {
 			},
 
 			"template_content": {
-				Type:      schema.TypeString,
-				Required:  true,
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ExactlyOneOf: []string{
+					"template_content",
+					"template_spec_version_id",
+				},
 				StateFunc: utils.NormalizeJson,
+			},
+
+			"template_spec_version_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ExactlyOneOf: []string{
+					"template_content",
+					"template_spec_version_id",
+				},
+				ValidateFunc: validate.TemplateSpecVersionID,
 			},
 
 			// Optional
@@ -84,9 +99,8 @@ func resourceGroupTemplateDeploymentResource() *schema.Resource {
 
 			// Computed
 			"output_content": {
-				Type:      schema.TypeString,
-				Computed:  true,
-				StateFunc: utils.NormalizeJson,
+				Type:     schema.TypeString,
+				Computed: true,
 				// NOTE:  outputs can be strings, ints, objects etc - whilst using a nested object was considered
 				// parsing the JSON using `jsondecode` allows the users to interact with/map objects as required
 			},
@@ -109,20 +123,29 @@ func resourceGroupTemplateDeploymentResourceCreate(d *schema.ResourceData, meta 
 		}
 	}
 	if existing.Properties != nil {
-		return tf.ImportAsExistsError("azurerm_resource_group_template_deployment", id.ID(""))
+		return tf.ImportAsExistsError("azurerm_resource_group_template_deployment", id.ID())
 	}
 
-	template, err := expandTemplateDeploymentBody(d.Get("template_content").(string))
-	if err != nil {
-		return fmt.Errorf("expanding `template_content`: %+v", err)
-	}
 	deployment := resources.Deployment{
 		Properties: &resources.DeploymentProperties{
 			DebugSetting: expandTemplateDeploymentDebugSetting(d.Get("debug_level").(string)),
 			Mode:         resources.DeploymentMode(d.Get("deployment_mode").(string)),
-			Template:     template,
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if templateRaw, ok := d.GetOk("template_content"); ok {
+		template, err := expandTemplateDeploymentBody(templateRaw.(string))
+		if err != nil {
+			return fmt.Errorf("expanding `template_content`: %+v", err)
+		}
+		deployment.Properties.Template = template
+	}
+
+	if templateSpecVersionID, ok := d.GetOk("template_spec_version_id"); ok {
+		deployment.Properties.TemplateLink = &resources.TemplateLink{
+			ID: utils.String(templateSpecVersionID.(string)),
+		}
 	}
 
 	if v, ok := d.GetOk("parameters_content"); ok && v != "" {
@@ -150,7 +173,7 @@ func resourceGroupTemplateDeploymentResourceCreate(d *schema.ResourceData, meta 
 		return fmt.Errorf("waiting for creation of Template Deployment %q (Resource Group %q): %+v", id.DeploymentName, id.ResourceGroup, err)
 	}
 
-	d.SetId(id.ID(""))
+	d.SetId(id.ID())
 	return resourceGroupTemplateDeploymentResourceRead(d, meta)
 }
 
@@ -190,13 +213,11 @@ func resourceGroupTemplateDeploymentResourceUpdate(d *schema.ResourceData, meta 
 		deployment.Properties.Mode = resources.DeploymentMode(d.Get("deployment_mode").(string))
 	}
 
-	if d.HasChange("parameters_content") {
-		parameters, err := expandTemplateDeploymentBody(d.Get("parameters_content").(string))
-		if err != nil {
-			return fmt.Errorf("expanding `parameters_content`: %+v", err)
-		}
-		deployment.Properties.Parameters = parameters
+	parameters, err := expandTemplateDeploymentBody(d.Get("parameters_content").(string))
+	if err != nil {
+		return fmt.Errorf("expanding `parameters_content`: %+v", err)
 	}
+	deployment.Properties.Parameters = parameters
 
 	if d.HasChange("template_content") {
 		templateContents, err := expandTemplateDeploymentBody(d.Get("template_content").(string))
@@ -213,6 +234,12 @@ func resourceGroupTemplateDeploymentResourceUpdate(d *schema.ResourceData, meta 
 		}
 
 		deployment.Properties.Template = exportedTemplate.Template
+	}
+
+	if d.HasChange("template_spec_version_id") {
+		deployment.Properties.TemplateLink = &resources.TemplateLink{
+			ID: utils.String(d.Get("template_spec_version_id").(string)),
+		}
 	}
 
 	if d.HasChange("tags") {
@@ -284,6 +311,14 @@ func resourceGroupTemplateDeploymentResourceRead(d *schema.ResourceData, meta in
 			return fmt.Errorf("flattening `output_content`: %+v", err)
 		}
 		d.Set("output_content", flattenedOutputs)
+
+		templateLinkId := ""
+		if props.TemplateLink != nil {
+			if props.TemplateLink.ID != nil {
+				templateLinkId = *props.TemplateLink.ID
+			}
+		}
+		d.Set("template_spec_version_id", templateLinkId)
 	}
 
 	flattenedTemplate, err := flattenTemplateDeploymentBody(templateContents.Template)

@@ -107,7 +107,7 @@ func (PowerBIEmbeddedResource) Exists(ctx context.Context, clients *clients.Clie
 
 	resp, err := clients.PowerBI.CapacityClient.GetDetails(ctx, id.ResourceGroup, id.CapacityName)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving PowerBI Embedded (%s): %v", id.String(), err)
+		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
 
 	return utils.Bool(resp.DedicatedCapacityProperties != nil), nil

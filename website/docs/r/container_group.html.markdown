@@ -92,7 +92,7 @@ The following arguments are supported:
 
 * `restart_policy` - (Optional) Restart policy for the container group. Allowed values are `Always`, `Never`, `OnFailure`. Defaults to `Always`. Changing this forces a new resource to be created.
 
-* `tags` - (Optional) A mapping of tags to assign to the resource. Changing this forces a new resource to be created.
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 
@@ -187,6 +187,8 @@ A `volume` block supports:
 * `mount_path` - (Required) The path on which this volume is to be mounted. Changing this forces a new resource to be created.
 
 * `read_only` - (Optional) Specify if the volume is to be mounted as read only or not. The default value is `false`. Changing this forces a new resource to be created.
+
+* `empty_dir` - (Optional) Boolean as to whether the mounted volume should be an empty directory. Defaults to `false`. Changing this forces a new resource to be created.
 
 * `storage_account_name` - (Optional) The Azure storage account from which the volume is to be mounted. Changing this forces a new resource to be created.
 

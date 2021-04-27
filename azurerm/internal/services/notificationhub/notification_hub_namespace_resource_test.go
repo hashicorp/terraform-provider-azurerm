@@ -84,7 +84,7 @@ func (NotificationHubNamespaceResource) Exists(ctx context.Context, clients *cli
 
 	resp, err := clients.NotificationHubs.NamespacesClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Notification Hub Namespace Rule (%s): %v", id.String(), err)
+		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
 
 	return utils.Bool(resp.NamespaceProperties != nil), nil

@@ -11,7 +11,7 @@ import (
 var _ resourceid.Formatter = SlotVirtualNetworkSwiftConnectionId{}
 
 func TestSlotVirtualNetworkSwiftConnectionIDFormatter(t *testing.T) {
-	actual := NewSlotVirtualNetworkSwiftConnectionID("12345678-1234-9876-4563-123456789012", "resGroup1", "site1", "slot1", "virtualNetwork").ID("")
+	actual := NewSlotVirtualNetworkSwiftConnectionID("12345678-1234-9876-4563-123456789012", "resGroup1", "site1", "slot1", "virtualNetwork").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1/slots/slot1/config/virtualNetwork"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)

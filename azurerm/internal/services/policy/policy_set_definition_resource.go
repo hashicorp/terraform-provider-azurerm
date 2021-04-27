@@ -12,7 +12,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-09-01/policy"
 	"github.com/Azure/go-autorest/autorest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
@@ -21,7 +20,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy/validate"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -33,7 +32,7 @@ func resourceArmPolicySetDefinition() *schema.Resource {
 		Read:   resourceArmPolicySetDefinitionRead,
 		Delete: resourceArmPolicySetDefinitionDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.PolicySetDefinitionID(id)
 			return err
 		}),
@@ -779,5 +778,5 @@ func resourceARMPolicySetDefinitionPolicyDefinitionGroupHash(v interface{}) int 
 		buf.WriteString(m["name"].(string))
 	}
 
-	return hashcode.String(buf.String())
+	return schema.HashString(buf.String())
 }

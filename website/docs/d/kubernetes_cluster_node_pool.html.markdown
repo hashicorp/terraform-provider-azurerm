@@ -78,9 +78,18 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `tags` - A mapping of tags assigned to the Kubernetes Cluster Node Pool.
 
+* `upgrade_settings` - A `upgrade_settings` block as documented below.
+
 * `vm_size` - The size of the Virtual Machines used in the Virtual Machine Scale Set backing this Node Pool.
 
 * `vnet_subnet_id` - The ID of the Subnet in which this Node Pool exists.
+
+---
+
+A `upgrade_settings` block exports the following:
+
+* `max_surge` - The maximum number or percentage of nodes which will be added to the Node Pool size during an upgrade.
+
 
 ## Timeouts
 

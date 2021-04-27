@@ -7,29 +7,30 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
-	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-01-10/siterecovery"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/recoveryservices/validate"
+
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-07-10/siterecovery"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSiteRecoveryReplicatedVM() *schema.Resource {
+func resourceSiteRecoveryReplicatedVM() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSiteRecoveryReplicatedItemCreate,
-		Read:   resourceArmSiteRecoveryReplicatedItemRead,
-		Update: resourceArmSiteRecoveryReplicatedItemUpdate,
-		Delete: resourceArmSiteRecoveryReplicatedItemDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Create: resourceSiteRecoveryReplicatedItemCreate,
+		Read:   resourceSiteRecoveryReplicatedItemRead,
+		Update: resourceSiteRecoveryReplicatedItemUpdate,
+		Delete: resourceSiteRecoveryReplicatedItemDelete,
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(120 * time.Minute),
@@ -51,7 +52,7 @@ func resourceArmSiteRecoveryReplicatedVM() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateRecoveryServicesVaultName,
+				ValidateFunc: validate.RecoveryServicesVaultName,
 			},
 			"source_recovery_fabric_name": {
 				Type:         schema.TypeString,
@@ -117,7 +118,7 @@ func resourceArmSiteRecoveryReplicatedVM() *schema.Resource {
 				ConfigMode: schema.SchemaConfigModeAttr,
 				Optional:   true,
 				ForceNew:   true,
-				Set:        resourceArmSiteRecoveryReplicatedVMDiskHash,
+				Set:        resourceSiteRecoveryReplicatedVMDiskHash,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"disk_id": {
@@ -191,18 +192,26 @@ func networkInterfaceResource() *schema.Resource {
 			"target_static_ip": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				ForceNew:     false,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 			"target_subnet_name": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				ForceNew:     false,
 				ValidateFunc: validation.StringIsNotEmpty,
+			},
+			"recovery_public_ip_address_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     false,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 		},
 	}
 }
 
-func resourceArmSiteRecoveryReplicatedItemCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryReplicatedItemCreate(d *schema.ResourceData, meta interface{}) error {
 	resGroup := d.Get("resource_group_name").(string)
 	vaultName := d.Get("recovery_vault_name").(string)
 	client := meta.(*clients.Client).RecoveryServices.ReplicationMigrationItemsClient(resGroup, vaultName)
@@ -233,7 +242,7 @@ func resourceArmSiteRecoveryReplicatedItemCreate(d *schema.ResourceData, meta in
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_site_recovery_replicated_vm", azure.HandleAzureSdkForGoBug2824(*existing.ID))
+			return tf.ImportAsExistsError("azurerm_site_recovery_replicated_vm", handleAzureSdkForGoBug2824(*existing.ID))
 		}
 	}
 
@@ -281,14 +290,14 @@ func resourceArmSiteRecoveryReplicatedItemCreate(d *schema.ResourceData, meta in
 		return fmt.Errorf("Error retrieving replicated vm %s (vault %s): %+v", name, vaultName, err)
 	}
 
-	d.SetId(azure.HandleAzureSdkForGoBug2824(*resp.ID))
+	d.SetId(handleAzureSdkForGoBug2824(*resp.ID))
 
 	// We are not allowed to configure the NIC on the initial setup, and the VM has to be replicated before
 	// we can reconfigure. Hence this call to update when we create.
-	return resourceArmSiteRecoveryReplicatedItemUpdate(d, meta)
+	return resourceSiteRecoveryReplicatedItemUpdate(d, meta)
 }
 
-func resourceArmSiteRecoveryReplicatedItemUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryReplicatedItemUpdate(d *schema.ResourceData, meta interface{}) error {
 	resGroup := d.Get("resource_group_name").(string)
 	vaultName := d.Get("recovery_vault_name").(string)
 	client := meta.(*clients.Client).RecoveryServices.ReplicationMigrationItemsClient(resGroup, vaultName)
@@ -321,6 +330,7 @@ func resourceArmSiteRecoveryReplicatedItemUpdate(d *schema.ResourceData, meta in
 		sourceNicId := vmNicInput["source_network_interface_id"].(string)
 		targetStaticIp := vmNicInput["target_static_ip"].(string)
 		targetSubnetName := vmNicInput["target_subnet_name"].(string)
+		recoveryPublicIPAddressID := vmNicInput["recovery_public_ip_address_id"].(string)
 
 		nicId := findNicId(state, sourceNicId)
 		if nicId == nil {
@@ -330,6 +340,7 @@ func resourceArmSiteRecoveryReplicatedItemUpdate(d *schema.ResourceData, meta in
 			NicID:                     nicId,
 			RecoveryVMSubnetName:      &targetSubnetName,
 			ReplicaNicStaticIPAddress: &targetStaticIp,
+			RecoveryPublicIPAddressID: &recoveryPublicIPAddressID,
 		})
 	}
 
@@ -380,7 +391,7 @@ func resourceArmSiteRecoveryReplicatedItemUpdate(d *schema.ResourceData, meta in
 		return fmt.Errorf("Error updating replicated vm %s (vault %s): %+v", name, vaultName, err)
 	}
 
-	return resourceArmSiteRecoveryReplicatedItemRead(d, meta)
+	return resourceSiteRecoveryReplicatedItemRead(d, meta)
 }
 
 func findNicId(state *siterecovery.ReplicationProtectedItem, sourceNicId string) *string {
@@ -396,7 +407,7 @@ func findNicId(state *siterecovery.ReplicationProtectedItem, sourceNicId string)
 	return nil
 }
 
-func resourceArmSiteRecoveryReplicatedItemRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryReplicatedItemRead(d *schema.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -447,7 +458,7 @@ func resourceArmSiteRecoveryReplicatedItemRead(d *schema.ResourceData, meta inte
 
 				disksOutput = append(disksOutput, diskOutput)
 			}
-			d.Set("managed_disk", schema.NewSet(resourceArmSiteRecoveryReplicatedVMDiskHash, disksOutput))
+			d.Set("managed_disk", schema.NewSet(resourceSiteRecoveryReplicatedVMDiskHash, disksOutput))
 		}
 
 		if a2aDetails.VMNics != nil {
@@ -463,6 +474,9 @@ func resourceArmSiteRecoveryReplicatedItemRead(d *schema.ResourceData, meta inte
 				if nic.RecoveryVMSubnetName != nil {
 					nicOutput["target_subnet_name"] = *nic.RecoveryVMSubnetName
 				}
+				if nic.RecoveryPublicIPAddressID != nil {
+					nicOutput["recovery_public_ip_address_id"] = *nic.RecoveryPublicIPAddressID
+				}
 				nicsOutput = append(nicsOutput, nicOutput)
 			}
 			d.Set("network_interface", schema.NewSet(schema.HashResource(networkInterfaceResource()), nicsOutput))
@@ -472,7 +486,7 @@ func resourceArmSiteRecoveryReplicatedItemRead(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func resourceArmSiteRecoveryReplicatedItemDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryReplicatedItemDelete(d *schema.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -505,7 +519,7 @@ func resourceArmSiteRecoveryReplicatedItemDelete(d *schema.ResourceData, meta in
 	return nil
 }
 
-func resourceArmSiteRecoveryReplicatedVMDiskHash(v interface{}) int {
+func resourceSiteRecoveryReplicatedVMDiskHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
@@ -514,7 +528,7 @@ func resourceArmSiteRecoveryReplicatedVMDiskHash(v interface{}) int {
 		}
 	}
 
-	return hashcode.String(buf.String())
+	return schema.HashString(buf.String())
 }
 
 func waitForReplicationToBeHealthy(d *schema.ResourceData, meta interface{}) (*siterecovery.ReplicationProtectedItem, error) {

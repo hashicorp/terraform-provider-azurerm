@@ -12,6 +12,16 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/provider"
 )
 
+// Packages in this list are deprecated and cannot be run due to breaking API changes
+// this should only be used as a last resort - since all acctests should run nightly.
+var packagesToSkip = map[string]struct{}{
+	"devspace": {},
+
+	// force-deprecated and will be removed by Azure on 2021-04-28
+	// new clusters cannot be cretaed - so there's no point trying to run the tests
+	"servicefabricmesh": {},
+}
+
 func main() {
 	filePath := flag.String("path", "", "The relative path to the root directory")
 	showHelp := flag.Bool("help", false, "Display this message")
@@ -29,7 +39,7 @@ func main() {
 	}
 	for _, value := range generators {
 		outputFile := value.outputPath(*filePath)
-		if err := value.run(outputFile); err != nil {
+		if err := value.run(outputFile, packagesToSkip); err != nil {
 			panic(err)
 		}
 	}
@@ -37,7 +47,7 @@ func main() {
 
 type generator interface {
 	outputPath(rootDirectory string) string
-	run(outputFileName string) error
+	run(outputFileName string, packagesToSkip map[string]struct{}) error
 }
 
 type teamCityServicesListGenerator struct{}
@@ -46,7 +56,7 @@ func (teamCityServicesListGenerator) outputPath(rootDirectory string) string {
 	return fmt.Sprintf("%s/.teamcity/components/generated/services.kt", rootDirectory)
 }
 
-func (teamCityServicesListGenerator) run(outputFileName string) error {
+func (teamCityServicesListGenerator) run(outputFileName string, packagesToSkip map[string]struct{}) error {
 	template := `// NOTE: this is Generated from the Service Definitions - manual changes will be lost
 //       to re-generate this file, run 'make generate' in the root of the repository
 var services = mapOf(
@@ -91,6 +101,10 @@ var services = mapOf(
 	sort.Strings(serviceNames)
 	for _, serviceName := range serviceNames {
 		packageName := services[serviceName]
+		if _, shouldSkip := packagesToSkip[packageName]; shouldSkip {
+			continue
+		}
+
 		item := fmt.Sprintf("        %q to %q", packageName, serviceName)
 		items = append(items, item)
 	}
@@ -105,7 +119,7 @@ func (websiteCategoriesGenerator) outputPath(rootDirectory string) string {
 	return fmt.Sprintf("%s/website/allowed-subcategories", rootDirectory)
 }
 
-func (websiteCategoriesGenerator) run(outputFileName string) error {
+func (websiteCategoriesGenerator) run(outputFileName string, _ map[string]struct{}) error {
 	websiteCategories := make([]string, 0)
 
 	// get a distinct list

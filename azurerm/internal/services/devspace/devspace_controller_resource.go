@@ -10,11 +10,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -33,10 +33,14 @@ func resourceDevSpaceController() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ControllerID(id)
 			return err
 		}),
+
+		DeprecationMessage: `DevSpace Controllers are deprecated and will be retired on 31 October 2023 - at this time the Azure API does not allow new Controllers to be provisioned, but existing DevSpace Controllers can continue to be used.
+
+Since these are deprecated and can no longer be provisioned, version 3.0 of the Azure Provider will remove support for DevSpace Controllers.`,
 
 		Schema: map[string]*schema.Schema{
 			"name": {

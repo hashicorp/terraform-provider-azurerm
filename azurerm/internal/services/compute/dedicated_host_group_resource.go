@@ -5,11 +5,14 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -18,16 +21,15 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDedicatedHostGroup() *schema.Resource {
+func resourceDedicatedHostGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDedicatedHostGroupCreate,
-		Read:   resourceArmDedicatedHostGroupRead,
-		Update: resourceArmDedicatedHostGroupUpdate,
-		Delete: resourceArmDedicatedHostGroupDelete,
+		Create: resourceDedicatedHostGroupCreate,
+		Read:   resourceDedicatedHostGroupRead,
+		Update: resourceDedicatedHostGroupUpdate,
+		Delete: resourceDedicatedHostGroupDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -41,7 +43,7 @@ func resourceArmDedicatedHostGroup() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateDedicatedHostGroupName(),
+				ValidateFunc: validate.DedicatedHostGroupName(),
 			},
 
 			"location": azure.SchemaLocation(),
@@ -57,6 +59,13 @@ func resourceArmDedicatedHostGroup() *schema.Resource {
 				ValidateFunc: validation.IntBetween(1, 3),
 			},
 
+			"automatic_placement_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				ForceNew: true,
+				Default:  false,
+			},
+
 			// Currently only one endpoint is allowed.
 			// we'll leave this open to enhancement when they add multiple zones support.
 			"zones": azure.SchemaSingleZone(),
@@ -66,7 +75,7 @@ func resourceArmDedicatedHostGroup() *schema.Resource {
 	}
 }
 
-func resourceArmDedicatedHostGroupCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDedicatedHostGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DedicatedHostGroupsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -101,6 +110,10 @@ func resourceArmDedicatedHostGroupCreate(d *schema.ResourceData, meta interface{
 		parameters.Zones = utils.ExpandStringSlice(zones.([]interface{}))
 	}
 
+	if v, ok := d.GetOk("automatic_placement_enabled"); ok {
+		parameters.DedicatedHostGroupProperties.SupportAutomaticPlacement = utils.Bool(v.(bool))
+	}
+
 	if _, err := client.CreateOrUpdate(ctx, resourceGroupName, name, parameters); err != nil {
 		return fmt.Errorf("Error creating Dedicated Host Group %q (Resource Group %q): %+v", name, resourceGroupName, err)
 	}
@@ -114,10 +127,10 @@ func resourceArmDedicatedHostGroupCreate(d *schema.ResourceData, meta interface{
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmDedicatedHostGroupRead(d, meta)
+	return resourceDedicatedHostGroupRead(d, meta)
 }
 
-func resourceArmDedicatedHostGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDedicatedHostGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DedicatedHostGroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -150,13 +163,15 @@ func resourceArmDedicatedHostGroupRead(d *schema.ResourceData, meta interface{})
 			platformFaultDomainCount = int(*props.PlatformFaultDomainCount)
 		}
 		d.Set("platform_fault_domain_count", platformFaultDomainCount)
+
+		d.Set("automatic_placement_enabled", props.SupportAutomaticPlacement)
 	}
 	d.Set("zones", utils.FlattenStringSlice(resp.Zones))
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmDedicatedHostGroupUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDedicatedHostGroupUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DedicatedHostGroupsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -173,10 +188,10 @@ func resourceArmDedicatedHostGroupUpdate(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Error updating Dedicated Host Group %q (Resource Group %q): %+v", name, resourceGroupName, err)
 	}
 
-	return resourceArmDedicatedHostGroupRead(d, meta)
+	return resourceDedicatedHostGroupRead(d, meta)
 }
 
-func resourceArmDedicatedHostGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDedicatedHostGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DedicatedHostGroupsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

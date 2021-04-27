@@ -10,22 +10,22 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataFactoryDatasetAzureBlob() *schema.Resource {
+func resourceDataFactoryDatasetAzureBlob() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryDatasetAzureBlobCreateUpdate,
-		Read:   resourceArmDataFactoryDatasetAzureBlobRead,
-		Update: resourceArmDataFactoryDatasetAzureBlobCreateUpdate,
-		Delete: resourceArmDataFactoryDatasetAzureBlobDelete,
+		Create: resourceDataFactoryDatasetAzureBlobCreateUpdate,
+		Read:   resourceDataFactoryDatasetAzureBlobRead,
+		Update: resourceDataFactoryDatasetAzureBlobCreateUpdate,
+		Delete: resourceDataFactoryDatasetAzureBlobDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -39,7 +39,7 @@ func resourceArmDataFactoryDatasetAzureBlob() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMDataFactoryLinkedServiceDatasetName,
+				ValidateFunc: validate.LinkedServiceDatasetName,
 			},
 
 			"data_factory_name": {
@@ -152,7 +152,7 @@ func resourceArmDataFactoryDatasetAzureBlob() *schema.Resource {
 	}
 }
 
-func resourceArmDataFactoryDatasetAzureBlobCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetAzureBlobCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -237,10 +237,10 @@ func resourceArmDataFactoryDatasetAzureBlobCreateUpdate(d *schema.ResourceData, 
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDataFactoryDatasetAzureBlobRead(d, meta)
+	return resourceDataFactoryDatasetAzureBlobRead(d, meta)
 }
 
-func resourceArmDataFactoryDatasetAzureBlobRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetAzureBlobRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -269,7 +269,7 @@ func resourceArmDataFactoryDatasetAzureBlobRead(d *schema.ResourceData, meta int
 
 	azureBlobTable, ok := resp.Properties.AsAzureBlobDataset()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Dataset Azure Blob %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeRelationalTable, *resp.Type)
+		return fmt.Errorf("Error classifying Data Factory Dataset Azure Blob %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeRelationalTable, *resp.Type)
 	}
 
 	d.Set("additional_properties", azureBlobTable.AdditionalProperties)
@@ -323,7 +323,7 @@ func resourceArmDataFactoryDatasetAzureBlobRead(d *schema.ResourceData, meta int
 	return nil
 }
 
-func resourceArmDataFactoryDatasetAzureBlobDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetAzureBlobDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

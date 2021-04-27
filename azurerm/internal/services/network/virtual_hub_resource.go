@@ -6,6 +6,9 @@ import (
 	"log"
 	"time"
 
+	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -24,16 +27,15 @@ import (
 
 const virtualHubResourceName = "azurerm_virtual_hub"
 
-func resourceArmVirtualHub() *schema.Resource {
+func resourceVirtualHub() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmVirtualHubCreateUpdate,
-		Read:   resourceArmVirtualHubRead,
-		Update: resourceArmVirtualHubCreateUpdate,
-		Delete: resourceArmVirtualHubDelete,
+		Create: resourceVirtualHubCreateUpdate,
+		Read:   resourceVirtualHubRead,
+		Update: resourceVirtualHubCreateUpdate,
+		Delete: resourceVirtualHubDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),
@@ -47,7 +49,7 @@ func resourceArmVirtualHub() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateVirtualHubName,
+				ValidateFunc: networkValidate.VirtualHubName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -105,7 +107,7 @@ func resourceArmVirtualHub() *schema.Resource {
 	}
 }
 
-func resourceArmVirtualHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualHubClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -139,7 +141,7 @@ func resourceArmVirtualHubCreateUpdate(d *schema.ResourceData, meta interface{})
 	parameters := network.VirtualHub{
 		Location: utils.String(location),
 		VirtualHubProperties: &network.VirtualHubProperties{
-			RouteTable: expandArmVirtualHubRoute(route),
+			RouteTable: expandVirtualHubRoute(route),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -192,10 +194,10 @@ func resourceArmVirtualHubCreateUpdate(d *schema.ResourceData, meta interface{})
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmVirtualHubRead(d, meta)
+	return resourceVirtualHubRead(d, meta)
 }
 
-func resourceArmVirtualHubRead(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualHubRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualHubClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -224,7 +226,7 @@ func resourceArmVirtualHubRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("address_prefix", props.AddressPrefix)
 		d.Set("sku", props.Sku)
 
-		if err := d.Set("route", flattenArmVirtualHubRoute(props.RouteTable)); err != nil {
+		if err := d.Set("route", flattenVirtualHubRoute(props.RouteTable)); err != nil {
 			return fmt.Errorf("Error setting `route`: %+v", err)
 		}
 
@@ -238,7 +240,7 @@ func resourceArmVirtualHubRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmVirtualHubDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualHubDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualHubClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -265,7 +267,7 @@ func resourceArmVirtualHubDelete(d *schema.ResourceData, meta interface{}) error
 	return nil
 }
 
-func expandArmVirtualHubRoute(input []interface{}) *network.VirtualHubRouteTable {
+func expandVirtualHubRoute(input []interface{}) *network.VirtualHubRouteTable {
 	if len(input) == 0 {
 		return nil
 	}
@@ -293,7 +295,7 @@ func expandArmVirtualHubRoute(input []interface{}) *network.VirtualHubRouteTable
 	return &result
 }
 
-func flattenArmVirtualHubRoute(input *network.VirtualHubRouteTable) []interface{} {
+func flattenVirtualHubRoute(input *network.VirtualHubRouteTable) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil || input.Routes == nil {
 		return results

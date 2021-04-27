@@ -27,14 +27,15 @@ func NewLogAnalyticsLinkedStorageAccountID(subscriptionId, resourceGroup, worksp
 
 func (id LogAnalyticsLinkedStorageAccountId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Workspace Name %q", id.WorkspaceName),
 		fmt.Sprintf("Linked Storage Account Name %q", id.LinkedStorageAccountName),
+		fmt.Sprintf("Workspace Name %q", id.WorkspaceName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Log Analytics Linked Storage Account", segmentsStr)
 }
 
-func (id LogAnalyticsLinkedStorageAccountId) ID(_ string) string {
+func (id LogAnalyticsLinkedStorageAccountId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.OperationalInsights/workspaces/%s/linkedStorageAccounts/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.WorkspaceName, id.LinkedStorageAccountName)
 }

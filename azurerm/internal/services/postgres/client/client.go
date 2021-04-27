@@ -2,6 +2,7 @@ package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2020-01-01/postgresql"
+	"github.com/Azure/azure-sdk-for-go/services/preview/postgresql/mgmt/2020-02-14-preview/postgresqlflexibleservers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 
@@ -9,11 +10,13 @@ type Client struct {
 	ConfigurationsClient              *postgresql.ConfigurationsClient
 	DatabasesClient                   *postgresql.DatabasesClient
 	FirewallRulesClient               *postgresql.FirewallRulesClient
+	FlexibleServersClient             *postgresqlflexibleservers.ServersClient
 	ServersClient                     *postgresql.ServersClient
 	ServerKeysClient                  *postgresql.ServerKeysClient
 	ServerSecurityAlertPoliciesClient *postgresql.ServerSecurityAlertPoliciesClient
 	VirtualNetworkRulesClient         *postgresql.VirtualNetworkRulesClient
 	ServerAdministratorsClient        *postgresql.ServerAdministratorsClient
+	ReplicasClient                    *postgresql.ReplicasClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -41,14 +44,22 @@ func NewClient(o *common.ClientOptions) *Client {
 	serverAdministratorsClient := postgresql.NewServerAdministratorsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&serverAdministratorsClient.Client, o.ResourceManagerAuthorizer)
 
+	replicasClient := postgresql.NewReplicasClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&replicasClient.Client, o.ResourceManagerAuthorizer)
+
+	flexibleServersClient := postgresqlflexibleservers.NewServersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&flexibleServersClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		ConfigurationsClient:              &configurationsClient,
 		DatabasesClient:                   &databasesClient,
 		FirewallRulesClient:               &firewallRulesClient,
+		FlexibleServersClient:             &flexibleServersClient,
 		ServersClient:                     &serversClient,
 		ServerKeysClient:                  &serverKeysClient,
 		ServerSecurityAlertPoliciesClient: &serverSecurityAlertPoliciesClient,
 		VirtualNetworkRulesClient:         &virtualNetworkRulesClient,
 		ServerAdministratorsClient:        &serverAdministratorsClient,
+		ReplicasClient:                    &replicasClient,
 	}
 }

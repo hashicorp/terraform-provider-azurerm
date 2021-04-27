@@ -14,7 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot/parse"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -26,7 +26,7 @@ func resourceBotChannelDirectline() *schema.Resource {
 		Delete: resourceBotChannelDirectlineDelete,
 		Update: resourceBotChannelDirectlineUpdate,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.BotChannelID(id)
 			return err
 		}),
@@ -137,7 +137,7 @@ func resourceBotChannelDirectlineCreate(d *schema.ResourceData, meta interface{}
 			if ok && directLineChannel.Properties != nil {
 				sites := filterSites(directLineChannel.Properties.Sites)
 				if len(sites) != 0 {
-					return tf.ImportAsExistsError("azurerm_bot_channel_directline", resourceId.ID(""))
+					return tf.ImportAsExistsError("azurerm_bot_channel_directline", resourceId.ID())
 				}
 			}
 		}
@@ -157,7 +157,7 @@ func resourceBotChannelDirectlineCreate(d *schema.ResourceData, meta interface{}
 	if _, err := client.Create(ctx, resourceId.ResourceGroup, resourceId.BotServiceName, botservice.ChannelNameDirectLineChannel, channel); err != nil {
 		return fmt.Errorf("creating Directline Channel for Bot %q (Resource Group %q): %+v", resourceId.BotServiceName, resourceId.ResourceGroup, err)
 	}
-	d.SetId(resourceId.ID(""))
+	d.SetId(resourceId.ID())
 
 	// Unable to create a new site with enhanced_authentication_enabled in the same operation, so we need to make two calls
 	if _, err := client.Update(ctx, resourceId.ResourceGroup, resourceId.BotServiceName, botservice.ChannelNameDirectLineChannel, channel); err != nil {

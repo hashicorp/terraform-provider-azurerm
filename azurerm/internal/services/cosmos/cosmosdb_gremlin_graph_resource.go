@@ -5,41 +5,38 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/cosmos-db/mgmt/2020-04-01-preview/documentdb"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/common"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmCosmosDbGremlinGraph() *schema.Resource {
+func resourceCosmosDbGremlinGraph() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmCosmosDbGremlinGraphCreate,
-		Read:   resourceArmCosmosDbGremlinGraphRead,
-		Update: resourceArmCosmosDbGremlinGraphUpdate,
-		Delete: resourceArmCosmosDbGremlinGraphDelete,
+		Create: resourceCosmosDbGremlinGraphCreate,
+		Read:   resourceCosmosDbGremlinGraphRead,
+		Update: resourceCosmosDbGremlinGraphUpdate,
+		Delete: resourceCosmosDbGremlinGraphDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		SchemaVersion: 1,
-		StateUpgraders: []schema.StateUpgrader{
-			{
-				Type:    migration.ResourceGremlinGraphUpgradeV0Schema().CoreConfigSchema().ImpliedType(),
-				Upgrade: migration.ResourceGremlinGraphStateUpgradeV0ToV1,
-				Version: 0,
-			},
-		},
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.GremlinGraphV0ToV1{},
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -70,6 +67,12 @@ func resourceArmCosmosDbGremlinGraph() *schema.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.CosmosEntityName,
+			},
+
+			"default_ttl": {
+				Type:     schema.TypeInt,
+				Optional: true,
+				Computed: true,
 			},
 
 			"throughput": {
@@ -186,7 +189,7 @@ func resourceArmCosmosDbGremlinGraph() *schema.Resource {
 	}
 }
 
-func resourceArmCosmosDbGremlinGraphCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosDbGremlinGraphCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.GremlinClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -233,6 +236,12 @@ func resourceArmCosmosDbGremlinGraphCreate(d *schema.ResourceData, meta interfac
 		}
 	}
 
+	if defaultTTL, hasDefaultTTL := d.GetOk("default_ttl"); hasDefaultTTL {
+		if defaultTTL != 0 {
+			db.GremlinGraphCreateUpdateProperties.Resource.DefaultTTL = utils.Int32(int32(defaultTTL.(int)))
+		}
+	}
+
 	if throughput, hasThroughput := d.GetOk("throughput"); hasThroughput {
 		if throughput != 0 {
 			db.GremlinGraphCreateUpdateProperties.Options.Throughput = common.ConvertThroughputFromResourceData(throughput)
@@ -263,10 +272,10 @@ func resourceArmCosmosDbGremlinGraphCreate(d *schema.ResourceData, meta interfac
 
 	d.SetId(*resp.ID)
 
-	return resourceArmCosmosDbGremlinGraphRead(d, meta)
+	return resourceCosmosDbGremlinGraphRead(d, meta)
 }
 
-func resourceArmCosmosDbGremlinGraphUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosDbGremlinGraphUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.GremlinClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -306,6 +315,10 @@ func resourceArmCosmosDbGremlinGraphUpdate(d *schema.ResourceData, meta interfac
 		}
 	}
 
+	if defaultTTL, hasDefaultTTL := d.GetOk("default_ttl"); hasDefaultTTL {
+		db.GremlinGraphCreateUpdateProperties.Resource.DefaultTTL = utils.Int32(int32(defaultTTL.(int)))
+	}
+
 	future, err := client.CreateUpdateGremlinGraph(ctx, id.ResourceGroup, id.DatabaseAccountName, id.GremlinDatabaseName, id.GraphName, db)
 	if err != nil {
 		return fmt.Errorf("Error issuing create/update request for Cosmos Gremlin Graph %q (Account: %q, Database: %q): %+v", id.GraphName, id.DatabaseAccountName, id.GremlinDatabaseName, err)
@@ -330,10 +343,10 @@ func resourceArmCosmosDbGremlinGraphUpdate(d *schema.ResourceData, meta interfac
 		}
 	}
 
-	return resourceArmCosmosDbGremlinGraphRead(d, meta)
+	return resourceCosmosDbGremlinGraphRead(d, meta)
 }
 
-func resourceArmCosmosDbGremlinGraphRead(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosDbGremlinGraphRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.GremlinClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -388,6 +401,10 @@ func resourceArmCosmosDbGremlinGraphRead(d *schema.ResourceData, meta interface{
 					return fmt.Errorf("Error setting `unique_key`: %+v", err)
 				}
 			}
+
+			if defaultTTL := props.DefaultTTL; defaultTTL != nil {
+				d.Set("default_ttl", defaultTTL)
+			}
 		}
 	}
 
@@ -406,7 +423,7 @@ func resourceArmCosmosDbGremlinGraphRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func resourceArmCosmosDbGremlinGraphDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosDbGremlinGraphDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.GremlinClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

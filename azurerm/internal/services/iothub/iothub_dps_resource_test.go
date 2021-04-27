@@ -1,166 +1,124 @@
 package iothub_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMIotHubDPS_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_iothub_dps", "test")
+type IotHubDPSResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubDPSDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMIotHubDPS_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubDPSExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "allocation_policy"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "device_provisioning_host_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "id_scope"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "service_operations_host_name"),
-				),
-			},
-			data.ImportStep(),
+func TestAccIotHubDPS_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iothub_dps", "test")
+	r := IotHubDPSResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("allocation_policy").Exists(),
+				check.That(data.ResourceName).Key("device_provisioning_host_name").Exists(),
+				check.That(data.ResourceName).Key("id_scope").Exists(),
+				check.That(data.ResourceName).Key("service_operations_host_name").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccIotHubDPS_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iothub_dps", "test")
+	r := IotHubDPSResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_iothub_dps"),
 		},
 	})
 }
 
-func TestAccAzureRMIotHubDPS_requiresImport(t *testing.T) {
+func TestAccIotHubDPS_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_dps", "test")
+	r := IotHubDPSResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubDPSDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMIotHubDPS_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubDPSExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMIotHubDPS_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_iothub_dps"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.update(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMIotHubDPS_update(t *testing.T) {
+func TestAccIotHubDPS_linkedHubs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_dps", "test")
+	r := IotHubDPSResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubDPSDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMIotHubDPS_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubDPSExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMIotHubDPS_update(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubDPSExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.linkedHubs(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.linkedHubsUpdated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMIotHubDPS_linkedHubs(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_iothub_dps", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubDPSDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMIotHubDPS_linkedHubs(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubDPSExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMIotHubDPS_linkedHubsUpdated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubDPSExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func testCheckAzureRMIotHubDPSDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.DPSResourceClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_iothub_dps" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("IoT Device Provisioning Service %s still exists in resource group %s", name, resourceGroup)
-		}
+func (t IotHubDPSResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
-	return nil
-}
-
-func testCheckAzureRMIotHubDPSExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.DPSResourceClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-		iotdpsName := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for IoT Device Provisioning Service: %s", iotdpsName)
-		}
-
-		resp, err := client.Get(ctx, iotdpsName, resourceGroup)
-		if err != nil {
-			if resp.StatusCode == http.StatusNotFound {
-				return fmt.Errorf("Bad: IoT Device Provisioning Service %q (Resource Group %q) does not exist", iotdpsName, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on iothubDPSResourceClient: %+v", err)
-		}
-
-		return nil
+	resourceGroup := id.ResourceGroup
+	name := id.Path["provisioningServices"]
+	// the name path can use the ProvisioningServices in older iterations
+	if name == "" {
+		name = id.Path["ProvisioningServices"]
 	}
+
+	resp, err := clients.IoTHub.DPSResourceClient.Get(ctx, name, resourceGroup)
+	if err != nil {
+		return nil, fmt.Errorf("reading IotHuB DPS (%s): %+v", id, err)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMIotHubDPS_basic(data acceptance.TestData) string {
+func (IotHubDPSResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -184,8 +142,7 @@ resource "azurerm_iothub_dps" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMIotHubDPS_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMIotHubDPS_basic(data)
+func (r IotHubDPSResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -199,10 +156,10 @@ resource "azurerm_iothub_dps" "import" {
     capacity = "1"
   }
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMIotHubDPS_update(data acceptance.TestData) string {
+func (IotHubDPSResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -230,7 +187,7 @@ resource "azurerm_iothub_dps" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMIotHubDPS_linkedHubs(data acceptance.TestData) string {
+func (IotHubDPSResource) linkedHubs(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -266,7 +223,7 @@ resource "azurerm_iothub_dps" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMIotHubDPS_linkedHubsUpdated(data acceptance.TestData) string {
+func (IotHubDPSResource) linkedHubsUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

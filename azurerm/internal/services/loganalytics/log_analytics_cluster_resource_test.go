@@ -1,123 +1,105 @@
 package loganalytics_test
 
 import (
+	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMLogAnalyticsCluster_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_log_analytics_cluster", "test")
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogAnalyticsClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLogAnalyticsCluster_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsClusterExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
+type LogAnalyticsClusterResource struct {
 }
 
-func TestAccAzureRMLogAnalyticsCluster_resize(t *testing.T) {
+func TestAccLogAnalyticsCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_cluster", "test")
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogAnalyticsClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLogAnalyticsCluster_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsClusterExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMLogAnalyticsCluster_resize(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsClusterExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
+	r := LogAnalyticsClusterResource{}
 
-func TestAccAzureRMLogAnalyticsCluster_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_log_analytics_cluster", "test")
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogAnalyticsClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLogAnalyticsCluster_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsClusterExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMLogAnalyticsCluster_requiresImport),
-		},
-	})
-}
-
-func testCheckAzureRMLogAnalyticsClusterExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).LogAnalytics.ClusterClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("log analytics Cluster not found: %s", resourceName)
-		}
-		id, err := parse.LogAnalyticsClusterID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.ClusterName); err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: log analytics Cluster %q does not exist", id.ClusterName)
-			}
-			return fmt.Errorf("bad: Get on LogAnalytics.ClusterClient: %+v", err)
-		}
-		return nil
+	if os.Getenv("ARM_RUN_TEST_LOG_ANALYTICS_CLUSTERS") == "" {
+		t.Skip("Skipping as ARM_RUN_TEST_LOG_ANALYTICS_CLUSTERS is not specified")
+		return
 	}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
 }
 
-func testCheckAzureRMLogAnalyticsClusterDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).LogAnalytics.ClusterClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func TestAccLogAnalyticsCluster_resize(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_cluster", "test")
+	r := LogAnalyticsClusterResource{}
 
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_log_analytics_cluster" {
-			continue
-		}
-		id, err := parse.LogAnalyticsClusterID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.ClusterName); err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: Get on LogAnalytics.ClusterClient: %+v", err)
-			}
-		}
-		return nil
+	if os.Getenv("ARM_RUN_TEST_LOG_ANALYTICS_CLUSTERS") == "" {
+		t.Skip("Skipping as ARM_RUN_TEST_LOG_ANALYTICS_CLUSTERS is not specified")
+		return
 	}
-	return nil
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.resize(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
 }
 
-func testAccAzureRMLogAnalyticsCluster_template(data acceptance.TestData) string {
+func TestAccLogAnalyticsCluster_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_cluster", "test")
+	r := LogAnalyticsClusterResource{}
+
+	if os.Getenv("ARM_RUN_TEST_LOG_ANALYTICS_CLUSTERS") == "" {
+		t.Skip("Skipping as ARM_RUN_TEST_LOG_ANALYTICS_CLUSTERS is not specified")
+		return
+	}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func (t LogAnalyticsClusterResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.LogAnalyticsClusterID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := clients.LogAnalytics.ClusterClient.Get(ctx, id.ResourceGroup, id.ClusterName)
+	if err != nil {
+		return nil, fmt.Errorf("readingLog Analytics Cluster (%s): %+v", id.String(), err)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
+}
+
+func (LogAnalyticsClusterResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -130,8 +112,7 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMLogAnalyticsCluster_basic(data acceptance.TestData) string {
-	template := testAccAzureRMLogAnalyticsCluster_template(data)
+func (r LogAnalyticsClusterResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -144,11 +125,10 @@ resource "azurerm_log_analytics_cluster" "test" {
     type = "SystemAssigned"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMLogAnalyticsCluster_resize(data acceptance.TestData) string {
-	template := testAccAzureRMLogAnalyticsCluster_template(data)
+func (r LogAnalyticsClusterResource) resize(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -162,11 +142,10 @@ resource "azurerm_log_analytics_cluster" "test" {
     type = "SystemAssigned"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMLogAnalyticsCluster_requiresImport(data acceptance.TestData) string {
-	config := testAccAzureRMLogAnalyticsCluster_basic(data)
+func (r LogAnalyticsClusterResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -179,5 +158,5 @@ resource "azurerm_log_analytics_cluster" "import" {
     type = "SystemAssigned"
   }
 }
-`, config)
+`, r.basic(data))
 }
