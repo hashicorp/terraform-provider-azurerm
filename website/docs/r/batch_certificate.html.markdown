@@ -16,7 +16,7 @@ Manages a certificate in an Azure Batch account.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "testbatch"
-  location = "westeurope"
+  location = "West Europe"
 }
 
 resource "azurerm_storage_account" "example" {
@@ -62,7 +62,7 @@ The following arguments are supported:
 
 * `format` - (Required) The format of the certificate. Possible values are `Cer` or `Pfx`.
 
-* `password` - (Optional) The password to access the certificate's private key. This must and can only be specified when `format` is `Pfx`.
+* `password` - (Optional) The password to access the certificate's private key. This can only be specified when `format` is `Pfx`.
 
 * `thumbprint` - (Required) The thumbprint of the certificate. At this time the only supported value is 'SHA1'.
 

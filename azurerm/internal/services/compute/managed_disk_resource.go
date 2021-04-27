@@ -6,7 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
+
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -15,7 +17,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -28,7 +30,7 @@ func resourceManagedDisk() *schema.Resource {
 		Update: resourceManagedDiskUpdate,
 		Delete: resourceManagedDiskDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ManagedDiskID(id)
 			return err
 		}),
@@ -117,7 +119,7 @@ func resourceManagedDisk() *schema.Resource {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validateManagedDiskSizeGB,
+				ValidateFunc: validate.ManagedDiskSizeGB,
 			},
 
 			"disk_iops_read_write": {
@@ -185,7 +187,7 @@ func resourceManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		},
 		OsType: compute.OperatingSystemTypes(osType),
 		Encryption: &compute.Encryption{
-			Type: compute.EncryptionAtRestWithPlatformKey,
+			Type: compute.EncryptionTypeEncryptionAtRestWithPlatformKey,
 		},
 	}
 
@@ -251,7 +253,7 @@ func resourceManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}) e
 
 	if diskEncryptionSetId := d.Get("disk_encryption_set_id").(string); diskEncryptionSetId != "" {
 		props.Encryption = &compute.Encryption{
-			Type:                compute.EncryptionAtRestWithCustomerKey,
+			Type:                compute.EncryptionTypeEncryptionAtRestWithCustomerKey,
 			DiskEncryptionSetID: utils.String(diskEncryptionSetId),
 		}
 	}
@@ -365,7 +367,7 @@ func resourceManagedDiskUpdate(d *schema.ResourceData, meta interface{}) error {
 		shouldShutDown = true
 		if diskEncryptionSetId := d.Get("disk_encryption_set_id").(string); diskEncryptionSetId != "" {
 			diskUpdate.Encryption = &compute.Encryption{
-				Type:                compute.EncryptionAtRestWithCustomerKey,
+				Type:                compute.EncryptionTypeEncryptionAtRestWithCustomerKey,
 				DiskEncryptionSetID: utils.String(diskEncryptionSetId),
 			}
 		} else {

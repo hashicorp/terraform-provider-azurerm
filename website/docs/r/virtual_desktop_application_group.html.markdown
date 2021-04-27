@@ -19,7 +19,7 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "example" {
   name     = "rg-example-virtualdesktop"
-  location = "eastus"
+  location = "West Europe"
 }
 
 resource "azurerm_virtual_desktop_host_pool" "pooledbreadthfirst" {

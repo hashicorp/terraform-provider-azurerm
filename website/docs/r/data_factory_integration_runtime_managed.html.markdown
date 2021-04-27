@@ -10,14 +10,14 @@ description: |-
 
 Manages an Azure Data Factory Managed Integration Runtime.
 
-~> **NOTE:** The `azurerm_data_factory_integration_runtime_managed` resource has been superseded by the [`azurerm_data_factory_integration_runtime_azure_ssis`](resource_group_template_deployment.html) resource. The existing `azurerm_data_factory_integration_runtime_managed` resource will be deprecated (but still available) in version 3.0 of the AzureRM Terraform Provider - we recommend using the `azurerm_data_factory_integration_runtime_azure_ssis` resource for new deployments.
+~> **NOTE:** The `azurerm_data_factory_integration_runtime_managed` resource has been superseded by the [`azurerm_data_factory_integration_runtime_azure_ssis`](data_factory_integration_runtime_azure_ssis.html) resource. The existing `azurerm_data_factory_integration_runtime_managed` resource will be deprecated (but still available) in version 3.0 of the AzureRM Terraform Provider - we recommend using the [`azurerm_data_factory_integration_runtime_azure_ssis`](data_factory_integration_runtime_azure_ssis.html) resource for new deployments.
 
 ## Example Usage
 
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "northeurope"
+  location = "West Europe"
 }
 
 resource "azurerm_data_factory" "example" {
@@ -72,9 +72,9 @@ A `catalog_info` block supports the following:
 
 * `server_endpoint` - (Required) The endpoint of an Azure SQL Server that will be used to host the SSIS catalog.
 
-* `administrator_login` - (Required) Administrator login name for the SQL Server.
+* `administrator_login` - (Optional) Administrator login name for the SQL Server.
 
-* `administrator_password` - (Required) Administrator login password for the SQL Server.
+* `administrator_password` - (Optional) Administrator login password for the SQL Server.
 
 * `pricing_tier` - (Optional) Pricing tier for the database that will be created for the SSIS catalog. Valid values are: `Basic`, `Standard`, `Premium` and `PremiumRS`.
 

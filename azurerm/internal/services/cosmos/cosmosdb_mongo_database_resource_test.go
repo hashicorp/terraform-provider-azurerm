@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/cosmos-db/mgmt/2020-04-01-preview/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-01-15/documentdb"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
@@ -118,7 +118,7 @@ resource "azurerm_cosmosdb_mongo_database" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
 }
-`, CosmosDBAccountResource{}.basic(data, documentdb.MongoDB, documentdb.Strong), data.RandomInteger)
+`, CosmosDBAccountResource{}.basicMongoDB(data, documentdb.Strong), data.RandomInteger)
 }
 
 func (CosmosMongoDatabaseResource) complete(data acceptance.TestData) string {
@@ -131,7 +131,7 @@ resource "azurerm_cosmosdb_mongo_database" "test" {
   account_name        = azurerm_cosmosdb_account.test.name
   throughput          = 700
 }
-`, CosmosDBAccountResource{}.basic(data, documentdb.MongoDB, documentdb.Strong), data.RandomInteger)
+`, CosmosDBAccountResource{}.basicMongoDB(data, documentdb.Strong), data.RandomInteger)
 }
 
 func (CosmosMongoDatabaseResource) autoscale(data acceptance.TestData, maxThroughput int) string {
@@ -146,7 +146,7 @@ resource "azurerm_cosmosdb_mongo_database" "test" {
     max_throughput = %[3]d
   }
 }
-`, CosmosDBAccountResource{}.basic(data, documentdb.MongoDB, documentdb.Strong), data.RandomInteger, maxThroughput)
+`, CosmosDBAccountResource{}.basicMongoDB(data, documentdb.Strong), data.RandomInteger, maxThroughput)
 }
 
 func (CosmosMongoDatabaseResource) serverless(data acceptance.TestData) string {

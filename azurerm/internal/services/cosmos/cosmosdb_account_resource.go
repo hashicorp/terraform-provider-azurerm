@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/cosmos-db/mgmt/2020-04-01-preview/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-01-15/documentdb"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -23,6 +23,7 @@ import (
 	keyVaultParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -47,9 +48,8 @@ func resourceCosmosDbAccount() *schema.Resource {
 		Read:   resourceCosmosDbAccountRead,
 		Update: resourceCosmosDbAccountUpdate,
 		Delete: resourceCosmosDbAccountDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(180 * time.Minute),
@@ -208,6 +208,7 @@ func resourceCosmosDbAccount() *schema.Resource {
 						"zone_redundant": {
 							Type:     schema.TypeBool,
 							Optional: true,
+							Default:  false,
 						},
 					},
 				},
@@ -355,7 +356,8 @@ func resourceCosmosDbAccount() *schema.Resource {
 				Computed:  true,
 				Sensitive: true,
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
+					Type:      schema.TypeString,
+					Sensitive: true,
 				},
 			},
 
@@ -820,21 +822,23 @@ func resourceCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClient,
 				return nil, "", fmt.Errorf("Error reading CosmosDB Account %q after create/update (Resource Group %q): %+v", name, resourceGroup, err2)
 			}
 			status := "Succeeded"
-			locations := append(*resp.ReadLocations, *resp.WriteLocations...)
-			for _, l := range locations {
-				if status = *l.ProvisioningState; status == "Creating" || status == "Updating" || status == "Deleting" {
-					break // return the first non successful status.
-				}
-			}
-
-			for _, desiredLocation := range *account.Locations {
-				for index, l := range locations {
-					if azure.NormalizeLocation(*desiredLocation.LocationName) == azure.NormalizeLocation(*l.LocationName) {
-						break
+			if props := resp.DatabaseAccountGetProperties; props != nil {
+				locations := append(*props.ReadLocations, *props.WriteLocations...)
+				for _, l := range locations {
+					if status = *l.ProvisioningState; status == "Creating" || status == "Updating" || status == "Deleting" {
+						break // return the first non successful status.
 					}
+				}
 
-					if (index + 1) == len(locations) {
-						return resp, "Updating", nil
+				for _, desiredLocation := range *account.Locations {
+					for index, l := range locations {
+						if azure.NormalizeLocation(*desiredLocation.LocationName) == azure.NormalizeLocation(*l.LocationName) {
+							break
+						}
+
+						if (index + 1) == len(locations) {
+							return resp, "Updating", nil
+						}
 					}
 				}
 			}
@@ -999,6 +1003,17 @@ func findZoneRedundant(locations *[]documentdb.Location, id string) bool {
 		if location.ID != nil && *location.ID == id {
 			if location.IsZoneRedundant != nil {
 				return *location.IsZoneRedundant
+			}
+		}
+	}
+	return false
+}
+
+func isServerlessCapacityMode(accResp documentdb.DatabaseAccountGetResults) bool {
+	if props := accResp.DatabaseAccountGetProperties; props != nil && props.Capabilities != nil {
+		for _, v := range *props.Capabilities {
+			if v.Name != nil && *v.Name == "EnableServerless" {
+				return true
 			}
 		}
 	}

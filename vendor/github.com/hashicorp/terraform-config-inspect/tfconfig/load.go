@@ -52,12 +52,12 @@ func (m *Module) init(diags Diagnostics) {
 	// case so callers can easily recognize it.
 	for _, r := range m.ManagedResources {
 		if _, exists := m.RequiredProviders[r.Provider.Name]; !exists {
-			m.RequiredProviders[r.Provider.Name] = []string{}
+			m.RequiredProviders[r.Provider.Name] = &ProviderRequirement{}
 		}
 	}
 	for _, r := range m.DataResources {
 		if _, exists := m.RequiredProviders[r.Provider.Name]; !exists {
-			m.RequiredProviders[r.Provider.Name] = []string{}
+			m.RequiredProviders[r.Provider.Name] = &ProviderRequirement{}
 		}
 	}
 

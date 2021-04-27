@@ -15,7 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -34,7 +34,7 @@ func resourceEventGridDomain() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.DomainID(id)
 			return err
 		}),
@@ -71,6 +71,7 @@ func resourceEventGridDomain() *schema.Resource {
 				}, false),
 			},
 
+			//lintignore:XS003
 			"input_mapping_fields": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -112,6 +113,7 @@ func resourceEventGridDomain() *schema.Resource {
 				},
 			},
 
+			//lintignore:XS003
 			"input_mapping_default_values": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -333,47 +335,51 @@ func expandAzureRmEventgridDomainInputMapping(d *schema.ResourceData) *eventgrid
 
 	if imfok {
 		mappings := imf.([]interface{})
-		mapping := mappings[0].(map[string]interface{})
+		if len(mappings) > 0 && mappings[0] != nil {
+			mapping := mappings[0].(map[string]interface{})
 
-		if id := mapping["id"].(string); id != "" {
-			jismp.ID = &eventgrid.JSONField{SourceField: &id}
-		}
+			if id := mapping["id"].(string); id != "" {
+				jismp.ID = &eventgrid.JSONField{SourceField: &id}
+			}
 
-		if eventTime := mapping["event_time"].(string); eventTime != "" {
-			jismp.EventTime = &eventgrid.JSONField{SourceField: &eventTime}
-		}
+			if eventTime := mapping["event_time"].(string); eventTime != "" {
+				jismp.EventTime = &eventgrid.JSONField{SourceField: &eventTime}
+			}
 
-		if topic := mapping["topic"].(string); topic != "" {
-			jismp.Topic = &eventgrid.JSONField{SourceField: &topic}
-		}
+			if topic := mapping["topic"].(string); topic != "" {
+				jismp.Topic = &eventgrid.JSONField{SourceField: &topic}
+			}
 
-		if dataVersion := mapping["data_version"].(string); dataVersion != "" {
-			jismp.DataVersion = &eventgrid.JSONFieldWithDefault{SourceField: &dataVersion}
-		}
+			if dataVersion := mapping["data_version"].(string); dataVersion != "" {
+				jismp.DataVersion = &eventgrid.JSONFieldWithDefault{SourceField: &dataVersion}
+			}
 
-		if subject := mapping["subject"].(string); subject != "" {
-			jismp.Subject = &eventgrid.JSONFieldWithDefault{SourceField: &subject}
-		}
+			if subject := mapping["subject"].(string); subject != "" {
+				jismp.Subject = &eventgrid.JSONFieldWithDefault{SourceField: &subject}
+			}
 
-		if eventType := mapping["event_type"].(string); eventType != "" {
-			jismp.EventType = &eventgrid.JSONFieldWithDefault{SourceField: &eventType}
+			if eventType := mapping["event_type"].(string); eventType != "" {
+				jismp.EventType = &eventgrid.JSONFieldWithDefault{SourceField: &eventType}
+			}
 		}
 	}
 
 	if imdvok {
 		mappings := imdv.([]interface{})
-		mapping := mappings[0].(map[string]interface{})
+		if len(mappings) > 0 && mappings[0] != nil {
+			mapping := mappings[0].(map[string]interface{})
 
-		if dataVersion := mapping["data_version"].(string); dataVersion != "" {
-			jismp.DataVersion = &eventgrid.JSONFieldWithDefault{DefaultValue: &dataVersion}
-		}
+			if dataVersion := mapping["data_version"].(string); dataVersion != "" {
+				jismp.DataVersion = &eventgrid.JSONFieldWithDefault{DefaultValue: &dataVersion}
+			}
 
-		if subject := mapping["subject"].(string); subject != "" {
-			jismp.Subject = &eventgrid.JSONFieldWithDefault{DefaultValue: &subject}
-		}
+			if subject := mapping["subject"].(string); subject != "" {
+				jismp.Subject = &eventgrid.JSONFieldWithDefault{DefaultValue: &subject}
+			}
 
-		if eventType := mapping["event_type"].(string); eventType != "" {
-			jismp.EventType = &eventgrid.JSONFieldWithDefault{DefaultValue: &eventType}
+			if eventType := mapping["event_type"].(string); eventType != "" {
+				jismp.EventType = &eventgrid.JSONFieldWithDefault{DefaultValue: &eventType}
+			}
 		}
 	}
 

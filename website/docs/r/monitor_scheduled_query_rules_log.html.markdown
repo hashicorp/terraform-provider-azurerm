@@ -15,7 +15,7 @@ Manages a LogToMetricAction Scheduled Query Rules resource within Azure Monitor.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "monitoring-resources"
-  location = "West US"
+  location = "West Europe"
 }
 
 resource "azurerm_log_analytics_workspace" "example" {

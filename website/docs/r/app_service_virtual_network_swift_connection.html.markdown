@@ -21,7 +21,7 @@ Multiple apps in the same App Service plan can use the same VNet.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "uksouth"
+  location = "West Europe"
 }
 
 resource "azurerm_virtual_network" "example" {
@@ -73,9 +73,9 @@ resource "azurerm_app_service_virtual_network_swift_connection" "example" {
 
 ## Example Usage (with Function App)
 ```hcl
-esource "azurerm_resource_group" "example" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "uksouth"
+  location = "West Europe"
 }
 
 resource "azurerm_virtual_network" "example" {

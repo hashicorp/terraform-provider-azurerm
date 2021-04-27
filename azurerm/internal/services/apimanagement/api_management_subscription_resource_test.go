@@ -122,6 +122,27 @@ func TestAccApiManagementSubscription_complete(t *testing.T) {
 	})
 }
 
+func TestAccApiManagementSubscription_withoutUser(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_subscription", "test")
+	r := ApiManagementSubscriptionResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withoutUser(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("state").HasValue("active"),
+				check.That(data.ResourceName).Key("allow_tracing").HasValue("false"),
+				check.That(data.ResourceName).Key("subscription_id").Exists(),
+				check.That(data.ResourceName).Key("primary_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_key").Exists(),
+				check.That(data.ResourceName).Key("user_id").HasValue(""),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (ApiManagementSubscriptionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.SubscriptionID(state.ID)
 	if err != nil {
@@ -190,6 +211,21 @@ resource "azurerm_api_management_subscription" "test" {
   resource_group_name = azurerm_api_management.test.resource_group_name
   api_management_name = azurerm_api_management.test.name
   user_id             = azurerm_api_management_user.test.id
+  product_id          = azurerm_api_management_product.test.id
+  display_name        = "Butter Parser API Enterprise Edition"
+  state               = "active"
+  allow_tracing       = false
+}
+`, r.template(data))
+}
+
+func (r ApiManagementSubscriptionResource) withoutUser(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_subscription" "test" {
+  resource_group_name = azurerm_api_management.test.resource_group_name
+  api_management_name = azurerm_api_management.test.name
   product_id          = azurerm_api_management_product.test.id
   display_name        = "Butter Parser API Enterprise Edition"
   state               = "active"

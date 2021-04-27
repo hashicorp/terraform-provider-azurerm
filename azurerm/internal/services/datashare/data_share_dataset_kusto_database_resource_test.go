@@ -95,7 +95,7 @@ resource "azurerm_data_share" "test" {
 }
 
 resource "azurerm_kusto_cluster" "test" {
-  name                = "acctestkc%[3]d"
+  name                = "acctestkc%[3]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -117,7 +117,7 @@ resource "azurerm_role_assignment" "test" {
   role_definition_name = "Contributor"
   principal_id         = azurerm_data_share_account.test.identity.0.principal_id
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(12))
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r DataShareDataSetKustoDatabaseResource) basic(data acceptance.TestData) string {

@@ -17,7 +17,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -29,7 +29,12 @@ func resourceFrontDoorFirewallPolicy() *schema.Resource {
 		Update: resourceFrontDoorFirewallPolicyCreateUpdate,
 		Delete: resourceFrontDoorFirewallPolicyDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.WebApplicationFirewallPolicyV0ToV1{},
+		}),
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.WebApplicationFirewallPolicyIDInsensitively(id)
 			return err
 		}),
@@ -152,7 +157,7 @@ func resourceFrontDoorFirewallPolicy() *schema.Resource {
 						"match_condition": {
 							Type:     schema.TypeList,
 							Optional: true,
-							MaxItems: 100,
+							MaxItems: 10,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"match_variable": {
@@ -174,10 +179,10 @@ func resourceFrontDoorFirewallPolicy() *schema.Resource {
 									"match_values": {
 										Type:     schema.TypeList,
 										Required: true,
-										MaxItems: 100,
+										MaxItems: 600,
 										Elem: &schema.Schema{
 											Type:         schema.TypeString,
-											ValidateFunc: validation.StringIsNotEmpty,
+											ValidateFunc: validation.StringLenBetween(1, 256),
 										},
 									},
 
@@ -420,15 +425,6 @@ func resourceFrontDoorFirewallPolicy() *schema.Resource {
 			},
 
 			"tags": tags.Schema(),
-		},
-
-		SchemaVersion: 1,
-		StateUpgraders: []schema.StateUpgrader{
-			{
-				Type:    migration.WebApplicationFirewallPolicyV0Schema().CoreConfigSchema().ImpliedType(),
-				Upgrade: migration.WebApplicationFirewallPolicyV0ToV1,
-				Version: 0,
-			},
 		},
 	}
 }

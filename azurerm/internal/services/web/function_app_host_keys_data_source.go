@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -45,6 +46,12 @@ func dataSourceFunctionAppHostKeys() *schema.Resource {
 				Computed:  true,
 				Sensitive: true,
 			},
+
+			"event_grid_extension_config_key": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
 		},
 	}
 }
@@ -70,23 +77,31 @@ func dataSourceFunctionAppHostKeysRead(d *schema.ResourceData, meta interface{})
 	}
 	d.SetId(*functionSettings.ID)
 
-	res, err := client.ListHostKeys(ctx, resourceGroup, name)
-	if err != nil {
-		if utils.ResponseWasNotFound(res.Response) {
-			return fmt.Errorf("Error: AzureRM Function App %q (Resource Group %q) was not found", name, resourceGroup)
+	return resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+		res, err := client.ListHostKeys(ctx, resourceGroup, name)
+		if err != nil {
+			if utils.ResponseWasNotFound(res.Response) {
+				return resource.NonRetryableError(fmt.Errorf("Error: AzureRM Function App %q (Resource Group %q) was not found", name, resourceGroup))
+			}
+
+			return resource.RetryableError(fmt.Errorf("Error making Read request on AzureRM Function App Hostkeys %q: %+v", name, err))
 		}
 
-		return fmt.Errorf("Error making Read request on AzureRM Function App Hostkeys %q: %+v", name, err)
-	}
+		d.Set("master_key", res.MasterKey)
+		d.Set("primary_key", res.MasterKey)
 
-	d.Set("master_key", res.MasterKey)
-	d.Set("primary_key", res.MasterKey)
+		defaultFunctionKey := ""
+		if v, ok := res.FunctionKeys["default"]; ok {
+			defaultFunctionKey = *v
+		}
+		d.Set("default_function_key", defaultFunctionKey)
 
-	defaultFunctionKey := ""
-	if v, ok := res.FunctionKeys["default"]; ok {
-		defaultFunctionKey = *v
-	}
-	d.Set("default_function_key", defaultFunctionKey)
+		eventGridExtensionConfigKey := ""
+		if v, ok := res.SystemKeys["eventgridextensionconfig_extension"]; ok {
+			eventGridExtensionConfigKey = *v
+		}
+		d.Set("event_grid_extension_config_key", eventGridExtensionConfigKey)
 
-	return nil
+		return nil
+	})
 }

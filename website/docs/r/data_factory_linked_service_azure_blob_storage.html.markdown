@@ -17,7 +17,7 @@ Manages a Linked Service (connection) between an Azure Blob Storage Account and 
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "northeurope"
+  location = "West Europe"
 }
 
 data "azurerm_storage_account" "example" {
@@ -62,7 +62,19 @@ The following supported arguments are common across all Azure Data Factory Linke
 
 The following supported arguments are specific to Azure Blob Storage Linked Service:
 
-* `connection_string` - (Optional) The connection string. Required if `account_endpoint`, `account_key`, and `database` are unspecified.
+* `connection_string` - (Optional) The connection string. Conflicts with `sas_uri` and `service_endpoint`.
+
+* `sas_uri` - (Optional) The SAS URI. Conflicts with `connection_string` and `service_endpoint`.
+
+* `service_endpoint` - (Optional) The Service Endpoint. Conflicts with `connection_string` and `sas_uri`. Required with `use_managed_identity`.
+
+* `use_managed_identity` - (Optional) Whether to use the Data Factory's managed identity to authenticate against the Azure Blob Storage account. Incompatible with `service_principal_id` and `service_principal_key`.
+
+* `service_principal_id` - (Optional) The service principal id in which to authenticate against the Azure Blob Storage account. Required if `service_principal_key` is set.
+
+* `service_principal_key` - (Optional) The service principal key in which to authenticate against the AAzure Blob Storage account.  Required if `service_principal_id` is set.
+
+* `tenant_id` - (Optional) The tenant id or name in which to authenticate against the Azure Blob Storage account.
 
 ## Attributes Reference
 

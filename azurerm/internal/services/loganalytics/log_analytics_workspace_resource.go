@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/operationalinsights"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -17,7 +19,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -30,16 +31,16 @@ func resourceLogAnalyticsWorkspace() *schema.Resource {
 		Update: resourceLogAnalyticsWorkspaceCreateUpdate,
 		Delete: resourceLogAnalyticsWorkspaceDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.LogAnalyticsWorkspaceID(id)
 			return err
 		}),
 
 		SchemaVersion: 2,
-		StateUpgraders: []schema.StateUpgrader{
-			migration.WorkspaceV0ToV1(),
-			migration.WorkspaceV1ToV2(),
-		},
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.WorkspaceV0ToV1{},
+			1: migration.WorkspaceV1ToV2{},
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -84,9 +85,16 @@ func resourceLogAnalyticsWorkspace() *schema.Resource {
 					string(operationalinsights.WorkspaceSkuNameEnumPremium),
 					string(operationalinsights.WorkspaceSkuNameEnumStandalone),
 					string(operationalinsights.WorkspaceSkuNameEnumStandard),
+					string(operationalinsights.WorkspaceSkuNameEnumCapacityReservation),
 					"Unlimited", // TODO check if this is actually no longer valid, removed in v28.0.0 of the SDK
 				}, true),
 				DiffSuppressFunc: logAnalyticsLinkedServiceSkuChangeCaseDifference,
+			},
+
+			"reservation_capcity_in_gb_per_day": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.All(validation.IntBetween(100, 5000), validation.IntDivisibleBy(100)),
 			},
 
 			"retention_in_days": {
@@ -101,7 +109,7 @@ func resourceLogAnalyticsWorkspace() *schema.Resource {
 				Optional:         true,
 				Default:          -1.0,
 				DiffSuppressFunc: dailyQuotaGbDiffSuppressFunc,
-				ValidateFunc:     validation.FloatAtLeast(0),
+				ValidateFunc:     validation.FloatAtLeast(-1.0),
 			},
 
 			"workspace_id": {
@@ -210,6 +218,19 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta inte
 		}
 	}
 
+	capacityReservationLevel, ok := d.GetOk("reservation_capcity_in_gb_per_day")
+	if ok {
+		if strings.EqualFold(skuName, string(operationalinsights.WorkspaceSkuNameEnumCapacityReservation)) {
+			parameters.WorkspaceProperties.Sku.CapacityReservationLevel = utils.Int32((int32(capacityReservationLevel.(int))))
+		} else {
+			return fmt.Errorf("`reservation_capcity_in_gb_per_day` can only be used with the `CapacityReservation` SKU")
+		}
+	} else {
+		if strings.EqualFold(skuName, string(operationalinsights.WorkspaceSkuNameEnumCapacityReservation)) {
+			return fmt.Errorf("`reservation_capcity_in_gb_per_day` must be set when using the `CapacityReservation` SKU")
+		}
+	}
+
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
 	if err != nil {
 		return err
@@ -256,6 +277,10 @@ func resourceLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface{})
 	d.Set("portal_url", "")
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku", sku.Name)
+
+		if capacityReservationLevel := sku.CapacityReservationLevel; capacityReservationLevel != nil {
+			d.Set("reservation_capcity_in_gb_per_day", capacityReservationLevel)
+		}
 	}
 	d.Set("retention_in_days", resp.RetentionInDays)
 	if resp.WorkspaceProperties != nil && resp.WorkspaceProperties.Sku != nil && strings.EqualFold(string(resp.WorkspaceProperties.Sku.Name), string(operationalinsights.WorkspaceSkuNameEnumFree)) {
@@ -286,9 +311,8 @@ func resourceLogAnalyticsWorkspaceDelete(d *schema.ResourceData, meta interface{
 	if err != nil {
 		return err
 	}
-
-	force := false
-	future, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, utils.Bool(force))
+	PermanentlyDeleteOnDestroy := meta.(*clients.Client).Features.LogAnalyticsWorkspace.PermanentlyDeleteOnDestroy
+	future, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, utils.Bool(PermanentlyDeleteOnDestroy))
 	if err != nil {
 		return fmt.Errorf("issuing AzureRM delete request for Log Analytics Workspaces '%s': %+v", id.WorkspaceName, err)
 	}

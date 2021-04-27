@@ -5,15 +5,16 @@ import (
 	"log"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/subscription/validate"
-
 	"github.com/Azure/azure-sdk-for-go/services/managedservices/mgmt/2019-06-01/managedservices"
+	frsUUID "github.com/gofrs/uuid"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/lighthouse/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/subscription/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -24,9 +25,8 @@ func resourceLighthouseDefinition() *schema.Resource {
 		Read:   resourceLighthouseDefinitionRead,
 		Update: resourceLighthouseDefinitionCreateUpdate,
 		Delete: resourceLighthouseDefinitionDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -72,6 +72,21 @@ func resourceLighthouseDefinition() *schema.Resource {
 							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: validation.IsUUID,
+						},
+
+						"principal_display_name": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"delegated_role_definition_ids": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.IsUUID,
+							},
 						},
 					},
 				},
@@ -127,11 +142,14 @@ func resourceLighthouseDefinitionCreateUpdate(d *schema.ResourceData, meta inter
 			return tf.ImportAsExistsError("azurerm_lighthouse_definition", *existing.ID)
 		}
 	}
-
+	authorizations, err := expandLighthouseDefinitionAuthorization(d.Get("authorization").(*schema.Set).List())
+	if err != nil {
+		return err
+	}
 	parameters := managedservices.RegistrationDefinition{
 		Properties: &managedservices.RegistrationDefinitionProperties{
 			Description:                utils.String(d.Get("description").(string)),
-			Authorizations:             expandLighthouseDefinitionAuthorization(d.Get("authorization").(*schema.Set).List()),
+			Authorizations:             authorizations,
 			RegistrationDefinitionName: utils.String(d.Get("name").(string)),
 			ManagedByTenantID:          utils.String(d.Get("managing_tenant_id").(string)),
 		},
@@ -225,24 +243,60 @@ func flattenLighthouseDefinitionAuthorization(input *[]managedservices.Authoriza
 			roleDefinitionID = *item.RoleDefinitionID
 		}
 
+		principalIDDisplayName := ""
+		if item.PrincipalIDDisplayName != nil {
+			principalIDDisplayName = *item.PrincipalIDDisplayName
+		}
+
 		results = append(results, map[string]interface{}{
-			"role_definition_id": roleDefinitionID,
-			"principal_id":       principalID,
+			"role_definition_id":            roleDefinitionID,
+			"principal_id":                  principalID,
+			"principal_display_name":        principalIDDisplayName,
+			"delegated_role_definition_ids": flattenLighthouseDefinitionAuthorizationDelegatedRoleDefinitionIds(item.DelegatedRoleDefinitionIds),
 		})
 	}
 
 	return results
 }
 
-func expandLighthouseDefinitionAuthorization(input []interface{}) *[]managedservices.Authorization {
+func flattenLighthouseDefinitionAuthorizationDelegatedRoleDefinitionIds(input *[]frsUUID.UUID) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+	result := make([]interface{}, 0)
+	for _, item := range *input {
+		result = append(result, item.String())
+	}
+	return result
+}
+
+func expandLighthouseDefinitionAuthorization(input []interface{}) (*[]managedservices.Authorization, error) {
 	results := make([]managedservices.Authorization, 0)
 	for _, item := range input {
 		v := item.(map[string]interface{})
+		delegatedRoleDefinitionIds, err := expandLighthouseDefinitionAuthorizationDelegatedRoleDefinitionIds(v["delegated_role_definition_ids"].(*schema.Set).List())
+		if err != nil {
+			return nil, err
+		}
 		result := managedservices.Authorization{
-			RoleDefinitionID: utils.String(v["role_definition_id"].(string)),
-			PrincipalID:      utils.String(v["principal_id"].(string)),
+			RoleDefinitionID:           utils.String(v["role_definition_id"].(string)),
+			PrincipalID:                utils.String(v["principal_id"].(string)),
+			PrincipalIDDisplayName:     utils.String(v["principal_display_name"].(string)),
+			DelegatedRoleDefinitionIds: delegatedRoleDefinitionIds,
 		}
 		results = append(results, result)
 	}
-	return &results
+	return &results, nil
+}
+
+func expandLighthouseDefinitionAuthorizationDelegatedRoleDefinitionIds(input []interface{}) (*[]frsUUID.UUID, error) {
+	result := make([]frsUUID.UUID, 0)
+	for _, item := range input {
+		id, err := frsUUID.FromString(item.(string))
+		if err != nil {
+			return nil, fmt.Errorf("parsing %q as a UUID: %+v", item, err)
+		}
+		result = append(result, id)
+	}
+	return &result, nil
 }

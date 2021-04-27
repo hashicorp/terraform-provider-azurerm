@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-09-01-preview/authorization"
+	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2020-04-01-preview/authorization"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -15,9 +15,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	billingValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/billing/validate"
 	managementGroupValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup/validate"
 	resourceValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/validate"
 	subscriptionValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/subscription/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -28,9 +30,8 @@ func resourceArmRoleAssignment() *schema.Resource {
 		Create: resourceArmRoleAssignmentCreate,
 		Read:   resourceArmRoleAssignmentRead,
 		Delete: resourceArmRoleAssignmentDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -53,6 +54,7 @@ func resourceArmRoleAssignment() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.Any(
+					billingValidate.EnrollmentID,
 					managementGroupValidate.ManagementGroupID,
 					subscriptionValidate.SubscriptionID,
 					resourceValidate.ResourceGroupID,
@@ -94,6 +96,32 @@ func resourceArmRoleAssignment() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Computed: true,
+			},
+
+			"description": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"condition": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				RequiredWith: []string{"condition_version"},
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"condition_version": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				RequiredWith: []string{"condition"},
+				ValidateFunc: validation.StringInSlice([]string{
+					"1.0",
+					"2.0",
+				}, false),
 			},
 		},
 	}
@@ -152,7 +180,18 @@ func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) e
 		RoleAssignmentProperties: &authorization.RoleAssignmentProperties{
 			RoleDefinitionID: utils.String(roleDefinitionId),
 			PrincipalID:      utils.String(principalId),
+			Description:      utils.String(d.Get("description").(string)),
 		},
+	}
+
+	condition := d.Get("condition").(string)
+	conditionVersion := d.Get("condition_version").(string)
+
+	if condition != "" && conditionVersion != "" {
+		properties.RoleAssignmentProperties.Condition = utils.String(condition)
+		properties.RoleAssignmentProperties.ConditionVersion = utils.String(conditionVersion)
+	} else if condition != "" || conditionVersion != "" {
+		return fmt.Errorf("`condition` and `conditionVersion` should be both set or unset")
 	}
 
 	skipPrincipalCheck := d.Get("skip_service_principal_aad_check").(bool)
@@ -200,6 +239,9 @@ func resourceArmRoleAssignmentRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("role_definition_id", props.RoleDefinitionID)
 		d.Set("principal_id", props.PrincipalID)
 		d.Set("principal_type", props.PrincipalType)
+		d.Set("description", props.Description)
+		d.Set("condition", props.Condition)
+		d.Set("condition_version", props.ConditionVersion)
 
 		// allows for import when role name is used (also if the role name changes a plan will show a diff)
 		if roleId := props.RoleDefinitionID; roleId != nil {

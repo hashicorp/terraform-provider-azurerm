@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `container_access_type` - (Optional) The Access Level configured for this Container. Possible values are `blob`, `container` or `private`. Defaults to `private`.
 
-* `metadata` - (Optional) A mapping of MetaData for this Container.
+* `metadata` - (Optional) A mapping of MetaData for this Container. All metadata keys should be lowercase.
 
 ## Attributes Reference
 

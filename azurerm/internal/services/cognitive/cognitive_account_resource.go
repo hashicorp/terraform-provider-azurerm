@@ -13,11 +13,16 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	commonValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cognitive/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cognitive/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
+	networkParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -36,7 +41,7 @@ func resourceCognitiveAccount() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.AccountID(id)
 			return err
 		}),
@@ -107,6 +112,49 @@ func resourceCognitiveAccount() *schema.Resource {
 				ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 			},
 
+			"network_acls": {
+				Type:         schema.TypeList,
+				Optional:     true,
+				MaxItems:     1,
+				RequiredWith: []string{"custom_subdomain_name"},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"default_action": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(cognitiveservices.Allow),
+								string(cognitiveservices.Deny),
+							}, false),
+						},
+						"ip_rules": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+								ValidateFunc: validation.Any(
+									commonValidate.IPv4Address,
+									commonValidate.CIDR,
+								),
+							},
+							Set: set.HashIPv4AddressOrCIDR,
+						},
+						"virtual_network_subnet_ids": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+					},
+				},
+			},
+
+			"custom_subdomain_name": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
 			"tags": tags.Schema(),
 
 			"endpoint": {
@@ -156,12 +204,31 @@ func resourceCognitiveAccountCreate(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("expanding sku_name for Cognitive Account %s (Resource Group %q): %v", name, resourceGroup, err)
 	}
 
+	networkAcls, subnetIds := expandCognitiveAccountNetworkAcls(d.Get("network_acls").([]interface{}))
+
+	// also lock on the Virtual Network ID's since modifications in the networking stack are exclusive
+	virtualNetworkNames := make([]string, 0)
+	for _, v := range subnetIds {
+		id, err := networkParse.SubnetIDInsensitively(v)
+		if err != nil {
+			return err
+		}
+		if !utils.SliceContainsValue(virtualNetworkNames, id.VirtualNetworkName) {
+			virtualNetworkNames = append(virtualNetworkNames, id.VirtualNetworkName)
+		}
+	}
+
+	locks.MultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
+	defer locks.UnlockMultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
+
 	props := cognitiveservices.Account{
 		Kind:     utils.String(kind),
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Sku:      sku,
 		Properties: &cognitiveservices.AccountProperties{
-			APIProperties: &cognitiveservices.AccountAPIProperties{},
+			APIProperties:       &cognitiveservices.AccountAPIProperties{},
+			NetworkAcls:         networkAcls,
+			CustomSubDomainName: utils.String(d.Get("custom_subdomain_name").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -215,10 +282,29 @@ func resourceCognitiveAccountUpdate(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("error expanding sku_name for Cognitive Account %s (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
 	}
 
+	networkAcls, subnetIds := expandCognitiveAccountNetworkAcls(d.Get("network_acls").([]interface{}))
+
+	// also lock on the Virtual Network ID's since modifications in the networking stack are exclusive
+	virtualNetworkNames := make([]string, 0)
+	for _, v := range subnetIds {
+		id, err := networkParse.SubnetIDInsensitively(v)
+		if err != nil {
+			return err
+		}
+		if !utils.SliceContainsValue(virtualNetworkNames, id.VirtualNetworkName) {
+			virtualNetworkNames = append(virtualNetworkNames, id.VirtualNetworkName)
+		}
+	}
+
+	locks.MultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
+	defer locks.UnlockMultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
+
 	props := cognitiveservices.Account{
 		Sku: sku,
 		Properties: &cognitiveservices.AccountProperties{
-			APIProperties: &cognitiveservices.AccountAPIProperties{},
+			APIProperties:       &cognitiveservices.AccountAPIProperties{},
+			NetworkAcls:         networkAcls,
+			CustomSubDomainName: utils.String(d.Get("custom_subdomain_name").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -233,6 +319,18 @@ func resourceCognitiveAccountUpdate(d *schema.ResourceData, meta interface{}) er
 
 	if _, err = client.Update(ctx, id.ResourceGroup, id.Name, props); err != nil {
 		return fmt.Errorf("Error updating Cognitive Services Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	}
+
+	stateConf := &resource.StateChangeConf{
+		Pending:    []string{"Accepted"},
+		Target:     []string{"Succeeded"},
+		Refresh:    cognitiveAccountStateRefreshFunc(ctx, client, id.ResourceGroup, id.Name),
+		MinTimeout: 15 * time.Second,
+		Timeout:    d.Timeout(schema.TimeoutCreate),
+	}
+
+	if _, err = stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("waiting for Cognitive Account (%s) to become available: %s", d.Get("name"), err)
 	}
 
 	return resourceCognitiveAccountRead(d, meta)
@@ -275,6 +373,10 @@ func resourceCognitiveAccountRead(d *schema.ResourceData, meta interface{}) erro
 			d.Set("qna_runtime_endpoint", apiProps.QnaRuntimeEndpoint)
 		}
 		d.Set("endpoint", props.Endpoint)
+		d.Set("custom_subdomain_name", props.CustomSubDomainName)
+		if err := d.Set("network_acls", flattenCognitiveAccountNetworkAcls(props.NetworkAcls)); err != nil {
+			return fmt.Errorf("setting `network_acls` for Cognitive Account %q: %+v", *resp.Name, err)
+		}
 	}
 
 	keys, err := client.ListKeys(ctx, id.ResourceGroup, id.Name)
@@ -341,4 +443,85 @@ func cognitiveAccountStateRefreshFunc(ctx context.Context, client *cognitiveserv
 
 		return res, string(res.Properties.ProvisioningState), nil
 	}
+}
+
+func expandCognitiveAccountNetworkAcls(input []interface{}) (*cognitiveservices.NetworkRuleSet, []string) {
+	subnetIds := make([]string, 0)
+	if len(input) == 0 || input[0] == nil {
+		return nil, subnetIds
+	}
+
+	v := input[0].(map[string]interface{})
+
+	defaultAction := v["default_action"].(string)
+
+	ipRulesRaw := v["ip_rules"].(*schema.Set)
+	ipRules := make([]cognitiveservices.IPRule, 0)
+
+	for _, v := range ipRulesRaw.List() {
+		rule := cognitiveservices.IPRule{
+			Value: utils.String(v.(string)),
+		}
+		ipRules = append(ipRules, rule)
+	}
+
+	networkRulesRaw := v["virtual_network_subnet_ids"].(*schema.Set)
+	networkRules := make([]cognitiveservices.VirtualNetworkRule, 0)
+	for _, v := range networkRulesRaw.List() {
+		rawId := v.(string)
+		subnetIds = append(subnetIds, rawId)
+		rule := cognitiveservices.VirtualNetworkRule{
+			ID: utils.String(rawId),
+		}
+		networkRules = append(networkRules, rule)
+	}
+
+	ruleSet := cognitiveservices.NetworkRuleSet{
+		DefaultAction:       cognitiveservices.NetworkRuleAction(defaultAction),
+		IPRules:             &ipRules,
+		VirtualNetworkRules: &networkRules,
+	}
+	return &ruleSet, subnetIds
+}
+
+func flattenCognitiveAccountNetworkAcls(input *cognitiveservices.NetworkRuleSet) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	output := make(map[string]interface{})
+
+	output["default_action"] = string(input.DefaultAction)
+
+	ipRules := make([]interface{}, 0)
+	if input.IPRules != nil {
+		for _, v := range *input.IPRules {
+			if v.Value == nil {
+				continue
+			}
+
+			ipRules = append(ipRules, *v.Value)
+		}
+	}
+	output["ip_rules"] = schema.NewSet(schema.HashString, ipRules)
+
+	virtualNetworkRules := make([]interface{}, 0)
+	if input.VirtualNetworkRules != nil {
+		for _, v := range *input.VirtualNetworkRules {
+			if v.ID == nil {
+				continue
+			}
+
+			id := *v.ID
+			subnetId, err := networkParse.SubnetIDInsensitively(*v.ID)
+			if err == nil {
+				id = subnetId.ID()
+			}
+
+			virtualNetworkRules = append(virtualNetworkRules, id)
+		}
+	}
+	output["virtual_network_subnet_ids"] = schema.NewSet(schema.HashString, virtualNetworkRules)
+
+	return []interface{}{output}
 }

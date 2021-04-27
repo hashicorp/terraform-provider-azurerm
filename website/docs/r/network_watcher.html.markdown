@@ -16,7 +16,7 @@ Manages a Network Watcher.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "production-nwwatcher"
-  location = "West US"
+  location = "West Europe"
 }
 
 resource "azurerm_network_watcher" "example" {

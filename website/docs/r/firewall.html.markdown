@@ -16,7 +16,7 @@ Manages an Azure Firewall.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "North Europe"
+  location = "West Europe"
 }
 
 resource "azurerm_virtual_network" "example" {
@@ -73,6 +73,8 @@ The following arguments are supported:
 * `ip_configuration` - (Optional) An `ip_configuration` block as documented below.
 
 * `dns_servers` - (Optional) A list of DNS servers that the Azure Firewall will direct DNS traffic to the for name resolution.
+
+* `private_ip_ranges` - (Optional) A list of SNAT private CIDR IP ranges, or the special string `IANAPrivateRanges`, which indicates Azure Firewall does not SNAT when the destination IP address is a private range per IANA RFC 1918.
 
 * `management_ip_configuration` - (Optional) A `management_ip_configuration` block as documented below, which allows force-tunnelling of traffic to be performed by the firewall. Adding or removing this block or changing the `subnet_id` in an existing block forces a new resource to be created.
 

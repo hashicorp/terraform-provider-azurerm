@@ -3,7 +3,6 @@ package kusto
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"strings"
 	"time"
 
@@ -14,7 +13,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -26,9 +27,10 @@ func resourceKustoCluster() *schema.Resource {
 		Update: resourceKustoClusterCreateUpdate,
 		Delete: resourceKustoClusterDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ClusterID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),
@@ -42,7 +44,7 @@ func resourceKustoCluster() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMKustoClusterName,
+				ValidateFunc: validate.ClusterName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -76,6 +78,7 @@ func resourceKustoCluster() *schema.Resource {
 								string(kusto.StandardE16aV4),
 								string(kusto.StandardE2aV4),
 								string(kusto.StandardE4aV4),
+								string(kusto.StandardE64iV3),
 								string(kusto.StandardE8asV41TBPS),
 								string(kusto.StandardE8asV42TBPS),
 								string(kusto.StandardE8aV4),
@@ -126,6 +129,12 @@ func resourceKustoCluster() *schema.Resource {
 				},
 			},
 
+			"double_encryption_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
+
 			"enable_disk_encryption": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -144,6 +153,7 @@ func resourceKustoCluster() *schema.Resource {
 			"virtual_network_configuration": {
 				Type:     schema.TypeList,
 				Optional: true,
+				ForceNew: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -262,11 +272,12 @@ func resourceKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{}) 
 	engine := kusto.EngineType(d.Get("engine").(string))
 
 	clusterProperties := kusto.ClusterProperties{
-		OptimizedAutoscale:    optimizedAutoScale,
-		EnableDiskEncryption:  utils.Bool(d.Get("enable_disk_encryption").(bool)),
-		EnableStreamingIngest: utils.Bool(d.Get("enable_streaming_ingest").(bool)),
-		EnablePurge:           utils.Bool(d.Get("enable_purge").(bool)),
-		EngineType:            engine,
+		OptimizedAutoscale:     optimizedAutoScale,
+		EnableDiskEncryption:   utils.Bool(d.Get("enable_disk_encryption").(bool)),
+		EnableDoubleEncryption: utils.Bool(d.Get("double_encryption_enabled").(bool)),
+		EnableStreamingIngest:  utils.Bool(d.Get("enable_streaming_ingest").(bool)),
+		EnablePurge:            utils.Bool(d.Get("enable_purge").(bool)),
+		EngineType:             engine,
 	}
 
 	if v, ok := d.GetOk("virtual_network_configuration"); ok {
@@ -291,8 +302,11 @@ func resourceKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{}) 
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
-		kustoIdentityRaw := d.Get("identity").([]interface{})
-		kustoIdentity := expandIdentity(kustoIdentityRaw)
+		kustoIdentity, err := expandIdentity(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+
 		kustoCluster.Identity = kustoIdentity
 	}
 
@@ -405,6 +419,7 @@ func resourceKustoClusterRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if clusterProperties := clusterResponse.ClusterProperties; clusterProperties != nil {
+		d.Set("double_encryption_enabled", clusterProperties.EnableDoubleEncryption)
 		d.Set("trusted_external_tenants", flattenTrustedExternalTenants(clusterProperties.TrustedExternalTenants))
 		d.Set("enable_disk_encryption", clusterProperties.EnableDiskEncryption)
 		d.Set("enable_streaming_ingest", clusterProperties.EnableStreamingIngest)
@@ -439,20 +454,6 @@ func resourceKustoClusterDelete(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	return nil
-}
-
-func validateAzureRMKustoClusterName(v interface{}, k string) (warnings []string, errors []error) {
-	name := v.(string)
-
-	if !regexp.MustCompile(`^[a-z][a-z0-9]+$`).MatchString(name) {
-		errors = append(errors, fmt.Errorf("%q must begin with a letter and may only contain alphanumeric characters: %q", k, name))
-	}
-
-	if len(name) < 4 || len(name) > 22 {
-		errors = append(errors, fmt.Errorf("%q must be (inclusive) between 4 and 22 characters long but is %d", k, len(name)))
-	}
-
-	return warnings, errors
 }
 
 func expandOptimizedAutoScale(input []interface{}) *kusto.OptimizedAutoscale {

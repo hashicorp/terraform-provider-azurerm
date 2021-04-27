@@ -17,7 +17,7 @@ Manages a Linked Service (connection) between a SFTP Server and Azure Data Facto
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "northeurope"
+  location = "West Europe"
 }
 
 data "azurerm_storage_account" "example" {
@@ -65,6 +65,18 @@ The following supported arguments are specific to Azure File Storage Linked Serv
 * `connection_string` - (Required) The connection string.
 
 * `file_share` - (Optional) The name of the file share.
+
+* `key_vault_password` - (Optional) A `key_vault_password` block as defined below. Use this argument to store Azure File Storage password in an existing Key Vault. It needs an existing Key Vault Data Factory Linked Service.
+
+---
+
+A `key_vault_password` block supports the following:
+
+* `linked_service_name` - (Required) Specifies the name of an existing Key Vault Data Factory Linked Service.
+
+* `secret_name` - (Required) Specifies the secret name in Azure Key Vault that stores Azure File Storage password.
+
+---
 
 ## Attributes Reference
 
