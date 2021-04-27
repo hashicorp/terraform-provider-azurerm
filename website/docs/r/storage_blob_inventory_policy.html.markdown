@@ -62,7 +62,7 @@ The following arguments are supported:
 
 * `storage_account_id` - (Required) The ID of the storage account to apply this Blob Inventory Policy to. Changing this forces a new Storage Blob Inventory Policy to be created.
 
-* `storage_container_name` - (Required) The storage container name to store the blob inventory files.
+* `storage_container_name` - (Required) The storage container name to store the blob inventory files. Changing this forces a new Storage Blob Inventory Policy to be created.
 
 * `rules` - (Required) One or more `rules` blocks as defined below.
 
