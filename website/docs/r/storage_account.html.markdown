@@ -135,8 +135,6 @@ The following arguments are supported:
 
 * `routing_preference` - (Optional) A `routing_preference` block as defined below.
 
-* `extended_location` - (Optional) An `extended_location` block as defined below.
-
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -205,11 +203,9 @@ A `hour_metrics` block supports the following:
 
 A `identity` block supports the following:
 
-* `type` - (Required) Specifies the identity type of the Storage Account. Possible values are `SystemAssigned`, `SystemAssigned,UserAssigned`, and `UserAssigned`.
+* `type` - (Required) Specifies the identity type of the Storage Account. At this time the only allowed value is `SystemAssigned`.
 
 ~> The assigned `principal_id` and `tenant_id` can be retrieved after the identity `type` has been set to `SystemAssigned`  and Storage Account has been created. More details are available below.
-
-* `identity_ids` - (Optional) A list of IDs for User Assigned Managed Identity resources to be assigned.
 
 ---
 
@@ -246,7 +242,6 @@ A `network_rules` block supports the following:
 any combination of `Logging`, `Metrics`, `AzureServices`, or `None`.
 * `ip_rules` - (Optional) List of public IP or IP ranges in CIDR Format. Only IPV4 addresses are allowed. Private IP address ranges (as defined in [RFC 1918](https://tools.ietf.org/html/rfc1918#section-3)) are not allowed.
 * `virtual_network_subnet_ids` - (Optional) A list of resource ids for subnets.
-* `resource_access_rules` - (Optional) One or more `resource_access_rules` blocks as documented below.
 
 ~> **Note:** If specifying `network_rules`, one of either `ip_rules` or `virtual_network_subnet_ids` must be specified and `default_action` must be set to `Deny`.
 
@@ -255,14 +250,6 @@ any combination of `Logging`, `Metrics`, `AzureServices`, or `None`.
 ~> **Note:** The prefix of `ip_rules` must be between 0 and 30 and only supports public IP addresses.
 
 ~> **Note:** [More information on Validation is available here](https://docs.microsoft.com/en-gb/azure/storage/blobs/storage-custom-domain-name)
-
----
-
-A `resource_access_rules` block supports the following:
-
-* `resource_id` - (Required) The `azurerm_private_endpoint` resource id, which assigns a private IP address from your VNet to this storage account and secures all traffic between your VNet and this storage account over a private link. 
-
-* `tenant_id` - (Optional) The tenant id of the `azurerm_private_endpoint`. Defaults to the current tenant id.
 
 ---
 
@@ -297,14 +284,6 @@ A `routing_preference` block supports the following:
 * `publish_microsoft_endpoints` - (Optional) Should microsoft routing storage endpoints be published? Defaults to `false`.
 
 * `routing_choice` - (Optional) Specifies the kind of network routing opted by the user. Possible values are `InternetRouting` and `MicrosoftRouting`. Defaults to `MicrosoftRouting`.
-
----
-
-A `extended_location` block supports the following:
-
-* `name` - (Required) The name of the extended location. Possible values are `microsoftrrdclab1`, `microsoftrrdclab2`, and `microsoftlosangeles1`. Changing this forces a new resource.
-
-* `type` - (Required) The type of the extended location. Only possible value is `EdgeZone`. Changing this forces a new resource.
 
 ---
 

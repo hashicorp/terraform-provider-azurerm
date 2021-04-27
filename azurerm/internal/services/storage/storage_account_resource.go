@@ -19,10 +19,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
-	msiparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
-	msiValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
-	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -290,26 +287,6 @@ func resourceStorageAccount() *schema.Resource {
 								string(storage.DefaultActionDeny),
 							}, false),
 						},
-
-						"resource_access_rules": {
-							Type:     schema.TypeSet,
-							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"resource_id": {
-										Type:         schema.TypeString,
-										Required:     true,
-										ValidateFunc: networkValidate.PrivateEndpointID,
-									},
-
-									"tenant_id": {
-										Type:     schema.TypeString,
-										Optional: true,
-										Computed: true,
-									},
-								},
-							},
-						},
 					},
 				},
 			},
@@ -317,6 +294,7 @@ func resourceStorageAccount() *schema.Resource {
 			"identity": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -326,8 +304,6 @@ func resourceStorageAccount() *schema.Resource {
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(storage.IdentityTypeSystemAssigned),
-								string(storage.IdentityTypeSystemAssignedUserAssigned),
-								string(storage.IdentityTypeUserAssigned),
 							}, true),
 						},
 						"principal_id": {
@@ -337,44 +313,6 @@ func resourceStorageAccount() *schema.Resource {
 						"tenant_id": {
 							Type:     schema.TypeString,
 							Computed: true,
-						},
-						"identity_ids": {
-							Type:     schema.TypeSet,
-							Optional: true,
-							MinItems: 1,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
-								ValidateFunc: msiValidate.UserAssignedIdentityID,
-							},
-						},
-					},
-				},
-			},
-
-			"extended_location": {
-				Type:     schema.TypeList,
-				Optional: true,
-				ForceNew: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"microsoftrrdclab1",
-								"microsoftrrdclab2",
-								"microsoftlosangeles1",
-							}, false),
-						},
-						"type": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(storage.EdgeZone),
-							}, false),
 						},
 					},
 				},
@@ -799,7 +737,6 @@ func resourceStorageAccount() *schema.Resource {
 
 func resourceStorageAccountCreate(d *schema.ResourceData, meta interface{}) error {
 	envName := meta.(*clients.Client).Account.Environment.Name
-	tenantId := meta.(*clients.Client).Account.TenantId
 	client := meta.(*clients.Client).Storage.AccountsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -867,7 +804,7 @@ func resourceStorageAccountCreate(d *schema.ResourceData, meta interface{}) erro
 		Kind: storage.Kind(accountKind),
 		AccountPropertiesCreateParameters: &storage.AccountPropertiesCreateParameters{
 			EnableHTTPSTrafficOnly: &enableHTTPSTrafficOnly,
-			NetworkRuleSet:         expandStorageAccountNetworkRules(d, tenantId),
+			NetworkRuleSet:         expandStorageAccountNetworkRules(d),
 			IsHnsEnabled:           &isHnsEnabled,
 			EnableNfsV3:            utils.Bool(d.Get("nfs_v3_enabled").(bool)),
 		},
@@ -887,11 +824,10 @@ func resourceStorageAccountCreate(d *schema.ResourceData, meta interface{}) erro
 		parameters.AccountPropertiesCreateParameters.MinimumTLSVersion = storage.MinimumTLSVersion(minimumTLSVersion)
 	}
 
-	storageAccountIdentity, err := expandAzureRmStorageAccountIdentity(d.Get("identity").([]interface{}))
-	if err != nil {
-		return err
+	if _, ok := d.GetOk("identity"); ok {
+		storageAccountIdentity := expandAzureRmStorageAccountIdentity(d)
+		parameters.Identity = storageAccountIdentity
 	}
-	parameters.Identity = storageAccountIdentity
 
 	if v, ok := d.GetOk("azure_files_identity_based_authentication"); ok {
 		expandAADFilesAuthentication, err := expandArmStorageAccountAzureFilesIdentityBasedAuthentication(v.([]interface{}))
@@ -942,14 +878,6 @@ func resourceStorageAccountCreate(d *schema.ResourceData, meta interface{}) erro
 
 	if v, ok := d.GetOk("routing_preference"); ok {
 		parameters.RoutingPreference = expandArmStorageAccountRoutingPreference(v.([]interface{}))
-	}
-
-	if v, ok := d.GetOk("extended_location"); ok {
-		extendedLocation, err := expandStorageAccountExtendedLocation(v.([]interface{}), storageType)
-		if err != nil {
-			return err
-		}
-		parameters.ExtendedLocation = extendedLocation
 	}
 
 	// Create
@@ -1046,7 +974,6 @@ func resourceStorageAccountCreate(d *schema.ResourceData, meta interface{}) erro
 
 func resourceStorageAccountUpdate(d *schema.ResourceData, meta interface{}) error {
 	envName := meta.(*clients.Client).Account.Environment.Name
-	tenantId := meta.(*clients.Client).Account.TenantId
 	client := meta.(*clients.Client).Storage.AccountsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1197,28 +1124,24 @@ func resourceStorageAccountUpdate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if d.HasChange("identity") {
-		storageAccountIdentity, err := expandAzureRmStorageAccountIdentity(d.Get("identity").([]interface{}))
-		if err != nil {
-			return err
-		}
 		opts := storage.AccountUpdateParameters{
-			Identity: storageAccountIdentity,
+			Identity: expandAzureRmStorageAccountIdentity(d),
 		}
 
 		if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
-			return fmt.Errorf("updating Azure Storage Account identity %q: %+v", storageAccountName, err)
+			return fmt.Errorf("Error updating Azure Storage Account identity %q: %+v", storageAccountName, err)
 		}
 	}
 
 	if d.HasChange("network_rules") {
 		opts := storage.AccountUpdateParameters{
 			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-				NetworkRuleSet: expandStorageAccountNetworkRules(d, tenantId),
+				NetworkRuleSet: expandStorageAccountNetworkRules(d),
 			},
 		}
 
 		if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
-			return fmt.Errorf("updating Azure Storage Account network_rules %q: %+v", storageAccountName, err)
+			return fmt.Errorf("Error updating Azure Storage Account network_rules %q: %+v", storageAccountName, err)
 		}
 	}
 
@@ -1410,9 +1333,6 @@ func resourceStorageAccountRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("account_tier", sku.Tier)
 		d.Set("account_replication_type", strings.Split(fmt.Sprintf("%v", sku.Name), "_")[1])
 	}
-	if err := d.Set("extended_location", flattenStorageAccountExtendedLocation(resp.ExtendedLocation)); err != nil {
-		return fmt.Errorf("setting `extended_location`: %+v", err)
-	}
 
 	if props := resp.AccountProperties; props != nil {
 		d.Set("access_tier", props.AccessTier)
@@ -1507,10 +1427,7 @@ func resourceStorageAccountRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("secondary_access_key", storageAccountKeys[1].Value)
 	}
 
-	identity, err := flattenAzureRmStorageAccountIdentity(resp.Identity)
-	if err != nil {
-		return err
-	}
+	identity := flattenAzureRmStorageAccountIdentity(resp.Identity)
 	if err := d.Set("identity", identity); err != nil {
 		return err
 	}
@@ -1739,7 +1656,7 @@ func expandArmStorageAccountRoutingPreference(input []interface{}) *storage.Rout
 	}
 }
 
-func expandStorageAccountNetworkRules(d *schema.ResourceData, tenantId string) *storage.NetworkRuleSet {
+func expandStorageAccountNetworkRules(d *schema.ResourceData) *storage.NetworkRuleSet {
 	networkRules := d.Get("network_rules").([]interface{})
 	if len(networkRules) == 0 {
 		// Default access is enabled when no network rules are set.
@@ -1751,7 +1668,6 @@ func expandStorageAccountNetworkRules(d *schema.ResourceData, tenantId string) *
 		IPRules:             expandStorageAccountIPRules(networkRule),
 		VirtualNetworkRules: expandStorageAccountVirtualNetworks(networkRule),
 		Bypass:              expandStorageAccountBypass(networkRule),
-		ResourceAccessRules: expandStorageAccountResourceAccessRule(networkRule["resource_access_rules"].(*schema.Set).List(), tenantId),
 	}
 
 	if v := networkRule["default_action"]; v != nil {
@@ -1802,25 +1718,6 @@ func expandStorageAccountBypass(networkRule map[string]interface{}) storage.Bypa
 	}
 
 	return storage.Bypass(strings.Join(bypassValues, ", "))
-}
-
-func expandStorageAccountResourceAccessRule(inputs []interface{}, tenantId string) *[]storage.ResourceAccessRule {
-	resourceAccessRules := make([]storage.ResourceAccessRule, 0)
-	if len(inputs) == 0 {
-		return &resourceAccessRules
-	}
-	for _, input := range inputs {
-		accessRule := input.(map[string]interface{})
-		if v := accessRule["tenant_id"].(string); v != "" {
-			tenantId = v
-		}
-		resourceAccessRules = append(resourceAccessRules, storage.ResourceAccessRule{
-			TenantID:   utils.String(tenantId),
-			ResourceID: utils.String(accessRule["resource_id"].(string)),
-		})
-	}
-
-	return &resourceAccessRules
 }
 
 func expandBlobProperties(input []interface{}) *storage.BlobServiceProperties {
@@ -2149,7 +2046,6 @@ func flattenStorageAccountNetworkRules(input *storage.NetworkRuleSet) []interfac
 	networkRules["virtual_network_subnet_ids"] = schema.NewSet(schema.HashString, flattenStorageAccountVirtualNetworks(input.VirtualNetworkRules))
 	networkRules["bypass"] = schema.NewSet(schema.HashString, flattenStorageAccountBypass(input.Bypass))
 	networkRules["default_action"] = string(input.DefaultAction)
-	networkRules["resource_access_rules"] = flattenStorageAccountResourceAccessRules(input.ResourceAccessRules)
 
 	return []interface{}{networkRules}
 }
@@ -2186,31 +2082,6 @@ func flattenStorageAccountVirtualNetworks(input *[]storage.VirtualNetworkRule) [
 	}
 
 	return virtualNetworks
-}
-
-func flattenStorageAccountResourceAccessRules(inputs *[]storage.ResourceAccessRule) []interface{} {
-	if inputs == nil || len(*inputs) == 0 {
-		return []interface{}{}
-	}
-
-	accessRules := make([]interface{}, 0)
-	for _, input := range *inputs {
-		var resourceId, tenantId string
-		if input.ResourceID != nil {
-			resourceId = *input.ResourceID
-		}
-
-		if input.TenantID != nil {
-			tenantId = *input.TenantID
-		}
-
-		accessRules = append(accessRules, map[string]interface{}{
-			"resource_id": resourceId,
-			"tenant_id":   tenantId,
-		})
-	}
-
-	return accessRules
 }
 
 func flattenBlobProperties(input storage.BlobServiceProperties) []interface{} {
@@ -2455,76 +2326,32 @@ func flattenStorageAccountBypass(input storage.Bypass) []interface{} {
 	return bypass
 }
 
-func expandAzureRmStorageAccountIdentity(vs []interface{}) (*storage.Identity, error) {
-	if len(vs) == 0 {
-		return &storage.Identity{
-			Type: storage.IdentityTypeNone,
-		}, nil
+func expandAzureRmStorageAccountIdentity(d *schema.ResourceData) *storage.Identity {
+	identities := d.Get("identity").([]interface{})
+	identity := identities[0].(map[string]interface{})
+	identityType := identity["type"].(string)
+	return &storage.Identity{
+		Type: storage.IdentityType(identityType),
 	}
-
-	v := vs[0].(map[string]interface{})
-	identity := storage.Identity{
-		Type: storage.IdentityType(v["type"].(string)),
-	}
-
-	var identityIdSet []interface{}
-	if identityIds, exists := v["identity_ids"]; exists {
-		identityIdSet = identityIds.(*schema.Set).List()
-	}
-
-	// If type contains `UserAssigned`, `identity_ids` must be specified and have at least 1 element
-	if identity.Type == storage.IdentityTypeUserAssigned || identity.Type == storage.IdentityTypeSystemAssignedUserAssigned {
-		if len(identityIdSet) == 0 {
-			return nil, fmt.Errorf("`identity_ids` must have at least 1 element when `type` includes `UserAssigned`")
-		}
-
-		userAssignedIdentities := make(map[string]*storage.UserAssignedIdentity)
-		for _, id := range identityIdSet {
-			userAssignedIdentities[id.(string)] = &storage.UserAssignedIdentity{}
-		}
-
-		identity.UserAssignedIdentities = userAssignedIdentities
-	} else if len(identityIdSet) > 0 {
-		// If type does _not_ contain `UserAssigned` (i.e. is set to `SystemAssigned` or defaulted to `None`), `identity_ids` is not allowed
-		return nil, fmt.Errorf("`identity_ids` can only be specified when `type` includes `UserAssigned`; but `type` is currently %q", identity.Type)
-	}
-
-	return &identity, nil
 }
 
-func flattenAzureRmStorageAccountIdentity(identity *storage.Identity) ([]interface{}, error) {
-	if identity == nil || identity.Type == storage.IdentityTypeNone {
-		return make([]interface{}, 0), nil
+func flattenAzureRmStorageAccountIdentity(identity *storage.Identity) []interface{} {
+	if identity == nil {
+		return make([]interface{}, 0)
 	}
 
-	var principalId, tenantId string
+	result := make(map[string]interface{})
+	if identity.Type != "" {
+		result["type"] = string(identity.Type)
+	}
 	if identity.PrincipalID != nil {
-		principalId = *identity.PrincipalID
+		result["principal_id"] = *identity.PrincipalID
 	}
-
 	if identity.TenantID != nil {
-		tenantId = *identity.TenantID
+		result["tenant_id"] = *identity.TenantID
 	}
 
-	identityIds := make([]interface{}, 0)
-	if identity.UserAssignedIdentities != nil {
-		for key := range identity.UserAssignedIdentities {
-			parsedId, err := msiparse.UserAssignedIdentityID(key)
-			if err != nil {
-				return nil, err
-			}
-			identityIds = append(identityIds, parsedId.ID())
-		}
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"type":         string(identity.Type),
-			"principal_id": principalId,
-			"tenant_id":    tenantId,
-			"identity_ids": schema.NewSet(schema.HashString, identityIds),
-		},
-	}, nil
+	return []interface{}{result}
 }
 
 func getBlobConnectionString(blobEndpoint *string, acctName *string, acctKey *string) string {
@@ -2616,39 +2443,4 @@ func setEndpointAndHost(d *schema.ResourceData, ordinalString string, endpointTy
 	// lintignore: R001
 	d.Set(fmt.Sprintf("%s_%s_host", ordinalString, typeString), host)
 	return nil
-}
-
-func expandStorageAccountExtendedLocation(inputs []interface{}, storageType string) (*storage.ExtendedLocation, error) {
-	if len(inputs) == 0 || inputs[0] == nil {
-		return nil, nil
-	}
-	input := inputs[0].(map[string]interface{})
-
-	// only supported when sku_name is `Premium_LRS ` or `StandardSSD_LRS`
-	if storageType != string(storage.PremiumLRS) {
-		return nil, fmt.Errorf("`extended_location` is only supported when `account_tier` is `Premium` and `account_replication_type` is `LRS`")
-	}
-
-	extendedLocation := storage.ExtendedLocation{
-		Name: utils.String(input["name"].(string)),
-		Type: storage.ExtendedLocationTypes(input["type"].(string)),
-	}
-
-	return &extendedLocation, nil
-}
-
-func flattenStorageAccountExtendedLocation(extendedLocation *storage.ExtendedLocation) []interface{} {
-	if extendedLocation == nil {
-		return []interface{}{}
-	}
-	var name string
-	if extendedLocation.Name != nil {
-		name = *extendedLocation.Name
-	}
-	return []interface{}{
-		map[string]interface{}{
-			"name": name,
-			"type": string(extendedLocation.Type),
-		},
-	}
 }
