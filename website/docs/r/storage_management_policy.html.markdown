@@ -106,7 +106,8 @@ The following arguments are supported:
 * `prefix_match` - An array of strings for prefixes to be matched.
 * `blob_types` - An array of predefined values. Valid options are `blockBlob` and `appendBlob`.
 * `match_blob_index_tag` - A `match_blob_index_tag` block as defined below. The block defines the blob index tag based filtering for blob objects.
-~> **NOTE:** This property requires enabling the `blobIndex` feature with [PSH or Cli commands](https://azure.microsoft.com/en-us/blog/manage-and-find-data-with-blob-index-for-azure-storage-now-in-preview/) before setting the block `match_blob_index_tag`. 
+
+~> **NOTE:** The `match_blob_index_tag property requires enabling the `blobIndex` feature with [PSH or Cli commands](https://azure.microsoft.com/en-us/blog/manage-and-find-data-with-blob-index-for-azure-storage-now-in-preview/). 
 ---
 
 `actions` supports the following:
