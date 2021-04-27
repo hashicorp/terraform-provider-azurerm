@@ -47,6 +47,7 @@ ENHANCEMENTS:
 * `azurerm_postgresql_server` - wait for replica restarts when needed [GH-11458]
 * `azurerm_redis_enterprise_cluster` - support for the `minimum_tls_version` and `hostname` properties [GH-11203]
 * `azurerm_storage_account` -  support for the `versioning_enabled`, `default_service_version`, and `last_access_time_enabled` properties within the `blob_properties` block [GH-11301]
+* `azurerm_storage_management_policy` - support for the `version` block [GH-11163]
 
 BUG FIXES:
 
