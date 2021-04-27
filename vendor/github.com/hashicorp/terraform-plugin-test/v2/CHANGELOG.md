@@ -1,3 +1,9 @@
+# 2.2.1 (April 27, 2021)
+
+SECURITY:
+
+  - Upgraded to terraform-exec v0.13.3 to address GPG key rotation. See [terraform-exec's CHANGELOG](https://github.com/hashicorp/terraform-exec/blob/main/CHANGELOG.md#0133-april-23-2021).
+
 # 2.2.0 (April  01, 2021)
 
 NOTES:
