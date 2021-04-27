@@ -18,6 +18,7 @@ resource "azurerm_healthcare_service" "example" {
   resource_group_name = "sample-resource-group"
   location            = "westus2"
   kind                = "fhir-R4"
+  cosmosdb_throughput = "2000"
 
   access_policy_object_ids = ["xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"]
 
@@ -39,10 +40,6 @@ resource "azurerm_healthcare_service" "example" {
     max_age_in_seconds = "500"
     allow_credentials  = "true"
   }
-  
-  cosmosdb_configuration {
-    throughput = 2000
-  }
 }
 ```
 
@@ -58,7 +55,13 @@ The following arguments are supported:
 
 * `access_policy_ids` - (Optional) A set of Azure object id's that are allowed to access the Service. If not configured, the default value is the object id of the service principal or user that is running Terraform.
 * `authentication_configuration` - (Optional) An `authentication_configuration` block as defined below.
-* `cosmosdb_configuration` - (Optional) An `cosmosdb_configuration` block as defined below.
+* `cosmosdb_throughput` - (Optional) The provisioned throughput for the backing database. Range of `400`-`1000`. Defaults to `400`.
+* `cosmosdb_key_vault_key_id` - (Optional) A versionless Key Vault Key ID for CMK encryption of the backing database. Changing this forces a new resource to be created.
+  
+~> **Please Note** When referencing an `azurerm_key_vault_key` resource, use `versionless_id` instead of `id`
+
+~> **Please Note** In order to use a `Custom Key` from Key Vault for encryption you must grant Azure Cosmos DB Service access to your key vault. For instructions on how to configure your Key Vault correctly please refer to the [product documentation](https://docs.microsoft.com/en-us/azure/cosmos-db/how-to-setup-cmk#add-an-access-policy-to-your-azure-key-vault-instance)
+
 * `cors_configuration` - (Optional) A `cors_configuration` block as defined below.
 * `kind` - (Optional) The type of the service. Values at time of publication are: `fhir`, `fhir-Stu3` and `fhir-R4`. Default value is `fhir`.
 * `tags` - (Optional) A mapping of tags to assign to the resource.
@@ -70,14 +73,6 @@ An `authentication_configuration` supports the following:
 Authority must be registered to Azure AD and in the following format: https://{Azure-AD-endpoint}/{tenant-id}.
 * `audience` - (Optional) The intended audience to receive authentication tokens for the service. The default value is https://azurehealthcareapis.com
 * `smart_proxy_enabled` - (Boolean) Enables the 'SMART on FHIR' option for mobile and web implementations.
-
----
-An `cosmosdb_configuration` supports the following:
-
-* `throughput` - (Optional) The provisioned throughput for the backing database. Range of `400`-`1000`. Defaults to `1000`.
-* `key_vault_key_id` - (Optional) A versionless Key Vault Key ID for CMK encryption. Changing this forces a new resource to be created.
-~> **NOTE:** When referencing an `azurerm_key_vault_key` resource, use `versionless_id` instead of `id`
-~> **NOTE:** In order to use a `Custom Key` from Key Vault for encryption you must grant Azure Cosmos DB Service access to your key vault. For instructions on how to configure your Key Vault correctly please refer to the [product documentation](https://docs.microsoft.com/en-us/azure/cosmos-db/how-to-setup-cmk#add-an-access-policy-to-your-azure-key-vault-instance)
 
 ---
 A `cors_configuration` block supports the following:

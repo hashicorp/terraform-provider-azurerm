@@ -101,9 +101,6 @@ resource "azurerm_healthcare_service" "test" {
   access_policy_object_ids = [
     data.azurerm_client_config.current.object_id,
   ]
-
-  cosmosdb_configuration {
-  }
 }
 `, data.RandomInteger, location, data.RandomIntOfLength(17)) // name can only be 24 chars long
 }
@@ -232,10 +229,8 @@ resource "azurerm_healthcare_service" "test" {
     allow_credentials  = true
   }
 
-  cosmosdb_configuration {
-    throughput   	 = 400
-	key_vault_key_id = azurerm_key_vault_key.test.versionless_id
-  }
+  cosmosdb_throughput 		= 400
+  cosmosdb_key_vault_key_id = azurerm_key_vault_key.test.versionless_id
 }
 `, data.RandomInteger, location, data.RandomString, data.RandomIntOfLength(17)) // name can only be 24 chars long
 }

@@ -2,8 +2,6 @@ package healthcare
 
 import (
 	"fmt"
-	keyVaultParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"log"
 	"time"
 
@@ -14,6 +12,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthcare/parse"
+	keyVaultParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
+	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -62,27 +62,19 @@ func resourceHealthcareService() *schema.Resource {
 				}, false),
 			},
 
-			"cosmosdb_configuration": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"throughput": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							Default:      1000,
-							ValidateFunc: validation.IntBetween(1, 10000),
-						},
-						"key_vault_key_id": {
-							Type:             schema.TypeString,
-							Optional:         true,
-							ForceNew:         true,
-							DiffSuppressFunc: diffSuppressIgnoreKeyVaultKeyVersion,
-							ValidateFunc:     keyVaultValidate.VersionlessNestedItemId,
-						},
-					},
-				},
+			"cosmosdb_throughput": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Default:      1000,
+				ValidateFunc: validation.IntBetween(1, 10000),
+			},
+
+			"cosmosdb_key_vault_key_id": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				ForceNew:         true,
+				DiffSuppressFunc: diffSuppressIgnoreKeyVaultKeyVersion,
+				ValidateFunc:     keyVaultValidate.VersionlessNestedItemId,
 			},
 
 			"access_policy_object_ids": {
@@ -302,9 +294,16 @@ func resourceHealthcareServiceRead(d *schema.ResourceData, meta interface{}) err
 			return fmt.Errorf("Error setting `access_policy_object_ids`: %+v", err)
 		}
 
-		if err := d.Set("cosmosdb_configuration", flattenCosmosDbConfig(props.CosmosDbConfiguration)); err != nil {
-			return fmt.Errorf("Error setting `cosmosdb_configuration`: %+v", err)
+		cosmosDbThroughput := 0
+		if cosmos := props.CosmosDbConfiguration; cosmos != nil {
+			if v := cosmos.OfferThroughput; v != nil {
+				cosmosDbThroughput = int(*v)
+			}
+			if v := cosmos.KeyVaultKeyURI; v != nil {
+				d.Set("cosmosdb_key_vault_key_id", v)
+			}
 		}
+		d.Set("cosmosdb_throughput", cosmosDbThroughput)
 
 		if err := d.Set("authentication_configuration", flattenHealthcareAuthConfig(props.AuthenticationConfiguration)); err != nil {
 			return fmt.Errorf("Error setting `authentication_configuration`: %+v", err)
@@ -398,17 +397,13 @@ func expandAzureRMhealthcareapisAuthentication(d *schema.ResourceData) *healthca
 }
 
 func expandAzureRMhealthcareapisCosmosDbConfiguration(d *schema.ResourceData) (*healthcareapis.ServiceCosmosDbConfigurationInfo, error) {
-	cosmosDbConfigRaw := d.Get("cosmosdb_configuration").([]interface{})
+	throughput := int32(d.Get("cosmosdb_throughput").(int))
 
-	if len(cosmosDbConfigRaw) == 0 {
-		return &healthcareapis.ServiceCosmosDbConfigurationInfo{}, nil
-	}
-
-	cosmosDbConfigAttr := cosmosDbConfigRaw[0].(map[string]interface{})
 	cosmosdb := &healthcareapis.ServiceCosmosDbConfigurationInfo{
-		OfferThroughput: utils.Int32(int32(cosmosDbConfigAttr["throughput"].(int))),
+		OfferThroughput: utils.Int32(throughput),
 	}
-	if keyVaultKeyIDRaw := cosmosDbConfigAttr["key_vault_key_id"]; keyVaultKeyIDRaw != "" {
+
+	if keyVaultKeyIDRaw, ok := d.GetOk("cosmosdb_key_vault_key_id"); ok {
 		keyVaultKey, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyVaultKeyIDRaw.(string))
 		if err != nil {
 			return nil, fmt.Errorf("could not parse Key Vault Key ID: %+v", err)
@@ -433,28 +428,6 @@ func flattenHealthcareAccessPolicies(policies *[]healthcareapis.ServiceAccessPol
 	}
 
 	return result
-}
-
-func flattenCosmosDbConfig(input *healthcareapis.ServiceCosmosDbConfigurationInfo) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
-	throughput := 0
-	if input.OfferThroughput != nil {
-		throughput = int(*input.OfferThroughput)
-	}
-	keyVaultKeyId := ""
-	if input.KeyVaultKeyURI != nil {
-		keyVaultKeyId = *input.KeyVaultKeyURI
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"throughput":       throughput,
-			"key_vault_key_id": keyVaultKeyId,
-		},
-	}
 }
 
 func flattenHealthcareAuthConfig(input *healthcareapis.ServiceAuthenticationConfigurationInfo) []interface{} {
