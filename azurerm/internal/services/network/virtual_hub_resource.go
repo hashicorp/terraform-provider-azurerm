@@ -103,7 +103,7 @@ func resourceVirtualHub() *schema.Resource {
 
 			"default_route_table": {
 				Type:     schema.TypeList,
-				Computed: true,
+				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -260,16 +260,18 @@ func resourceVirtualHubCreateUpdate(d *schema.ResourceData, meta interface{}) er
 
 	routeTableParams := network.HubRouteTable{
 		Name:                    utils.String(defaultRouteTable),
-		HubRouteTableProperties: expandDefaultRouteTable(d.Get("default_route_table").(*schema.Set).List()),
+		HubRouteTableProperties: expandDefaultRouteTable(d.Get("default_route_table").([]interface{})),
 	}
 
-	routeTableFuture, err := routeTableClient.CreateOrUpdate(ctx, resourceGroup, name, defaultRouteTable, routeTableParams)
-	if err != nil {
-		return fmt.Errorf("creating/updating HubRouteTable %q (Resource Group %q / Virtual Hub %q): %+v", defaultRouteTable, resourceGroup, name, err)
-	}
+	if routeTableParams.HubRouteTableProperties != nil {
+		routeTableFuture, err := routeTableClient.CreateOrUpdate(ctx, resourceGroup, name, defaultRouteTable, routeTableParams)
+		if err != nil {
+			return fmt.Errorf("creating/updating HubRouteTable %q (Resource Group %q / Virtual Hub %q): %+v", defaultRouteTable, resourceGroup, name, err)
+		}
 
-	if err := routeTableFuture.WaitForCompletionRef(ctx, routeTableClient.Client); err != nil {
-		return fmt.Errorf("waiting on creating/updating future for HubRouteTable %q (Resource Group %q / Virtual Hub %q): %+v", defaultRouteTable, resourceGroup, name, err)
+		if err := routeTableFuture.WaitForCompletionRef(ctx, routeTableClient.Client); err != nil {
+			return fmt.Errorf("waiting on creating/updating future for HubRouteTable %q (Resource Group %q / Virtual Hub %q): %+v", defaultRouteTable, resourceGroup, name, err)
+		}
 	}
 
 	return resourceVirtualHubRead(d, meta)
@@ -409,13 +411,21 @@ func flattenVirtualHubRoute(input *network.VirtualHubRouteTable) []interface{} {
 }
 
 func expandDefaultRouteTable(input []interface{}) *network.HubRouteTableProperties {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
 	item := input[0].(map[string]interface{})
-	labelsRaw := item["labels"].([]interface{})
-	routesRaw := item["route"].([]interface{})
+
+	var labelsRaw []interface{}
+	if item["labels"] != nil {
+		labelsRaw = item["labels"].([]interface{})
+	}
+
+	var routesRaw []interface{}
+	if item["route"] != nil {
+		routesRaw = item["route"].([]interface{})
+	}
 
 	routeTableProperties := network.HubRouteTableProperties{
 		Labels: utils.ExpandStringSlice(labelsRaw),
