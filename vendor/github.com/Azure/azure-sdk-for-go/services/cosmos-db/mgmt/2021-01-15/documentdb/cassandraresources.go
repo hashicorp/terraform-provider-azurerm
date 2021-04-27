@@ -64,7 +64,6 @@ func (client CassandraResourcesClient) CreateUpdateCassandraKeyspace(ctx context
 			Constraints: []validation.Constraint{{Target: "createUpdateCassandraKeyspaceParameters.CassandraKeyspaceCreateUpdateProperties", Name: validation.Null, Rule: true,
 				Chain: []validation.Constraint{{Target: "createUpdateCassandraKeyspaceParameters.CassandraKeyspaceCreateUpdateProperties.Resource", Name: validation.Null, Rule: true,
 					Chain: []validation.Constraint{{Target: "createUpdateCassandraKeyspaceParameters.CassandraKeyspaceCreateUpdateProperties.Resource.ID", Name: validation.Null, Rule: true, Chain: nil}}},
-					{Target: "createUpdateCassandraKeyspaceParameters.CassandraKeyspaceCreateUpdateProperties.Options", Name: validation.Null, Rule: true, Chain: nil},
 				}}}}}); err != nil {
 		return result, validation.NewError("documentdb.CassandraResourcesClient", "CreateUpdateCassandraKeyspace", err.Error())
 	}
@@ -93,7 +92,7 @@ func (client CassandraResourcesClient) CreateUpdateCassandraKeyspacePreparer(ctx
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -168,7 +167,6 @@ func (client CassandraResourcesClient) CreateUpdateCassandraTable(ctx context.Co
 			Constraints: []validation.Constraint{{Target: "createUpdateCassandraTableParameters.CassandraTableCreateUpdateProperties", Name: validation.Null, Rule: true,
 				Chain: []validation.Constraint{{Target: "createUpdateCassandraTableParameters.CassandraTableCreateUpdateProperties.Resource", Name: validation.Null, Rule: true,
 					Chain: []validation.Constraint{{Target: "createUpdateCassandraTableParameters.CassandraTableCreateUpdateProperties.Resource.ID", Name: validation.Null, Rule: true, Chain: nil}}},
-					{Target: "createUpdateCassandraTableParameters.CassandraTableCreateUpdateProperties.Options", Name: validation.Null, Rule: true, Chain: nil},
 				}}}}}); err != nil {
 		return result, validation.NewError("documentdb.CassandraResourcesClient", "CreateUpdateCassandraTable", err.Error())
 	}
@@ -198,7 +196,7 @@ func (client CassandraResourcesClient) CreateUpdateCassandraTablePreparer(ctx co
 		"tableName":         autorest.Encode("path", tableName),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -294,7 +292,7 @@ func (client CassandraResourcesClient) DeleteCassandraKeyspacePreparer(ctx conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -389,7 +387,7 @@ func (client CassandraResourcesClient) DeleteCassandraTablePreparer(ctx context.
 		"tableName":         autorest.Encode("path", tableName),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -490,7 +488,7 @@ func (client CassandraResourcesClient) GetCassandraKeyspacePreparer(ctx context.
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -583,7 +581,7 @@ func (client CassandraResourcesClient) GetCassandraKeyspaceThroughputPreparer(ct
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -677,7 +675,7 @@ func (client CassandraResourcesClient) GetCassandraTablePreparer(ctx context.Con
 		"tableName":         autorest.Encode("path", tableName),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -772,7 +770,7 @@ func (client CassandraResourcesClient) GetCassandraTableThroughputPreparer(ctx c
 		"tableName":         autorest.Encode("path", tableName),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -862,7 +860,7 @@ func (client CassandraResourcesClient) ListCassandraKeyspacesPreparer(ctx contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -954,7 +952,7 @@ func (client CassandraResourcesClient) ListCassandraTablesPreparer(ctx context.C
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1040,7 +1038,7 @@ func (client CassandraResourcesClient) MigrateCassandraKeyspaceToAutoscalePrepar
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1135,7 +1133,7 @@ func (client CassandraResourcesClient) MigrateCassandraKeyspaceToManualThroughpu
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1231,7 +1229,7 @@ func (client CassandraResourcesClient) MigrateCassandraTableToAutoscalePreparer(
 		"tableName":         autorest.Encode("path", tableName),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1328,7 +1326,7 @@ func (client CassandraResourcesClient) MigrateCassandraTableToManualThroughputPr
 		"tableName":         autorest.Encode("path", tableName),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1431,7 +1429,7 @@ func (client CassandraResourcesClient) UpdateCassandraKeyspaceThroughputPreparer
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1538,7 +1536,7 @@ func (client CassandraResourcesClient) UpdateCassandraTableThroughputPreparer(ct
 		"tableName":         autorest.Encode("path", tableName),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
