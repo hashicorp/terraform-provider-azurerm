@@ -94,6 +94,56 @@ func TestAccManagedApplication_update(t *testing.T) {
 	})
 }
 
+func TestAccManagedApplication_updateParameters(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_application", "test")
+	r := ManagedApplicationResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("parameters.%").HasValue("3"),
+				check.That(data.ResourceName).Key("parameter_values").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.parameterValues(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("parameters.%").Exists(),
+				check.That(data.ResourceName).Key("parameter_values").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("parameters.%").HasValue("3"),
+				check.That(data.ResourceName).Key("parameter_values").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccManagedApplication_parameterValues(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_application", "test")
+	r := ManagedApplicationResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.parameterValues(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (ManagedApplicationResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.ApplicationID(state.ID)
 	if err != nil {
@@ -186,6 +236,29 @@ resource "azurerm_managed_application" "test" {
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r ManagedApplicationResource) parameterValues(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_managed_application" "test" {
+  name                        = "acctestManagedApp%d"
+  location                    = azurerm_resource_group.test.location
+  resource_group_name         = azurerm_resource_group.test.name
+  kind                        = "ServiceCatalog"
+  managed_resource_group_name = "infraGroup%d"
+  application_definition_id   = azurerm_managed_application_definition.test.id
+
+  parameter_values = <<VALUES
+	{
+        "location": {"value": "${azurerm_resource_group.test.location}"},
+        "storageAccountNamePrefix": {"value": "store%s"},
+        "storageAccountType": {"value": "Standard_LRS"}
+	}
+  VALUES
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomString)
 }
 
 func (ManagedApplicationResource) template(data acceptance.TestData) string {
