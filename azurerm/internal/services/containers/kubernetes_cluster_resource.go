@@ -131,6 +131,24 @@ func resourceKubernetesCluster() *schema.Resource {
 							Optional: true,
 							Computed: true,
 						},
+						"max_node_provisioning_time": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      "15m",
+							ValidateFunc: containerValidate.Duration,
+						},
+						"max_unready_nodes": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      3,
+							ValidateFunc: validation.IntAtLeast(0),
+						},
+						"max_unready_percentage": {
+							Type:         schema.TypeFloat,
+							Optional:     true,
+							Default:      45,
+							ValidateFunc: validation.FloatBetween(0, 100),
+						},
 						"new_pod_scale_up_delay": {
 							Type:         schema.TypeString,
 							Optional:     true,
@@ -1356,7 +1374,10 @@ func resourceKubernetesClusterRead(d *schema.ResourceData, meta interface{}) err
 			return fmt.Errorf("setting `addon_profile`: %+v", err)
 		}
 
-		autoScalerProfile := flattenKubernetesClusterAutoScalerProfile(props.AutoScalerProfile)
+		autoScalerProfile, err := flattenKubernetesClusterAutoScalerProfile(props.AutoScalerProfile)
+		if err != nil {
+			return err
+		}
 		if err := d.Set("auto_scaler_profile", autoScalerProfile); err != nil {
 			return fmt.Errorf("setting `auto_scaler_profile`: %+v", err)
 		}
@@ -2094,9 +2115,9 @@ func flattenKubernetesClusterManagedClusterIdentity(input *containerservice.Mana
 	return []interface{}{identity}, nil
 }
 
-func flattenKubernetesClusterAutoScalerProfile(profile *containerservice.ManagedClusterPropertiesAutoScalerProfile) []interface{} {
+func flattenKubernetesClusterAutoScalerProfile(profile *containerservice.ManagedClusterPropertiesAutoScalerProfile) ([]interface{}, error) {
 	if profile == nil {
-		return []interface{}{}
+		return []interface{}{}, nil
 	}
 
 	balanceSimilarNodeGroups := false
@@ -2109,6 +2130,29 @@ func flattenKubernetesClusterAutoScalerProfile(profile *containerservice.Managed
 	maxGracefulTerminationSec := ""
 	if profile.MaxGracefulTerminationSec != nil {
 		maxGracefulTerminationSec = *profile.MaxGracefulTerminationSec
+	}
+
+	maxNodeProvisionTime := ""
+	if profile.MaxNodeProvisionTime != nil {
+		maxNodeProvisionTime = *profile.MaxNodeProvisionTime
+	}
+
+	maxUnreadyNodes := 0
+	if profile.OkTotalUnreadyCount != nil {
+		var err error
+		maxUnreadyNodes, err = strconv.Atoi(*profile.OkTotalUnreadyCount)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	maxUnreadyPercentage := 0.0
+	if profile.MaxTotalUnreadyPercentage != nil {
+		var err error
+		maxUnreadyPercentage, err = strconv.ParseFloat(*profile.MaxTotalUnreadyPercentage, 64)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	newPodScaleUpDelay := ""
@@ -2171,6 +2215,9 @@ func flattenKubernetesClusterAutoScalerProfile(profile *containerservice.Managed
 			"balance_similar_node_groups":      balanceSimilarNodeGroups,
 			"expander":                         string(profile.Expander),
 			"max_graceful_termination_sec":     maxGracefulTerminationSec,
+			"max_node_provisioning_time":       maxNodeProvisionTime,
+			"max_unready_nodes":                maxUnreadyNodes,
+			"max_unready_percentage":           maxUnreadyPercentage,
 			"new_pod_scale_up_delay":           newPodScaleUpDelay,
 			"scale_down_delay_after_add":       scaleDownDelayAfterAdd,
 			"scale_down_delay_after_delete":    scaleDownDelayAfterDelete,
@@ -2183,7 +2230,7 @@ func flattenKubernetesClusterAutoScalerProfile(profile *containerservice.Managed
 			"skip_nodes_with_local_storage":    skipNodesWithLocalStorage,
 			"skip_nodes_with_system_pods":      skipNodesWithSystemPods,
 		},
-	}
+	}, nil
 }
 
 func expandKubernetesClusterAutoScalerProfile(input []interface{}) *containerservice.ManagedClusterPropertiesAutoScalerProfile {
@@ -2196,6 +2243,9 @@ func expandKubernetesClusterAutoScalerProfile(input []interface{}) *containerser
 	balanceSimilarNodeGroups := config["balance_similar_node_groups"].(bool)
 	expander := config["expander"].(string)
 	maxGracefulTerminationSec := config["max_graceful_termination_sec"].(string)
+	maxNodeProvisionTime := config["max_node_provisioning_time"].(string)
+	maxUnreadyNodes := fmt.Sprint(config["max_unready_nodes"].(int))
+	maxUnreadyPercentage := fmt.Sprint(config["max_unready_percentage"].(float64))
 	newPodScaleUpDelay := config["new_pod_scale_up_delay"].(string)
 	scaleDownDelayAfterAdd := config["scale_down_delay_after_add"].(string)
 	scaleDownDelayAfterDelete := config["scale_down_delay_after_delete"].(string)
@@ -2212,7 +2262,10 @@ func expandKubernetesClusterAutoScalerProfile(input []interface{}) *containerser
 		BalanceSimilarNodeGroups:      utils.String(strconv.FormatBool(balanceSimilarNodeGroups)),
 		Expander:                      containerservice.Expander(expander),
 		MaxGracefulTerminationSec:     utils.String(maxGracefulTerminationSec),
+		MaxNodeProvisionTime:          utils.String(maxNodeProvisionTime),
+		MaxTotalUnreadyPercentage:     utils.String(maxUnreadyPercentage),
 		NewPodScaleUpDelay:            utils.String(newPodScaleUpDelay),
+		OkTotalUnreadyCount:           utils.String(maxUnreadyNodes),
 		ScaleDownDelayAfterAdd:        utils.String(scaleDownDelayAfterAdd),
 		ScaleDownDelayAfterDelete:     utils.String(scaleDownDelayAfterDelete),
 		ScaleDownDelayAfterFailure:    utils.String(scaleDownDelayAfterFailure),
