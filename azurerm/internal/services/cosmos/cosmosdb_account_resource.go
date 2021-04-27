@@ -281,12 +281,6 @@ func resourceCosmosDbAccount() *schema.Resource {
 				Default:  true,
 			},
 
-			"cassandra_connector_enabled": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
-
 			"mongo_server_version": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -477,7 +471,6 @@ func resourceCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) err
 			PublicNetworkAccess:                publicNetworkAccess,
 			EnableAnalyticalStorage:            utils.Bool(enableAnalyticalStorage),
 			DisableKeyBasedMetadataWriteAccess: utils.Bool(!d.Get("key_based_meta_write_access_enabled").(bool)),
-			EnableCassandraConnector:           utils.Bool(d.Get("cassandra_connector_enabled").(bool)),
 			NetworkACLBypass:                   documentdb.NetworkACLBypass(d.Get("network_acl_bypass").(string)),
 			NetworkACLBypassResourceIds:        utils.ExpandStringSlice(d.Get("network_acl_bypass_ids").([]interface{})),
 		},
@@ -595,7 +588,6 @@ func resourceCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) err
 			PublicNetworkAccess:                publicNetworkAccess,
 			EnableAnalyticalStorage:            utils.Bool(enableAnalyticalStorage),
 			DisableKeyBasedMetadataWriteAccess: utils.Bool(!d.Get("key_based_meta_write_access_enabled").(bool)),
-			EnableCassandraConnector:           utils.Bool(d.Get("cassandra_connector_enabled").(bool)),
 			NetworkACLBypass:                   documentdb.NetworkACLBypass(d.Get("network_acl_bypass").(string)),
 			NetworkACLBypassResourceIds:        utils.ExpandStringSlice(d.Get("network_acl_bypass_ids").([]interface{})),
 		},
@@ -734,7 +726,6 @@ func resourceCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) error
 		}
 
 		d.Set("key_based_meta_write_access_enabled", !*props.DisableKeyBasedMetadataWriteAccess)
-		d.Set("cassandra_connector_enabled", props.EnableCassandraConnector)
 		if apiProps := props.APIProperties; apiProps != nil {
 			d.Set("mongo_server_version", apiProps.ServerVersion)
 		}

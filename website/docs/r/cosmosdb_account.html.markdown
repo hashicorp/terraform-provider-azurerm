@@ -108,8 +108,6 @@ The following arguments are supported:
 
 * `key_based_meta_write_access_enabled` - (Optional) Is write operations on metadata resources (databases, containers, throughput) via account keys enabled? Defaults to `true`.
 
-* `cassandra_connector_enabled` - (Optional) Is the cassandra connector on the Cosmos DB account enabled? Defaults to `false`.
-
 * `mongo_server_version` - (Optional) The Server Version of a MongoDB account. Possible values are `4.0`, `3.6`, and `3.2`. Changing this forces a new resource to be created.
 
 * `network_acl_bypass` - (Optional) The services which are allowed to bypass firewall checks. Possible values are `None` and `AzureServices`. Defaults to `None`.

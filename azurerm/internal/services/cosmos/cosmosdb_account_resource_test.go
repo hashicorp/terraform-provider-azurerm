@@ -928,8 +928,7 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 
   key_based_meta_write_access_enabled = false
-  cassandra_connector_enabled         = false
-  network_acl_bypass                 = "AzureServices"
+  network_acl_bypass                  = "AzureServices"
 }
 `, r.completePreReqs(data), data.RandomInteger, string(kind), string(consistency), data.Locations.Secondary, data.Locations.Ternary)
 }
@@ -983,8 +982,7 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 
   key_based_meta_write_access_enabled = false
-  cassandra_connector_enabled         = false
-  network_acl_bypass                 = "AzureServices"
+  network_acl_bypass                  = "AzureServices"
 }
 `, r.completePreReqs(data), data.RandomInteger, string(consistency), data.Locations.Secondary, data.Locations.Ternary)
 }
@@ -1112,10 +1110,9 @@ resource "azurerm_cosmosdb_account" "test" {
     location          = "%[6]s"
     failover_priority = 2
   }
-  enable_free_tier                   = true
-  analytical_storage_enabled         = true
+  enable_free_tier                    = true
+  analytical_storage_enabled          = true
   key_based_meta_write_access_enabled = true
-  cassandra_connector_enabled         = true
 }
 `, r.completePreReqs(data), data.RandomInteger, string(kind), string(consistency), data.Locations.Secondary, data.Locations.Ternary)
 }
@@ -1163,10 +1160,9 @@ resource "azurerm_cosmosdb_account" "test" {
     location          = "%[5]s"
     failover_priority = 2
   }
-  enable_free_tier                   = true
-  analytical_storage_enabled         = true
+  enable_free_tier                    = true
+  analytical_storage_enabled          = true
   key_based_meta_write_access_enabled = true
-  cassandra_connector_enabled         = false
 }
 `, r.completePreReqs(data), data.RandomInteger, string(consistency), data.Locations.Secondary, data.Locations.Ternary)
 }
