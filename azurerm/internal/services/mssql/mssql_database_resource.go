@@ -37,11 +37,28 @@ func resourceMsSqlDatabase() *schema.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.DatabaseID(id)
 			return err
-		}, func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-			d.Set("create_mode", "Default")
-			if v, ok := d.GetOk("create_mode"); ok && v.(string) != "" {
-				d.Set("create_mode", v)
+		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+			replicationLinksClient := meta.(*clients.Client).MSSQL.ReplicationLinksClient
+			ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+			defer cancel()
+
+			id, err := parse.DatabaseID(d.Id())
+			if err != nil {
+				return nil, err
 			}
+			resp, err := replicationLinksClient.ListByDatabase(ctx, id.ResourceGroup, id.ServerName, id.Name)
+			if err != nil {
+				return nil, fmt.Errorf("reading Replication Links for MsSql Database %s (MsSql Server Name %q / Resource Group %q): %s", id.Name, id.ServerName, id.ResourceGroup, err)
+			}
+
+			for _, link := range *resp.Value {
+				props := *link.ReplicationLinkProperties
+				if props.Role == sql.ReplicationRoleSecondary || props.Role == sql.ReplicationRoleNonReadableSecondary {
+					d.Set("create_mode", string(sql.CreateModeSecondary))
+					return []*schema.ResourceData{d}, nil
+				}
+			}
+			d.Set("create_mode", "Default")
 
 			return []*schema.ResourceData{d}, nil
 		}),
