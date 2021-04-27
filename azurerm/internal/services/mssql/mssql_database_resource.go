@@ -39,8 +39,6 @@ func resourceMsSqlDatabase() *schema.Resource {
 			return err
 		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
 			replicationLinksClient := meta.(*clients.Client).MSSQL.ReplicationLinksClient
-			ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
-			defer cancel()
 
 			id, err := parse.DatabaseID(d.Id())
 			if err != nil {
@@ -55,12 +53,12 @@ func resourceMsSqlDatabase() *schema.Resource {
 				props := *link.ReplicationLinkProperties
 				if props.Role == sql.ReplicationRoleSecondary || props.Role == sql.ReplicationRoleNonReadableSecondary {
 					d.Set("create_mode", string(sql.CreateModeSecondary))
-					return []*schema.ResourceData{d}, nil
+					return []*pluginsdk.ResourceData{d}, nil
 				}
 			}
 			d.Set("create_mode", "Default")
 
-			return []*schema.ResourceData{d}, nil
+			return []*pluginsdk.ResourceData{d}, nil
 		}),
 
 		Timeouts: &schema.ResourceTimeout{
