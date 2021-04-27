@@ -98,7 +98,7 @@ func dataSourceVirtualMachineScaleSetRead(d *schema.ResourceData, meta interface
 		return err
 	}
 	if err := d.Set("identity", identity); err != nil {
-		return fmt.Errorf("[DEBUG] Error setting `identity`: %+v", err)
+		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
 	return nil
