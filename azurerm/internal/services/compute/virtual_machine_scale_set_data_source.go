@@ -12,14 +12,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func schemaNetworkInterfaceForDataSource() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
-		Computed: true,
-		Elem:     VirtualMachineScaleSetNetworkInterfaceSchema().Elem,
-	}
-}
-
 func dataSourceVirtualMachineScaleSet() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceVirtualMachineScaleSetRead,
@@ -39,7 +31,7 @@ func dataSourceVirtualMachineScaleSet() *schema.Resource {
 
 			"location": azure.SchemaLocationForDataSource(),
 
-			"network_interface": schemaNetworkInterfaceForDataSource(),
+			"network_interface": VirtualMachineScaleSetNetworkInterfaceSchemaForDataSource(),
 
 			"identity": {
 				Type:     schema.TypeList,
@@ -92,17 +84,27 @@ func dataSourceVirtualMachineScaleSetRead(d *schema.ResourceData, meta interface
 	}
 	d.SetId(*resp.ID)
 
+	if profile := resp.VirtualMachineProfile; profile != nil {
+		if nwProfile := profile.NetworkProfile; nwProfile != nil {
+			flattenedNics := FlattenVirtualMachineScaleSetNetworkInterface(nwProfile.NetworkInterfaceConfigurations)
+			if err := d.Set("network_interface", flattenedNics); err != nil {
+				return fmt.Errorf("Error setting `network_interface`: %+v", err)
+			}
+
+			healthProbeId := ""
+			if nwProfile.HealthProbe != nil && nwProfile.HealthProbe.ID != nil {
+				healthProbeId = *nwProfile.HealthProbe.ID
+			}
+			d.Set("health_probe_id", healthProbeId)
+		}
+	}
+
 	identity, err := FlattenVirtualMachineScaleSetIdentity(resp.Identity)
 	if err != nil {
 		return err
 	}
 	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("[DEBUG] Error setting `identity`: %+v", err)
-	}
-
-	networkInterface := FlattenVirtualMachineScaleSetNetworkInterface(resp.VirtualMachineProfile.NetworkProfile.NetworkInterfaceConfigurations)
-	if err := d.Set("network_interface", networkInterface); err != nil {
-		return fmt.Errorf("[DEBUG] Error setting `network_interface`: %#v", err)
 	}
 
 	return nil

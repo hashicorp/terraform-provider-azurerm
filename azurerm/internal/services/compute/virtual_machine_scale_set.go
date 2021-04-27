@@ -207,6 +207,47 @@ func VirtualMachineScaleSetNetworkInterfaceSchema() *schema.Schema {
 	}
 }
 
+func VirtualMachineScaleSetNetworkInterfaceSchemaForDataSource() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Required: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"name": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+
+				"ip_configuration": virtualMachineScaleSetIPConfigurationSchemaForDataSource(),
+
+				"dns_servers": {
+					Type:     schema.TypeList,
+					Computed: true,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
+				},
+				"enable_accelerated_networking": {
+					Type:     schema.TypeBool,
+					Computed: true,
+				},
+				"enable_ip_forwarding": {
+					Type:     schema.TypeBool,
+					Computed: true,
+				},
+				"network_security_group_id": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"primary": {
+					Type:     schema.TypeBool,
+					Computed: true,
+				},
+			},
+		},
+	}
+}
+
 func virtualMachineScaleSetIPConfigurationSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
@@ -280,6 +321,61 @@ func virtualMachineScaleSetIPConfigurationSchema() *schema.Schema {
 	}
 }
 
+func virtualMachineScaleSetIPConfigurationSchemaForDataSource() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Required: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"name": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+
+				"application_gateway_backend_address_pool_ids": {
+					Type:     schema.TypeSet,
+					Computed: true,
+				},
+
+				"application_security_group_ids": {
+					Type:     schema.TypeList,
+					Computed: true,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
+				},
+
+				"load_balancer_backend_address_pool_ids": {
+					Type:     schema.TypeList,
+					Computed: true,
+				},
+
+				"load_balancer_inbound_nat_rules_ids": {
+					Type:     schema.TypeList,
+					Computed: true,
+				},
+
+				"primary": {
+					Type:     schema.TypeBool,
+					Computed: true,
+				},
+
+				"public_ip_address": virtualMachineScaleSetPublicIPAddressSchemaForDataSource(),
+
+				"subnet_id": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+
+				"version": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+			},
+		},
+	}
+}
+
 func virtualMachineScaleSetPublicIPAddressSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
@@ -334,6 +430,53 @@ func virtualMachineScaleSetPublicIPAddressSchema() *schema.Schema {
 					Optional:     true,
 					ForceNew:     true,
 					ValidateFunc: azure.ValidateResourceIDOrEmpty,
+				},
+			},
+		},
+	}
+}
+
+func virtualMachineScaleSetPublicIPAddressSchemaForDataSource() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"name": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+
+				"domain_name_label": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+
+				"idle_timeout_in_minutes": {
+					Type:     schema.TypeInt,
+					Computed: true,
+				},
+
+				"ip_tag": {
+					Type:     schema.TypeList,
+					Computed: true,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"tag": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+							"type": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+						},
+					},
+				},
+
+				"public_ip_prefix_id": {
+					Type:     schema.TypeString,
+					Computed: true,
 				},
 			},
 		},

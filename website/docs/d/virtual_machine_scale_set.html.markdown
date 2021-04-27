@@ -39,7 +39,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `identity` - A `identity` block as defined below.
 
-* `network_profile` - A collection of network profile blocks as documented below.
+* `network_interface` - A list of `network_interface` blocks as defined below.
 
 ---
 
@@ -53,40 +53,36 @@ A `identity` block exports the following:
 
 ---
 
-A `network_interface` block exports the list of network profile blocks that contain the following:
+`network_profile` exports the following:
 
-* `name` - The network interface configuration name.
+* `name` - The the name of the network interface configuration.
+* `primary` - Indicates whether network interfaces created from the network interface configuration will be the primary NIC of the VM.
 * `ip_configuration` - An ip_configuration block as documented below.
+* `accelerated_networking` - The whether to enable accelerated networking or not. Defaults to `false`.
 * `dns_settings` - A dns_settings block as documented below.
-* `enable_accelerated_networking` - Whether accelerated networking is enabled or not.
-* `enable_ip_forwarding` - Whether accelerated networking is enabled or not.
-* `network_security_group_id` - The network security group identifier.
-* `primary` - Indicates whether the network interface is the primary one.
-* `dns_servers` - A list of dns servers.
+* `ip_forwarding` - Whether IP forwarding is enabled on this NIC. Defaults to `false`.
+* `network_security_group_id` - The the identifier for the network security group.
 
-`ip_configuration` block exports the following:
+`dns_settings` exports the following:
 
-* `name` - The IP configuration name.
-* `subnet_id` - The subnet identifier.
-* `version` - The Internet Protocol Version which is used for this IP Configuration.
-* `application_gateway_backend_address_pool_ids` - A list of references to backend address pools of application gateways if configured.
-* `application_security_group_ids` - A list of Application Security Group ID's which this Virtual Machine Scale Set is connected to.
-* `load_balancer_backend_address_pool_ids` - A list of references to backend address pools of load balancers if configured.
-* `load_balancer_inbound_nat_rules_ids` - A list of NAT Rule ID's from a Load Balancer which this Virtual Machine Scale Set is connected to.
-* `primary` - Indicates whether this ip configuration is the primary one.
-* `public_ip_address` - A `public_ip_address` block as documented below.
+* `dns_servers` - The dns servers in use.
 
-`public_ip_address` block exports the following:
+`ip_configuration` exports the following:
+
+* `name` - The name of the IP configuration.
+* `subnet_id` - The the identifier of the subnet.
+* `application_gateway_backend_address_pool_ids` - The an array of references to backend address pools of application gateways.
+* `load_balancer_backend_address_pool_ids` - The an array of references to backend address pools of load balancers.
+* `load_balancer_inbound_nat_rules_ids` - The an array of references to inbound NAT pools for load balancers.
+* `primary` -  The if this ip_configuration is the primary one.
+* `application_security_group_ids` -  The application security group IDs to use.
+* `public_ip_address_configuration` - The virtual machines scale set IP Configuration's PublicIPAddress configuration. The `public_ip_address_configuration` is documented below.
+
+`public_ip_address_configuration` exports the following:
 
 * `name` - The name of the public ip address configuration
 * `idle_timeout` - The idle timeout in minutes.
 * `domain_name_label` - The domain name label for the dns settings.
-* `ip_tag` - A `ip_tag` block as documented below.
-
-`ip_tag` block exports the following:
-
-* `tag` - The IP Tag associated with the Public IP.
-* `type` - The Type of IP Tag.
 
 
 ## Timeouts
