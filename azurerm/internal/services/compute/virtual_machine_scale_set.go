@@ -1462,8 +1462,8 @@ func expandVirtualMachineScaleSetExtensions(input []interface{}) (extensionProfi
 	return extensionProfile, hasHealthExtension, nil
 }
 
-func flattenVirtualMachineScaleSetExtensions(input *compute.VirtualMachineScaleSetExtensionProfile, d *schema.ResourceData) ([]interface{}, error) {
-	result := make([]interface{}, 0)
+func flattenVirtualMachineScaleSetExtensions(input *compute.VirtualMachineScaleSetExtensionProfile, d *schema.ResourceData) ([]map[string]interface{}, error) {
+	result := make([]map[string]interface{}, 0)
 	if input == nil || input.Extensions == nil {
 		return result, nil
 	}
