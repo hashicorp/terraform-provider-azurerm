@@ -1115,7 +1115,7 @@ resource "azurerm_cosmosdb_account" "test" {
   enable_free_tier                   = true
   analytical_storage_enabled         = true
   key_based_meta_write_access_enabled = true
-  cassandra_connector_enabled         = false
+  cassandra_connector_enabled         = true
 }
 `, r.completePreReqs(data), data.RandomInteger, string(kind), string(consistency), data.Locations.Secondary, data.Locations.Ternary)
 }
@@ -1668,7 +1668,7 @@ resource "azurerm_cosmosdb_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, string(kind), string(consistency))
 }
 
-func (CosmosDBAccountResource) basicWithNetworkBypass(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) string {
+func (CosmosDBAccountResource) basicWithNetworkBypassTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1701,16 +1701,22 @@ resource "azurerm_synapse_workspace" "test" {
   sql_administrator_login              = "sqladminuser"
   sql_administrator_login_password     = "H@Sh1CoR3!"
 }
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r CosmosDBAccountResource) basicWithNetworkBypass(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) string {
+	return fmt.Sprintf(`
+%s
 
 resource "azurerm_cosmosdb_account" "test" {
-  name                = "acctest-ca-%[1]d"
+  name                = "acctest-ca-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   offer_type          = "Standard"
-  kind                = "%[4]s"
+  kind                = "%s"
 
   consistency_policy {
-    consistency_level = "%[5]s"
+    consistency_level = "%s"
   }
 
   geo_location {
@@ -1721,52 +1727,22 @@ resource "azurerm_cosmosdb_account" "test" {
   network_acl_bypass     = "AzureServices"
   network_acl_bypass_ids = [azurerm_synapse_workspace.test.id]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, string(kind), string(consistency))
+`, r.basicWithNetworkBypassTemplate(data), data.RandomInteger, string(kind), string(consistency))
 }
 
-func (CosmosDBAccountResource) basicWithoutNetworkBypass(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) string {
+func (r CosmosDBAccountResource) basicWithoutNetworkBypass(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-cosmos-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestacc%[3]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_kind             = "BlobStorage"
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_data_lake_gen2_filesystem" "test" {
-  name               = "acctest-%[1]d"
-  storage_account_id = azurerm_storage_account.test.id
-}
-
-resource "azurerm_synapse_workspace" "test" {
-  name                                 = "acctestsw%[1]d"
-  resource_group_name                  = azurerm_resource_group.test.name
-  location                             = azurerm_resource_group.test.location
-  storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
-  sql_administrator_login              = "sqladminuser"
-  sql_administrator_login_password     = "H@Sh1CoR3!"
-}
+%s
 
 resource "azurerm_cosmosdb_account" "test" {
-  name                = "acctest-ca-%[1]d"
+  name                = "acctest-ca-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   offer_type          = "Standard"
-  kind                = "%[4]s"
+  kind                = "%s"
 
   consistency_policy {
-    consistency_level = "%[5]s"
+    consistency_level = "%s"
   }
 
   geo_location {
@@ -1775,7 +1751,7 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, string(kind), string(consistency))
+`, r.basicWithNetworkBypassTemplate(data), data.RandomInteger, string(kind), string(consistency))
 }
 
 func (CosmosDBAccountResource) basicMongoDBVersion32(data acceptance.TestData, consistency documentdb.DefaultConsistencyLevel) string {
