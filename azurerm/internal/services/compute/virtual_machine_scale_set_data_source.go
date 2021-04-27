@@ -90,12 +90,6 @@ func dataSourceVirtualMachineScaleSetRead(d *schema.ResourceData, meta interface
 			if err := d.Set("network_interface", flattenedNics); err != nil {
 				return fmt.Errorf("Error setting `network_interface`: %+v", err)
 			}
-
-			healthProbeId := ""
-			if nwProfile.HealthProbe != nil && nwProfile.HealthProbe.ID != nil {
-				healthProbeId = *nwProfile.HealthProbe.ID
-			}
-			d.Set("health_probe_id", healthProbeId)
 		}
 	}
 
