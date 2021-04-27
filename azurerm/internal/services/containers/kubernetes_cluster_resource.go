@@ -69,9 +69,17 @@ func resourceKubernetesCluster() *schema.Resource {
 
 			"dns_prefix": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
 				ForceNew:     true,
+				ExactlyOneOf: []string{"dns_prefix", "dns_prefix_private_cluster"},
 				ValidateFunc: containerValidate.KubernetesDNSPrefix,
+			},
+
+			"dns_prefix_private_cluster": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ExactlyOneOf: []string{"dns_prefix", "dns_prefix_private_cluster"},
 			},
 
 			"kubernetes_version": {
@@ -825,6 +833,10 @@ func resourceKubernetesClusterCreate(d *schema.ResourceData, meta interface{}) e
 		enablePrivateCluster = v.(bool)
 	}
 
+	if !enablePrivateCluster && dnsPrefix == "" {
+		return fmt.Errorf("`dns_prefix` should be set if it is not a private cluster")
+	}
+
 	apiAccessProfile := containerservice.ManagedClusterAPIServerAccessProfile{
 		EnablePrivateCluster: &enablePrivateCluster,
 		AuthorizedIPRanges:   apiServerAuthorizedIPRanges,
@@ -898,6 +910,13 @@ func resourceKubernetesClusterCreate(d *schema.ResourceData, meta interface{}) e
 			return fmt.Errorf("a user assigned identity or a service principal must be used when using a custom private dns zone")
 		}
 		apiAccessProfile.PrivateDNSZone = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("dns_prefix_private_cluster"); ok {
+		if !enablePrivateCluster || apiAccessProfile.PrivateDNSZone == nil || *apiAccessProfile.PrivateDNSZone == "System" || *apiAccessProfile.PrivateDNSZone == "None" {
+			return fmt.Errorf("`dns_prefix_private_cluster` should only be set for private cluster with custom private dns zone")
+		}
+		parameters.FqdnSubdomain = utils.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("disk_encryption_set_id"); ok && v.(string) != "" {
@@ -1306,6 +1325,7 @@ func resourceKubernetesClusterRead(d *schema.ResourceData, meta interface{}) err
 
 	if props := resp.ManagedClusterProperties; props != nil {
 		d.Set("dns_prefix", props.DNSPrefix)
+		d.Set("dns_prefix_private_cluster", props.FqdnSubdomain)
 		d.Set("fqdn", props.Fqdn)
 		d.Set("private_fqdn", props.PrivateFQDN)
 		d.Set("disk_encryption_set_id", props.DiskEncryptionSetID)
