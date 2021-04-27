@@ -792,7 +792,6 @@ func resourceStorageAccountCreate(d *schema.ResourceData, meta interface{}) erro
 		if _, ok := d.GetOk("network_rules.0.virtual_network_subnet_ids"); !ok {
 			return fmt.Errorf("`virtual_network_subnet_ids` is required to be set when enabling `nfs_v3_enabled` in storage account")
 		}
-
 	}
 
 	parameters := storage.AccountCreateParameters{
