@@ -590,6 +590,14 @@ func resourceKubernetesCluster() *schema.Resource {
 										},
 									},
 
+									"azure_rbac_enabled": {
+										Type:     schema.TypeBool,
+										Optional: true,
+										// ForceNew can be removed after GA:
+										// https://docs.microsoft.com/en-us/azure/aks/manage-azure-rbac#limitations
+										ForceNew: true,
+									},
+
 									"admin_group_object_ids": {
 										Type:       schema.TypeSet,
 										Optional:   true,
@@ -1873,6 +1881,7 @@ func expandKubernetesClusterRoleBasedAccessControl(input []interface{}, provider
 		serverAppSecret := azureAdRaw["server_app_secret"].(string)
 		tenantId := azureAdRaw["tenant_id"].(string)
 		managed := azureAdRaw["managed"].(bool)
+		azureRbacEnabled := azureAdRaw["azure_rbac_enabled"].(bool)
 		adminGroupObjectIdsRaw := azureAdRaw["admin_group_object_ids"].(*schema.Set).List()
 		adminGroupObjectIds := utils.ExpandStringSlice(adminGroupObjectIdsRaw)
 
@@ -1885,6 +1894,7 @@ func expandKubernetesClusterRoleBasedAccessControl(input []interface{}, provider
 				TenantID:            utils.String(tenantId),
 				Managed:             utils.Bool(managed),
 				AdminGroupObjectIDs: adminGroupObjectIds,
+				EnableAzureRBAC:     utils.Bool(azureRbacEnabled),
 			}
 
 			if clientAppId != "" || serverAppId != "" || serverAppSecret != "" {
@@ -1905,6 +1915,10 @@ func expandKubernetesClusterRoleBasedAccessControl(input []interface{}, provider
 
 			if clientAppId == "" || serverAppId == "" || serverAppSecret == "" {
 				return false, nil, fmt.Errorf("You must specify client_app_id and server_app_id and server_app_secret when using managed aad rbac (managed = false)")
+			}
+
+			if azureRbacEnabled {
+				return false, nil, fmt.Errorf("You must enable Managed AAD before Azure RBAC can be enabled")
 			}
 		}
 	}
@@ -1957,6 +1971,11 @@ func flattenKubernetesClusterRoleBasedAccessControl(input *containerservice.Mana
 			managed = *profile.Managed
 		}
 
+		azureRbacEnabled := false
+		if profile.EnableAzureRBAC != nil {
+			azureRbacEnabled = *profile.EnableAzureRBAC
+		}
+
 		serverAppId := ""
 		if profile.ServerAppID != nil {
 			serverAppId = *profile.ServerAppID
@@ -1991,6 +2010,7 @@ func flattenKubernetesClusterRoleBasedAccessControl(input *containerservice.Mana
 			"server_app_id":          serverAppId,
 			"server_app_secret":      serverAppSecret,
 			"tenant_id":              tenantId,
+			"azure_rbac_enabled":     azureRbacEnabled,
 		})
 	}
 
