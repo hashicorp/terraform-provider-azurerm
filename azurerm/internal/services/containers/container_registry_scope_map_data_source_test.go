@@ -23,7 +23,6 @@ func TestAccDataSourceContainerRegistryScopeMap_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
 				check.That(data.ResourceName).Key("container_registry_name").Exists(),
-				check.That(data.ResourceName).Key("scope_map_id").Exists(),
 				check.That(data.ResourceName).Key("description").HasValue("A test scope map"),
 				check.That(data.ResourceName).Key("actions.#").HasValue("1"),
 				check.That(data.ResourceName).Key("actions.0").HasValue("repositories/testrepo/content/read"),
