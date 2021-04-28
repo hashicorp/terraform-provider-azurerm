@@ -210,7 +210,7 @@ func VirtualMachineScaleSetNetworkInterfaceSchema() *schema.Schema {
 func VirtualMachineScaleSetNetworkInterfaceSchemaForDataSource() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
-		Required: true,
+		Computed: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"name": {
