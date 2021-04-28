@@ -286,6 +286,7 @@ func TestAccMsSqlDatabase_scaleReplicaSetWithFailovergroup(t *testing.T) {
 				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
 			),
 		},
+		data.ImportStep("creation_source_database_id"),
 		{
 			Config: r.scaleReplicaSetWithFailovergroup(data, "GP_Gen5_8", 25),
 			Check: resource.ComposeTestCheckFunc(
@@ -295,6 +296,7 @@ func TestAccMsSqlDatabase_scaleReplicaSetWithFailovergroup(t *testing.T) {
 				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_8"),
 			),
 		},
+		data.ImportStep("creation_source_database_id"),
 		{
 			Config: r.scaleReplicaSetWithFailovergroup(data, "GP_Gen5_2", 5),
 			Check: resource.ComposeTestCheckFunc(
@@ -304,6 +306,7 @@ func TestAccMsSqlDatabase_scaleReplicaSetWithFailovergroup(t *testing.T) {
 				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
 			),
 		},
+		data.ImportStep("creation_source_database_id"),
 	})
 }
 
