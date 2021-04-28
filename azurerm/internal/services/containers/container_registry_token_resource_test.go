@@ -25,7 +25,6 @@ func TestAccContainerRegistryToken_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("status").HasValue("enabled"),
 			),
 		},
 		data.ImportStep(),
