@@ -109,12 +109,14 @@ func resourceCosmosDbAccount() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
+				ForceNew: true,
 			},
 
 			"analytical_storage_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
+				ForceNew: true,
 			},
 
 			"public_network_access_enabled": {
@@ -275,7 +277,7 @@ func resourceCosmosDbAccount() *schema.Resource {
 				Default:  false,
 			},
 
-			"key_based_meta_write_access_enabled": {
+			"access_key_metadata_writes_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  true,
@@ -293,14 +295,10 @@ func resourceCosmosDbAccount() *schema.Resource {
 				}, false),
 			},
 
-			"network_acl_bypass": {
-				Type:     schema.TypeString,
+			"network_acl_bypass_for_azure_servers": {
+				Type:     schema.TypeBool,
 				Optional: true,
-				Default:  string(documentdb.NetworkACLBypassNone),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(documentdb.NetworkACLBypassNone),
-					string(documentdb.NetworkACLBypassAzureServices),
-				}, false),
+				Default:  false,
 			},
 
 			"network_acl_bypass_ids": {
@@ -454,6 +452,11 @@ func resourceCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) err
 		publicNetworkAccess = documentdb.Disabled
 	}
 
+	networkByPass := documentdb.NetworkACLBypassNone
+	if d.Get("network_acl_bypass_for_azure_servers").(bool) {
+		networkByPass = documentdb.NetworkACLBypassAzureServices
+	}
+
 	account := documentdb.DatabaseAccountCreateUpdateParameters{
 		Location: utils.String(location),
 		Kind:     documentdb.DatabaseAccountKind(kind),
@@ -470,8 +473,8 @@ func resourceCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) err
 			EnableMultipleWriteLocations:       utils.Bool(enableMultipleWriteLocations),
 			PublicNetworkAccess:                publicNetworkAccess,
 			EnableAnalyticalStorage:            utils.Bool(enableAnalyticalStorage),
-			DisableKeyBasedMetadataWriteAccess: utils.Bool(!d.Get("key_based_meta_write_access_enabled").(bool)),
-			NetworkACLBypass:                   documentdb.NetworkACLBypass(d.Get("network_acl_bypass").(string)),
+			DisableKeyBasedMetadataWriteAccess: utils.Bool(!d.Get("access_key_metadata_writes_enabled").(bool)),
+			NetworkACLBypass:                   networkByPass,
 			NetworkACLBypassResourceIds:        utils.ExpandStringSlice(d.Get("network_acl_bypass_ids").([]interface{})),
 		},
 		Tags: tags.Expand(t),
@@ -569,6 +572,11 @@ func resourceCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) err
 		publicNetworkAccess = documentdb.Disabled
 	}
 
+	networkByPass := documentdb.NetworkACLBypassNone
+	if d.Get("network_acl_bypass_for_azure_servers").(bool) {
+		networkByPass = documentdb.NetworkACLBypassAzureServices
+	}
+
 	// cannot update properties and add/remove replication locations or updating enabling of multiple
 	// write locations at the same time. so first just update any changed properties
 	account := documentdb.DatabaseAccountCreateUpdateParameters{
@@ -587,8 +595,8 @@ func resourceCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) err
 			EnableMultipleWriteLocations:       resp.EnableMultipleWriteLocations,
 			PublicNetworkAccess:                publicNetworkAccess,
 			EnableAnalyticalStorage:            utils.Bool(enableAnalyticalStorage),
-			DisableKeyBasedMetadataWriteAccess: utils.Bool(!d.Get("key_based_meta_write_access_enabled").(bool)),
-			NetworkACLBypass:                   documentdb.NetworkACLBypass(d.Get("network_acl_bypass").(string)),
+			DisableKeyBasedMetadataWriteAccess: utils.Bool(!d.Get("access_key_metadata_writes_enabled").(bool)),
+			NetworkACLBypass:                   networkByPass,
 			NetworkACLBypassResourceIds:        utils.ExpandStringSlice(d.Get("network_acl_bypass_ids").([]interface{})),
 		},
 		Tags: tags.Expand(t),
@@ -725,11 +733,11 @@ func resourceCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) error
 			return fmt.Errorf("setting `virtual_network_rule`: %+v", err)
 		}
 
-		d.Set("key_based_meta_write_access_enabled", !*props.DisableKeyBasedMetadataWriteAccess)
+		d.Set("access_key_metadata_writes_enabled", !*props.DisableKeyBasedMetadataWriteAccess)
 		if apiProps := props.APIProperties; apiProps != nil {
 			d.Set("mongo_server_version", apiProps.ServerVersion)
 		}
-		d.Set("network_acl_bypass", props.NetworkACLBypass)
+		d.Set("network_acl_bypass_for_azure_servers", props.NetworkACLBypass == documentdb.NetworkACLBypassAzureServices)
 		d.Set("network_acl_bypass_ids", utils.FlattenStringSlice(props.NetworkACLBypassResourceIds))
 	}
 

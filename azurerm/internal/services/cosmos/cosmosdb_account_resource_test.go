@@ -927,8 +927,8 @@ resource "azurerm_cosmosdb_account" "test" {
     failover_priority = 2
   }
 
-  key_based_meta_write_access_enabled = false
-  network_acl_bypass                  = "AzureServices"
+  access_key_metadata_writes_enabled   = false
+  network_acl_bypass_for_azure_servers = true
 }
 `, r.completePreReqs(data), data.RandomInteger, string(kind), string(consistency), data.Locations.Secondary, data.Locations.Ternary)
 }
@@ -981,8 +981,8 @@ resource "azurerm_cosmosdb_account" "test" {
     failover_priority = 2
   }
 
-  key_based_meta_write_access_enabled = false
-  network_acl_bypass                  = "AzureServices"
+  access_key_metadata_writes_enabled   = false
+  network_acl_bypass_for_azure_servers = true
 }
 `, r.completePreReqs(data), data.RandomInteger, string(consistency), data.Locations.Secondary, data.Locations.Ternary)
 }
@@ -1110,9 +1110,7 @@ resource "azurerm_cosmosdb_account" "test" {
     location          = "%[6]s"
     failover_priority = 2
   }
-  enable_free_tier                    = true
-  analytical_storage_enabled          = true
-  key_based_meta_write_access_enabled = true
+  access_key_metadata_writes_enabled = true
 }
 `, r.completePreReqs(data), data.RandomInteger, string(kind), string(consistency), data.Locations.Secondary, data.Locations.Ternary)
 }
@@ -1160,9 +1158,7 @@ resource "azurerm_cosmosdb_account" "test" {
     location          = "%[5]s"
     failover_priority = 2
   }
-  enable_free_tier                    = true
-  analytical_storage_enabled          = true
-  key_based_meta_write_access_enabled = true
+  access_key_metadata_writes_enabled = true
 }
 `, r.completePreReqs(data), data.RandomInteger, string(consistency), data.Locations.Secondary, data.Locations.Ternary)
 }
@@ -1720,8 +1716,8 @@ resource "azurerm_cosmosdb_account" "test" {
     failover_priority = 0
   }
 
-  network_acl_bypass     = "AzureServices"
-  network_acl_bypass_ids = [azurerm_synapse_workspace.test.id]
+  network_acl_bypass_for_azure_servers = true
+  network_acl_bypass_ids               = [azurerm_synapse_workspace.test.id]
 }
 `, r.basicWithNetworkBypassTemplate(data), data.RandomInteger, string(kind), string(consistency))
 }

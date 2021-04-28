@@ -106,13 +106,13 @@ The following arguments are supported:
 
 * `enable_multiple_write_locations` - (Optional) Enable multi-master support for this Cosmos DB account.
 
-* `key_based_meta_write_access_enabled` - (Optional) Is write operations on metadata resources (databases, containers, throughput) via account keys enabled? Defaults to `true`.
+* `access_key_metadata_writes_enabled` - (Optional) Is write operations on metadata resources (databases, containers, throughput) via account keys enabled? Defaults to `true`.
 
 * `mongo_server_version` - (Optional) The Server Version of a MongoDB account. Possible values are `4.0`, `3.6`, and `3.2`. Changing this forces a new resource to be created.
 
-* `network_acl_bypass` - (Optional) The services which are allowed to bypass firewall checks. Possible values are `None` and `AzureServices`. Defaults to `None`.
+* `network_acl_bypass_for_azure_servers` - (Optional) If azure services can bypass ACLs. Defaults to `false`.
 
-* `network_acl_bypass_ids` - (Optional) A list of resource Ids for Network Acl Bypass for this Cosmos DB account.
+* `network_acl_bypass_ids` - (Optional) The list of resource Ids for Network Acl Bypass for this Cosmos DB account.
 
 ---
 
