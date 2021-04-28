@@ -127,8 +127,8 @@ func schemaAppServiceFunctionAppSiteConfig() *schema.Schema {
 				},
 
 				"java_version": {
-					Type:     schema.TypeString,
-					Optional: true,
+					Type:         schema.TypeString,
+					Optional:     true,
 					ValidateFunc: validation.StringInSlice([]string{"1.8", "11"}, false),
 				},
 			},
