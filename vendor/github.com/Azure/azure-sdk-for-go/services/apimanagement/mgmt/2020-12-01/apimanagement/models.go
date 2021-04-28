@@ -4517,6 +4517,7 @@ func (future *DeletedServicesPurgeFuture) result(client DeletedServicesClient) (
 		return
 	}
 	if !done {
+		dsc.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("apimanagement.DeletedServicesPurgeFuture")
 		return
 	}
@@ -8444,6 +8445,40 @@ type NamedValueRefreshSecretFuture struct {
 	Result func(NamedValueClient) (NamedValueContract, error)
 }
 
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *NamedValueRefreshSecretFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for NamedValueRefreshSecretFuture.Result.
+func (future *NamedValueRefreshSecretFuture) result(client NamedValueClient) (nvc NamedValueContract, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "apimanagement.NamedValueRefreshSecretFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		nvc.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("apimanagement.NamedValueRefreshSecretFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if nvc.Response.Response, err = future.GetResult(sender); err == nil && nvc.Response.Response.StatusCode != http.StatusNoContent {
+		nvc, err = client.RefreshSecretResponder(nvc.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "apimanagement.NamedValueRefreshSecretFuture", "Result", nvc.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
 // NamedValueSecretContract client or app secret used in IdentityProviders, Aad, OpenID or OAuth.
 type NamedValueSecretContract struct {
 	autorest.Response `json:"-"`
@@ -10308,6 +10343,7 @@ func (future *PortalRevisionCreateOrUpdateFuture) result(client PortalRevisionCl
 		return
 	}
 	if !done {
+		prc.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("apimanagement.PortalRevisionCreateOrUpdateFuture")
 		return
 	}
@@ -10350,6 +10386,7 @@ func (future *PortalRevisionUpdateFuture) result(client PortalRevisionClient) (p
 		return
 	}
 	if !done {
+		prc.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("apimanagement.PortalRevisionUpdateFuture")
 		return
 	}
@@ -10465,239 +10502,6 @@ type PortalSettingValidationKeyContract struct {
 	autorest.Response `json:"-"`
 	// ValidationKey - This is secret value of the validation key in portal settings.
 	ValidationKey *string `json:"validationKey,omitempty"`
-}
-
-// PortalSigninSettingProperties sign-in settings contract properties.
-type PortalSigninSettingProperties struct {
-	// Enabled - Redirect Anonymous users to the Sign-In page.
-	Enabled *bool `json:"enabled,omitempty"`
-}
-
-// PortalSigninSettings sign-In settings for the Developer Portal.
-type PortalSigninSettings struct {
-	autorest.Response `json:"-"`
-	// PortalSigninSettingProperties - Sign-in settings contract properties.
-	*PortalSigninSettingProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Resource ID.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource name.
-	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Resource type for API Management resource.
-	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for PortalSigninSettings.
-func (pss PortalSigninSettings) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if prc.PortalRevisionContractProperties != nil {
-		objectMap["properties"] = prc.PortalRevisionContractProperties
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for PortalRevisionContract struct.
-func (prc *PortalRevisionContract) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var portalRevisionContractProperties PortalRevisionContractProperties
-				err = json.Unmarshal(*v, &portalRevisionContractProperties)
-				if err != nil {
-					return err
-				}
-				prc.PortalRevisionContractProperties = &portalRevisionContractProperties
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				prc.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				prc.Name = &name
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				prc.Type = &typeVar
-			}
-		}
-	}
-
-	return nil
-}
-
-// PortalRevisionContractProperties ...
-type PortalRevisionContractProperties struct {
-	// Description - Portal revision description.
-	Description *string `json:"description,omitempty"`
-	// StatusDetails - READ-ONLY; Portal revision publishing status details.
-	StatusDetails *string `json:"statusDetails,omitempty"`
-	// Status - READ-ONLY; Portal revision publishing status. Possible values include: 'PortalRevisionStatusPending', 'PortalRevisionStatusPublishing', 'PortalRevisionStatusCompleted', 'PortalRevisionStatusFailed'
-	Status PortalRevisionStatus `json:"status,omitempty"`
-	// IsCurrent - Indicates if the Portal Revision is public.
-	IsCurrent *bool `json:"isCurrent,omitempty"`
-	// CreatedDateTime - READ-ONLY; Portal revision creation date and time.
-	CreatedDateTime *date.Time `json:"createdDateTime,omitempty"`
-	// UpdatedDateTime - READ-ONLY; Last updated date and time.
-	UpdatedDateTime *date.Time `json:"updatedDateTime,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for PortalRevisionContractProperties.
-func (prcp PortalRevisionContractProperties) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if prcp.Description != nil {
-		objectMap["description"] = prcp.Description
-	}
-	if prcp.IsCurrent != nil {
-		objectMap["isCurrent"] = prcp.IsCurrent
-	}
-	return json.Marshal(objectMap)
-}
-
-// PortalRevisionCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
-type PortalRevisionCreateOrUpdateFuture struct {
-	azure.FutureAPI
-	// Result returns the result of the asynchronous operation.
-	// If the operation has not completed it will return an error.
-	Result func(PortalRevisionClient) (PortalRevisionContract, error)
-}
-
-// PortalRevisionUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
-type PortalRevisionUpdateFuture struct {
-	azure.FutureAPI
-	// Result returns the result of the asynchronous operation.
-	// If the operation has not completed it will return an error.
-	Result func(PortalRevisionClient) (PortalRevisionContract, error)
-}
-
-// PortalSettingsCollection descriptions of APIM policies.
-type PortalSettingsCollection struct {
-	autorest.Response `json:"-"`
-	// Value - Descriptions of APIM policies.
-	Value *[]PortalSettingsContract `json:"value,omitempty"`
-	// Count - Total record count number.
-	Count *int64 `json:"count,omitempty"`
-}
-
-// PortalSettingsContract portal Settings for the Developer Portal.
-type PortalSettingsContract struct {
-	// PortalSettingsContractProperties - Portal Settings contract properties.
-	*PortalSettingsContractProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Resource ID.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource name.
-	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Resource type for API Management resource.
-	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for PortalSettingsContract.
-func (psc PortalSettingsContract) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if psc.PortalSettingsContractProperties != nil {
-		objectMap["properties"] = psc.PortalSettingsContractProperties
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for PortalSettingsContract struct.
-func (psc *PortalSettingsContract) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var portalSettingsContractProperties PortalSettingsContractProperties
-				err = json.Unmarshal(*v, &portalSettingsContractProperties)
-				if err != nil {
-					return err
-				}
-				psc.PortalSettingsContractProperties = &portalSettingsContractProperties
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				psc.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				psc.Name = &name
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				psc.Type = &typeVar
-			}
-		}
-	}
-
-	return nil
-}
-
-// PortalSettingsContractProperties sign-in settings contract properties.
-type PortalSettingsContractProperties struct {
-	// URL - A delegation Url.
-	URL *string `json:"url,omitempty"`
-	// ValidationKey - A base64-encoded validation key to validate, that a request is coming from Azure API Management.
-	ValidationKey *string `json:"validationKey,omitempty"`
-	// Subscriptions - Subscriptions delegation settings.
-	Subscriptions *SubscriptionsDelegationSettingsProperties `json:"subscriptions,omitempty"`
-	// UserRegistration - User registration delegation settings.
-	UserRegistration *RegistrationDelegationSettingsProperties `json:"userRegistration,omitempty"`
-	// Enabled - Redirect Anonymous users to the Sign-In page.
-	Enabled *bool `json:"enabled,omitempty"`
-	// TermsOfService - Terms of service contract properties.
-	TermsOfService *TermsOfServiceProperties `json:"termsOfService,omitempty"`
-}
-
-// PortalSettingValidationKeyContract client or app secret used in IdentityProviders, Aad, OpenID or OAuth.
-type PortalSettingValidationKeyContract struct {
-	autorest.Response `json:"-"`
-	// Value - Page values.
-	Value *[]ProductContract `json:"value,omitempty"`
-	// Count - Total record count number across all pages.
-	Count *int64 `json:"count,omitempty"`
-	// NextLink - Next page link if any.
-	NextLink *string `json:"nextLink,omitempty"`
 }
 
 // PortalSigninSettingProperties sign-in settings contract properties.
@@ -12981,6 +12785,7 @@ func (future *ServiceDeleteFuture) result(client ServiceClient) (sr ServiceResou
 		}
 	}
 	return
+}
 
 // ServiceGetDomainOwnershipIdentifierResult response of the GetDomainOwnershipIdentifier operation.
 type ServiceGetDomainOwnershipIdentifierResult struct {
@@ -13865,274 +13670,6 @@ type SkusResult struct {
 	// Value - The list of skus available for the subscription.
 	Value *[]Sku `json:"value,omitempty"`
 	// NextLink - READ-ONLY; The URI to fetch the next page of Resource Skus. Call ListNext() with this URI to fetch the next page of Resource Skus
-	NextLink *string `json:"nextLink,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for SkusResult.
-func (sr SkusResult) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if sr.Value != nil {
-		objectMap["value"] = sr.Value
-	}
-	return json.Marshal(objectMap)
-}
-
-// SkusResultIterator provides access to a complete listing of Sku values.
-type SkusResultIterator struct {
-	i    int
-	page SkusResultPage
-}
-
-// NextWithContext advances to the next value.  If there was an error making
-// the request the iterator does not advance and the error is returned.
-func (iter *SkusResultIterator) NextWithContext(ctx context.Context) (err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/SkusResultIterator.NextWithContext")
-		defer func() {
-			sc := -1
-			if iter.Response().Response.Response != nil {
-				sc = iter.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	iter.i++
-	if iter.i < len(iter.page.Values()) {
-		return nil
-	}
-	err = iter.page.NextWithContext(ctx)
-	if err != nil {
-		iter.i--
-		return err
-	}
-	iter.i = 0
-	return nil
-}
-
-// Next advances to the next value.  If there was an error making
-// the request the iterator does not advance and the error is returned.
-// Deprecated: Use NextWithContext() instead.
-func (iter *SkusResultIterator) Next() error {
-	return iter.NextWithContext(context.Background())
-}
-
-// NotDone returns true if the enumeration should be started or is not yet complete.
-func (iter SkusResultIterator) NotDone() bool {
-	return iter.page.NotDone() && iter.i < len(iter.page.Values())
-}
-
-// Response returns the raw server response from the last page request.
-func (iter SkusResultIterator) Response() SkusResult {
-	return iter.page.Response()
-}
-
-// Value returns the current value or a zero-initialized value if the
-// iterator has advanced beyond the end of the collection.
-func (iter SkusResultIterator) Value() Sku {
-	if !iter.page.NotDone() {
-		return Sku{}
-	}
-	return iter.page.Values()[iter.i]
-}
-
-// Creates a new instance of the SkusResultIterator type.
-func NewSkusResultIterator(page SkusResultPage) SkusResultIterator {
-	return SkusResultIterator{page: page}
-}
-
-// IsEmpty returns true if the ListResult contains no values.
-func (sr SkusResult) IsEmpty() bool {
-	return sr.Value == nil || len(*sr.Value) == 0
-}
-
-// hasNextLink returns true if the NextLink is not empty.
-func (sr SkusResult) hasNextLink() bool {
-	return sr.NextLink != nil && len(*sr.NextLink) != 0
-}
-
-// skusResultPreparer prepares a request to retrieve the next set of results.
-// It returns nil if no more results exist.
-func (sr SkusResult) skusResultPreparer(ctx context.Context) (*http.Request, error) {
-	if !sr.hasNextLink() {
-		return nil, nil
-	}
-	return autorest.Prepare((&http.Request{}).WithContext(ctx),
-		autorest.AsJSON(),
-		autorest.AsGet(),
-		autorest.WithBaseURL(to.String(sr.NextLink)))
-}
-
-// SkusResultPage contains a page of Sku values.
-type SkusResultPage struct {
-	fn func(context.Context, SkusResult) (SkusResult, error)
-	sr SkusResult
-}
-
-// NextWithContext advances to the next page of values.  If there was an error making
-// the request the page does not advance and the error is returned.
-func (page *SkusResultPage) NextWithContext(ctx context.Context) (err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/SkusResultPage.NextWithContext")
-		defer func() {
-			sc := -1
-			if page.Response().Response.Response != nil {
-				sc = page.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	for {
-		next, err := page.fn(ctx, page.sr)
-		if err != nil {
-			return err
-		}
-		page.sr = next
-		if !next.hasNextLink() || !next.IsEmpty() {
-			break
-		}
-	}
-	return nil
-}
-
-// Next advances to the next page of values.  If there was an error making
-// the request the page does not advance and the error is returned.
-// Deprecated: Use NextWithContext() instead.
-func (page *SkusResultPage) Next() error {
-	return page.NextWithContext(context.Background())
-}
-
-// NotDone returns true if the page enumeration should be started or is not yet complete.
-func (page SkusResultPage) NotDone() bool {
-	return !page.sr.IsEmpty()
-}
-
-// Response returns the raw server response from the last page request.
-func (page SkusResultPage) Response() SkusResult {
-	return page.sr
-}
-
-// Values returns the slice of values for the current page or nil if there are no values.
-func (page SkusResultPage) Values() []Sku {
-	if page.sr.IsEmpty() {
-		return nil
-	}
-	return *page.sr.Value
-}
-
-// Creates a new instance of the SkusResultPage type.
-func NewSkusResultPage(cur SkusResult, getNextPage func(context.Context, SkusResult) (SkusResult, error)) SkusResultPage {
-	return SkusResultPage{
-		fn: getNextPage,
-		sr: cur,
-	}
-}
-
-// SkuZoneDetails describes The zonal capabilities of a SKU.
-type SkuZoneDetails struct {
-	// Name - READ-ONLY; The set of zones that the SKU is available in with the specified capabilities.
-	Name *[]string `json:"name,omitempty"`
-	// Capabilities - READ-ONLY; A list of capabilities that are available for the SKU in the specified list of zones.
-	Capabilities *[]SkuCapabilities `json:"capabilities,omitempty"`
-}
-
-// Sku describes an available ApiManagement SKU.
-type Sku struct {
-	// ResourceType - READ-ONLY; The type of resource the SKU applies to.
-	ResourceType *string `json:"resourceType,omitempty"`
-	// Name - READ-ONLY; The name of SKU.
-	Name *string `json:"name,omitempty"`
-	// Tier - READ-ONLY; Specifies the tier of virtual machines in a scale set.<br /><br /> Possible Values:<br /><br /> **Standard**<br /><br /> **Basic**
-	Tier *string `json:"tier,omitempty"`
-	// Size - READ-ONLY; The Size of the SKU.
-	Size *string `json:"size,omitempty"`
-	// Family - READ-ONLY; The Family of this particular SKU.
-	Family *string `json:"family,omitempty"`
-	// Kind - READ-ONLY; The Kind of resources that are supported in this SKU.
-	Kind *string `json:"kind,omitempty"`
-	// Capacity - READ-ONLY; Specifies the number of virtual machines in the scale set.
-	Capacity *SkuCapacity `json:"capacity,omitempty"`
-	// Locations - READ-ONLY; The set of locations that the SKU is available.
-	Locations *[]string `json:"locations,omitempty"`
-	// LocationInfo - READ-ONLY; A list of locations and availability zones in those locations where the SKU is available.
-	LocationInfo *[]SkuLocationInfo `json:"locationInfo,omitempty"`
-	// APIVersions - READ-ONLY; The api versions that support this SKU.
-	APIVersions *[]string `json:"apiVersions,omitempty"`
-	// Costs - READ-ONLY; Metadata for retrieving price info.
-	Costs *[]SkuCosts `json:"costs,omitempty"`
-	// Capabilities - READ-ONLY; A name value pair to describe the capability.
-	Capabilities *[]SkuCapabilities `json:"capabilities,omitempty"`
-	// Restrictions - READ-ONLY; The restrictions because of which SKU cannot be used. This is empty if there are no restrictions.
-	Restrictions *[]SkuRestrictions `json:"restrictions,omitempty"`
-}
-
-// SkuCapabilities describes The SKU capabilities object.
-type SkuCapabilities struct {
-	// Name - READ-ONLY; An invariant to describe the feature.
-	Name *string `json:"name,omitempty"`
-	// Value - READ-ONLY; An invariant if the feature is measured by quantity.
-	Value *string `json:"value,omitempty"`
-}
-
-// SkuCapacity describes scaling information of a SKU.
-type SkuCapacity struct {
-	// Minimum - READ-ONLY; The minimum capacity.
-	Minimum *int32 `json:"minimum,omitempty"`
-	// Maximum - READ-ONLY; The maximum capacity that can be set.
-	Maximum *int32 `json:"maximum,omitempty"`
-	// Default - READ-ONLY; The default capacity.
-	Default *int32 `json:"default,omitempty"`
-	// ScaleType - READ-ONLY; The scale type applicable to the sku. Possible values include: 'SkuCapacityScaleTypeAutomatic', 'SkuCapacityScaleTypeManual', 'SkuCapacityScaleTypeNone'
-	ScaleType SkuCapacityScaleType `json:"scaleType,omitempty"`
-}
-
-// SkuCosts describes metadata for retrieving price info.
-type SkuCosts struct {
-	// MeterID - READ-ONLY; Used for querying price from commerce.
-	MeterID *string `json:"meterID,omitempty"`
-	// Quantity - READ-ONLY; The multiplier is needed to extend the base metered cost.
-	Quantity *int64 `json:"quantity,omitempty"`
-	// ExtendedUnit - READ-ONLY; An invariant to show the extended unit.
-	ExtendedUnit *string `json:"extendedUnit,omitempty"`
-}
-
-// SkuLocationInfo ...
-type SkuLocationInfo struct {
-	// Location - READ-ONLY; Location of the SKU
-	Location *string `json:"location,omitempty"`
-	// Zones - READ-ONLY; List of availability zones where the SKU is supported.
-	Zones *[]string `json:"zones,omitempty"`
-	// ZoneDetails - READ-ONLY; Details of capabilities available to a SKU in specific zones.
-	ZoneDetails *[]SkuZoneDetails `json:"zoneDetails,omitempty"`
-}
-
-// SkuRestrictionInfo ...
-type SkuRestrictionInfo struct {
-	// Locations - READ-ONLY; Locations where the SKU is restricted
-	Locations *[]string `json:"locations,omitempty"`
-	// Zones - READ-ONLY; List of availability zones where the SKU is restricted.
-	Zones *[]string `json:"zones,omitempty"`
-}
-
-// SkuRestrictions describes scaling information of a SKU.
-type SkuRestrictions struct {
-	// Type - READ-ONLY; The type of restrictions. Possible values include: 'Location', 'Zone'
-	Type SkuRestrictionsType `json:"type,omitempty"`
-	// Values - READ-ONLY; The value of restrictions. If the restriction type is set to location. This would be different locations where the SKU is restricted.
-	Values *[]string `json:"values,omitempty"`
-	// RestrictionInfo - READ-ONLY; The information about the restriction where the SKU cannot be used.
-	RestrictionInfo *SkuRestrictionInfo `json:"restrictionInfo,omitempty"`
-	// ReasonCode - READ-ONLY; The reason for restriction. Possible values include: 'QuotaID', 'NotAvailableForSubscription'
-	ReasonCode SkuRestrictionsReasonCode `json:"reasonCode,omitempty"`
-}
-
-// SkusResult the List Resource Skus operation response.
-type SkusResult struct {
-	autorest.Response `json:"-"`
-	// Value - Page values.
-	Value *[]SubscriptionContract `json:"value,omitempty"`
-	// Count - Total record count number across all pages.
-	Count *int64 `json:"count,omitempty"`
-	// NextLink - Next page link if any.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
