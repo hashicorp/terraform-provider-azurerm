@@ -351,18 +351,17 @@ func resourceSentinelAutomationRuleRead(d *schema.ResourceData, meta interface{}
 
 		if tl := prop.TriggeringLogic; tl != nil {
 			if err := d.Set("condition", flattenAutomationRuleConditions(tl.Conditions)); err != nil {
-				fmt.Errorf("setting `condition`: %v", err)
+				return fmt.Errorf("setting `condition`: %v", err)
 			}
 		}
 
 		actionIncident, actionPlaybook := flattenAutomationRuleActions(prop.Actions)
 
 		if err := d.Set("action_incident", actionIncident); err != nil {
-			fmt.Errorf("setting `action_incident`: %v", err)
+			return fmt.Errorf("setting `action_incident`: %v", err)
 		}
 		if err := d.Set("action_playbook", actionPlaybook); err != nil {
-
-			fmt.Errorf("setting `action_playbook`: %v", err)
+			return fmt.Errorf("setting `action_playbook`: %v", err)
 		}
 	}
 
