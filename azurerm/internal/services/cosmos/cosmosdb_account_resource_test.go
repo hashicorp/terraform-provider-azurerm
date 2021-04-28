@@ -927,8 +927,8 @@ resource "azurerm_cosmosdb_account" "test" {
     failover_priority = 2
   }
 
-  access_key_metadata_writes_enabled   = false
-  network_acl_bypass_for_azure_servers = true
+  access_key_metadata_writes_enabled    = false
+  network_acl_bypass_for_azure_services = true
 }
 `, r.completePreReqs(data), data.RandomInteger, string(kind), string(consistency), data.Locations.Secondary, data.Locations.Ternary)
 }
@@ -981,8 +981,8 @@ resource "azurerm_cosmosdb_account" "test" {
     failover_priority = 2
   }
 
-  access_key_metadata_writes_enabled   = false
-  network_acl_bypass_for_azure_servers = true
+  access_key_metadata_writes_enabled    = false
+  network_acl_bypass_for_azure_services = true
 }
 `, r.completePreReqs(data), data.RandomInteger, string(consistency), data.Locations.Secondary, data.Locations.Ternary)
 }
@@ -1716,8 +1716,8 @@ resource "azurerm_cosmosdb_account" "test" {
     failover_priority = 0
   }
 
-  network_acl_bypass_for_azure_servers = true
-  network_acl_bypass_ids               = [azurerm_synapse_workspace.test.id]
+  network_acl_bypass_for_azure_services = true
+  network_acl_bypass_ids                = [azurerm_synapse_workspace.test.id]
 }
 `, r.basicWithNetworkBypassTemplate(data), data.RandomInteger, string(kind), string(consistency))
 }

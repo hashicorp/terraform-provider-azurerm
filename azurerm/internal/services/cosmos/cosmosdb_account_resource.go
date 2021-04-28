@@ -295,7 +295,7 @@ func resourceCosmosDbAccount() *schema.Resource {
 				}, false),
 			},
 
-			"network_acl_bypass_for_azure_servers": {
+			"network_acl_bypass_for_azure_services": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
@@ -453,7 +453,7 @@ func resourceCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) err
 	}
 
 	networkByPass := documentdb.NetworkACLBypassNone
-	if d.Get("network_acl_bypass_for_azure_servers").(bool) {
+	if d.Get("network_acl_bypass_for_azure_services").(bool) {
 		networkByPass = documentdb.NetworkACLBypassAzureServices
 	}
 
@@ -573,7 +573,7 @@ func resourceCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) err
 	}
 
 	networkByPass := documentdb.NetworkACLBypassNone
-	if d.Get("network_acl_bypass_for_azure_servers").(bool) {
+	if d.Get("network_acl_bypass_for_azure_services").(bool) {
 		networkByPass = documentdb.NetworkACLBypassAzureServices
 	}
 
@@ -737,7 +737,7 @@ func resourceCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) error
 		if apiProps := props.APIProperties; apiProps != nil {
 			d.Set("mongo_server_version", apiProps.ServerVersion)
 		}
-		d.Set("network_acl_bypass_for_azure_servers", props.NetworkACLBypass == documentdb.NetworkACLBypassAzureServices)
+		d.Set("network_acl_bypass_for_azure_services", props.NetworkACLBypass == documentdb.NetworkACLBypassAzureServices)
 		d.Set("network_acl_bypass_ids", utils.FlattenStringSlice(props.NetworkACLBypassResourceIds))
 	}
 
