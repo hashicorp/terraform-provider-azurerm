@@ -10,9 +10,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
 	keyVaultParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -24,9 +25,8 @@ func resourceDataFactoryLinkedServiceKeyVault() *schema.Resource {
 		Update: resourceDataFactoryLinkedServiceKeyVaultCreateUpdate,
 		Delete: resourceDataFactoryLinkedServiceKeyVaultDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -40,7 +40,7 @@ func resourceDataFactoryLinkedServiceKeyVault() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMDataFactoryLinkedServiceDatasetName,
+				ValidateFunc: validate.LinkedServiceDatasetName,
 			},
 
 			"data_factory_name": {
@@ -101,22 +101,21 @@ func resourceDataFactoryLinkedServiceKeyVault() *schema.Resource {
 
 func resourceDataFactoryLinkedServiceKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
-	vaultClient := meta.(*clients.Client).KeyVault.VaultsClient
+	keyVaultsClient := meta.(*clients.Client).KeyVault
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
 	dataFactoryName := d.Get("data_factory_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	keyVaultIdRaw := d.Get("key_vault_id").(string)
-	_, err := keyVaultParse.VaultID(keyVaultIdRaw)
+	keyVaultId, err := keyVaultParse.VaultID(d.Get("key_vault_id").(string))
 	if err != nil {
 		return err
 	}
 
-	keyVaultBaseUri, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultIdRaw)
+	keyVaultBaseUri, err := keyVaultsClient.BaseUriForKeyVault(ctx, *keyVaultId)
 	if err != nil {
-		return fmt.Errorf("Error looking up Key %q vault url from id %q: %+v", name, keyVaultIdRaw, err)
+		return err
 	}
 
 	if d.IsNewResource() {
@@ -133,7 +132,7 @@ func resourceDataFactoryLinkedServiceKeyVaultCreateUpdate(d *schema.ResourceData
 	}
 
 	azureKeyVaultProperties := &datafactory.AzureKeyVaultLinkedServiceTypeProperties{
-		BaseURL: utils.String(keyVaultBaseUri),
+		BaseURL: keyVaultBaseUri,
 	}
 
 	azureKeyVaultLinkedService := &datafactory.AzureKeyVaultLinkedService{
@@ -183,7 +182,8 @@ func resourceDataFactoryLinkedServiceKeyVaultCreateUpdate(d *schema.ResourceData
 
 func resourceDataFactoryLinkedServiceKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
-	vaultClient := meta.(*clients.Client).KeyVault.VaultsClient
+	keyVaultsClient := meta.(*clients.Client).KeyVault
+	resourcesClient := meta.(*clients.Client).Resource
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -245,11 +245,13 @@ func resourceDataFactoryLinkedServiceKeyVaultRead(d *schema.ResourceData, meta i
 		}
 	}
 
-	keyVaultId, err := azure.GetKeyVaultIDFromBaseUrl(ctx, vaultClient, baseUrl)
-	if err != nil {
-		return fmt.Errorf("Error looking up Key Vault id from url %q: %+v", baseUrl, err)
+	var keyVaultId *string
+	if baseUrl != "" {
+		keyVaultId, err = keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, baseUrl)
+		if err != nil {
+			return err
+		}
 	}
-
 	d.Set("key_vault_id", keyVaultId)
 
 	return nil

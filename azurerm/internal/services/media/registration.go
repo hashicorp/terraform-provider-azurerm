@@ -33,5 +33,8 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_media_transform":          resourceMediaTransform(),
 		"azurerm_media_streaming_locator":  resourceMediaStreamingLocator(),
 		"azurerm_media_content_key_policy": resourceMediaContentKeyPolicy(),
+		"azurerm_media_streaming_policy":   resourceMediaStreamingPolicy(),
+		"azurerm_media_live_event":         resourceMediaLiveEvent(),
+		"azurerm_media_live_event_output":  resourceMediaLiveOutput(),
 	}
 }

@@ -5,26 +5,26 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/appplatform/mgmt/2020-07-01/appplatform"
+	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2020-11-01-preview/appplatform"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/springcloud/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/springcloud/validate"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceSpringCloudJavaDeployment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceSpringCloudJavaDeploymentCreateUpdate,
+		Create: resourceSpringCloudJavaDeploymentCreate,
 		Read:   resourceSpringCloudJavaDeploymentRead,
-		Update: resourceSpringCloudJavaDeploymentCreateUpdate,
+		Update: resourceSpringCloudJavaDeploymentUpdate,
 		Delete: resourceSpringCloudJavaDeploymentDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.SpringCloudDeploymentID(id)
 			return err
 		}),
@@ -98,11 +98,11 @@ func resourceSpringCloudJavaDeployment() *schema.Resource {
 	}
 }
 
-func resourceSpringCloudJavaDeploymentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSpringCloudJavaDeploymentCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.DeploymentsClient
 	servicesClient := meta.(*clients.Client).AppPlatform.ServicesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	appId, err := parse.SpringCloudAppID(d.Get("spring_cloud_app_id").(string))
@@ -111,16 +111,14 @@ func resourceSpringCloudJavaDeploymentCreateUpdate(d *schema.ResourceData, meta 
 	}
 
 	id := parse.NewSpringCloudDeploymentID(subscriptionId, appId.ResourceGroup, appId.SpringName, appId.AppName, d.Get("name").(string))
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.AppName, id.DeploymentName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Spring Cloud Deployment %q (Spring Cloud Service %q / App %q / Resource Group %q): %+v", id.DeploymentName, id.SpringName, id.AppName, id.ResourceGroup, err)
-			}
-		}
+	existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.AppName, id.DeploymentName)
+	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_spring_cloud_java_deployment", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
+	}
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_spring_cloud_java_deployment", id.ID())
 	}
 
 	service, err := servicesClient.Get(ctx, appId.ResourceGroup, appId.SpringName)
@@ -154,14 +152,68 @@ func resourceSpringCloudJavaDeploymentCreateUpdate(d *schema.ResourceData, meta 
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.AppName, id.DeploymentName, deployment)
 	if err != nil {
-		return fmt.Errorf("creating/update Spring Cloud Deployment %q (Spring Cloud Service %q / App %q / Resource Group %q): %+v", id.DeploymentName, id.SpringName, id.AppName, id.ResourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of Spring Cloud Deployment %q (Spring Cloud Service %q / App %q / Resource Group %q): %+v", id.DeploymentName, id.SpringName, id.AppName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+
+	return resourceSpringCloudJavaDeploymentRead(d, meta)
+}
+
+func resourceSpringCloudJavaDeploymentUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).AppPlatform.DeploymentsClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.SpringCloudDeploymentID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.AppName, id.DeploymentName)
+	if err != nil {
+		return fmt.Errorf("reading existing %s: %+v", id, err)
+	}
+	if existing.Sku == nil || existing.Properties == nil || existing.Properties.DeploymentSettings == nil {
+		return fmt.Errorf("nil `sku`, `properties` or `properties.deploymentSettings` for %s: %+v", id, err)
+	}
+
+	if d.HasChange("instance_count") {
+		existing.Sku.Capacity = utils.Int32(int32(d.Get("instance_count").(int)))
+	}
+
+	if d.HasChange("cpu") {
+		existing.Properties.DeploymentSettings.CPU = utils.Int32(int32(d.Get("cpu").(int)))
+	}
+
+	if d.HasChange("environment_variables") {
+		existing.Properties.DeploymentSettings.EnvironmentVariables = expandSpringCloudDeploymentEnvironmentVariables(d.Get("environment_variables").(map[string]interface{}))
+	}
+
+	if d.HasChange("jvm_options") {
+		existing.Properties.DeploymentSettings.JvmOptions = utils.String(d.Get("jvm_options").(string))
+	}
+
+	if d.HasChange("memory_in_gb") {
+		existing.Properties.DeploymentSettings.MemoryInGB = utils.Int32(int32(d.Get("memory_in_gb").(int)))
+	}
+
+	if d.HasChange("runtime_version") {
+		existing.Properties.DeploymentSettings.RuntimeVersion = appplatform.RuntimeVersion(d.Get("runtime_version").(string))
+	}
+
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.AppName, id.DeploymentName, existing)
+	if err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for update of %s: %+v", id, err)
+	}
 
 	return resourceSpringCloudJavaDeploymentRead(d, meta)
 }

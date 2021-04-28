@@ -230,8 +230,6 @@ The following arguments are supported:
 
 ~> **Note:** Deployment Slots are not supported in the `Free`, `Shared`, or `Basic` App Service Plans.
 
-* `virtual_network_name` - (Optional) The name of the Virtual Network which this App Service Slot should be attached to.
-
 * `websockets_enabled` - (Optional) Should WebSockets be enabled?
 
 * `auto_swap_slot_name` - (Optional) The name of the slot to automatically swap to during deployment
@@ -325,6 +323,21 @@ A `ip_restriction` block supports the following:
 * `priority` - (Optional) The priority for this IP Restriction. Restrictions are enforced in priority order. By default, priority is set to 65000 if not specified.
 
 * `action` - (Optional) Does this restriction `Allow` or `Deny` access for this IP range. Defaults to `Allow`.  
+
+* `headers` - (Optional) The headers for this specific `ip_restriction` as defined below. The http header filters are evaluated after the rule itself and both conditions must be true for the rule to apply.
+
+---
+
+A `headers` block supports the following:
+
+* `x_azure_fdid` - (Optional) A list of allowed Azure FrontDoor IDs in UUID notation with a maximum of 8.
+
+* `x_fd_health_probe` - (Optional) A list to allow the Azure FrontDoor health probe header. Only allowed value is "1".
+
+* `x_forwarded_for` - (Optional) A list of allowed 'X-Forwarded-For' IPs in CIDR notation with a maximum of 8
+
+* `x_forwarded_host` - (Optional) A list of allowed 'X-Forwarded-Host' domains with a maximum of 8.
+
 
 ---
 

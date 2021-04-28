@@ -69,13 +69,19 @@ The following arguments are supported:
 
 * `sql_administrator_login_password` - (Required) The Password associated with the `sql_administrator_login` for the SQL administrator.
 
-* `managed_virtual_network_enabled` - (Optional) Is Virtual Network enabled for all computes in this workspace? Changing this forces a new resource to be created.
+* `managed_virtual_network_enabled` - (Optional) Is Virtual Network enabled for all computes in this workspace? Defaults to `false`. Changing this forces a new resource to be created.
 
 * `sql_identity_control_enabled` - (Optional) Are pipelines (running as workspace's system assigned identity) allowed to access SQL pools?
 
-* `managed_resource_group_name` - Workspace managed resource group.
+* `managed_resource_group_name` - (Optional) Workspace managed resource group.
 
 * `aad_admin` - (Optional) An `aad_admin` block as defined below.
+
+* `azure_devops_repo` - (Optional) An `azure_devops_repo` block as defined below.
+
+* `github_repo` - (Optional) A `github_repo` block as defined below.
+
+* `customer_managed_key_versionless_id` - (Optional) The Azure Key Vault Key Versionless ID to be used as the Customer Managed Key (CMK) for double encryption (e.g. `https://example-keyvault.vault.azure.net/type/cmk/`).
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Synapse Workspace.
 
@@ -88,6 +94,36 @@ An `aad_admin` block supports the following:
 * `object_id` - (Required) The object id of the Azure AD Administrator of this Synapse Workspace.
 
 * `tenant_id` - (Required) The tenant id of the Azure AD Administrator of this Synapse Workspace.
+
+---
+
+An `azure_devops_repo` block supports the following:
+
+* `account_name` - (Required) Specifies the Azure DevOps account name.
+
+* `branch_name` - (Required) Specifies the collaboration branch of the repository to get code from.
+
+* `project_name` - (Required) Specifies the name of the Azure DevOps project.
+
+* `repository_name` - (Required) Specifies the name of the git repository.
+
+* `root_folder` - (Required) Specifies the root folder within the repository. Set to `/` for the top level.
+
+---
+
+A `github_repo` block supports the following:
+
+* `account_name` - (Required) Specifies the GitHub account name.
+
+* `branch_name` - (Required) Specifies the collaboration branch of the repository to get code from.
+
+* `repository_name` - (Required) Specifies the name of the git repository.
+
+* `root_folder` - (Required) Specifies the root folder within the repository. Set to `/` for the top level.
+
+* `git_url` - (Optional) Specifies the GitHub Enterprise host name. For example: https://github.mydomain.com.
+
+-> **Note:** You must log in to the Synapse UI to complete the authentication to the GitHub repository.
 
 ## Attributes Reference
 

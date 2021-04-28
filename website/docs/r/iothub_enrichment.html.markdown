@@ -17,7 +17,7 @@ Manages an IotHub Enrichment
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "West US"
+  location = "West Europe"
 }
 
 resource "azurerm_storage_account" "example" {

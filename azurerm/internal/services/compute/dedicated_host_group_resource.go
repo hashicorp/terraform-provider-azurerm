@@ -5,11 +5,14 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -25,9 +28,8 @@ func resourceDedicatedHostGroup() *schema.Resource {
 		Update: resourceDedicatedHostGroupUpdate,
 		Delete: resourceDedicatedHostGroupDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -41,7 +43,7 @@ func resourceDedicatedHostGroup() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateDedicatedHostGroupName(),
+				ValidateFunc: validate.DedicatedHostGroupName(),
 			},
 
 			"location": azure.SchemaLocation(),
@@ -55,6 +57,13 @@ func resourceDedicatedHostGroup() *schema.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.IntBetween(1, 3),
+			},
+
+			"automatic_placement_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				ForceNew: true,
+				Default:  false,
 			},
 
 			// Currently only one endpoint is allowed.
@@ -99,6 +108,10 @@ func resourceDedicatedHostGroupCreate(d *schema.ResourceData, meta interface{}) 
 	}
 	if zones, ok := d.GetOk("zones"); ok {
 		parameters.Zones = utils.ExpandStringSlice(zones.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("automatic_placement_enabled"); ok {
+		parameters.DedicatedHostGroupProperties.SupportAutomaticPlacement = utils.Bool(v.(bool))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroupName, name, parameters); err != nil {
@@ -150,6 +163,8 @@ func resourceDedicatedHostGroupRead(d *schema.ResourceData, meta interface{}) er
 			platformFaultDomainCount = int(*props.PlatformFaultDomainCount)
 		}
 		d.Set("platform_fault_domain_count", platformFaultDomainCount)
+
+		d.Set("automatic_placement_enabled", props.SupportAutomaticPlacement)
 	}
 	d.Set("zones", utils.FlattenStringSlice(resp.Zones))
 

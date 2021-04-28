@@ -6,16 +6,18 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2020-05-01/media"
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/gofrs/uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	uuid "github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media/parse"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -32,7 +34,7 @@ func resourceMediaStreamingLocator() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.StreamingLocatorID(id)
 			return err
 		}),
@@ -54,7 +56,7 @@ func resourceMediaStreamingLocator() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateMediaServicesAccountName,
+				ValidateFunc: validate.AccountName,
 			},
 
 			"asset_name": {
@@ -81,6 +83,7 @@ func resourceMediaStreamingLocator() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			//lintignore:XS003
 			"content_key": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -318,6 +321,9 @@ func expandContentKeys(input []interface{}) *[]media.StreamingLocatorContentKey 
 	results := make([]media.StreamingLocatorContentKey, 0)
 
 	for _, contentKeyRaw := range input {
+		if contentKeyRaw == nil {
+			continue
+		}
 		contentKey := contentKeyRaw.(map[string]interface{})
 
 		streamingLocatorContentKey := media.StreamingLocatorContentKey{}

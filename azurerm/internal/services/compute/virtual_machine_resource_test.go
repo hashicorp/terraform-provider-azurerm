@@ -3,7 +3,6 @@ package compute_test
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -13,7 +12,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/blobs"
 )
 
 type VirtualMachineResource struct {
@@ -100,34 +101,7 @@ func TestAccVirtualMachine_withPPG(t *testing.T) {
 	})
 }
 
-func testCheckVirtualMachineDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_virtual_machine" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, name, "")
-		if err != nil {
-			if resp.StatusCode == http.StatusNotFound {
-				return nil
-			}
-
-			return err
-		}
-
-		return fmt.Errorf("Virtual Machine still exists:\n%#v", resp.VirtualMachineProperties)
-	}
-
-	return nil
-}
-
-func (t VirtualMachineResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (VirtualMachineResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -141,6 +115,158 @@ func (t VirtualMachineResource) Exists(ctx context.Context, clients *clients.Cli
 	}
 
 	return utils.Bool(resp.ID != nil), nil
+}
+
+func (VirtualMachineResource) managedDiskExists(diskId string, shouldExist bool) acceptance.ClientCheckFunc {
+	return func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+		id, err := parse.ManagedDiskID(diskId)
+		if err != nil {
+			return err
+		}
+
+		disk, err := clients.Compute.DisksClient.Get(ctx, id.ResourceGroup, id.DiskName)
+		if err != nil {
+			if utils.ResponseWasNotFound(disk.Response) {
+				if !shouldExist {
+					return nil
+				}
+
+				return fmt.Errorf("disk %s does not exist", *id)
+			}
+			return err
+		}
+
+		if !shouldExist {
+			return fmt.Errorf("disk %s shouldn't exist but it does", *id)
+		}
+
+		return nil
+	}
+}
+
+func (VirtualMachineResource) findManagedDiskID(field string, managedDiskID *string) acceptance.ClientCheckFunc {
+	return func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+		id, err := parse.VirtualMachineID(state.ID)
+		if err != nil {
+			return err
+		}
+
+		virtualMachine, err := clients.Compute.VMClient.Get(ctx, id.ResourceGroup, id.Name, "")
+		if err != nil {
+			return err
+		}
+		if virtualMachine.VirtualMachineProperties == nil {
+			return fmt.Errorf("`properties` was nil")
+		}
+		if virtualMachine.VirtualMachineProperties.StorageProfile == nil {
+			return fmt.Errorf("`properties.StorageProfile` was nil")
+		}
+
+		diskName := state.Attributes[field]
+
+		if osDisk := virtualMachine.VirtualMachineProperties.StorageProfile.OsDisk; osDisk != nil {
+			if osDisk.Name != nil && osDisk.ManagedDisk != nil && osDisk.ManagedDisk.ID != nil {
+				if *osDisk.Name == diskName {
+					*managedDiskID = *osDisk.ManagedDisk.ID
+					return nil
+				}
+			}
+		}
+
+		if dataDisks := virtualMachine.VirtualMachineProperties.StorageProfile.DataDisks; dataDisks != nil {
+			for _, dataDisk := range *dataDisks {
+				if dataDisk.Name == nil || dataDisk.ManagedDisk == nil || dataDisk.ManagedDisk.ID == nil {
+					continue
+				}
+
+				if *dataDisk.Name == diskName {
+					*managedDiskID = *dataDisk.ManagedDisk.ID
+					return nil
+				}
+			}
+		}
+
+		return fmt.Errorf("unable to locate disk %q", diskName)
+	}
+}
+
+func (VirtualMachineResource) deallocate(ctx context.Context, client *clients.Client, state *terraform.InstanceState) error {
+	vmID, err := parse.VirtualMachineID(state.ID)
+	if err != nil {
+		return err
+	}
+
+	name := vmID.Name
+	resourceGroup := vmID.ResourceGroup
+
+	future, err := client.Compute.VMClient.Deallocate(ctx, resourceGroup, name)
+	if err != nil {
+		return fmt.Errorf("Failed stopping virtual machine %q: %+v", resourceGroup, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Compute.VMClient.Client); err != nil {
+		return fmt.Errorf("Failed long polling for the stop of virtual machine %q: %+v", resourceGroup, err)
+	}
+
+	return nil
+}
+
+func (VirtualMachineResource) unmanagedDiskExistsInContainer(blobName string, shouldExist bool) acceptance.ClientCheckFunc {
+	return func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+		accountName := state.Attributes["storage_account_name"]
+		containerName := state.Attributes["name"]
+
+		account, err := clients.Storage.FindAccount(ctx, accountName)
+		if err != nil {
+			return fmt.Errorf("Error retrieving Account %q for Blob %q (Container %q): %s", accountName, blobName, containerName, err)
+		}
+		if account == nil {
+			return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
+		}
+
+		client, err := clients.Storage.BlobsClient(ctx, *account)
+		if err != nil {
+			return fmt.Errorf("Error building Blobs Client: %s", err)
+		}
+
+		input := blobs.GetPropertiesInput{}
+		props, err := client.GetProperties(ctx, accountName, containerName, blobName, input)
+		if err != nil {
+			if utils.ResponseWasNotFound(props.Response) {
+				if !shouldExist {
+					return nil
+				}
+
+				return fmt.Errorf("The Blob for the Unmanaged Disk %q should exist in the Container %q but it didn't!", blobName, containerName)
+			}
+
+			return fmt.Errorf("Error retrieving properties for Blob %q (Container %q): %s", blobName, containerName, err)
+		}
+
+		if !shouldExist {
+			return fmt.Errorf("The Blob for the Unmanaged Disk %q shouldn't exist in the Container %q but it did!", blobName, containerName)
+		}
+
+		return nil
+	}
+}
+
+func (VirtualMachineResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	vmName := state.Attributes["name"]
+	resourceGroup := state.Attributes["resource_group_name"]
+
+	// this is a preview feature we don't want to use right now
+	var forceDelete *bool = nil
+	future, err := client.Compute.VMClient.Delete(ctx, resourceGroup, vmName, forceDelete)
+	if err != nil {
+		return nil, fmt.Errorf("Bad: Delete on vmClient: %+v", err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Compute.VMClient.Client); err != nil {
+		return nil, fmt.Errorf("Bad: Delete on vmClient: %+v", err)
+	}
+
+	return utils.Bool(true), nil
 }
 
 func (VirtualMachineResource) winTimeZone(data acceptance.TestData) string {

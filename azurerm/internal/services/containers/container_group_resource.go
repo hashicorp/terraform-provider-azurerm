@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -22,6 +21,8 @@ import (
 	msiparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
 	msivalidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -32,9 +33,8 @@ func resourceContainerGroup() *schema.Resource {
 		Read:   resourceContainerGroupRead,
 		Delete: resourceContainerGroupDelete,
 		Update: resourceContainerGroupUpdate,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -209,6 +209,7 @@ func resourceContainerGroup() *schema.Resource {
 							ForceNew: true,
 						},
 
+						//lintignore:XS003
 						"gpu": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -833,6 +834,9 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 		if v, ok := data["gpu"]; ok {
 			gpus := v.([]interface{})
 			for _, gpuRaw := range gpus {
+				if gpuRaw == nil {
+					continue
+				}
 				v := gpuRaw.(map[string]interface{})
 				gpuCount := int32(v["count"].(int))
 				gpuSku := containerinstance.GpuSku(v["sku"].(string))
@@ -1104,6 +1108,9 @@ func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
 	}
 
 	for _, p := range probeRaw {
+		if p == nil {
+			continue
+		}
 		probeConfig := p.(map[string]interface{})
 
 		if v := probeConfig["initial_delay_seconds"].(int); v > 0 {
@@ -1137,6 +1144,9 @@ func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
 		httpRaw := probeConfig["http_get"].([]interface{})
 		if len(httpRaw) > 0 {
 			for _, httpget := range httpRaw {
+				if httpget == nil {
+					continue
+				}
 				x := httpget.(map[string]interface{})
 
 				path := x["path"].(string)

@@ -25,6 +25,7 @@ resource "azurerm_virtual_desktop_host_pool" "example" {
   name                     = "pooleddepthfirst"
   friendly_name            = "pooleddepthfirst"
   validate_environment     = true
+  custom_rdp_properties    = "audiocapturemode:i:1;audiomode:i:0;"
   description              = "Acceptance Test: A pooled host pool - pooleddepthfirst"
   type                     = "Pooled"
   maximum_sessions_allowed = 50
@@ -57,7 +58,9 @@ The following arguments are supported:
 
 * `description` - (Optional) A description for the Virtual Desktop Host Pool.
 
-* `validation_environment` -  (Optional) Allows you to test service changes before they are deployed to production. Defaults to `false`.
+* `validate_environment` -  (Optional) Allows you to test service changes before they are deployed to production. Defaults to `false`.
+
+* `custom_rdp_properties` - (Optional) A valid custom RDP properties string for the Virtual Desktop Host Pool, available properties can be [found in this article](https://docs.microsoft.com/en-us/windows-server/remote/remote-desktop-services/clients/rdp-files).
 
 * `personal_desktop_assignment_type` - (Optional) `Automatic` assignment – The service will select an available host and assign it to an user.
     `Direct` Assignment – Admin selects a specific host to assign to an user.

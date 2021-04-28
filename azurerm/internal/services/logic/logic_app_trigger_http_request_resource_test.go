@@ -112,9 +112,6 @@ func TestAccLogicAppTriggerHttpRequest_disappears(t *testing.T) {
 		{
 			// delete it
 			Config: r.template(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(LogicAppWorkflowResource{}),
-			),
 		},
 		{
 			Config:             r.basic(data),
@@ -149,7 +146,7 @@ resource "azurerm_logic_app_trigger_http_request" "import" {
   logic_app_id = azurerm_logic_app_trigger_http_request.test.logic_app_id
   schema       = azurerm_logic_app_trigger_http_request.test.schema
 }
-`, r.template(data))
+`, r.basic(data))
 }
 
 func (r LogicAppTriggerHttpRequestResource) fullSchema(data acceptance.TestData) string {

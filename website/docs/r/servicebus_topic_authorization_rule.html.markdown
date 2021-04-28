@@ -15,7 +15,7 @@ Manages a ServiceBus Topic authorization Rule within a ServiceBus Topic.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "tfex-servicebus"
-  location = "West US"
+  location = "West Europe"
 }
 
 resource "azurerm_servicebus_namespace" "example" {

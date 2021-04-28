@@ -15,7 +15,7 @@ Manages a local network gateway connection over which specific connections can b
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "localNetworkGWTest"
-  location = "West US"
+  location = "West Europe"
 }
 
 resource "azurerm_local_network_gateway" "home" {
@@ -40,7 +40,7 @@ The following arguments are supported:
 * `location` - (Required) The location/region where the local network gateway is
     created. Changing this forces a new resource to be created.
 
-* `address_space` - (Required) The list of string CIDRs representing the
+* `address_space` - (Optional) The list of string CIDRs representing the
     address spaces the gateway exposes.
 
 * `bgp_settings` - (Optional) A `bgp_settings` block as defined below containing the

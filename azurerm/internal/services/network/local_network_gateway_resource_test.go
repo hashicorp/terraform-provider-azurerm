@@ -182,6 +182,13 @@ func TestAccLocalNetworkGateway_updateAddressSpace(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
+			Config: r.noneAddressSpace(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.multipleAddressSpace(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -263,7 +270,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-%d"
+  name     = "acctestRG-lngw-%d"
   location = "%s"
 }
 
@@ -298,7 +305,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-%d"
+  name     = "acctestRG-lngw-%d"
   location = "%s"
 }
 
@@ -323,7 +330,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-%d"
+  name     = "acctestRG-lngw-%d"
   location = "%s"
 }
 
@@ -349,7 +356,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-%d"
+  name     = "acctestRG-lngw-%d"
   location = "%s"
 }
 
@@ -369,6 +376,26 @@ resource "azurerm_local_network_gateway" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
+func (LocalNetworkGatewayResource) noneAddressSpace(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-lngw-%d"
+  location = "%s"
+}
+
+resource "azurerm_local_network_gateway" "test" {
+  name                = "acctestlng-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  gateway_address     = "127.0.0.1"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
 func (LocalNetworkGatewayResource) multipleAddressSpace(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -376,7 +403,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-%d"
+  name     = "acctestRG-lngw-%d"
   location = "%s"
 }
 
@@ -397,7 +424,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-%d"
+  name     = "acctestRG-lngw-%d"
   location = "%s"
 }
 

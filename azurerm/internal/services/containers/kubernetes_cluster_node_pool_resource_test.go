@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"reflect"
 	"regexp"
 	"strings"
 	"testing"
@@ -43,11 +42,13 @@ var kubernetesNodePoolTests = map[string]func(t *testing.T){
 	"osDiskType":                     testAccKubernetesClusterNodePool_osDiskType,
 	"modeSystem":                     testAccKubernetesClusterNodePool_modeSystem,
 	"modeUpdate":                     testAccKubernetesClusterNodePool_modeUpdate,
+	"upgradeSettings":                testAccKubernetesClusterNodePool_upgradeSettings,
 	"virtualNetworkAutomatic":        testAccKubernetesClusterNodePool_virtualNetworkAutomatic,
 	"virtualNetworkManual":           testAccKubernetesClusterNodePool_virtualNetworkManual,
 	"windows":                        testAccKubernetesClusterNodePool_windows,
 	"windowsAndLinux":                testAccKubernetesClusterNodePool_windowsAndLinux,
 	"zeroSize":                       testAccKubernetesClusterNodePool_zeroSize,
+	"hostEncryption":                 testAccKubernetesClusterNodePool_hostEncryption,
 }
 
 func TestAccKubernetesClusterNodePool_autoScale(t *testing.T) {
@@ -287,7 +288,7 @@ func testAccKubernetesClusterNodePool_manualScaleIgnoreChanges(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("node_count").HasValue("1"),
-				testCheckKubernetesNodePoolScale(data.ResourceName, 2),
+				data.CheckWithClient(r.scaleNodePool(2)),
 			),
 		},
 		{
@@ -433,19 +434,21 @@ func testAccKubernetesClusterNodePool_nodeLabels(t *testing.T) {
 		{
 			Config: r.nodeLabelsConfig(data, labels1),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckKubernetesNodePoolNodeLabels(data.ResourceName, labels1),
+				check.That(data.ResourceName).Key("node_labels.%").HasValue("1"),
+				check.That(data.ResourceName).Key("node_labels.key").HasValue("value"),
 			),
 		},
 		{
 			Config: r.nodeLabelsConfig(data, labels2),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckKubernetesNodePoolNodeLabels(data.ResourceName, labels2),
+				check.That(data.ResourceName).Key("node_labels.%").HasValue("1"),
+				check.That(data.ResourceName).Key("node_labels.key2").HasValue("value2"),
 			),
 		},
 		{
 			Config: r.nodeLabelsConfig(data, labels3),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckKubernetesNodePoolNodeLabels(data.ResourceName, labels3),
+				check.That(data.ResourceName).Key("node_labels.%").HasValue("0"),
 			),
 		},
 	})
@@ -594,6 +597,45 @@ func testAccKubernetesClusterNodePool_spot(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesClusterNodePool_upgradeSettings(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccKubernetesClusterNodePool_upgradeSettings(t)
+}
+
+func testAccKubernetesClusterNodePool_upgradeSettings(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.upgradeSettingsConfig(data, "2"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("upgrade_settings.#").HasValue("1"),
+				check.That(data.ResourceName).Key("upgrade_settings.0.max_surge").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.upgradeSettingsConfig(data, "4"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("upgrade_settings.#").HasValue("1"),
+				check.That(data.ResourceName).Key("upgrade_settings.0.max_surge").HasValue("4"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.upgradeSettingsConfig(data, ""),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("upgrade_settings.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKubernetesClusterNodePool_virtualNetworkAutomatic(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
 	testAccKubernetesClusterNodePool_virtualNetworkAutomatic(t)
@@ -705,6 +747,26 @@ func testAccKubernetesClusterNodePool_zeroSize(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesClusterNodePool_hostEncryption(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccKubernetesClusterNodePool_hostEncryption(t)
+}
+
+func testAccKubernetesClusterNodePool_hostEncryption(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.hostEncryption(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enable_host_encryption").HasValue("true"),
+			),
+		},
+	})
+}
+
 func TestAccKubernetesClusterNodePool_maxSize(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
 	testAccKubernetesClusterNodePool_maxSize(t)
@@ -759,19 +821,10 @@ func (t KubernetesClusterNodePoolResource) Exists(ctx context.Context, clients *
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func testCheckKubernetesNodePoolScale(resourceName string, nodeCount int) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Containers.AgentPoolsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		nodePoolName := rs.Primary.Attributes["name"]
-		kubernetesClusterId := rs.Primary.Attributes["kubernetes_cluster_id"]
+func (KubernetesClusterNodePoolResource) scaleNodePool(nodeCount int) acceptance.ClientCheckFunc {
+	return func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+		nodePoolName := state.Attributes["name"]
+		kubernetesClusterId := state.Attributes["kubernetes_cluster_id"]
 		parsedK8sId, err := parse.ClusterID(kubernetesClusterId)
 		if err != nil {
 			return fmt.Errorf("Error parsing kubernetes cluster id: %+v", err)
@@ -780,7 +833,7 @@ func testCheckKubernetesNodePoolScale(resourceName string, nodeCount int) resour
 		clusterName := parsedK8sId.ManagedClusterName
 		resourceGroup := parsedK8sId.ResourceGroup
 
-		nodePool, err := client.Get(ctx, resourceGroup, clusterName, nodePoolName)
+		nodePool, err := clients.Containers.AgentPoolsClient.Get(ctx, resourceGroup, clusterName, nodePoolName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on agentPoolsClient: %+v", err)
 		}
@@ -795,52 +848,13 @@ func testCheckKubernetesNodePoolScale(resourceName string, nodeCount int) resour
 
 		nodePool.ManagedClusterAgentPoolProfileProperties.Count = utils.Int32(int32(nodeCount))
 
-		future, err := client.CreateOrUpdate(ctx, resourceGroup, clusterName, nodePoolName, nodePool)
+		future, err := clients.Containers.AgentPoolsClient.CreateOrUpdate(ctx, resourceGroup, clusterName, nodePoolName, nodePool)
 		if err != nil {
 			return fmt.Errorf("Bad: updating node pool %q: %+v", nodePoolName, err)
 		}
 
-		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		if err := future.WaitForCompletionRef(ctx, clients.Containers.AgentPoolsClient.Client); err != nil {
 			return fmt.Errorf("Bad: waiting for update of node pool %q: %+v", nodePoolName, err)
-		}
-
-		return nil
-	}
-}
-
-func testCheckKubernetesNodePoolNodeLabels(resourceName string, expectedLabels map[string]string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Containers.AgentPoolsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		kubernetesClusterId := rs.Primary.Attributes["kubernetes_cluster_id"]
-		parsedK8sId, err := parse.ClusterID(kubernetesClusterId)
-		if err != nil {
-			return fmt.Errorf("Error parsing kubernetes cluster id: %+v", err)
-		}
-
-		agent_pool, err := client.Get(ctx, parsedK8sId.ResourceGroup, parsedK8sId.ManagedClusterName, name)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on kubernetesClustersClient: %+v", err)
-		}
-
-		if agent_pool.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Node Pool %q (Kubernetes Cluster %q / Resource Group: %q) does not exist", name, parsedK8sId.ManagedClusterName, parsedK8sId.ResourceGroup)
-		}
-
-		labels := make(map[string]string)
-		for k, v := range agent_pool.NodeLabels {
-			labels[k] = *v
-		}
-		if !reflect.DeepEqual(labels, expectedLabels) {
-			return fmt.Errorf("Bad: Node Pool %q (Kubernetes Cluster %q / Resource Group: %q) nodeLabels %v do not match expected %v", name, parsedK8sId.ManagedClusterName, parsedK8sId.ResourceGroup, labels, expectedLabels)
 		}
 
 		return nil
@@ -1375,6 +1389,31 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 `, r.templateConfig(data))
 }
 
+func (r KubernetesClusterNodePoolResource) upgradeSettingsConfig(data acceptance.TestData, maxSurge string) string {
+	template := r.templateConfig(data)
+	if maxSurge != "" {
+		maxSurge = fmt.Sprintf(`upgrade_settings {
+    max_surge = %q
+  }`, maxSurge)
+	}
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "internal"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_DS2_v2"
+  node_count            = 3
+  %s
+}
+`, template, maxSurge)
+}
+
 func (r KubernetesClusterNodePoolResource) virtualNetworkAutomaticConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1552,7 +1591,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   windows_profile {
     admin_username = "azureuser"
-    admin_password = "P@55W0rd1234!"
+    admin_password = "P@55W0rd1234!h@2h1C0rP"
   }
 
   network_profile {
@@ -1582,6 +1621,24 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   min_count             = 0
   max_count             = 3
   node_count            = 0
+}
+`, r.templateConfig(data))
+}
+
+func (r KubernetesClusterNodePoolResource) hostEncryption(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+	%s
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                   = "internal"
+  kubernetes_cluster_id  = azurerm_kubernetes_cluster.test.id
+  vm_size                = "Standard_DS2_v2"
+  enable_host_encryption = true
+  node_count             = 1
 }
 `, r.templateConfig(data))
 }

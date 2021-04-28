@@ -5,17 +5,17 @@ import (
 	"log"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/validate"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
-
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
+	"github.com/gofrs/uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/satori/uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -26,9 +26,8 @@ func resourceApiManagementSubscription() *schema.Resource {
 		Read:   resourceApiManagementSubscriptionRead,
 		Update: resourceApiManagementSubscriptionCreateUpdate,
 		Delete: resourceApiManagementSubscriptionDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -47,11 +46,16 @@ func resourceApiManagementSubscription() *schema.Resource {
 			},
 
 			// 3.0 this seems to have been renamed to owner id?
-			"user_id": azure.SchemaApiManagementChildID(),
+			"user_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"api_management_name": azure.SchemaApiManagementName(),
+			"api_management_name": schemaz.SchemaApiManagementName(),
 
 			"display_name": {
 				Type:         schema.TypeString,
@@ -113,7 +117,12 @@ func resourceApiManagementSubscriptionCreateUpdate(d *schema.ResourceData, meta 
 	serviceName := d.Get("api_management_name").(string)
 	subscriptionId := d.Get("subscription_id").(string)
 	if subscriptionId == "" {
-		subscriptionId = uuid.NewV4().String()
+		subId, err := uuid.NewV4()
+		if err != nil {
+			return err
+		}
+
+		subscriptionId = subId.String()
 	}
 
 	if d.IsNewResource() {
@@ -132,7 +141,6 @@ func resourceApiManagementSubscriptionCreateUpdate(d *schema.ResourceData, meta 
 	displayName := d.Get("display_name").(string)
 	productId := d.Get("product_id").(string)
 	state := d.Get("state").(string)
-	userId := d.Get("user_id").(string)
 	allowTracing := d.Get("allow_tracing").(bool)
 
 	params := apimanagement.SubscriptionCreateParameters{
@@ -140,9 +148,11 @@ func resourceApiManagementSubscriptionCreateUpdate(d *schema.ResourceData, meta 
 			DisplayName:  utils.String(displayName),
 			Scope:        utils.String(productId),
 			State:        apimanagement.SubscriptionState(state),
-			OwnerID:      utils.String(userId),
 			AllowTracing: utils.Bool(allowTracing),
 		},
+	}
+	if v, ok := d.GetOk("user_id"); ok {
+		params.SubscriptionCreateParameterProperties.OwnerID = utils.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("primary_key"); ok {

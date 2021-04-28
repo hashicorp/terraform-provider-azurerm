@@ -7,7 +7,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -244,8 +243,31 @@ func TestAccKeyVaultCertificate_withExternalAccessPolicy(t *testing.T) {
 	})
 }
 
+func TestAccKeyVaultCertificate_purge(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
+	r := KeyVaultCertificateResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicGenerate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("secret_id").Exists(),
+				check.That(data.ResourceName).Key("certificate_data").Exists(),
+				check.That(data.ResourceName).Key("certificate_data_base64").Exists(),
+				check.That(data.ResourceName).Key("thumbprint").Exists(),
+				check.That(data.ResourceName).Key("certificate_attribute.0.created").Exists(),
+			),
+		},
+		{
+			Config:  r.basicGenerate(data),
+			Destroy: true,
+		},
+	})
+}
+
 func (t KeyVaultCertificateResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	keyVaultClient := clients.KeyVault.VaultsClient
+	keyVaultsClient := clients.KeyVault
 	client := clients.KeyVault.ManagementClient
 
 	id, err := parse.ParseNestedItemID(state.ID)
@@ -253,12 +275,15 @@ func (t KeyVaultCertificateResource) Exists(ctx context.Context, clients *client
 		return nil, err
 	}
 
-	keyVaultId, err := azure.GetKeyVaultIDFromBaseUrl(ctx, keyVaultClient, id.KeyVaultBaseUrl)
-	if err != nil || keyVaultId == nil {
+	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, clients.Resource, id.KeyVaultBaseUrl)
+	if err != nil || keyVaultIdRaw == nil {
 		return nil, fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}
-
-	ok, err := azure.KeyVaultExists(ctx, keyVaultClient, *keyVaultId)
+	keyVaultId, err := parse.VaultID(*keyVaultIdRaw)
+	if err != nil {
+		return nil, err
+	}
+	ok, err := keyVaultsClient.Exists(ctx, *keyVaultId)
 	if err != nil || !ok {
 		return nil, fmt.Errorf("checking if key vault %q for Certificate %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
 	}
@@ -286,13 +311,17 @@ func (KeyVaultCertificateResource) destroyParentKeyVault(ctx context.Context, cl
 
 func (KeyVaultCertificateResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	name := state.Attributes["name"]
-	keyVaultId := state.Attributes["key_vault_id"]
-	vaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(ctx, client.KeyVault.VaultsClient, keyVaultId)
+	keyVaultId, err := parse.VaultID(state.Attributes["key_vault_id"])
+	if err != nil {
+		return nil, err
+	}
+
+	vaultBaseUrl, err := client.KeyVault.BaseUriForKeyVault(ctx, *keyVaultId)
 	if err != nil {
 		return nil, fmt.Errorf("looking up base uri for Secret %q from id %q: %+v", name, keyVaultId, err)
 	}
 
-	if _, err := client.KeyVault.ManagementClient.DeleteCertificate(ctx, vaultBaseUrl, name); err != nil {
+	if _, err := client.KeyVault.ManagementClient.DeleteCertificate(ctx, *vaultBaseUrl, name); err != nil {
 		return nil, fmt.Errorf("Bad: Delete on keyVaultManagementClient: %+v", err)
 	}
 
@@ -805,7 +834,6 @@ resource "azurerm_key_vault" "test" {
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
-  soft_delete_enabled        = true
   soft_delete_retention_days = 7
 }
 
@@ -814,24 +842,24 @@ resource "azurerm_key_vault_access_policy" "test" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = data.azurerm_client_config.current.object_id
   certificate_permissions = [
-    "create",
-    "delete",
-    "get",
-    "purge",
-    "recover",
-    "update",
+    "Create",
+    "Delete",
+    "Get",
+    "Purge",
+    "Recover",
+    "Update",
   ]
 
   key_permissions = [
-    "create",
+    "Create",
   ]
 
   secret_permissions = [
-    "set",
+    "Set",
   ]
 
   storage_permissions = [
-    "set",
+    "Set",
   ]
 }
 
@@ -904,7 +932,6 @@ resource "azurerm_key_vault" "test" {
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
-  soft_delete_enabled        = true
   soft_delete_retention_days = 7
 }
 
@@ -913,25 +940,25 @@ resource "azurerm_key_vault_access_policy" "test" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = data.azurerm_client_config.current.object_id
   certificate_permissions = [
-    "backup",
-    "create",
-    "delete",
-    "get",
-    "recover",
-    "purge",
-    "update",
+    "Backup",
+    "Create",
+    "Delete",
+    "Get",
+    "Recover",
+    "Purge",
+    "Update",
   ]
 
   key_permissions = [
-    "create",
+    "Create",
   ]
 
   secret_permissions = [
-    "set",
+    "Set",
   ]
 
   storage_permissions = [
-    "set",
+    "Set",
   ]
 }
 
@@ -999,7 +1026,6 @@ resource "azurerm_key_vault" "test" {
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
-  soft_delete_enabled        = true
   soft_delete_retention_days = 7
 
   access_policy {
@@ -1007,25 +1033,26 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azurerm_client_config.current.object_id
 
     certificate_permissions = [
-      "create",
-      "delete",
-      "get",
-      "import",
-      "purge",
-      "recover",
-      "update",
+      "Create",
+      "Delete",
+      "Get",
+      "Import",
+      "Purge",
+      "Recover",
+      "Update",
     ]
 
     key_permissions = [
-      "create",
+      "Create",
     ]
 
     secret_permissions = [
-      "set",
+      "Get",
+      "Set",
     ]
 
     storage_permissions = [
-      "set",
+      "Set",
     ]
   }
 }

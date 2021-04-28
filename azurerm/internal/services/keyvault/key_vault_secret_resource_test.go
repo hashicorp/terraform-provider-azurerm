@@ -8,7 +8,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -94,6 +93,7 @@ func TestAccKeyVaultSecret_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("expiration_date").HasValue("2020-01-01T01:02:03Z"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.hello").HasValue("world"),
+				check.That(data.ResourceName).Key("versionless_id").HasValue(fmt.Sprintf("https://acctestkv-%s.vault.azure.net/secrets/secret-%s", data.RandomString, data.RandomString)),
 			),
 		},
 		data.ImportStep(),
@@ -156,22 +156,22 @@ func TestAccKeyVaultSecret_recovery(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.softDeleteRecovery(data, false),
+			Config: r.softDeleteRecovery(data, false, "first"),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("value").HasValue("rick-and-morty"),
+				check.That(data.ResourceName).Key("value").HasValue("first"),
 			),
 		},
 		{
-			Config:  r.softDeleteRecovery(data, false),
+			Config:  r.softDeleteRecovery(data, false, "first"),
 			Destroy: true,
 		},
 		{
 			// purge true here to make sure when we end the test there's no soft-deleted items left behind
-			Config: r.softDeleteRecovery(data, true),
+			Config: r.softDeleteRecovery(data, true, "second"),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("value").HasValue("rick-and-morty"),
+				check.That(data.ResourceName).Key("value").HasValue("second"),
 			),
 		},
 	})
@@ -199,21 +199,44 @@ func TestAccKeyVaultSecret_withExternalAccessPolicy(t *testing.T) {
 	})
 }
 
+func TestAccKeyVaultSecret_purge(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_secret", "test")
+	r := KeyVaultSecretResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("value").HasValue("rick-and-morty"),
+			),
+		},
+		{
+			Config:  r.basic(data),
+			Destroy: true,
+		},
+	})
+}
+
 func (KeyVaultSecretResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	client := clients.KeyVault.ManagementClient
-	keyVaultClient := clients.KeyVault.VaultsClient
+	keyVaultsClient := clients.KeyVault
 
 	id, err := parse.ParseNestedItemID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	keyVaultId, err := azure.GetKeyVaultIDFromBaseUrl(ctx, keyVaultClient, id.KeyVaultBaseUrl)
-	if err != nil || keyVaultId == nil {
+	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, clients.Resource, id.KeyVaultBaseUrl)
+	if err != nil || keyVaultIdRaw == nil {
 		return nil, fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}
+	keyVaultId, err := parse.VaultID(*keyVaultIdRaw)
+	if err != nil {
+		return nil, err
+	}
 
-	ok, err := azure.KeyVaultExists(ctx, keyVaultClient, *keyVaultId)
+	ok, err := keyVaultsClient.Exists(ctx, *keyVaultId)
 	if err != nil || !ok {
 		return nil, fmt.Errorf("checking if key vault %q for Certificate %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
 	}
@@ -229,16 +252,18 @@ func (KeyVaultSecretResource) Exists(ctx context.Context, clients *clients.Clien
 
 func (KeyVaultSecretResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	dataPlaneClient := client.KeyVault.ManagementClient
-	vaultClient := client.KeyVault.VaultsClient
 
 	name := state.Attributes["name"]
-	keyVaultId := state.Attributes["key_vault_id"]
-	vaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
+	keyVaultId, err := parse.VaultID(state.Attributes["key_vault_id"])
+	if err != nil {
+		return nil, err
+	}
+	vaultBaseUrl, err := client.KeyVault.BaseUriForKeyVault(ctx, *keyVaultId)
 	if err != nil {
 		return nil, fmt.Errorf("looking up Secret %q vault url from id %q: %+v", name, keyVaultId, err)
 	}
 
-	if _, err := dataPlaneClient.DeleteSecret(ctx, vaultBaseUrl, name); err != nil {
+	if _, err := dataPlaneClient.DeleteSecret(ctx, *vaultBaseUrl, name); err != nil {
 		return nil, fmt.Errorf("Bad: Delete on keyVaultManagementClient: %+v", err)
 	}
 
@@ -261,11 +286,14 @@ func (KeyVaultSecretResource) destroyParentKeyVault(ctx context.Context, client 
 func (r KeyVaultSecretResource) updateSecretValue(value string) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
 		dataPlaneClient := clients.KeyVault.ManagementClient
-		vaultClient := clients.KeyVault.VaultsClient
 
 		name := state.Attributes["name"]
-		keyVaultId := state.Attributes["key_vault_id"]
-		vaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
+		keyVaultId, err := parse.VaultID(state.Attributes["key_vault_id"])
+		if err != nil {
+			return err
+		}
+
+		vaultBaseUrl, err := clients.KeyVault.BaseUriForKeyVault(ctx, *keyVaultId)
 		if err != nil {
 			return fmt.Errorf("looking up Secret %q vault url from id %q: %+v", name, keyVaultId, err)
 		}
@@ -273,7 +301,7 @@ func (r KeyVaultSecretResource) updateSecretValue(value string) acceptance.Clien
 		updated := keyvault.SecretSetParameters{
 			Value: utils.String(value),
 		}
-		if _, err = dataPlaneClient.SetSecret(ctx, vaultBaseUrl, name, updated); err != nil {
+		if _, err = dataPlaneClient.SetSecret(ctx, *vaultBaseUrl, name, updated); err != nil {
 			return fmt.Errorf("updating secret: %+v", err)
 		}
 		return nil
@@ -367,7 +395,7 @@ resource "azurerm_key_vault_secret" "test" {
 `, r.template(data), data.RandomString)
 }
 
-func (r KeyVaultSecretResource) softDeleteRecovery(data acceptance.TestData, purge bool) string {
+func (r KeyVaultSecretResource) softDeleteRecovery(data acceptance.TestData, purge bool, value string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -382,10 +410,10 @@ provider "azurerm" {
 
 resource "azurerm_key_vault_secret" "test" {
   name         = "secret-%s"
-  value        = "rick-and-morty"
+  value        = "%s"
   key_vault_id = azurerm_key_vault.test.id
 }
-`, purge, r.template(data), data.RandomString)
+`, purge, r.template(data), data.RandomString, value)
 }
 
 func (KeyVaultSecretResource) withExternalAccessPolicy(data acceptance.TestData) string {
@@ -421,15 +449,15 @@ resource "azurerm_key_vault_access_policy" "test" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = data.azurerm_client_config.current.object_id
   key_permissions = [
-    "create",
-    "get",
+    "Create",
+    "Get",
   ]
   secret_permissions = [
-    "set",
-    "get",
-    "delete",
-    "purge",
-    "recover"
+    "Set",
+    "Get",
+    "Delete",
+    "Purge",
+    "Recover"
   ]
 }
 
@@ -462,7 +490,6 @@ resource "azurerm_key_vault" "test" {
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
-  soft_delete_enabled        = true
   soft_delete_retention_days = 7
 
   tags = {
@@ -475,15 +502,15 @@ resource "azurerm_key_vault_access_policy" "test" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = data.azurerm_client_config.current.object_id
   key_permissions = [
-    "create",
-    "get",
+    "Create",
+    "Get",
   ]
   secret_permissions = [
-    "set",
-    "get",
-    "delete",
-    "purge",
-    "recover"
+    "Set",
+    "Get",
+    "Delete",
+    "Purge",
+    "Recover"
   ]
 }
 
@@ -511,7 +538,6 @@ resource "azurerm_key_vault" "test" {
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
-  soft_delete_enabled        = true
   soft_delete_retention_days = 7
 
   access_policy {
@@ -519,15 +545,15 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
-      "get",
+      "Get",
     ]
 
     secret_permissions = [
-      "get",
-      "delete",
-      "purge",
-      "recover",
-      "set",
+      "Get",
+      "Delete",
+      "Purge",
+      "Recover",
+      "Set",
     ]
   }
 

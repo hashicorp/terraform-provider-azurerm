@@ -7,13 +7,14 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2018-06-30-preview/automation"
+	"github.com/gofrs/uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	uuid "github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -24,9 +25,8 @@ func resourceAutomationJobSchedule() *schema.Resource {
 		Read:   resourceAutomationJobScheduleRead,
 		Delete: resourceAutomationJobScheduleDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -67,17 +67,7 @@ func resourceAutomationJobSchedule() *schema.Resource {
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
-				ValidateFunc: func(v interface{}, _ string) (warnings []string, errors []error) {
-					m := v.(map[string]interface{})
-
-					for k := range m {
-						if k != strings.ToLower(k) {
-							errors = append(errors, fmt.Errorf("Due to a bug in the implementation of Runbooks in Azure, the parameter names need to be specified in lowercase only. See: \"https://github.com/Azure/azure-sdk-for-go/issues/4780\" for more information."))
-						}
-					}
-
-					return warnings, errors
-				},
+				ValidateFunc: validate.ParameterNames,
 			},
 
 			"run_on": {
@@ -109,7 +99,10 @@ func resourceAutomationJobScheduleCreate(d *schema.ResourceData, meta interface{
 	runbookName := d.Get("runbook_name").(string)
 	scheduleName := d.Get("schedule_name").(string)
 
-	jobScheduleUUID := uuid.NewV4()
+	jobScheduleUUID, err := uuid.NewV4()
+	if err != nil {
+		return err
+	}
 	if jobScheduleID, ok := d.GetOk("job_schedule_id"); ok {
 		jobScheduleUUID = uuid.FromStringOrNil(jobScheduleID.(string))
 	}

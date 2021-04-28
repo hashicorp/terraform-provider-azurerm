@@ -15,7 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iottimeseriesinsights/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iottimeseriesinsights/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -26,7 +26,7 @@ func resourceIoTTimeSeriesInsightsReferenceDataSet() *schema.Resource {
 		Read:   resourceIoTTimeSeriesInsightsReferenceDataSetRead,
 		Update: resourceIoTTimeSeriesInsightsReferenceDataSetCreateUpdate,
 		Delete: resourceIoTTimeSeriesInsightsReferenceDataSetDelete,
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ReferenceDataSetID(id)
 			return err
 		}),
@@ -59,6 +59,7 @@ func resourceIoTTimeSeriesInsightsReferenceDataSet() *schema.Resource {
 			"data_string_comparison_behavior": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ForceNew: true,
 				Default:  string(timeseriesinsights.Ordinal),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(timeseriesinsights.Ordinal),
@@ -69,16 +70,19 @@ func resourceIoTTimeSeriesInsightsReferenceDataSet() *schema.Resource {
 			"key_property": {
 				Type:     schema.TypeSet,
 				Required: true,
+				ForceNew: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
+							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"type": {
 							Type:     schema.TypeString,
 							Required: true,
+							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(timeseriesinsights.ReferenceDataKeyPropertyTypeBool),
 								string(timeseriesinsights.ReferenceDataKeyPropertyTypeDateTime),

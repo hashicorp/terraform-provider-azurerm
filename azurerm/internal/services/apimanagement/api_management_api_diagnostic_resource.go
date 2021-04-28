@@ -12,8 +12,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/validate"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -26,7 +27,7 @@ func resourceApiManagementApiDiagnostic() *schema.Resource {
 		Update: resourceApiManagementApiDiagnosticCreateUpdate,
 		Delete: resourceApiManagementApiDiagnosticDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ApiDiagnosticID(id)
 			return err
 		}),
@@ -51,9 +52,9 @@ func resourceApiManagementApiDiagnostic() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"api_management_name": azure.SchemaApiManagementName(),
+			"api_management_name": schemaz.SchemaApiManagementName(),
 
-			"api_name": azure.SchemaApiManagementApiName(),
+			"api_name": schemaz.SchemaApiManagementApiName(),
 
 			"api_management_logger_id": {
 				Type:         schema.TypeString,
@@ -114,6 +115,7 @@ func resourceApiManagementApiDiagnostic() *schema.Resource {
 }
 
 func resourceApiManagementApiDiagnosticAdditionalContentSchema() *schema.Schema {
+	//lintignore:XS003
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		MaxItems: 1,
@@ -182,29 +184,15 @@ func resourceApiManagementApiDiagnosticCreateUpdate(d *schema.ResourceData, meta
 	}
 
 	if verbosity, ok := d.GetOk("verbosity"); ok {
-		switch verbosity.(string) {
-		case string(apimanagement.Verbose):
-			parameters.Verbosity = apimanagement.Verbose
-		case string(apimanagement.Information):
-			parameters.Verbosity = apimanagement.Information
-		case string(apimanagement.Error):
-			parameters.Verbosity = apimanagement.Error
-		}
+		parameters.Verbosity = apimanagement.Verbosity(verbosity.(string))
 	}
 
-	if logClientIP, ok := d.GetOk("log_client_ip"); ok {
+	if logClientIP, exists := d.GetOkExists("log_client_ip"); exists { //nolint:SA1019
 		parameters.LogClientIP = utils.Bool(logClientIP.(bool))
 	}
 
 	if httpCorrelationProtocol, ok := d.GetOk("http_correlation_protocol"); ok {
-		switch httpCorrelationProtocol.(string) {
-		case string(apimanagement.HTTPCorrelationProtocolNone):
-			parameters.HTTPCorrelationProtocol = apimanagement.HTTPCorrelationProtocolNone
-		case string(apimanagement.HTTPCorrelationProtocolLegacy):
-			parameters.HTTPCorrelationProtocol = apimanagement.HTTPCorrelationProtocolLegacy
-		case string(apimanagement.HTTPCorrelationProtocolW3C):
-			parameters.HTTPCorrelationProtocol = apimanagement.HTTPCorrelationProtocolW3C
-		}
+		parameters.HTTPCorrelationProtocol = apimanagement.HTTPCorrelationProtocol(httpCorrelationProtocol.(string))
 	}
 
 	frontendRequest, frontendRequestSet := d.GetOk("frontend_request")
@@ -320,7 +308,7 @@ func resourceApiManagementApiDiagnosticDelete(d *schema.ResourceData, meta inter
 }
 
 func expandApiManagementApiDiagnosticHTTPMessageDiagnostic(input []interface{}) *apimanagement.HTTPMessageDiagnostic {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 

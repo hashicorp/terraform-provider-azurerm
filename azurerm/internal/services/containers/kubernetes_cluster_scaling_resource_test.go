@@ -64,7 +64,7 @@ func testAccKubernetesCluster_manualScaleIgnoreChanges(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("default_node_pool.0.node_count").HasValue("1"),
-				kubernetesClusterUpdateNodePoolCount(data.ResourceName, 2),
+				data.CheckWithClient(r.updateDefaultNodePoolAgentCount(2)),
 			),
 		},
 		{
@@ -288,15 +288,22 @@ func testAccKubernetesCluster_autoScalingProfile(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("default_node_pool.0.enable_auto_scaling").HasValue("true"),
+				check.That(data.ResourceName).Key("auto_scaler_profile.0.expander").HasValue("least-waste"),
 				check.That(data.ResourceName).Key("auto_scaler_profile.0.max_graceful_termination_sec").HasValue("15"),
+				check.That(data.ResourceName).Key("auto_scaler_profile.0.max_node_provisioning_time").HasValue("10m"),
+				check.That(data.ResourceName).Key("auto_scaler_profile.0.max_unready_percentage").HasValue("50"),
 				check.That(data.ResourceName).Key("auto_scaler_profile.0.new_pod_scale_up_delay").HasValue("10s"),
+				check.That(data.ResourceName).Key("auto_scaler_profile.0.max_unready_nodes").HasValue("5"),
 				check.That(data.ResourceName).Key("auto_scaler_profile.0.scale_down_delay_after_add").HasValue("10m"),
 				check.That(data.ResourceName).Key("auto_scaler_profile.0.scale_down_delay_after_delete").HasValue("10s"),
 				check.That(data.ResourceName).Key("auto_scaler_profile.0.scale_down_delay_after_failure").HasValue("15m"),
 				check.That(data.ResourceName).Key("auto_scaler_profile.0.scale_down_unneeded").HasValue("15m"),
 				check.That(data.ResourceName).Key("auto_scaler_profile.0.scale_down_unready").HasValue("15m"),
 				check.That(data.ResourceName).Key("auto_scaler_profile.0.scale_down_utilization_threshold").HasValue("0.5"),
+				check.That(data.ResourceName).Key("auto_scaler_profile.0.empty_bulk_delete_max").HasValue("50"),
 				check.That(data.ResourceName).Key("auto_scaler_profile.0.scan_interval").HasValue("10s"),
+				check.That(data.ResourceName).Key("auto_scaler_profile.0.skip_nodes_with_local_storage").HasValue("false"),
+				check.That(data.ResourceName).Key("auto_scaler_profile.0.skip_nodes_with_system_pods").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -545,7 +552,11 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   auto_scaler_profile {
     balance_similar_node_groups      = true
+    expander                         = "least-waste"
     max_graceful_termination_sec     = 15
+    max_node_provisioning_time       = "10m"
+    max_unready_nodes                = 5
+    max_unready_percentage           = 50
     new_pod_scale_up_delay           = "10s"
     scan_interval                    = "10s"
     scale_down_delay_after_add       = "10m"
@@ -554,6 +565,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     scale_down_unneeded              = "15m"
     scale_down_unready               = "15m"
     scale_down_utilization_threshold = "0.5"
+    empty_bulk_delete_max            = "50"
+    skip_nodes_with_local_storage    = false
+    skip_nodes_with_system_pods      = false
   }
 
   identity {

@@ -179,7 +179,7 @@ func TestAccPostgreSQLServer_complete(t *testing.T) {
 	r := PostgreSQLServerResource{}
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.complete(data, "9.6"),
+			Config: r.complete(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -228,7 +228,7 @@ func TestAccPostgreSQLServer_updated(t *testing.T) {
 		},
 		data.ImportStep("administrator_login_password"),
 		{
-			Config: r.complete(data, "9.6"),
+			Config: r.complete(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -242,7 +242,7 @@ func TestAccPostgreSQLServer_updated(t *testing.T) {
 		},
 		data.ImportStep("administrator_login_password"),
 		{
-			Config: r.gp(data, "9.6"),
+			Config: r.complete(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -263,7 +263,7 @@ func TestAccPostgreSQLServer_completeDeprecatedUpdate(t *testing.T) {
 		},
 		data.ImportStep("administrator_login_password"),
 		{
-			Config: r.complete(data, "9.6"),
+			Config: r.complete(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -312,9 +312,73 @@ func TestAccPostgreSQLServer_createReplica(t *testing.T) {
 		},
 		data.ImportStep("administrator_login_password"),
 		{
-			Config: r.createReplica(data, "11"),
+			Config: r.createReplica(data, "GP_Gen5_2"),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+	})
+}
+
+func TestAccPostgreSQLServer_updateReplicaToDefault(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "replica")
+	r := PostgreSQLServerResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.createReplica(data, "GP_Gen5_2"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateReplicaToDefault(data, "GP_Gen5_2"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("creation_source_server_id"),
+	})
+}
+
+func TestAccPostgreSQLServer_scaleReplicas(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
+	r := PostgreSQLServerResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.createReplicas(data, "GP_Gen5_2"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
+				check.That("azurerm_postgresql_server.replica1").ExistsInAzure(r),
+				check.That("azurerm_postgresql_server.replica1").Key("sku_name").HasValue("GP_Gen5_2"),
+				check.That("azurerm_postgresql_server.replica2").ExistsInAzure(r),
+				check.That("azurerm_postgresql_server.replica2").Key("sku_name").HasValue("GP_Gen5_2"),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.createReplicas(data, "GP_Gen5_4"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_4"),
+				check.That("azurerm_postgresql_server.replica1").ExistsInAzure(r),
+				check.That("azurerm_postgresql_server.replica1").Key("sku_name").HasValue("GP_Gen5_4"),
+				check.That("azurerm_postgresql_server.replica2").ExistsInAzure(r),
+				check.That("azurerm_postgresql_server.replica2").Key("sku_name").HasValue("GP_Gen5_4"),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.createReplicas(data, "GP_Gen5_2"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
+				check.That("azurerm_postgresql_server.replica1").ExistsInAzure(r),
+				check.That("azurerm_postgresql_server.replica1").Key("sku_name").HasValue("GP_Gen5_2"),
+				check.That("azurerm_postgresql_server.replica2").ExistsInAzure(r),
+				check.That("azurerm_postgresql_server.replica2").Key("sku_name").HasValue("GP_Gen5_2"),
 			),
 		},
 		data.ImportStep("administrator_login_password"),
@@ -356,6 +420,25 @@ func TestAccPostgreSQLServer_threatDetectionEmptyAttrs(t *testing.T) {
 			),
 		},
 		data.ImportStep("administrator_login_password"),
+	})
+}
+
+func TestMinTlsVersionOnServerUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
+	r := PostgreSQLServerResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.beforeUpdate(data, "9.6", "TLS1_2"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.afterUpdate(data, "9.6", "TLS1_0"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
 	})
 }
 
@@ -563,7 +646,7 @@ resource "azurerm_postgresql_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }
 
-func (PostgreSQLServerResource) complete(data acceptance.TestData, version string) string {
+func (PostgreSQLServerResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -583,7 +666,7 @@ resource "azurerm_postgresql_server" "test" {
   administrator_login_password = "H@Sh1CoR3!updated"
 
   sku_name   = "GP_Gen5_4"
-  version    = "%[3]s"
+  version    = "9.6"
   storage_mb = 640000
 
   backup_retention_days        = 7
@@ -604,7 +687,7 @@ resource "azurerm_postgresql_server" "test" {
     retention_days = 7
   }
 }
-`, data.RandomInteger, data.Locations.Primary, version)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (PostgreSQLServerResource) complete2(data acceptance.TestData, version string) string {
@@ -645,7 +728,6 @@ resource "azurerm_postgresql_server" "test" {
   infrastructure_encryption_enabled = false
   public_network_access_enabled     = true
   ssl_enforcement_enabled           = false
-  ssl_minimal_tls_version_enforced  = "TLS1_1"
 
   threat_detection_policy {
     enabled              = true
@@ -654,9 +736,6 @@ resource "azurerm_postgresql_server" "test" {
     email_addresses      = ["kt@example.com"]
 
     retention_days = 7
-
-    storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
-    storage_account_access_key = azurerm_storage_account.test.primary_access_key
   }
 }
 `, data.RandomInteger, data.Locations.Primary, version)
@@ -690,24 +769,93 @@ resource "azurerm_postgresql_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku, version)
 }
 
-func (r PostgreSQLServerResource) createReplica(data acceptance.TestData, version string) string {
+func (r PostgreSQLServerResource) createReplica(data acceptance.TestData, sku string) string {
 	return fmt.Sprintf(`
 %[1]s
 
+resource "azurerm_resource_group" "replica" {
+  name     = "acctestRG-psql-%[2]d-replica"
+  location = "%[3]s"
+}
+
 resource "azurerm_postgresql_server" "replica" {
   name                = "acctest-psql-server-%[2]d-replica"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = "%[3]s"
+  resource_group_name = azurerm_resource_group.replica.name
 
-  sku_name = "GP_Gen5_2"
-  version  = "%[3]s"
+  sku_name = "%[4]s"
+  version  = "11"
+
+  create_mode               = "Replica"
+  creation_source_server_id = azurerm_postgresql_server.test.id
+
+  public_network_access_enabled = false
+  ssl_enforcement_enabled       = true
+}
+`, r.template(data, sku, "11"), data.RandomInteger, data.Locations.Secondary, sku)
+}
+
+func (r PostgreSQLServerResource) updateReplicaToDefault(data acceptance.TestData, sku string) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_resource_group" "replica" {
+  name     = "acctestRG-psql-%[2]d-replica"
+  location = "%[3]s"
+}
+
+resource "azurerm_postgresql_server" "replica" {
+  name                = "acctest-psql-server-%[2]d-replica"
+  location            = "%[3]s"
+  resource_group_name = azurerm_resource_group.replica.name
+
+  sku_name    = "%[4]s"
+  version     = "11"
+  create_mode = "Default"
+
+  public_network_access_enabled = false
+  ssl_enforcement_enabled       = true
+}
+`, r.template(data, sku, "11"), data.RandomInteger, data.Locations.Secondary, sku)
+}
+
+func (r PostgreSQLServerResource) createReplicas(data acceptance.TestData, sku string) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_resource_group" "replica1" {
+  name     = "acctestRG-psql-%[2]d-replica1"
+  location = "%[3]s"
+}
+
+resource "azurerm_postgresql_server" "replica1" {
+  name                = "acctest-psql-server-%[2]d-replica1"
+  location            = "%[3]s"
+  resource_group_name = azurerm_resource_group.replica1.name
+
+  sku_name = "%[4]s"
+  version  = "11"
 
   create_mode               = "Replica"
   creation_source_server_id = azurerm_postgresql_server.test.id
 
   ssl_enforcement_enabled = true
 }
-`, r.basic(data, version), data.RandomInteger, version)
+
+resource "azurerm_postgresql_server" "replica2" {
+  name                = "acctest-psql-server-%[2]d-replica2"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku_name = "%[4]s"
+  version  = "11"
+
+  create_mode               = "Replica"
+  creation_source_server_id = azurerm_postgresql_server.test.id
+
+  ssl_enforcement_enabled = true
+}
+`, r.template(data, sku, "11"), data.RandomInteger, data.Locations.Secondary, sku)
 }
 
 func (r PostgreSQLServerResource) createPointInTimeRestore(data acceptance.TestData, version, restoreTime string) string {
@@ -766,4 +914,70 @@ resource "azurerm_postgresql_server" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, version)
+}
+
+func (PostgreSQLServerResource) beforeUpdate(data acceptance.TestData, version string, tlsVersion string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-psql-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_postgresql_server" "test" {
+  name                = "acctest-psql-server-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  administrator_login          = "acctestun"
+  administrator_login_password = "H@Sh1CoR3!updated"
+
+  sku_name   = "GP_Gen5_4"
+  version    = "%[3]s"
+  storage_mb = 640000
+
+  backup_retention_days = 7
+  auto_grow_enabled     = true
+
+  public_network_access_enabled    = false
+  ssl_enforcement_enabled          = true
+  ssl_minimal_tls_version_enforced = "%[4]s"
+}
+`, data.RandomInteger, data.Locations.Primary, version, tlsVersion)
+}
+
+func (PostgreSQLServerResource) afterUpdate(data acceptance.TestData, version string, tlsVersion string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-psql-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_postgresql_server" "test" {
+  name                = "acctest-psql-server-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  administrator_login          = "acctestun"
+  administrator_login_password = "H@Sh1CoR3!updated"
+
+  sku_name   = "GP_Gen5_4"
+  version    = "%[3]s"
+  storage_mb = 640000
+
+  backup_retention_days = 7
+  auto_grow_enabled     = true
+
+  ssl_enforcement_enabled          = true
+  ssl_minimal_tls_version_enforced = "%[4]s"
+
+}
+`, data.RandomInteger, data.Locations.Primary, version, tlsVersion)
 }

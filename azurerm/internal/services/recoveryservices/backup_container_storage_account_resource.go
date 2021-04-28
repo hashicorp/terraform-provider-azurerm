@@ -6,6 +6,9 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/recoveryservices/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2019-05-13/backup"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -22,9 +25,8 @@ func resourceBackupProtectionContainerStorageAccount() *schema.Resource {
 		Read:   resourceBackupProtectionContainerStorageAccountRead,
 		Update: nil,
 		Delete: resourceBackupProtectionContainerStorageAccountDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -40,7 +42,7 @@ func resourceBackupProtectionContainerStorageAccount() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateRecoveryServicesVaultName,
+				ValidateFunc: validate.RecoveryServicesVaultName,
 			},
 			"storage_account_id": {
 				Type:         schema.TypeString,
@@ -82,7 +84,7 @@ func resourceBackupProtectionContainerStorageAccountCreate(d *schema.ResourceDat
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_backup_protection_container_storage", azure.HandleAzureSdkForGoBug2824(*existing.ID))
+			return tf.ImportAsExistsError("azurerm_backup_protection_container_storage", handleAzureSdkForGoBug2824(*existing.ID))
 		}
 	}
 
@@ -105,7 +107,7 @@ func resourceBackupProtectionContainerStorageAccountCreate(d *schema.ResourceDat
 		return fmt.Errorf("Unable to determine operation URL for protection container registration status for %s. (Vault %s): Location header missing or empty", containerName, vaultName)
 	}
 
-	opResourceID := azure.HandleAzureSdkForGoBug2824(locationURL.Path)
+	opResourceID := handleAzureSdkForGoBug2824(locationURL.Path)
 
 	parsedLocation, err := azure.ParseAzureResourceID(opResourceID)
 	if err != nil {
@@ -122,7 +124,7 @@ func resourceBackupProtectionContainerStorageAccountCreate(d *schema.ResourceDat
 		return fmt.Errorf("Error retrieving site recovery protection container %s (Vault %s): %+v", containerName, vaultName, err)
 	}
 
-	d.SetId(azure.HandleAzureSdkForGoBug2824(*resp.ID))
+	d.SetId(handleAzureSdkForGoBug2824(*resp.ID))
 
 	return resourceBackupProtectionContainerStorageAccountRead(d, meta)
 }
@@ -187,7 +189,7 @@ func resourceBackupProtectionContainerStorageAccountDelete(d *schema.ResourceDat
 		return fmt.Errorf("Error unregistering backup protection container %s (Vault %s): Location header missing or empty", containerName, vaultName)
 	}
 
-	opResourceID := azure.HandleAzureSdkForGoBug2824(locationURL.Path)
+	opResourceID := handleAzureSdkForGoBug2824(locationURL.Path)
 
 	parsedLocation, err := azure.ParseAzureResourceID(opResourceID)
 	if err != nil {

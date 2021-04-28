@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -23,7 +22,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub/parse"
 	iothubValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -60,7 +60,7 @@ func resourceIotHub() *schema.Resource {
 		Update: resourceIotHubCreateUpdate,
 		Delete: resourceIotHubDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.IotHubID(id)
 			return err
 		}),
@@ -290,7 +290,7 @@ func resourceIotHub() *schema.Resource {
 						"file_name_format": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validateIoTHubFileNameFormat,
+							ValidateFunc: iothubValidate.FileNameFormat,
 						},
 
 						"resource_group_name": azure.SchemaResourceGroupNameOptional(),
@@ -424,7 +424,7 @@ func resourceIotHub() *schema.Resource {
 			},
 
 			"ip_filter_rule": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -530,8 +530,7 @@ func resourceIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	if !*res.NameAvailable {
-		_, err = client.Get(ctx, resourceGroup, name)
-		if err != nil {
+		if _, err = client.Get(ctx, resourceGroup, name); err != nil {
 			return fmt.Errorf("An IoTHub already exists with the name %q - please choose an alternate name: %s", name, string(res.Reason))
 		}
 	}
@@ -602,12 +601,22 @@ func resourceIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) error 
 		props.Properties.MinTLSVersion = utils.String(v.(string))
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, props, "")
-	if err != nil {
+	if _, err = client.CreateOrUpdate(ctx, resourceGroup, name, props, ""); err != nil {
 		return fmt.Errorf("Error creating/updating IotHub %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+	timeout := schema.TimeoutUpdate
+	if d.IsNewResource() {
+		timeout = schema.TimeoutCreate
+	}
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{"Activating", "Transitioning"},
+		Target:  []string{"Succeeded"},
+		Refresh: iothubStateRefreshFunc(ctx, client, resourceGroup, name),
+		Timeout: d.Timeout(timeout),
+	}
+
+	if _, err := stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("Error waiting for the completion of the creating/updating of IotHub %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -642,16 +651,13 @@ func resourceIotHubRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("retrieving IotHub Client %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	keysResp, err := client.ListKeys(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		return fmt.Errorf("listing keys for IoTHub %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-	}
+	if keysResp, err := client.ListKeys(ctx, id.ResourceGroup, id.Name); err == nil {
+		keyList := keysResp.Response()
+		keys := flattenIoTHubSharedAccessPolicy(keyList.Value)
 
-	keyList := keysResp.Response()
-	keys := flattenIoTHubSharedAccessPolicy(keyList.Value)
-
-	if err := d.Set("shared_access_policy", keys); err != nil {
-		return fmt.Errorf("setting `shared_access_policy` in IoTHub %q: %+v", id.Name, err)
+		if err := d.Set("shared_access_policy", keys); err != nil {
+			return fmt.Errorf("setting `shared_access_policy` in IoTHub %q: %+v", id.Name, err)
+		}
 	}
 
 	if properties := hub.Properties; properties != nil {
@@ -736,6 +742,20 @@ func resourceIotHubDelete(d *schema.ResourceData, meta interface{}) error {
 	locks.ByName(id.Name, IothubResourceName)
 	defer locks.UnlockByName(id.Name, IothubResourceName)
 
+	// when running acctest of `azurerm_iot_security_solution`, we found after delete the iot security solution, the iothub provisionState is `Transitioning`
+	// if we delete directly, the func `client.Delete` will throw error
+	// so first wait for the iotHub state become succeed
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{"Activating", "Transitioning"},
+		Target:  []string{"Succeeded"},
+		Refresh: iothubStateRefreshFunc(ctx, client, id.ResourceGroup, id.Name),
+		Timeout: d.Timeout(schema.TimeoutDelete),
+	}
+
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("waiting for ProvisioningState of IotHub %q (Resource Group %q) to become `Succeeded`: %+v", id.Name, id.ResourceGroup, err)
+	}
+
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
@@ -762,6 +782,27 @@ func waitForIotHubToBeDeleted(ctx context.Context, client *devices.IotHubResourc
 	}
 
 	return nil
+}
+
+func iothubStateRefreshFunc(ctx context.Context, client *devices.IotHubResourceClient, resourceGroup, name string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, resourceGroup, name)
+
+		log.Printf("Retrieving IoTHub %q (Resource Group %q) returned Status %d", resourceGroup, name, res.StatusCode)
+
+		if err != nil {
+			if utils.ResponseWasNotFound(res.Response) {
+				return res, "NotFound", nil
+			}
+			return nil, "", fmt.Errorf("polling for the Provisioning State of the IotHub %q (RG: %q): %+v", name, resourceGroup, err)
+		}
+
+		if res.Properties == nil || res.Properties.ProvisioningState == nil {
+			return res, "", fmt.Errorf("polling for the Provisioning State of the IotHub %q (RG: %q): %+v", name, resourceGroup, err)
+		}
+
+		return res, *res.Properties.ProvisioningState, nil
+	}
 }
 
 func iothubStateStatusCodeRefreshFunc(ctx context.Context, client *devices.IotHubResourceClient, resourceGroup, name string) resource.StateRefreshFunc {
@@ -1222,30 +1263,8 @@ func flattenIoTHubFallbackRoute(input *devices.RoutingProperties) []interface{} 
 	return []interface{}{output}
 }
 
-func validateIoTHubFileNameFormat(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-
-	requiredComponents := []string{
-		"{iothub}",
-		"{partition}",
-		"{YYYY}",
-		"{MM}",
-		"{DD}",
-		"{HH}",
-		"{mm}",
-	}
-
-	for _, component := range requiredComponents {
-		if !strings.Contains(value, component) {
-			errors = append(errors, fmt.Errorf("%s needs to contain %q", k, component))
-		}
-	}
-
-	return warnings, errors
-}
-
 func expandIPFilterRules(d *schema.ResourceData) *[]devices.IPFilterRule {
-	ipFilterRuleList := d.Get("ip_filter_rule").(*schema.Set).List()
+	ipFilterRuleList := d.Get("ip_filter_rule").([]interface{})
 	if len(ipFilterRuleList) == 0 {
 		return nil
 	}

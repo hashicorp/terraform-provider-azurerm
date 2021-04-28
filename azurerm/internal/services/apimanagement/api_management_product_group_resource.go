@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -20,9 +22,8 @@ func resourceApiManagementProductGroup() *schema.Resource {
 		Create: resourceApiManagementProductGroupCreate,
 		Read:   resourceApiManagementProductGroupRead,
 		Delete: resourceApiManagementProductGroupDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -32,13 +33,13 @@ func resourceApiManagementProductGroup() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"product_id": azure.SchemaApiManagementChildName(),
+			"product_id": schemaz.SchemaApiManagementChildName(),
 
-			"group_name": azure.SchemaApiManagementChildName(),
+			"group_name": schemaz.SchemaApiManagementChildName(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"api_management_name": azure.SchemaApiManagementName(),
+			"api_management_name": schemaz.SchemaApiManagementName(),
 		},
 	}
 }

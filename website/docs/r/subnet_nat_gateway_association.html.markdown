@@ -15,7 +15,7 @@ Associates a [NAT Gateway](nat_gateway.html) with a [Subnet](subnet.html) within
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-nat-gateway-rg"
-  location = "East US 2"
+  location = "West Europe"
 }
 
 resource "azurerm_virtual_network" "example" {

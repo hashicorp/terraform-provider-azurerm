@@ -33,7 +33,7 @@ output "public_ip_address" {
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "test-resources"
-  location = "West US 2"
+  location = "West Europe"
 }
 
 resource "azurerm_virtual_network" "example" {
@@ -108,6 +108,7 @@ output "public_ip_address" {
 * `ip_address` - The IP address value that was allocated.
 * `ip_version` - The IP version being used, for example `IPv4` or `IPv6`.
 * `sku` - The SKU of the Public IP.
+* `ip_tags` - A mapping of tags to assigned to the resource.
 * `tags` - A mapping of tags to assigned to the resource.
 
 ## Timeouts

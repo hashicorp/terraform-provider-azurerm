@@ -102,7 +102,7 @@ func TestAccApiManagementApiVersionSet_update(t *testing.T) {
 	})
 }
 
-func (t ApiManagementApiVersionSetResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (ApiManagementApiVersionSetResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.ApiVersionSetID(state.ID)
 	if err != nil {
 		return nil, err

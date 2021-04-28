@@ -1,19 +1,19 @@
 package azure
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
-func SchemaLocation() *schema.Schema {
+func SchemaLocation() *pluginsdk.Schema {
 	return location.Schema()
 }
 
-func SchemaLocationOptional() *schema.Schema {
+func SchemaLocationOptional() *pluginsdk.Schema {
 	return location.SchemaOptional()
 }
 
-func SchemaLocationForDataSource() *schema.Schema {
+func SchemaLocationForDataSource() *pluginsdk.Schema {
 	return location.SchemaComputed()
 }
 

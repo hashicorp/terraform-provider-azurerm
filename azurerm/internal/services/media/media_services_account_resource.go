@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -35,7 +35,7 @@ func resourceMediaServicesAccount() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.MediaServiceID(id)
 			return err
 		}),
@@ -75,6 +75,7 @@ func resourceMediaServicesAccount() *schema.Resource {
 				},
 			},
 
+			//lintignore:XS003
 			"identity": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -97,7 +98,7 @@ func resourceMediaServicesAccount() *schema.Resource {
 							Optional:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
-								"SystemAssigned",
+								string(media.ManagedIdentityTypeSystemAssigned),
 							}, true),
 						},
 					},
@@ -109,7 +110,8 @@ func resourceMediaServicesAccount() *schema.Resource {
 				Optional: true,
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					"ManagedIdentity",
+					string(media.StorageAuthenticationSystem),
+					string(media.StorageAuthenticationManagedIdentity),
 				}, true),
 			},
 
@@ -287,6 +289,9 @@ func flattenMediaServicesAccountStorageAccounts(input *[]media.StorageAccount) [
 
 func expandAzureRmMediaServiceIdentity(d *schema.ResourceData) *media.ServiceIdentity {
 	identities := d.Get("identity").([]interface{})
+	if identities[0] == nil {
+		return nil
+	}
 	identity := identities[0].(map[string]interface{})
 	identityType := identity["type"].(string)
 	return &media.ServiceIdentity{

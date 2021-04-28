@@ -67,6 +67,9 @@ func TestAccLinuxVirtualMachineScaleSet_imagesFromCapturedVirtualMachineImage(t 
 			Config: r.imagesFromVirtualMachine(data, "second"),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				// Ensure the storage account and disk size has not changed
+				check.That(data.ResourceName).Key("os_disk.0.storage_account_type").HasValue("Standard_LRS"),
+				check.That(data.ResourceName).Key("os_disk.0.disk_size_gb").HasValue("50"),
 			),
 		},
 		data.ImportStep(
@@ -314,6 +317,7 @@ resource "azurerm_storage_account" "test" {
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
+  allow_blob_public_access = true
 }
 
 resource "azurerm_storage_container" "test" {
@@ -418,6 +422,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   os_disk {
     storage_account_type = "Standard_LRS"
     caching              = "None"
+    disk_size_gb         = 50
   }
 
   network_interface {

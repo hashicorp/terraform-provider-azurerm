@@ -1,23 +1,23 @@
 package compute
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
-	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -29,7 +29,7 @@ func resourceSharedImageVersion() *schema.Resource {
 		Update: resourceSharedImageVersionCreateUpdate,
 		Delete: resourceSharedImageVersionDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.SharedImageVersionID(id)
 			return err
 		}),
@@ -46,21 +46,21 @@ func resourceSharedImageVersion() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azValidate.SharedImageVersionName,
+				ValidateFunc: validate.SharedImageVersionName,
 			},
 
 			"gallery_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azValidate.SharedImageGalleryName,
+				ValidateFunc: validate.SharedImageGalleryName,
 			},
 
 			"image_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azValidate.SharedImageName,
+				ValidateFunc: validate.SharedImageName,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -265,20 +265,48 @@ func resourceSharedImageVersionDelete(d *schema.ResourceData, meta interface{}) 
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.GalleryName, id.ImageName, id.VersionName)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
-
-		return fmt.Errorf("Error deleting Shared Image Version %q (Image %q / Gallery %q / Resource Group %q): %+v", id.VersionName, id.ImageName, id.GalleryName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error deleting Shared Image Version %q (Image %q / Gallery %q / Resource Group %q): %+v", id.VersionName, id.ImageName, id.GalleryName, id.ResourceGroup, err)
-		}
+		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
+	}
+
+	// @tombuildsstuff: there appears to be an eventual consistency issue here
+	timeout, _ := ctx.Deadline()
+	log.Printf("[DEBUG] Waiting for %s to be eventually deleted", *id)
+	stateConf := &resource.StateChangeConf{
+		Pending:                   []string{"Exists"},
+		Target:                    []string{"NotFound"},
+		Refresh:                   sharedImageVersionDeleteStateRefreshFunc(ctx, client, *id),
+		MinTimeout:                10 * time.Second,
+		ContinuousTargetOccurence: 10,
+		Timeout:                   time.Until(timeout),
+	}
+
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("waiting for %s to be deleted: %+v", *id, err)
 	}
 
 	return nil
+}
+
+func sharedImageVersionDeleteStateRefreshFunc(ctx context.Context, client *compute.GalleryImageVersionsClient, id parse.SharedImageVersionId) resource.StateRefreshFunc {
+	// Whilst the Shared Image Version is deleted quickly, it appears it's not actually finished replicating at this time
+	// so the deletion of the parent Shared Image fails with "can not delete until nested resources are deleted"
+	// ergo we need to poll on this for a bit
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, id.ResourceGroup, id.GalleryName, id.ImageName, id.VersionName, "")
+		if err != nil {
+			if utils.ResponseWasNotFound(res.Response) {
+				return "NotFound", "NotFound", nil
+			}
+
+			return nil, "", fmt.Errorf("failed to poll to check if the Shared Image Version has been deleted: %+v", err)
+		}
+
+		return res, "Exists", nil
+	}
 }
 
 func expandSharedImageVersionTargetRegions(d *schema.ResourceData) *[]compute.TargetRegion {

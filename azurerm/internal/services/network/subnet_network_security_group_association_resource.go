@@ -11,6 +11,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -20,9 +22,8 @@ func resourceSubnetNetworkSecurityGroupAssociation() *schema.Resource {
 		Create: resourceSubnetNetworkSecurityGroupAssociationCreate,
 		Read:   resourceSubnetNetworkSecurityGroupAssociationRead,
 		Delete: resourceSubnetNetworkSecurityGroupAssociationDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -64,7 +65,7 @@ func resourceSubnetNetworkSecurityGroupAssociationCreate(d *schema.ResourceData,
 		return err
 	}
 
-	parsedNetworkSecurityGroupId, err := ParseNetworkSecurityGroupID(networkSecurityGroupId)
+	parsedNetworkSecurityGroupId, err := parse.NetworkSecurityGroupID(networkSecurityGroupId)
 	if err != nil {
 		return err
 	}
@@ -199,7 +200,7 @@ func resourceSubnetNetworkSecurityGroupAssociationDelete(d *schema.ResourceData,
 	}
 
 	// once we have the network security group id to lock on, lock on that
-	parsedNetworkSecurityGroupId, err := ParseNetworkSecurityGroupID(*props.NetworkSecurityGroup.ID)
+	parsedNetworkSecurityGroupId, err := parse.NetworkSecurityGroupID(*props.NetworkSecurityGroup.ID)
 	if err != nil {
 		return err
 	}

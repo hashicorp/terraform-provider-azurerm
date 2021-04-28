@@ -6,18 +6,17 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-12-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-02-01/containerservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	computeValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/parse"
 	containerValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -29,7 +28,7 @@ func resourceKubernetesClusterNodePool() *schema.Resource {
 		Update: resourceKubernetesClusterNodePoolUpdate,
 		Delete: resourceKubernetesClusterNodePoolDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.NodePoolID(id)
 			return err
 		}),
@@ -46,7 +45,7 @@ func resourceKubernetesClusterNodePool() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.KubernetesAgentPoolName,
+				ValidateFunc: containerValidate.KubernetesAgentPoolName,
 			},
 
 			"kubernetes_cluster_id": {
@@ -85,6 +84,12 @@ func resourceKubernetesClusterNodePool() *schema.Resource {
 			"enable_auto_scaling": {
 				Type:     schema.TypeBool,
 				Optional: true,
+			},
+
+			"enable_host_encryption": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				ForceNew: true,
 			},
 
 			"enable_node_public_ip": {
@@ -219,6 +224,8 @@ func resourceKubernetesClusterNodePool() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
+
+			"upgrade_settings": upgradeSettingsSchema(),
 		},
 	}
 }
@@ -285,16 +292,19 @@ func resourceKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta interf
 	spotMaxPrice := d.Get("spot_max_price").(float64)
 	t := d.Get("tags").(map[string]interface{})
 	vmSize := d.Get("vm_size").(string)
+	enableHostEncryption := d.Get("enable_host_encryption").(bool)
 
 	profile := containerservice.ManagedClusterAgentPoolProfileProperties{
-		OsType:             containerservice.OSType(osType),
-		EnableAutoScaling:  utils.Bool(enableAutoScaling),
-		EnableNodePublicIP: utils.Bool(d.Get("enable_node_public_ip").(bool)),
-		Mode:               mode,
-		ScaleSetPriority:   containerservice.ScaleSetPriority(priority),
-		Tags:               tags.Expand(t),
-		Type:               containerservice.VirtualMachineScaleSets,
-		VMSize:             containerservice.VMSizeTypes(vmSize),
+		OsType:                 containerservice.OSType(osType),
+		EnableAutoScaling:      utils.Bool(enableAutoScaling),
+		EnableNodePublicIP:     utils.Bool(d.Get("enable_node_public_ip").(bool)),
+		Mode:                   mode,
+		ScaleSetPriority:       containerservice.ScaleSetPriority(priority),
+		Tags:                   tags.Expand(t),
+		Type:                   containerservice.VirtualMachineScaleSets,
+		VMSize:                 containerservice.VMSizeTypes(vmSize),
+		EnableEncryptionAtHost: utils.Bool(enableHostEncryption),
+		UpgradeSettings:        expandUpgradeSettings(d.Get("upgrade_settings").([]interface{})),
 
 		// this must always be sent during creation, but is optional for auto-scaled clusters during update
 		Count: utils.Int32(int32(count)),
@@ -462,6 +472,10 @@ func resourceKubernetesClusterNodePoolUpdate(d *schema.ResourceData, meta interf
 		props.EnableAutoScaling = utils.Bool(enableAutoScaling)
 	}
 
+	if d.HasChange("enable_host_encryption") {
+		props.EnableEncryptionAtHost = utils.Bool(d.Get("enable_host_encryption").(bool))
+	}
+
 	if d.HasChange("enable_node_public_ip") {
 		props.EnableNodePublicIP = utils.Bool(d.Get("enable_node_public_ip").(bool))
 	}
@@ -504,6 +518,11 @@ func resourceKubernetesClusterNodePoolUpdate(d *schema.ResourceData, meta interf
 	if d.HasChange("tags") {
 		t := d.Get("tags").(map[string]interface{})
 		props.Tags = tags.Expand(t)
+	}
+
+	if d.HasChange("upgrade_settings") {
+		upgradeSettingsRaw := d.Get("upgrade_settings").([]interface{})
+		props.UpgradeSettings = expandUpgradeSettings(upgradeSettingsRaw)
 	}
 
 	// validate the auto-scale fields are both set/unset to prevent a continual diff
@@ -593,6 +612,7 @@ func resourceKubernetesClusterNodePoolRead(d *schema.ResourceData, meta interfac
 
 		d.Set("enable_auto_scaling", props.EnableAutoScaling)
 		d.Set("enable_node_public_ip", props.EnableNodePublicIP)
+		d.Set("enable_host_encryption", props.EnableEncryptionAtHost)
 
 		evictionPolicy := ""
 		if props.ScaleSetEvictionPolicy != "" {
@@ -669,6 +689,10 @@ func resourceKubernetesClusterNodePoolRead(d *schema.ResourceData, meta interfac
 
 		d.Set("vnet_subnet_id", props.VnetSubnetID)
 		d.Set("vm_size", string(props.VMSize))
+
+		if err := d.Set("upgrade_settings", flattenUpgradeSettings(props.UpgradeSettings)); err != nil {
+			return fmt.Errorf("setting `upgrade_settings`: %+v", err)
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -694,4 +718,65 @@ func resourceKubernetesClusterNodePoolDelete(d *schema.ResourceData, meta interf
 	}
 
 	return nil
+}
+
+func upgradeSettingsSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"max_surge": {
+					Type:     schema.TypeString,
+					Required: true,
+				},
+			},
+		},
+	}
+}
+
+func upgradeSettingsForDataSourceSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Computed: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"max_surge": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+			},
+		},
+	}
+}
+
+func expandUpgradeSettings(input []interface{}) *containerservice.AgentPoolUpgradeSettings {
+	setting := &containerservice.AgentPoolUpgradeSettings{}
+	if len(input) == 0 {
+		return setting
+	}
+
+	v := input[0].(map[string]interface{})
+	if maxSurgeRaw := v["max_surge"].(string); maxSurgeRaw != "" {
+		setting.MaxSurge = utils.String(maxSurgeRaw)
+	}
+	return setting
+}
+
+func flattenUpgradeSettings(input *containerservice.AgentPoolUpgradeSettings) []interface{} {
+	maxSurge := ""
+	if input != nil && input.MaxSurge != nil {
+		maxSurge = *input.MaxSurge
+	}
+
+	if maxSurge == "" {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"max_surge": maxSurge,
+		},
+	}
 }

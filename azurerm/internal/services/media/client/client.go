@@ -13,6 +13,9 @@ type Client struct {
 	JobsClient               *media.JobsClient
 	StreamingLocatorsClient  *media.StreamingLocatorsClient
 	ContentKeyPoliciesClient *media.ContentKeyPoliciesClient
+	StreamingPoliciesClient  *media.StreamingPoliciesClient
+	LiveEventsClient         *media.LiveEventsClient
+	LiveOutputsClient        *media.LiveOutputsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -37,6 +40,15 @@ func NewClient(o *common.ClientOptions) *Client {
 	ContentKeyPoliciesClient := media.NewContentKeyPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ContentKeyPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
+	StreamingPoliciesClient := media.NewStreamingPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&StreamingPoliciesClient.Client, o.ResourceManagerAuthorizer)
+
+	LiveEventsClient := media.NewLiveEventsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&LiveEventsClient.Client, o.ResourceManagerAuthorizer)
+
+	LiveOutputsClient := media.NewLiveOutputsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&LiveOutputsClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		ServicesClient:           &ServicesClient,
 		AssetsClient:             &AssetsClient,
@@ -45,5 +57,8 @@ func NewClient(o *common.ClientOptions) *Client {
 		JobsClient:               &JobsClient,
 		StreamingLocatorsClient:  &StreamingLocatorsClient,
 		ContentKeyPoliciesClient: &ContentKeyPoliciesClient,
+		StreamingPoliciesClient:  &StreamingPoliciesClient,
+		LiveEventsClient:         &LiveEventsClient,
+		LiveOutputsClient:        &LiveOutputsClient,
 	}
 }

@@ -159,26 +159,16 @@ func TestAccAppServiceSlot_connectionStrings(t *testing.T) {
 			Config: r.connectionStrings(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("connection_string.3173438943.name").HasValue("First"),
-				check.That(data.ResourceName).Key("connection_string.3173438943.value").HasValue("first-connection-string"),
-				check.That(data.ResourceName).Key("connection_string.3173438943.type").HasValue("Custom"),
-				check.That(data.ResourceName).Key("connection_string.2442860602.name").HasValue("Second"),
-				check.That(data.ResourceName).Key("connection_string.2442860602.value").HasValue("some-postgresql-connection-string"),
-				check.That(data.ResourceName).Key("connection_string.2442860602.type").HasValue("PostgreSQL"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.connectionStringsUpdated(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("connection_string.3173438943.name").HasValue("First"),
-				check.That(data.ResourceName).Key("connection_string.3173438943.value").HasValue("first-connection-string"),
-				check.That(data.ResourceName).Key("connection_string.3173438943.type").HasValue("Custom"),
-				check.That(data.ResourceName).Key("connection_string.2442860602.name").HasValue("Second"),
-				check.That(data.ResourceName).Key("connection_string.2442860602.value").HasValue("some-postgresql-connection-string"),
-				check.That(data.ResourceName).Key("connection_string.2442860602.type").HasValue("PostgreSQL"),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -1078,6 +1068,23 @@ func TestAccAppServiceSlot_applicationBlobStorageLogs(t *testing.T) {
 	})
 }
 
+func TestAccAppServiceSlot_emptyApplicationLogs(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	r := AppServiceSlotResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.emptyApplicationLogs(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("logs.0.application_logs.0.file_system_level").HasValue("Off"),
+				check.That(data.ResourceName).Key("logs.0.application_logs.0.azure_blob_storage.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccAppServiceSlot_httpFileSystemLogs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
@@ -1106,6 +1113,23 @@ func TestAccAppServiceSlot_httpBlobStorageLogs(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("logs.0.http_logs.0.azure_blob_storage.0.sas_url").HasValue("https://example.com/"),
 				check.That(data.ResourceName).Key("logs.0.http_logs.0.azure_blob_storage.0.retention_in_days").HasValue("3"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAppServiceSlot_emptyHttpBlobStorageLogs(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	r := AppServiceSlotResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.emptyHttpBlobStorageLogs(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("logs.0.http_logs.0.azure_blob_storage.#").HasValue("0"),
+				check.That(data.ResourceName).Key("logs.0.http_logs.0.file_system.#").HasValue("0"),
 			),
 		},
 		data.ImportStep(),
@@ -3491,6 +3515,50 @@ resource "azurerm_app_service_slot" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
+func (r AppServiceSlotResource) emptyApplicationLogs(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+}
+
+resource "azurerm_app_service_slot" "test" {
+  name                = "acctestASSlot-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
+
+  logs {
+    application_logs {
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
 func (r AppServiceSlotResource) httpBlobStorageLogs(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3533,6 +3601,50 @@ resource "azurerm_app_service_slot" "test" {
         sas_url           = "https://example.com/"
         retention_in_days = 3
       }
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (r AppServiceSlotResource) emptyHttpBlobStorageLogs(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+}
+
+resource "azurerm_app_service_slot" "test" {
+  name                = "acctestASSlot-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
+
+  logs {
+    http_logs {
     }
   }
 }

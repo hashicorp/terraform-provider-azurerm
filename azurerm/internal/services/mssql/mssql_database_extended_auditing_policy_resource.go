@@ -13,7 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/validate"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -25,7 +25,7 @@ func resourceMsSqlDatabaseExtendedAuditingPolicy() *schema.Resource {
 		Update: resourceMsSqlDatabaseExtendedAuditingPolicyCreateUpdate,
 		Delete: resourceMsSqlDatabaseExtendedAuditingPolicyDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.DatabaseExtendedAuditingPolicyID(id)
 			return err
 		}),
@@ -47,7 +47,7 @@ func resourceMsSqlDatabaseExtendedAuditingPolicy() *schema.Resource {
 
 			"storage_endpoint": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: validation.IsURLWithHTTPS,
 			},
 
@@ -69,6 +69,12 @@ func resourceMsSqlDatabaseExtendedAuditingPolicy() *schema.Resource {
 				Optional:     true,
 				Default:      0,
 				ValidateFunc: validation.IntBetween(0, 3285),
+			},
+
+			"log_monitoring_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
 			},
 		},
 	}
@@ -102,14 +108,11 @@ func resourceMsSqlDatabaseExtendedAuditingPolicyCreateUpdate(d *schema.ResourceD
 
 	params := sql.ExtendedDatabaseBlobAuditingPolicy{
 		ExtendedDatabaseBlobAuditingPolicyProperties: &sql.ExtendedDatabaseBlobAuditingPolicyProperties{
-			State:                      sql.BlobAuditingPolicyStateEnabled,
-			StorageEndpoint:            utils.String(d.Get("storage_endpoint").(string)),
-			IsStorageSecondaryKeyInUse: utils.Bool(d.Get("storage_account_access_key_is_secondary").(bool)),
-			RetentionDays:              utils.Int32(int32(d.Get("retention_in_days").(int))),
-
-			// NOTE: this works around a regression in the Azure API detailed here:
-			// https://github.com/Azure/azure-rest-api-specs/issues/11271
-			IsAzureMonitorTargetEnabled: utils.Bool(true),
+			State:                       sql.BlobAuditingPolicyStateEnabled,
+			StorageEndpoint:             utils.String(d.Get("storage_endpoint").(string)),
+			IsStorageSecondaryKeyInUse:  utils.Bool(d.Get("storage_account_access_key_is_secondary").(bool)),
+			RetentionDays:               utils.Int32(int32(d.Get("retention_in_days").(int))),
+			IsAzureMonitorTargetEnabled: utils.Bool(d.Get("log_monitoring_enabled").(bool)),
 		},
 	}
 
@@ -166,6 +169,7 @@ func resourceMsSqlDatabaseExtendedAuditingPolicyRead(d *schema.ResourceData, met
 		d.Set("storage_endpoint", props.StorageEndpoint)
 		d.Set("storage_account_access_key_is_secondary", props.IsStorageSecondaryKeyInUse)
 		d.Set("retention_in_days", props.RetentionDays)
+		d.Set("log_monitoring_enabled", props.IsAzureMonitorTargetEnabled)
 	}
 
 	return nil
@@ -184,10 +188,6 @@ func resourceMsSqlDatabaseExtendedAuditingPolicyDelete(d *schema.ResourceData, m
 	params := sql.ExtendedDatabaseBlobAuditingPolicy{
 		ExtendedDatabaseBlobAuditingPolicyProperties: &sql.ExtendedDatabaseBlobAuditingPolicyProperties{
 			State: sql.BlobAuditingPolicyStateDisabled,
-
-			// NOTE: this works around a regression in the Azure API detailed here:
-			// https://github.com/Azure/azure-rest-api-specs/issues/11271
-			IsAzureMonitorTargetEnabled: utils.Bool(true),
 		},
 	}
 
