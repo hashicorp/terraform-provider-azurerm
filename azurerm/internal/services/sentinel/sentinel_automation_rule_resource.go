@@ -3,6 +3,7 @@ package sentinel
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/gofrs/uuid"
@@ -188,9 +189,10 @@ func resourceSentinelAutomationRule() *schema.Resource {
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(securityinsight.IncidentClassificationUndetermined),
-								string(securityinsight.IncidentClassificationBenignPositive),
-								string(securityinsight.IncidentClassificationFalsePositive),
-								string(securityinsight.IncidentClassificationTruePositive),
+								string(securityinsight.IncidentClassificationBenignPositive) + "_" + string(securityinsight.SuspiciousButExpected),
+								string(securityinsight.IncidentClassificationFalsePositive) + "_" + string(securityinsight.IncorrectAlertLogic),
+								string(securityinsight.IncidentClassificationFalsePositive) + "_" + string(securityinsight.InaccurateData),
+								string(securityinsight.IncidentClassificationTruePositive) + "_" + string(securityinsight.SuspiciousActivity),
 							}, false),
 						},
 
@@ -198,17 +200,6 @@ func resourceSentinelAutomationRule() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"classification_reason": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(securityinsight.InaccurateData),
-								string(securityinsight.IncorrectAlertLogic),
-								string(securityinsight.SuspiciousActivity),
-								string(securityinsight.SuspiciousButExpected),
-							}, false),
 						},
 
 						"labels": {
@@ -492,6 +483,27 @@ func expandAutomationRuleActionIncident(input []interface{}) ([]securityinsight.
 	for _, b := range input {
 		b := b.(map[string]interface{})
 
+		status := securityinsight.IncidentStatus(b["status"].(string))
+		l := strings.Split(b["classification"].(string), "_")
+		classification, clr := l[0], ""
+		if len(l) == 2 {
+			clr = l[1]
+		}
+		classificationComment := b["classification_comment"].(string)
+
+		// sanity check on classification
+		if status == securityinsight.IncidentStatusClosed && classification == "" {
+			return nil, fmt.Errorf("`classification` is required when `status` is set to `Closed`")
+		}
+		if status != securityinsight.IncidentStatusClosed {
+			if classification != "" {
+				return nil, fmt.Errorf("`classification` can't be set when `status` is not set to `Closed`")
+			}
+			if classificationComment != "" {
+				return nil, fmt.Errorf("`classification_comment` can't be set when `status` is not set to `Closed`")
+			}
+		}
+
 		var labelsPtr *[]securityinsight.IncidentLabel
 		if labelStrsPtr := utils.ExpandStringSlice(b["labels"].([]interface{})); labelStrsPtr != nil && len(*labelStrsPtr) > 0 {
 			labels := make([]securityinsight.IncidentLabel, 0, len(*labelStrsPtr))
@@ -514,17 +526,24 @@ func expandAutomationRuleActionIncident(input []interface{}) ([]securityinsight.
 			}
 		}
 
+		severity := b["severity"].(string)
+
+		// sanity check on the whole incident action
+		if severity == "" && ownerPtr == nil && labelsPtr == nil && status == "" {
+			return nil, fmt.Errorf("at least one of `severity`, `owner_id`, `labels` or `status` should be specified")
+		}
+
 		out = append(out, securityinsight.AutomationRuleModifyPropertiesAction{
 			ActionType: securityinsight.ActionTypeModifyProperties,
 			Order:      utils.Int32(int32(b["order"].(int))),
 			ActionConfiguration: &securityinsight.AutomationRuleModifyPropertiesActionActionConfiguration{
-				Status:                securityinsight.IncidentStatus(b["status"].(string)),
-				Classification:        securityinsight.IncidentClassification(b["classification"].(string)),
-				ClassificationComment: utils.String(b["classification_comment"].(string)),
-				ClassificationReason:  securityinsight.IncidentClassificationReason(b["classification_reason"].(string)),
+				Status:                status,
+				Classification:        securityinsight.IncidentClassification(classification),
+				ClassificationComment: &classificationComment,
+				ClassificationReason:  securityinsight.IncidentClassificationReason(clr),
 				Labels:                labelsPtr,
 				Owner:                 ownerPtr,
-				Severity:              securityinsight.IncidentSeverity(b["severity"].(string)),
+				Severity:              securityinsight.IncidentSeverity(severity),
 			},
 		})
 	}
@@ -571,12 +590,16 @@ func flattenAutomationRuleActionIncident(input securityinsight.AutomationRuleMod
 		severity = string(cfg.Severity)
 	}
 
+	classification := clsf
+	if clsfReason != "" {
+		classification = classification + "_" + clsfReason
+	}
+
 	return map[string]interface{}{
 		"order":                  order,
 		"status":                 status,
-		"classification":         clsf,
+		"classification":         classification,
 		"classification_comment": clsfComment,
-		"classification_reason":  clsfReason,
 		"labels":                 labels,
 		"owner_id":               owner,
 		"severity":               severity,
