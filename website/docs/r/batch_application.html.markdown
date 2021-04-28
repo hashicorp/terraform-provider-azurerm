@@ -15,7 +15,7 @@ Manages Azure Batch Application instance.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-rg"
-  location = "West US"
+  location = "West Europe"
 }
 
 resource "azurerm_storage_account" "example" {

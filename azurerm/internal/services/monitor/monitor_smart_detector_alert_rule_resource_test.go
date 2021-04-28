@@ -168,6 +168,10 @@ BODY
   }
 
   throttling_duration = "PT20M"
+
+  tags = {
+    Env = "Test"
+  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -179,7 +183,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-monitor-%d"
+  name     = "acctestRG-monitor-%d"
   location = "%s"
 }
 

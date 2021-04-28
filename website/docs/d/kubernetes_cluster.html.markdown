@@ -98,6 +98,8 @@ A `addon_profile` block exports the following:
 
 * `azure_policy` - A `azure_policy` block.
 
+* `ingress_application_gateway` - An `ingress_application_gateway` block.
+
 ---
 
 A `agent_pool_profile` block exports the following:
@@ -126,11 +128,20 @@ A `agent_pool_profile` block exports the following:
 
 * `orchestrator_version` - Kubernetes version used for the Agents.
 
+* `upgrade_settings` - A `upgrade_settings` block as documented below.
+
 * `vm_size` - The size of each VM in the Agent Pool (e.g. `Standard_F1`).
 
 * `vnet_subnet_id` - The ID of the Subnet where the Agents in the Pool are provisioned.
 
 ---
+
+A `upgrade_settings` block exports the following:
+
+* `max_surge` - The maximum number or percentage of nodes which will be added to the Node Pool size during an upgrade.
+
+---
+
 
 A `azure_active_directory` block exports the following:
 
@@ -172,13 +183,12 @@ The `kube_admin_config` and `kube_config` blocks exports the following:
 
 ```hcl
 provider "kubernetes" {
-  load_config_file       = "false"
-  host                   = "${data.azurerm_kubernetes_cluster.main.kube_config.0.host}"
-  username               = "${data.azurerm_kubernetes_cluster.main.kube_config.0.username}"
-  password               = "${data.azurerm_kubernetes_cluster.main.kube_config.0.password}"
-  client_certificate     = "${base64decode(data.azurerm_kubernetes_cluster.main.kube_config.0.client_certificate)}"
-  client_key             = "${base64decode(data.azurerm_kubernetes_cluster.main.kube_config.0.client_key)}"
-  cluster_ca_certificate = "${base64decode(data.azurerm_kubernetes_cluster.main.kube_config.0.cluster_ca_certificate)}"
+  host                   = data.azurerm_kubernetes_cluster.main.kube_config.0.host
+  username               = data.azurerm_kubernetes_cluster.main.kube_config.0.username
+  password               = data.azurerm_kubernetes_cluster.main.kube_config.0.password
+  client_certificate     = base64decode(data.azurerm_kubernetes_cluster.main.kube_config.0.client_certificate)
+  client_key             = base64decode(data.azurerm_kubernetes_cluster.main.kube_config.0.client_key)
+  cluster_ca_certificate = base64decode(data.azurerm_kubernetes_cluster.main.kube_config.0.cluster_ca_certificate)
 }
 ```
 
@@ -247,6 +257,18 @@ A `kube_dashboard` block supports the following:
 A `azure_policy` block supports the following:
 
 * `enabled` - Is Azure Policy for Kubernetes enabled?
+
+An `ingress_application_gateway` block supports the following:
+
+* `enabled` -  Is the Application Gateway ingress controller integrated with this Kubernetes Cluster?
+
+* `effective_gateway_id` - The ID of the Application Gateway associated with the ingress controller deployed to this Kubernetes Cluster.
+
+* `gateway_id` - The ID of the Application Gateway integrated with the ingress controller of this Kubernetes Cluster. This attribute is only set when gateway_id is specified when configuring the `ingress_application_gateway` addon.
+
+* `subnet_cidr` - The subnet CIDR used to create an Application Gateway, which in turn will be integrated with the ingress controller of this Kubernetes Cluster. This attribute is only set when `subnet_cidr` is specified when configuring the `ingress_application_gateway` addon.
+
+* `subnet_id` - The ID of the subnet on which to create an Application Gateway, which in turn will be integrated with the ingress controller of this Kubernetes Cluster. This attribute is only set when `subnet_id` is specified when configuring the `ingress_application_gateway` addon.
 
 ---
 

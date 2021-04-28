@@ -1,6 +1,7 @@
 package frontdoor
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -9,7 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/parse"
 )
 
-func customizeHttpsConfigurationCustomizeDiff(d *schema.ResourceDiff, v interface{}) error {
+func customizeHttpsConfigurationCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, v interface{}) error {
 	if v, ok := d.GetOk("frontend_endpoint_id"); ok && v.(string) != "" {
 		id, err := parse.FrontendEndpointID(v.(string))
 		if err != nil {
@@ -51,7 +52,7 @@ func verifyCustomHttpsConfiguration(frontendEndpointCustomHttpsConfig []interfac
 		certificateSource := customHttpsConfiguration["certificate_source"]
 		if certificateSource == string(frontdoor.CertificateSourceAzureKeyVault) {
 			if !azureKeyVaultCertificateHasValues(customHttpsConfiguration, true) {
-				return fmt.Errorf(`"frontend_endpoint":%q "custom_https_configuration" is invalid, all of the following keys must have values in the "custom_https_configuration" block: "azure_key_vault_certificate_secret_name", "azure_key_vault_certificate_secret_version", and "azure_key_vault_certificate_vault_id"`, frontendId)
+				return fmt.Errorf(`"frontend_endpoint":%q "custom_https_configuration" is invalid, all of the following keys must have values in the "custom_https_configuration" block: "azure_key_vault_certificate_secret_name" and "azure_key_vault_certificate_vault_id"`, frontendId)
 			}
 		} else if azureKeyVaultCertificateHasValues(customHttpsConfiguration, false) {
 			return fmt.Errorf(`"frontend_endpoint":%q "custom_https_configuration" is invalid, all of the following keys must be removed from the "custom_https_configuration" block: "azure_key_vault_certificate_secret_name", "azure_key_vault_certificate_secret_version", and "azure_key_vault_certificate_vault_id"`, frontendId)
@@ -67,7 +68,7 @@ func azureKeyVaultCertificateHasValues(customHttpsConfiguration map[string]inter
 	certificateVaultId := customHttpsConfiguration["azure_key_vault_certificate_vault_id"]
 
 	if matchAllKeys {
-		if strings.TrimSpace(certificateSecretName.(string)) != "" && strings.TrimSpace(certificateSecretVersion.(string)) != "" && strings.TrimSpace(certificateVaultId.(string)) != "" {
+		if strings.TrimSpace(certificateSecretName.(string)) != "" && strings.TrimSpace(certificateVaultId.(string)) != "" {
 			return true
 		}
 	} else if strings.TrimSpace(certificateSecretName.(string)) != "" || strings.TrimSpace(certificateSecretVersion.(string)) != "" || strings.TrimSpace(certificateVaultId.(string)) != "" {
@@ -77,7 +78,7 @@ func azureKeyVaultCertificateHasValues(customHttpsConfiguration map[string]inter
 	return false
 }
 
-func frontDoorCustomizeDiff(d *schema.ResourceDiff, v interface{}) error {
+func frontDoorCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, v interface{}) error {
 	if err := frontDoorSettings(d); err != nil {
 		return fmt.Errorf("validating Front Door %q (Resource Group %q): %+v", d.Get("name").(string), d.Get("resource_group_name").(string), err)
 	}

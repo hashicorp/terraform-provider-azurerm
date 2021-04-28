@@ -1,384 +1,496 @@
-Generated from https://github.com/Azure/azure-rest-api-specs/tree/3c764635e7d442b3e74caf593029fcd440b3ef82
+Generated from https://github.com/Azure/azure-rest-api-specs/tree/e5839301dfd424559851119c99ef0a2699fbd228/specification/securityinsights/resource-manager/readme.md tag: `package-2019-01-preview-only`
 
-Code generator @microsoft.azure/autorest.go@~2.1.161
+Code generator @microsoft.azure/autorest.go@2.1.180
+
 
 ## Breaking Changes
 
-- Function `NewBookmarkListPage` parameter(s) have been changed from `(func(context.Context, BookmarkList) (BookmarkList, error))` to `(BookmarkList, func(context.Context, BookmarkList) (BookmarkList, error))`
-- Function `NewCaseRelationListPage` parameter(s) have been changed from `(func(context.Context, CaseRelationList) (CaseRelationList, error))` to `(CaseRelationList, func(context.Context, CaseRelationList) (CaseRelationList, error))`
-- Function `NewCaseCommentListPage` parameter(s) have been changed from `(func(context.Context, CaseCommentList) (CaseCommentList, error))` to `(CaseCommentList, func(context.Context, CaseCommentList) (CaseCommentList, error))`
-- Function `NewIncidentCommentListPage` parameter(s) have been changed from `(func(context.Context, IncidentCommentList) (IncidentCommentList, error))` to `(IncidentCommentList, func(context.Context, IncidentCommentList) (IncidentCommentList, error))`
-- Function `NewOperationsListPage` parameter(s) have been changed from `(func(context.Context, OperationsList) (OperationsList, error))` to `(OperationsList, func(context.Context, OperationsList) (OperationsList, error))`
-- Function `NewAlertRuleTemplatesListPage` parameter(s) have been changed from `(func(context.Context, AlertRuleTemplatesList) (AlertRuleTemplatesList, error))` to `(AlertRuleTemplatesList, func(context.Context, AlertRuleTemplatesList) (AlertRuleTemplatesList, error))`
-- Function `NewEntityQueryListPage` parameter(s) have been changed from `(func(context.Context, EntityQueryList) (EntityQueryList, error))` to `(EntityQueryList, func(context.Context, EntityQueryList) (EntityQueryList, error))`
-- Function `NewRelationListPage` parameter(s) have been changed from `(func(context.Context, RelationList) (RelationList, error))` to `(RelationList, func(context.Context, RelationList) (RelationList, error))`
-- Function `NewEntityListPage` parameter(s) have been changed from `(func(context.Context, EntityList) (EntityList, error))` to `(EntityList, func(context.Context, EntityList) (EntityList, error))`
-- Function `NewDataConnectorListPage` parameter(s) have been changed from `(func(context.Context, DataConnectorList) (DataConnectorList, error))` to `(DataConnectorList, func(context.Context, DataConnectorList) (DataConnectorList, error))`
-- Function `NewCaseListPage` parameter(s) have been changed from `(func(context.Context, CaseList) (CaseList, error))` to `(CaseList, func(context.Context, CaseList) (CaseList, error))`
-- Function `NewOfficeConsentListPage` parameter(s) have been changed from `(func(context.Context, OfficeConsentList) (OfficeConsentList, error))` to `(OfficeConsentList, func(context.Context, OfficeConsentList) (OfficeConsentList, error))`
-- Function `NewActionsListPage` parameter(s) have been changed from `(func(context.Context, ActionsList) (ActionsList, error))` to `(ActionsList, func(context.Context, ActionsList) (ActionsList, error))`
-- Function `NewAlertRulesListPage` parameter(s) have been changed from `(func(context.Context, AlertRulesList) (AlertRulesList, error))` to `(AlertRulesList, func(context.Context, AlertRulesList) (AlertRulesList, error))`
-- Function `NewIncidentListPage` parameter(s) have been changed from `(func(context.Context, IncidentList) (IncidentList, error))` to `(IncidentList, func(context.Context, IncidentList) (IncidentList, error))`
-- Type of `SettingsKind.Kind` has been changed from `*string` to `SettingKind`
+### Removed Constants
 
-## New Content
+1. AlertRuleKind.AlertRuleKindAnomaly
+1. KindBasicDataConnector.KindAmazonWebServicesCloudTrail
+1. KindBasicDataConnector.KindAzureActiveDirectory
+1. KindBasicDataConnector.KindAzureAdvancedThreatProtection
+1. KindBasicDataConnector.KindAzureSecurityCenter
+1. KindBasicDataConnector.KindDataConnector
+1. KindBasicDataConnector.KindDynamics365
+1. KindBasicDataConnector.KindMicrosoftCloudAppSecurity
+1. KindBasicDataConnector.KindMicrosoftDefenderAdvancedThreatProtection
+1. KindBasicDataConnector.KindOffice365
+1. KindBasicDataConnector.KindOfficeATP
+1. KindBasicDataConnector.KindThreatIntelligenceTaxii
+1. KindBasicEntityQueryItem.KindEntityQueryItem
+1. KindBasicEntityQueryItem.KindInsight
 
-- New const `SingleAlert`
-- New const `PreAttack`
-- New const `EntityTimelineKindSecurityAlert`
-- New const `KindOfficeATP`
-- New const `DataConnectorKindOfficeATP`
-- New const `AuditLogs`
-- New const `SecurityEvent`
-- New const `KindBasicEntityTimelineItemKindActivity`
-- New const `SettingKindEyesOn`
-- New const `AzureActivity`
-- New const `SettingKindUeba`
-- New const `Office365AdvancedThreatProtection`
-- New const `KindBookmark`
-- New const `KindBasicEntityTimelineItemKindSecurityAlert`
-- New const `Localfile`
-- New const `Unsorted`
-- New const `EntityTimelineKindActivity`
-- New const `AlertPerResult`
-- New const `Descending`
-- New const `Remotestorage`
-- New const `SigninLogs`
-- New const `KindUeba`
-- New const `EntityTimelineKindBookmark`
-- New const `KindEntityAnalytics`
-- New const `KindBasicEntityTimelineItemKindBookmark`
-- New const `SettingKindEntityAnalytics`
-- New const `Indicator`
-- New const `Ascending`
-- New const `KindThreatIntelligenceInformation`
-- New const `KindBasicDataConnectorsCheckRequirementsKindOfficeATP`
-- New const `KindBasicEntityTimelineItemKindEntityTimelineItem`
-- New const `MicrosoftDefenderAdvancedThreatProtection`
-- New const `KindIndicator`
-- New function `EntityAnalytics.AsUeba() (*Ueba, bool)`
-- New function `PossibleUebaDataSourcesValues() []UebaDataSources`
-- New function `ThreatIntelligenceIndicatorModelForRequestBody.MarshalJSON() ([]byte, error)`
-- New function `WatchlistsClient.DeletePreparer(context.Context, string, string, string, string) (*http.Request, error)`
-- New function `ThreatIntelligenceIndicatorClient.ReplaceTagsSender(*http.Request) (*http.Response, error)`
-- New function `RegistryValueEntity.AsHuntingBookmark() (*HuntingBookmark, bool)`
-- New function `IncidentsClient.ListOfBookmarksSender(*http.Request) (*http.Response, error)`
-- New function `*ThreatIntelligenceInformationListPage.Next() error`
-- New function `IncidentsClient.ListOfAlertsSender(*http.Request) (*http.Response, error)`
-- New function `*ThreatIntelligenceInformationListIterator.Next() error`
-- New function `ThreatIntelligenceInformationList.IsEmpty() bool`
-- New function `OfficeATPCheckRequirements.AsTICheckRequirements() (*TICheckRequirements, bool)`
-- New function `WatchlistsClient.ListPreparer(context.Context, string, string, string) (*http.Request, error)`
-- New function `HuntingBookmark.AsURLEntity() (*URLEntity, bool)`
-- New function `HuntingBookmark.AsProcessEntity() (*ProcessEntity, bool)`
-- New function `ThreatIntelligenceIndicatorModel.AsThreatIntelligenceInformation() (*ThreatIntelligenceInformation, bool)`
-- New function `*ThreatIntelligenceIndicatorModelForRequestBody.UnmarshalJSON([]byte) error`
-- New function `EntitiesGetTimelineClient.ListPreparer(context.Context, string, string, string, string, EntityTimelineParameters) (*http.Request, error)`
-- New function `NewThreatIntelligenceIndicatorClientWithBaseURI(string, string) ThreatIntelligenceIndicatorClient`
-- New function `EyesOn.AsEntityAnalytics() (*EntityAnalytics, bool)`
-- New function `ThreatIntelligenceIndicatorsClient.List(context.Context, string, string, string, string, *int32, string, string) (ThreatIntelligenceInformationListPage, error)`
-- New function `IncidentCommentsClient.DeleteComment(context.Context, string, string, string, string, string) (autorest.Response, error)`
-- New function `HuntingBookmark.MarshalJSON() ([]byte, error)`
-- New function `*EntityAnalytics.UnmarshalJSON([]byte) error`
-- New function `OfficeATPCheckRequirements.AsMCASCheckRequirements() (*MCASCheckRequirements, bool)`
-- New function `HuntingBookmark.AsFileHashEntity() (*FileHashEntity, bool)`
-- New function `ThreatIntelligenceInformationListIterator.Response() ThreatIntelligenceInformationList`
-- New function `WatchlistsClient.Delete(context.Context, string, string, string, string) (autorest.Response, error)`
-- New function `ProcessEntity.AsHuntingBookmark() (*HuntingBookmark, bool)`
-- New function `WatchlistsClient.DeleteSender(*http.Request) (*http.Response, error)`
-- New function `*Ueba.UnmarshalJSON([]byte) error`
-- New function `WatchlistListPage.Response() WatchlistList`
-- New function `ThreatIntelligenceIndicatorClient.GetResponder(*http.Response) (ThreatIntelligenceInformationModel, error)`
-- New function `BookmarkTimelineItem.AsBookmarkTimelineItem() (*BookmarkTimelineItem, bool)`
-- New function `HuntingBookmark.AsFileEntity() (*FileEntity, bool)`
-- New function `ThreatIntelligenceIndicatorClient.CreateSender(*http.Request) (*http.Response, error)`
-- New function `HuntingBookmark.AsAzureResourceEntity() (*AzureResourceEntity, bool)`
-- New function `ActivityTimelineItem.MarshalJSON() ([]byte, error)`
-- New function `ActivityTimelineItem.AsSecurityAlertTimelineItem() (*SecurityAlertTimelineItem, bool)`
-- New function `ThreatIntelligenceIndicatorClient.DeletePreparer(context.Context, string, string, string, string) (*http.Request, error)`
-- New function `EntityAnalytics.AsEntityAnalytics() (*EntityAnalytics, bool)`
-- New function `MCASDataConnector.AsOfficeATPDataConnector() (*OfficeATPDataConnector, bool)`
-- New function `*WatchlistListPage.NextWithContext(context.Context) error`
-- New function `ThreatIntelligenceIndicatorClient.ReplaceTagsPreparer(context.Context, string, string, string, string, ThreatIntelligenceIndicatorModelForRequestBody) (*http.Request, error)`
-- New function `PossibleKindBasicThreatIntelligenceInformationValues() []KindBasicThreatIntelligenceInformation`
-- New function `WatchlistList.IsEmpty() bool`
-- New function `Ueba.AsEyesOn() (*EyesOn, bool)`
-- New function `HuntingBookmark.AsIPEntity() (*IPEntity, bool)`
-- New function `ThreatIntelligenceIndicatorClient.QueryIndicatorsPreparer(context.Context, string, string, string, ThreatIntelligenceFilteringCriteria) (*http.Request, error)`
-- New function `HuntingBookmarkProperties.MarshalJSON() ([]byte, error)`
-- New function `IncidentCommentsClient.DeleteCommentResponder(*http.Response) (autorest.Response, error)`
-- New function `MDATPCheckRequirements.AsOfficeATPCheckRequirements() (*OfficeATPCheckRequirements, bool)`
-- New function `IncidentsClient.ListOfBookmarks(context.Context, string, string, string, string) (IncidentBookmarkList, error)`
-- New function `DataConnectorsCheckRequirements.AsOfficeATPCheckRequirements() (*OfficeATPCheckRequirements, bool)`
-- New function `FileHashEntity.AsHuntingBookmark() (*HuntingBookmark, bool)`
-- New function `EyesOn.AsUeba() (*Ueba, bool)`
-- New function `PossibleThreatIntelligenceSortingCriteriaValues() []ThreatIntelligenceSortingCriteria`
-- New function `EntityAnalytics.AsBasicSettings() (BasicSettings, bool)`
-- New function `IPEntity.AsHuntingBookmark() (*HuntingBookmark, bool)`
-- New function `AATPCheckRequirements.AsOfficeATPCheckRequirements() (*OfficeATPCheckRequirements, bool)`
-- New function `PossibleSourceValues() []Source`
-- New function `OfficeATPDataConnector.MarshalJSON() ([]byte, error)`
-- New function `OfficeATPDataConnector.AsAATPDataConnector() (*AATPDataConnector, bool)`
-- New function `FileEntity.AsHuntingBookmark() (*HuntingBookmark, bool)`
-- New function `HuntingBookmark.AsMalwareEntity() (*MalwareEntity, bool)`
-- New function `AwsCloudTrailCheckRequirements.AsOfficeATPCheckRequirements() (*OfficeATPCheckRequirements, bool)`
-- New function `ThreatIntelligenceIndicatorClient.AppendTagsResponder(*http.Response) (autorest.Response, error)`
-- New function `TIDataConnector.AsOfficeATPDataConnector() (*OfficeATPDataConnector, bool)`
-- New function `ThreatIntelligenceInformationListPage.Response() ThreatIntelligenceInformationList`
-- New function `NewWatchlistsClientWithBaseURI(string, string) WatchlistsClient`
-- New function `*HuntingBookmark.UnmarshalJSON([]byte) error`
-- New function `ThreatIntelligenceIndicatorClient.QueryIndicatorsSender(*http.Request) (*http.Response, error)`
-- New function `OfficeATPDataConnector.AsTIDataConnector() (*TIDataConnector, bool)`
-- New function `NewWatchlistListIterator(WatchlistListPage) WatchlistListIterator`
-- New function `ThreatIntelligenceInformation.AsThreatIntelligenceInformation() (*ThreatIntelligenceInformation, bool)`
-- New function `CloudApplicationEntity.AsHuntingBookmark() (*HuntingBookmark, bool)`
-- New function `ThreatIntelligenceIndicatorMetricsClient.List(context.Context, string, string, string) (ThreatIntelligenceMetricsList, error)`
-- New function `WatchlistListPage.NotDone() bool`
-- New function `WatchlistsClient.ListComplete(context.Context, string, string, string) (WatchlistListIterator, error)`
-- New function `ThreatIntelligenceInformation.AsThreatIntelligenceIndicatorModel() (*ThreatIntelligenceIndicatorModel, bool)`
-- New function `TiTaxiiDataConnector.AsOfficeATPDataConnector() (*OfficeATPDataConnector, bool)`
-- New function `ThreatIntelligenceIndicatorClient.Delete(context.Context, string, string, string, string) (autorest.Response, error)`
-- New function `ThreatIntelligenceIndicatorProperties.MarshalJSON() ([]byte, error)`
-- New function `NewEntitiesGetTimelineClient(string) EntitiesGetTimelineClient`
-- New function `ThreatIntelligenceIndicatorClient.QueryIndicatorsComplete(context.Context, string, string, string, ThreatIntelligenceFilteringCriteria) (ThreatIntelligenceInformationListIterator, error)`
-- New function `OfficeATPDataConnector.AsBasicDataConnector() (BasicDataConnector, bool)`
-- New function `ThreatIntelligenceInformation.AsBasicThreatIntelligenceInformation() (BasicThreatIntelligenceInformation, bool)`
-- New function `IncidentsClient.ListOfEntitiesResponder(*http.Response) (IncidentEntitiesResponse, error)`
-- New function `IncidentsClient.ListOfEntities(context.Context, string, string, string, string) (IncidentEntitiesResponse, error)`
-- New function `EntityTimelineItem.AsEntityTimelineItem() (*EntityTimelineItem, bool)`
-- New function `OfficeATPCheckRequirements.AsDataConnectorsCheckRequirements() (*DataConnectorsCheckRequirements, bool)`
-- New function `EntitiesGetTimelineClient.List(context.Context, string, string, string, string, EntityTimelineParameters) (EntityTimelineResponse, error)`
-- New function `EntityTimelineItem.AsSecurityAlertTimelineItem() (*SecurityAlertTimelineItem, bool)`
-- New function `ThreatIntelligenceInformationListPage.Values() []BasicThreatIntelligenceInformation`
-- New function `BookmarkTimelineItem.AsEntityTimelineItem() (*EntityTimelineItem, bool)`
-- New function `HuntingBookmark.AsRegistryValueEntity() (*RegistryValueEntity, bool)`
-- New function `IncidentCommentsClient.DeleteCommentPreparer(context.Context, string, string, string, string, string) (*http.Request, error)`
-- New function `WatchlistsClient.GetSender(*http.Request) (*http.Response, error)`
-- New function `*OfficeATPCheckRequirements.UnmarshalJSON([]byte) error`
-- New function `RegistryKeyEntity.AsHuntingBookmark() (*HuntingBookmark, bool)`
-- New function `OfficeATPCheckRequirements.AsOfficeATPCheckRequirements() (*OfficeATPCheckRequirements, bool)`
-- New function `NewWatchlistListPage(WatchlistList, func(context.Context, WatchlistList) (WatchlistList, error)) WatchlistListPage`
-- New function `WatchlistsClient.CreateSender(*http.Request) (*http.Response, error)`
-- New function `IncidentsClient.ListOfBookmarksResponder(*http.Response) (IncidentBookmarkList, error)`
-- New function `OfficeATPDataConnector.AsASCDataConnector() (*ASCDataConnector, bool)`
-- New function `Ueba.AsEntityAnalytics() (*EntityAnalytics, bool)`
-- New function `ThreatIntelligenceIndicatorClient.DeleteSender(*http.Request) (*http.Response, error)`
-- New function `ActivityTimelineItem.AsBasicEntityTimelineItem() (BasicEntityTimelineItem, bool)`
-- New function `NewThreatIntelligenceIndicatorsClientWithBaseURI(string, string) ThreatIntelligenceIndicatorsClient`
-- New function `Settings.AsEntityAnalytics() (*EntityAnalytics, bool)`
-- New function `ASCCheckRequirements.AsOfficeATPCheckRequirements() (*OfficeATPCheckRequirements, bool)`
-- New function `EntitiesGetTimelineClient.ListResponder(*http.Response) (EntityTimelineResponse, error)`
-- New function `BookmarkTimelineItem.AsSecurityAlertTimelineItem() (*SecurityAlertTimelineItem, bool)`
-- New function `ThreatIntelligenceIndicatorClient.QueryIndicatorsResponder(*http.Response) (ThreatIntelligenceInformationList, error)`
-- New function `*Watchlist.UnmarshalJSON([]byte) error`
-- New function `ActivityTimelineItem.AsEntityTimelineItem() (*EntityTimelineItem, bool)`
-- New function `MCASCheckRequirements.AsOfficeATPCheckRequirements() (*OfficeATPCheckRequirements, bool)`
-- New function `*WatchlistListPage.Next() error`
-- New function `DNSEntity.AsHuntingBookmark() (*HuntingBookmark, bool)`
-- New function `EntityTimelineItem.AsBookmarkTimelineItem() (*BookmarkTimelineItem, bool)`
-- New function `SecurityAlertTimelineItem.AsActivityTimelineItem() (*ActivityTimelineItem, bool)`
-- New function `PossibleThreatIntelligenceResourceKindValues() []ThreatIntelligenceResourceKind`
-- New function `IncidentsClient.ListOfAlerts(context.Context, string, string, string, string) (IncidentAlertList, error)`
-- New function `NewThreatIntelligenceIndicatorMetricsClientWithBaseURI(string, string) ThreatIntelligenceIndicatorMetricsClient`
-- New function `SecurityAlertTimelineItem.AsEntityTimelineItem() (*EntityTimelineItem, bool)`
-- New function `OfficeATPDataConnector.AsMCASDataConnector() (*MCASDataConnector, bool)`
-- New function `WatchlistsClient.DeleteResponder(*http.Response) (autorest.Response, error)`
-- New function `ThreatIntelligenceInformation.MarshalJSON() ([]byte, error)`
-- New function `ThreatIntelligenceIndicatorClient.AppendTagsPreparer(context.Context, string, string, string, string, ThreatIntelligenceAppendTags) (*http.Request, error)`
-- New function `ThreatIntelligenceIndicatorsClient.ListSender(*http.Request) (*http.Response, error)`
-- New function `ThreatIntelligenceIndicatorsClient.ListResponder(*http.Response) (ThreatIntelligenceInformationList, error)`
-- New function `PossibleSettingKindValues() []SettingKind`
-- New function `Watchlist.MarshalJSON() ([]byte, error)`
-- New function `EntitiesGetTimelineClient.ListSender(*http.Request) (*http.Response, error)`
-- New function `*IncidentEntitiesResponse.UnmarshalJSON([]byte) error`
-- New function `OfficeATPDataConnector.AsDataConnector() (*DataConnector, bool)`
-- New function `HuntingBookmark.AsHuntingBookmark() (*HuntingBookmark, bool)`
-- New function `ThreatIntelligenceIndicatorClient.CreateIndicatorSender(*http.Request) (*http.Response, error)`
-- New function `ThreatIntelligenceIndicatorClient.CreatePreparer(context.Context, string, string, string, string, ThreatIntelligenceIndicatorModelForRequestBody) (*http.Request, error)`
-- New function `OfficeATPCheckRequirements.AsBasicDataConnectorsCheckRequirements() (BasicDataConnectorsCheckRequirements, bool)`
-- New function `PossibleEntityTimelineKindValues() []EntityTimelineKind`
-- New function `*ThreatIntelligenceIndicatorModel.UnmarshalJSON([]byte) error`
-- New function `ThreatIntelligenceIndicatorClient.ReplaceTagsResponder(*http.Response) (ThreatIntelligenceInformationModel, error)`
-- New function `EntityAnalytics.AsEyesOn() (*EyesOn, bool)`
-- New function `Entity.AsHuntingBookmark() (*HuntingBookmark, bool)`
-- New function `*ThreatIntelligenceInformationListIterator.NextWithContext(context.Context) error`
-- New function `ThreatIntelligenceIndicatorClient.CreateIndicatorPreparer(context.Context, string, string, string, ThreatIntelligenceIndicatorModelForRequestBody) (*http.Request, error)`
-- New function `ThreatIntelligenceIndicatorClient.CreateIndicator(context.Context, string, string, string, ThreatIntelligenceIndicatorModelForRequestBody) (ThreatIntelligenceInformationModel, error)`
-- New function `EntityTimelineItem.MarshalJSON() ([]byte, error)`
-- New function `*ThreatIntelligenceInformationListPage.NextWithContext(context.Context) error`
-- New function `OfficeATPCheckRequirements.AsAADCheckRequirements() (*AADCheckRequirements, bool)`
-- New function `IncidentsClient.ListOfAlertsResponder(*http.Response) (IncidentAlertList, error)`
-- New function `ThreatIntelligenceIndicatorModel.AsThreatIntelligenceIndicatorModel() (*ThreatIntelligenceIndicatorModel, bool)`
-- New function `WatchlistListIterator.Response() WatchlistList`
-- New function `HuntingBookmark.AsAccountEntity() (*AccountEntity, bool)`
-- New function `WatchlistListIterator.Value() Watchlist`
-- New function `Ueba.AsSettings() (*Settings, bool)`
-- New function `SecurityAlertTimelineItem.AsBasicEntityTimelineItem() (BasicEntityTimelineItem, bool)`
-- New function `OfficeATPCheckRequirements.AsMDATPCheckRequirements() (*MDATPCheckRequirements, bool)`
-- New function `AADDataConnector.AsOfficeATPDataConnector() (*OfficeATPDataConnector, bool)`
-- New function `ThreatIntelligenceIndicatorClient.DeleteResponder(*http.Response) (autorest.Response, error)`
-- New function `*ThreatIntelligenceInformationList.UnmarshalJSON([]byte) error`
-- New function `NewThreatIntelligenceInformationListIterator(ThreatIntelligenceInformationListPage) ThreatIntelligenceInformationListIterator`
-- New function `Ueba.MarshalJSON() ([]byte, error)`
-- New function `ThreatIntelligenceIndicatorClient.GetSender(*http.Request) (*http.Response, error)`
-- New function `ThreatIntelligenceIndicatorClient.ReplaceTags(context.Context, string, string, string, string, ThreatIntelligenceIndicatorModelForRequestBody) (ThreatIntelligenceInformationModel, error)`
-- New function `EntityAnalytics.AsSettings() (*Settings, bool)`
-- New function `HuntingBookmark.AsIoTDeviceEntity() (*IoTDeviceEntity, bool)`
-- New function `OfficeATPDataConnector.AsOfficeDataConnector() (*OfficeDataConnector, bool)`
-- New function `AzureResourceEntity.AsHuntingBookmark() (*HuntingBookmark, bool)`
-- New function `HuntingBookmark.AsSecurityAlert() (*SecurityAlert, bool)`
-- New function `ThreatIntelligenceIndicatorsClient.ListComplete(context.Context, string, string, string, string, *int32, string, string) (ThreatIntelligenceInformationListIterator, error)`
-- New function `ThreatIntelligenceInformationListPage.NotDone() bool`
-- New function `*OfficeATPDataConnector.UnmarshalJSON([]byte) error`
-- New function `MalwareEntity.AsHuntingBookmark() (*HuntingBookmark, bool)`
-- New function `TICheckRequirements.AsOfficeATPCheckRequirements() (*OfficeATPCheckRequirements, bool)`
-- New function `SecurityAlertTimelineItem.MarshalJSON() ([]byte, error)`
-- New function `OfficeATPDataConnector.AsAADDataConnector() (*AADDataConnector, bool)`
-- New function `BookmarkTimelineItem.MarshalJSON() ([]byte, error)`
-- New function `OfficeATPCheckRequirements.AsAwsCloudTrailCheckRequirements() (*AwsCloudTrailCheckRequirements, bool)`
-- New function `OfficeATPCheckRequirements.AsTiTaxiiCheckRequirements() (*TiTaxiiCheckRequirements, bool)`
-- New function `EntityAnalytics.MarshalJSON() ([]byte, error)`
-- New function `HuntingBookmark.AsEntity() (*Entity, bool)`
-- New function `*EntityTimelineResponse.UnmarshalJSON([]byte) error`
-- New function `IncidentsClient.ListOfEntitiesPreparer(context.Context, string, string, string, string) (*http.Request, error)`
-- New function `AATPDataConnector.AsOfficeATPDataConnector() (*OfficeATPDataConnector, bool)`
-- New function `ActivityTimelineItem.AsBookmarkTimelineItem() (*BookmarkTimelineItem, bool)`
-- New function `AwsCloudTrailDataConnector.AsOfficeATPDataConnector() (*OfficeATPDataConnector, bool)`
-- New function `NewThreatIntelligenceIndicatorMetricsClient(string) ThreatIntelligenceIndicatorMetricsClient`
-- New function `SecurityAlert.AsHuntingBookmark() (*HuntingBookmark, bool)`
-- New function `*ThreatIntelligenceInformationModel.UnmarshalJSON([]byte) error`
-- New function `SecurityAlertTimelineItem.AsSecurityAlertTimelineItem() (*SecurityAlertTimelineItem, bool)`
-- New function `OfficeATPDataConnector.AsOfficeATPDataConnector() (*OfficeATPDataConnector, bool)`
-- New function `IncidentCommentsClient.DeleteCommentSender(*http.Request) (*http.Response, error)`
-- New function `ThreatIntelligenceIndicatorsClient.ListPreparer(context.Context, string, string, string, string, *int32, string, string) (*http.Request, error)`
-- New function `ThreatIntelligenceIndicatorMetricsClient.ListSender(*http.Request) (*http.Response, error)`
-- New function `HuntingBookmark.AsSecurityGroupEntity() (*SecurityGroupEntity, bool)`
-- New function `Ueba.AsUeba() (*Ueba, bool)`
-- New function `HuntingBookmark.AsDNSEntity() (*DNSEntity, bool)`
-- New function `IncidentsClient.ListOfAlertsPreparer(context.Context, string, string, string, string) (*http.Request, error)`
-- New function `WatchlistsClient.Create(context.Context, string, string, string, string, Watchlist) (Watchlist, error)`
-- New function `AccountEntity.AsHuntingBookmark() (*HuntingBookmark, bool)`
-- New function `OfficeATPCheckRequirements.AsASCCheckRequirements() (*ASCCheckRequirements, bool)`
-- New function `NewWatchlistsClient(string) WatchlistsClient`
-- New function `ThreatIntelligenceIndicatorClient.AppendTags(context.Context, string, string, string, string, ThreatIntelligenceAppendTags) (autorest.Response, error)`
-- New function `OfficeATPDataConnector.AsMDATPDataConnector() (*MDATPDataConnector, bool)`
-- New function `ThreatIntelligenceInformationList.MarshalJSON() ([]byte, error)`
-- New function `AADCheckRequirements.AsOfficeATPCheckRequirements() (*OfficeATPCheckRequirements, bool)`
-- New function `ThreatIntelligenceIndicatorClient.AppendTagsSender(*http.Request) (*http.Response, error)`
-- New function `OfficeDataConnector.AsOfficeATPDataConnector() (*OfficeATPDataConnector, bool)`
-- New function `WatchlistListPage.Values() []Watchlist`
-- New function `ThreatIntelligenceIndicatorMetricsClient.ListPreparer(context.Context, string, string, string) (*http.Request, error)`
-- New function `IncidentsClient.ListOfBookmarksPreparer(context.Context, string, string, string, string) (*http.Request, error)`
-- New function `OfficeATPCheckRequirements.AsAATPCheckRequirements() (*AATPCheckRequirements, bool)`
-- New function `WatchlistList.MarshalJSON() ([]byte, error)`
-- New function `WatchlistsClient.CreatePreparer(context.Context, string, string, string, string, Watchlist) (*http.Request, error)`
-- New function `WatchlistsClient.List(context.Context, string, string, string) (WatchlistListPage, error)`
-- New function `WatchlistsClient.ListSender(*http.Request) (*http.Response, error)`
-- New function `HuntingBookmark.AsHostEntity() (*HostEntity, bool)`
-- New function `EntityTimelineItem.AsActivityTimelineItem() (*ActivityTimelineItem, bool)`
-- New function `NewEntitiesGetTimelineClientWithBaseURI(string, string) EntitiesGetTimelineClient`
-- New function `ActivityTimelineItem.AsActivityTimelineItem() (*ActivityTimelineItem, bool)`
-- New function `NewThreatIntelligenceInformationListPage(ThreatIntelligenceInformationList, func(context.Context, ThreatIntelligenceInformationList) (ThreatIntelligenceInformationList, error)) ThreatIntelligenceInformationListPage`
-- New function `EntityTimelineItem.AsBasicEntityTimelineItem() (BasicEntityTimelineItem, bool)`
-- New function `Settings.AsUeba() (*Ueba, bool)`
-- New function `MDATPDataConnector.AsOfficeATPDataConnector() (*OfficeATPDataConnector, bool)`
-- New function `ThreatIntelligenceIndicatorClient.GetPreparer(context.Context, string, string, string, string) (*http.Request, error)`
-- New function `NewThreatIntelligenceIndicatorsClient(string) ThreatIntelligenceIndicatorsClient`
-- New function `ThreatIntelligenceIndicatorClient.CreateIndicatorResponder(*http.Response) (ThreatIntelligenceInformationModel, error)`
-- New function `ThreatIntelligenceIndicatorClient.Get(context.Context, string, string, string, string) (ThreatIntelligenceInformationModel, error)`
-- New function `NewThreatIntelligenceIndicatorClient(string) ThreatIntelligenceIndicatorClient`
-- New function `*WatchlistListIterator.NextWithContext(context.Context) error`
-- New function `HuntingBookmark.AsCloudApplicationEntity() (*CloudApplicationEntity, bool)`
-- New function `OfficeATPCheckRequirements.MarshalJSON() ([]byte, error)`
-- New function `WatchlistsClient.ListResponder(*http.Response) (WatchlistList, error)`
-- New function `HostEntity.AsHuntingBookmark() (*HuntingBookmark, bool)`
-- New function `ThreatIntelligenceIndicatorClient.QueryIndicators(context.Context, string, string, string, ThreatIntelligenceFilteringCriteria) (ThreatIntelligenceInformationListPage, error)`
-- New function `WatchlistsClient.GetResponder(*http.Response) (Watchlist, error)`
-- New function `PossibleEventGroupingAggregationKindValues() []EventGroupingAggregationKind`
-- New function `*WatchlistListIterator.Next() error`
-- New function `OfficeATPDataConnector.AsTiTaxiiDataConnector() (*TiTaxiiDataConnector, bool)`
-- New function `WatchlistsClient.GetPreparer(context.Context, string, string, string, string) (*http.Request, error)`
-- New function `IncidentsClient.ListOfEntitiesSender(*http.Request) (*http.Response, error)`
-- New function `ASCDataConnector.AsOfficeATPDataConnector() (*OfficeATPDataConnector, bool)`
-- New function `ThreatIntelligenceIndicatorClient.CreateResponder(*http.Response) (ThreatIntelligenceInformationModel, error)`
-- New function `HuntingBookmark.AsBasicEntity() (BasicEntity, bool)`
-- New function `IoTDeviceEntity.AsHuntingBookmark() (*HuntingBookmark, bool)`
-- New function `WatchlistListIterator.NotDone() bool`
-- New function `TiTaxiiCheckRequirements.AsOfficeATPCheckRequirements() (*OfficeATPCheckRequirements, bool)`
-- New function `ThreatIntelligenceIndicatorClient.Create(context.Context, string, string, string, string, ThreatIntelligenceIndicatorModelForRequestBody) (ThreatIntelligenceInformationModel, error)`
-- New function `DataConnector.AsOfficeATPDataConnector() (*OfficeATPDataConnector, bool)`
-- New function `OfficeATPDataConnector.AsAwsCloudTrailDataConnector() (*AwsCloudTrailDataConnector, bool)`
-- New function `WatchlistsClient.Get(context.Context, string, string, string, string) (Watchlist, error)`
-- New function `URLEntity.AsHuntingBookmark() (*HuntingBookmark, bool)`
-- New function `PossibleKindBasicEntityTimelineItemValues() []KindBasicEntityTimelineItem`
-- New function `ThreatIntelligenceIndicatorMetricsClient.ListResponder(*http.Response) (ThreatIntelligenceMetricsList, error)`
-- New function `WatchlistsClient.CreateResponder(*http.Response) (Watchlist, error)`
-- New function `SecurityAlertTimelineItem.AsBookmarkTimelineItem() (*BookmarkTimelineItem, bool)`
-- New function `BookmarkTimelineItem.AsBasicEntityTimelineItem() (BasicEntityTimelineItem, bool)`
-- New function `ThreatIntelligenceInformationListIterator.NotDone() bool`
-- New function `SecurityGroupEntity.AsHuntingBookmark() (*HuntingBookmark, bool)`
-- New function `BookmarkTimelineItem.AsActivityTimelineItem() (*ActivityTimelineItem, bool)`
-- New function `ThreatIntelligenceInformationListIterator.Value() BasicThreatIntelligenceInformation`
-- New function `ThreatIntelligenceIndicatorModel.MarshalJSON() ([]byte, error)`
-- New function `Ueba.AsBasicSettings() (BasicSettings, bool)`
-- New function `HuntingBookmark.AsRegistryKeyEntity() (*RegistryKeyEntity, bool)`
-- New function `ThreatIntelligenceIndicatorModel.AsBasicThreatIntelligenceInformation() (BasicThreatIntelligenceInformation, bool)`
-- New struct `ActivityTimelineItem`
-- New struct `BookmarkTimelineItem`
-- New struct `EntitiesGetTimelineClient`
-- New struct `EntityAnalytics`
-- New struct `EntityAnalyticsProperties`
-- New struct `EntityTimelineItem`
-- New struct `EntityTimelineParameters`
-- New struct `EntityTimelineResponse`
-- New struct `EventGroupingSettings`
-- New struct `HuntingBookmark`
-- New struct `HuntingBookmarkProperties`
-- New struct `IncidentAlertList`
-- New struct `IncidentBookmarkList`
-- New struct `IncidentEntitiesResponse`
-- New struct `IncidentEntitiesResultsMetadata`
-- New struct `OfficeATPCheckRequirements`
-- New struct `OfficeATPCheckRequirementsProperties`
-- New struct `OfficeATPDataConnector`
-- New struct `OfficeATPDataConnectorProperties`
-- New struct `OfficeDataConnectorDataTypesTeams`
-- New struct `SecurityAlertTimelineItem`
-- New struct `ThreatIntelligenceAppendTags`
-- New struct `ThreatIntelligenceFilteringCriteria`
-- New struct `ThreatIntelligenceGranularMarkingModel`
-- New struct `ThreatIntelligenceIndicatorClient`
-- New struct `ThreatIntelligenceIndicatorMetricsClient`
-- New struct `ThreatIntelligenceIndicatorModel`
-- New struct `ThreatIntelligenceIndicatorModelForRequestBody`
-- New struct `ThreatIntelligenceIndicatorProperties`
-- New struct `ThreatIntelligenceIndicatorsClient`
-- New struct `ThreatIntelligenceInformation`
-- New struct `ThreatIntelligenceInformationList`
-- New struct `ThreatIntelligenceInformationListIterator`
-- New struct `ThreatIntelligenceInformationListPage`
-- New struct `ThreatIntelligenceInformationModel`
-- New struct `ThreatIntelligenceKillChainPhase`
-- New struct `ThreatIntelligenceMetric`
-- New struct `ThreatIntelligenceMetricEntity`
-- New struct `ThreatIntelligenceMetrics`
-- New struct `ThreatIntelligenceMetricsList`
-- New struct `ThreatIntelligenceResourceKind1`
-- New struct `ThreatIntelligenceSortingCriteria1`
-- New struct `TimelineAggregation`
-- New struct `TimelineError`
-- New struct `TimelineResultsMetadata`
-- New struct `Ueba`
-- New struct `UebaProperties`
-- New struct `Watchlist`
-- New struct `WatchlistList`
-- New struct `WatchlistListIterator`
-- New struct `WatchlistListPage`
-- New struct `WatchlistProperties`
-- New struct `WatchlistsClient`
-- New field `Teams` in struct `OfficeDataConnectorDataTypes`
-- New field `EventGroupingSettings` in struct `ScheduledAlertRuleTemplateProperties`
-- New field `EventGroupingSettings` in struct `ScheduledAlertRuleProperties`
-- New field `EventGroupingSettings` in struct `ScheduledAlertRuleCommonProperties`
-- New field `LastModifiedTimeUtc` in struct `IncidentCommentProperties`
-- New field `Etag` in struct `IncidentComment`
+### Removed Funcs
+
+1. *GetQueriesResponse.UnmarshalJSON([]byte) error
+1. EntityQueryItem.AsBasicEntityQueryItem() (BasicEntityQueryItem, bool)
+1. EntityQueryItem.AsEntityQueryItem() (*EntityQueryItem, bool)
+1. EntityQueryItem.AsInsightQueryItem() (*InsightQueryItem, bool)
+1. InsightQueryItem.AsBasicEntityQueryItem() (BasicEntityQueryItem, bool)
+1. InsightQueryItem.AsEntityQueryItem() (*EntityQueryItem, bool)
+1. InsightQueryItem.AsInsightQueryItem() (*InsightQueryItem, bool)
+1. NewWatchlistItemClient(string) WatchlistItemClient
+1. NewWatchlistItemClientWithBaseURI(string, string) WatchlistItemClient
+1. OfficeConsentProperties.MarshalJSON() ([]byte, error)
+1. PossibleKindBasicEntityQueryItemValues() []KindBasicEntityQueryItem
+1. WatchlistItemClient.CreateOrUpdate(context.Context, string, string, string, string, string, WatchlistItem) (WatchlistItem, error)
+1. WatchlistItemClient.CreateOrUpdatePreparer(context.Context, string, string, string, string, string, WatchlistItem) (*http.Request, error)
+1. WatchlistItemClient.CreateOrUpdateResponder(*http.Response) (WatchlistItem, error)
+1. WatchlistItemClient.CreateOrUpdateSender(*http.Request) (*http.Response, error)
+1. WatchlistItemClient.Delete(context.Context, string, string, string, string, string) (autorest.Response, error)
+1. WatchlistItemClient.DeletePreparer(context.Context, string, string, string, string, string) (*http.Request, error)
+1. WatchlistItemClient.DeleteResponder(*http.Response) (autorest.Response, error)
+1. WatchlistItemClient.DeleteSender(*http.Request) (*http.Response, error)
+
+## Struct Changes
+
+### Removed Structs
+
+1. WatchlistItemClient
+
+### Removed Struct Fields
+
+1. MailMessageEntityProperties.ReceivedDate
+1. OfficeConsentProperties.TenantName
+
+## Signature Changes
+
+### Const Types
+
+1. KindThreatIntelligence changed type from KindBasicDataConnector to KindBasicAlertRule
+
+### Struct Fields
+
+1. EntityQueryItem.ID changed type from *uuid.UUID to *string
+1. EntityQueryItem.Kind changed type from KindBasicEntityQueryItem to EntityQueryKind
+1. GetQueriesResponse.Value changed type from *[]BasicEntityQueryItem to *[]EntityQueryItem
+1. InsightQueryItem.ID changed type from *uuid.UUID to *string
+1. InsightQueryItem.Kind changed type from KindBasicEntityQueryItem to EntityQueryKind
+1. MailMessageEntityProperties.ThreatDetectionMethods changed type from *string to *[]string
+1. MailMessageEntityProperties.Urls changed type from *string to *[]string
+1. ThreatIntelligenceIndicatorProperties.ExternalReferences changed type from *[]string to *[]ThreatIntelligenceExternalReference
+1. ThreatIntelligenceKillChainPhase.PhaseName changed type from *int32 to *string
+
+### New Constants
+
+1. ActionType.ActionTypeAutomationRuleAction
+1. ActionType.ActionTypeModifyProperties
+1. ActionType.ActionTypeRunPlaybook
+1. AutomationRulePropertyConditionSupportedOperator.Contains
+1. AutomationRulePropertyConditionSupportedOperator.EndsWith
+1. AutomationRulePropertyConditionSupportedOperator.Equals
+1. AutomationRulePropertyConditionSupportedOperator.NotContains
+1. AutomationRulePropertyConditionSupportedOperator.NotEndsWith
+1. AutomationRulePropertyConditionSupportedOperator.NotEquals
+1. AutomationRulePropertyConditionSupportedOperator.NotStartsWith
+1. AutomationRulePropertyConditionSupportedOperator.StartsWith
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyAccountAadTenantID
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyAccountAadUserID
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyAccountNTDomain
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyAccountName
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyAccountObjectGUID
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyAccountPUID
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyAccountSid
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyAccountUPNSuffix
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyAzureResourceResourceID
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyAzureResourceSubscriptionID
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyCloudApplicationAppID
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyCloudApplicationAppName
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyDNSDomainName
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyFileDirectory
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyFileHashValue
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyFileName
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyHostAzureID
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyHostNTDomain
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyHostName
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyHostNetBiosName
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyHostOSVersion
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyIPAddress
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyIncidentDescription
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyIncidentProviderName
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyIncidentRelatedAnalyticRuleIds
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyIncidentSeverity
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyIncidentStatus
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyIncidentTactics
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyIncidentTitle
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyIoTDeviceID
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyIoTDeviceModel
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyIoTDeviceName
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyIoTDeviceOperatingSystem
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyIoTDeviceType
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyIoTDeviceVendor
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyMailMessageDeliveryAction
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyMailMessageDeliveryLocation
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyMailMessageP1Sender
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyMailMessageP2Sender
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyMailMessageRecipient
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyMailMessageSenderIP
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyMailMessageSubject
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyMailboxDisplayName
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyMailboxPrimaryAddress
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyMailboxUPN
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyMalwareCategory
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyMalwareName
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyProcessCommandLine
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyProcessID
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyRegistryKey
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyRegistryValueData
+1. AutomationRulePropertyConditionSupportedProperty.AutomationRulePropertyConditionSupportedPropertyURL
+1. ConditionType.ConditionTypeAutomationRuleCondition
+1. ConditionType.ConditionTypeProperty
+1. DataConnectorKind.DataConnectorKindMicrosoftThreatIntelligence
+1. DataConnectorKind.DataConnectorKindMicrosoftThreatProtection
+1. KindBasicAlertRuleTemplate.KindBasicAlertRuleTemplateKindThreatIntelligence
+1. KindBasicDataConnector.KindBasicDataConnectorKindAmazonWebServicesCloudTrail
+1. KindBasicDataConnector.KindBasicDataConnectorKindAzureActiveDirectory
+1. KindBasicDataConnector.KindBasicDataConnectorKindAzureAdvancedThreatProtection
+1. KindBasicDataConnector.KindBasicDataConnectorKindAzureSecurityCenter
+1. KindBasicDataConnector.KindBasicDataConnectorKindDataConnector
+1. KindBasicDataConnector.KindBasicDataConnectorKindDynamics365
+1. KindBasicDataConnector.KindBasicDataConnectorKindMicrosoftCloudAppSecurity
+1. KindBasicDataConnector.KindBasicDataConnectorKindMicrosoftDefenderAdvancedThreatProtection
+1. KindBasicDataConnector.KindBasicDataConnectorKindMicrosoftThreatIntelligence
+1. KindBasicDataConnector.KindBasicDataConnectorKindMicrosoftThreatProtection
+1. KindBasicDataConnector.KindBasicDataConnectorKindOffice365
+1. KindBasicDataConnector.KindBasicDataConnectorKindOfficeATP
+1. KindBasicDataConnector.KindBasicDataConnectorKindThreatIntelligence
+1. KindBasicDataConnector.KindBasicDataConnectorKindThreatIntelligenceTaxii
+1. KindBasicDataConnectorsCheckRequirements.KindBasicDataConnectorsCheckRequirementsKindMicrosoftThreatIntelligence
+1. KindBasicDataConnectorsCheckRequirements.KindBasicDataConnectorsCheckRequirementsKindMicrosoftThreatProtection
+1. KindBasicSettings.KindIPSyncer
+1. PollingFrequency.OnceADay
+1. PollingFrequency.OnceAMinute
+1. PollingFrequency.OnceAnHour
+
+### New Funcs
+
+1. *AutomationRule.UnmarshalJSON([]byte) error
+1. *AutomationRuleProperties.UnmarshalJSON([]byte) error
+1. *AutomationRuleTriggeringLogic.UnmarshalJSON([]byte) error
+1. *AutomationRulesListIterator.Next() error
+1. *AutomationRulesListIterator.NextWithContext(context.Context) error
+1. *AutomationRulesListPage.Next() error
+1. *AutomationRulesListPage.NextWithContext(context.Context) error
+1. *IPSyncer.UnmarshalJSON([]byte) error
+1. *MSTICheckRequirements.UnmarshalJSON([]byte) error
+1. *MSTIDataConnector.UnmarshalJSON([]byte) error
+1. *MTPDataConnector.UnmarshalJSON([]byte) error
+1. *MtpCheckRequirements.UnmarshalJSON([]byte) error
+1. *ThreatIntelligenceAlertRule.UnmarshalJSON([]byte) error
+1. *ThreatIntelligenceAlertRuleTemplate.UnmarshalJSON([]byte) error
+1. *WatchlistItemListIterator.Next() error
+1. *WatchlistItemListIterator.NextWithContext(context.Context) error
+1. *WatchlistItemListPage.Next() error
+1. *WatchlistItemListPage.NextWithContext(context.Context) error
+1. AADCheckRequirements.AsMSTICheckRequirements() (*MSTICheckRequirements, bool)
+1. AADCheckRequirements.AsMtpCheckRequirements() (*MtpCheckRequirements, bool)
+1. AADDataConnector.AsMSTIDataConnector() (*MSTIDataConnector, bool)
+1. AADDataConnector.AsMTPDataConnector() (*MTPDataConnector, bool)
+1. AATPCheckRequirements.AsMSTICheckRequirements() (*MSTICheckRequirements, bool)
+1. AATPCheckRequirements.AsMtpCheckRequirements() (*MtpCheckRequirements, bool)
+1. AATPDataConnector.AsMSTIDataConnector() (*MSTIDataConnector, bool)
+1. AATPDataConnector.AsMTPDataConnector() (*MTPDataConnector, bool)
+1. ASCCheckRequirements.AsMSTICheckRequirements() (*MSTICheckRequirements, bool)
+1. ASCCheckRequirements.AsMtpCheckRequirements() (*MtpCheckRequirements, bool)
+1. ASCDataConnector.AsMSTIDataConnector() (*MSTIDataConnector, bool)
+1. ASCDataConnector.AsMTPDataConnector() (*MTPDataConnector, bool)
+1. AlertRule.AsThreatIntelligenceAlertRule() (*ThreatIntelligenceAlertRule, bool)
+1. AlertRuleTemplate.AsThreatIntelligenceAlertRuleTemplate() (*ThreatIntelligenceAlertRuleTemplate, bool)
+1. AutomationRule.MarshalJSON() ([]byte, error)
+1. AutomationRuleAction.AsAutomationRuleAction() (*AutomationRuleAction, bool)
+1. AutomationRuleAction.AsAutomationRuleModifyPropertiesAction() (*AutomationRuleModifyPropertiesAction, bool)
+1. AutomationRuleAction.AsAutomationRuleRunPlaybookAction() (*AutomationRuleRunPlaybookAction, bool)
+1. AutomationRuleAction.AsBasicAutomationRuleAction() (BasicAutomationRuleAction, bool)
+1. AutomationRuleAction.MarshalJSON() ([]byte, error)
+1. AutomationRuleCondition.AsAutomationRuleCondition() (*AutomationRuleCondition, bool)
+1. AutomationRuleCondition.AsAutomationRulePropertyValuesCondition() (*AutomationRulePropertyValuesCondition, bool)
+1. AutomationRuleCondition.AsBasicAutomationRuleCondition() (BasicAutomationRuleCondition, bool)
+1. AutomationRuleCondition.MarshalJSON() ([]byte, error)
+1. AutomationRuleModifyPropertiesAction.AsAutomationRuleAction() (*AutomationRuleAction, bool)
+1. AutomationRuleModifyPropertiesAction.AsAutomationRuleModifyPropertiesAction() (*AutomationRuleModifyPropertiesAction, bool)
+1. AutomationRuleModifyPropertiesAction.AsAutomationRuleRunPlaybookAction() (*AutomationRuleRunPlaybookAction, bool)
+1. AutomationRuleModifyPropertiesAction.AsBasicAutomationRuleAction() (BasicAutomationRuleAction, bool)
+1. AutomationRuleModifyPropertiesAction.MarshalJSON() ([]byte, error)
+1. AutomationRuleProperties.MarshalJSON() ([]byte, error)
+1. AutomationRulePropertyValuesCondition.AsAutomationRuleCondition() (*AutomationRuleCondition, bool)
+1. AutomationRulePropertyValuesCondition.AsAutomationRulePropertyValuesCondition() (*AutomationRulePropertyValuesCondition, bool)
+1. AutomationRulePropertyValuesCondition.AsBasicAutomationRuleCondition() (BasicAutomationRuleCondition, bool)
+1. AutomationRulePropertyValuesCondition.MarshalJSON() ([]byte, error)
+1. AutomationRuleRunPlaybookAction.AsAutomationRuleAction() (*AutomationRuleAction, bool)
+1. AutomationRuleRunPlaybookAction.AsAutomationRuleModifyPropertiesAction() (*AutomationRuleModifyPropertiesAction, bool)
+1. AutomationRuleRunPlaybookAction.AsAutomationRuleRunPlaybookAction() (*AutomationRuleRunPlaybookAction, bool)
+1. AutomationRuleRunPlaybookAction.AsBasicAutomationRuleAction() (BasicAutomationRuleAction, bool)
+1. AutomationRuleRunPlaybookAction.MarshalJSON() ([]byte, error)
+1. AutomationRulesClient.CreateOrUpdate(context.Context, string, string, string, string, AutomationRule) (AutomationRule, error)
+1. AutomationRulesClient.CreateOrUpdatePreparer(context.Context, string, string, string, string, AutomationRule) (*http.Request, error)
+1. AutomationRulesClient.CreateOrUpdateResponder(*http.Response) (AutomationRule, error)
+1. AutomationRulesClient.CreateOrUpdateSender(*http.Request) (*http.Response, error)
+1. AutomationRulesClient.Delete(context.Context, string, string, string, string) (autorest.Response, error)
+1. AutomationRulesClient.DeletePreparer(context.Context, string, string, string, string) (*http.Request, error)
+1. AutomationRulesClient.DeleteResponder(*http.Response) (autorest.Response, error)
+1. AutomationRulesClient.DeleteSender(*http.Request) (*http.Response, error)
+1. AutomationRulesClient.Get(context.Context, string, string, string, string) (AutomationRule, error)
+1. AutomationRulesClient.GetPreparer(context.Context, string, string, string, string) (*http.Request, error)
+1. AutomationRulesClient.GetResponder(*http.Response) (AutomationRule, error)
+1. AutomationRulesClient.GetSender(*http.Request) (*http.Response, error)
+1. AutomationRulesClient.List(context.Context, string, string, string) (AutomationRulesListPage, error)
+1. AutomationRulesClient.ListComplete(context.Context, string, string, string) (AutomationRulesListIterator, error)
+1. AutomationRulesClient.ListPreparer(context.Context, string, string, string) (*http.Request, error)
+1. AutomationRulesClient.ListResponder(*http.Response) (AutomationRulesList, error)
+1. AutomationRulesClient.ListSender(*http.Request) (*http.Response, error)
+1. AutomationRulesList.IsEmpty() bool
+1. AutomationRulesList.MarshalJSON() ([]byte, error)
+1. AutomationRulesListIterator.NotDone() bool
+1. AutomationRulesListIterator.Response() AutomationRulesList
+1. AutomationRulesListIterator.Value() AutomationRule
+1. AutomationRulesListPage.NotDone() bool
+1. AutomationRulesListPage.Response() AutomationRulesList
+1. AutomationRulesListPage.Values() []AutomationRule
+1. AwsCloudTrailCheckRequirements.AsMSTICheckRequirements() (*MSTICheckRequirements, bool)
+1. AwsCloudTrailCheckRequirements.AsMtpCheckRequirements() (*MtpCheckRequirements, bool)
+1. AwsCloudTrailDataConnector.AsMSTIDataConnector() (*MSTIDataConnector, bool)
+1. AwsCloudTrailDataConnector.AsMTPDataConnector() (*MTPDataConnector, bool)
+1. DataConnector.AsMSTIDataConnector() (*MSTIDataConnector, bool)
+1. DataConnector.AsMTPDataConnector() (*MTPDataConnector, bool)
+1. DataConnectorsCheckRequirements.AsMSTICheckRequirements() (*MSTICheckRequirements, bool)
+1. DataConnectorsCheckRequirements.AsMtpCheckRequirements() (*MtpCheckRequirements, bool)
+1. Dynamics365CheckRequirements.AsMSTICheckRequirements() (*MSTICheckRequirements, bool)
+1. Dynamics365CheckRequirements.AsMtpCheckRequirements() (*MtpCheckRequirements, bool)
+1. Dynamics365DataConnector.AsMSTIDataConnector() (*MSTIDataConnector, bool)
+1. Dynamics365DataConnector.AsMTPDataConnector() (*MTPDataConnector, bool)
+1. EntityAnalytics.AsIPSyncer() (*IPSyncer, bool)
+1. EntityEdges.MarshalJSON() ([]byte, error)
+1. EyesOn.AsIPSyncer() (*IPSyncer, bool)
+1. FusionAlertRule.AsThreatIntelligenceAlertRule() (*ThreatIntelligenceAlertRule, bool)
+1. FusionAlertRuleTemplate.AsThreatIntelligenceAlertRuleTemplate() (*ThreatIntelligenceAlertRuleTemplate, bool)
+1. IPSyncer.AsBasicSettings() (BasicSettings, bool)
+1. IPSyncer.AsEntityAnalytics() (*EntityAnalytics, bool)
+1. IPSyncer.AsEyesOn() (*EyesOn, bool)
+1. IPSyncer.AsIPSyncer() (*IPSyncer, bool)
+1. IPSyncer.AsSettings() (*Settings, bool)
+1. IPSyncer.AsUeba() (*Ueba, bool)
+1. IPSyncer.MarshalJSON() ([]byte, error)
+1. MCASCheckRequirements.AsMSTICheckRequirements() (*MSTICheckRequirements, bool)
+1. MCASCheckRequirements.AsMtpCheckRequirements() (*MtpCheckRequirements, bool)
+1. MCASDataConnector.AsMSTIDataConnector() (*MSTIDataConnector, bool)
+1. MCASDataConnector.AsMTPDataConnector() (*MTPDataConnector, bool)
+1. MDATPCheckRequirements.AsMSTICheckRequirements() (*MSTICheckRequirements, bool)
+1. MDATPCheckRequirements.AsMtpCheckRequirements() (*MtpCheckRequirements, bool)
+1. MDATPDataConnector.AsMSTIDataConnector() (*MSTIDataConnector, bool)
+1. MDATPDataConnector.AsMTPDataConnector() (*MTPDataConnector, bool)
+1. MLBehaviorAnalyticsAlertRule.AsThreatIntelligenceAlertRule() (*ThreatIntelligenceAlertRule, bool)
+1. MLBehaviorAnalyticsAlertRuleTemplate.AsThreatIntelligenceAlertRuleTemplate() (*ThreatIntelligenceAlertRuleTemplate, bool)
+1. MSTICheckRequirements.AsAADCheckRequirements() (*AADCheckRequirements, bool)
+1. MSTICheckRequirements.AsAATPCheckRequirements() (*AATPCheckRequirements, bool)
+1. MSTICheckRequirements.AsASCCheckRequirements() (*ASCCheckRequirements, bool)
+1. MSTICheckRequirements.AsAwsCloudTrailCheckRequirements() (*AwsCloudTrailCheckRequirements, bool)
+1. MSTICheckRequirements.AsBasicDataConnectorsCheckRequirements() (BasicDataConnectorsCheckRequirements, bool)
+1. MSTICheckRequirements.AsDataConnectorsCheckRequirements() (*DataConnectorsCheckRequirements, bool)
+1. MSTICheckRequirements.AsDynamics365CheckRequirements() (*Dynamics365CheckRequirements, bool)
+1. MSTICheckRequirements.AsMCASCheckRequirements() (*MCASCheckRequirements, bool)
+1. MSTICheckRequirements.AsMDATPCheckRequirements() (*MDATPCheckRequirements, bool)
+1. MSTICheckRequirements.AsMSTICheckRequirements() (*MSTICheckRequirements, bool)
+1. MSTICheckRequirements.AsMtpCheckRequirements() (*MtpCheckRequirements, bool)
+1. MSTICheckRequirements.AsOfficeATPCheckRequirements() (*OfficeATPCheckRequirements, bool)
+1. MSTICheckRequirements.AsTICheckRequirements() (*TICheckRequirements, bool)
+1. MSTICheckRequirements.AsTiTaxiiCheckRequirements() (*TiTaxiiCheckRequirements, bool)
+1. MSTICheckRequirements.MarshalJSON() ([]byte, error)
+1. MSTIDataConnector.AsAADDataConnector() (*AADDataConnector, bool)
+1. MSTIDataConnector.AsAATPDataConnector() (*AATPDataConnector, bool)
+1. MSTIDataConnector.AsASCDataConnector() (*ASCDataConnector, bool)
+1. MSTIDataConnector.AsAwsCloudTrailDataConnector() (*AwsCloudTrailDataConnector, bool)
+1. MSTIDataConnector.AsBasicDataConnector() (BasicDataConnector, bool)
+1. MSTIDataConnector.AsDataConnector() (*DataConnector, bool)
+1. MSTIDataConnector.AsDynamics365DataConnector() (*Dynamics365DataConnector, bool)
+1. MSTIDataConnector.AsMCASDataConnector() (*MCASDataConnector, bool)
+1. MSTIDataConnector.AsMDATPDataConnector() (*MDATPDataConnector, bool)
+1. MSTIDataConnector.AsMSTIDataConnector() (*MSTIDataConnector, bool)
+1. MSTIDataConnector.AsMTPDataConnector() (*MTPDataConnector, bool)
+1. MSTIDataConnector.AsOfficeATPDataConnector() (*OfficeATPDataConnector, bool)
+1. MSTIDataConnector.AsOfficeDataConnector() (*OfficeDataConnector, bool)
+1. MSTIDataConnector.AsTIDataConnector() (*TIDataConnector, bool)
+1. MSTIDataConnector.AsTiTaxiiDataConnector() (*TiTaxiiDataConnector, bool)
+1. MSTIDataConnector.MarshalJSON() ([]byte, error)
+1. MTPDataConnector.AsAADDataConnector() (*AADDataConnector, bool)
+1. MTPDataConnector.AsAATPDataConnector() (*AATPDataConnector, bool)
+1. MTPDataConnector.AsASCDataConnector() (*ASCDataConnector, bool)
+1. MTPDataConnector.AsAwsCloudTrailDataConnector() (*AwsCloudTrailDataConnector, bool)
+1. MTPDataConnector.AsBasicDataConnector() (BasicDataConnector, bool)
+1. MTPDataConnector.AsDataConnector() (*DataConnector, bool)
+1. MTPDataConnector.AsDynamics365DataConnector() (*Dynamics365DataConnector, bool)
+1. MTPDataConnector.AsMCASDataConnector() (*MCASDataConnector, bool)
+1. MTPDataConnector.AsMDATPDataConnector() (*MDATPDataConnector, bool)
+1. MTPDataConnector.AsMSTIDataConnector() (*MSTIDataConnector, bool)
+1. MTPDataConnector.AsMTPDataConnector() (*MTPDataConnector, bool)
+1. MTPDataConnector.AsOfficeATPDataConnector() (*OfficeATPDataConnector, bool)
+1. MTPDataConnector.AsOfficeDataConnector() (*OfficeDataConnector, bool)
+1. MTPDataConnector.AsTIDataConnector() (*TIDataConnector, bool)
+1. MTPDataConnector.AsTiTaxiiDataConnector() (*TiTaxiiDataConnector, bool)
+1. MTPDataConnector.MarshalJSON() ([]byte, error)
+1. MicrosoftSecurityIncidentCreationAlertRule.AsThreatIntelligenceAlertRule() (*ThreatIntelligenceAlertRule, bool)
+1. MicrosoftSecurityIncidentCreationAlertRuleTemplate.AsThreatIntelligenceAlertRuleTemplate() (*ThreatIntelligenceAlertRuleTemplate, bool)
+1. MtpCheckRequirements.AsAADCheckRequirements() (*AADCheckRequirements, bool)
+1. MtpCheckRequirements.AsAATPCheckRequirements() (*AATPCheckRequirements, bool)
+1. MtpCheckRequirements.AsASCCheckRequirements() (*ASCCheckRequirements, bool)
+1. MtpCheckRequirements.AsAwsCloudTrailCheckRequirements() (*AwsCloudTrailCheckRequirements, bool)
+1. MtpCheckRequirements.AsBasicDataConnectorsCheckRequirements() (BasicDataConnectorsCheckRequirements, bool)
+1. MtpCheckRequirements.AsDataConnectorsCheckRequirements() (*DataConnectorsCheckRequirements, bool)
+1. MtpCheckRequirements.AsDynamics365CheckRequirements() (*Dynamics365CheckRequirements, bool)
+1. MtpCheckRequirements.AsMCASCheckRequirements() (*MCASCheckRequirements, bool)
+1. MtpCheckRequirements.AsMDATPCheckRequirements() (*MDATPCheckRequirements, bool)
+1. MtpCheckRequirements.AsMSTICheckRequirements() (*MSTICheckRequirements, bool)
+1. MtpCheckRequirements.AsMtpCheckRequirements() (*MtpCheckRequirements, bool)
+1. MtpCheckRequirements.AsOfficeATPCheckRequirements() (*OfficeATPCheckRequirements, bool)
+1. MtpCheckRequirements.AsTICheckRequirements() (*TICheckRequirements, bool)
+1. MtpCheckRequirements.AsTiTaxiiCheckRequirements() (*TiTaxiiCheckRequirements, bool)
+1. MtpCheckRequirements.MarshalJSON() ([]byte, error)
+1. NewAutomationRulesClient(string) AutomationRulesClient
+1. NewAutomationRulesClientWithBaseURI(string, string) AutomationRulesClient
+1. NewAutomationRulesListIterator(AutomationRulesListPage) AutomationRulesListIterator
+1. NewAutomationRulesListPage(AutomationRulesList, func(context.Context, AutomationRulesList) (AutomationRulesList, error)) AutomationRulesListPage
+1. NewWatchlistItemListIterator(WatchlistItemListPage) WatchlistItemListIterator
+1. NewWatchlistItemListPage(WatchlistItemList, func(context.Context, WatchlistItemList) (WatchlistItemList, error)) WatchlistItemListPage
+1. NewWatchlistItemsClient(string) WatchlistItemsClient
+1. NewWatchlistItemsClientWithBaseURI(string, string) WatchlistItemsClient
+1. OfficeATPCheckRequirements.AsMSTICheckRequirements() (*MSTICheckRequirements, bool)
+1. OfficeATPCheckRequirements.AsMtpCheckRequirements() (*MtpCheckRequirements, bool)
+1. OfficeATPDataConnector.AsMSTIDataConnector() (*MSTIDataConnector, bool)
+1. OfficeATPDataConnector.AsMTPDataConnector() (*MTPDataConnector, bool)
+1. OfficeDataConnector.AsMSTIDataConnector() (*MSTIDataConnector, bool)
+1. OfficeDataConnector.AsMTPDataConnector() (*MTPDataConnector, bool)
+1. PossibleActionTypeValues() []ActionType
+1. PossibleAutomationRulePropertyConditionSupportedOperatorValues() []AutomationRulePropertyConditionSupportedOperator
+1. PossibleAutomationRulePropertyConditionSupportedPropertyValues() []AutomationRulePropertyConditionSupportedProperty
+1. PossibleConditionTypeValues() []ConditionType
+1. PossiblePollingFrequencyValues() []PollingFrequency
+1. ScheduledAlertRule.AsThreatIntelligenceAlertRule() (*ThreatIntelligenceAlertRule, bool)
+1. ScheduledAlertRuleTemplate.AsThreatIntelligenceAlertRuleTemplate() (*ThreatIntelligenceAlertRuleTemplate, bool)
+1. Settings.AsIPSyncer() (*IPSyncer, bool)
+1. TICheckRequirements.AsMSTICheckRequirements() (*MSTICheckRequirements, bool)
+1. TICheckRequirements.AsMtpCheckRequirements() (*MtpCheckRequirements, bool)
+1. TIDataConnector.AsMSTIDataConnector() (*MSTIDataConnector, bool)
+1. TIDataConnector.AsMTPDataConnector() (*MTPDataConnector, bool)
+1. ThreatIntelligenceAlertRule.AsAlertRule() (*AlertRule, bool)
+1. ThreatIntelligenceAlertRule.AsBasicAlertRule() (BasicAlertRule, bool)
+1. ThreatIntelligenceAlertRule.AsFusionAlertRule() (*FusionAlertRule, bool)
+1. ThreatIntelligenceAlertRule.AsMLBehaviorAnalyticsAlertRule() (*MLBehaviorAnalyticsAlertRule, bool)
+1. ThreatIntelligenceAlertRule.AsMicrosoftSecurityIncidentCreationAlertRule() (*MicrosoftSecurityIncidentCreationAlertRule, bool)
+1. ThreatIntelligenceAlertRule.AsScheduledAlertRule() (*ScheduledAlertRule, bool)
+1. ThreatIntelligenceAlertRule.AsThreatIntelligenceAlertRule() (*ThreatIntelligenceAlertRule, bool)
+1. ThreatIntelligenceAlertRule.MarshalJSON() ([]byte, error)
+1. ThreatIntelligenceAlertRuleProperties.MarshalJSON() ([]byte, error)
+1. ThreatIntelligenceAlertRuleTemplate.AsAlertRuleTemplate() (*AlertRuleTemplate, bool)
+1. ThreatIntelligenceAlertRuleTemplate.AsBasicAlertRuleTemplate() (BasicAlertRuleTemplate, bool)
+1. ThreatIntelligenceAlertRuleTemplate.AsFusionAlertRuleTemplate() (*FusionAlertRuleTemplate, bool)
+1. ThreatIntelligenceAlertRuleTemplate.AsMLBehaviorAnalyticsAlertRuleTemplate() (*MLBehaviorAnalyticsAlertRuleTemplate, bool)
+1. ThreatIntelligenceAlertRuleTemplate.AsMicrosoftSecurityIncidentCreationAlertRuleTemplate() (*MicrosoftSecurityIncidentCreationAlertRuleTemplate, bool)
+1. ThreatIntelligenceAlertRuleTemplate.AsScheduledAlertRuleTemplate() (*ScheduledAlertRuleTemplate, bool)
+1. ThreatIntelligenceAlertRuleTemplate.AsThreatIntelligenceAlertRuleTemplate() (*ThreatIntelligenceAlertRuleTemplate, bool)
+1. ThreatIntelligenceAlertRuleTemplate.MarshalJSON() ([]byte, error)
+1. ThreatIntelligenceAlertRuleTemplateProperties.MarshalJSON() ([]byte, error)
+1. ThreatIntelligenceExternalReference.MarshalJSON() ([]byte, error)
+1. TiTaxiiCheckRequirements.AsMSTICheckRequirements() (*MSTICheckRequirements, bool)
+1. TiTaxiiCheckRequirements.AsMtpCheckRequirements() (*MtpCheckRequirements, bool)
+1. TiTaxiiDataConnector.AsMSTIDataConnector() (*MSTIDataConnector, bool)
+1. TiTaxiiDataConnector.AsMTPDataConnector() (*MTPDataConnector, bool)
+1. Ueba.AsIPSyncer() (*IPSyncer, bool)
+1. WatchlistItemList.IsEmpty() bool
+1. WatchlistItemList.MarshalJSON() ([]byte, error)
+1. WatchlistItemListIterator.NotDone() bool
+1. WatchlistItemListIterator.Response() WatchlistItemList
+1. WatchlistItemListIterator.Value() WatchlistItem
+1. WatchlistItemListPage.NotDone() bool
+1. WatchlistItemListPage.Response() WatchlistItemList
+1. WatchlistItemListPage.Values() []WatchlistItem
+1. WatchlistItemsClient.CreateOrUpdate(context.Context, string, string, string, string, string, WatchlistItem) (WatchlistItem, error)
+1. WatchlistItemsClient.CreateOrUpdatePreparer(context.Context, string, string, string, string, string, WatchlistItem) (*http.Request, error)
+1. WatchlistItemsClient.CreateOrUpdateResponder(*http.Response) (WatchlistItem, error)
+1. WatchlistItemsClient.CreateOrUpdateSender(*http.Request) (*http.Response, error)
+1. WatchlistItemsClient.Delete(context.Context, string, string, string, string, string) (autorest.Response, error)
+1. WatchlistItemsClient.DeletePreparer(context.Context, string, string, string, string, string) (*http.Request, error)
+1. WatchlistItemsClient.DeleteResponder(*http.Response) (autorest.Response, error)
+1. WatchlistItemsClient.DeleteSender(*http.Request) (*http.Response, error)
+1. WatchlistItemsClient.Get(context.Context, string, string, string, string, string) (WatchlistItem, error)
+1. WatchlistItemsClient.GetPreparer(context.Context, string, string, string, string, string) (*http.Request, error)
+1. WatchlistItemsClient.GetResponder(*http.Response) (WatchlistItem, error)
+1. WatchlistItemsClient.GetSender(*http.Request) (*http.Response, error)
+1. WatchlistItemsClient.List(context.Context, string, string, string, string) (WatchlistItemListPage, error)
+1. WatchlistItemsClient.ListComplete(context.Context, string, string, string, string) (WatchlistItemListIterator, error)
+1. WatchlistItemsClient.ListPreparer(context.Context, string, string, string, string) (*http.Request, error)
+1. WatchlistItemsClient.ListResponder(*http.Response) (WatchlistItemList, error)
+1. WatchlistItemsClient.ListSender(*http.Request) (*http.Response, error)
+
+## Struct Changes
+
+### New Structs
+
+1. AutomationRule
+1. AutomationRuleAction
+1. AutomationRuleCondition
+1. AutomationRuleModifyPropertiesAction
+1. AutomationRuleModifyPropertiesActionActionConfiguration
+1. AutomationRuleProperties
+1. AutomationRulePropertyValuesCondition
+1. AutomationRulePropertyValuesConditionConditionProperties
+1. AutomationRuleRunPlaybookAction
+1. AutomationRuleRunPlaybookActionActionConfiguration
+1. AutomationRuleTriggeringLogic
+1. AutomationRulesClient
+1. AutomationRulesList
+1. AutomationRulesListIterator
+1. AutomationRulesListPage
+1. ConnectedEntity
+1. EntityEdges
+1. IPSyncer
+1. IPSyncerSettingsProperties
+1. MSTICheckRequirements
+1. MSTICheckRequirementsProperties
+1. MSTIDataConnector
+1. MSTIDataConnectorDataTypes
+1. MSTIDataConnectorDataTypesBingSafetyPhishingURL
+1. MSTIDataConnectorDataTypesMicrosoftEmergingThreatFeed
+1. MSTIDataConnectorProperties
+1. MTPCheckRequirementsProperties
+1. MTPDataConnector
+1. MTPDataConnectorDataTypes
+1. MTPDataConnectorDataTypesIncidents
+1. MTPDataConnectorProperties
+1. MtpCheckRequirements
+1. ThreatIntelligenceAlertRule
+1. ThreatIntelligenceAlertRuleProperties
+1. ThreatIntelligenceAlertRuleTemplate
+1. ThreatIntelligenceAlertRuleTemplateProperties
+1. ThreatIntelligenceExternalReference
+1. ThreatIntelligenceParsedPattern
+1. ThreatIntelligenceParsedPatternTypeValue
+1. WatchlistItemList
+1. WatchlistItemListIterator
+1. WatchlistItemListPage
+1. WatchlistItemsClient
+
+### New Struct Fields
+
+1. BookmarkExpandResponseValue.Edges
+1. BookmarkProperties.EventTime
+1. BookmarkProperties.QueryEndTime
+1. BookmarkProperties.QueryStartTime
+1. EntityExpandResponseValue.Edges
+1. MailMessageEntityProperties.ReceiveDate
+1. OfficeConsentProperties.ConsentID
+1. Operation.Origin
+1. SecurityAlertTimelineItem.Description
+1. SubmissionMailEntityProperties.SubmissionDate
+1. SubmissionMailEntityProperties.SubmissionID
+1. SubmissionMailEntityProperties.Submitter
+1. TIDataConnectorProperties.TipLookbackPeriod
+1. ThreatIntelligenceIndicatorProperties.Defanged
+1. ThreatIntelligenceIndicatorProperties.Extensions
+1. ThreatIntelligenceIndicatorProperties.ExternalLastUpdatedTimeUtc
+1. ThreatIntelligenceIndicatorProperties.Language
+1. ThreatIntelligenceIndicatorProperties.ObjectMarkingRefs
+1. ThreatIntelligenceIndicatorProperties.ParsedPattern
+1. ThreatIntelligenceIndicatorProperties.PatternVersion
+1. TiTaxiiDataConnectorProperties.PollingFrequency
+1. TiTaxiiDataConnectorProperties.TaxiiLookbackPeriod

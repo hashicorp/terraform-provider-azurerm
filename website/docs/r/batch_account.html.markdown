@@ -16,7 +16,7 @@ Manages an Azure Batch account.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "testbatch"
-  location = "westeurope"
+  location = "West Europe"
 }
 
 resource "azurerm_storage_account" "example" {

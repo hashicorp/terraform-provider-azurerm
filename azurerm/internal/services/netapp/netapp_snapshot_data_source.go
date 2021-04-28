@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp/validate"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -23,7 +25,7 @@ func dataSourceNetAppSnapshot() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: ValidateNetAppSnapshotName,
+				ValidateFunc: validate.SnapshotName,
 			},
 
 			"location": azure.SchemaLocationForDataSource(),
@@ -33,19 +35,19 @@ func dataSourceNetAppSnapshot() *schema.Resource {
 			"account_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: ValidateNetAppAccountName,
+				ValidateFunc: validate.AccountName,
 			},
 
 			"pool_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: ValidateNetAppPoolName,
+				ValidateFunc: validate.PoolName,
 			},
 
 			"volume_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: ValidateNetAppVolumeName,
+				ValidateFunc: validate.VolumeName,
 			},
 		},
 	}

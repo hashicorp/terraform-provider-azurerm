@@ -9,10 +9,10 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -341,37 +341,49 @@ func TestAccPublicIpStatic_canLabelBe63(t *testing.T) {
 	})
 }
 
+func TestAccPublicIpStatic_ipTags(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
+	r := PublicIPResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.standard_IpTags(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ip_tags.RoutingPreference").HasValue("Internet"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t PublicIPResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.PublicIpAddressID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resGroup := id.ResourceGroup
-	name := id.Path["publicIPAddresses"]
 
-	resp, err := clients.Network.PublicIPsClient.Get(ctx, resGroup, name, "")
+	resp, err := clients.Network.PublicIPsClient.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
-		return nil, fmt.Errorf("reading Public IP (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading Public IP %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil
 }
 
 func (PublicIPResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.PublicIpAddressID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resGroup := id.ResourceGroup
-	name := id.Path["publicIPAddresses"]
 
-	future, err := client.Network.PublicIPsClient.Delete(ctx, resGroup, name)
+	future, err := client.Network.PublicIPsClient.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("deleting Public IP %q: %+v", id, err)
+		return nil, fmt.Errorf("deleting Public IP %q: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Network.PublicIPsClient.Client); err != nil {
-		return nil, fmt.Errorf("waiting for Deletion of Public IP %q: %+v", id, err)
+		return nil, fmt.Errorf("waiting for Deletion of Public IP %s: %+v", *id, err)
 	}
 
 	return utils.Bool(true), nil
@@ -761,6 +773,31 @@ resource "azurerm_public_ip" "test" {
 
   allocation_method = "Static"
   domain_name_label = "k2345678-1-2345678-2-2345678-3-2345678-4-2345678-5-2345678-6-23"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (PublicIPResource) standard_IpTags(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-network-%d"
+  location = "%s"
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestpublicip-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+
+  ip_tags = {
+    RoutingPreference = "Internet"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

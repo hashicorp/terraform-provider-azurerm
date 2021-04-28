@@ -19,7 +19,7 @@ For an example, check the `azurerm_app_service_virtual_network_swift_connection`
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "azure-functions-test-rg"
-  location = "westus2"
+  location = "West Europe"
 }
 
 resource "azurerm_storage_account" "example" {
@@ -55,7 +55,7 @@ resource "azurerm_function_app" "example" {
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "azure-functions-cptest-rg"
-  location = "westus2"
+  location = "West Europe"
 }
 
 resource "azurerm_storage_account" "example" {
@@ -92,7 +92,7 @@ resource "azurerm_function_app" "example" {
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "azure-functions-cptest-rg"
-  location = "westus2"
+  location = "West Europe"
 }
 
 resource "azurerm_storage_account" "example" {
@@ -145,6 +145,8 @@ The following arguments are supported:
 * `connection_string` - (Optional) An `connection_string` block as defined below.
 
 * `client_affinity_enabled` - (Optional) Should the Function App send session affinity cookies, which route client requests in the same session to the same instance?
+
+* `client_cert_mode` - (Optional) The mode of the Function App's client certificates requirement for incoming requests. Possible values are `Required` and `Optional`.
 
 * `daily_memory_time_quota` - (Optional) The amount of memory in gigabyte-seconds that your application is allowed to consume per day. Setting this value only affects function apps under the consumption plan. Defaults to `0`.
 
@@ -340,6 +342,8 @@ A `ip_restriction` block supports the following:
 
 * `action` - (Optional) Does this restriction `Allow` or `Deny` access for this IP range. Defaults to `Allow`.  
 
+* `headers` - (Optional) The headers for this specific `ip_restriction` as defined below.
+
 ---
 
 A `scm_ip_restriction` block supports the following:
@@ -356,7 +360,22 @@ A `scm_ip_restriction` block supports the following:
 
 * `priority` - (Optional) The priority for this IP Restriction. Restrictions are enforced in priority order. By default, priority is set to 65000 if not specified.  
 
-* `action` - (Optional) Allow or Deny access for this IP range. Defaults to Allow.  
+* `action` - (Optional) Allow or Deny access for this IP range. Defaults to Allow.
+
+* `headers` - (Optional) The headers for this specific `scm_ip_restriction` as defined below.
+
+---
+
+A `headers` block supports the following:
+
+* `x_azure_fdid` - (Optional) A list of allowed Azure FrontDoor IDs in UUID notation with a maximum of 8.
+
+* `x_fd_health_probe` - (Optional) A list to allow the Azure FrontDoor health probe header. Only allowed value is "1".
+
+* `x_forwarded_for` - (Optional) A list of allowed 'X-Forwarded-For' IPs in CIDR notation with a maximum of 8
+
+* `x_forwarded_host` - (Optional) A list of allowed 'X-Forwarded-Host' domains with a maximum of 8.
+
 
 ---
 

@@ -12,7 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -30,7 +30,7 @@ func resourceDnsNsRecord() *schema.Resource {
 			Update: schema.DefaultTimeout(30 * time.Minute),
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.NsRecordID(id)
 			return err
 		}),
@@ -76,11 +76,14 @@ func resourceDnsNsRecord() *schema.Resource {
 func resourceDnsNsRecordCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	zoneName := d.Get("zone_name").(string)
+
+	resourceId := parse.NewNsRecordID(subscriptionId, resGroup, zoneName, name)
 
 	existing, err := client.Get(ctx, resGroup, zoneName, name, dns.NS)
 	if err != nil {
@@ -114,16 +117,7 @@ func resourceDnsNsRecordCreate(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error creating DNS NS Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resGroup, zoneName, name, dns.NS)
-	if err != nil {
-		return fmt.Errorf("Error retrieving DNS NS Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
-	}
-
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read DNS NS Record %s (resource group %s) ID", name, resGroup)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(resourceId.ID())
 
 	return resourceDnsNsRecordRead(d, meta)
 }

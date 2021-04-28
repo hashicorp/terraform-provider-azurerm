@@ -15,7 +15,7 @@ Manages an Azure Storage Account Management Policy.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "resourceGroupName"
-  location = "westus"
+  location = "West Europe"
 }
 
 resource "azurerm_storage_account" "example" {
@@ -37,6 +37,11 @@ resource "azurerm_storage_management_policy" "example" {
     filters {
       prefix_match = ["container1/prefix1"]
       blob_types   = ["blockBlob"]
+      match_blob_index_tag {
+        name      = "tag1"
+        operation = "=="
+        value     = "val1"
+      }
     }
     actions {
       base_blob {
@@ -63,7 +68,14 @@ resource "azurerm_storage_management_policy" "example" {
         delete_after_days_since_modification_greater_than          = 101
       }
       snapshot {
-        delete_after_days_since_creation_greater_than = 31
+        change_tier_to_archive_after_days_since_creation = 90
+        change_tier_to_cool_after_days_since_creation    = 23
+        delete_after_days_since_creation_greater_than    = 31
+      }
+      version {
+        change_tier_to_archive_after_days_since_creation = 9
+        change_tier_to_cool_after_days_since_creation    = 90
+        delete_after_days_since_creation                 = 3
       }
     }
   }
@@ -93,27 +105,48 @@ The following arguments are supported:
 
 * `prefix_match` - An array of strings for prefixes to be matched.
 * `blob_types` - An array of predefined values. Valid options are `blockBlob` and `appendBlob`.
+* `match_blob_index_tag` - A `match_blob_index_tag` block as defined below. The block defines the blob index tag based filtering for blob objects.
 
+~> **NOTE:** The `match_blob_index_tag property requires enabling the `blobIndex` feature with [PSH or Cli commands](https://azure.microsoft.com/en-us/blog/manage-and-find-data-with-blob-index-for-azure-storage-now-in-preview/). 
 ---
 
 `actions` supports the following:
 
 * `base_blob` - A `base_blob` block as documented below.
 * `snapshot` - A `snapshot` block as documented below.
+* `version` - A `version` block as documented below.
 
 ---
 
 `base_blob` supports the following:
 
-* `tier_to_cool_after_days_since_modification_greater_than` - The age in days after last modification to tier blobs to cool storage. Supports blob currently at Hot tier. Must be at least 0.
-* `tier_to_archive_after_days_since_modification_greater_than` - The age in days after last modification to tier blobs to archive storage. Supports blob currently at Hot or Cool tier. Must be at least 0.
-* `delete_after_days_since_modification_greater_than` - The age in days after last modification to delete the blob. Must be at least 0.
+* `tier_to_cool_after_days_since_modification_greater_than` - The age in days after last modification to tier blobs to cool storage. Supports blob currently at Hot tier. Must be between 0 and 99999.
+* `tier_to_archive_after_days_since_modification_greater_than` - The age in days after last modification to tier blobs to archive storage. Supports blob currently at Hot or Cool tier. Must be between 0 and 99999.
+* `delete_after_days_since_modification_greater_than` - The age in days after last modification to delete the blob. Must be between 0 and 99999.
 
 ---
 
 `snapshot` supports the following:
 
-* `delete_after_days_since_creation_greater_than` - The age in days after create to delete the snaphot. Must be at least 0.
+* `change_tier_to_archive_after_days_since_creation` - The age in days after creation to tier blob snapshot to archive storage. Must be between 0 and 99999.
+* `change_tier_to_cool_after_days_since_creation` - The age in days after creation to tier blob snapshot to cool storage. Must be between 0 and 99999.
+* `delete_after_days_since_creation_greater_than` - The age in days after creation to delete the blob snapshot. Must be between 0 and 99999.
+
+---
+
+`version` supports the following:
+
+* `change_tier_to_archive_after_days_since_creation` - The age in days after creation to tier blob version to archive storage. Must be between 0 and 99999.
+* `change_tier_to_cool_after_days_since_creation` - The age in days creation create to  tier blob version to cool storage. Must be between 0 and 99999.
+* `delete_after_days_since_creation` - The age in days after creation to delete the blob version. Must be between 0 and 99999.
+
+---
+
+`match_blob_index_tag` supports the following:
+
+* `name` - The filter tag name used for tag based filtering for blob objects.
+* `operation` - The comparison operator which is used for object comparison and filtering. Possible value is `==`. Defaults to `==`.
+* `value` -  The filter tag value used for tag based filtering for blob objects.
 
 ## Attributes Reference
 

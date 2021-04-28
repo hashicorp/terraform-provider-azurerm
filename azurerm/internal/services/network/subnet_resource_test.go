@@ -7,7 +7,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -38,6 +37,50 @@ func TestAccSubnet_basic_addressPrefixes(t *testing.T) {
 	r := SubnetResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic_addressPrefixes(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSubnet_complete_addressPrefixes(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	r := SubnetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete_addressPrefixes(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSubnet_update_addressPrefixes(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	r := SubnetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic_addressPrefixes(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete_addressPrefixes(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 		{
 			Config: r.basic_addressPrefixes(data),
 			Check: resource.ComposeTestCheckFunc(
@@ -260,15 +303,12 @@ func TestAccSubnet_updateAddressPrefix(t *testing.T) {
 }
 
 func (t SubnetResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.SubnetID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroup
-	networkName := id.Path["virtualNetworks"]
-	name := id.Path["subnets"]
 
-	resp, err := clients.Network.SubnetsClient.Get(ctx, resourceGroup, networkName, name, "")
+	resp, err := clients.Network.SubnetsClient.Get(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name, "")
 	if err != nil {
 		return nil, fmt.Errorf("reading Subnet (%s): %+v", id, err)
 	}
@@ -277,21 +317,18 @@ func (t SubnetResource) Exists(ctx context.Context, clients *clients.Client, sta
 }
 
 func (SubnetResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.SubnetID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroup
-	networkName := id.Path["virtualNetworks"]
-	name := id.Path["subnets"]
 
-	future, err := client.Network.SubnetsClient.Delete(ctx, resourceGroup, networkName, name)
+	future, err := client.Network.SubnetsClient.Delete(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name)
 	if err != nil {
 		return nil, fmt.Errorf("deleting Subnet %q: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Network.SubnetsClient.Client); err != nil {
-		return nil, fmt.Errorf("waiting for Deletion of subnet %q: %+v", id, err)
+		return nil, fmt.Errorf("waiting for deletion of Subnet %q: %+v", id, err)
 	}
 
 	return utils.Bool(true), nil
@@ -470,6 +507,27 @@ resource "azurerm_subnet" "test" {
 }
 
 func (SubnetResource) basic_addressPrefixes(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-n-%d"
+  location = "%s"
+}
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.0.0.0/16", "ace:cab:deca::/48"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet%d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefixes     = ["10.0.0.0/24"]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (SubnetResource) complete_addressPrefixes(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-n-%d"

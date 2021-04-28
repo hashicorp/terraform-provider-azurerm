@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -16,7 +16,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -28,7 +28,7 @@ func resourceSharedImage() *schema.Resource {
 		Update: resourceSharedImageCreateUpdate,
 		Delete: resourceSharedImageDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.SharedImageID(id)
 			return err
 		}),
@@ -290,14 +290,13 @@ func resourceSharedImageDelete(d *schema.ResourceData, meta interface{}) error {
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.GalleryName, id.ImageName)
 	if err != nil {
-		return fmt.Errorf("deleting Shared Image %q (Gallery %q / Resource Group %q): %+v", id.ImageName, id.GalleryName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
-
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("failed to wait for deleting Shared Image %q (Gallery %q / Resource Group %q): %+v", id.ImageName, id.GalleryName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for deletion of: %s: %+v", *id, err)
 	}
 
-	log.Printf("[DEBUG] Waiting for Shared Image %q (Gallery %q / Resource Group %q) to be eventually deleted", id.ImageName, id.GalleryName, id.ResourceGroup)
+	log.Printf("[DEBUG] Waiting for %s to be eventually deleted", *id)
 	stateConf := &resource.StateChangeConf{
 		Pending:                   []string{"Exists"},
 		Target:                    []string{"NotFound"},
@@ -308,7 +307,7 @@ func resourceSharedImageDelete(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("failed to wait for Shared Image %q (Gallery %q / Resource Group %q) to be deleted: %+v", id.ImageName, id.GalleryName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for %s to be deleted: %+v", *id, err)
 	}
 
 	return nil

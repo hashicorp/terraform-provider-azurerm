@@ -53,6 +53,29 @@ func dataSourceStorageManagementPolicy() *schema.Resource {
 										Elem:     &schema.Schema{Type: schema.TypeString},
 										Set:      schema.HashString,
 									},
+
+									"match_blob_index_tag": {
+										Type:     schema.TypeList,
+										Computed: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"name": {
+													Type:     schema.TypeString,
+													Computed: true,
+												},
+
+												"operation": {
+													Type:     schema.TypeString,
+													Computed: true,
+												},
+
+												"value": {
+													Type:     schema.TypeString,
+													Computed: true,
+												},
+											},
+										},
+									},
 								},
 							},
 						},
@@ -86,7 +109,36 @@ func dataSourceStorageManagementPolicy() *schema.Resource {
 										Computed: true,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
+												"change_tier_to_archive_after_days_since_creation": {
+													Type:     schema.TypeInt,
+													Computed: true,
+												},
+												"change_tier_to_cool_after_days_since_creation": {
+													Type:     schema.TypeInt,
+													Optional: true,
+													Computed: true,
+												},
 												"delete_after_days_since_creation_greater_than": {
+													Type:     schema.TypeInt,
+													Computed: true,
+												},
+											},
+										},
+									},
+									"version": {
+										Type:     schema.TypeList,
+										Computed: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"change_tier_to_archive_after_days_since_creation": {
+													Type:     schema.TypeInt,
+													Computed: true,
+												},
+												"change_tier_to_cool_after_days_since_creation": {
+													Type:     schema.TypeInt,
+													Computed: true,
+												},
+												"delete_after_days_since_creation": {
 													Type:     schema.TypeInt,
 													Computed: true,
 												},
@@ -123,11 +175,10 @@ func dataSourceStorageManagementPolicyRead(d *schema.ResourceData, meta interfac
 	}
 	d.SetId(*result.ID)
 
-	if result.Policy != nil {
-		policy := result.Policy
-		if policy.Rules != nil {
+	if props := result.ManagementPolicyProperties; props != nil {
+		if policy := props.Policy; policy != nil {
 			if err := d.Set("rule", flattenStorageManagementPolicyRules(policy.Rules)); err != nil {
-				return fmt.Errorf("Error flattening `rule`: %+v", err)
+				return fmt.Errorf("flattening `rule`: %+v", err)
 			}
 		}
 	}

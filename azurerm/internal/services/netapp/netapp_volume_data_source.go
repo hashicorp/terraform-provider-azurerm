@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp/validate"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -23,7 +25,7 @@ func dataSourceNetAppVolume() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: ValidateNetAppPoolName,
+				ValidateFunc: validate.PoolName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
@@ -33,13 +35,13 @@ func dataSourceNetAppVolume() *schema.Resource {
 			"account_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: ValidateNetAppAccountName,
+				ValidateFunc: validate.AccountName,
 			},
 
 			"pool_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: ValidateNetAppPoolName,
+				ValidateFunc: validate.PoolName,
 			},
 
 			"mount_ip_addresses": {
@@ -75,6 +77,31 @@ func dataSourceNetAppVolume() *schema.Resource {
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
+
+			"data_protection_replication": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"endpoint_type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"remote_volume_location": azure.SchemaLocationForDataSource(),
+
+						"remote_volume_resource_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"replication_schedule": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -107,9 +134,11 @@ func dataSourceNetAppVolumeRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("account_name", accountName)
 	d.Set("pool_name", poolName)
+
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
+
 	if props := resp.VolumeProperties; props != nil {
 		d.Set("volume_path", props.CreationToken)
 		d.Set("service_level", props.ServiceLevel)
@@ -126,6 +155,9 @@ func dataSourceNetAppVolumeRead(d *schema.ResourceData, meta interface{}) error 
 		}
 		if err := d.Set("mount_ip_addresses", flattenNetAppVolumeMountIPAddresses(props.MountTargets)); err != nil {
 			return fmt.Errorf("setting `mount_ip_addresses`: %+v", err)
+		}
+		if err := d.Set("data_protection_replication", flattenNetAppVolumeDataProtectionReplication(props.DataProtection)); err != nil {
+			return fmt.Errorf("setting `data_protection_replication`: %+v", err)
 		}
 	}
 

@@ -14,7 +14,7 @@ Manages a Public IP Prefix.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "resourceGroup1"
+  name     = "example-resources"
   location = "West Europe"
 }
 
@@ -76,5 +76,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Public IP Prefixes can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_public_ip_prefix.myPublicIpPrefix /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/publicIPFixes/myPublicIpPrefix1
+terraform import azurerm_public_ip_prefix.myPublicIpPrefix /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/publicIPPrefixes/myPublicIpPrefix1
 ```

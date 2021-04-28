@@ -7,7 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/recoveryservices/validate"
+
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-07-10/siterecovery"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -15,6 +17,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -26,9 +29,8 @@ func resourceSiteRecoveryReplicatedVM() *schema.Resource {
 		Read:   resourceSiteRecoveryReplicatedItemRead,
 		Update: resourceSiteRecoveryReplicatedItemUpdate,
 		Delete: resourceSiteRecoveryReplicatedItemDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(120 * time.Minute),
@@ -50,7 +52,7 @@ func resourceSiteRecoveryReplicatedVM() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateRecoveryServicesVaultName,
+				ValidateFunc: validate.RecoveryServicesVaultName,
 			},
 			"source_recovery_fabric_name": {
 				Type:         schema.TypeString,
@@ -190,12 +192,20 @@ func networkInterfaceResource() *schema.Resource {
 			"target_static_ip": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				ForceNew:     false,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 			"target_subnet_name": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				ForceNew:     false,
 				ValidateFunc: validation.StringIsNotEmpty,
+			},
+			"recovery_public_ip_address_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     false,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 		},
 	}
@@ -320,6 +330,7 @@ func resourceSiteRecoveryReplicatedItemUpdate(d *schema.ResourceData, meta inter
 		sourceNicId := vmNicInput["source_network_interface_id"].(string)
 		targetStaticIp := vmNicInput["target_static_ip"].(string)
 		targetSubnetName := vmNicInput["target_subnet_name"].(string)
+		recoveryPublicIPAddressID := vmNicInput["recovery_public_ip_address_id"].(string)
 
 		nicId := findNicId(state, sourceNicId)
 		if nicId == nil {
@@ -329,6 +340,7 @@ func resourceSiteRecoveryReplicatedItemUpdate(d *schema.ResourceData, meta inter
 			NicID:                     nicId,
 			RecoveryVMSubnetName:      &targetSubnetName,
 			ReplicaNicStaticIPAddress: &targetStaticIp,
+			RecoveryPublicIPAddressID: &recoveryPublicIPAddressID,
 		})
 	}
 
@@ -461,6 +473,9 @@ func resourceSiteRecoveryReplicatedItemRead(d *schema.ResourceData, meta interfa
 				}
 				if nic.RecoveryVMSubnetName != nil {
 					nicOutput["target_subnet_name"] = *nic.RecoveryVMSubnetName
+				}
+				if nic.RecoveryPublicIPAddressID != nil {
+					nicOutput["recovery_public_ip_address_id"] = *nic.RecoveryPublicIPAddressID
 				}
 				nicsOutput = append(nicsOutput, nicOutput)
 			}

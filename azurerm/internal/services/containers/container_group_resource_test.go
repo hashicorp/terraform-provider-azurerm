@@ -63,12 +63,12 @@ func TestAccContainerGroup_multipleAssignedIdentities(t *testing.T) {
 			Config: r.MultipleAssignedIdentities(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned, UserAssigned"),
 				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
 				resource.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validate.UUIDRegExp),
 			),
 		},
-		data.ImportStep("identity.0.principal_id"),
+		data.ImportStep(),
 	})
 }
 

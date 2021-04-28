@@ -2,9 +2,9 @@ package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2019-12-01/containerinstance"
-	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2019-05-01/containerregistry"
 	legacy "github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-08-01/containerservice"
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-12-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-02-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2020-11-01-preview/containerregistry"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
@@ -17,6 +17,8 @@ type Client struct {
 	ReplicationsClient       *containerregistry.ReplicationsClient
 	ServicesClient           *legacy.ContainerServicesClient
 	WebhooksClient           *containerregistry.WebhooksClient
+	TokensClient             *containerregistry.TokensClient
+	ScopeMapsClient          *containerregistry.ScopeMapsClient
 
 	Environment azure.Environment
 }
@@ -30,6 +32,12 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	replicationsClient := containerregistry.NewReplicationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&replicationsClient.Client, o.ResourceManagerAuthorizer)
+
+	tokensClient := containerregistry.NewTokensClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&tokensClient.Client, o.ResourceManagerAuthorizer)
+
+	scopeMapsClient := containerregistry.NewScopeMapsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&scopeMapsClient.Client, o.ResourceManagerAuthorizer)
 
 	groupsClient := containerinstance.NewContainerGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&groupsClient.Client, o.ResourceManagerAuthorizer)
@@ -53,5 +61,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		ReplicationsClient:       &replicationsClient,
 		ServicesClient:           &servicesClient,
 		Environment:              o.Environment,
+		TokensClient:             &tokensClient,
+		ScopeMapsClient:          &scopeMapsClient,
 	}
 }

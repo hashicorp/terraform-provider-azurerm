@@ -72,8 +72,7 @@ func TestAccLinuxVirtualMachineScaleSet_extensionBasic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// TODO - extension should be changed to extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
-		data.ImportStep("admin_password", "extension"),
+		data.ImportStep("admin_password", "extension.0.protected_settings"),
 	})
 }
 
@@ -88,8 +87,7 @@ func TestAccLinuxVirtualMachineScaleSet_extensionOnlySettings(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// TODO - extension should be changed to extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
-		data.ImportStep("admin_password", "extension"),
+		data.ImportStep("admin_password", "extension.0.protected_settings"),
 	})
 }
 
@@ -104,16 +102,14 @@ func TestAccLinuxVirtualMachineScaleSet_extensionForceUpdateTag(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// TODO - extension should be changed to extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
-		data.ImportStep("admin_password", "extension"),
+		data.ImportStep("admin_password", "extension.0.protected_settings"),
 		{
 			Config: r.extensionForceUpdateTag(data, "second"),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// TODO - extension should be changed to extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
-		data.ImportStep("admin_password", "extension"),
+		data.ImportStep("admin_password", "extension.0.protected_settings"),
 	})
 }
 
@@ -128,8 +124,7 @@ func TestAccLinuxVirtualMachineScaleSet_extensionsMultiple(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// TODO - extension should be changed to extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
-		data.ImportStep("admin_password", "extension"),
+		data.ImportStep("admin_password", "extension.0.protected_settings", "extension.1.protected_settings"),
 	})
 }
 
@@ -144,24 +139,51 @@ func TestAccLinuxVirtualMachineScaleSet_extensionsUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// TODO - extension should be changed to extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
-		data.ImportStep("admin_password", "extension"),
+		data.ImportStep("admin_password", "extension.0.protected_settings"),
 		{
 			Config: r.extensionUpdate(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// TODO - extension should be changed to extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
-		data.ImportStep("admin_password", "extension"),
+		data.ImportStep("admin_password", "extension.0.protected_settings"),
 		{
 			Config: r.extensionBasic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// TODO - extension should be changed to extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
-		data.ImportStep("admin_password", "extension"),
+		data.ImportStep("admin_password", "extension.0.protected_settings"),
+	})
+}
+
+func TestAccLinuxVirtualMachineScaleSet_extensionsRollingUpgradeWithHealthExtension(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.extensionsRollingUpgradeWithHealthExtension(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password", "extension.0.protected_settings"),
+	})
+}
+
+func TestAccLinuxVirtualMachineScaleSet_extensionsAutomaticUpgradeWithHealthExtension(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.extensionsAutomaticUpgradeWithHealthExtension(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password", "extension.0.protected_settings"),
 	})
 }
 
@@ -176,8 +198,7 @@ func TestAccLinuxVirtualMachineScaleSet_extensionWithTimeBudget(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// TODO - extension should be changed to extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
-		data.ImportStep("admin_password", "extension"),
+		data.ImportStep("admin_password", "extension.0.protected_settings"),
 	})
 }
 
@@ -192,24 +213,21 @@ func TestAccLinuxVirtualMachineScaleSet_extensionWithTimeBudgetUpdate(t *testing
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// TODO - extension should be changed to extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
-		data.ImportStep("admin_password", "extension"),
+		data.ImportStep("admin_password", "extension.0.protected_settings"),
 		{
 			Config: r.extensionWithTimeBudget(data, "PT1H"),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// TODO - extension should be changed to extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
-		data.ImportStep("admin_password", "extension"),
+		data.ImportStep("admin_password", "extension.0.protected_settings"),
 		{
 			Config: r.extensionWithTimeBudget(data, "PT30M"),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// TODO - extension should be changed to extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
-		data.ImportStep("admin_password", "extension"),
+		data.ImportStep("admin_password", "extension.0.protected_settings"),
 	})
 }
 
@@ -224,8 +242,7 @@ func TestAccLinuxVirtualMachineScaleSet_extensionTimeBudgetWithoutExtensions(t *
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// TODO - extension should be changed to extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
-		data.ImportStep("admin_password", "extension"),
+		data.ImportStep("admin_password", "extension.0.protected_settings"),
 	})
 }
 
@@ -240,24 +257,21 @@ func TestAccLinuxVirtualMachineScaleSet_extensionTimeBudgetWithoutExtensionsUpda
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// TODO - extension should be changed to extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
-		data.ImportStep("admin_password", "extension"),
+		data.ImportStep("admin_password", "extension.0.protected_settings"),
 		{
 			Config: r.extensionTimeBudgetWithoutExtensions(data, "PT1H"),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// TODO - extension should be changed to extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
-		data.ImportStep("admin_password", "extension"),
+		data.ImportStep("admin_password", "extension.0.protected_settings"),
 		{
 			Config: r.extensionTimeBudgetWithoutExtensions(data, "PT30M"),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// TODO - extension should be changed to extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
-		data.ImportStep("admin_password", "extension"),
+		data.ImportStep("admin_password", "extension.0.protected_settings"),
 	})
 }
 
@@ -556,7 +570,6 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     protected_settings = jsonencode({
       "managedIdentity" = {}
     })
-
   }
 
   extension {
@@ -633,6 +646,128 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     })
   }
 
+  tags = {
+    accTest = "true"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r LinuxVirtualMachineScaleSetResource) extensionsRollingUpgradeWithHealthExtension(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                            = "acctestvmss-%d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  sku                             = "Standard_F2"
+  instances                       = 1
+  admin_username                  = "adminuser"
+  admin_password                  = "P@ssword1234!"
+  disable_password_authentication = false
+  upgrade_mode                    = "Rolling"
+  rolling_upgrade_policy {
+    max_batch_instance_percent              = 21
+    max_unhealthy_instance_percent          = 22
+    max_unhealthy_upgraded_instance_percent = 23
+    pause_time_between_batches              = "PT30S"
+  }
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+  network_interface {
+    name    = "example"
+    primary = true
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+  extension {
+    name                       = "HealthExtension"
+    publisher                  = "Microsoft.ManagedServices"
+    type                       = "ApplicationHealthLinux"
+    type_handler_version       = "1.0"
+    auto_upgrade_minor_version = true
+    settings = jsonencode({
+      protocol = "https"
+      port     = 443
+    })
+  }
+  tags = {
+    accTest = "true"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r LinuxVirtualMachineScaleSetResource) extensionsAutomaticUpgradeWithHealthExtension(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                            = "acctestvmss-%d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  sku                             = "Standard_F2"
+  instances                       = 1
+  admin_username                  = "adminuser"
+  admin_password                  = "P@ssword1234!"
+  disable_password_authentication = false
+  upgrade_mode                    = "Automatic"
+  automatic_os_upgrade_policy {
+    disable_automatic_rollback  = true
+    enable_automatic_os_upgrade = true
+  }
+  rolling_upgrade_policy {
+    max_batch_instance_percent              = 21
+    max_unhealthy_instance_percent          = 22
+    max_unhealthy_upgraded_instance_percent = 23
+    pause_time_between_batches              = "PT30S"
+  }
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+  network_interface {
+    name    = "example"
+    primary = true
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+  extension {
+    name                       = "HealthExtension"
+    publisher                  = "Microsoft.ManagedServices"
+    type                       = "ApplicationHealthLinux"
+    type_handler_version       = "1.0"
+    auto_upgrade_minor_version = true
+    settings = jsonencode({
+      protocol = "https"
+      port     = 443
+    })
+  }
   tags = {
     accTest = "true"
   }

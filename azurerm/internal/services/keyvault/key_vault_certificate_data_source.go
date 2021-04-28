@@ -90,7 +90,7 @@ func dataSourceKeyVaultCertificate() *schema.Resource {
 
 						"lifetime_action": {
 							Type:     schema.TypeList,
-							Optional: true,
+							Computed: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"action": {
@@ -127,7 +127,7 @@ func dataSourceKeyVaultCertificate() *schema.Resource {
 
 						"secret_properties": {
 							Type:     schema.TypeList,
-							Required: true,
+							Computed: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"content_type": {

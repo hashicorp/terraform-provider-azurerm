@@ -321,7 +321,7 @@ func (r AppServiceEnvironmentResource) dedicatedResourceGroup(data acceptance.Te
 %s
 
 resource "azurerm_resource_group" "test2" {
-  name     = "acctestRG2-%[2]d"
+  name     = "acctestRG-%[2]d-2"
   location = "%s"
 }
 

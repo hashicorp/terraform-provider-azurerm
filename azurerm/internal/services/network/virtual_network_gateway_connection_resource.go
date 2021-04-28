@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -12,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -24,9 +27,8 @@ func resourceVirtualNetworkGatewayConnection() *schema.Resource {
 		Update: resourceVirtualNetworkGatewayConnectionCreateUpdate,
 		Delete: resourceVirtualNetworkGatewayConnectionDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -203,6 +205,8 @@ func resourceVirtualNetworkGatewayConnection() *schema.Resource {
 								string(network.AES256),
 								string(network.DES),
 								string(network.DES3),
+								string(network.GCMAES128),
+								string(network.GCMAES256),
 							}, true),
 						},
 
@@ -260,9 +264,11 @@ func resourceVirtualNetworkGatewayConnection() *schema.Resource {
 								string(network.PfsGroupECP384),
 								string(network.PfsGroupNone),
 								string(network.PfsGroupPFS1),
+								string(network.PfsGroupPFS14),
 								string(network.PfsGroupPFS2),
 								string(network.PfsGroupPFS2048),
 								string(network.PfsGroupPFS24),
+								string(network.PfsGroupPFSMM),
 							}, true),
 						},
 
@@ -480,14 +486,14 @@ func getVirtualNetworkGatewayConnectionProperties(d *schema.ResourceData) (*netw
 	if v, ok := d.GetOk("virtual_network_gateway_id"); ok {
 		virtualNetworkGatewayId := v.(string)
 
-		_, name, err := resourceGroupAndVirtualNetworkGatewayFromId(virtualNetworkGatewayId)
+		gwid, err := parse.VirtualNetworkGatewayID(virtualNetworkGatewayId)
 		if err != nil {
-			return nil, fmt.Errorf("Error Getting VirtualNetworkGateway Name and Group:: %+v", err)
+			return nil, err
 		}
 
 		props.VirtualNetworkGateway1 = &network.VirtualNetworkGateway{
 			ID:   &virtualNetworkGatewayId,
-			Name: &name,
+			Name: &gwid.Name,
 			VirtualNetworkGatewayPropertiesFormat: &network.VirtualNetworkGatewayPropertiesFormat{
 				IPConfigurations: &[]network.VirtualNetworkGatewayIPConfiguration{},
 			},
@@ -511,15 +517,13 @@ func getVirtualNetworkGatewayConnectionProperties(d *schema.ResourceData) (*netw
 	}
 
 	if v, ok := d.GetOk("peer_virtual_network_gateway_id"); ok {
-		peerVirtualNetworkGatewayId := v.(string)
-		_, name, err := resourceGroupAndVirtualNetworkGatewayFromId(peerVirtualNetworkGatewayId)
+		gwid, err := parse.VirtualNetworkGatewayID(v.(string))
 		if err != nil {
-			return nil, fmt.Errorf("Error Getting VirtualNetworkGateway Name and Group:: %+v", err)
+			return nil, err
 		}
-
 		props.VirtualNetworkGateway2 = &network.VirtualNetworkGateway{
-			ID:   &peerVirtualNetworkGatewayId,
-			Name: &name,
+			ID:   utils.String(gwid.ID()),
+			Name: &gwid.Name,
 			VirtualNetworkGatewayPropertiesFormat: &network.VirtualNetworkGatewayPropertiesFormat{
 				IPConfigurations: &[]network.VirtualNetworkGatewayIPConfiguration{},
 			},

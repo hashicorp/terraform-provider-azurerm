@@ -98,6 +98,7 @@ func TestAccApiManagementLogger_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("eventhub.#").HasValue("0"),
 				check.That(data.ResourceName).Key("application_insights.#").HasValue("1"),
 				check.That(data.ResourceName).Key("application_insights.0.instrumentation_key").Exists(),
+				check.That(data.ResourceName).Key("resource_id").Exists(),
 			),
 		},
 		{
@@ -340,6 +341,7 @@ resource "azurerm_api_management_logger" "test" {
   resource_group_name = azurerm_resource_group.test.name
   description         = "%s"
   buffered            = %s
+  resource_id         = azurerm_application_insights.test.id
 
   application_insights {
     instrumentation_key = azurerm_application_insights.test.instrumentation_key

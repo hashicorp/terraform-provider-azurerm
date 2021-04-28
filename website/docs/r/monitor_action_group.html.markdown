@@ -16,7 +16,7 @@ Manages an Action Group within Azure Monitor.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "monitoring-resources"
-  location = "West US"
+  location = "West Europe"
 }
 
 resource "azurerm_monitor_action_group" "example" {
@@ -206,6 +206,15 @@ The following arguments are supported:
 * `name` - (Required) The name of the webhook receiver. Names must be unique (case-insensitive) across all receivers within an action group.
 * `service_uri` - (Required) The URI where webhooks should be sent.
 * `use_common_alert_schema` - (Optional) Enables or disables the common alert schema.
+* `aad_auth` - (Optional) The `aad_auth` block as defined below
+
+~> **NOTE:** Before adding a secure webhook receiver by setting `aad_auth`, please read [the configuration instruction of the AAD application](https://docs.microsoft.com/en-us/azure/azure-monitor/platform/action-groups#secure-webhook).
+
+`aad_auth` supports the following:.
+
+* `object_id` - (Required) The webhook application object Id for aad auth.
+* `identifier_uri` - (Optional) The identifier uri for aad auth.
+* `tenant_id` - (Optional) The tenant id for aad auth.
 
 ## Attributes Reference
 

@@ -8,13 +8,15 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	KeyVaultMgmt "github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2019-09-01/keyvault"
+	"github.com/Azure/azure-sdk-for-go/services/preview/keyvault/mgmt/2020-04-01-preview/keyvault"
+	"github.com/gofrs/uuid"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	uuid "github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	commonValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -47,15 +49,14 @@ func resourceKeyVault() *schema.Resource {
 		Update: resourceKeyVaultUpdate,
 		Delete: resourceKeyVaultDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
-		MigrateState: resourceKeyVaultMigrateState,
-		StateUpgraders: []schema.StateUpgrader{
-			migration.KeyVaultV1ToV2Upgrader(),
-		},
 		SchemaVersion: 2,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.KeyVaultV0ToV1{},
+			1: migration.KeyVaultV1ToV2{},
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -582,12 +583,14 @@ func resourceKeyVaultUpdate(d *schema.ResourceData, meta interface{}) error {
 		if existing.Properties == nil || existing.Properties.VaultURI == nil {
 			return fmt.Errorf("failed to get vault base url for %s: %s", *id, err)
 		}
+
 		var err error
 		if len(*contacts.ContactList) == 0 {
 			_, err = managementClient.DeleteCertificateContacts(ctx, *existing.Properties.VaultURI)
 		} else {
 			_, err = managementClient.SetCertificateContacts(ctx, *existing.Properties.VaultURI, contacts)
 		}
+
 		if err != nil {
 			return fmt.Errorf("setting Contacts for %s: %+v", *id, err)
 		}

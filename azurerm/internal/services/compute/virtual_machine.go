@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
@@ -146,7 +146,7 @@ func flattenVirtualMachineIdentity(input *compute.VirtualMachineIdentity) ([]int
 	identityIds := make([]string, 0)
 	if input.UserAssignedIdentities != nil {
 		for key := range input.UserAssignedIdentities {
-			parsedId, err := msiparse.UserAssignedIdentityID(key)
+			parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(key)
 			if err != nil {
 				return nil, err
 			}

@@ -3,7 +3,7 @@ package compute
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -138,7 +138,7 @@ func FlattenVirtualMachineScaleSetIdentity(input *compute.VirtualMachineScaleSet
 	identityIds := make([]string, 0)
 	if input.UserAssignedIdentities != nil {
 		for key := range input.UserAssignedIdentities {
-			parsedId, err := msiparse.UserAssignedIdentityID(key)
+			parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(key)
 			if err != nil {
 				return nil, err
 			}
@@ -201,6 +201,47 @@ func VirtualMachineScaleSetNetworkInterfaceSchema() *schema.Schema {
 					Type:     schema.TypeBool,
 					Optional: true,
 					Default:  false,
+				},
+			},
+		},
+	}
+}
+
+func VirtualMachineScaleSetNetworkInterfaceSchemaForDataSource() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Computed: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"name": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+
+				"ip_configuration": virtualMachineScaleSetIPConfigurationSchemaForDataSource(),
+
+				"dns_servers": {
+					Type:     schema.TypeList,
+					Computed: true,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
+				},
+				"enable_accelerated_networking": {
+					Type:     schema.TypeBool,
+					Computed: true,
+				},
+				"enable_ip_forwarding": {
+					Type:     schema.TypeBool,
+					Computed: true,
+				},
+				"network_security_group_id": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"primary": {
+					Type:     schema.TypeBool,
+					Computed: true,
 				},
 			},
 		},
@@ -280,6 +321,70 @@ func virtualMachineScaleSetIPConfigurationSchema() *schema.Schema {
 	}
 }
 
+func virtualMachineScaleSetIPConfigurationSchemaForDataSource() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Required: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"name": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+
+				"application_gateway_backend_address_pool_ids": {
+					Type:     schema.TypeList,
+					Computed: true,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
+				},
+
+				"application_security_group_ids": {
+					Type:     schema.TypeList,
+					Computed: true,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
+				},
+
+				"load_balancer_backend_address_pool_ids": {
+					Type:     schema.TypeList,
+					Computed: true,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
+				},
+
+				"load_balancer_inbound_nat_rules_ids": {
+					Type:     schema.TypeList,
+					Computed: true,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
+				},
+
+				"primary": {
+					Type:     schema.TypeBool,
+					Computed: true,
+				},
+
+				"public_ip_address": virtualMachineScaleSetPublicIPAddressSchemaForDataSource(),
+
+				"subnet_id": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+
+				"version": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+			},
+		},
+	}
+}
+
 func virtualMachineScaleSetPublicIPAddressSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
@@ -334,6 +439,53 @@ func virtualMachineScaleSetPublicIPAddressSchema() *schema.Schema {
 					Optional:     true,
 					ForceNew:     true,
 					ValidateFunc: azure.ValidateResourceIDOrEmpty,
+				},
+			},
+		},
+	}
+}
+
+func virtualMachineScaleSetPublicIPAddressSchemaForDataSource() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"name": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+
+				"domain_name_label": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+
+				"idle_timeout_in_minutes": {
+					Type:     schema.TypeInt,
+					Computed: true,
+				},
+
+				"ip_tag": {
+					Type:     schema.TypeList,
+					Computed: true,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"tag": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+							"type": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+						},
+					},
+				},
+
+				"public_ip_prefix_id": {
+					Type:     schema.TypeString,
+					Computed: true,
 				},
 			},
 		},
@@ -666,10 +818,10 @@ func flattenVirtualMachineScaleSetIPConfiguration(input compute.VirtualMachineSc
 		"public_ip_address": publicIPAddresses,
 		"subnet_id":         subnetId,
 		"version":           string(input.PrivateIPAddressVersion),
-		"application_gateway_backend_address_pool_ids": schema.NewSet(schema.HashString, applicationGatewayBackendAddressPoolIds),
-		"application_security_group_ids":               schema.NewSet(schema.HashString, applicationSecurityGroupIds),
-		"load_balancer_backend_address_pool_ids":       schema.NewSet(schema.HashString, loadBalancerBackendAddressPoolIds),
-		"load_balancer_inbound_nat_rules_ids":          schema.NewSet(schema.HashString, loadBalancerInboundNatRuleIds),
+		"application_gateway_backend_address_pool_ids": applicationGatewayBackendAddressPoolIds,
+		"application_security_group_ids":               applicationSecurityGroupIds,
+		"load_balancer_backend_address_pool_ids":       loadBalancerBackendAddressPoolIds,
+		"load_balancer_inbound_nat_rules_ids":          loadBalancerInboundNatRuleIds,
 	}
 }
 
@@ -1150,22 +1302,18 @@ func VirtualMachineScaleSetRollingUpgradePolicySchema() *schema.Schema {
 				"max_batch_instance_percent": {
 					Type:     schema.TypeInt,
 					Required: true,
-					ForceNew: true,
 				},
 				"max_unhealthy_instance_percent": {
 					Type:     schema.TypeInt,
 					Required: true,
-					ForceNew: true,
 				},
 				"max_unhealthy_upgraded_instance_percent": {
 					Type:     schema.TypeInt,
 					Required: true,
-					ForceNew: true,
 				},
 				"pause_time_between_batches": {
 					Type:         schema.TypeString,
 					Required:     true,
-					ForceNew:     true,
 					ValidateFunc: azValidate.ISO8601Duration,
 				},
 			},
@@ -1412,10 +1560,10 @@ func VirtualMachineScaleSetExtensionsSchema() *schema.Schema {
 	}
 }
 
-func expandVirtualMachineScaleSetExtensions(input []interface{}) (*compute.VirtualMachineScaleSetExtensionProfile, error) {
-	result := &compute.VirtualMachineScaleSetExtensionProfile{}
+func expandVirtualMachineScaleSetExtensions(input []interface{}) (extensionProfile *compute.VirtualMachineScaleSetExtensionProfile, hasHealthExtension bool, err error) {
+	extensionProfile = &compute.VirtualMachineScaleSetExtensionProfile{}
 	if len(input) == 0 {
-		return result, nil
+		return nil, false, nil
 	}
 
 	extensions := make([]compute.VirtualMachineScaleSetExtension, 0)
@@ -1424,31 +1572,36 @@ func expandVirtualMachineScaleSetExtensions(input []interface{}) (*compute.Virtu
 		extension := compute.VirtualMachineScaleSetExtension{
 			Name: utils.String(extensionRaw["name"].(string)),
 		}
+		extensionType := extensionRaw["type"].(string)
 
 		extensionProps := compute.VirtualMachineScaleSetExtensionProperties{
 			Publisher:                utils.String(extensionRaw["publisher"].(string)),
-			Type:                     utils.String(extensionRaw["type"].(string)),
+			Type:                     &extensionType,
 			TypeHandlerVersion:       utils.String(extensionRaw["type_handler_version"].(string)),
 			AutoUpgradeMinorVersion:  utils.Bool(extensionRaw["auto_upgrade_minor_version"].(bool)),
 			ProvisionAfterExtensions: utils.ExpandStringSlice(extensionRaw["provision_after_extensions"].([]interface{})),
+		}
+
+		if extensionType == "ApplicationHealthLinux" || extensionType == "ApplicationHealthWindows" {
+			hasHealthExtension = true
 		}
 
 		if forceUpdateTag := extensionRaw["force_update_tag"]; forceUpdateTag != nil {
 			extensionProps.ForceUpdateTag = utils.String(forceUpdateTag.(string))
 		}
 
-		if val, ok := extensionRaw["settings"]; ok {
+		if val, ok := extensionRaw["settings"]; ok && val.(string) != "" {
 			settings, err := structure.ExpandJsonFromString(val.(string))
 			if err != nil {
-				return nil, fmt.Errorf("failed to parse JSON from `settings`: %+v", err)
+				return nil, false, fmt.Errorf("failed to parse JSON from `settings`: %+v", err)
 			}
 			extensionProps.Settings = settings
 		}
 
-		if val, ok := extensionRaw["protected_settings"]; ok {
+		if val, ok := extensionRaw["protected_settings"]; ok && val.(string) != "" {
 			protectedSettings, err := structure.ExpandJsonFromString(val.(string))
 			if err != nil {
-				return nil, fmt.Errorf("failed to parse JSON from `protected_settings`: %+v", err)
+				return nil, false, fmt.Errorf("failed to parse JSON from `protected_settings`: %+v", err)
 			}
 			extensionProps.ProtectedSettings = protectedSettings
 		}
@@ -1456,9 +1609,9 @@ func expandVirtualMachineScaleSetExtensions(input []interface{}) (*compute.Virtu
 		extension.VirtualMachineScaleSetExtensionProperties = &extensionProps
 		extensions = append(extensions, extension)
 	}
-	result.Extensions = &extensions
+	extensionProfile.Extensions = &extensions
 
-	return result, nil
+	return extensionProfile, hasHealthExtension, nil
 }
 
 func flattenVirtualMachineScaleSetExtensions(input *compute.VirtualMachineScaleSetExtensionProfile, d *schema.ResourceData) ([]map[string]interface{}, error) {

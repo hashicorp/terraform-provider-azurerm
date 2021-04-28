@@ -245,6 +245,10 @@ resource "azurerm_cosmosdb_account" "test" {
   kind                = "MongoDB"
   offer_type          = "Standard"
 
+  capabilities {
+    name = "EnableMongo"
+  }
+
   consistency_policy {
     consistency_level = "BoundedStaleness"
   }

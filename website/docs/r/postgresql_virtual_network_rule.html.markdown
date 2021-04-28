@@ -17,7 +17,7 @@ Manages a PostgreSQL Virtual Network Rule.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "West US"
+  location = "West Europe"
 }
 
 resource "azurerm_virtual_network" "example" {

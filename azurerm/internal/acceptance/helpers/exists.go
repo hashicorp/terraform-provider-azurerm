@@ -3,22 +3,22 @@ package helpers
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/types"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
-func DoesNotExistInAzure(client *clients.Client, testResource types.TestResource, resourceName string) resource.TestCheckFunc {
+func DoesNotExistInAzure(client *clients.Client, testResource types.TestResource, resourceName string) pluginsdk.TestCheckFunc {
 	return existsFunc(false)(client, testResource, resourceName)
 }
 
-func ExistsInAzure(client *clients.Client, testResource types.TestResource, resourceName string) resource.TestCheckFunc {
+func ExistsInAzure(client *clients.Client, testResource types.TestResource, resourceName string) pluginsdk.TestCheckFunc {
 	return existsFunc(true)(client, testResource, resourceName)
 }
 
-func existsFunc(shouldExist bool) func(*clients.Client, types.TestResource, string) resource.TestCheckFunc {
-	return func(client *clients.Client, testResource types.TestResource, resourceName string) resource.TestCheckFunc {
+func existsFunc(shouldExist bool) func(*clients.Client, types.TestResource, string) pluginsdk.TestCheckFunc {
+	return func(client *clients.Client, testResource types.TestResource, resourceName string) pluginsdk.TestCheckFunc {
 		return func(s *terraform.State) error {
 			ctx := client.StopContext
 

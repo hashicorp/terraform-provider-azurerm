@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Azure/go-autorest/autorest"
@@ -69,8 +70,18 @@ func deleteAndOptionallyPurge(ctx context.Context, description string, shouldPur
 	}
 
 	log.Printf("[DEBUG] Purging %s..", description)
-	if _, err := helper.PurgeNestedItem(ctx); err != nil {
-		return fmt.Errorf("purging %s: %+v", description, err)
+	err := resource.Retry(time.Until(timeout), func() *resource.RetryError {
+		_, err := helper.PurgeNestedItem(ctx)
+		if err == nil {
+			return nil
+		}
+		if strings.Contains(err.Error(), "is currently being deleted") {
+			return resource.RetryableError(fmt.Errorf("%s is currently being deleted, retrying", description))
+		}
+		return resource.NonRetryableError(fmt.Errorf("Error purging of %s : %+v", description, err))
+	})
+	if err != nil {
+		return err
 	}
 
 	log.Printf("[DEBUG] Waiting for %s to finish purging..", description)

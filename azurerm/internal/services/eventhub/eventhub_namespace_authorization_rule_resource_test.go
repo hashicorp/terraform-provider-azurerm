@@ -223,12 +223,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-ehnar-%[1]d"
+  name     = "acctestRG-ehnar-%[1]d-1"
   location = "%[2]s"
 }
 
 resource "azurerm_resource_group" "test2" {
-  name     = "acctestRG2-ehnar-%[1]d"
+  name     = "acctestRG-ehnar-%[1]d-2"
   location = "%[3]s"
 }
 

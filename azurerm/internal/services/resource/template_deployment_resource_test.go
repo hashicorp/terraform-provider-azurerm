@@ -161,7 +161,9 @@ func (t TemplateDeploymentResource) Exists(ctx context.Context, clients *clients
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func (r TemplateDeploymentResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r TemplateDeploymentResource) Destroy(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	client := clients.Resource.DeploymentsClient
+
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -172,9 +174,7 @@ func (r TemplateDeploymentResource) Destroy(ctx context.Context, client *clients
 		name = id.Path["Deployments"]
 	}
 
-	templateClient := client.Resource.DeploymentsClient
-	_, err = templateClient.Delete(ctx, id.ResourceGroup, name)
-	if err != nil {
+	if _, err = client.Delete(ctx, id.ResourceGroup, name); err != nil {
 		return nil, fmt.Errorf("deleting template deployment %q: %+v", id, err)
 	}
 
@@ -185,7 +185,7 @@ func (r TemplateDeploymentResource) Destroy(ctx context.Context, client *clients
 		Target:  []string{"404"},
 		Timeout: 40 * time.Minute,
 		Refresh: func() (interface{}, string, error) {
-			res, err := templateClient.Get(ctx, id.ResourceGroup, name)
+			res, err := client.Get(ctx, id.ResourceGroup, name)
 
 			log.Printf("retrieving Template Deployment %q: %d", id, res.StatusCode)
 

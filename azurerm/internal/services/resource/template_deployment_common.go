@@ -239,7 +239,7 @@ func findApiVersionForResourceType(resourceType string, availableResourceTypes [
 			continue
 		}
 
-		if strings.HasPrefix(resourceType, *item.ResourceType) {
+		if strings.HasPrefix(strings.ToLower(resourceType), strings.ToLower(*item.ResourceType)) {
 			apiVersions := *item.APIVersions
 			apiVersion := apiVersions[0]
 			return &apiVersion

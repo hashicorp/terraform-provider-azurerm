@@ -5,6 +5,9 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization/migration"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/desktopvirtualization/mgmt/2019-12-10-preview/desktopvirtualization"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -12,10 +15,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -34,19 +35,15 @@ func resourceVirtualDesktopHostPool() *schema.Resource {
 			Delete: schema.DefaultTimeout(60 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.HostPoolID(id)
 			return err
 		}),
 
 		SchemaVersion: 1,
-		StateUpgraders: []schema.StateUpgrader{
-			{
-				Type:    migration.HostPoolUpgradeV0Schema().CoreConfigSchema().ImpliedType(),
-				Upgrade: migration.HostPoolUpgradeV0ToV1,
-				Version: 0,
-			},
-		},
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.HostPoolV0ToV1{},
+		}),
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -97,6 +94,11 @@ func resourceVirtualDesktopHostPool() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
+			},
+
+			"custom_rdp_properties": {
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 
 			"personal_desktop_assignment_type": {
@@ -196,6 +198,7 @@ func resourceVirtualDesktopHostPoolCreateUpdate(d *schema.ResourceData, meta int
 			FriendlyName:                  utils.String(d.Get("friendly_name").(string)),
 			Description:                   utils.String(d.Get("description").(string)),
 			ValidationEnvironment:         utils.Bool(d.Get("validate_environment").(bool)),
+			CustomRdpProperty:             utils.String(d.Get("custom_rdp_properties").(string)),
 			MaxSessionLimit:               utils.Int32(int32(d.Get("maximum_sessions_allowed").(int))),
 			LoadBalancerType:              desktopvirtualization.LoadBalancerType(d.Get("load_balancer_type").(string)),
 			PersonalDesktopAssignmentType: desktopvirtualization.PersonalDesktopAssignmentType(d.Get("personal_desktop_assignment_type").(string)),
@@ -254,6 +257,7 @@ func resourceVirtualDesktopHostPoolRead(d *schema.ResourceData, meta interface{}
 		d.Set("preferred_app_group_type", string(props.PreferredAppGroupType))
 		d.Set("type", string(props.HostPoolType))
 		d.Set("validate_environment", props.ValidationEnvironment)
+		d.Set("custom_rdp_properties", props.CustomRdpProperty)
 
 		if err := d.Set("registration_info", flattenVirtualDesktopHostPoolRegistrationInfo(props.RegistrationInfo)); err != nil {
 			return fmt.Errorf("setting `registration_info`: %+v", err)

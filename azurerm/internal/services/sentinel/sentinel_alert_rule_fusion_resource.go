@@ -13,7 +13,7 @@ import (
 	loganalyticsParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 	loganalyticsValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sentinel/parse"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -25,10 +25,10 @@ func resourceSentinelAlertRuleFusion() *schema.Resource {
 		Update: resourceSentinelAlertRuleFusionCreateUpdate,
 		Delete: resourceSentinelAlertRuleFusionDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.AlertRuleID(id)
 			return err
-		}, importSentinelAlertRule(securityinsight.Fusion)),
+		}, importSentinelAlertRule(securityinsight.AlertRuleKindFusion)),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -82,7 +82,7 @@ func resourceSentinelAlertRuleFusionCreateUpdate(d *schema.ResourceData, meta in
 	id := parse.NewAlertRuleID(workspaceID.SubscriptionId, workspaceID.ResourceGroup, workspaceID.WorkspaceName, name)
 
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, workspaceID.ResourceGroup, "Microsoft.OperationalInsights", workspaceID.WorkspaceName, name)
+		resp, err := client.Get(ctx, workspaceID.ResourceGroup, OperationalInsightsResourceProvider, workspaceID.WorkspaceName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("checking for existing Sentinel Alert Rule Fusion %q: %+v", id, err)
@@ -105,18 +105,18 @@ func resourceSentinelAlertRuleFusionCreateUpdate(d *schema.ResourceData, meta in
 
 	// Service avoid concurrent update of this resource via checking the "etag" to guarantee it is the same value as last Read.
 	if !d.IsNewResource() {
-		resp, err := client.Get(ctx, workspaceID.ResourceGroup, "Microsoft.OperationalInsights", workspaceID.WorkspaceName, name)
+		resp, err := client.Get(ctx, workspaceID.ResourceGroup, OperationalInsightsResourceProvider, workspaceID.WorkspaceName, name)
 		if err != nil {
 			return fmt.Errorf("retrieving Sentinel Alert Rule Fusion %q: %+v", id, err)
 		}
 
-		if err := assertAlertRuleKind(resp.Value, securityinsight.Fusion); err != nil {
+		if err := assertAlertRuleKind(resp.Value, securityinsight.AlertRuleKindFusion); err != nil {
 			return fmt.Errorf("asserting alert rule of %q: %+v", id, err)
 		}
 		params.Etag = resp.Value.(securityinsight.FusionAlertRule).Etag
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, workspaceID.ResourceGroup, "Microsoft.OperationalInsights", workspaceID.WorkspaceName, name, params); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, workspaceID.ResourceGroup, OperationalInsightsResourceProvider, workspaceID.WorkspaceName, name, params); err != nil {
 		return fmt.Errorf("creating Sentinel Alert Rule Fusion %q: %+v", id, err)
 	}
 
@@ -135,7 +135,7 @@ func resourceSentinelAlertRuleFusionRead(d *schema.ResourceData, meta interface{
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, "Microsoft.OperationalInsights", id.WorkspaceName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Sentinel Alert Rule Fusion %q was not found - removing from state!", id)
@@ -146,7 +146,7 @@ func resourceSentinelAlertRuleFusionRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("retrieving Sentinel Alert Rule Fusion %q: %+v", id, err)
 	}
 
-	if err := assertAlertRuleKind(resp.Value, securityinsight.Fusion); err != nil {
+	if err := assertAlertRuleKind(resp.Value, securityinsight.AlertRuleKindFusion); err != nil {
 		return fmt.Errorf("asserting alert rule of %q: %+v", id, err)
 	}
 	rule := resp.Value.(securityinsight.FusionAlertRule)
@@ -174,7 +174,7 @@ func resourceSentinelAlertRuleFusionDelete(d *schema.ResourceData, meta interfac
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, "Microsoft.OperationalInsights", id.WorkspaceName, id.Name); err != nil {
+	if _, err := client.Delete(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.Name); err != nil {
 		return fmt.Errorf("deleting Sentinel Alert Rule Fusion %q: %+v", id, err)
 	}
 

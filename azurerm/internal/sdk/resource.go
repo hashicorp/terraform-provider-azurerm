@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -59,7 +61,7 @@ type Resource interface {
 
 	// IDValidationFunc returns the SchemaValidateFunc used to validate the ID is valid during
 	// `terraform import` - ensuring users don't inadvertently specify the incorrect Resource ID
-	IDValidationFunc() schema.SchemaValidateFunc
+	IDValidationFunc() pluginsdk.SchemaValidateFunc
 }
 
 // TODO: ResourceWithCustomizeDiff
@@ -131,7 +133,8 @@ type ResourceMetaData struct {
 }
 
 // MarkAsGone marks this resource as removed in the Remote API, so this is no longer available
-func (rmd ResourceMetaData) MarkAsGone() error {
+func (rmd ResourceMetaData) MarkAsGone(idFormatter resourceid.Formatter) error {
+	rmd.Logger.Infof("[DEBUG] %s was not found - removing from state", idFormatter)
 	rmd.ResourceData.SetId("")
 	return nil
 }

@@ -5,67 +5,16 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 type SnapshotResource struct {
-}
-
-func TestSnapshotName_validation(t *testing.T) {
-	str := acctest.RandString(80)
-	cases := []struct {
-		Value    string
-		ErrCount int
-	}{
-		{
-			Value:    "ab",
-			ErrCount: 0,
-		},
-		{
-			Value:    "abc",
-			ErrCount: 0,
-		},
-		{
-			Value:    "cosmosDBAccount1",
-			ErrCount: 0,
-		},
-		{
-			Value:    "hello-world",
-			ErrCount: 0,
-		},
-		{
-			Value:    "hello_world",
-			ErrCount: 0,
-		},
-		{
-			Value:    "hello+world",
-			ErrCount: 1,
-		},
-		{
-			Value:    str,
-			ErrCount: 0,
-		},
-		{
-			Value:    str + "a",
-			ErrCount: 1,
-		},
-	}
-
-	for _, tc := range cases {
-		_, errors := compute.ValidateSnapshotName(tc.Value, "azurerm_snapshot")
-
-		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the Snapshot Name to trigger a validation error for '%s'", tc.Value)
-		}
-	}
 }
 
 func TestAccSnapshot_fromManagedDisk(t *testing.T) {
@@ -538,8 +487,7 @@ resource "azurerm_snapshot" "test" {
   create_option       = "Import"
   source_uri          = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
   depends_on = [
-    azurerm_virtual_machine,
-    test,
+    azurerm_virtual_machine.test,
   ]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)

@@ -7,10 +7,10 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/helpers"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/testclient"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/types"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
 type thatType struct {
@@ -26,17 +26,23 @@ func That(resourceName string) thatType {
 }
 
 // DoesNotExistInAzure validates that the specified resource does not exist within Azure
-func (t thatType) DoesNotExistInAzure(testResource types.TestResource) resource.TestCheckFunc {
+func (t thatType) DoesNotExistInAzure(testResource types.TestResource) pluginsdk.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client)
+		client, err := testclient.Build()
+		if err != nil {
+			return fmt.Errorf("building client: %+v", err)
+		}
 		return helpers.DoesNotExistInAzure(client, testResource, t.resourceName)(s)
 	}
 }
 
 // ExistsInAzure validates that the specified resource exists within Azure
-func (t thatType) ExistsInAzure(testResource types.TestResource) resource.TestCheckFunc {
+func (t thatType) ExistsInAzure(testResource types.TestResource) pluginsdk.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client)
+		client, err := testclient.Build()
+		if err != nil {
+			return fmt.Errorf("building client: %+v", err)
+		}
 		return helpers.ExistsInAzure(client, testResource, t.resourceName)(s)
 	}
 }
@@ -62,7 +68,7 @@ type JsonAssertionFunc func(input []interface{}) (*bool, error)
 
 // ContainsKeyValue returns a TestCheckFunc which asserts upon a given JSON string set into
 // the State by deserializing it and then asserting on it via the JsonAssertionFunc
-func (t thatWithKeyType) ContainsJsonValue(assertion JsonAssertionFunc) resource.TestCheckFunc {
+func (t thatWithKeyType) ContainsJsonValue(assertion JsonAssertionFunc) pluginsdk.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, exists := s.RootModule().Resources[t.resourceName]
 		if !exists {
@@ -98,34 +104,34 @@ func (t thatWithKeyType) ContainsJsonValue(assertion JsonAssertionFunc) resource
 
 // DoesNotExist returns a TestCheckFunc which validates that the specific key
 // does not exist on the resource
-func (t thatWithKeyType) DoesNotExist() resource.TestCheckFunc {
+func (t thatWithKeyType) DoesNotExist() pluginsdk.TestCheckFunc {
 	return resource.TestCheckNoResourceAttr(t.resourceName, t.key)
 }
 
 // Exists returns a TestCheckFunc which validates that the specific key exists on the resource
-func (t thatWithKeyType) Exists() resource.TestCheckFunc {
+func (t thatWithKeyType) Exists() pluginsdk.TestCheckFunc {
 	return resource.TestCheckResourceAttrSet(t.resourceName, t.key)
 }
 
 // IsEmpty returns a TestCheckFunc which validates that the specific key is empty on the resource
-func (t thatWithKeyType) IsEmpty() resource.TestCheckFunc {
+func (t thatWithKeyType) IsEmpty() pluginsdk.TestCheckFunc {
 	return resource.TestCheckResourceAttr(t.resourceName, t.key, "")
 }
 
 // HasValue returns a TestCheckFunc which validates that the specific key has the
 // specified value on the resource
-func (t thatWithKeyType) HasValue(value string) resource.TestCheckFunc {
+func (t thatWithKeyType) HasValue(value string) pluginsdk.TestCheckFunc {
 	return resource.TestCheckResourceAttr(t.resourceName, t.key, value)
 }
 
 // MatchesOtherKey returns a TestCheckFunc which validates that the key on this resource
 // matches another other key on another resource
-func (t thatWithKeyType) MatchesOtherKey(other thatWithKeyType) resource.TestCheckFunc {
+func (t thatWithKeyType) MatchesOtherKey(other thatWithKeyType) pluginsdk.TestCheckFunc {
 	return resource.TestCheckResourceAttrPair(t.resourceName, t.key, other.resourceName, other.key)
 }
 
 // MatchesRegex returns a TestCheckFunc which validates that the key on this resource matches
 // the given regular expression
-func (t thatWithKeyType) MatchesRegex(r *regexp.Regexp) resource.TestCheckFunc {
+func (t thatWithKeyType) MatchesRegex(r *regexp.Regexp) pluginsdk.TestCheckFunc {
 	return resource.TestMatchResourceAttr(t.resourceName, t.key, r)
 }

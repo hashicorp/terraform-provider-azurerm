@@ -1,8 +1,12 @@
-package validate
+package validate_test
 
 // NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/analysisservices/validate"
+)
 
 func TestServerID(t *testing.T) {
 	cases := []struct {
@@ -66,7 +70,7 @@ func TestServerID(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %s", tc.Input)
-		_, errors := ServerID(tc.Input, "test")
+		_, errors := validate.ServerID(tc.Input, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {

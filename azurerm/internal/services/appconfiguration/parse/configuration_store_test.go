@@ -1,4 +1,4 @@
-package parse
+package parse_test
 
 // NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
 
@@ -6,12 +6,13 @@ import (
 	"testing"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appconfiguration/parse"
 )
 
-var _ resourceid.Formatter = ConfigurationStoreId{}
+var _ resourceid.Formatter = parse.ConfigurationStoreId{}
 
 func TestConfigurationStoreIDFormatter(t *testing.T) {
-	actual := NewConfigurationStoreID("12345678-1234-9876-4563-123456789012", "group1", "store1").ID()
+	actual := parse.NewConfigurationStoreID("12345678-1234-9876-4563-123456789012", "group1", "store1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.AppConfiguration/configurationStores/store1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
@@ -22,7 +23,7 @@ func TestConfigurationStoreID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *ConfigurationStoreId
+		Expected *parse.ConfigurationStoreId
 	}{
 
 		{
@@ -70,7 +71,7 @@ func TestConfigurationStoreID(t *testing.T) {
 		{
 			// valid
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.AppConfiguration/configurationStores/store1",
-			Expected: &ConfigurationStoreId{
+			Expected: &parse.ConfigurationStoreId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:  "group1",
 				Name:           "store1",
@@ -87,7 +88,7 @@ func TestConfigurationStoreID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := ConfigurationStoreID(v.Input)
+		actual, err := parse.ConfigurationStoreID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue

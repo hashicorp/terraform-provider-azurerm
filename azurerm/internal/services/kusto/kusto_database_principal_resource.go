@@ -13,6 +13,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -25,9 +27,8 @@ func resourceKustoDatabasePrincipal() *schema.Resource {
 
 		DeprecationMessage: "This resource has been superseded by `azurerm_kusto_database_principal_assignment` to reflects changes in the API/SDK and will be removed in version 3.0 of the provider.",
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			// TODO: confirm these
@@ -44,14 +45,14 @@ func resourceKustoDatabasePrincipal() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMKustoClusterName,
+				ValidateFunc: validate.ClusterName,
 			},
 
 			"database_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMKustoDatabaseName,
+				ValidateFunc: validate.DatabaseName,
 			},
 
 			"role": {

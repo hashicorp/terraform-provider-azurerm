@@ -19,7 +19,7 @@ Manages a API Management Custom Domain.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "West US"
+  location = "West Europe"
 }
 
 resource "azurerm_api_management" "example" {
@@ -134,6 +134,8 @@ A `developer_portal`, `management`, `portal` or `scm` block supports the followi
 ---
 
 A `proxy` block supports the following:
+
+-> **Tip:** The default proxy hostname ending with `.azure-api.net` must not be added as it will be automatically created by Azure and ignored by Terraform.
 
 * `host_name` - (Required) The Hostname to use for the API Proxy Endpoint.
 

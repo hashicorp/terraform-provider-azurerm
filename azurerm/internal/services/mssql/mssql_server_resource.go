@@ -1,24 +1,24 @@
 package mssql
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
+	"github.com/gofrs/uuid"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	uuid "github.com/satori/go.uuid"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/validate"
-
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/helper"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -30,7 +30,7 @@ func resourceMsSqlServer() *schema.Resource {
 		Update: resourceMsSqlServerCreateUpdate,
 		Delete: resourceMsSqlServerDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ServerID(id)
 			return err
 		}),
@@ -175,7 +175,7 @@ func resourceMsSqlServer() *schema.Resource {
 			"tags": tags.Schema(),
 		},
 
-		CustomizeDiff: msSqlMinimumTLSVersionDiff,
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(msSqlMinimumTLSVersionDiff),
 	}
 }
 
@@ -501,7 +501,7 @@ func flattenSqlServerRestorableDatabases(resp sql.RestorableDroppedDatabaseListR
 	return res
 }
 
-func msSqlMinimumTLSVersionDiff(d *schema.ResourceDiff, _ interface{}) (err error) {
+func msSqlMinimumTLSVersionDiff(ctx context.Context, d *schema.ResourceDiff, _ interface{}) (err error) {
 	old, new := d.GetChange("minimum_tls_version")
 	if old != "" && new == "" {
 		err = fmt.Errorf("`minimum_tls_version` cannot be removed once set, please set a valid value for this property")

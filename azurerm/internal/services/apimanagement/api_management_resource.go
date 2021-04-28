@@ -8,9 +8,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -54,9 +55,8 @@ func resourceApiManagementService() *schema.Resource {
 		Update: resourceApiManagementServiceCreateUpdate,
 		Delete: resourceApiManagementServiceDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(3 * time.Hour),
@@ -87,7 +87,6 @@ func resourceApiManagementService() *schema.Resource {
 			"sku_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: apimValidate.ApimSkuName(),
 			},
 
@@ -222,7 +221,7 @@ func resourceApiManagementService() *schema.Resource {
 
 						"certificate_password": {
 							Type:      schema.TypeString,
-							Required:  true,
+							Optional:  true,
 							Sensitive: true,
 						},
 
@@ -363,6 +362,7 @@ func resourceApiManagementService() *schema.Resource {
 			"hostname_configuration": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -372,6 +372,7 @@ func resourceApiManagementService() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: apiManagementResourceHostnameSchema(),
 							},
+							AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
 						},
 						"portal": {
 							Type:     schema.TypeList,
@@ -379,6 +380,7 @@ func resourceApiManagementService() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: apiManagementResourceHostnameSchema(),
 							},
+							AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
 						},
 						"developer_portal": {
 							Type:     schema.TypeList,
@@ -386,6 +388,7 @@ func resourceApiManagementService() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: apiManagementResourceHostnameSchema(),
 							},
+							AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
 						},
 						"proxy": {
 							Type:     schema.TypeList,
@@ -393,6 +396,7 @@ func resourceApiManagementService() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: apiManagementResourceHostnameProxySchema(),
 							},
+							AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
 						},
 						"scm": {
 							Type:     schema.TypeList,
@@ -400,11 +404,13 @@ func resourceApiManagementService() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: apiManagementResourceHostnameSchema(),
 							},
+							AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
 						},
 					},
 				},
 			},
 
+			//lintignore:XS003
 			"policy": {
 				Type:       schema.TypeList,
 				Optional:   true,
@@ -528,20 +534,49 @@ func resourceApiManagementService() *schema.Resource {
 				Computed: true,
 			},
 
+			"tenant_access": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Required: true,
+						},
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"primary_key": {
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+						"secondary_key": {
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+					},
+				},
+			},
+
 			"tags": tags.Schema(),
 		},
 
 		// we can only change `virtual_network_type` from None to Internal Or External, Else the subnet can not be destroyed cause “InUseSubnetCannotBeDeleted” for 3 hours
 		// we can not change the subnet from subnet1 to subnet2 either, Else the subnet1 can not be destroyed cause “InUseSubnetCannotBeDeleted” for 3 hours
 		// Issue: https://github.com/Azure/azure-rest-api-specs/issues/10395
-		CustomizeDiff: customdiff.All(
-			customdiff.ForceNewIfChange("virtual_network_type", func(old, new, meta interface{}) bool {
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.ForceNewIfChange("virtual_network_type", func(ctx context.Context, old, new, meta interface{}) bool {
 				return !(old.(string) == string(apimanagement.VirtualNetworkTypeNone) &&
 					(new.(string) == string(apimanagement.VirtualNetworkTypeInternal) ||
 						new.(string) == string(apimanagement.VirtualNetworkTypeExternal)))
 			}),
 
-			customdiff.ForceNewIfChange("virtual_network_configuration", func(old, new, meta interface{}) bool {
+			pluginsdk.ForceNewIfChange("virtual_network_configuration", func(ctx context.Context, old, new, meta interface{}) bool {
 				return !(len(old.([]interface{})) == 0 && len(new.([]interface{})) > 0)
 			}),
 		),
@@ -702,6 +737,19 @@ func resourceApiManagementServiceCreateUpdate(d *schema.ResourceData, meta inter
 		}
 	}
 
+	tenantAccessRaw := d.Get("tenant_access").([]interface{})
+	if sku.Name == apimanagement.SkuTypeConsumption && len(tenantAccessRaw) > 0 {
+		return fmt.Errorf("`tenant_access` is not supported for sku tier `Consumption`")
+	}
+	if sku.Name != apimanagement.SkuTypeConsumption && d.HasChange("tenant_access") {
+		tenantAccessInformationParametersRaw := d.Get("tenant_access").([]interface{})
+		tenantAccessInformationParameters := expandApiManagementTenantAccessSettings(tenantAccessInformationParametersRaw)
+		tenantAccessClient := meta.(*clients.Client).ApiManagement.TenantAccessClient
+		if _, err := tenantAccessClient.Update(ctx, resourceGroup, name, tenantAccessInformationParameters, ""); err != nil {
+			return fmt.Errorf(" updating tenant access settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+	}
+
 	return resourceApiManagementServiceRead(d, meta)
 }
 
@@ -709,6 +757,7 @@ func resourceApiManagementServiceRead(d *schema.ResourceData, meta interface{}) 
 	client := meta.(*clients.Client).ApiManagement.ServiceClient
 	signInClient := meta.(*clients.Client).ApiManagement.SignInClient
 	signUpClient := meta.(*clients.Client).ApiManagement.SignUpClient
+	tenantAccessClient := meta.(*clients.Client).ApiManagement.TenantAccessClient
 	environment := meta.(*clients.Client).Account.Environment
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -824,6 +873,16 @@ func resourceApiManagementServiceRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("sign_up", []interface{}{})
 	}
 
+	if resp.Sku.Name != apimanagement.SkuTypeConsumption {
+		tenantAccessInformationContract, err := tenantAccessClient.ListSecrets(ctx, resourceGroup, name)
+		if err != nil {
+			return fmt.Errorf("retrieving tenant access properties for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+		if err := d.Set("tenant_access", flattenApiManagementTenantAccessSettings(tenantAccessInformationContract)); err != nil {
+			return fmt.Errorf("setting `tenant_access`: %+v", err)
+		}
+	}
+
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
@@ -888,6 +947,7 @@ func expandAzureRmApiManagementHostnameConfigurations(d *schema.ResourceData) *[
 	hostnameVs := vs.([]interface{})
 
 	for _, hostnameRawVal := range hostnameVs {
+		// hostnameRawVal is guaranteed to be non-nil as there is AtLeastOneOf constraint on its containing properties.
 		hostnameV := hostnameRawVal.(map[string]interface{})
 
 		managementVs := hostnameV["management"].([]interface{})
@@ -1058,13 +1118,15 @@ func expandAzureRmApiManagementCertificates(d *schema.ResourceData) *[]apimanage
 		config := v.(map[string]interface{})
 
 		certBase64 := config["encoded_certificate"].(string)
-		certificatePassword := config["certificate_password"].(string)
 		storeName := apimanagement.StoreName(config["store_name"].(string))
 
 		cert := apimanagement.CertificateConfiguration{
-			EncodedCertificate:  utils.String(certBase64),
-			CertificatePassword: utils.String(certificatePassword),
-			StoreName:           storeName,
+			EncodedCertificate: utils.String(certBase64),
+			StoreName:          storeName,
+		}
+
+		if certPassword := config["certificate_password"]; certPassword != nil {
+			cert.CertificatePassword = utils.String(certPassword.(string))
 		}
 
 		results = append(results, cert)
@@ -1598,4 +1660,39 @@ func flattenApiManagementPolicies(d *schema.ResourceData, input apimanagement.Po
 	}
 
 	return []interface{}{output}
+}
+
+func expandApiManagementTenantAccessSettings(input []interface{}) apimanagement.AccessInformationUpdateParameters {
+	enabled := false
+
+	if len(input) > 0 {
+		vs := input[0].(map[string]interface{})
+		enabled = vs["enabled"].(bool)
+	}
+
+	return apimanagement.AccessInformationUpdateParameters{
+		AccessInformationUpdateParameterProperties: &apimanagement.AccessInformationUpdateParameterProperties{
+			Enabled: utils.Bool(enabled),
+		},
+	}
+}
+
+func flattenApiManagementTenantAccessSettings(input apimanagement.AccessInformationContract) []interface{} {
+	result := make(map[string]interface{})
+
+	result["enabled"] = *input.Enabled
+
+	if input.ID != nil {
+		result["tenant_id"] = *input.ID
+	}
+
+	if input.PrimaryKey != nil {
+		result["primary_key"] = *input.PrimaryKey
+	}
+
+	if input.SecondaryKey != nil {
+		result["secondary_key"] = *input.SecondaryKey
+	}
+
+	return []interface{}{result}
 }

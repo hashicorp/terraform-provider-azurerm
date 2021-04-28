@@ -4,49 +4,49 @@ import (
 	"bytes"
 	"fmt"
 	"log"
-	"regexp"
 	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/analysisservices/mgmt/2017-08-01/analysisservices"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/analysisservices/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/analysisservices/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceAnalysisServicesServer() *schema.Resource {
-	return &schema.Resource{
+func resourceAnalysisServicesServer() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceAnalysisServicesServerCreate,
 		Read:   resourceAnalysisServicesServerRead,
 		Update: resourceAnalysisServicesServerUpdate,
 		Delete: resourceAnalysisServicesServerDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ServerID(id)
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAnalysisServicesServerName,
+				ValidateFunc: validate.ServerName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -54,7 +54,7 @@ func resourceAnalysisServicesServer() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"sku": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"D1",
@@ -72,34 +72,34 @@ func resourceAnalysisServicesServer() *schema.Resource {
 			},
 
 			"admin_users": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
 			"enable_power_bi_service": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
 
 			"ipv4_firewall_rule": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 						"range_start": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: validate.IPv4Address,
+							ValidateFunc: azValidate.IPv4Address,
 						},
 						"range_end": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: validate.IPv4Address,
+							ValidateFunc: azValidate.IPv4Address,
 						},
 					},
 				},
@@ -107,21 +107,21 @@ func resourceAnalysisServicesServer() *schema.Resource {
 			},
 
 			"querypool_connection_mode": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validateQuerypoolConnectionMode(),
+				ValidateFunc: validate.QueryPoolConnectionMode(),
 			},
 
 			"backup_blob_container_uri": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"server_full_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -130,26 +130,25 @@ func resourceAnalysisServicesServer() *schema.Resource {
 	}
 }
 
-func resourceAnalysisServicesServerCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAnalysisServicesServerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AnalysisServices.ServerClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Analysis Services Server creation.")
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
+	id := parse.NewServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		server, err := client.GetDetails(ctx, resourceGroup, name)
+		server, err := client.GetDetails(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(server.Response) {
-				return fmt.Errorf("Error checking for presence of existing Analysis Services Server %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if server.ID != nil && *server.ID != "" {
-			return tf.ImportAsExistsError("azurerm_analysis_services_server", *server.ID)
+		if !utils.ResponseWasNotFound(server.Response) {
+			return tf.ImportAsExistsError("azurerm_analysis_services_server", id.ID())
 		}
 	}
 
@@ -161,37 +160,26 @@ func resourceAnalysisServicesServerCreate(d *schema.ResourceData, meta interface
 	t := d.Get("tags").(map[string]interface{})
 
 	analysisServicesServer := analysisservices.Server{
-		Name:             &name,
 		Location:         &location,
 		Sku:              &analysisservices.ResourceSku{Name: &sku},
 		ServerProperties: serverProperties,
 		Tags:             tags.Expand(t),
 	}
 
-	future, err := client.Create(ctx, resourceGroup, name, analysisServicesServer)
+	future, err := client.Create(ctx, id.ResourceGroup, id.Name, analysisServicesServer)
 	if err != nil {
-		return fmt.Errorf("Error creating Analysis Services Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for completion of Analysis Services Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for completion of %s: %+v", id, err)
 	}
 
-	resp, getDetailsErr := client.GetDetails(ctx, resourceGroup, name)
-	if getDetailsErr != nil {
-		return fmt.Errorf("Error retrieving Analytics Services Server %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read ID for Analytics Services Server %q (Resource Group %q)", name, resourceGroup)
-	}
-
-	d.SetId(*resp.ID)
-
+	d.SetId(id.ID())
 	return resourceAnalysisServicesServerRead(d, meta)
 }
 
-func resourceAnalysisServicesServerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAnalysisServicesServerRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AnalysisServices.ServerClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -207,15 +195,12 @@ func resourceAnalysisServicesServerRead(d *schema.ResourceData, meta interface{}
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving Analytics Services Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-
-	if location := server.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(server.Location))
 
 	if server.Sku != nil {
 		d.Set("sku", server.Sku.Name)
@@ -245,7 +230,7 @@ func resourceAnalysisServicesServerRead(d *schema.ResourceData, meta interface{}
 	return tags.FlattenAndSet(d, server.Tags)
 }
 
-func resourceAnalysisServicesServerUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAnalysisServicesServerUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AnalysisServices.ServerClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -312,7 +297,7 @@ func resourceAnalysisServicesServerUpdate(d *schema.ResourceData, meta interface
 	return resourceAnalysisServicesServerRead(d, meta)
 }
 
-func resourceAnalysisServicesServerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAnalysisServicesServerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AnalysisServices.ServerClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -334,26 +319,7 @@ func resourceAnalysisServicesServerDelete(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func validateAnalysisServicesServerName(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-
-	if !regexp.MustCompile(`^[a-z][0-9a-z]{2,62}$`).Match([]byte(value)) {
-		errors = append(errors, fmt.Errorf("%q must begin with a letter, be lowercase alphanumeric, and be between 3 and 63 characters in length", k))
-	}
-
-	return warnings, errors
-}
-
-func validateQuerypoolConnectionMode() schema.SchemaValidateFunc {
-	connectionModes := make([]string, len(analysisservices.PossibleConnectionModeValues()))
-	for i, v := range analysisservices.PossibleConnectionModeValues() {
-		connectionModes[i] = string(v)
-	}
-
-	return validation.StringInSlice(connectionModes, true)
-}
-
-func expandAnalysisServicesServerProperties(d *schema.ResourceData) *analysisservices.ServerProperties {
+func expandAnalysisServicesServerProperties(d *pluginsdk.ResourceData) *analysisservices.ServerProperties {
 	adminUsers := expandAnalysisServicesServerAdminUsers(d)
 
 	serverProperties := analysisservices.ServerProperties{AsAdministrators: adminUsers}
@@ -371,7 +337,7 @@ func expandAnalysisServicesServerProperties(d *schema.ResourceData) *analysisser
 	return &serverProperties
 }
 
-func expandAnalysisServicesServerMutableProperties(d *schema.ResourceData) *analysisservices.ServerMutableProperties {
+func expandAnalysisServicesServerMutableProperties(d *pluginsdk.ResourceData) *analysisservices.ServerMutableProperties {
 	adminUsers := expandAnalysisServicesServerAdminUsers(d)
 
 	serverProperties := analysisservices.ServerMutableProperties{AsAdministrators: adminUsers}
@@ -387,8 +353,8 @@ func expandAnalysisServicesServerMutableProperties(d *schema.ResourceData) *anal
 	return &serverProperties
 }
 
-func expandAnalysisServicesServerAdminUsers(d *schema.ResourceData) *analysisservices.ServerAdministrators {
-	adminUsers := d.Get("admin_users").(*schema.Set)
+func expandAnalysisServicesServerAdminUsers(d *pluginsdk.ResourceData) *analysisservices.ServerAdministrators {
+	adminUsers := d.Get("admin_users").(*pluginsdk.Set)
 	members := make([]string, 0)
 
 	for _, admin := range adminUsers.List() {
@@ -400,12 +366,12 @@ func expandAnalysisServicesServerAdminUsers(d *schema.ResourceData) *analysisser
 	return &analysisservices.ServerAdministrators{Members: &members}
 }
 
-func expandAnalysisServicesServerFirewallSettings(d *schema.ResourceData) *analysisservices.IPv4FirewallSettings {
+func expandAnalysisServicesServerFirewallSettings(d *pluginsdk.ResourceData) *analysisservices.IPv4FirewallSettings {
 	firewallSettings := analysisservices.IPv4FirewallSettings{
 		EnablePowerBIService: utils.Bool(d.Get("enable_power_bi_service").(bool)),
 	}
 
-	firewallRules := d.Get("ipv4_firewall_rule").(*schema.Set).List()
+	firewallRules := d.Get("ipv4_firewall_rule").(*pluginsdk.Set).List()
 
 	fwRules := make([]analysisservices.IPv4FirewallRule, len(firewallRules))
 	for i, v := range firewallRules {
@@ -421,9 +387,9 @@ func expandAnalysisServicesServerFirewallSettings(d *schema.ResourceData) *analy
 	return &firewallSettings
 }
 
-func flattenAnalysisServicesServerFirewallSettings(serverProperties *analysisservices.ServerProperties) (*bool, *schema.Set) {
+func flattenAnalysisServicesServerFirewallSettings(serverProperties *analysisservices.ServerProperties) (*bool, *pluginsdk.Set) {
 	if serverProperties == nil || serverProperties.IPV4FirewallSettings == nil {
-		return utils.Bool(false), schema.NewSet(hashAnalysisServicesServerIpv4FirewallRule, make([]interface{}, 0))
+		return utils.Bool(false), pluginsdk.NewSet(hashAnalysisServicesServerIpv4FirewallRule, make([]interface{}, 0))
 	}
 
 	firewallSettings := serverProperties.IPV4FirewallSettings
@@ -453,7 +419,7 @@ func flattenAnalysisServicesServerFirewallSettings(serverProperties *analysisser
 		}
 	}
 
-	return enablePowerBi, schema.NewSet(hashAnalysisServicesServerIpv4FirewallRule, fwRules)
+	return enablePowerBi, pluginsdk.NewSet(hashAnalysisServicesServerIpv4FirewallRule, fwRules)
 }
 
 func hashAnalysisServicesServerIpv4FirewallRule(v interface{}) int {
@@ -464,5 +430,5 @@ func hashAnalysisServicesServerIpv4FirewallRule(v interface{}) int {
 	buf.WriteString(fmt.Sprintf("%s-", m["range_start"].(string)))
 	buf.WriteString(m["range_end"].(string))
 
-	return schema.HashString(buf.String())
+	return pluginsdk.HashString(buf.String())
 }
