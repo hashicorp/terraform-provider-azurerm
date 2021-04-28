@@ -39,7 +39,7 @@ func resourceContainerRegistryToken() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateContainerRegistryName,
+				ValidateFunc: validate.ContainerRegistryName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -48,7 +48,7 @@ func resourceContainerRegistryToken() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateContainerRegistryName,
+				ValidateFunc: validate.ContainerRegistryName,
 			},
 
 			"scope_map_id": {
