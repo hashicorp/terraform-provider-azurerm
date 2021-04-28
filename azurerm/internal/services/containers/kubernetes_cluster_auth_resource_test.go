@@ -10,17 +10,17 @@ import (
 )
 
 var kubernetesAuthTests = map[string]func(t *testing.T){
-	"apiServerAuthorizedIPRanges": testAccKubernetesCluster_apiServerAuthorizedIPRanges,
-	"managedClusterIdentity":      testAccKubernetesCluster_managedClusterIdentity,
-	"userAssignedIdentity":        testAccKubernetesCluster_userAssignedIdentity,
+	"apiServerAuthorizedIPRanges":    testAccKubernetesCluster_apiServerAuthorizedIPRanges,
+	"managedClusterIdentity":         testAccKubernetesCluster_managedClusterIdentity,
+	"userAssignedIdentity":           testAccKubernetesCluster_userAssignedIdentity,
 	"updateWithUserAssignedIdentity": testAccKubernetesCluster_updateWithUserAssignedIdentity,
-	"roleBasedAccessControl":      testAccKubernetesCluster_roleBasedAccessControl,
-	"AAD":                         testAccKubernetesCluster_roleBasedAccessControlAAD,
-	"AADUpdateToManaged":          testAccKubernetesCluster_roleBasedAccessControlAADUpdateToManaged,
-	"AADManaged":                  testAccKubernetesCluster_roleBasedAccessControlAADManaged,
-	"AADManagedChange":            testAccKubernetesCluster_roleBasedAccessControlAADManagedChange,
-	"roleBasedAccessControlAzure": testAccKubernetesCluster_roleBasedAccessControlAzure,
-	"servicePrincipal":            testAccKubernetesCluster_servicePrincipal,
+	"roleBasedAccessControl":         testAccKubernetesCluster_roleBasedAccessControl,
+	"AAD":                            testAccKubernetesCluster_roleBasedAccessControlAAD,
+	"AADUpdateToManaged":             testAccKubernetesCluster_roleBasedAccessControlAADUpdateToManaged,
+	"AADManaged":                     testAccKubernetesCluster_roleBasedAccessControlAADManaged,
+	"AADManagedChange":               testAccKubernetesCluster_roleBasedAccessControlAADManagedChange,
+	"roleBasedAccessControlAzure":    testAccKubernetesCluster_roleBasedAccessControlAzure,
+	"servicePrincipal":               testAccKubernetesCluster_servicePrincipal,
 }
 
 func TestAccKubernetesCluster_apiServerAuthorizedIPRanges(t *testing.T) {
