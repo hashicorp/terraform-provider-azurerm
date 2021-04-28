@@ -225,7 +225,7 @@ func TestAccMsSqlDatabase_createCopyMode(t *testing.T) {
 				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
 			),
 		},
-		data.ImportStep("creation_source_database_id"),
+		data.ImportStep("create_mode", "creation_source_database_id"),
 	})
 }
 
