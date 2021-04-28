@@ -43,6 +43,7 @@ ENHANCEMENTS:
 * `azurerm_hdinsight_hadoop_cluster` - add support for private link endpoint [GH-11300]
 * `azurerm_hdinsight_spark_cluster` - add support for private link endpoint [GH-11300]
 * `azurerm_kubernetes_cluster` - support for the `ingress_application_gateway` addon [GH-11376]
+* `azurerm_kubernetes_cluster` - support for the `azure_rbac_enabled` property [GH-10441]
 * `azurerm_hpc_cache` - support for the `directory_active_directory`, `directory_flat_file`, and `directory_ldap` blocks [GH-11332]
 * `azurerm_kubernetes_cluster` - support for the `dns_prefix_private_cluster` property [GH-11321]
 * `azurerm_kubernetes_cluster` - support for the `max_node_provisioning_time`, `max_unready_percentage`, and `max_unready_nodes` properties [GH-11406]
