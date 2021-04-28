@@ -222,7 +222,6 @@ func (r AppServiceEnvironmentV3Resource) Read() sdk.ResourceFunc {
 				}
 
 				model.PricingTier = utils.NormalizeNilableString(props.MultiSize)
-
 				model.ClusterSetting = flattenClusterSettingsModel(props.ClusterSettings)
 			}
 
