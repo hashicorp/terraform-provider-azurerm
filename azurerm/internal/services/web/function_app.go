@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"regexp"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
@@ -130,9 +129,7 @@ func schemaAppServiceFunctionAppSiteConfig() *schema.Schema {
 				"java_version": {
 					Type:     schema.TypeString,
 					Optional: true,
-					ValidateFunc: validation.StringMatch(
-						regexp.MustCompile(`^(1\.8|11)`),
-						`Invalid Java version provided`),
+					ValidateFunc: validation.StringInSlice([]string{"1.8", "11"}, false),
 				},
 			},
 		},
