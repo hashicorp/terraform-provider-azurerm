@@ -818,10 +818,10 @@ func flattenVirtualMachineScaleSetIPConfiguration(input compute.VirtualMachineSc
 		"public_ip_address": publicIPAddresses,
 		"subnet_id":         subnetId,
 		"version":           string(input.PrivateIPAddressVersion),
-		"application_gateway_backend_address_pool_ids": schema.NewSet(schema.HashString, applicationGatewayBackendAddressPoolIds),
-		"application_security_group_ids":               schema.NewSet(schema.HashString, applicationSecurityGroupIds),
-		"load_balancer_backend_address_pool_ids":       schema.NewSet(schema.HashString, loadBalancerBackendAddressPoolIds),
-		"load_balancer_inbound_nat_rules_ids":          schema.NewSet(schema.HashString, loadBalancerInboundNatRuleIds),
+		"application_gateway_backend_address_pool_ids": applicationGatewayBackendAddressPoolIds,
+		"application_security_group_ids":               applicationSecurityGroupIds,
+		"load_balancer_backend_address_pool_ids":       loadBalancerBackendAddressPoolIds,
+		"load_balancer_inbound_nat_rules_ids":          loadBalancerInboundNatRuleIds,
 	}
 }
 
