@@ -8,8 +8,12 @@ UPGRADE NOTES
  
 FEATURES:
 
+* **Data Source:** `azurerm_container_registry_scope_map`  [GH-11350]
+* **Data Source:** `azurerm_container_registry_token`  [GH-11350]
 * **Data Source:** `azurerm_postgresql_flexible_server` [GH-11081]
 * **Data Source:** `azurerm_key_vault_managed_hardware_security_module` [GH-10873]
+* **New Resource:** `azurerm_container_registry_scope_map`  [GH-11350]
+* **New Resource:** `azurerm_container_registry_token`  [GH-11350]
 * **New Resource:** `azurerm_data_factory_dataset_snowflake `  [GH-11116]
 * **New Resource:** `azurerm_healthbot` [GH-11002]
 * **New Resource:** `azurerm_key_vault_managed_hardware_security_module `  [GH-10873]
