@@ -41,10 +41,7 @@ The following attributes are exported:
 * `kind` - The type of the service.
 * `authentication_configuration` - An `authentication_configuration` block as defined below.
 * `cosmosdb_throughput` - The provisioned throughput for the backing database.
-* `cosmosdb_key_vault_key_id` - The Key Vault key URI for CMK encryption of the backing database.
-  
-~> **Please Note** The CosmosDB service always uses the latest version of the specified key.
-
+* `cosmosdb_key_vault_key_versionless_id` - The versionless Key Vault Key ID for CMK encryption of the backing database.
 * `cors_configuration` - A `cors_configuration` block as defined below.
 * `tags` - A mapping of tags to assign to the resource.
 

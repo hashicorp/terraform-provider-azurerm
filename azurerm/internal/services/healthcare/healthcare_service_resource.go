@@ -70,7 +70,7 @@ func resourceHealthcareService() *schema.Resource {
 				ValidateFunc: validation.IntBetween(1, 10000),
 			},
 
-			"cosmosdb_key_vault_key_id": {
+			"cosmosdb_key_vault_key_versionless_id": {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ForceNew:         true,
@@ -301,7 +301,7 @@ func resourceHealthcareServiceRead(d *schema.ResourceData, meta interface{}) err
 				cosmosDbThroughput = int(*v)
 			}
 			if v := cosmos.KeyVaultKeyURI; v != nil {
-				d.Set("cosmosdb_key_vault_key_id", v)
+				d.Set("cosmosdb_key_vault_key_versionless_id", v)
 			}
 		}
 		d.Set("cosmosdb_throughput", cosmosDbThroughput)
@@ -404,7 +404,7 @@ func expandAzureRMhealthcareapisCosmosDbConfiguration(d *schema.ResourceData) (*
 		OfferThroughput: utils.Int32(throughput),
 	}
 
-	if keyVaultKeyIDRaw, ok := d.GetOk("cosmosdb_key_vault_key_id"); ok {
+	if keyVaultKeyIDRaw, ok := d.GetOk("cosmosdb_key_vault_key_versionless_id"); ok {
 		keyVaultKey, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyVaultKeyIDRaw.(string))
 		if err != nil {
 			return nil, fmt.Errorf("could not parse Key Vault Key ID: %+v", err)

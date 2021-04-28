@@ -24,7 +24,7 @@ func TestAccHealthCareServiceDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
 				check.That(data.ResourceName).Key("kind").Exists(),
 				check.That(data.ResourceName).Key("cosmosdb_throughput").Exists(),
-				check.That(data.ResourceName).Key("cosmosdb_key_vault_key_id").DoesNotExist(),
+				check.That(data.ResourceName).Key("cosmosdb_key_vault_key_versionless_id").DoesNotExist(),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
 			),
 		},
@@ -38,7 +38,7 @@ func TestAccHealthCareServiceDataSource_complete(t *testing.T) {
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("cosmosdb_key_vault_key_id").Exists(),
+				check.That(data.ResourceName).Key("cosmosdb_key_vault_key_versionless_id").Exists(),
 			),
 		},
 	})

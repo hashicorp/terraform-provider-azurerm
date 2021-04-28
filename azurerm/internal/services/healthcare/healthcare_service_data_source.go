@@ -42,7 +42,7 @@ func dataSourceHealthcareService() *schema.Resource {
 				Computed: true,
 			},
 
-			"cosmosdb_key_vault_key_id": {
+			"cosmosdb_key_vault_key_versionless_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -151,7 +151,7 @@ func dataSourceHealthcareServiceRead(d *schema.ResourceData, meta interface{}) e
 				cosmosDbThroughput = int(*v)
 			}
 			if v := cosmos.KeyVaultKeyURI; v != nil {
-				d.Set("cosmosdb_key_vault_key_id", v)
+				d.Set("cosmosdb_key_vault_key_versionless_id", v)
 			}
 		}
 		d.Set("cosmosdb_throughput", cosmosDbThroughput)
