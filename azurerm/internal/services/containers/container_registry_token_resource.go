@@ -101,7 +101,7 @@ func resourceContainerRegistryTokenCreate(d *schema.ResourceData, meta interface
 	parameters := containerregistry.Token{
 		TokenProperties: &containerregistry.TokenProperties{
 			ScopeMapID: utils.String(scopeMapID),
-			Status:     containerregistry.TokenStatus(status),
+			Status:     status,
 		},
 	}
 
@@ -147,7 +147,7 @@ func resourceContainerRegistryTokenUpdate(d *schema.ResourceData, meta interface
 	parameters := containerregistry.TokenUpdateParameters{
 		TokenUpdateProperties: &containerregistry.TokenUpdateProperties{
 			ScopeMapID: utils.String(scopeMapID),
-			Status:     containerregistry.TokenStatus(status),
+			Status:     status,
 		},
 	}
 
