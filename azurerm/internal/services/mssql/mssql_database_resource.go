@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/migration"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/response"
@@ -32,9 +34,31 @@ func resourceMsSqlDatabase() *schema.Resource {
 		Update: resourceMsSqlDatabaseCreateUpdate,
 		Delete: resourceMsSqlDatabaseDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.DatabaseID(id)
 			return err
+		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+			replicationLinksClient := meta.(*clients.Client).MSSQL.ReplicationLinksClient
+
+			id, err := parse.DatabaseID(d.Id())
+			if err != nil {
+				return nil, err
+			}
+			resp, err := replicationLinksClient.ListByDatabase(ctx, id.ResourceGroup, id.ServerName, id.Name)
+			if err != nil {
+				return nil, fmt.Errorf("reading Replication Links for MsSql Database %s (MsSql Server Name %q / Resource Group %q): %s", id.Name, id.ServerName, id.ResourceGroup, err)
+			}
+
+			for _, link := range *resp.Value {
+				props := *link.ReplicationLinkProperties
+				if props.Role == sql.ReplicationRoleSecondary || props.Role == sql.ReplicationRoleNonReadableSecondary {
+					d.Set("create_mode", string(sql.CreateModeSecondary))
+					return []*pluginsdk.ResourceData{d}, nil
+				}
+			}
+			d.Set("create_mode", "Default")
+
+			return []*pluginsdk.ResourceData{d}, nil
 		}),
 
 		Timeouts: &schema.ResourceTimeout{
@@ -42,6 +66,11 @@ func resourceMsSqlDatabase() *schema.Resource {
 			Read:   schema.DefaultTimeout(5 * time.Minute),
 			Update: schema.DefaultTimeout(60 * time.Minute),
 			Delete: schema.DefaultTimeout(60 * time.Minute),
+		},
+
+		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			migration.DatabaseV0ToV1(),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -70,7 +99,7 @@ func resourceMsSqlDatabase() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Computed: true,
+				Default:  string(sql.CreateModeDefault),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(sql.CreateModeCopy),
 					string(sql.CreateModeDefault),
