@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -18,14 +19,12 @@ type PublicIPPrefixResource struct {
 }
 
 func (t PublicIPPrefixResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.PublicIpPrefixID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resGroup := id.ResourceGroup
-	name := id.Path["publicIPPrefixes"]
 
-	resp, err := clients.Network.PublicIPPrefixesClient.Get(ctx, resGroup, name, "")
+	resp, err := clients.Network.PublicIPPrefixesClient.Get(ctx, id.ResourceGroup, id.PublicIPPrefixeName, "")
 	if err != nil {
 		return nil, fmt.Errorf("reading Public IP Prefix (%s): %+v", id, err)
 	}
@@ -34,14 +33,12 @@ func (t PublicIPPrefixResource) Exists(ctx context.Context, clients *clients.Cli
 }
 
 func (PublicIPPrefixResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.PublicIpPrefixID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resGroup := id.ResourceGroup
-	name := id.Path["publicIPPrefixes"]
 
-	future, err := client.Network.PublicIPPrefixesClient.Delete(ctx, resGroup, name)
+	future, err := client.Network.PublicIPPrefixesClient.Delete(ctx, id.ResourceGroup, id.PublicIPPrefixeName)
 	if err != nil {
 		return nil, fmt.Errorf("deleting Public IP Prefix %q: %+v", id, err)
 	}
@@ -67,6 +64,21 @@ func TestAccPublicIpPrefix_basic(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccPublicIpPrefix_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
+	r := PublicIPPrefixResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
@@ -160,6 +172,18 @@ resource "azurerm_public_ip_prefix" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (r PublicIPPrefixResource) requiresImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_public_ip_prefix" "import" {
+  name                = azurerm_public_ip_prefix.test.name
+  location            = azurerm_public_ip_prefix.test.location
+  resource_group_name = azurerm_public_ip_prefix.test.resource_group_name
+}
+`, r.basic(data))
 }
 
 func (PublicIPPrefixResource) withTags(data acceptance.TestData) string {
