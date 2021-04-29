@@ -17,6 +17,7 @@ FEATURES:
 * **New Resource:** `azurerm_data_factory_dataset_snowflake `  [GH-11116]
 * **New Resource:** `azurerm_healthbot` [GH-11002]
 * **New Resource:** `azurerm_key_vault_managed_hardware_security_module `  [GH-10873]
+* **New Resource:** `azurerm_media_asset_filter` [GH-11110]
 * **New Resource:** `azurerm_mssql_job_agent` [GH-11248]
 * **New Resource:** `azurerm_mssql_job_credential` [GH-11363]
 * **New Resource:** `azurerm_mssql_transparent_data_encryption` [GH-11148]
