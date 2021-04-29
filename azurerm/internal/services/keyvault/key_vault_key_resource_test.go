@@ -82,6 +82,21 @@ func TestAccKeyVaultKey_curveEC(t *testing.T) {
 	})
 }
 
+func TestAccKeyVaultKey_curveECDeprecated(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
+	r := KeyVaultKeyResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.curveECDeprecated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKeyVaultKey_basicRSA(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
 	r := KeyVaultKeyResource{}
@@ -566,6 +581,28 @@ resource "azurerm_key_vault_key" "test" {
   key_vault_id = azurerm_key_vault.test.id
   key_type     = "EC"
   curve        = "P-521"
+
+  key_opts = [
+    "sign",
+    "verify",
+  ]
+}
+`, r.templateStandard(data), data.RandomString)
+}
+
+func (r KeyVaultKeyResource) curveECDeprecated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "key-%s"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "EC"
+  curve        = "SECP256K1"
 
   key_opts = [
     "sign",
