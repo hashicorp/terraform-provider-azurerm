@@ -152,11 +152,13 @@ func resourceManagedDisk() *schema.Resource {
 					string(compute.DenyAll),
 				}, false),
 			},
-
 			"disk_access_id": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				Type:     schema.TypeString,
+				Optional: true,
+				// TODO: make this case-sensitive once this bug in the Azure API has been fixed:
+				//       https://github.com/Azure/azure-rest-api-specs/issues/14192
+				DiffSuppressFunc: suppress.CaseDifference,
+				ValidateFunc:     azure.ValidateResourceID,
 			},
 
 			"tags": tags.Schema(),
