@@ -76,7 +76,7 @@ The following arguments are supported:
 
 * `index_policy` - (Required) The configuration of the indexing policy. One or more `index_policy` blocks as defined below. Changing this forces a new resource to be created.
 
-* `conflict_resolution_policy` - (Required) The conflict resolution policy for the graph. One or more `conflict_resolution_policy` blocks as defined below. Changing this forces a new resource to be created.
+* `conflict_resolution_policy` - (Optional)  A `conflict_resolution_policy` blocks as defined below.
 
 * `unique_key` (Optional) One or more `unique_key` blocks as defined below. Changing this forces a new resource to be created.
 

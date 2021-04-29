@@ -72,6 +72,8 @@ The following arguments are supported:
 
 * `default_ttl` - (Optional) The default time to live of SQL container. If missing, items are not expired automatically. If present and the value is set to `-1`, it is equal to infinity, and items don’t expire by default. If present and the value is set to some number `n` – items will expire `n` seconds after their last modified time.
 
+* `conflict_resolution_policy` - (Optional)  A `conflict_resolution_policy` blocks as defined below.
+
 ---
 
 An `autoscale_settings` block supports the following:
@@ -110,6 +112,16 @@ An `index` block supports the following:
 * `path` - Path for which the indexing behaviour applies to.
 
 * `order` - Order of the index. Possible values are `Ascending` or `Descending`.
+
+---
+
+A `conflict_resolution_policy` block supports the following:
+
+* `mode` - (Required) Indicates the conflict resolution mode. Possible values include: `LastWriterWins`, `Custom`.
+
+* `conflict_resolution_path` - (Optional) The conflict resolution path in the case of `LastWriterWins` mode.
+
+* `conflict_resolution_procedure` - (Optional) The procedure to resolve conflicts in the case of `Custom` mode.
 
 ## Attributes Reference
 
