@@ -288,7 +288,7 @@ func resourceStorageAccount() *schema.Resource {
 						"default_service_version": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							Default:      "2020-06-12",
+							Computed:     true,
 							ValidateFunc: validate.BlobPropertiesDefaultServiceVersion,
 						},
 
