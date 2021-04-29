@@ -145,15 +145,17 @@ func dataSourceHealthcareServiceRead(d *schema.ResourceData, meta interface{}) e
 			return fmt.Errorf("Error setting `access_policy_object_ids`: %+v", err)
 		}
 
+		cosmodDbKeyVaultKeyVersionlessId := ""
 		cosmosDbThroughput := 0
 		if cosmos := props.CosmosDbConfiguration; cosmos != nil {
 			if v := cosmos.OfferThroughput; v != nil {
 				cosmosDbThroughput = int(*v)
 			}
 			if v := cosmos.KeyVaultKeyURI; v != nil {
-				d.Set("cosmosdb_key_vault_key_versionless_id", v)
+				cosmodDbKeyVaultKeyVersionlessId = *v
 			}
 		}
+		d.Set("cosmosdb_key_vault_key_versionless_id", cosmodDbKeyVaultKeyVersionlessId)
 		d.Set("cosmosdb_throughput", cosmosDbThroughput)
 
 		if err := d.Set("authentication_configuration", flattenHealthcareAuthConfig(props.AuthenticationConfiguration)); err != nil {
