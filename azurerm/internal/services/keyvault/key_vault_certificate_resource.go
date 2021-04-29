@@ -128,7 +128,8 @@ func resourceKeyVaultCertificate() *schema.Resource {
 									},
 									"key_size": {
 										Type:     schema.TypeInt,
-										Required: true,
+										Optional: true,
+										Computed: true,
 										ForceNew: true,
 										ValidateFunc: validation.IntInSlice([]int{
 											256,
@@ -421,7 +422,10 @@ func resourceKeyVaultCertificateCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	t := d.Get("tags").(map[string]interface{})
-	policy := expandKeyVaultCertificatePolicy(d)
+	policy, err := expandKeyVaultCertificatePolicy(d)
+	if err != nil {
+		return fmt.Errorf("expanding certificate policy: %s", err)
+	}
 
 	if v, ok := d.GetOk("certificate"); ok {
 		// Import
@@ -429,7 +433,7 @@ func resourceKeyVaultCertificateCreate(d *schema.ResourceData, meta interface{})
 		importParameters := keyvault.CertificateImportParameters{
 			Base64EncodedCertificate: utils.String(certificate.CertificateData),
 			Password:                 utils.String(certificate.CertificatePassword),
-			CertificatePolicy:        &policy,
+			CertificatePolicy:        policy,
 			Tags:                     tags.Expand(t),
 		}
 		if _, err := client.ImportCertificate(ctx, *keyVaultBaseUrl, name, importParameters); err != nil {
@@ -438,7 +442,7 @@ func resourceKeyVaultCertificateCreate(d *schema.ResourceData, meta interface{})
 	} else {
 		// Generate new
 		parameters := keyvault.CertificateCreateParameters{
-			CertificatePolicy: &policy,
+			CertificatePolicy: policy,
 			Tags:              tags.Expand(t),
 		}
 		if resp, err := client.CreateCertificate(ctx, *keyVaultBaseUrl, name, parameters); err != nil {
@@ -480,7 +484,7 @@ func resourceKeyVaultCertificateCreate(d *schema.ResourceData, meta interface{})
 		// It has been observed that at least one certificate issuer responds to a request with manual processing by issuer staff. SLA's may differ among issuers.
 		// The total create timeout duration is divided by a modified poll interval of 30s to calculate the number of times to allow not found instead of the default 20.
 		// Using math.Floor, the calculation will err on the lower side of the creation timeout, so as to return before the overall create timeout occurs.
-		if policy.IssuerParameters != nil && policy.IssuerParameters.Name != nil && *policy.IssuerParameters.Name != "Self" {
+		if policy != nil && policy.IssuerParameters != nil && policy.IssuerParameters.Name != nil && *policy.IssuerParameters.Name != "Self" {
 			stateConf.PollInterval = 30 * time.Second
 			stateConf.NotFoundChecks = int(math.Floor(float64(stateConf.Timeout) / float64(stateConf.PollInterval)))
 		}
@@ -687,7 +691,7 @@ func (d deleteAndPurgeCertificate) NestedItemHasBeenPurged(ctx context.Context) 
 	return resp.Response, err
 }
 
-func expandKeyVaultCertificatePolicy(d *schema.ResourceData) keyvault.CertificatePolicy {
+func expandKeyVaultCertificatePolicy(d *schema.ResourceData) (*keyvault.CertificatePolicy, error) {
 	policies := d.Get("certificate_policy").([]interface{})
 	policyRaw := policies[0].(map[string]interface{})
 	policy := keyvault.CertificatePolicy{}
@@ -700,11 +704,37 @@ func expandKeyVaultCertificatePolicy(d *schema.ResourceData) keyvault.Certificat
 
 	properties := policyRaw["key_properties"].([]interface{})
 	props := properties[0].(map[string]interface{})
+
+	curve := props["curve"].(string)
+	keyType := props["key_type"].(string)
+	keySize := props["key_size"].(int)
+
+	if keyType == string(keyvault.EC) || keyType == string(keyvault.ECHSM) {
+		if curve == "" {
+			return nil, fmt.Errorf("`curve` is required when creating an EC key")
+		}
+		// determine key_size if not specified
+		if keySize == 0 {
+			switch curve {
+			case string(keyvault.P256), string(keyvault.P256K):
+				keySize = 256
+			case string(keyvault.P384):
+				keySize = 384
+			case string(keyvault.P521):
+				keySize = 521
+			}
+		}
+	} else if keyType == string(keyvault.RSA) || keyType == string(keyvault.RSAHSM) {
+		if keySize == 0 {
+			return nil, fmt.Errorf("`key_size` is required when creating an RSA key")
+		}
+	}
+
 	policy.KeyProperties = &keyvault.KeyProperties{
-		Curve:      keyvault.JSONWebKeyCurveName(props["curve"].(string)),
+		Curve:      keyvault.JSONWebKeyCurveName(curve),
 		Exportable: utils.Bool(props["exportable"].(bool)),
-		KeySize:    utils.Int32(int32(props["key_size"].(int))),
-		KeyType:    keyvault.JSONWebKeyType(props["key_type"].(string)),
+		KeySize:    utils.Int32(int32(keySize)),
+		KeyType:    keyvault.JSONWebKeyType(keyType),
 		ReuseKey:   utils.Bool(props["reuse_key"].(bool)),
 	}
 
@@ -796,7 +826,7 @@ func expandKeyVaultCertificatePolicy(d *schema.ResourceData) keyvault.Certificat
 		}
 	}
 
-	return policy
+	return &policy, nil
 }
 
 func flattenKeyVaultCertificatePolicy(input *keyvault.CertificatePolicy, certData *[]byte) []interface{} {
