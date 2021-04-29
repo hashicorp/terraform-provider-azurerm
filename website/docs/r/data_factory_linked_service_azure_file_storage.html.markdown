@@ -66,6 +66,18 @@ The following supported arguments are specific to Azure File Storage Linked Serv
 
 * `file_share` - (Optional) The name of the file share.
 
+* `key_vault_password` - (Optional) A `key_vault_password` block as defined below. Use this argument to store Azure File Storage password in an existing Key Vault. It needs an existing Key Vault Data Factory Linked Service.
+
+---
+
+A `key_vault_password` block supports the following:
+
+* `linked_service_name` - (Required) Specifies the name of an existing Key Vault Data Factory Linked Service.
+
+* `secret_name` - (Required) Specifies the secret name in Azure Key Vault that stores Azure File Storage password.
+
+---
+
 ## Attributes Reference
 
 The following attributes are exported:

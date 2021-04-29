@@ -1,55 +1,65 @@
 package azure
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 )
 
-func SchemaZones() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
+func SchemaZoneComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:         pluginsdk.TypeString,
+		Optional:     true,
+		Computed:     true,
+		ForceNew:     true,
+		ValidateFunc: validation.StringIsNotEmpty,
+	}
+}
+
+func SchemaZones() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		Optional: true,
 		ForceNew: true,
-		Elem: &schema.Schema{
-			Type:         schema.TypeString,
+		Elem: &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
 }
 
-func SchemaSingleZone() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
+func SchemaSingleZone() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		Optional: true,
 		ForceNew: true,
 		MaxItems: 1,
-		Elem: &schema.Schema{
-			Type:         schema.TypeString,
+		Elem: &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
 }
 
-func SchemaMultipleZones() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
+func SchemaMultipleZones() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		Optional: true,
 		ForceNew: true,
 		MinItems: 1,
-		Elem: &schema.Schema{
-			Type:         schema.TypeString,
+		Elem: &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
 }
 
-func SchemaZonesComputed() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
+func SchemaZonesComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		Optional: true,
 		Computed: true,
-		Elem: &schema.Schema{
-			Type:         schema.TypeString,
+		Elem: &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}

@@ -241,7 +241,7 @@ The `bgp_settings` block supports:
 
 A `custom_route` block supports the following:
 
-* `address_prefixes` - (Optional) A list of address blocks reserved for this virtual network in CIDR notation. Changing this forces a new resource to be created.
+* `address_prefixes` - (Optional) A list of address blocks reserved for this virtual network in CIDR notation.
 
 ---
 

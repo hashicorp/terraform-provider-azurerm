@@ -16,7 +16,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -37,7 +37,7 @@ func resourceNotificationHub() *schema.Resource {
 		Update: resourceNotificationHubCreateUpdate,
 		Delete: resourceNotificationHubDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.NotificationHubID(id)
 			return err
 		}),
@@ -49,7 +49,7 @@ func resourceNotificationHub() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *schema.ResourceDiff, v interface{}) error {
 			// NOTE: the ForceNew is to workaround a bug in the Azure SDK where nil-values aren't sent to the API.
 			// Bug: https://github.com/Azure/azure-sdk-for-go/issues/2246
 
@@ -68,7 +68,7 @@ func resourceNotificationHub() *schema.Resource {
 			}
 
 			return nil
-		},
+		}),
 
 		Schema: map[string]*schema.Schema{
 			"name": {

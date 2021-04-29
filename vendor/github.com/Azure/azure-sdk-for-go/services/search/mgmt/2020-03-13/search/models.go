@@ -928,6 +928,7 @@ func (future *ServicesCreateOrUpdateFuture) result(client ServicesClient) (s Ser
 		return
 	}
 	if !done {
+		s.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("search.ServicesCreateOrUpdateFuture")
 		return
 	}

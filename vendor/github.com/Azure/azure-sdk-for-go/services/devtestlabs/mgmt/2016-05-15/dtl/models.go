@@ -1184,6 +1184,7 @@ func (future *CustomImagesCreateOrUpdateFuture) result(client CustomImagesClient
 		return
 	}
 	if !done {
+		ci.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("dtl.CustomImagesCreateOrUpdateFuture")
 		return
 	}
@@ -1226,6 +1227,7 @@ func (future *CustomImagesDeleteFuture) result(client CustomImagesClient) (ar au
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("dtl.CustomImagesDeleteFuture")
 		return
 	}
@@ -1453,6 +1455,7 @@ func (future *DisksAttachFuture) result(client DisksClient) (ar autorest.Respons
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("dtl.DisksAttachFuture")
 		return
 	}
@@ -1489,6 +1492,7 @@ func (future *DisksCreateOrUpdateFuture) result(client DisksClient) (d Disk, err
 		return
 	}
 	if !done {
+		d.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("dtl.DisksCreateOrUpdateFuture")
 		return
 	}
@@ -1530,6 +1534,7 @@ func (future *DisksDeleteFuture) result(client DisksClient) (ar autorest.Respons
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("dtl.DisksDeleteFuture")
 		return
 	}
@@ -1565,6 +1570,7 @@ func (future *DisksDetachFuture) result(client DisksClient) (ar autorest.Respons
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("dtl.DisksDetachFuture")
 		return
 	}
@@ -1744,6 +1750,7 @@ func (future *EnvironmentsCreateOrUpdateFuture) result(client EnvironmentsClient
 		return
 	}
 	if !done {
+		e.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("dtl.EnvironmentsCreateOrUpdateFuture")
 		return
 	}
@@ -1786,6 +1793,7 @@ func (future *EnvironmentsDeleteFuture) result(client EnvironmentsClient) (ar au
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("dtl.EnvironmentsDeleteFuture")
 		return
 	}
@@ -2035,6 +2043,7 @@ func (future *FormulasCreateOrUpdateFuture) result(client FormulasClient) (f For
 		return
 	}
 	if !done {
+		f.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("dtl.FormulasCreateOrUpdateFuture")
 		return
 	}
@@ -2267,6 +2276,7 @@ func (future *GlobalSchedulesExecuteFuture) result(client GlobalSchedulesClient)
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("dtl.GlobalSchedulesExecuteFuture")
 		return
 	}
@@ -2303,6 +2313,7 @@ func (future *GlobalSchedulesRetargetFuture) result(client GlobalSchedulesClient
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("dtl.GlobalSchedulesRetargetFuture")
 		return
 	}
@@ -2834,6 +2845,7 @@ func (future *LabsClaimAnyVMFuture) result(client LabsClient) (ar autorest.Respo
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("dtl.LabsClaimAnyVMFuture")
 		return
 	}
@@ -2870,6 +2882,7 @@ func (future *LabsCreateEnvironmentFuture) result(client LabsClient) (ar autores
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("dtl.LabsCreateEnvironmentFuture")
 		return
 	}
@@ -2906,6 +2919,7 @@ func (future *LabsCreateOrUpdateFuture) result(client LabsClient) (l Lab, err er
 		return
 	}
 	if !done {
+		l.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("dtl.LabsCreateOrUpdateFuture")
 		return
 	}
@@ -2947,6 +2961,7 @@ func (future *LabsDeleteFuture) result(client LabsClient) (ar autorest.Response,
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("dtl.LabsDeleteFuture")
 		return
 	}
@@ -2983,6 +2998,7 @@ func (future *LabsExportResourceUsageFuture) result(client LabsClient) (ar autor
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("dtl.LabsExportResourceUsageFuture")
 		return
 	}
@@ -7653,6 +7669,7 @@ func (future *SchedulesExecuteFuture) result(client SchedulesClient) (ar autores
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("dtl.SchedulesExecuteFuture")
 		return
 	}
@@ -8225,6 +8242,7 @@ func (future *UsersDeleteFuture) result(client UsersClient) (ar autorest.Respons
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("dtl.UsersDeleteFuture")
 		return
 	}
@@ -8277,6 +8295,7 @@ func (future *VirtualMachinesAddDataDiskFuture) result(client VirtualMachinesCli
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("dtl.VirtualMachinesAddDataDiskFuture")
 		return
 	}
@@ -8313,6 +8332,7 @@ func (future *VirtualMachinesApplyArtifactsFuture) result(client VirtualMachines
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("dtl.VirtualMachinesApplyArtifactsFuture")
 		return
 	}
@@ -8349,6 +8369,7 @@ func (future *VirtualMachineSchedulesExecuteFuture) result(client VirtualMachine
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("dtl.VirtualMachineSchedulesExecuteFuture")
 		return
 	}
@@ -8385,6 +8406,7 @@ func (future *VirtualMachinesClaimFuture) result(client VirtualMachinesClient) (
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("dtl.VirtualMachinesClaimFuture")
 		return
 	}
@@ -8421,6 +8443,7 @@ func (future *VirtualMachinesCreateOrUpdateFuture) result(client VirtualMachines
 		return
 	}
 	if !done {
+		lvm.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("dtl.VirtualMachinesCreateOrUpdateFuture")
 		return
 	}
@@ -8463,6 +8486,7 @@ func (future *VirtualMachinesDeleteFuture) result(client VirtualMachinesClient) 
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("dtl.VirtualMachinesDeleteFuture")
 		return
 	}
@@ -8499,6 +8523,7 @@ func (future *VirtualMachinesDetachDataDiskFuture) result(client VirtualMachines
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("dtl.VirtualMachinesDetachDataDiskFuture")
 		return
 	}
@@ -8535,6 +8560,7 @@ func (future *VirtualMachinesStartFuture) result(client VirtualMachinesClient) (
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("dtl.VirtualMachinesStartFuture")
 		return
 	}
@@ -8571,6 +8597,7 @@ func (future *VirtualMachinesStopFuture) result(client VirtualMachinesClient) (a
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("dtl.VirtualMachinesStopFuture")
 		return
 	}
@@ -8873,6 +8900,7 @@ func (future *VirtualNetworksCreateOrUpdateFuture) result(client VirtualNetworks
 		return
 	}
 	if !done {
+		vn.Response.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("dtl.VirtualNetworksCreateOrUpdateFuture")
 		return
 	}
@@ -8915,6 +8943,7 @@ func (future *VirtualNetworksDeleteFuture) result(client VirtualNetworksClient) 
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("dtl.VirtualNetworksDeleteFuture")
 		return
 	}

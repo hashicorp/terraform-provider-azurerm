@@ -536,6 +536,7 @@ func (future *AdaptiveNetworkHardeningsEnforceFuture) result(client AdaptiveNetw
 		return
 	}
 	if !done {
+		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("security.AdaptiveNetworkHardeningsEnforceFuture")
 		return
 	}

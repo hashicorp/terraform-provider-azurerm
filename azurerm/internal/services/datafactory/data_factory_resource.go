@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -25,17 +27,12 @@ func resourceDataFactory() *schema.Resource {
 		Delete: resourceDataFactoryDelete,
 
 		SchemaVersion: 1,
-		StateUpgraders: []schema.StateUpgrader{
-			{
-				Type:    migration.DataFactoryUpgradeV0Schema().CoreConfigSchema().ImpliedType(),
-				Upgrade: migration.DataFactoryUpgradeV0ToV1,
-				Version: 0,
-			},
-		},
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.DataFactoryV0ToV1{},
+		}),
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -413,17 +410,23 @@ func flattenDataFactoryRepoConfiguration(factory *datafactory.Factory) (datafact
 
 func flattenDataFactoryIdentity(identity *datafactory.FactoryIdentity) interface{} {
 	if identity == nil {
-		return make([]interface{}, 0)
+		return []interface{}{}
 	}
 
-	result := make(map[string]interface{})
-	result["type"] = string(identity.Type)
+	principalId := ""
 	if identity.PrincipalID != nil {
-		result["principal_id"] = identity.PrincipalID.String()
+		principalId = identity.PrincipalID.String()
 	}
+	tenantId := ""
 	if identity.TenantID != nil {
-		result["tenant_id"] = identity.TenantID.String()
+		tenantId = identity.TenantID.String()
 	}
 
-	return []interface{}{result}
+	return []interface{}{
+		map[string]interface{}{
+			"principal_id": principalId,
+			"tenant_id":    tenantId,
+			"type":         string(identity.Type),
+		},
+	}
 }

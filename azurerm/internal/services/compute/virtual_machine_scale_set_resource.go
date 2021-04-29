@@ -2,25 +2,30 @@ package compute
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"log"
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 
+	validate2 "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
+
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/migration"
 	msiparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
 	msivalidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -29,16 +34,18 @@ import (
 //       and as such this resource is feature-frozen and new functionality will be added to these new resources instead.
 func resourceVirtualMachineScaleSet() *schema.Resource {
 	return &schema.Resource{
-		Create:        resourceVirtualMachineScaleSetCreateUpdate,
-		Read:          resourceVirtualMachineScaleSetRead,
-		Update:        resourceVirtualMachineScaleSetCreateUpdate,
-		Delete:        resourceVirtualMachineScaleSetDelete,
-		MigrateState:  resourceVirtualMachineScaleSetMigrateState,
-		SchemaVersion: 1,
+		Create: resourceVirtualMachineScaleSetCreateUpdate,
+		Read:   resourceVirtualMachineScaleSetRead,
+		Update: resourceVirtualMachineScaleSetCreateUpdate,
+		Delete: resourceVirtualMachineScaleSetDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.LegacyVMSSV0ToV1{},
+		}),
+
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),
@@ -628,7 +635,7 @@ func resourceVirtualMachineScaleSet() *schema.Resource {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							Computed:     true,
-							ValidateFunc: validateDiskSizeGB,
+							ValidateFunc: validate2.DiskSizeGB,
 						},
 
 						"managed_disk_type": {
@@ -782,7 +789,7 @@ func resourceVirtualMachineScaleSet() *schema.Resource {
 			"tags": tags.Schema(),
 		},
 
-		CustomizeDiff: azureRmVirtualMachineScaleSetCustomizeDiff,
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(azureRmVirtualMachineScaleSetCustomizeDiff),
 	}
 }
 
@@ -2357,7 +2364,7 @@ func azureRmVirtualMachineScaleSetSuppressRollingUpgradePolicyDiff(k, _, new str
 }
 
 // Make sure rolling_upgrade_policy is default value when upgrade_policy_mode is not Rolling.
-func azureRmVirtualMachineScaleSetCustomizeDiff(d *schema.ResourceDiff, _ interface{}) error {
+func azureRmVirtualMachineScaleSetCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, _ interface{}) error {
 	mode := d.Get("upgrade_policy_mode").(string)
 	if strings.ToLower(mode) != "rolling" {
 		if policyRaw, ok := d.GetOk("rolling_upgrade_policy.0"); ok {

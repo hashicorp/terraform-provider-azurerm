@@ -5,7 +5,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/cosmos-db/mgmt/2020-04-01-preview/documentdb"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-01-15/documentdb"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -27,18 +29,13 @@ func resourceCosmosDbSQLContainer() *schema.Resource {
 		Update: resourceCosmosDbSQLContainerUpdate,
 		Delete: resourceCosmosDbSQLContainerDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		SchemaVersion: 1,
-		StateUpgraders: []schema.StateUpgrader{
-			{
-				Type:    migration.ResourceSqlContainerUpgradeV0Schema().CoreConfigSchema().ImpliedType(),
-				Upgrade: migration.ResourceSqlContainerStateUpgradeV0ToV1,
-				Version: 0,
-			},
-		},
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.SqlContainerV0ToV1{},
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -73,7 +70,7 @@ func resourceCosmosDbSQLContainer() *schema.Resource {
 
 			"partition_key_path": {
 				Type:         schema.TypeString,
-				Optional:     true,
+				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
@@ -92,7 +89,7 @@ func resourceCosmosDbSQLContainer() *schema.Resource {
 				ValidateFunc: validate.CosmosThroughput,
 			},
 
-			"autoscale_settings": common.ContainerAutoscaleSettingsSchema(),
+			"autoscale_settings": common.DatabaseAutoscaleSettingsSchema(),
 
 			"default_ttl": {
 				Type:         schema.TypeInt,

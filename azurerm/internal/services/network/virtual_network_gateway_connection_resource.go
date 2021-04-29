@@ -14,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -26,9 +27,8 @@ func resourceVirtualNetworkGatewayConnection() *schema.Resource {
 		Update: resourceVirtualNetworkGatewayConnectionCreateUpdate,
 		Delete: resourceVirtualNetworkGatewayConnectionDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -205,6 +205,8 @@ func resourceVirtualNetworkGatewayConnection() *schema.Resource {
 								string(network.AES256),
 								string(network.DES),
 								string(network.DES3),
+								string(network.GCMAES128),
+								string(network.GCMAES256),
 							}, true),
 						},
 
@@ -262,9 +264,11 @@ func resourceVirtualNetworkGatewayConnection() *schema.Resource {
 								string(network.PfsGroupECP384),
 								string(network.PfsGroupNone),
 								string(network.PfsGroupPFS1),
+								string(network.PfsGroupPFS14),
 								string(network.PfsGroupPFS2),
 								string(network.PfsGroupPFS2048),
 								string(network.PfsGroupPFS24),
+								string(network.PfsGroupPFSMM),
 							}, true),
 						},
 

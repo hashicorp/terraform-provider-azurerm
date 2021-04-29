@@ -1,58 +1,76 @@
 package migration
 
 import (
+	"context"
 	"log"
 	"strings"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
 )
 
-func ApiVersionSetUpgradeV0Schema() *schema.Resource {
-	return &schema.Resource{
-		Schema: map[string]*schema.Schema{
-			"name": schemaz.SchemaApiManagementChildName(),
+var _ pluginsdk.StateUpgrade = ApiVersionSetV0ToV1{}
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+type ApiVersionSetV0ToV1 struct {
+}
 
-			"api_management_name": schemaz.SchemaApiManagementName(),
+func (ApiVersionSetV0ToV1) Schema() map[string]*pluginsdk.Schema {
+	return map[string]*schema.Schema{
+		"name": {
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
 
-			"display_name": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
+		"resource_group_name": {
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
 
-			"versioning_scheme": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
+		"api_management_name": {
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
 
-			"description": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
+		"display_name": {
+			Type:     schema.TypeString,
+			Required: true,
+		},
 
-			"version_header_name": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
+		"versioning_scheme": {
+			Type:     schema.TypeString,
+			Required: true,
+		},
 
-			"version_query_name": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
+		"description": {
+			Type:     schema.TypeString,
+			Optional: true,
+		},
+
+		"version_header_name": {
+			Type:     schema.TypeString,
+			Optional: true,
+		},
+
+		"version_query_name": {
+			Type:     schema.TypeString,
+			Optional: true,
 		},
 	}
 }
 
-func ApiVersionSetUpgradeV0ToV1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
-	oldId := rawState["id"].(string)
-	newId := strings.Replace(rawState["id"].(string), "/api-version-set/", "/apiVersionSets/", 1)
+func (ApiVersionSetV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
+	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+		oldId := rawState["id"].(string)
+		newId := strings.Replace(rawState["id"].(string), "/api-version-set/", "/apiVersionSets/", 1)
 
-	log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId)
+		log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId)
 
-	rawState["id"] = newId
+		rawState["id"] = newId
 
-	return rawState, nil
+		return rawState, nil
+	}
 }

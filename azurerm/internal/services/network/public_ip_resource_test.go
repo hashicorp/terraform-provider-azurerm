@@ -341,6 +341,22 @@ func TestAccPublicIpStatic_canLabelBe63(t *testing.T) {
 	})
 }
 
+func TestAccPublicIpStatic_ipTags(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
+	r := PublicIPResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.standard_IpTags(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ip_tags.RoutingPreference").HasValue("Internet"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t PublicIPResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.PublicIpAddressID(state.ID)
 	if err != nil {
@@ -757,6 +773,31 @@ resource "azurerm_public_ip" "test" {
 
   allocation_method = "Static"
   domain_name_label = "k2345678-1-2345678-2-2345678-3-2345678-4-2345678-5-2345678-6-23"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (PublicIPResource) standard_IpTags(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-network-%d"
+  location = "%s"
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestpublicip-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+
+  ip_tags = {
+    RoutingPreference = "Internet"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

@@ -1,10 +1,10 @@
 package storage
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
-	"regexp"
 	"strings"
 	"time"
 
@@ -20,8 +20,10 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -38,12 +40,14 @@ func resourceStorageAccount() *schema.Resource {
 		Update: resourceStorageAccountUpdate,
 		Delete: resourceStorageAccountDelete,
 
-		MigrateState:  ResourceStorageAccountMigrateState,
 		SchemaVersion: 2,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.AccountV0ToV1{},
+			1: migration.AccountV1ToV2{},
+		}),
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		// TODO: replace this with an importer which validates the ID during import
+		Importer: pluginsdk.DefaultImporter(),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),
@@ -57,7 +61,7 @@ func resourceStorageAccount() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateStorageAccountName,
+				ValidateFunc: validate.StorageAccountName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -151,6 +155,13 @@ func resourceStorageAccount() *schema.Resource {
 			},
 
 			"is_hns_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+				ForceNew: true,
+			},
+
+			"nfsv3_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
@@ -267,6 +278,26 @@ func resourceStorageAccount() *schema.Resource {
 								},
 							},
 						},
+
+						"versioning_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
+						"default_service_version": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validate.BlobPropertiesDefaultServiceVersion,
+						},
+
+						"last_access_time_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
 						"container_delete_retention_policy": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -383,6 +414,7 @@ func resourceStorageAccount() *schema.Resource {
 				},
 			},
 
+			//lintignore:XS003
 			"static_website": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -578,13 +610,13 @@ func resourceStorageAccount() *schema.Resource {
 			"tags": {
 				Type:         schema.TypeMap,
 				Optional:     true,
-				ValidateFunc: validateAzureRMStorageAccountTags,
+				ValidateFunc: validate.StorageAccountTags,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
 			},
 		},
-		CustomizeDiff: func(d *schema.ResourceDiff, v interface{}) error {
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *schema.ResourceDiff, v interface{}) error {
 			if d.HasChange("account_kind") {
 				accountKind, changedKind := d.GetChange("account_kind")
 
@@ -604,31 +636,8 @@ func resourceStorageAccount() *schema.Resource {
 			}
 
 			return nil
-		},
+		}),
 	}
-}
-
-func validateAzureRMStorageAccountTags(v interface{}, _ string) (warnings []string, errors []error) {
-	tagsMap := v.(map[string]interface{})
-
-	if len(tagsMap) > 50 {
-		errors = append(errors, fmt.Errorf("a maximum of 50 tags can be applied to storage account ARM resource"))
-	}
-
-	for k, v := range tagsMap {
-		if len(k) > 128 {
-			errors = append(errors, fmt.Errorf("the maximum length for a tag key is 128 characters: %q is %d characters", k, len(k)))
-		}
-
-		value, err := tags.TagValueToString(v)
-		if err != nil {
-			errors = append(errors, err)
-		} else if len(value) > 256 {
-			errors = append(errors, fmt.Errorf("the maximum length for a tag value is 256 characters: the value for %q is %d characters", k, len(value)))
-		}
-	}
-
-	return warnings, errors
 }
 
 func resourceStorageAccountCreate(d *schema.ResourceData, meta interface{}) error {
@@ -660,6 +669,7 @@ func resourceStorageAccountCreate(d *schema.ResourceData, meta interface{}) erro
 	enableHTTPSTrafficOnly := d.Get("enable_https_traffic_only").(bool)
 	minimumTLSVersion := d.Get("min_tls_version").(string)
 	isHnsEnabled := d.Get("is_hns_enabled").(bool)
+	nfsV3Enabled := d.Get("nfsv3_enabled").(bool)
 	allowBlobPublicAccess := d.Get("allow_blob_public_access").(bool)
 
 	accountTier := d.Get("account_tier").(string)
@@ -677,6 +687,7 @@ func resourceStorageAccountCreate(d *schema.ResourceData, meta interface{}) erro
 			EnableHTTPSTrafficOnly: &enableHTTPSTrafficOnly,
 			NetworkRuleSet:         expandStorageAccountNetworkRules(d),
 			IsHnsEnabled:           &isHnsEnabled,
+			EnableNfsV3:            &nfsV3Enabled,
 		},
 	}
 
@@ -723,6 +734,20 @@ func resourceStorageAccountCreate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("`is_hns_enabled` can only be used with account kinds `StorageV2`, `BlobStorage` and `BlockBlobStorage`")
 	}
 
+	// NFSv3 is supported for standard general-purpose v2 storage accounts and for premium block blob storage accounts.
+	// (https://docs.microsoft.com/en-us/azure/storage/blobs/network-file-system-protocol-support-how-to#step-5-create-and-configure-a-storage-account)
+	if nfsV3Enabled &&
+		!((accountTier == string(storage.Premium) && accountKind == string(storage.BlockBlobStorage)) ||
+			(accountTier == string(storage.Standard) && accountKind == string(storage.StorageV2))) {
+		return fmt.Errorf("`nfsv3_enabled` can only be used with account tier `Standard` and account kind `StorageV2`, or account tier `Premium` and account kind `BlockBlobStorage`")
+	}
+	if nfsV3Enabled && enableHTTPSTrafficOnly {
+		return fmt.Errorf("`nfsv3_enabled` can only be used when `enable_https_traffic_only` is `false`")
+	}
+	if nfsV3Enabled && !isHnsEnabled {
+		return fmt.Errorf("`nfsv3_enabled` can only be used when `is_hns_enabled` is `true`")
+	}
+
 	// AccountTier must be Premium for FileStorage
 	if accountKind == string(storage.FileStorage) {
 		if string(parameters.Sku.Tier) == string(storage.StandardLRS) {
@@ -767,7 +792,7 @@ func resourceStorageAccountCreate(d *schema.ResourceData, meta interface{}) erro
 
 			blobProperties := expandBlobProperties(val.([]interface{}))
 
-			if _, err = blobClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, blobProperties); err != nil {
+			if _, err = blobClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, *blobProperties); err != nil {
 				return fmt.Errorf("Error updating Azure Storage Account `blob_properties` %q: %+v", storageAccountName, err)
 			}
 		} else {
@@ -1025,7 +1050,7 @@ func resourceStorageAccountUpdate(d *schema.ResourceData, meta interface{}) erro
 			blobClient := meta.(*clients.Client).Storage.BlobServicesClient
 			blobProperties := expandBlobProperties(d.Get("blob_properties").([]interface{}))
 
-			if _, err = blobClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, blobProperties); err != nil {
+			if _, err = blobClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, *blobProperties); err != nil {
 				return fmt.Errorf("Error updating Azure Storage Account `blob_properties` %q: %+v", storageAccountName, err)
 			}
 		} else {
@@ -1151,6 +1176,7 @@ func resourceStorageAccountRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("access_tier", props.AccessTier)
 		d.Set("enable_https_traffic_only", props.EnableHTTPSTrafficOnly)
 		d.Set("is_hns_enabled", props.IsHnsEnabled)
+		d.Set("nfsv3_enabled", props.EnableNfsV3)
 		d.Set("allow_blob_public_access", props.AllowBlobPublicAccess)
 		// For all Clouds except Public and USGovernmentCloud, "min_tls_version" is not returned from Azure so always persist the default values for "min_tls_version".
 		// https://github.com/terraform-providers/terraform-provider-azurerm/issues/7812
@@ -1479,12 +1505,17 @@ func expandStorageAccountBypass(networkRule map[string]interface{}) storage.Bypa
 	return storage.Bypass(strings.Join(bypassValues, ", "))
 }
 
-func expandBlobProperties(input []interface{}) storage.BlobServiceProperties {
+func expandBlobProperties(input []interface{}) *storage.BlobServiceProperties {
 	props := storage.BlobServiceProperties{
 		BlobServicePropertiesProperties: &storage.BlobServicePropertiesProperties{
 			Cors: &storage.CorsRules{
 				CorsRules: &[]storage.CorsRule{},
 			},
+			IsVersioningEnabled: utils.Bool(false),
+			LastAccessTimeTrackingPolicy: &storage.LastAccessTimeTrackingPolicy{
+				Enable: utils.Bool(false),
+			},
+
 			DeleteRetentionPolicy: &storage.DeleteRetentionPolicy{
 				Enabled: utils.Bool(false),
 			},
@@ -1492,7 +1523,7 @@ func expandBlobProperties(input []interface{}) storage.BlobServiceProperties {
 	}
 
 	if len(input) == 0 || input[0] == nil {
-		return props
+		return &props
 	}
 
 	v := input[0].(map[string]interface{})
@@ -1504,7 +1535,16 @@ func expandBlobProperties(input []interface{}) storage.BlobServiceProperties {
 	corsRaw := v["cors_rule"].([]interface{})
 	props.BlobServicePropertiesProperties.Cors = expandBlobPropertiesCors(corsRaw)
 
-	return props
+	props.IsVersioningEnabled = utils.Bool(v["versioning_enabled"].(bool))
+
+	if version, ok := v["default_service_version"].(string); ok && version != "" {
+		props.DefaultServiceVersion = utils.String(version)
+	}
+
+	props.LastAccessTimeTrackingPolicy = &storage.LastAccessTimeTrackingPolicy{
+		Enable: utils.Bool(v["last_access_time_enabled"].(bool)),
+	}
+	return &props
 }
 
 func expandBlobPropertiesDeleteRetentionPolicy(input []interface{}) *storage.DeleteRetentionPolicy {
@@ -1772,14 +1812,28 @@ func flattenBlobProperties(input storage.BlobServiceProperties) []interface{} {
 		flattenedContainerDeletePolicy = flattenBlobPropertiesDeleteRetentionPolicy(containerDeletePolicy)
 	}
 
-	if len(flattenedCorsRules) == 0 && len(flattenedDeletePolicy) == 0 && len(flattenedContainerDeletePolicy) == 0 {
-		return []interface{}{}
+	versioning := false
+	if input.BlobServicePropertiesProperties.IsVersioningEnabled != nil {
+		versioning = *input.BlobServicePropertiesProperties.IsVersioningEnabled
+	}
+
+	var defaultServiceVersion string
+	if input.BlobServicePropertiesProperties.DefaultServiceVersion != nil {
+		defaultServiceVersion = *input.BlobServicePropertiesProperties.DefaultServiceVersion
+	}
+
+	var LastAccessTimeTrackingPolicy bool
+	if v := input.BlobServicePropertiesProperties.LastAccessTimeTrackingPolicy; v != nil && v.Enable != nil {
+		LastAccessTimeTrackingPolicy = *v.Enable
 	}
 
 	return []interface{}{
 		map[string]interface{}{
 			"cors_rule":                         flattenedCorsRules,
 			"delete_retention_policy":           flattenedDeletePolicy,
+			"versioning_enabled":                versioning,
+			"default_service_version":           defaultServiceVersion,
+			"last_access_time_enabled":          LastAccessTimeTrackingPolicy,
 			"container_delete_retention_policy": flattenedContainerDeletePolicy,
 		},
 	}
@@ -1978,16 +2032,6 @@ func flattenStorageAccountBypass(input storage.Bypass) []interface{} {
 	}
 
 	return bypass
-}
-
-func ValidateStorageAccountName(v interface{}, _ string) (warnings []string, errors []error) {
-	input := v.(string)
-
-	if !regexp.MustCompile(`\A([a-z0-9]{3,24})\z`).MatchString(input) {
-		errors = append(errors, fmt.Errorf("name (%q) can only consist of lowercase letters and numbers, and must be between 3 and 24 characters long", input))
-	}
-
-	return warnings, errors
 }
 
 func expandAzureRmStorageAccountIdentity(d *schema.ResourceData) *storage.Identity {
