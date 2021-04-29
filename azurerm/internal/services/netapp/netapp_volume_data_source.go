@@ -95,7 +95,7 @@ func dataSourceNetAppVolume() *schema.Resource {
 							Computed: true,
 						},
 
-						"replication_schedule": {
+						"replication_frequency": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
