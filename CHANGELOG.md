@@ -34,6 +34,7 @@ ENHANCEMENTS:
 * Data Source: `virtual_machine_scale_set` - now exports the `network_interfaces` [GH-10585]
 * `azurerm_app_service` - support for the `site_config.ip_restrictions.headers` and  `site_config.scm_ip_restrictions.headers` properties [GH-11209]
 * `azurerm_app_service_slot` - support for the `site_config.ip_restrictions.headers` and  `site_config.scm_ip_restrictions.headers` properties [GH-11209]
+* `azurerm_backup_policy_file_share` - support for the `retention_weekly`, `retention_monthly`, and `retention_yearly` blocks [GH-10733]
 * `azurerm_container_registry` - deprecating the `georeplication_locations` property in favour of the `georeplications` property GH-11200]
 * `azurerm_database_migration` - switching to using an ID Formatter [GH-11378]
 * `azurerm_database_migration_project` - switching to using an ID Formatter [GH-11378]
