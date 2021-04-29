@@ -224,11 +224,11 @@ func resourceStorageAccount() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"nfs_v3_enabled": {
+			"nfsv3_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				ForceNew: true,
 				Default:  false,
+				ForceNew: true,
 			},
 
 			"allow_blob_public_access": {
@@ -351,7 +351,7 @@ func resourceStorageAccount() *schema.Resource {
 						"default_service_version": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							Default:      "2020-06-12",
+							Computed:     true,
 							ValidateFunc: validate.BlobPropertiesDefaultServiceVersion,
 						},
 
@@ -764,35 +764,12 @@ func resourceStorageAccountCreate(d *schema.ResourceData, meta interface{}) erro
 	enableHTTPSTrafficOnly := d.Get("enable_https_traffic_only").(bool)
 	minimumTLSVersion := d.Get("min_tls_version").(string)
 	isHnsEnabled := d.Get("is_hns_enabled").(bool)
+	nfsV3Enabled := d.Get("nfsv3_enabled").(bool)
 	allowBlobPublicAccess := d.Get("allow_blob_public_access").(bool)
 
 	accountTier := d.Get("account_tier").(string)
 	replicationType := d.Get("account_replication_type").(string)
 	storageType := fmt.Sprintf("%s_%s", accountTier, replicationType)
-
-	nfsV3 := d.Get("nfs_v3_enabled").(bool)
-
-	if nfsV3 {
-		if accountKind != string(storage.BlockBlobStorage) && accountKind != string(storage.StorageV2) {
-			return fmt.Errorf("`account_kind` is required to be `BlockBlobStorage` or `StorageV2` when enabling `nfs_v3_enabled` in storage account")
-		}
-
-		if replicationType != "LRS" {
-			return fmt.Errorf("`account_replication_type` is required to be `LRS` when enabling `nfs_v3_enabled` in storage account")
-		}
-
-		if enableHTTPSTrafficOnly {
-			return fmt.Errorf("`enable_https_traffic_only` is required to be `false` when enabling `nfs_v3_enabled` in storage account")
-		}
-
-		if !isHnsEnabled {
-			return fmt.Errorf("`is_hns_enabled` is required to be enabled when enabling `nfs_v3_enabled` in storage account")
-		}
-
-		if _, ok := d.GetOk("network_rules.0.virtual_network_subnet_ids"); !ok {
-			return fmt.Errorf("`virtual_network_subnet_ids` is required to be set when enabling `nfs_v3_enabled` in storage account")
-		}
-	}
 
 	parameters := storage.AccountCreateParameters{
 		Location: &location,
@@ -805,7 +782,7 @@ func resourceStorageAccountCreate(d *schema.ResourceData, meta interface{}) erro
 			EnableHTTPSTrafficOnly: &enableHTTPSTrafficOnly,
 			NetworkRuleSet:         expandStorageAccountNetworkRules(d),
 			IsHnsEnabled:           &isHnsEnabled,
-			EnableNfsV3:            utils.Bool(d.Get("nfs_v3_enabled").(bool)),
+			EnableNfsV3:            &nfsV3Enabled,
 		},
 	}
 
@@ -858,6 +835,20 @@ func resourceStorageAccountCreate(d *schema.ResourceData, meta interface{}) erro
 		parameters.AccountPropertiesCreateParameters.AccessTier = storage.AccessTier(accessTier.(string))
 	} else if isHnsEnabled && accountKind != string(storage.BlockBlobStorage) {
 		return fmt.Errorf("`is_hns_enabled` can only be used with account kinds `StorageV2`, `BlobStorage` and `BlockBlobStorage`")
+	}
+
+	// NFSv3 is supported for standard general-purpose v2 storage accounts and for premium block blob storage accounts.
+	// (https://docs.microsoft.com/en-us/azure/storage/blobs/network-file-system-protocol-support-how-to#step-5-create-and-configure-a-storage-account)
+	if nfsV3Enabled &&
+		!((accountTier == string(storage.Premium) && accountKind == string(storage.BlockBlobStorage)) ||
+			(accountTier == string(storage.Standard) && accountKind == string(storage.StorageV2))) {
+		return fmt.Errorf("`nfsv3_enabled` can only be used with account tier `Standard` and account kind `StorageV2`, or account tier `Premium` and account kind `BlockBlobStorage`")
+	}
+	if nfsV3Enabled && enableHTTPSTrafficOnly {
+		return fmt.Errorf("`nfsv3_enabled` can only be used when `enable_https_traffic_only` is `false`")
+	}
+	if nfsV3Enabled && !isHnsEnabled {
+		return fmt.Errorf("`nfsv3_enabled` can only be used when `is_hns_enabled` is `true`")
 	}
 
 	// AccountTier must be Premium for FileStorage
@@ -1343,8 +1334,8 @@ func resourceStorageAccountRead(d *schema.ResourceData, meta interface{}) error 
 		}
 		d.Set("enable_https_traffic_only", props.EnableHTTPSTrafficOnly)
 		d.Set("is_hns_enabled", props.IsHnsEnabled)
+		d.Set("nfsv3_enabled", props.EnableNfsV3)
 		d.Set("allow_blob_public_access", props.AllowBlobPublicAccess)
-		d.Set("nfs_v3_enabled", props.EnableNfsV3)
 		// For all Clouds except Public and USGovernmentCloud, "min_tls_version" is not returned from Azure so always persist the default values for "min_tls_version".
 		// https://github.com/terraform-providers/terraform-provider-azurerm/issues/7812
 		// https://github.com/terraform-providers/terraform-provider-azurerm/issues/8083

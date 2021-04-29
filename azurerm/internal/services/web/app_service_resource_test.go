@@ -486,6 +486,15 @@ func TestAccAppService_completeIpRestriction(t *testing.T) {
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.name").HasValue("test-restriction"),
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.priority").HasValue("123"),
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.action").HasValue("Allow"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_forwarded_for.#").HasValue("2"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_forwarded_for.0").HasValue("2002::1234:abcd:ffff:c0a8:101/64"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_forwarded_for.1").HasValue("9.9.9.9/32"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_azure_fdid.#").HasValue("1"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_azure_fdid.0").HasValue("55ce4ed1-4b06-4bf1-b40e-4638452104da"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_fd_health_probe.#").HasValue("1"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_fd_health_probe.0").HasValue("1"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_forwarded_host.#").HasValue("1"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_forwarded_host.0").HasValue("example.com"),
 			),
 		},
 		data.ImportStep(),
@@ -636,6 +645,75 @@ func TestAccAppService_zeroedIpRestriction(t *testing.T) {
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.#").HasValue("0"),
 			),
 		},
+	})
+}
+
+func TestAccAppService_zeroedIpRestrictionHeaders(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			// This configuration includes a single explicit ip_restriction with headers
+			Config: r.completeIpRestriction(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.#").HasValue("1"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.#").HasValue("1"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_forwarded_for.#").HasValue("2"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_forwarded_for.0").HasValue("2002::1234:abcd:ffff:c0a8:101/64"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_forwarded_for.1").HasValue("9.9.9.9/32"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_azure_fdid.#").HasValue("1"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_azure_fdid.0").HasValue("55ce4ed1-4b06-4bf1-b40e-4638452104da"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_fd_health_probe.#").HasValue("1"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_fd_health_probe.0").HasValue("1"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_forwarded_host.#").HasValue("1"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_forwarded_host.0").HasValue("example.com"),
+			),
+		},
+		data.ImportStep(),
+		{
+			// This configuration includes a single explicit ip_restriction with one header
+			Config: r.completeIpRestrictionOneHeader(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.#").HasValue("1"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.#").HasValue("1"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_forwarded_for.#").HasValue("1"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_forwarded_for.0").HasValue("9.9.9.9/32"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_forwarded_for.1").DoesNotExist(),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_azure_fdid").DoesNotExist(),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_fd_health_probe").DoesNotExist(),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_forwarded_host").DoesNotExist(),
+			),
+		},
+		data.ImportStep(),
+		{
+			// This configuration has no site_config blocks at all.
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.#").HasValue("1"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.#").HasValue("1"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_forwarded_for.#").HasValue("1"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_forwarded_for.0").HasValue("9.9.9.9/32"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_forwarded_for.1").DoesNotExist(),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_azure_fdid").DoesNotExist(),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_fd_health_probe").DoesNotExist(),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_forwarded_host").DoesNotExist(),
+			),
+		},
+		data.ImportStep(),
+		{
+			// This configuration explicitly sets ip_restriction.headers to [] using attribute syntax.
+			Config: r.zeroedIpRestrictionHeaders(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.#").HasValue("1"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -2838,6 +2916,55 @@ resource "azurerm_app_service" "test" {
       name       = "test-restriction"
       priority   = 123
       action     = "Allow"
+      headers {
+        x_azure_fdid      = ["55ce4ed1-4b06-4bf1-b40e-4638452104da"]
+        x_fd_health_probe = ["1"]
+        x_forwarded_for   = ["9.9.9.9/32", "2002::1234:abcd:ffff:c0a8:101/64"]
+        x_forwarded_host  = ["example.com"]
+      }
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (r AppServiceResource) completeIpRestrictionOneHeader(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+
+  site_config {
+    ip_restriction {
+      ip_address = "10.10.10.10/32"
+      name       = "test-restriction"
+      priority   = 123
+      action     = "Allow"
+      headers {
+        x_forwarded_for = ["9.9.9.9/32"]
+      }
     }
   }
 }
@@ -3226,6 +3353,47 @@ resource "azurerm_app_service" "test" {
 
   site_config {
     ip_restriction = []
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (r AppServiceResource) zeroedIpRestrictionHeaders(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+
+  site_config {
+    ip_restriction {
+      ip_address = "10.10.10.10/32"
+      name       = "test-restriction"
+      priority   = 123
+      action     = "Allow"
+      headers    = []
+    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)

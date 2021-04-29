@@ -28,7 +28,6 @@ func TestAccNetAppVolume_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("protocols.2676449260").HasValue("NFSv3"),
 			),
 		},
 		data.ImportStep(),
@@ -44,7 +43,6 @@ func TestAccNetAppVolume_nfsv41(t *testing.T) {
 			Config: r.nfsv41(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("protocols.3098200649").HasValue("NFSv4.1"),
 			),
 		},
 		data.ImportStep(),

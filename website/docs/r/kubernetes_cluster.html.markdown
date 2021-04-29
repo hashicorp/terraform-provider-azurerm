@@ -217,6 +217,8 @@ A `addon_profile` block supports the following:
 
 * `oms_agent` - (Optional) A `oms_agent` block as defined below. For more details, please visit [How to onboard Azure Monitor for containers](https://docs.microsoft.com/en-us/azure/monitoring/monitoring-container-insights-onboard).
 
+* `ingress_application_gateway` - (Optional) An `ingress_application_gateway` block as defined below.
+
 ---
 
 An `auto_scaler_profile` block supports the following:
@@ -266,6 +268,10 @@ A `azure_active_directory` block supports the following:
 When `managed` is set to `true` the following properties can be specified:
 
 * `admin_group_object_ids` - (Optional) A list of Object IDs of Azure Active Directory Groups which should have Admin Role on the Cluster.
+
+* `azure_rbac_enabled` - (Optional) Is Role Based Access Control based on Azure AD enabled? Changing this forces a new resource to be created.
+
+~> **Note:** Azure AD based RBAC is in Public Preview - more information and details on how to opt into the Preview [can be found in this article](https://docs.microsoft.com/en-us/azure/aks/manage-azure-rbac).
 
 When `managed` is set to `false` the following properties can be specified:
 
@@ -440,6 +446,18 @@ A `oms_agent` block supports the following:
 
 ---
 
+An `ingress_application_gateway` block supports the following:
+
+* `enabled` - (Required) Whether to deploy the Application Gateway ingress controller to this Kubernetes Cluster?
+
+* `gateway_id` - (Optional) The ID of the Application Gateway to integrate with the ingress controller of this Kubernetes Cluster. See [this](https://docs.microsoft.com/en-us/azure/application-gateway/tutorial-ingress-controller-add-on-existing) page for further details.
+
+* `subnet_cidr` - (Optional) The subnet CIDR to be used to create an Application Gateway, which in turn will be integrated with the ingress controller of this Kubernetes Cluster. See [this](https://docs.microsoft.com/en-us/azure/application-gateway/tutorial-ingress-controller-add-on-new) page for further details.
+
+* `subnet_id` - (Optional) The ID of the subnet on which to create an Application Gateway, which in turn will be integrated with the ingress controller of this Kubernetes Cluster. See [this](https://docs.microsoft.com/en-us/azure/application-gateway/tutorial-ingress-controller-add-on-new) page for further details.
+
+---
+
 A `role_based_access_control` block supports the following:
 
 * `azure_active_directory` - (Optional) An `azure_active_directory` block.
@@ -499,6 +517,8 @@ The following attributes are exported:
 * `node_resource_group` - The auto-generated Resource Group which contains the resources for this Managed Kubernetes Cluster.
 
 * `kubelet_identity` - A `kubelet_identity` block as defined below.  
+
+* `addon_profile` - An `addon_profile` block as defined below.
 
 ---
 
@@ -574,6 +594,18 @@ provider "kubernetes" {
   cluster_ca_certificate = base64decode(azurerm_kubernetes_cluster.main.kube_config.0.cluster_ca_certificate)
 }
 ```
+
+---
+
+The `addon_profile` block exports the following:
+
+* `ingress_application_gateway` - An `ingress_application_gateway` block as defined below.
+
+---
+
+The `ingress_application_gateway` block exports the following:
+
+* `effective_gateway_id` - The ID of the Application Gateway associated with the ingress controller deployed to this Kubernetes Cluster.
 
 ## Timeouts
 

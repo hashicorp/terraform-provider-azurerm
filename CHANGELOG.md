@@ -8,8 +8,12 @@ UPGRADE NOTES
  
 FEATURES:
 
+* **Data Source:** `azurerm_container_registry_scope_map`  [GH-11350]
+* **Data Source:** `azurerm_container_registry_token`  [GH-11350]
 * **Data Source:** `azurerm_postgresql_flexible_server` [GH-11081]
 * **Data Source:** `azurerm_key_vault_managed_hardware_security_module` [GH-10873]
+* **New Resource:** `azurerm_container_registry_scope_map`  [GH-11350]
+* **New Resource:** `azurerm_container_registry_token`  [GH-11350]
 * **New Resource:** `azurerm_data_factory_dataset_snowflake `  [GH-11116]
 * **New Resource:** `azurerm_healthbot` [GH-11002]
 * **New Resource:** `azurerm_key_vault_managed_hardware_security_module `  [GH-10873]
@@ -25,8 +29,11 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: updating to `v53.4.0` of `github.com/Azure/azure-sdk-for-go` [GH-11439]
-* dependencies: updating to `v1.17.1` of `github.com/hashicorp/terraform-plugin-sdk` [GH-11431]
+* dependencies: updating to `v1.17.2` of `github.com/hashicorp/terraform-plugin-sdk` [GH-11431]
 * dependencies: updating `cosmos-db` to API version `2021-02-01` [GH-10926]
+* Data Source: `virtual_machine_scale_set` - now exports the `network_interfaces` [GH-10585]
+* `azurerm_app_service` - support for the `site_config.ip_restrictions.headers` and  `site_config.scm_ip_restrictions.headers` properties [GH-11209]
+* `azurerm_app_service_slot` - support for the `site_config.ip_restrictions.headers` and  `site_config.scm_ip_restrictions.headers` properties [GH-11209]
 * `azurerm_container_registry` - deprecating the `georeplication_locations` property in favour of the `georeplications` property GH-11200]
 * `azurerm_database_migration` - switching to using an ID Formatter [GH-11378]
 * `azurerm_database_migration_project` - switching to using an ID Formatter [GH-11378]
@@ -35,18 +42,27 @@ ENHANCEMENTS:
 * `azurerm_data_factory_linked_service_azure_file_storage` - support for the `key_vault_password` property [GH-11436]
 * `azurerm_dedicated_host_group` - support for the `automatic_placement_enabled` property [GH-11428]
 * `azurerm_frontdoor` - sync `MaxItems` on various attributes to match azure docs [GH-11421]
+* `azurerm_frontdoor_custom_https_configuration` - removing secret version validation when using azure key vault as the certificate source [GH-11310]
+* `azurerm_function_app` - support for the `site_config.ip_restrictions.headers` and  `site_config.scm_ip_restrictions.headers` properties [GH-11209]
+* `azurerm_function_app` - support the `java_version` property [GH-10495]
 * `azurerm_hdinsight_interactive_query_cluster` - add support for private link endpoint [GH-11300]
 * `azurerm_hdinsight_hadoop_cluster` - add support for private link endpoint [GH-11300]
 * `azurerm_hdinsight_spark_cluster` - add support for private link endpoint [GH-11300]
+* `azurerm_kubernetes_cluster` - support for the `ingress_application_gateway` addon [GH-11376]
+* `azurerm_kubernetes_cluster` - support for the `azure_rbac_enabled` property [GH-10441]
 * `azurerm_hpc_cache` - support for the `directory_active_directory`, `directory_flat_file`, and `directory_ldap` blocks [GH-11332]
 * `azurerm_kubernetes_cluster` - support for the `dns_prefix_private_cluster` property [GH-11321]
 * `azurerm_kubernetes_cluster` - support for the `max_node_provisioning_time`, `max_unready_percentage`, and `max_unready_nodes` properties [GH-11406]
 * `azurerm_storage_encryption_scope` - support for the `infrastructure_encryption_required` property [GH-11462]
 * `azurerm_kubernetes_cluster` support for the `empty_bulk_delete_max` in the `auto_scaler_profile` block #[GH-11060]
 * `azurerm_lighthouse_definition` - support for the `delegated_role_definition_ids` property [GH-11269]
+* `azurerm_managed_application` - support for the `parameter_values` property [GH-8632]
 * `azurerm_postgresql_server` - wait for replica restarts when needed [GH-11458]
 * `azurerm_redis_enterprise_cluster` - support for the `minimum_tls_version` and `hostname` properties [GH-11203]
 * `azurerm_storage_account` -  support for the `versioning_enabled`, `default_service_version`, and `last_access_time_enabled` properties within the `blob_properties` block [GH-11301]
+* `azurerm_storage_account` - support for the `nfsv3_enabled` property [GH-11387]
+* `azurerm_storage_management_policy` - support for the `version` block [GH-11163]
+* `azurerm_synapse_workspace` - support for the `customer_managed_key_versionless_id` property [GH-11328]
 
 BUG FIXES:
 
@@ -57,6 +73,7 @@ BUG FIXES:
 * `azurerm_linux_virtual_machine_scale_set` - the default value for the `priority` property will no longer force a replacement of the resource [GH-11362]
 * `azurerm_monitor_activity_log_alert` - fix a persistent diff for the `service_health` block [GH-11383]
 * `azurerm_mssql_database ` - error when secondary database uses `max_size_gb` [GH-11401]
+* `azurerm_mssql_database` - correctly import the `create_mode` property [GH-11026]
 * `azurerm_postgresql_server` - ensure `public_network_access_enabled` is correctly set for replicas [GH-11465]
 * `azurerm_postgresql_server` - can not correctly disable replication if required when `create_mode` is changed [GH-11467]
 * `azurerm_virtual_network_gatewa` - updating the `custom_route` block no longer creates a new resource [GH- 11433]
