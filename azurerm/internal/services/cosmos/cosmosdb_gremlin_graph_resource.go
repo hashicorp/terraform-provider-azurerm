@@ -140,35 +140,7 @@ func resourceCosmosDbGremlinGraph() *schema.Resource {
 				},
 			},
 
-			"conflict_resolution_policy": {
-				Type:     schema.TypeList,
-				Required: true,
-				ForceNew: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"mode": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(documentdb.LastWriterWins),
-								string(documentdb.Custom),
-							}, false),
-						},
-
-						"conflict_resolution_path": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"conflict_resolution_procedure": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-					},
-				},
-			},
+			"conflict_resolution_policy": common.ConflictResolutionPolicy(),
 
 			"unique_key": {
 				Type:     schema.TypeSet,
@@ -221,7 +193,7 @@ func resourceCosmosDbGremlinGraphCreate(d *schema.ResourceData, meta interface{}
 			Resource: &documentdb.GremlinGraphResource{
 				ID:                       &name,
 				IndexingPolicy:           expandAzureRmCosmosDbGrelinGraphIndexingPolicy(d),
-				ConflictResolutionPolicy: expandAzureRmCosmosDbGremlinGraphConflicResolutionPolicy(d),
+				ConflictResolutionPolicy: common.ExpandCosmosDbConflicResolutionPolicy(d.Get("conflict_resolution_policy").([]interface{})),
 			},
 			Options: &documentdb.CreateUpdateOptions{},
 		},
@@ -298,9 +270,8 @@ func resourceCosmosDbGremlinGraphUpdate(d *schema.ResourceData, meta interface{}
 	db := documentdb.GremlinGraphCreateUpdateParameters{
 		GremlinGraphCreateUpdateProperties: &documentdb.GremlinGraphCreateUpdateProperties{
 			Resource: &documentdb.GremlinGraphResource{
-				ID:                       &id.GraphName,
-				IndexingPolicy:           expandAzureRmCosmosDbGrelinGraphIndexingPolicy(d),
-				ConflictResolutionPolicy: expandAzureRmCosmosDbGremlinGraphConflicResolutionPolicy(d),
+				ID:             &id.GraphName,
+				IndexingPolicy: expandAzureRmCosmosDbGrelinGraphIndexingPolicy(d),
 			},
 			Options: &documentdb.CreateUpdateOptions{},
 		},
@@ -394,7 +365,7 @@ func resourceCosmosDbGremlinGraphRead(d *schema.ResourceData, meta interface{}) 
 			}
 
 			if crp := props.ConflictResolutionPolicy; crp != nil {
-				if err := d.Set("conflict_resolution_policy", flattenAzureRmCosmosDbGremlinGraphConflictResolutionPolicy(props.ConflictResolutionPolicy)); err != nil {
+				if err := d.Set("conflict_resolution_policy", common.FlattenCosmosDbConflictResolutionPolicy(crp)); err != nil {
 					return fmt.Errorf("Error setting `conflict_resolution_policy`: %+v", err)
 				}
 			}
@@ -469,29 +440,6 @@ func expandAzureRmCosmosDbGrelinGraphIndexingPolicy(d *schema.ResourceData) *doc
 	}
 
 	return policy
-}
-
-func expandAzureRmCosmosDbGremlinGraphConflicResolutionPolicy(d *schema.ResourceData) *documentdb.ConflictResolutionPolicy {
-	i := d.Get("conflict_resolution_policy").([]interface{})
-	if len(i) == 0 || i[0] == nil {
-		return nil
-	}
-
-	input := i[0].(map[string]interface{})
-	conflictResolutionMode := input["mode"].(string)
-	conflict := &documentdb.ConflictResolutionPolicy{
-		Mode: documentdb.ConflictResolutionMode(conflictResolutionMode),
-	}
-
-	if conflictResolutionPath, ok := input["conflict_resolution_path"].(string); ok {
-		conflict.ConflictResolutionPath = utils.String(conflictResolutionPath)
-	}
-
-	if conflictResolutionProcedure, ok := input["conflict_resolution_procedure"].(string); ok {
-		conflict.ConflictResolutionProcedure = utils.String(conflictResolutionProcedure)
-	}
-
-	return conflict
 }
 
 func expandAzureRmCosmosDbGrelimGraphIncludedPath(input map[string]interface{}) *[]documentdb.IncludedPath {
@@ -593,19 +541,6 @@ func flattenAzureRmCosmosDBGremlinGraphExcludedPaths(input *[]documentdb.Exclude
 	}
 
 	return excludedPaths
-}
-
-func flattenAzureRmCosmosDbGremlinGraphConflictResolutionPolicy(input *documentdb.ConflictResolutionPolicy) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-	conflictResolutionPolicy := make(map[string]interface{})
-
-	conflictResolutionPolicy["mode"] = string(input.Mode)
-	conflictResolutionPolicy["conflict_resolution_path"] = input.ConflictResolutionPath
-	conflictResolutionPolicy["conflict_resolution_procedure"] = input.ConflictResolutionProcedure
-
-	return []interface{}{conflictResolutionPolicy}
 }
 
 func flattenCosmosGremlinGraphUniqueKeys(keys *[]documentdb.UniqueKey) *[]map[string]interface{} {

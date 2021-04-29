@@ -189,3 +189,37 @@ func CosmosDbIndexingPolicySchema() *schema.Schema {
 		},
 	}
 }
+
+func ConflictResolutionPolicy() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		Computed: true,
+		ForceNew: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"mode": {
+					Type:     schema.TypeString,
+					Required: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(documentdb.LastWriterWins),
+						string(documentdb.Custom),
+					}, false),
+				},
+
+				"conflict_resolution_path": {
+					Type:         schema.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"conflict_resolution_procedure": {
+					Type:         schema.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+		},
+	}
+}
