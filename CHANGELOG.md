@@ -28,11 +28,10 @@ FEATURES:
 * **New Resource:** `azurerm_virtual_machine_configuration_policy_assignment` [GH-11334]
 * **New Resource:** `azurerm_vmware_cluster` [GH-10848]
 
-ENHANCEMENTS:
-
 * dependencies: updating to `v53.4.0` of `github.com/Azure/azure-sdk-for-go` [GH-11439]
 * dependencies: updating to `v1.17.2` of `github.com/hashicorp/terraform-plugin-sdk` [GH-11431]
 * dependencies: updating `cosmos-db` to API version `2021-02-01` [GH-10926]
+* dependencies: updating `keyvault` to API version `v7.1` [GH-10926]
 * Data Source: `azurerm_healthcare_service` - export the `cosmosdb_key_vault_key_versionless_id` attribute [GH-11481]
 * Data Source: `azurerm_virtual_machine_scale_set` - now exports the `network_interfaces` [GH-10585]
 * `azurerm_app_service` - support for the `site_config.ip_restrictions.headers` and  `site_config.scm_ip_restrictions.headers` properties [GH-11209]
