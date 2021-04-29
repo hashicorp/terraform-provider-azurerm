@@ -2,7 +2,8 @@
 
 UPGRADE NOTES
 
-* `azurerm_cosmosdb_account` - the `2021-02-01` of the cosmos API defaults new MongoDB accounts to `v3.6` rather then `v3.2` [GH-10926]
+* `azurerm_api_management_authorization_server` - due to a bug in the `2020-12-01` version of the API Management API, changes to `resource_owner_username` and `resource_owner_password` in Azure are not detectable by Terraform [GH-11146]
+* `azurerm_cosmosdb_account` - the `2021-02-01` version of the cosmos API defaults new MongoDB accounts to `v3.6` rather then `v3.2` [GH-10926]
 * `azurerm_cosmosdb_mongo_collection` - the `_id` index is now required by the new API/MongoDB version [GH-10926]
 * `azurerm_cosmosdb_gremlin_graph` and `azurerm_cosmosdb_sql_container` - the `patition_key_path` property is now required [GH-10926]
  
