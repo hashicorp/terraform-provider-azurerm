@@ -64,6 +64,7 @@ ENHANCEMENTS:
 * `azurerm_kubernetes_cluster` support for the `empty_bulk_delete_max` in the `auto_scaler_profile` block #[GH-11060]
 * `azurerm_lighthouse_definition` - support for the `delegated_role_definition_ids` property [GH-11269]
 * `azurerm_managed_application` - support for the `parameter_values` property [GH-8632]
+* `azurerm_managed_disk` - support for the `network_access_policy` and `disk_access_id` properties [GH-9862]
 * `azurerm_postgresql_server` - wait for replica restarts when needed [GH-11458]
 * `azurerm_redis_enterprise_cluster` - support for the `minimum_tls_version` and `hostname` properties [GH-11203]
 * `azurerm_storage_account` -  support for the `versioning_enabled`, `default_service_version`, and `last_access_time_enabled` properties within the `blob_properties` block [GH-11301]
