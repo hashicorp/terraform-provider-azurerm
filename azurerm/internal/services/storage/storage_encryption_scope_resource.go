@@ -204,7 +204,7 @@ func resourceStorageEncryptionScopeRead(d *schema.ResourceData, meta interface{}
 		}
 		d.Set("key_vault_key_id", keyId)
 		if props.RequireInfrastructureEncryption != nil {
-			d.Set("infrastructure_encryption_required", *props.RequireInfrastructureEncryption)
+			d.Set("infrastructure_encryption_required", props.RequireInfrastructureEncryption)
 		}
 	}
 

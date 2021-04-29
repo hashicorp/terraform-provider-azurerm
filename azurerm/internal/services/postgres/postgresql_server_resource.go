@@ -80,7 +80,7 @@ func resourcePostgreSQLServer() *schema.Resource {
 
 				d.Set("create_mode", "Default")
 				if resp.ReplicationRole != nil && *resp.ReplicationRole != "Master" && *resp.ReplicationRole != "None" {
-					d.Set("create_mode", *resp.ReplicationRole)
+					d.Set("create_mode", resp.ReplicationRole)
 
 					masterServerId, err := parse.ServerID(*resp.MasterServerID)
 					if err != nil {
