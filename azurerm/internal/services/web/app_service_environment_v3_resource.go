@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/response"
+
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -249,7 +251,10 @@ func (r AppServiceEnvironmentV3Resource) Delete() sdk.ResourceFunc {
 			}
 
 			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for removal of %s: %+v", id, err)
+				// This future can return a 404 for the polling check if the ASE is successfully deleted but this raises an error in the SDK
+				if !response.WasNotFound(future.Response()) {
+					return fmt.Errorf("waiting for removal of %s: %+v", id, err)
+				}
 			}
 
 			return nil
