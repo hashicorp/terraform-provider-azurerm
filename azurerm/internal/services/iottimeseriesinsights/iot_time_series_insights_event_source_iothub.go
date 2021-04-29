@@ -105,7 +105,6 @@ func resourceIoTTimeSeriesInsightsEventSourceIoTHubCreateUpdate(d *schema.Resour
 	defer cancel()
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	t := d.Get("tags").(map[string]interface{})
 	environmentID, err := parse.EnvironmentID(d.Get("environment_id").(string))
 	if err != nil {
 		return fmt.Errorf("unable to parse `environment_id`: %+v", err)
@@ -134,7 +133,7 @@ func resourceIoTTimeSeriesInsightsEventSourceIoTHubCreateUpdate(d *schema.Resour
 
 	eventSource := timeseriesinsights.IoTHubEventSourceCreateOrUpdateParameters{
 		Location: &location,
-		Tags:     tags.Expand(t),
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		IoTHubEventSourceCreationProperties: &timeseriesinsights.IoTHubEventSourceCreationProperties{
 			IotHubName:            utils.String(d.Get("iothub_name").(string)),
 			SharedAccessKey:       utils.String(d.Get("shared_access_key").(string)),
@@ -155,13 +154,9 @@ func resourceIoTTimeSeriesInsightsEventSourceIoTHubCreateUpdate(d *schema.Resour
 		return fmt.Errorf("retrieving IoT Time Series Insights IotHub EventSource %q: %+v", id, err)
 	}
 
-	read, ok := resp.Value.AsIoTHubEventSourceResource()
+	_, ok := resp.Value.AsIoTHubEventSourceResource()
 	if !ok {
-		return fmt.Errorf("resource was not an IoT Time Series Insights IotHub Event Source %q", id)
-	}
-
-	if read.ID == nil || *read.ID == "" {
-		return fmt.Errorf("cannot read IoT Time Series Insights IotHub Event Source %q", id)
+		return fmt.Errorf("created resource was not an IoT Time Series Insights IotHub Event Source %q", id)
 	}
 
 	d.SetId(id.ID())
