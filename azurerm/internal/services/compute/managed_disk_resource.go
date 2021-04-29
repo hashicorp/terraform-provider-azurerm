@@ -145,12 +145,31 @@ func resourceManagedDisk() *schema.Resource {
 
 			"encryption_settings": encryptionSettingsSchema(),
 
+			"network_access_policy": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.AllowAll),
+					string(compute.AllowPrivate),
+					string(compute.DenyAll),
+				}, false),
+			},
+			"disk_access_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				// TODO: make this case-sensitive once this bug in the Azure API has been fixed:
+				//       https://github.com/Azure/azure-rest-api-specs/issues/14192
+				DiffSuppressFunc: suppress.CaseDifference,
+				ValidateFunc:     azure.ValidateResourceID,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Compute.DisksClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -160,8 +179,9 @@ func resourceManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
+	id := parse.NewManagedDiskID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.DiskName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("Error checking for presence of existing Managed Disk %q (Resource Group %q): %s", name, resourceGroup, err)
@@ -258,6 +278,23 @@ func resourceManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
+	if networkAccessPolicy := d.Get("network_access_policy").(string); networkAccessPolicy != "" {
+		props.NetworkAccessPolicy = compute.NetworkAccessPolicy(networkAccessPolicy)
+	} else {
+		props.NetworkAccessPolicy = compute.AllowAll
+	}
+
+	if diskAccessID := d.Get("disk_access_id").(string); d.HasChange("disk_access_id") {
+		switch {
+		case props.NetworkAccessPolicy == compute.AllowPrivate:
+			props.DiskAccessID = utils.String(diskAccessID)
+		case diskAccessID != "" && props.NetworkAccessPolicy != compute.AllowPrivate:
+			return fmt.Errorf("[ERROR] disk_access_id is only available when network_access_policy is set to AllowPrivate")
+		default:
+			props.DiskAccessID = nil
+		}
+	}
+
 	createDisk := compute.Disk{
 		Name:           &name,
 		Location:       &location,
@@ -286,7 +323,7 @@ func resourceManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error reading Managed Disk %s (Resource Group %q): ID was nil", name, resourceGroup)
 	}
 
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceManagedDiskRead(d, meta)
 }
@@ -372,6 +409,23 @@ func resourceManagedDiskUpdate(d *schema.ResourceData, meta interface{}) error {
 			}
 		} else {
 			return fmt.Errorf("Once a customer-managed key is used, you can’t change the selection back to a platform-managed key")
+		}
+	}
+
+	if networkAccessPolicy := d.Get("network_access_policy").(string); networkAccessPolicy != "" {
+		diskUpdate.NetworkAccessPolicy = compute.NetworkAccessPolicy(networkAccessPolicy)
+	} else {
+		diskUpdate.NetworkAccessPolicy = compute.AllowAll
+	}
+
+	if diskAccessID := d.Get("disk_access_id").(string); d.HasChange("disk_access_id") {
+		switch {
+		case diskUpdate.NetworkAccessPolicy == compute.AllowPrivate:
+			diskUpdate.DiskAccessID = utils.String(diskAccessID)
+		case diskAccessID != "" && diskUpdate.NetworkAccessPolicy != compute.AllowPrivate:
+			return fmt.Errorf("[ERROR] disk_access_id is only available when network_access_policy is set to AllowPrivate")
+		default:
+			diskUpdate.DiskAccessID = nil
 		}
 	}
 
@@ -546,6 +600,11 @@ func resourceManagedDiskRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("disk_iops_read_write", props.DiskIOPSReadWrite)
 		d.Set("disk_mbps_read_write", props.DiskMBpsReadWrite)
 		d.Set("os_type", props.OsType)
+
+		if networkAccessPolicy := props.NetworkAccessPolicy; networkAccessPolicy != compute.AllowAll {
+			d.Set("network_access_policy", props.NetworkAccessPolicy)
+		}
+		d.Set("disk_access_id", props.DiskAccessID)
 
 		diskEncryptionSetId := ""
 		if props.Encryption != nil && props.Encryption.DiskEncryptionSetID != nil {

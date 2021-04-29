@@ -93,7 +93,7 @@ The following arguments are supported:
 
 * `disk_encryption_set_id` - (Optional) The ID of a Disk Encryption Set which should be used to encrypt this Managed Disk.
 
--> **NOTE:** The Disk Encryption Set must have the `Reader` Role Assignment scoped on the Key Vault - in addition to an Access Policy to the Key Vault
+~> **NOTE:** The Disk Encryption Set must have the `Reader` Role Assignment scoped on the Key Vault - in addition to an Access Policy to the Key Vault
 
 ~> **NOTE:** Disk Encryption Sets are in Public Preview in a limited set of regions
 
@@ -121,7 +121,13 @@ The following arguments are supported:
 
 * `zones` - (Optional) A collection containing the availability zone to allocate the Managed Disk in.
 
--> **Note**: Availability Zones are [only supported in select regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview).
+~> **Note**: Availability Zones are [only supported in select regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview).
+
+* `network_access_policy` - Policy for accessing the disk via network. Allowed values are `AllowAll`, `AllowPrivate`, and `DenyAll`.
+
+* `disk_access_id` - The ID of the disk access resource for using private endpoints on disks.
+
+~> **Note**: `disk_access_id` is only supported when `network_access_policy` is set to `AllowPrivate`.
 
 For more information on managed disks, such as sizing options and pricing, please check out the [Azure Documentation](https://docs.microsoft.com/en-us/azure/storage/storage-managed-disks-overview).
 
