@@ -28,6 +28,8 @@ FEATURES:
 * **New Resource:** `azurerm_virtual_machine_configuration_policy_assignment` [GH-11334]
 * **New Resource:** `azurerm_vmware_cluster` [GH-10848]
 
+ENHANCEMENTS:
+
 * dependencies: updating to `v53.4.0` of `github.com/Azure/azure-sdk-for-go` [GH-11439]
 * dependencies: updating to `v1.17.2` of `github.com/hashicorp/terraform-plugin-sdk` [GH-11431]
 * dependencies: updating `cosmos-db` to API version `2021-02-01` [GH-10926]
