@@ -11,6 +11,7 @@ import (
 	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-08-01/network"
+
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
