@@ -50,12 +50,12 @@ resource "azurerm_media_asset_filter" "example" {
   first_quality_bitrate = 128000
 
   presentation_time_range {
-    start_timescale                  = 0
-    end_timescale                    = 170000000
-    presentation_window_in_timescale = 9223372036854775000
-    live_backoff_in_timescale        = 0
-    timescale_increment_in_seconds   = 10000000
-    force_end_timescale              = false
+    start_in_units                = 0
+    end_in_units                  = 15
+    presentation_window_in_units  = 90
+    live_backoff_in_units         = 0
+    unit_timescale_in_miliseconds = 1000
+    force_end                     = false
   }
 
   track_selection {
@@ -115,21 +115,19 @@ The following arguments are supported:
 
 A `presentation_time_range` block supports the following:
 
-* `end_timescale` - (Optional) The absolute end time boundary. Applies to Video on Demand (VoD).
-For the Live Streaming presentation, it is silently ignored and applied when the presentation ends and the stream becomes VoD. This is a long value that represents an absolute end point of the presentation, rounded to the closest next GOP start. The unit is the timescale, so an `end_timescale` of 1800000000 would be for 3 minutes. Use `start_timescale` and `end_timescale` to trim the fragments that will be in the playlist (manifest). For example, `start_timescale` set to 40000000 and `end_timescale` set to 100000000 using the default `timescale_increment_in_seconds` will generate a playlist that contains fragments from between 4 seconds and 10 seconds of the VoD presentation. If a fragment straddles the boundary, the entire fragment will be included in the manifest. 
+* `end_in_units` - (Optional) The absolute end time boundary. Applies to Video on Demand (VoD).
+For the Live Streaming presentation, it is silently ignored and applied when the presentation ends and the stream becomes VoD. This is a long value that represents an absolute end point of the presentation, rounded to the closest next GOP start. The unit is defined by `unit_timescale_in_miliseconds`, so an `end_in_units` of 180 would be for 3 minutes. Use `start_in_units` and `end_in_units` to trim the fragments that will be in the playlist (manifest). For example, `start_in_units` set to 20 and `end_in_units` set to 60 using `unit_timescale_in_miliseconds` in 1000 will generate a playlist that contains fragments from between 20 seconds and 60 seconds of the VoD presentation. If a fragment straddles the boundary, the entire fragment will be included in the manifest. 
 
-* `force_end_timescale` - (Optional) Indicates whether the `end_timescale` property must be present. If true, `end_timescale` must be specified or a bad request code is returned. Applies to Live Streaming only.Allowed values: false, true.
+* `force_end` - (Optional) Indicates whether the `end_in_units` property must be present. If true, `end_in_units` must be specified or a bad request code is returned. Applies to Live Streaming only. Allowed values: false, true.
 
-* `live_backoff_in_timescale` - (Optional) The relative to end right edge. Applies to Live Streaming only.
-This value defines the latest live position that a client can seek to. Using this property, you can delay live playback position and create a server-side buffer for players. The unit for this property is timescale. The maximum live back off duration is 300 seconds (3000000000). For example, a value of 2000000000 means that the latest available content is 20 seconds delayed from the real live edge.
+* `live_backoff_in_units` - (Optional) The relative to end right edge. Applies to Live Streaming only.
+This value defines the latest live position that a client can seek to. Using this property, you can delay live playback position and create a server-side buffer for players. The unit is defined by `unit_timescale_in_miliseconds`. The maximum live back off duration is 300 seconds. For example, a value of 20 means that the latest available content is 20 seconds delayed from the real live edge.
 
-* `presentation_window_in_timescale` - (Optional) The relative to end sliding window. Applies to Live Streaming only. Use `presentation_window_in_timescale` to apply a sliding window of fragments to include in a playlist. The unit for this property is timescale. For example, set  `presentation_window_in_timescale` to 1200000000 to apply a two-minute sliding window. Media within 2 minutes of the live edge will be included in the playlist. If a fragment straddles the boundary, the entire fragment will be included in the playlist. The minimum presentation window duration is 60 seconds.
+* `presentation_window_in_units` - (Optional) The relative to end sliding window. Applies to Live Streaming only. Use `presentation_window_in_units` to apply a sliding window of fragments to include in a playlist. The unit is defined by `unit_timescale_in_miliseconds`. For example, set  `presentation_window_in_units` to 120 to apply a two-minute sliding window. Media within 2 minutes of the live edge will be included in the playlist. If a fragment straddles the boundary, the entire fragment will be included in the playlist. The minimum presentation window duration is 60 seconds.
 
-* `start_timescale` - (Optional) The absolute start time boundary. Applies to Video on Demand (VoD) or Live Streaming. This is a long value that represents an absolute start point of the stream. The value gets rounded to the closest next GOP start. The unit is the timescale, so a `start_timescale` of 150000000 would be for 15 seconds. Use `start_timescale` and `end_timescale` to trim the fragments that will be in the playlist (manifest). For example, `start_timescale` set to 40000000 and `end_timescale` set to 100000000 using the default `timescale_increment_in_seconds` will generate a playlist that contains fragments from between 4 seconds and 10 seconds of the VoD presentation. If a fragment straddles the boundary, the entire fragment will be included in the manifest. 
+* `start_in_units` - (Optional) The absolute start time boundary. Applies to Video on Demand (VoD) or Live Streaming. This is a long value that represents an absolute start point of the stream. The value gets rounded to the closest next GOP start. The unit is defined by `unit_timescale_in_miliseconds`, so a `start_in_units` of 15 would be for 15 seconds. Use `start_in_units` and `end_in_units` to trim the fragments that will be in the playlist (manifest). For example, `start_in_units` set to 20 and `end_in_units` set to 60 using `unit_timescale_in_miliseconds` in 1000 will generate a playlist that contains fragments from between 20 seconds and 60 seconds of the VoD presentation. If a fragment straddles the boundary, the entire fragment will be included in the manifest. 
 
-* `timescale_increment_in_seconds` - (Optional) Specified as the number of increments in one second.
-Default is 10000000 - ten million increments in one second, where each increment would be 100 nanoseconds long. For example, if you want to set a `start_timescale` at 30 seconds, you would use a value of 300000000 when using the default timescale. Applies timescale to `end_timescale`, `start_timescale`
-and `presentation_window_in_timescale` and `live_backoff_in_timescale`.
+* `unit_timescale_in_miliseconds` - (Optional) Specified as the number of miliseconds in one unit timescale. For example, if you want to set a `start_in_units` at 30 seconds, you would use a value of 30 when using the `unit_timescale_in_miliseconds` in 1000. Or if you want to set `start_in_units` in 30 miliseconds, you would use a value of 30 when using the `unit_timescale_in_miliseconds` in 1.  Applies timescale to `start_in_units`, `start_timescale` and `presentation_window_in_timescale` and `live_backoff_in_timescale`.
 
 ---
 

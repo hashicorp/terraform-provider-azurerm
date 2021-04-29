@@ -18,6 +18,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+// define constants based on docs https://docs.microsoft.com/en-us/azure/media-services/latest/filters-concept
+const incrementsInASecond = 10000000
+const nanoSecondsInAIncrement = 100
+const milliSecondsInASecond = 1000
+
 func resourceMediaAssetFilter() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceMediaAssetFilterCreateUpdate,
@@ -67,39 +72,39 @@ func resourceMediaAssetFilter() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"end_timescale": {
+						"end_in_units": {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(0),
 						},
 
-						"force_end_timescale": {
+						"force_end": {
 							Type:     schema.TypeBool,
 							Optional: true,
 						},
 
-						"live_backoff_in_timescale": {
+						"live_backoff_in_units": {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(0),
 						},
 
-						"presentation_window_in_timescale": {
+						"presentation_window_in_units": {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(0),
 						},
 
-						"start_timescale": {
+						"start_in_units": {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(0),
 						},
 
-						"timescale_increment_in_seconds": {
+						"unit_timescale_in_miliseconds": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validation.IntAtLeast(0),
+							ValidateFunc: validation.IntAtLeast(1),
 						},
 					},
 				},
@@ -271,28 +276,31 @@ func expandPresentationTimeRange(input []interface{}) *media.PresentationTimeRan
 	timeRange := input[0].(map[string]interface{})
 	presentationTimeRange := &media.PresentationTimeRange{}
 
-	if v := timeRange["end_timescale"]; v != nil {
-		presentationTimeRange.EndTimestamp = utils.Int64(int64(v.(int)))
+	var baseUnit int64
+	if v := timeRange["unit_timescale_in_miliseconds"]; v != nil {
+		timeScaleInMiliSeconds := int64(v.(int))
+		presentationTimeRange.Timescale = utils.Int64((incrementsInASecond * nanoSecondsInAIncrement) / milliSecondsInASecond / timeScaleInMiliSeconds)
+		baseUnit = milliSecondsInASecond
 	}
 
-	if v := timeRange["force_end_timescale"]; v != nil {
+	if v := timeRange["end_in_units"]; v != nil {
+		presentationTimeRange.EndTimestamp = utils.Int64(int64(v.(int)) * baseUnit)
+	}
+
+	if v := timeRange["force_end"]; v != nil {
 		presentationTimeRange.ForceEndTimestamp = utils.Bool(v.(bool))
 	}
 
-	if v := timeRange["live_backoff_in_timescale"]; v != nil {
-		presentationTimeRange.LiveBackoffDuration = utils.Int64(int64(v.(int)))
+	if v := timeRange["live_backoff_in_units"]; v != nil {
+		presentationTimeRange.LiveBackoffDuration = utils.Int64(int64(v.(int)) * baseUnit)
 	}
 
-	if v := timeRange["presentation_window_in_timescale"]; v != nil {
-		presentationTimeRange.PresentationWindowDuration = utils.Int64(int64(v.(int)))
+	if v := timeRange["presentation_window_in_units"]; v != nil {
+		presentationTimeRange.PresentationWindowDuration = utils.Int64(int64(v.(int)) * baseUnit)
 	}
 
-	if v := timeRange["start_timescale"]; v != nil {
-		presentationTimeRange.StartTimestamp = utils.Int64(int64(v.(int)))
-	}
-
-	if v := timeRange["timescale_increment_in_seconds"]; v != nil {
-		presentationTimeRange.Timescale = utils.Int64(int64(v.(int)))
+	if v := timeRange["start_in_units"]; v != nil {
+		presentationTimeRange.StartTimestamp = utils.Int64(int64(v.(int)) * baseUnit)
 	}
 
 	return presentationTimeRange
@@ -303,9 +311,16 @@ func flattenPresentationTimeRange(input *media.PresentationTimeRange) []interfac
 		return make([]interface{}, 0)
 	}
 
+	var timeScale int64
+	var baseUnit int64
+	if input.Timescale != nil {
+		timeScale = (incrementsInASecond * nanoSecondsInAIncrement) / milliSecondsInASecond / *input.Timescale
+		baseUnit = milliSecondsInASecond
+	}
+
 	var endTimestamp int64
 	if input.EndTimestamp != nil {
-		endTimestamp = *input.EndTimestamp
+		endTimestamp = *input.EndTimestamp / baseUnit
 	}
 
 	var forceEndTimestamp bool
@@ -315,32 +330,27 @@ func flattenPresentationTimeRange(input *media.PresentationTimeRange) []interfac
 
 	var liveBackoffDuration int64
 	if input.LiveBackoffDuration != nil {
-		liveBackoffDuration = *input.LiveBackoffDuration
+		liveBackoffDuration = *input.LiveBackoffDuration / baseUnit
 	}
 
 	var presentationWindowDuration int64
 	if input.PresentationWindowDuration != nil {
-		presentationWindowDuration = *input.PresentationWindowDuration
+		presentationWindowDuration = *input.PresentationWindowDuration / baseUnit
 	}
 
 	var startTimestamp int64
 	if input.StartTimestamp != nil {
-		startTimestamp = *input.StartTimestamp
-	}
-
-	var timeScale int64
-	if input.Timescale != nil {
-		timeScale = *input.Timescale
+		startTimestamp = *input.StartTimestamp / baseUnit
 	}
 
 	return []interface{}{
 		map[string]interface{}{
-			"end_timescale":                    endTimestamp,
-			"force_end_timescale":              forceEndTimestamp,
-			"live_backoff_in_timescale":        liveBackoffDuration,
-			"presentation_window_in_timescale": presentationWindowDuration,
-			"start_timescale":                  startTimestamp,
-			"timescale_increment_in_seconds":   timeScale,
+			"end_in_units":                  endTimestamp,
+			"force_end":                     forceEndTimestamp,
+			"live_backoff_in_units":         liveBackoffDuration,
+			"presentation_window_in_units":  presentationWindowDuration,
+			"start_in_units":                startTimestamp,
+			"unit_timescale_in_miliseconds": timeScale,
 		},
 	}
 }

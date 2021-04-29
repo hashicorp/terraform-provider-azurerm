@@ -138,12 +138,12 @@ resource "azurerm_media_asset_filter" "test" {
   first_quality_bitrate = 128000
 
   presentation_time_range {
-    start_timescale                  = 0
-    end_timescale                    = 170000000
-    presentation_window_in_timescale = 9223372036854775000
-    live_backoff_in_timescale        = 0
-    timescale_increment_in_seconds   = 10000000
-    force_end_timescale              = false
+    start_in_units                = 0
+    end_in_units                  = 15
+    presentation_window_in_units  = 90
+    live_backoff_in_units         = 0
+    unit_timescale_in_miliseconds = 1000
+    force_end                     = false
   }
 
   track_selection {
