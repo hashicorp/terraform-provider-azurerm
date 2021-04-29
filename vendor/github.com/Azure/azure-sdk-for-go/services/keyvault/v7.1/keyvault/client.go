@@ -1,4 +1,4 @@
-// Package keyvault implements the Azure ARM Keyvault service API version 2016-10-01.
+// Package keyvault implements the Azure ARM Keyvault service API version 7.1.
 //
 // The key vault client performs cryptographic key operations and vault operations against the Key Vault service.
 package keyvault
@@ -33,6 +33,85 @@ func NewWithoutDefaults() BaseClient {
 	return BaseClient{
 		Client: autorest.NewClientWithUserAgent(UserAgent()),
 	}
+}
+
+// BackupCertificate requests that a backup of the specified certificate be downloaded to the client. All versions of
+// the certificate will be downloaded. This operation requires the certificates/backup permission.
+// Parameters:
+// vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
+// certificateName - the name of the certificate.
+func (client BaseClient) BackupCertificate(ctx context.Context, vaultBaseURL string, certificateName string) (result BackupCertificateResult, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.BackupCertificate")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.BackupCertificatePreparer(ctx, vaultBaseURL, certificateName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "BackupCertificate", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.BackupCertificateSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "BackupCertificate", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.BackupCertificateResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "BackupCertificate", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// BackupCertificatePreparer prepares the BackupCertificate request.
+func (client BaseClient) BackupCertificatePreparer(ctx context.Context, vaultBaseURL string, certificateName string) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"vaultBaseUrl": vaultBaseURL,
+	}
+
+	pathParameters := map[string]interface{}{
+		"certificate-name": autorest.Encode("path", certificateName),
+	}
+
+	const APIVersion = "7.1"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithCustomBaseURL("{vaultBaseUrl}", urlParameters),
+		autorest.WithPathParameters("/certificates/{certificate-name}/backup", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// BackupCertificateSender sends the BackupCertificate request. The method will close the
+// http.Response Body if it receives an error.
+func (client BaseClient) BackupCertificateSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+}
+
+// BackupCertificateResponder handles the response to the BackupCertificate request. The method always
+// closes the http.Response Body.
+func (client BaseClient) BackupCertificateResponder(resp *http.Response) (result BackupCertificateResult, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
 }
 
 // BackupKey the Key Backup operation exports a key from Azure Key Vault in a protected form. Note that this operation
@@ -90,7 +169,7 @@ func (client BaseClient) BackupKeyPreparer(ctx context.Context, vaultBaseURL str
 		"key-name": autorest.Encode("path", keyName),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -169,7 +248,7 @@ func (client BaseClient) BackupSecretPreparer(ctx context.Context, vaultBaseURL 
 		"secret-name": autorest.Encode("path", secretName),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -191,6 +270,85 @@ func (client BaseClient) BackupSecretSender(req *http.Request) (*http.Response, 
 // BackupSecretResponder handles the response to the BackupSecret request. The method always
 // closes the http.Response Body.
 func (client BaseClient) BackupSecretResponder(resp *http.Response) (result BackupSecretResult, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// BackupStorageAccount requests that a backup of the specified storage account be downloaded to the client. This
+// operation requires the storage/backup permission.
+// Parameters:
+// vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
+// storageAccountName - the name of the storage account.
+func (client BaseClient) BackupStorageAccount(ctx context.Context, vaultBaseURL string, storageAccountName string) (result BackupStorageResult, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.BackupStorageAccount")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.BackupStorageAccountPreparer(ctx, vaultBaseURL, storageAccountName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "BackupStorageAccount", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.BackupStorageAccountSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "BackupStorageAccount", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.BackupStorageAccountResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "BackupStorageAccount", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// BackupStorageAccountPreparer prepares the BackupStorageAccount request.
+func (client BaseClient) BackupStorageAccountPreparer(ctx context.Context, vaultBaseURL string, storageAccountName string) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"vaultBaseUrl": vaultBaseURL,
+	}
+
+	pathParameters := map[string]interface{}{
+		"storage-account-name": autorest.Encode("path", storageAccountName),
+	}
+
+	const APIVersion = "7.1"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithCustomBaseURL("{vaultBaseUrl}", urlParameters),
+		autorest.WithPathParameters("/storage/{storage-account-name}/backup", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// BackupStorageAccountSender sends the BackupStorageAccount request. The method will close the
+// http.Response Body if it receives an error.
+func (client BaseClient) BackupStorageAccountSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+}
+
+// BackupStorageAccountResponder handles the response to the BackupStorageAccount request. The method always
+// closes the http.Response Body.
+func (client BaseClient) BackupStorageAccountResponder(resp *http.Response) (result BackupStorageResult, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -262,7 +420,7 @@ func (client BaseClient) CreateCertificatePreparer(ctx context.Context, vaultBas
 		"certificate-name": autorest.Encode("path", certificateName),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -350,7 +508,7 @@ func (client BaseClient) CreateKeyPreparer(ctx context.Context, vaultBaseURL str
 		"key-name": autorest.Encode("path", keyName),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -443,7 +601,7 @@ func (client BaseClient) DecryptPreparer(ctx context.Context, vaultBaseURL strin
 		"key-version": autorest.Encode("path", keyVersion),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -525,7 +683,7 @@ func (client BaseClient) DeleteCertificatePreparer(ctx context.Context, vaultBas
 		"certificate-name": autorest.Encode("path", certificateName),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -599,7 +757,7 @@ func (client BaseClient) DeleteCertificateContactsPreparer(ctx context.Context, 
 		"vaultBaseUrl": vaultBaseURL,
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -678,7 +836,7 @@ func (client BaseClient) DeleteCertificateIssuerPreparer(ctx context.Context, va
 		"issuer-name": autorest.Encode("path", issuerName),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -757,7 +915,7 @@ func (client BaseClient) DeleteCertificateOperationPreparer(ctx context.Context,
 		"certificate-name": autorest.Encode("path", certificateName),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -837,7 +995,7 @@ func (client BaseClient) DeleteKeyPreparer(ctx context.Context, vaultBaseURL str
 		"key-name": autorest.Encode("path", keyName),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -874,7 +1032,7 @@ func (client BaseClient) DeleteKeyResponder(resp *http.Response) (result Deleted
 // vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
 // storageAccountName - the name of the storage account.
 // sasDefinitionName - the name of the SAS definition.
-func (client BaseClient) DeleteSasDefinition(ctx context.Context, vaultBaseURL string, storageAccountName string, sasDefinitionName string) (result SasDefinitionBundle, err error) {
+func (client BaseClient) DeleteSasDefinition(ctx context.Context, vaultBaseURL string, storageAccountName string, sasDefinitionName string) (result DeletedSasDefinitionBundle, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.DeleteSasDefinition")
 		defer func() {
@@ -926,7 +1084,7 @@ func (client BaseClient) DeleteSasDefinitionPreparer(ctx context.Context, vaultB
 		"storage-account-name": autorest.Encode("path", storageAccountName),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -947,7 +1105,7 @@ func (client BaseClient) DeleteSasDefinitionSender(req *http.Request) (*http.Res
 
 // DeleteSasDefinitionResponder handles the response to the DeleteSasDefinition request. The method always
 // closes the http.Response Body.
-func (client BaseClient) DeleteSasDefinitionResponder(resp *http.Response) (result SasDefinitionBundle, err error) {
+func (client BaseClient) DeleteSasDefinitionResponder(resp *http.Response) (result DeletedSasDefinitionBundle, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -1005,7 +1163,7 @@ func (client BaseClient) DeleteSecretPreparer(ctx context.Context, vaultBaseURL 
 		"secret-name": autorest.Encode("path", secretName),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1040,7 +1198,7 @@ func (client BaseClient) DeleteSecretResponder(resp *http.Response) (result Dele
 // Parameters:
 // vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
 // storageAccountName - the name of the storage account.
-func (client BaseClient) DeleteStorageAccount(ctx context.Context, vaultBaseURL string, storageAccountName string) (result StorageBundle, err error) {
+func (client BaseClient) DeleteStorageAccount(ctx context.Context, vaultBaseURL string, storageAccountName string) (result DeletedStorageBundle, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.DeleteStorageAccount")
 		defer func() {
@@ -1089,7 +1247,7 @@ func (client BaseClient) DeleteStorageAccountPreparer(ctx context.Context, vault
 		"storage-account-name": autorest.Encode("path", storageAccountName),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1110,7 +1268,7 @@ func (client BaseClient) DeleteStorageAccountSender(req *http.Request) (*http.Re
 
 // DeleteStorageAccountResponder handles the response to the DeleteStorageAccount request. The method always
 // closes the http.Response Body.
-func (client BaseClient) DeleteStorageAccountResponder(resp *http.Response) (result StorageBundle, err error) {
+func (client BaseClient) DeleteStorageAccountResponder(resp *http.Response) (result DeletedStorageBundle, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -1182,7 +1340,7 @@ func (client BaseClient) EncryptPreparer(ctx context.Context, vaultBaseURL strin
 		"key-version": autorest.Encode("path", keyVersion),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1220,7 +1378,8 @@ func (client BaseClient) EncryptResponder(resp *http.Response) (result KeyOperat
 // Parameters:
 // vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
 // certificateName - the name of the certificate in the given vault.
-// certificateVersion - the version of the certificate.
+// certificateVersion - the version of the certificate. This URI fragment is optional. If not specified, the
+// latest version of the certificate is returned.
 func (client BaseClient) GetCertificate(ctx context.Context, vaultBaseURL string, certificateName string, certificateVersion string) (result CertificateBundle, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetCertificate")
@@ -1265,7 +1424,7 @@ func (client BaseClient) GetCertificatePreparer(ctx context.Context, vaultBaseUR
 		"certificate-version": autorest.Encode("path", certificateVersion),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1339,7 +1498,7 @@ func (client BaseClient) GetCertificateContactsPreparer(ctx context.Context, vau
 		"vaultBaseUrl": vaultBaseURL,
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1418,7 +1577,7 @@ func (client BaseClient) GetCertificateIssuerPreparer(ctx context.Context, vault
 		"issuer-name": autorest.Encode("path", issuerName),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1508,7 +1667,7 @@ func (client BaseClient) GetCertificateIssuersPreparer(ctx context.Context, vaul
 		"vaultBaseUrl": vaultBaseURL,
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1627,7 +1786,7 @@ func (client BaseClient) GetCertificateOperationPreparer(ctx context.Context, va
 		"certificate-name": autorest.Encode("path", certificateName),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1706,7 +1865,7 @@ func (client BaseClient) GetCertificatePolicyPreparer(ctx context.Context, vault
 		"certificate-name": autorest.Encode("path", certificateName),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1743,7 +1902,8 @@ func (client BaseClient) GetCertificatePolicyResponder(resp *http.Response) (res
 // vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
 // maxresults - maximum number of results to return in a page. If not specified the service will return up to
 // 25 results.
-func (client BaseClient) GetCertificates(ctx context.Context, vaultBaseURL string, maxresults *int32) (result CertificateListResultPage, err error) {
+// includePending - specifies whether to include certificates which are not completely provisioned.
+func (client BaseClient) GetCertificates(ctx context.Context, vaultBaseURL string, maxresults *int32, includePending *bool) (result CertificateListResultPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetCertificates")
 		defer func() {
@@ -1764,7 +1924,7 @@ func (client BaseClient) GetCertificates(ctx context.Context, vaultBaseURL strin
 	}
 
 	result.fn = client.getCertificatesNextResults
-	req, err := client.GetCertificatesPreparer(ctx, vaultBaseURL, maxresults)
+	req, err := client.GetCertificatesPreparer(ctx, vaultBaseURL, maxresults, includePending)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetCertificates", nil, "Failure preparing request")
 		return
@@ -1791,17 +1951,20 @@ func (client BaseClient) GetCertificates(ctx context.Context, vaultBaseURL strin
 }
 
 // GetCertificatesPreparer prepares the GetCertificates request.
-func (client BaseClient) GetCertificatesPreparer(ctx context.Context, vaultBaseURL string, maxresults *int32) (*http.Request, error) {
+func (client BaseClient) GetCertificatesPreparer(ctx context.Context, vaultBaseURL string, maxresults *int32, includePending *bool) (*http.Request, error) {
 	urlParameters := map[string]interface{}{
 		"vaultBaseUrl": vaultBaseURL,
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 	if maxresults != nil {
 		queryParameters["maxresults"] = autorest.Encode("query", *maxresults)
+	}
+	if includePending != nil {
+		queryParameters["includePending"] = autorest.Encode("query", *includePending)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -1852,7 +2015,7 @@ func (client BaseClient) getCertificatesNextResults(ctx context.Context, lastRes
 }
 
 // GetCertificatesComplete enumerates all values, automatically crossing page boundaries as required.
-func (client BaseClient) GetCertificatesComplete(ctx context.Context, vaultBaseURL string, maxresults *int32) (result CertificateListResultIterator, err error) {
+func (client BaseClient) GetCertificatesComplete(ctx context.Context, vaultBaseURL string, maxresults *int32, includePending *bool) (result CertificateListResultIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetCertificates")
 		defer func() {
@@ -1863,7 +2026,7 @@ func (client BaseClient) GetCertificatesComplete(ctx context.Context, vaultBaseU
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.GetCertificates(ctx, vaultBaseURL, maxresults)
+	result.page, err = client.GetCertificates(ctx, vaultBaseURL, maxresults, includePending)
 	return
 }
 
@@ -1931,7 +2094,7 @@ func (client BaseClient) GetCertificateVersionsPreparer(ctx context.Context, vau
 		"certificate-name": autorest.Encode("path", certificateName),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2051,7 +2214,7 @@ func (client BaseClient) GetDeletedCertificatePreparer(ctx context.Context, vaul
 		"certificate-name": autorest.Encode("path", certificateName),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2090,7 +2253,8 @@ func (client BaseClient) GetDeletedCertificateResponder(resp *http.Response) (re
 // vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
 // maxresults - maximum number of results to return in a page. If not specified the service will return up to
 // 25 results.
-func (client BaseClient) GetDeletedCertificates(ctx context.Context, vaultBaseURL string, maxresults *int32) (result DeletedCertificateListResultPage, err error) {
+// includePending - specifies whether to include certificates which are not completely provisioned.
+func (client BaseClient) GetDeletedCertificates(ctx context.Context, vaultBaseURL string, maxresults *int32, includePending *bool) (result DeletedCertificateListResultPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetDeletedCertificates")
 		defer func() {
@@ -2111,7 +2275,7 @@ func (client BaseClient) GetDeletedCertificates(ctx context.Context, vaultBaseUR
 	}
 
 	result.fn = client.getDeletedCertificatesNextResults
-	req, err := client.GetDeletedCertificatesPreparer(ctx, vaultBaseURL, maxresults)
+	req, err := client.GetDeletedCertificatesPreparer(ctx, vaultBaseURL, maxresults, includePending)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetDeletedCertificates", nil, "Failure preparing request")
 		return
@@ -2138,17 +2302,20 @@ func (client BaseClient) GetDeletedCertificates(ctx context.Context, vaultBaseUR
 }
 
 // GetDeletedCertificatesPreparer prepares the GetDeletedCertificates request.
-func (client BaseClient) GetDeletedCertificatesPreparer(ctx context.Context, vaultBaseURL string, maxresults *int32) (*http.Request, error) {
+func (client BaseClient) GetDeletedCertificatesPreparer(ctx context.Context, vaultBaseURL string, maxresults *int32, includePending *bool) (*http.Request, error) {
 	urlParameters := map[string]interface{}{
 		"vaultBaseUrl": vaultBaseURL,
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 	if maxresults != nil {
 		queryParameters["maxresults"] = autorest.Encode("query", *maxresults)
+	}
+	if includePending != nil {
+		queryParameters["includePending"] = autorest.Encode("query", *includePending)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -2199,7 +2366,7 @@ func (client BaseClient) getDeletedCertificatesNextResults(ctx context.Context, 
 }
 
 // GetDeletedCertificatesComplete enumerates all values, automatically crossing page boundaries as required.
-func (client BaseClient) GetDeletedCertificatesComplete(ctx context.Context, vaultBaseURL string, maxresults *int32) (result DeletedCertificateListResultIterator, err error) {
+func (client BaseClient) GetDeletedCertificatesComplete(ctx context.Context, vaultBaseURL string, maxresults *int32, includePending *bool) (result DeletedCertificateListResultIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetDeletedCertificates")
 		defer func() {
@@ -2210,7 +2377,7 @@ func (client BaseClient) GetDeletedCertificatesComplete(ctx context.Context, vau
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.GetDeletedCertificates(ctx, vaultBaseURL, maxresults)
+	result.page, err = client.GetDeletedCertificates(ctx, vaultBaseURL, maxresults, includePending)
 	return
 }
 
@@ -2263,7 +2430,7 @@ func (client BaseClient) GetDeletedKeyPreparer(ctx context.Context, vaultBaseURL
 		"key-name": autorest.Encode("path", keyName),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2355,7 +2522,7 @@ func (client BaseClient) GetDeletedKeysPreparer(ctx context.Context, vaultBaseUR
 		"vaultBaseUrl": vaultBaseURL,
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2426,6 +2593,232 @@ func (client BaseClient) GetDeletedKeysComplete(ctx context.Context, vaultBaseUR
 	return
 }
 
+// GetDeletedSasDefinition the Get Deleted SAS Definition operation returns the specified deleted SAS definition along
+// with its attributes. This operation requires the storage/getsas permission.
+// Parameters:
+// vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
+// storageAccountName - the name of the storage account.
+// sasDefinitionName - the name of the SAS definition.
+func (client BaseClient) GetDeletedSasDefinition(ctx context.Context, vaultBaseURL string, storageAccountName string, sasDefinitionName string) (result DeletedSasDefinitionBundle, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetDeletedSasDefinition")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: storageAccountName,
+			Constraints: []validation.Constraint{{Target: "storageAccountName", Name: validation.Pattern, Rule: `^[0-9a-zA-Z]+$`, Chain: nil}}},
+		{TargetValue: sasDefinitionName,
+			Constraints: []validation.Constraint{{Target: "sasDefinitionName", Name: validation.Pattern, Rule: `^[0-9a-zA-Z]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("keyvault.BaseClient", "GetDeletedSasDefinition", err.Error())
+	}
+
+	req, err := client.GetDeletedSasDefinitionPreparer(ctx, vaultBaseURL, storageAccountName, sasDefinitionName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetDeletedSasDefinition", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetDeletedSasDefinitionSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetDeletedSasDefinition", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.GetDeletedSasDefinitionResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetDeletedSasDefinition", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// GetDeletedSasDefinitionPreparer prepares the GetDeletedSasDefinition request.
+func (client BaseClient) GetDeletedSasDefinitionPreparer(ctx context.Context, vaultBaseURL string, storageAccountName string, sasDefinitionName string) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"vaultBaseUrl": vaultBaseURL,
+	}
+
+	pathParameters := map[string]interface{}{
+		"sas-definition-name":  autorest.Encode("path", sasDefinitionName),
+		"storage-account-name": autorest.Encode("path", storageAccountName),
+	}
+
+	const APIVersion = "7.1"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithCustomBaseURL("{vaultBaseUrl}", urlParameters),
+		autorest.WithPathParameters("/deletedstorage/{storage-account-name}/sas/{sas-definition-name}", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetDeletedSasDefinitionSender sends the GetDeletedSasDefinition request. The method will close the
+// http.Response Body if it receives an error.
+func (client BaseClient) GetDeletedSasDefinitionSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+}
+
+// GetDeletedSasDefinitionResponder handles the response to the GetDeletedSasDefinition request. The method always
+// closes the http.Response Body.
+func (client BaseClient) GetDeletedSasDefinitionResponder(resp *http.Response) (result DeletedSasDefinitionBundle, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// GetDeletedSasDefinitions the Get Deleted Sas Definitions operation returns the SAS definitions that have been
+// deleted for a vault enabled for soft-delete. This operation requires the storage/listsas permission.
+// Parameters:
+// vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
+// storageAccountName - the name of the storage account.
+// maxresults - maximum number of results to return in a page. If not specified the service will return up to
+// 25 results.
+func (client BaseClient) GetDeletedSasDefinitions(ctx context.Context, vaultBaseURL string, storageAccountName string, maxresults *int32) (result DeletedSasDefinitionListResultPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetDeletedSasDefinitions")
+		defer func() {
+			sc := -1
+			if result.dsdlr.Response.Response != nil {
+				sc = result.dsdlr.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: storageAccountName,
+			Constraints: []validation.Constraint{{Target: "storageAccountName", Name: validation.Pattern, Rule: `^[0-9a-zA-Z]+$`, Chain: nil}}},
+		{TargetValue: maxresults,
+			Constraints: []validation.Constraint{{Target: "maxresults", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "maxresults", Name: validation.InclusiveMaximum, Rule: int64(25), Chain: nil},
+					{Target: "maxresults", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
+				}}}}}); err != nil {
+		return result, validation.NewError("keyvault.BaseClient", "GetDeletedSasDefinitions", err.Error())
+	}
+
+	result.fn = client.getDeletedSasDefinitionsNextResults
+	req, err := client.GetDeletedSasDefinitionsPreparer(ctx, vaultBaseURL, storageAccountName, maxresults)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetDeletedSasDefinitions", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetDeletedSasDefinitionsSender(req)
+	if err != nil {
+		result.dsdlr.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetDeletedSasDefinitions", resp, "Failure sending request")
+		return
+	}
+
+	result.dsdlr, err = client.GetDeletedSasDefinitionsResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetDeletedSasDefinitions", resp, "Failure responding to request")
+		return
+	}
+	if result.dsdlr.hasNextLink() && result.dsdlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
+	}
+
+	return
+}
+
+// GetDeletedSasDefinitionsPreparer prepares the GetDeletedSasDefinitions request.
+func (client BaseClient) GetDeletedSasDefinitionsPreparer(ctx context.Context, vaultBaseURL string, storageAccountName string, maxresults *int32) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"vaultBaseUrl": vaultBaseURL,
+	}
+
+	pathParameters := map[string]interface{}{
+		"storage-account-name": autorest.Encode("path", storageAccountName),
+	}
+
+	const APIVersion = "7.1"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+	if maxresults != nil {
+		queryParameters["maxresults"] = autorest.Encode("query", *maxresults)
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithCustomBaseURL("{vaultBaseUrl}", urlParameters),
+		autorest.WithPathParameters("/deletedstorage/{storage-account-name}/sas", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetDeletedSasDefinitionsSender sends the GetDeletedSasDefinitions request. The method will close the
+// http.Response Body if it receives an error.
+func (client BaseClient) GetDeletedSasDefinitionsSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+}
+
+// GetDeletedSasDefinitionsResponder handles the response to the GetDeletedSasDefinitions request. The method always
+// closes the http.Response Body.
+func (client BaseClient) GetDeletedSasDefinitionsResponder(resp *http.Response) (result DeletedSasDefinitionListResult, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// getDeletedSasDefinitionsNextResults retrieves the next set of results, if any.
+func (client BaseClient) getDeletedSasDefinitionsNextResults(ctx context.Context, lastResults DeletedSasDefinitionListResult) (result DeletedSasDefinitionListResult, err error) {
+	req, err := lastResults.deletedSasDefinitionListResultPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "keyvault.BaseClient", "getDeletedSasDefinitionsNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.GetDeletedSasDefinitionsSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "keyvault.BaseClient", "getDeletedSasDefinitionsNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.GetDeletedSasDefinitionsResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "getDeletedSasDefinitionsNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// GetDeletedSasDefinitionsComplete enumerates all values, automatically crossing page boundaries as required.
+func (client BaseClient) GetDeletedSasDefinitionsComplete(ctx context.Context, vaultBaseURL string, storageAccountName string, maxresults *int32) (result DeletedSasDefinitionListResultIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetDeletedSasDefinitions")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.GetDeletedSasDefinitions(ctx, vaultBaseURL, storageAccountName, maxresults)
+	return
+}
+
 // GetDeletedSecret the Get Deleted Secret operation returns the specified deleted secret along with its attributes.
 // This operation requires the secrets/get permission.
 // Parameters:
@@ -2474,7 +2867,7 @@ func (client BaseClient) GetDeletedSecretPreparer(ctx context.Context, vaultBase
 		"secret-name": autorest.Encode("path", secretName),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2564,7 +2957,7 @@ func (client BaseClient) GetDeletedSecretsPreparer(ctx context.Context, vaultBas
 		"vaultBaseUrl": vaultBaseURL,
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2635,12 +3028,228 @@ func (client BaseClient) GetDeletedSecretsComplete(ctx context.Context, vaultBas
 	return
 }
 
+// GetDeletedStorageAccount the Get Deleted Storage Account operation returns the specified deleted storage account
+// along with its attributes. This operation requires the storage/get permission.
+// Parameters:
+// vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
+// storageAccountName - the name of the storage account.
+func (client BaseClient) GetDeletedStorageAccount(ctx context.Context, vaultBaseURL string, storageAccountName string) (result DeletedStorageBundle, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetDeletedStorageAccount")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: storageAccountName,
+			Constraints: []validation.Constraint{{Target: "storageAccountName", Name: validation.Pattern, Rule: `^[0-9a-zA-Z]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("keyvault.BaseClient", "GetDeletedStorageAccount", err.Error())
+	}
+
+	req, err := client.GetDeletedStorageAccountPreparer(ctx, vaultBaseURL, storageAccountName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetDeletedStorageAccount", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetDeletedStorageAccountSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetDeletedStorageAccount", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.GetDeletedStorageAccountResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetDeletedStorageAccount", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// GetDeletedStorageAccountPreparer prepares the GetDeletedStorageAccount request.
+func (client BaseClient) GetDeletedStorageAccountPreparer(ctx context.Context, vaultBaseURL string, storageAccountName string) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"vaultBaseUrl": vaultBaseURL,
+	}
+
+	pathParameters := map[string]interface{}{
+		"storage-account-name": autorest.Encode("path", storageAccountName),
+	}
+
+	const APIVersion = "7.1"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithCustomBaseURL("{vaultBaseUrl}", urlParameters),
+		autorest.WithPathParameters("/deletedstorage/{storage-account-name}", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetDeletedStorageAccountSender sends the GetDeletedStorageAccount request. The method will close the
+// http.Response Body if it receives an error.
+func (client BaseClient) GetDeletedStorageAccountSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+}
+
+// GetDeletedStorageAccountResponder handles the response to the GetDeletedStorageAccount request. The method always
+// closes the http.Response Body.
+func (client BaseClient) GetDeletedStorageAccountResponder(resp *http.Response) (result DeletedStorageBundle, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// GetDeletedStorageAccounts the Get Deleted Storage Accounts operation returns the storage accounts that have been
+// deleted for a vault enabled for soft-delete. This operation requires the storage/list permission.
+// Parameters:
+// vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
+// maxresults - maximum number of results to return in a page. If not specified the service will return up to
+// 25 results.
+func (client BaseClient) GetDeletedStorageAccounts(ctx context.Context, vaultBaseURL string, maxresults *int32) (result DeletedStorageListResultPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetDeletedStorageAccounts")
+		defer func() {
+			sc := -1
+			if result.dslr.Response.Response != nil {
+				sc = result.dslr.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: maxresults,
+			Constraints: []validation.Constraint{{Target: "maxresults", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "maxresults", Name: validation.InclusiveMaximum, Rule: int64(25), Chain: nil},
+					{Target: "maxresults", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
+				}}}}}); err != nil {
+		return result, validation.NewError("keyvault.BaseClient", "GetDeletedStorageAccounts", err.Error())
+	}
+
+	result.fn = client.getDeletedStorageAccountsNextResults
+	req, err := client.GetDeletedStorageAccountsPreparer(ctx, vaultBaseURL, maxresults)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetDeletedStorageAccounts", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetDeletedStorageAccountsSender(req)
+	if err != nil {
+		result.dslr.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetDeletedStorageAccounts", resp, "Failure sending request")
+		return
+	}
+
+	result.dslr, err = client.GetDeletedStorageAccountsResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetDeletedStorageAccounts", resp, "Failure responding to request")
+		return
+	}
+	if result.dslr.hasNextLink() && result.dslr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
+	}
+
+	return
+}
+
+// GetDeletedStorageAccountsPreparer prepares the GetDeletedStorageAccounts request.
+func (client BaseClient) GetDeletedStorageAccountsPreparer(ctx context.Context, vaultBaseURL string, maxresults *int32) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"vaultBaseUrl": vaultBaseURL,
+	}
+
+	const APIVersion = "7.1"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+	if maxresults != nil {
+		queryParameters["maxresults"] = autorest.Encode("query", *maxresults)
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithCustomBaseURL("{vaultBaseUrl}", urlParameters),
+		autorest.WithPath("/deletedstorage"),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetDeletedStorageAccountsSender sends the GetDeletedStorageAccounts request. The method will close the
+// http.Response Body if it receives an error.
+func (client BaseClient) GetDeletedStorageAccountsSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+}
+
+// GetDeletedStorageAccountsResponder handles the response to the GetDeletedStorageAccounts request. The method always
+// closes the http.Response Body.
+func (client BaseClient) GetDeletedStorageAccountsResponder(resp *http.Response) (result DeletedStorageListResult, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// getDeletedStorageAccountsNextResults retrieves the next set of results, if any.
+func (client BaseClient) getDeletedStorageAccountsNextResults(ctx context.Context, lastResults DeletedStorageListResult) (result DeletedStorageListResult, err error) {
+	req, err := lastResults.deletedStorageListResultPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "keyvault.BaseClient", "getDeletedStorageAccountsNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.GetDeletedStorageAccountsSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "keyvault.BaseClient", "getDeletedStorageAccountsNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.GetDeletedStorageAccountsResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "getDeletedStorageAccountsNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// GetDeletedStorageAccountsComplete enumerates all values, automatically crossing page boundaries as required.
+func (client BaseClient) GetDeletedStorageAccountsComplete(ctx context.Context, vaultBaseURL string, maxresults *int32) (result DeletedStorageListResultIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetDeletedStorageAccounts")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.GetDeletedStorageAccounts(ctx, vaultBaseURL, maxresults)
+	return
+}
+
 // GetKey the get key operation is applicable to all key types. If the requested key is symmetric, then no key material
 // is released in the response. This operation requires the keys/get permission.
 // Parameters:
 // vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
 // keyName - the name of the key to get.
-// keyVersion - adding the version parameter retrieves a specific version of a key.
+// keyVersion - adding the version parameter retrieves a specific version of a key. This URI fragment is
+// optional. If not specified, the latest version of the key is returned.
 func (client BaseClient) GetKey(ctx context.Context, vaultBaseURL string, keyName string, keyVersion string) (result KeyBundle, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetKey")
@@ -2685,7 +3294,7 @@ func (client BaseClient) GetKeyPreparer(ctx context.Context, vaultBaseURL string
 		"key-version": autorest.Encode("path", keyVersion),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2777,7 +3386,7 @@ func (client BaseClient) GetKeysPreparer(ctx context.Context, vaultBaseURL strin
 		"vaultBaseUrl": vaultBaseURL,
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2912,7 +3521,7 @@ func (client BaseClient) GetKeyVersionsPreparer(ctx context.Context, vaultBaseUR
 		"key-name": autorest.Encode("path", keyName),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3041,7 +3650,7 @@ func (client BaseClient) GetSasDefinitionPreparer(ctx context.Context, vaultBase
 		"storage-account-name": autorest.Encode("path", storageAccountName),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3138,7 +3747,7 @@ func (client BaseClient) GetSasDefinitionsPreparer(ctx context.Context, vaultBas
 		"storage-account-name": autorest.Encode("path", storageAccountName),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3214,7 +3823,8 @@ func (client BaseClient) GetSasDefinitionsComplete(ctx context.Context, vaultBas
 // Parameters:
 // vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
 // secretName - the name of the secret.
-// secretVersion - the version of the secret.
+// secretVersion - the version of the secret. This URI fragment is optional. If not specified, the latest
+// version of the secret is returned.
 func (client BaseClient) GetSecret(ctx context.Context, vaultBaseURL string, secretName string, secretVersion string) (result SecretBundle, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetSecret")
@@ -3259,7 +3869,7 @@ func (client BaseClient) GetSecretPreparer(ctx context.Context, vaultBaseURL str
 		"secret-version": autorest.Encode("path", secretVersion),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3350,7 +3960,7 @@ func (client BaseClient) GetSecretsPreparer(ctx context.Context, vaultBaseURL st
 		"vaultBaseUrl": vaultBaseURL,
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3485,7 +4095,7 @@ func (client BaseClient) GetSecretVersionsPreparer(ctx context.Context, vaultBas
 		"secret-name": autorest.Encode("path", secretName),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3610,7 +4220,7 @@ func (client BaseClient) GetStorageAccountPreparer(ctx context.Context, vaultBas
 		"storage-account-name": autorest.Encode("path", storageAccountName),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3700,7 +4310,7 @@ func (client BaseClient) GetStorageAccountsPreparer(ctx context.Context, vaultBa
 		"vaultBaseUrl": vaultBaseURL,
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3835,7 +4445,7 @@ func (client BaseClient) ImportCertificatePreparer(ctx context.Context, vaultBas
 		"certificate-name": autorest.Encode("path", certificateName),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3926,7 +4536,7 @@ func (client BaseClient) ImportKeyPreparer(ctx context.Context, vaultBaseURL str
 		"key-name": autorest.Encode("path", keyName),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4014,7 +4624,7 @@ func (client BaseClient) MergeCertificatePreparer(ctx context.Context, vaultBase
 		"certificate-name": autorest.Encode("path", certificateName),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4096,7 +4706,7 @@ func (client BaseClient) PurgeDeletedCertificatePreparer(ctx context.Context, va
 		"certificate-name": autorest.Encode("path", certificateName),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4175,7 +4785,7 @@ func (client BaseClient) PurgeDeletedKeyPreparer(ctx context.Context, vaultBaseU
 		"key-name": autorest.Encode("path", keyName),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4254,7 +4864,7 @@ func (client BaseClient) PurgeDeletedSecretPreparer(ctx context.Context, vaultBa
 		"secret-name": autorest.Encode("path", secretName),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4276,6 +4886,91 @@ func (client BaseClient) PurgeDeletedSecretSender(req *http.Request) (*http.Resp
 // PurgeDeletedSecretResponder handles the response to the PurgeDeletedSecret request. The method always
 // closes the http.Response Body.
 func (client BaseClient) PurgeDeletedSecretResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
+		autorest.ByClosing())
+	result.Response = resp
+	return
+}
+
+// PurgeDeletedStorageAccount the purge deleted storage account operation removes the secret permanently, without the
+// possibility of recovery. This operation can only be performed on a soft-delete enabled vault. This operation
+// requires the storage/purge permission.
+// Parameters:
+// vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
+// storageAccountName - the name of the storage account.
+func (client BaseClient) PurgeDeletedStorageAccount(ctx context.Context, vaultBaseURL string, storageAccountName string) (result autorest.Response, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.PurgeDeletedStorageAccount")
+		defer func() {
+			sc := -1
+			if result.Response != nil {
+				sc = result.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: storageAccountName,
+			Constraints: []validation.Constraint{{Target: "storageAccountName", Name: validation.Pattern, Rule: `^[0-9a-zA-Z]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("keyvault.BaseClient", "PurgeDeletedStorageAccount", err.Error())
+	}
+
+	req, err := client.PurgeDeletedStorageAccountPreparer(ctx, vaultBaseURL, storageAccountName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "PurgeDeletedStorageAccount", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.PurgeDeletedStorageAccountSender(req)
+	if err != nil {
+		result.Response = resp
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "PurgeDeletedStorageAccount", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.PurgeDeletedStorageAccountResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "PurgeDeletedStorageAccount", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// PurgeDeletedStorageAccountPreparer prepares the PurgeDeletedStorageAccount request.
+func (client BaseClient) PurgeDeletedStorageAccountPreparer(ctx context.Context, vaultBaseURL string, storageAccountName string) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"vaultBaseUrl": vaultBaseURL,
+	}
+
+	pathParameters := map[string]interface{}{
+		"storage-account-name": autorest.Encode("path", storageAccountName),
+	}
+
+	const APIVersion = "7.1"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsDelete(),
+		autorest.WithCustomBaseURL("{vaultBaseUrl}", urlParameters),
+		autorest.WithPathParameters("/deletedstorage/{storage-account-name}", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// PurgeDeletedStorageAccountSender sends the PurgeDeletedStorageAccount request. The method will close the
+// http.Response Body if it receives an error.
+func (client BaseClient) PurgeDeletedStorageAccountSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+}
+
+// PurgeDeletedStorageAccountResponder handles the response to the PurgeDeletedStorageAccount request. The method always
+// closes the http.Response Body.
+func (client BaseClient) PurgeDeletedStorageAccountResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
@@ -4333,7 +5028,7 @@ func (client BaseClient) RecoverDeletedCertificatePreparer(ctx context.Context, 
 		"certificate-name": autorest.Encode("path", certificateName),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4414,7 +5109,7 @@ func (client BaseClient) RecoverDeletedKeyPreparer(ctx context.Context, vaultBas
 		"key-name": autorest.Encode("path", keyName),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4436,6 +5131,95 @@ func (client BaseClient) RecoverDeletedKeySender(req *http.Request) (*http.Respo
 // RecoverDeletedKeyResponder handles the response to the RecoverDeletedKey request. The method always
 // closes the http.Response Body.
 func (client BaseClient) RecoverDeletedKeyResponder(resp *http.Response) (result KeyBundle, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// RecoverDeletedSasDefinition recovers the deleted SAS definition for the specified storage account. This operation
+// can only be performed on a soft-delete enabled vault. This operation requires the storage/recover permission.
+// Parameters:
+// vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
+// storageAccountName - the name of the storage account.
+// sasDefinitionName - the name of the SAS definition.
+func (client BaseClient) RecoverDeletedSasDefinition(ctx context.Context, vaultBaseURL string, storageAccountName string, sasDefinitionName string) (result SasDefinitionBundle, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.RecoverDeletedSasDefinition")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: storageAccountName,
+			Constraints: []validation.Constraint{{Target: "storageAccountName", Name: validation.Pattern, Rule: `^[0-9a-zA-Z]+$`, Chain: nil}}},
+		{TargetValue: sasDefinitionName,
+			Constraints: []validation.Constraint{{Target: "sasDefinitionName", Name: validation.Pattern, Rule: `^[0-9a-zA-Z]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("keyvault.BaseClient", "RecoverDeletedSasDefinition", err.Error())
+	}
+
+	req, err := client.RecoverDeletedSasDefinitionPreparer(ctx, vaultBaseURL, storageAccountName, sasDefinitionName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "RecoverDeletedSasDefinition", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.RecoverDeletedSasDefinitionSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "RecoverDeletedSasDefinition", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.RecoverDeletedSasDefinitionResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "RecoverDeletedSasDefinition", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// RecoverDeletedSasDefinitionPreparer prepares the RecoverDeletedSasDefinition request.
+func (client BaseClient) RecoverDeletedSasDefinitionPreparer(ctx context.Context, vaultBaseURL string, storageAccountName string, sasDefinitionName string) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"vaultBaseUrl": vaultBaseURL,
+	}
+
+	pathParameters := map[string]interface{}{
+		"sas-definition-name":  autorest.Encode("path", sasDefinitionName),
+		"storage-account-name": autorest.Encode("path", storageAccountName),
+	}
+
+	const APIVersion = "7.1"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithCustomBaseURL("{vaultBaseUrl}", urlParameters),
+		autorest.WithPathParameters("/deletedstorage/{storage-account-name}/sas/{sas-definition-name}/recover", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// RecoverDeletedSasDefinitionSender sends the RecoverDeletedSasDefinition request. The method will close the
+// http.Response Body if it receives an error.
+func (client BaseClient) RecoverDeletedSasDefinitionSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+}
+
+// RecoverDeletedSasDefinitionResponder handles the response to the RecoverDeletedSasDefinition request. The method always
+// closes the http.Response Body.
+func (client BaseClient) RecoverDeletedSasDefinitionResponder(resp *http.Response) (result SasDefinitionBundle, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -4493,7 +5277,7 @@ func (client BaseClient) RecoverDeletedSecretPreparer(ctx context.Context, vault
 		"secret-name": autorest.Encode("path", secretName),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4515,6 +5299,91 @@ func (client BaseClient) RecoverDeletedSecretSender(req *http.Request) (*http.Re
 // RecoverDeletedSecretResponder handles the response to the RecoverDeletedSecret request. The method always
 // closes the http.Response Body.
 func (client BaseClient) RecoverDeletedSecretResponder(resp *http.Response) (result SecretBundle, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// RecoverDeletedStorageAccount recovers the deleted storage account in the specified vault. This operation can only be
+// performed on a soft-delete enabled vault. This operation requires the storage/recover permission.
+// Parameters:
+// vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
+// storageAccountName - the name of the storage account.
+func (client BaseClient) RecoverDeletedStorageAccount(ctx context.Context, vaultBaseURL string, storageAccountName string) (result StorageBundle, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.RecoverDeletedStorageAccount")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: storageAccountName,
+			Constraints: []validation.Constraint{{Target: "storageAccountName", Name: validation.Pattern, Rule: `^[0-9a-zA-Z]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("keyvault.BaseClient", "RecoverDeletedStorageAccount", err.Error())
+	}
+
+	req, err := client.RecoverDeletedStorageAccountPreparer(ctx, vaultBaseURL, storageAccountName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "RecoverDeletedStorageAccount", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.RecoverDeletedStorageAccountSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "RecoverDeletedStorageAccount", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.RecoverDeletedStorageAccountResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "RecoverDeletedStorageAccount", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// RecoverDeletedStorageAccountPreparer prepares the RecoverDeletedStorageAccount request.
+func (client BaseClient) RecoverDeletedStorageAccountPreparer(ctx context.Context, vaultBaseURL string, storageAccountName string) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"vaultBaseUrl": vaultBaseURL,
+	}
+
+	pathParameters := map[string]interface{}{
+		"storage-account-name": autorest.Encode("path", storageAccountName),
+	}
+
+	const APIVersion = "7.1"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithCustomBaseURL("{vaultBaseUrl}", urlParameters),
+		autorest.WithPathParameters("/deletedstorage/{storage-account-name}/recover", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// RecoverDeletedStorageAccountSender sends the RecoverDeletedStorageAccount request. The method will close the
+// http.Response Body if it receives an error.
+func (client BaseClient) RecoverDeletedStorageAccountSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+}
+
+// RecoverDeletedStorageAccountResponder handles the response to the RecoverDeletedStorageAccount request. The method always
+// closes the http.Response Body.
+func (client BaseClient) RecoverDeletedStorageAccountResponder(resp *http.Response) (result StorageBundle, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -4581,7 +5450,7 @@ func (client BaseClient) RegenerateStorageAccountKeyPreparer(ctx context.Context
 		"storage-account-name": autorest.Encode("path", storageAccountName),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4605,6 +5474,89 @@ func (client BaseClient) RegenerateStorageAccountKeySender(req *http.Request) (*
 // RegenerateStorageAccountKeyResponder handles the response to the RegenerateStorageAccountKey request. The method always
 // closes the http.Response Body.
 func (client BaseClient) RegenerateStorageAccountKeyResponder(resp *http.Response) (result StorageBundle, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// RestoreCertificate restores a backed up certificate, and all its versions, to a vault. This operation requires the
+// certificates/restore permission.
+// Parameters:
+// vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
+// parameters - the parameters to restore the certificate.
+func (client BaseClient) RestoreCertificate(ctx context.Context, vaultBaseURL string, parameters CertificateRestoreParameters) (result CertificateBundle, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.RestoreCertificate")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: parameters,
+			Constraints: []validation.Constraint{{Target: "parameters.CertificateBundleBackup", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("keyvault.BaseClient", "RestoreCertificate", err.Error())
+	}
+
+	req, err := client.RestoreCertificatePreparer(ctx, vaultBaseURL, parameters)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "RestoreCertificate", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.RestoreCertificateSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "RestoreCertificate", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.RestoreCertificateResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "RestoreCertificate", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// RestoreCertificatePreparer prepares the RestoreCertificate request.
+func (client BaseClient) RestoreCertificatePreparer(ctx context.Context, vaultBaseURL string, parameters CertificateRestoreParameters) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"vaultBaseUrl": vaultBaseURL,
+	}
+
+	const APIVersion = "7.1"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithCustomBaseURL("{vaultBaseUrl}", urlParameters),
+		autorest.WithPath("/certificates/restore"),
+		autorest.WithJSON(parameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// RestoreCertificateSender sends the RestoreCertificate request. The method will close the
+// http.Response Body if it receives an error.
+func (client BaseClient) RestoreCertificateSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+}
+
+// RestoreCertificateResponder handles the response to the RestoreCertificate request. The method always
+// closes the http.Response Body.
+func (client BaseClient) RestoreCertificateResponder(resp *http.Response) (result CertificateBundle, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -4671,7 +5623,7 @@ func (client BaseClient) RestoreKeyPreparer(ctx context.Context, vaultBaseURL st
 		"vaultBaseUrl": vaultBaseURL,
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4754,7 +5706,7 @@ func (client BaseClient) RestoreSecretPreparer(ctx context.Context, vaultBaseURL
 		"vaultBaseUrl": vaultBaseURL,
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4778,6 +5730,89 @@ func (client BaseClient) RestoreSecretSender(req *http.Request) (*http.Response,
 // RestoreSecretResponder handles the response to the RestoreSecret request. The method always
 // closes the http.Response Body.
 func (client BaseClient) RestoreSecretResponder(resp *http.Response) (result SecretBundle, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// RestoreStorageAccount restores a backed up storage account to a vault. This operation requires the storage/restore
+// permission.
+// Parameters:
+// vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
+// parameters - the parameters to restore the storage account.
+func (client BaseClient) RestoreStorageAccount(ctx context.Context, vaultBaseURL string, parameters StorageRestoreParameters) (result StorageBundle, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.RestoreStorageAccount")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: parameters,
+			Constraints: []validation.Constraint{{Target: "parameters.StorageBundleBackup", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("keyvault.BaseClient", "RestoreStorageAccount", err.Error())
+	}
+
+	req, err := client.RestoreStorageAccountPreparer(ctx, vaultBaseURL, parameters)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "RestoreStorageAccount", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.RestoreStorageAccountSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "RestoreStorageAccount", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.RestoreStorageAccountResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "RestoreStorageAccount", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// RestoreStorageAccountPreparer prepares the RestoreStorageAccount request.
+func (client BaseClient) RestoreStorageAccountPreparer(ctx context.Context, vaultBaseURL string, parameters StorageRestoreParameters) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"vaultBaseUrl": vaultBaseURL,
+	}
+
+	const APIVersion = "7.1"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithCustomBaseURL("{vaultBaseUrl}", urlParameters),
+		autorest.WithPath("/storage/restore"),
+		autorest.WithJSON(parameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// RestoreStorageAccountSender sends the RestoreStorageAccount request. The method will close the
+// http.Response Body if it receives an error.
+func (client BaseClient) RestoreStorageAccountSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+}
+
+// RestoreStorageAccountResponder handles the response to the RestoreStorageAccount request. The method always
+// closes the http.Response Body.
+func (client BaseClient) RestoreStorageAccountResponder(resp *http.Response) (result StorageBundle, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -4831,7 +5866,7 @@ func (client BaseClient) SetCertificateContactsPreparer(ctx context.Context, vau
 		"vaultBaseUrl": vaultBaseURL,
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4920,7 +5955,7 @@ func (client BaseClient) SetCertificateIssuerPreparer(ctx context.Context, vault
 		"issuer-name": autorest.Encode("path", issuerName),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4977,7 +6012,8 @@ func (client BaseClient) SetSasDefinition(ctx context.Context, vaultBaseURL stri
 		{TargetValue: sasDefinitionName,
 			Constraints: []validation.Constraint{{Target: "sasDefinitionName", Name: validation.Pattern, Rule: `^[0-9a-zA-Z]+$`, Chain: nil}}},
 		{TargetValue: parameters,
-			Constraints: []validation.Constraint{{Target: "parameters.Parameters", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "parameters.TemplateURI", Name: validation.Null, Rule: true, Chain: nil},
+				{Target: "parameters.ValidityPeriod", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("keyvault.BaseClient", "SetSasDefinition", err.Error())
 	}
 
@@ -5014,7 +6050,7 @@ func (client BaseClient) SetSasDefinitionPreparer(ctx context.Context, vaultBase
 		"storage-account-name": autorest.Encode("path", storageAccountName),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5104,7 +6140,7 @@ func (client BaseClient) SetSecretPreparer(ctx context.Context, vaultBaseURL str
 		"secret-name": autorest.Encode("path", secretName),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5195,7 +6231,7 @@ func (client BaseClient) SetStorageAccountPreparer(ctx context.Context, vaultBas
 		"storage-account-name": autorest.Encode("path", storageAccountName),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5285,7 +6321,7 @@ func (client BaseClient) SignPreparer(ctx context.Context, vaultBaseURL string, 
 		"key-version": autorest.Encode("path", keyVersion),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5377,7 +6413,7 @@ func (client BaseClient) UnwrapKeyPreparer(ctx context.Context, vaultBaseURL str
 		"key-version": autorest.Encode("path", keyVersion),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5461,7 +6497,7 @@ func (client BaseClient) UpdateCertificatePreparer(ctx context.Context, vaultBas
 		"certificate-version": autorest.Encode("path", certificateVersion),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5543,7 +6579,7 @@ func (client BaseClient) UpdateCertificateIssuerPreparer(ctx context.Context, va
 		"issuer-name": autorest.Encode("path", issuerName),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5625,7 +6661,7 @@ func (client BaseClient) UpdateCertificateOperationPreparer(ctx context.Context,
 		"certificate-name": autorest.Encode("path", certificateName),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5707,7 +6743,7 @@ func (client BaseClient) UpdateCertificatePolicyPreparer(ctx context.Context, va
 		"certificate-name": autorest.Encode("path", certificateName),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5792,7 +6828,7 @@ func (client BaseClient) UpdateKeyPreparer(ctx context.Context, vaultBaseURL str
 		"key-version": autorest.Encode("path", keyVersion),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5884,7 +6920,7 @@ func (client BaseClient) UpdateSasDefinitionPreparer(ctx context.Context, vaultB
 		"storage-account-name": autorest.Encode("path", storageAccountName),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5969,7 +7005,7 @@ func (client BaseClient) UpdateSecretPreparer(ctx context.Context, vaultBaseURL 
 		"secret-version": autorest.Encode("path", secretVersion),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -6057,7 +7093,7 @@ func (client BaseClient) UpdateStorageAccountPreparer(ctx context.Context, vault
 		"storage-account-name": autorest.Encode("path", storageAccountName),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -6150,7 +7186,7 @@ func (client BaseClient) VerifyPreparer(ctx context.Context, vaultBaseURL string
 		"key-version": autorest.Encode("path", keyVersion),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -6243,7 +7279,7 @@ func (client BaseClient) WrapKeyPreparer(ctx context.Context, vaultBaseURL strin
 		"key-version": autorest.Encode("path", keyVersion),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "7.1"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
