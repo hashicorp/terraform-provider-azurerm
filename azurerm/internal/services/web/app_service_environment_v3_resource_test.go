@@ -112,7 +112,7 @@ func (r AppServiceEnvironmentV3Resource) basic(data acceptance.TestData) string 
 resource "azurerm_app_service_environment_v3" "test" {
   name                = "acctest-ase-%d"
   resource_group_name = azurerm_resource_group.test.name
-  subnet_id           = azurerm_subnet.ase.id
+  subnet_id           = azurerm_subnet.test.id
 }
 `, template, data.RandomInteger)
 }
@@ -124,7 +124,7 @@ func (r AppServiceEnvironmentV3Resource) complete(data acceptance.TestData) stri
 resource "azurerm_app_service_environment_v3" "test" {
   name                = "acctest-ase-%d"
   resource_group_name = azurerm_resource_group.test2.name
-  subnet_id           = azurerm_subnet.ase.id
+  subnet_id           = azurerm_subnet.test.id
 
   cluster_setting {
     name  = "InternalEncryption"
@@ -213,11 +213,18 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
 }
 
-resource "azurerm_subnet" "ase" {
-  name                 = "asesubnet"
+resource "azurerm_subnet" "inbound" {
+  name                 = "inbound"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.1.0/24"
+}
+
+resource "azurerm_subnet" "outbound" {
+  name                 = "outbound"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.0.2.0/24"
   delegation {
     name = "asedelegation"
     service_delegation {
@@ -225,13 +232,6 @@ resource "azurerm_subnet" "ase" {
       actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
     }
   }
-}
-
-resource "azurerm_subnet" "gateway" {
-  name                 = "gatewaysubnet"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

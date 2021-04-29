@@ -28,23 +28,28 @@ resource "azurerm_virtual_network" "example" {
   address_space       = ["10.0.0.0/16"]
 }
 
-resource "azurerm_subnet" "ase" {
-  name                 = "asesubnet"
+resource "azurerm_subnet" "inbound" {
+  name                 = "inbound"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
   address_prefixes     = ["10.0.1.0/24"]
 }
 
-resource "azurerm_subnet" "gateway" {
-  name                 = "gatewaysubnet"
+resource "azurerm_subnet" "outbound" {
+  name                 = "outbound"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
   address_prefixes     = ["10.0.2.0/24"]
+
+  service_delegation {
+    name    = "Microsoft.Web/hostingEnvironments"
+    actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+  }
 }
 
 resource "azurerm_app_service_environment_v3" "example" {
   name      = "example-ase"
-  subnet_id = azurerm_subnet.ase.id
+  subnet_id = azurerm_subnet.inbound.id
 
   cluster_setting {
     name  = "DisableTls1.0"
@@ -79,6 +84,8 @@ resource "azurerm_app_service_environment_v3" "example" {
 * `subnet_id` - (Required) The ID of the Subnet which the App Service Environment should be connected to. Changing this forces a new resource to be created.
 
 ~> **NOTE** a /24 or larger CIDR is required. Once associated with an ASE, this size cannot be changed.
+
+~> **NOTE:** This is the "inbound" Subnet which must not have`enforce_private_link_endpoint_network_policies` enabled. Additionally, an "outbound" subnet is required in the Virtual Network which is required to have a delegation to `Microsoft.Web/hostingEnvironments` as detailed in the example above.  
 
 * `cluster_setting` - (Optional) Zero or more `cluster_setting` blocks as defined below. 
 
