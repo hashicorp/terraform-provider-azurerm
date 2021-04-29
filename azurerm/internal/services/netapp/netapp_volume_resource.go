@@ -118,6 +118,16 @@ func resourceNetAppVolume() *schema.Resource {
 				},
 			},
 
+			"security_style": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"unix",
+					"ntfs",
+				}, false),
+			},
+
 			"storage_quota_in_gb": {
 				Type:         schema.TypeInt,
 				Required:     true,
@@ -281,6 +291,14 @@ func resourceNetAppVolumeCreateUpdate(d *schema.ResourceData, meta interface{}) 
 		protocols = append(protocols, "NFSv3")
 	}
 
+	securityStyle := d.Get("security_style").(string)
+	if strings.ToLower(securityStyle) == "unix" && len(protocols) == 1 && strings.ToLower(protocols[0].(string)) == "cifs" {
+		return fmt.Errorf("Unix security style cannot be used in a CIFS enabled volume for volume %q (Resource Group %q)", name, resourceGroup)
+	}
+	if strings.ToLower(securityStyle) == "ntfs" && len(protocols) == 1 && strings.ToLower(protocols[0].(string)) == "nfsv3" || strings.ToLower(protocols[0].(string)) == "nfsv4.1" {
+		return fmt.Errorf("NTFS security style cannot be used in a NFSv3/NFSv4.1 enabled volume for volume %q (Resource Group %q)", name, resourceGroup)
+	}
+
 	storageQuotaInGB := int64(d.Get("storage_quota_in_gb").(int) * 1073741824)
 
 	exportPolicyRuleRaw := d.Get("export_policy_rule").([]interface{})
@@ -370,6 +388,7 @@ func resourceNetAppVolumeCreateUpdate(d *schema.ResourceData, meta interface{}) 
 			ServiceLevel:   netapp.ServiceLevel(serviceLevel),
 			SubnetID:       utils.String(subnetID),
 			ProtocolTypes:  utils.ExpandStringSlice(protocols),
+			SecurityStyle:  netapp.SecurityStyle(securityStyle),
 			UsageThreshold: utils.Int64(storageQuotaInGB),
 			ExportPolicy:   exportPolicyRule,
 			VolumeType:     utils.String(volumeType),
@@ -464,6 +483,7 @@ func resourceNetAppVolumeRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("service_level", props.ServiceLevel)
 		d.Set("subnet_id", props.SubnetID)
 		d.Set("protocols", props.ProtocolTypes)
+		d.Set("security_style", props.SecurityStyle)
 		if props.UsageThreshold != nil {
 			d.Set("storage_quota_in_gb", *props.UsageThreshold/1073741824)
 		}
