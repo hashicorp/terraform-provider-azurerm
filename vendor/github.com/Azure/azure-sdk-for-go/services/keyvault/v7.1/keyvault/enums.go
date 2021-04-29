@@ -25,42 +25,66 @@ func PossibleActionTypeValues() []ActionType {
 type DeletionRecoveryLevel string
 
 const (
-	// Purgeable Soft-delete is not enabled for this vault. A DELETE operation results in immediate and
-	// irreversible data loss.
+	// CustomizedRecoverable Denotes a vault state in which deletion is recoverable without the possibility for
+	// immediate and permanent deletion (i.e. purge when 7<= SoftDeleteRetentionInDays < 90).This level
+	// guarantees the recoverability of the deleted entity during the retention interval and while the
+	// subscription is still available.
+	CustomizedRecoverable DeletionRecoveryLevel = "CustomizedRecoverable"
+	// CustomizedRecoverableProtectedSubscription Denotes a vault and subscription state in which deletion is
+	// recoverable, immediate and permanent deletion (i.e. purge) is not permitted, and in which the
+	// subscription itself cannot be permanently canceled when 7<= SoftDeleteRetentionInDays < 90. This level
+	// guarantees the recoverability of the deleted entity during the retention interval, and also reflects the
+	// fact that the subscription itself cannot be cancelled.
+	CustomizedRecoverableProtectedSubscription DeletionRecoveryLevel = "CustomizedRecoverable+ProtectedSubscription"
+	// CustomizedRecoverablePurgeable Denotes a vault state in which deletion is recoverable, and which also
+	// permits immediate and permanent deletion (i.e. purge when 7<= SoftDeleteRetentionInDays < 90). This
+	// level guarantees the recoverability of the deleted entity during the retention interval, unless a Purge
+	// operation is requested, or the subscription is cancelled.
+	CustomizedRecoverablePurgeable DeletionRecoveryLevel = "CustomizedRecoverable+Purgeable"
+	// Purgeable Denotes a vault state in which deletion is an irreversible operation, without the possibility
+	// for recovery. This level corresponds to no protection being available against a Delete operation; the
+	// data is irretrievably lost upon accepting a Delete operation at the entity level or higher (vault,
+	// resource group, subscription etc.)
 	Purgeable DeletionRecoveryLevel = "Purgeable"
-	// Recoverable Soft-delete is enabled for this vault and purge has been disabled. A deleted entity will
-	// remain in this state until recovered, or the end of the retention interval.
+	// Recoverable Denotes a vault state in which deletion is recoverable without the possibility for immediate
+	// and permanent deletion (i.e. purge). This level guarantees the recoverability of the deleted entity
+	// during the retention interval(90 days) and while the subscription is still available. System wil
+	// permanently delete it after 90 days, if not recovered
 	Recoverable DeletionRecoveryLevel = "Recoverable"
-	// RecoverableProtectedSubscription Soft-delete is enabled for this vault, and the subscription is
-	// protected against immediate deletion.
+	// RecoverableProtectedSubscription Denotes a vault and subscription state in which deletion is recoverable
+	// within retention interval (90 days), immediate and permanent deletion (i.e. purge) is not permitted, and
+	// in which the subscription itself  cannot be permanently canceled. System wil permanently delete it after
+	// 90 days, if not recovered
 	RecoverableProtectedSubscription DeletionRecoveryLevel = "Recoverable+ProtectedSubscription"
-	// RecoverablePurgeable Soft-delete is enabled for this vault; A privileged user may trigger an immediate,
-	// irreversible deletion(purge) of a deleted entity.
+	// RecoverablePurgeable Denotes a vault state in which deletion is recoverable, and which also permits
+	// immediate and permanent deletion (i.e. purge). This level guarantees the recoverability of the deleted
+	// entity during the retention interval (90 days), unless a Purge operation is requested, or the
+	// subscription is cancelled. System wil permanently delete it after 90 days, if not recovered
 	RecoverablePurgeable DeletionRecoveryLevel = "Recoverable+Purgeable"
 )
 
 // PossibleDeletionRecoveryLevelValues returns an array of possible values for the DeletionRecoveryLevel const type.
 func PossibleDeletionRecoveryLevelValues() []DeletionRecoveryLevel {
-	return []DeletionRecoveryLevel{Purgeable, Recoverable, RecoverableProtectedSubscription, RecoverablePurgeable}
+	return []DeletionRecoveryLevel{CustomizedRecoverable, CustomizedRecoverableProtectedSubscription, CustomizedRecoverablePurgeable, Purgeable, Recoverable, RecoverableProtectedSubscription, RecoverablePurgeable}
 }
 
 // JSONWebKeyCurveName enumerates the values for json web key curve name.
 type JSONWebKeyCurveName string
 
 const (
-	// P256 The NIST P-256 elliptic curve, AKA SECG curve SECP256R1.
+	// P256 ...
 	P256 JSONWebKeyCurveName = "P-256"
-	// P384 The NIST P-384 elliptic curve, AKA SECG curve SECP384R1.
+	// P256K ...
+	P256K JSONWebKeyCurveName = "P-256K"
+	// P384 ...
 	P384 JSONWebKeyCurveName = "P-384"
-	// P521 The NIST P-521 elliptic curve, AKA SECG curve SECP521R1.
+	// P521 ...
 	P521 JSONWebKeyCurveName = "P-521"
-	// SECP256K1 The SECG SECP256K1 elliptic curve.
-	SECP256K1 JSONWebKeyCurveName = "SECP256K1"
 )
 
 // PossibleJSONWebKeyCurveNameValues returns an array of possible values for the JSONWebKeyCurveName const type.
 func PossibleJSONWebKeyCurveNameValues() []JSONWebKeyCurveName {
-	return []JSONWebKeyCurveName{P256, P384, P521, SECP256K1}
+	return []JSONWebKeyCurveName{P256, P256K, P384, P521}
 }
 
 // JSONWebKeyEncryptionAlgorithm enumerates the values for json web key encryption algorithm.
@@ -88,6 +112,8 @@ const (
 	Decrypt JSONWebKeyOperation = "decrypt"
 	// Encrypt ...
 	Encrypt JSONWebKeyOperation = "encrypt"
+	// Import ...
+	Import JSONWebKeyOperation = "import"
 	// Sign ...
 	Sign JSONWebKeyOperation = "sign"
 	// UnwrapKey ...
@@ -100,40 +126,43 @@ const (
 
 // PossibleJSONWebKeyOperationValues returns an array of possible values for the JSONWebKeyOperation const type.
 func PossibleJSONWebKeyOperationValues() []JSONWebKeyOperation {
-	return []JSONWebKeyOperation{Decrypt, Encrypt, Sign, UnwrapKey, Verify, WrapKey}
+	return []JSONWebKeyOperation{Decrypt, Encrypt, Import, Sign, UnwrapKey, Verify, WrapKey}
 }
 
 // JSONWebKeySignatureAlgorithm enumerates the values for json web key signature algorithm.
 type JSONWebKeySignatureAlgorithm string
 
 const (
-	// ECDSA256 ...
-	ECDSA256 JSONWebKeySignatureAlgorithm = "ECDSA256"
-	// ES256 ...
+	// ES256 ECDSA using P-256 and SHA-256, as described in https://tools.ietf.org/html/rfc7518.
 	ES256 JSONWebKeySignatureAlgorithm = "ES256"
-	// ES384 ...
+	// ES256K ECDSA using P-256K and SHA-256, as described in https://tools.ietf.org/html/rfc7518
+	ES256K JSONWebKeySignatureAlgorithm = "ES256K"
+	// ES384 ECDSA using P-384 and SHA-384, as described in https://tools.ietf.org/html/rfc7518
 	ES384 JSONWebKeySignatureAlgorithm = "ES384"
-	// ES512 ...
+	// ES512 ECDSA using P-521 and SHA-512, as described in https://tools.ietf.org/html/rfc7518
 	ES512 JSONWebKeySignatureAlgorithm = "ES512"
-	// PS256 ...
+	// PS256 RSASSA-PSS using SHA-256 and MGF1 with SHA-256, as described in
+	// https://tools.ietf.org/html/rfc7518
 	PS256 JSONWebKeySignatureAlgorithm = "PS256"
-	// PS384 ...
+	// PS384 RSASSA-PSS using SHA-384 and MGF1 with SHA-384, as described in
+	// https://tools.ietf.org/html/rfc7518
 	PS384 JSONWebKeySignatureAlgorithm = "PS384"
-	// PS512 ...
+	// PS512 RSASSA-PSS using SHA-512 and MGF1 with SHA-512, as described in
+	// https://tools.ietf.org/html/rfc7518
 	PS512 JSONWebKeySignatureAlgorithm = "PS512"
-	// RS256 ...
+	// RS256 RSASSA-PKCS1-v1_5 using SHA-256, as described in https://tools.ietf.org/html/rfc7518
 	RS256 JSONWebKeySignatureAlgorithm = "RS256"
-	// RS384 ...
+	// RS384 RSASSA-PKCS1-v1_5 using SHA-384, as described in https://tools.ietf.org/html/rfc7518
 	RS384 JSONWebKeySignatureAlgorithm = "RS384"
-	// RS512 ...
+	// RS512 RSASSA-PKCS1-v1_5 using SHA-512, as described in https://tools.ietf.org/html/rfc7518
 	RS512 JSONWebKeySignatureAlgorithm = "RS512"
-	// RSNULL ...
+	// RSNULL Reserved
 	RSNULL JSONWebKeySignatureAlgorithm = "RSNULL"
 )
 
 // PossibleJSONWebKeySignatureAlgorithmValues returns an array of possible values for the JSONWebKeySignatureAlgorithm const type.
 func PossibleJSONWebKeySignatureAlgorithmValues() []JSONWebKeySignatureAlgorithm {
-	return []JSONWebKeySignatureAlgorithm{ECDSA256, ES256, ES384, ES512, PS256, PS384, PS512, RS256, RS384, RS512, RSNULL}
+	return []JSONWebKeySignatureAlgorithm{ES256, ES256K, ES384, ES512, PS256, PS384, PS512, RS256, RS384, RS512, RSNULL}
 }
 
 // JSONWebKeyType enumerates the values for json web key type.
@@ -184,4 +213,19 @@ const (
 // PossibleKeyUsageTypeValues returns an array of possible values for the KeyUsageType const type.
 func PossibleKeyUsageTypeValues() []KeyUsageType {
 	return []KeyUsageType{CRLSign, DataEncipherment, DecipherOnly, DigitalSignature, EncipherOnly, KeyAgreement, KeyCertSign, KeyEncipherment, NonRepudiation}
+}
+
+// SasTokenType enumerates the values for sas token type.
+type SasTokenType string
+
+const (
+	// Account ...
+	Account SasTokenType = "account"
+	// Service ...
+	Service SasTokenType = "service"
+)
+
+// PossibleSasTokenTypeValues returns an array of possible values for the SasTokenType const type.
+func PossibleSasTokenTypeValues() []SasTokenType {
+	return []SasTokenType{Account, Service}
 }

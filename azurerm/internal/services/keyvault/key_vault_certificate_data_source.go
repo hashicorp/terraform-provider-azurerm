@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
+	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
@@ -335,8 +335,8 @@ func flattenKeyVaultCertificatePolicyForDataSource(input *keyvault.CertificatePo
 		if props.KeySize != nil {
 			keySize = int(*props.KeySize)
 		}
-		if props.KeyType != nil {
-			keyType = *props.KeyType
+		if props.KeyType != "" {
+			keyType = string(props.KeyType)
 		}
 
 		policy["key_properties"] = []interface{}{

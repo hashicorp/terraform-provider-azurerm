@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
+	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -127,6 +127,13 @@ func resourceKeyVaultCertificate() *schema.Resource {
 										Type:     schema.TypeString,
 										Required: true,
 										ForceNew: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(keyvault.EC),
+											string(keyvault.ECHSM),
+											string(keyvault.RSA),
+											string(keyvault.RSAHSM),
+											string(keyvault.Oct),
+										}, false),
 									},
 									"reuse_key": {
 										Type:     schema.TypeBool,
@@ -680,7 +687,7 @@ func expandKeyVaultCertificatePolicy(d *schema.ResourceData) keyvault.Certificat
 	policy.KeyProperties = &keyvault.KeyProperties{
 		Exportable: utils.Bool(props["exportable"].(bool)),
 		KeySize:    utils.Int32(int32(props["key_size"].(int))),
-		KeyType:    utils.String(props["key_type"].(string)),
+		KeyType:    keyvault.JSONWebKeyType(props["key_type"].(string)),
 		ReuseKey:   utils.Bool(props["reuse_key"].(bool)),
 	}
 
@@ -793,7 +800,7 @@ func flattenKeyVaultCertificatePolicy(input *keyvault.CertificatePolicy, certDat
 		keyProps := make(map[string]interface{})
 		keyProps["exportable"] = *props.Exportable
 		keyProps["key_size"] = int(*props.KeySize)
-		keyProps["key_type"] = *props.KeyType
+		keyProps["key_type"] = string(props.KeyType)
 		keyProps["reuse_key"] = *props.ReuseKey
 
 		policy["key_properties"] = []interface{}{keyProps}
