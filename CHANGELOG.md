@@ -86,6 +86,7 @@ BUG FIXES:
 * `azurerm_monitor_activity_log_alert` - fix a persistent diff for the `service_health` block [GH-11383]
 * `azurerm_mssql_database ` - error when secondary database uses `max_size_gb` [GH-11401]
 * `azurerm_mssql_database` - correctly import the `create_mode` property [GH-11026]
+* `azurerm_netap_volume` - correctly set the `replication_frequency` attribute in the `data_protection_replication` block [GH-11530]
 * `azurerm_postgresql_server` - ensure `public_network_access_enabled` is correctly set for replicas [GH-11465]
 * `azurerm_postgresql_server` - can not correctly disable replication if required when `create_mode` is changed [GH-11467]
 * `azurerm_virtual_network_gatewa` - updating the `custom_route` block no longer creates a new resource [GH- 11433]
