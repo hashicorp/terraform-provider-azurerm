@@ -95,6 +95,12 @@ func dataSourceNetAppVolume() *schema.Resource {
 							Computed: true,
 						},
 
+						"replication_schedule": {
+							Type:       schema.TypeString,
+							Computed:   true,
+							Deprecated: "This property is not in use and will be removed in version 3.0 of the provider. Please use `replication_frequency` instead",
+						},
+
 						"replication_frequency": {
 							Type:     schema.TypeString,
 							Computed: true,
