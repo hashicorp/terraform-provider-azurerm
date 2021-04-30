@@ -176,7 +176,7 @@ func resourceNetworkConnectionMonitor() *schema.Resource {
 							Type:     schema.TypeSet,
 							Optional: true,
 							Elem: &schema.Schema{
-								Type:         schema.TypeString,
+								Type: schema.TypeString,
 								ValidateFunc: validation.Any(
 									validation.IsIPv4Address,
 									validation.IsIPv6Address,
@@ -230,7 +230,7 @@ func resourceNetworkConnectionMonitor() *schema.Resource {
 							Type:     schema.TypeSet,
 							Optional: true,
 							Elem: &schema.Schema{
-								Type:         schema.TypeString,
+								Type: schema.TypeString,
 								ValidateFunc: validation.Any(
 									validation.IsIPv4Address,
 									validation.IsIPv6Address,
