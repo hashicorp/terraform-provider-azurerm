@@ -871,12 +871,11 @@ func flattenNetworkConnectionMonitorEndpoint(input *[]network.ConnectionMonitorE
 		}
 
 		v := map[string]interface{}{
-			"name":               name,
-			"address":            address,
-			"resource_id":        resourceId,
-			"type":               endpointType,
-			"filter":             flattenNetworkConnectionMonitorEndpointFilter(item.Filter),
-			"virtual_machine_id": resourceId,
+			"name":        name,
+			"address":     address,
+			"resource_id": resourceId,
+			"type":        endpointType,
+			"filter":      flattenNetworkConnectionMonitorEndpointFilter(item.Filter),
 		}
 
 		results = append(results, v)
