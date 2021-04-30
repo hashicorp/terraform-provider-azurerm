@@ -214,7 +214,12 @@ func resourceNetworkConnectionMonitor() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
+								string(network.AzureSubnet),
+								string(network.AzureVM),
+								string(network.AzureVNet),
+								string(network.ExternalAddress),
 								string(network.MMAWorkspaceMachine),
+								string(network.MMAWorkspaceNetwork),
 							}, false),
 						},
 
@@ -224,7 +229,7 @@ func resourceNetworkConnectionMonitor() *schema.Resource {
 							Optional:     true,
 							Computed:     true,
 							ValidateFunc: computeValidate.VirtualMachineID,
-							Deprecated:   "Deprecated in favour of `resource_id` since the service API supports more resource types",
+							Deprecated:   "This property has been renamed to `resource_id` and will be removed in v3.0 of the provider.",
 						},
 					},
 				},
@@ -494,11 +499,16 @@ func resourceNetworkConnectionMonitorCreateUpdate(d *schema.ResourceData, meta i
 		Location: utils.String(location),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		ConnectionMonitorParameters: &network.ConnectionMonitorParameters{
-			Endpoints:          expandNetworkConnectionMonitorEndpoint(d.Get("endpoint").(*schema.Set).List()),
 			Outputs:            expandNetworkConnectionMonitorOutput(d.Get("output_workspace_resource_ids").(*schema.Set).List()),
 			TestConfigurations: expandNetworkConnectionMonitorTestConfiguration(d.Get("test_configuration").(*schema.Set).List()),
 			TestGroups:         expandNetworkConnectionMonitorTestGroup(d.Get("test_group").(*schema.Set).List()),
 		},
+	}
+
+	if v, err := expandNetworkConnectionMonitorEndpoint(d.Get("endpoint").(*schema.Set).List()); err == nil {
+		properties.ConnectionMonitorParameters.Endpoints = v
+	} else {
+		return err
 	}
 
 	if notes, ok := d.GetOk("notes"); ok {
@@ -606,11 +616,15 @@ func resourceNetworkConnectionMonitorDelete(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func expandNetworkConnectionMonitorEndpoint(input []interface{}) *[]network.ConnectionMonitorEndpoint {
+func expandNetworkConnectionMonitorEndpoint(input []interface{}) (*[]network.ConnectionMonitorEndpoint, error) {
 	results := make([]network.ConnectionMonitorEndpoint, 0)
 
 	for _, item := range input {
 		v := item.(map[string]interface{})
+
+		if v["resource_id"].(string) != "" && v["virtual_machine_id"] != "" {
+			return nil, fmt.Errorf("`resource_id` and `virtual_machine_id` cannot be set together")
+		}
 
 		result := network.ConnectionMonitorEndpoint{
 			Name:   utils.String(v["name"].(string)),
@@ -629,6 +643,7 @@ func expandNetworkConnectionMonitorEndpoint(input []interface{}) *[]network.Conn
 			result.Type = network.EndpointType(endpointType.(string))
 		}
 
+		// TODO: remove in v3.0
 		if vmId := v["virtual_machine_id"]; vmId != "" {
 			result.ResourceID = utils.String(vmId.(string))
 		}
@@ -636,7 +651,7 @@ func expandNetworkConnectionMonitorEndpoint(input []interface{}) *[]network.Conn
 		results = append(results, result)
 	}
 
-	return &results
+	return &results, nil
 }
 
 func expandNetworkConnectionMonitorEndpointFilter(input []interface{}) *network.ConnectionMonitorEndpointFilter {
@@ -843,9 +858,9 @@ func flattenNetworkConnectionMonitorEndpoint(input *[]network.ConnectionMonitorE
 			address = *item.Address
 		}
 
-		var endpointType network.EndpointType
+		var endpointType string
 		if item.Type != "" {
-			endpointType = item.Type
+			endpointType = string(item.Type)
 		}
 
 		var resourceId string

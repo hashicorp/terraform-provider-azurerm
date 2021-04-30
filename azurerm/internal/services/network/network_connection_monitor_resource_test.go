@@ -234,13 +234,13 @@ func testAccNetworkConnectionMonitor_icmpConfiguration(t *testing.T) {
 	})
 }
 
-func testAccNetworkConnectionMonitor_endpointType(t *testing.T) {
+func testAccNetworkConnectionMonitor_endpointDeprecated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 	r := NetworkConnectionMonitorResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.endpointType(data),
+			Config: r.endpointDeprecated(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -254,7 +254,7 @@ func testAccNetworkConnectionMonitor_endpointType(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.endpointType(data),
+			Config: r.endpointDeprecated(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -865,7 +865,7 @@ resource "azurerm_network_connection_monitor" "test" {
 `, r.baseConfig(data), data.RandomInteger)
 }
 
-func (r NetworkConnectionMonitorResource) endpointType(data acceptance.TestData) string {
+func (r NetworkConnectionMonitorResource) endpointDeprecated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
